@@ -15,6 +15,7 @@ build-ubi8-rust-builder: NAME = ubi8-rust-builder
 build-ubi8-rust-builder:
 	$(call build,${NAME})
 
+push-ubi8-rust-builder: NAME = ubi8-rust-builder
 push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
 
