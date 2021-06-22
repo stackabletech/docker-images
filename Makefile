@@ -1,4 +1,4 @@
-.PHONY: build-ubi8-base-rust-builder, push-ubi8-base-rust-builder, login
+.PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, login
 
 REPO   := docker.stackable.tech
 TAG    := $(shell git rev-parse --short HEAD)
@@ -11,11 +11,11 @@ define build
 	@docker build --force-rm -t "${REPO}/${1}:${TAG}" -t "${REPO}/${1}:latest" -f $(1)/Dockerfile .
 endef
 
-build-ubi8-base-rust-builder: NAME = ubi8-base-rust-builder
-build-ubi8-base-rust-builder:
+build-ubi8-rust-builder: NAME = ubi8-rust-builder
+build-ubi8-rust-builder:
 	$(call build,${NAME})
 
-push-ubi8-base-rust-builder : build-ubi8-base-rust-builder, login
+push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
 
 login:
