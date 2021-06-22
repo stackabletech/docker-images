@@ -19,4 +19,4 @@ jobs:
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make build-ubi8-rust-builder
+        run: make push-ubi8-rust-builder
