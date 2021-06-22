@@ -1,0 +1,37 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
+LABEL maintainer="Stackable GmbH"
+
+# Update image and install everything needed for Rustup & Rust
+RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
+  && rm -rf /var/cache/yum \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc make openssl-devel pkg-config systemd-devel -y \
+  && rm -rf /var/cache/yum
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+ && . $HOME/.cargo/env \
+ && rustup toolchain install stable \
+ && rustup default stable
+
+# Build artifacts will be available in /app.
+RUN mkdir /app
+
+ONBUILD WORKDIR /src
+ONBUILD COPY . /src
+
+ONBUILD RUN . $HOME/.cargo/env && cargo build --release
+
+# Copy the "interesting" files into /app.
+ONBUILD RUN find /src/target/release \
+                -regextype egrep \
+                # The interesting binaries are all directly in ${BUILD_DIR}.
+                -maxdepth 1 \
+                # Well, binaries are executable.
+                -executable \
+                # Well, binaries are files.
+                -type f \
+                # Filter out tests.
+                ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
+                # Copy the matching files into /app.
+                -exec cp {} /app \;
+
+ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
