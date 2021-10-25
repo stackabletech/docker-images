@@ -24,12 +24,14 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-11
 # Download ZooKeeper
 WORKDIR /opt/stackable/packages
 RUN curl -L https://archive.apache.org/dist/zookeeper/$STACKABLE_APP_SHORT_NAME/$STACKABLE_APP_FULL_NAME.tar.gz | tar -xzC .
-# Copy stackable folder (jmx exporter and config)
-ADD stackable stackable
 
-# Download JMX prometheus exporter
+# Copy stackable folder (jmx exporter and config)
+ADD stackable /opt/stackable/packages/$STACKABLE_APP_FULL_NAME/stackable
+
 WORKDIR /opt/stackable/packages/$STACKABLE_APP_FULL_NAME/stackable/lib
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar
+# Download JMX prometheus exporter to stackable/lib
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
+    -o /opt/stackable/packages/$STACKABLE_APP_FULL_NAME/stackable/lib/jmx_prometheus_javaagent-0.16.1.jar
 
 WORKDIR /opt/stackable/packages/$STACKABLE_APP_FULL_NAME
 ENTRYPOINT ["bin/zkServer.sh", "start-foreground", "/stackable/zookeeper/conf/zoo.cfg"]

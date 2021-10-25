@@ -11,17 +11,17 @@ spec:
       volumeMounts:
       - name: config-volume
         mountPath: /stackable/zookeeper/conf
-      #- name: id-volume
-      #  mountPath: /stackable/zookeeper/data
+      - name: id-volume
+        mountPath: /stackable/zookeeper/id
       - name: data-volume
         mountPath: /stackable/zookeeper/data
   volumes:
     - name: config-volume
       configMap:
         name: zookeeper-config
-    #- name: id-volume
-    #  configMap:
-    #  name: zookeeper-myid
+    - name: id-volume
+      configMap:
+        name: zookeeper-myid
     - name: data-volume
       emptyDir: {}
 ---
@@ -43,7 +43,7 @@ data:
     # the directory where the snapshot is stored.
     # do not use /tmp for storage, /tmp here is just
     # example sakes.
-    dataDir=/etc/stackable/zookeeper-3.5.8/data
+    dataDir=/stackable/zookeeper/data
     # the port at which the clients will connect
     clientPort=2181
 ---
