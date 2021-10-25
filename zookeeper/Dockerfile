@@ -1,18 +1,17 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
-# VERSION must be at least 3.5.0 in order to work
+# PRODUCT_VERSION must be at least 3.5.0 in order to work
 ARG PRODUCT_VERSION
-#/stackable/zookeeper
 ARG STACKABLE_APP_SHORT_NAME=zookeeper-$PRODUCT_VERSION
 ARG STACKABLE_APP_FULL_NAME=apache-zookeeper-$PRODUCT_VERSION-bin
 ARG VOLUME_PATH=/stackable/zookeeper
 
-# Directories
+# Required directories
 ARG CONF_DIR=/conf
 ARG DATA_DIR=/data
 
-# Add a user with an explicit UID/GID and create necessary directories
+# Create required directories
 RUN mkdir -p "$VOLUME_PATH$CONF_DIR" "$VOLUME_PATH$DATA_DIR"
 
 # Download java, tar and gzip
