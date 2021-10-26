@@ -7,13 +7,16 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
-re=''
 if ! [[ $1 =~ ^[0-9]+$ ]] ; then
    echo "Error: $1 not a number. Only integers accepted!"
    exit 1
 fi
 
+
+myid=/stackable/zookeeper/data/myid
+
+echo "Writing myid=$1 to $myid..."
 # we need that here? what about the hardcoded path?
-touch /stackable/zookeeper/data/myid
-echo "$1" > /stackable/zookeeper/data/myid
+touch myid
+echo "$1" > myid
 

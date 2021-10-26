@@ -34,4 +34,4 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /opt/stackable/packages/$STACKABLE_APP_FULL_NAME/stackable/lib/jmx_prometheus_javaagent-0.16.1.jar
 
 WORKDIR /opt/stackable/packages/$STACKABLE_APP_FULL_NAME
-ENTRYPOINT ["bin/zkServer.sh", "start-foreground", "/stackable/zookeeper/conf/zoo.cfg"]
+CMD ["bin/zkServer.sh", "start-foreground", "/stackable/zookeeper/conf/zoo.cfg"]
