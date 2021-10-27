@@ -1,22 +1,33 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]
+if ! [ $# -eq 2 ]
   then
-    echo "Error: no myid provided. Usage:"
-    echo "    $0 <myid>"
+    echo "Wrong number of arguments. Usage:"
+    echo "    $0 <dataDir> <myid>"
+    echo "    $0 /tmp/zookeeper 1"
     exit 1
 fi
 
-if ! [[ $1 =~ ^[0-9]+$ ]] ; then
-   echo "Error: $1 not a number. Only integers accepted!"
+directory=$1
+id=$2
+
+if ! [[ $directory =~ ^/|(/[\w-]+)+$ ]] ; then
+   echo "Error: $directory not a directory!"
    exit 1
 fi
 
+if ! [[ $id =~ ^[0-9]+$ ]] ; then
+   echo "Error: $id not a number. Only integers accepted!"
+   exit 1
+fi
 
-myid=/stackable/zookeeper/data/myid
+if ! [[ -d $directory ]]; then
+  echo "Directory $directory does not exist. Creating it!"
+  mkdir -p "$directory"
+fi
 
-echo "Writing myid=$1 to $myid..."
-# we need that here? what about the hardcoded path?
-touch myid
-echo "$1" > myid
+myid=$directory/myid
+
+echo "Writing myid [$id] to $myid ..."
+echo "$id" > myid
 
