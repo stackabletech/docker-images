@@ -30,7 +30,7 @@ jobs:
           # generate Docker tags based on the following events/attributes
           tags: |
             type=sha
-            ${{ github.event.inputs.productVersion }}
+            type=raw,${{ github.event.inputs.productVersion }}
             
       -
         name: Set up QEMU
