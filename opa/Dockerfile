@@ -20,4 +20,5 @@ RUN groupadd stackable && \
 
 USER stackable
 
-CMD ["./opa", "run"]
+WORKDIR /stackable
+CMD ["/stackable/opa/opa", "run", "-s"]
