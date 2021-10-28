@@ -60,6 +60,6 @@ jobs:
           context: ${{ github.event.inputs.image }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ github.event.inputs.buildArgs }}
+          build-args: ${{ github.event.inputs.productVersion }}
           push: true
 
