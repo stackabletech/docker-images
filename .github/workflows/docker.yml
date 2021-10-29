@@ -7,12 +7,15 @@ on:
         description: 'Image to build.'     
         required: true
         default: 'zookeeper'
-      productVersion:
-        description: 'Product version to install in the image'  
+      imageVersion:
+        description: 'Image version'  
 jobs:
   build:
-    name: Build and push Docker image
+    name: Build images for ${{ github.event.inputs.image }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        zookeeper: [ '3.5.8', '3.7.0' ]
     steps:
 
       -
@@ -30,6 +33,7 @@ jobs:
           # generate Docker tags based on the following events/attributes
           tags: |
             type=sha
+            type=raw,${{ matrix.${{github.event.inputs.image}} }}-${{ github.event.inputs.imageVersion }}
             
       -
         name: Set up QEMU
@@ -54,6 +58,6 @@ jobs:
           context: ${{ github.event.inputs.image }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ github.event.inputs.productVersion }}
+          build-args: PRODUCT_VERSION=${{ matrix.${{github.event.inputs.image}} }}
           push: true
 
