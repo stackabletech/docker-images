@@ -1,4 +1,6 @@
-
+"""
+Application images will be created for products and associated versions configured here.
+"""
 products = [
     {
         'name': 'zookeeper',
@@ -29,4 +31,18 @@ products = [
         'name': 'trino',
         'versions': ['362'],
     },
+    {
+        'name': 'spark',
+        'versions': [
+            {
+                'product_version': '3.0.1',
+                'hadoop_version': '2.7',
+            },
+            {
+                'product_version': '3.1.1',
+                'hadoop_version': '2.7',
+            },
+        ]
+    },
+
  ]
