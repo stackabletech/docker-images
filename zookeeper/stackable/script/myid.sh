@@ -21,13 +21,8 @@ if ! [[ $id =~ ^[0-9]+$ ]] ; then
    exit 1
 fi
 
-if ! [[ -d $directory ]]; then
-  echo "Directory $directory does not exist. Creating it!"
-  mkdir -p "$directory"
-fi
-
 myid=$directory/myid
 
 echo "Writing myid [$id] to $myid ..."
-echo "$id" > myid
+echo "$id" > $myid
 
