@@ -1,51 +1,15 @@
 #!/bin/env python
 """
-Kafka 2.5
-Kafka 2.6
-Kafka 2.7
-Kafka 2.8
-Kafka 3.0
+Build and possibly publish product images. It doesn't login to any registry when publishing
+but it assumes a `docker login` has been performed before.
 
-Plattform:
-2022-Q1: Kafka Operator 7.4 -> Kafka 2.5-2.6, Image Major Version 1
-2022-Q2: Kafka Operator 7.5 -> Kafka 2.5-2.7, Image Version 1
-2022-Q3: Kafka Operator 8.0 -> Kafka 2.5-2.8, Image Version 2
-2024-Q4: Kafka Operator 9.1 -> Kafka 2.5-3.3, Image Version 3
-         Trino 392-412, Image Version 7
+Usage: build_product_images.py --help
 
-Docker Image
-kafka:2.5-1.0
-kafka:2.5-1.1
-kafka:2.5-1.2
+Example:
 
-kafka:2.5-2.0
-kafka:2.5-2.1 <- kafka:2.5-2
-kafka:2.6-2.0
-kafka:2.7-2.0
-kafka:2.8-2.0 <- kafka:2.8-2
+    build_product_images.py --product kafka -image_version 0.1 --push
 
-kafka:2.5-3.0
-
-kafka:3.3-3.0
-
-CRD:
-Kafka Operator 7.5
-kind: KafkaCluster
-...
-version: 2.5   -> kafka:2.5-1
-
-
-Kafka Operator 8.0
-kind: KafkaCluster
-...
-version: 2.5   -> kafka:2.5-2
-
-
-Kafka Operator 7.5
-kind: KafkaCluster
-...
-image: tyrell/kafka-evil:2.5-foobar
-
+This whill build an image for each Apache Kafka version configured in conf.py
 """
 
 import conf
@@ -54,7 +18,7 @@ import subprocess
 import sys
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Build and publish product images.")
+    parser = argparse.ArgumentParser(description="Build and publish product images. See conf.py for details regarding product versions.")
     parser.add_argument("-r", "--registry", help="Image registry to publish to.", default='docker.stackable.tech')
     parser.add_argument("-p", "--product", help="Product name")
     parser.add_argument("-i", "--image_version", help="Image version")
@@ -62,7 +26,15 @@ def parse_args():
     parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
     return parser.parse_args()
 
-def build_image_args(version) -> list:
+def build_image_args(version) -> list[str]:
+    """
+    Returns a list of --build-arg command line arguments that are used by the
+    docker build command.
+
+    Arguments:
+    - version: Can be a str, in which case it's considered the PRODUCT_VERSION
+                or a dict.
+    """
     result = []
 
     if isinstance(version, dict):
@@ -75,7 +47,11 @@ def build_image_args(version) -> list:
 
     return result
 
-def build_image_tags(image_name: str, image_version: str, product_version) -> list:
+def build_image_tags(image_name: str, image_version: str, product_version) -> list[str]:
+    """
+    Returns a list of --tag command line arguments that are used by the
+    docker build command.
+    """
     result = []
 
     if isinstance(product_version, dict):
@@ -88,10 +64,14 @@ def build_image_tags(image_name: str, image_version: str, product_version) -> li
 
     return result
 
-def build_and_publish_image(args, product: dict) -> list:
+def build_and_publish_image(args, product: dict) -> list[list[str]]:
+    """
+    Returns a list of commands that need to be run in order to build and
+    publish product images.
+    """
     commands = []
     for v in product['versions']:
-        image_name=f'{args.registry}/{product["name"]}'
+        image_name=f'{args.registry}/stackable/{product["name"]}'
         tags = build_image_tags(image_name, args.image_version, v)
         build_args = build_image_args(v)
 
@@ -102,6 +82,10 @@ def build_and_publish_image(args, product: dict) -> list:
     return commands
 
 def run_commands(dry: bool, commands: list):
+    """
+    Runs the commands to build and publish images. In dry-run mode it only
+    lists the command on stdout.
+    """
     for cmd in commands:
         if dry:
             subprocess.run(['echo', *cmd])
