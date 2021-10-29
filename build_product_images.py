@@ -7,9 +7,9 @@ Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product kafka -image_version 0.1 --push
+    build_product_images.py --product zookeeper,kafka -image_version 0.1 --push
 
-This whill build an image for each Apache Kafka version configured in conf.py
+This whill build an image for each Apache Zookeeper and APache Kafka version configured in conf.py
 """
 
 import conf
@@ -20,8 +20,8 @@ import sys
 def parse_args():
     parser = argparse.ArgumentParser(description="Build and publish product images. See conf.py for details regarding product versions.")
     parser.add_argument("-r", "--registry", help="Image registry to publish to.", default='docker.stackable.tech')
-    parser.add_argument("-p", "--product", help="Product name")
-    parser.add_argument("-i", "--image_version", help="Image version")
+    parser.add_argument("-p", "--product", help="Product names to build as a comma separated list", type=str)
+    parser.add_argument("-i", "--image_version", help="Image version", required=True)
     parser.add_argument("-u", "--push", help="Push images", action='store_true')
     parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
     return parser.parse_args()
@@ -64,20 +64,22 @@ def build_image_tags(image_name: str, image_version: str, product_version) -> li
 
     return result
 
-def build_and_publish_image(args, product: dict) -> list[list[str]]:
+def build_and_publish_image(args, products: list[dict]) -> list[list[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
     """
     commands = []
-    for v in product['versions']:
-        image_name=f'{args.registry}/stackable/{product["name"]}'
-        tags = build_image_tags(image_name, args.image_version, v)
-        build_args = build_image_args(v)
 
-        commands.append(['docker', 'build', *build_args, *tags, product["name"]])
-        if args.push:
-            commands.append(['docker', 'push', '--all-tags', image_name])
+    for p in products:
+        for v in p['versions']:
+            image_name=f'{args.registry}/stackable/{p["name"]}'
+            tags = build_image_tags(image_name, args.image_version, v)
+            build_args = build_image_args(v)
+
+            commands.append(['docker', 'build', *build_args, *tags, p["name"]])
+            if args.push:
+                commands.append(['docker', 'push', '--all-tags', image_name])
         
     return commands
 
@@ -94,16 +96,19 @@ def run_commands(dry: bool, commands: list):
             if ret.returncode != 0:
                 sys.exit(1)
 
+def products_to_build(product_names: str, products: list) -> list:
+    if not product_names:
+        return products
+    else:
+        pnd = {n: 1 for n in product_names.split(',')}
+        return list(filter(lambda p: p['name'] in pnd, products))
+
 def main():
     args = parse_args()
 
-    product = list(filter(lambda p: p['name'] == args.product, conf.products))
+    products = products_to_build(args.product, conf.products)
 
-    if len(product) != 1:
-        print(f"Product {args.product} not found in conf.py")
-        sys.exit(1)
-
-    commands = build_and_publish_image(args, product[0])
+    commands = build_and_publish_image(args, products)
 
     run_commands(args.dry, commands)
 
