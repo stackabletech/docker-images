@@ -25,4 +25,8 @@ products = [
         'name': 'nifi',
         'versions': ['1.13.2', '1.14.0'],
     },
+    {
+        'name': 'trino',
+        'versions': ['362'],
+    },
  ]
