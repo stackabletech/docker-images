@@ -40,4 +40,4 @@ jobs:
       -
         name: Build and push images
         shell: bash
-        run: python build_product_images.py -p ${{ github.events.input.product }} -i ${{ github.events.input.imageVersion }}
+        run: python build_product_images.py -u -p ${{ github.events.input.product }} -i ${{ github.events.input.imageVersion }}

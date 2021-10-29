@@ -55,20 +55,49 @@ import sys
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Build and publish product images.")
+    parser.add_argument("-r", "--registry", help="Image registry to publish to.", default='docker.stackable.tech')
     parser.add_argument("-p", "--product", help="Product name")
     parser.add_argument("-i", "--image_version", help="Image version")
+    parser.add_argument("-u", "--push", help="Push images", action='store_true')
     parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
     return parser.parse_args()
 
-def build_and_publish_image(image_version: str, product: dict) -> list:
+def build_image_args(version) -> list:
+    result = []
+
+    if isinstance(version, dict):
+        for k, v in version.items():
+            result.extend(['--build-arg', f'{k.upper()}={v}'])
+    elif isinstance(version, str):
+        result=['--build-arg', f'PRODUCT_VERSION={version}']
+    else:
+        raise ValueError(f'Unsupported version object: {version}')
+
+    return result
+
+def build_image_tags(image_name: str, image_version: str, product_version) -> list:
+    result = []
+
+    if isinstance(product_version, dict):
+        all_versions = "-".join([v for v in product_version.values()])
+        result.extend(['-t', f'{image_name}:{all_versions}-{image_version}'])
+    elif isinstance(product_version, str):
+        result=['-t', f'{image_name}:{product_version}-{image_version}']
+    else:
+        raise ValueError(f'Unsupported version object: {product_version}')
+
+    return result
+
+def build_and_publish_image(args, product: dict) -> list:
     commands = []
     for v in product['versions']:
-        image_name=f'docker.stackable.tech/stackable/{product["name"]}'
-        tags = ['-t', f'{image_name}:latest', '-t', f'{image_name}:{v}-{image_version}']
-        build_args=['--build-arg', f'PRODUCT_VERSION={v}']
+        image_name=f'{args.registry}/{product["name"]}'
+        tags = build_image_tags(image_name, args.image_version, v)
+        build_args = build_image_args(v)
 
-        commands.append(['docker', 'build', '--force-rm', *build_args, *tags, product["name"]])
-        commands.append(['docker', 'push', '--all-tags', image_name])
+        commands.append(['docker', 'build', *build_args, *tags, product["name"]])
+        if args.push:
+            commands.append(['docker', 'push', '--all-tags', image_name])
         
     return commands
 
@@ -90,7 +119,7 @@ def main():
         print(f"Product {args.product} not found in conf.py")
         sys.exit(1)
 
-    commands = build_and_publish_image(args.image_version, product[0])
+    commands = build_and_publish_image(args, product[0])
 
     run_commands(args.dry, commands)
 
