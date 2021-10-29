@@ -44,5 +44,9 @@ products = [
             },
         ]
     },
+    {
+        'name': 'hadoop',
+        'versions': ['3.2.2', '3.3.1'],
+    },
 
  ]

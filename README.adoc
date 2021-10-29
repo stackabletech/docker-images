@@ -41,9 +41,9 @@ Product images are tagged with `<product-version>-<image-version>` tags. The `pr
 
 Product images are published to the `docker.stackable.tech` registry.
 
-To build product images, use the `build_product_images.py` like this:
+To build and push product images to the default repository, use the `build_product_images.py` like this:
 
-    build_product_images.py -p zookeeper -i 0.1
+    build_product_images.py -p zookeeper -i 0.1 -u
 
 This will build images for Apache Zookeeper versions as defined in the `conf.py` and tag them with `image-version` 0.1.
 
