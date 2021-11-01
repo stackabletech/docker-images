@@ -32,7 +32,10 @@ RUN curl https://github.com/opstree/druid-exporter/releases/download/v0.11/druid
     -o /stackable/jmx/druid-exporter && \
     chmod -x /stackable/jmx/druid-exporter
 
+
 VOLUME /stackable/data/
 WORKDIR /stackable/apache-druid-${PRODUCT_VERSION}
+
+COPY stackable/script/run-druid stackable/run-druid
 
 CMD ["bin/coordinator.sh", "start"]
