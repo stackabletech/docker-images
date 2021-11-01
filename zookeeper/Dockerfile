@@ -3,8 +3,8 @@ LABEL maintainer="Stackable GmbH"
 
 # ZooKeeper PRODUCT_VERSION must be at least 3.5.0 in order to work
 ARG PRODUCT_VERSION
-ARG STACKABLE_APP_SHORT_NAME=zookeeper-$PRODUCT_VERSION
-ARG STACKABLE_APP_FULL_NAME=apache-zookeeper-$PRODUCT_VERSION-bin
+ARG STACKABLE_APP_SHORT_NAME=zookeeper-${PRODUCT_VERSION}
+ARG STACKABLE_APP_FULL_NAME=apache-zookeeper-${PRODUCT_VERSION-bin}
 
 # Download java, tar and gzip
 RUN microdnf update && \
@@ -17,7 +17,7 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-11
 
 # Download ZooKeeper
 WORKDIR /stackable
-RUN curl -L https://archive.apache.org/dist/zookeeper/$STACKABLE_APP_SHORT_NAME/$STACKABLE_APP_FULL_NAME.tar.gz | tar -xzC .
+RUN curl -L https://archive.apache.org/dist/zookeeper/${STACKABLE_APP_SHORT_NAME}/${STACKABLE_APP_FULL_NAME}.tar.gz | tar -xzC .
 
 # Copy stackable folder (jmx exporter and config, myid script for init_container)
 ADD stackable .
@@ -34,5 +34,5 @@ RUN groupadd stackable && \
 
 USER stackable
 
-WORKDIR /stackable/$STACKABLE_APP_FULL_NAME
+WORKDIR /stackable/${STACKABLE_APP_FULL_NAME}
 CMD ["bin/zkServer.sh", "start-foreground", "/stackable/conf/zoo.cfg"]

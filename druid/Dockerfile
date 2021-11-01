@@ -3,12 +3,14 @@ LABEL maintainer="Stackable GmbH"
 
 # Download java, tar and gzip
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
+    # druid only fully supports java 8 for now \
+    # https://druid.apache.org/docs/latest/tutorials/index.html#requirements
+    microdnf install java-1.8.0-openjdk --nodocs ;\
     microdnf install tar gzip && \
     microdnf install shadow-utils && \
     microdnf clean all
 
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
+ENV JAVA_HOME /etc/alternatives/jre
 
 # Add user & group
 RUN groupadd stackable && \

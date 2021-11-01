@@ -10,7 +10,7 @@ RUN microdnf update && \
 
 # Download OPA
 WORKDIR /stackable/opa
-RUN curl -L -o opa https://openpolicyagent.org/downloads/v$PRODUCT_VERSION/opa_linux_amd64_static && \
+RUN curl -L -o opa https://openpolicyagent.org/downloads/v${PRODUCT_VERSION}/opa_linux_amd64_static && \
     chmod 755 ./opa
 
 # Add user & group
