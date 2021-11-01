@@ -1,0 +1,7 @@
+rules:
+  - pattern: HadoopNamespace_([^\W_]+)_table_([^\W_]+)_region_([^\W_]+)_metric_(\w+)
+    name: HBase_metric_$4
+    labels:
+      namespace: "$1"
+      table: "$2"
+      region: "$3"

@@ -48,10 +48,13 @@ products = [
         'name': 'hadoop',
         'versions': ['3.2.2', '3.3.1'],
     },
-
     {
         'name': 'hive',
         'versions': ['2.3.9'],
+    },
+    {
+        'name': 'hbase',
+        'versions': ['2.4.6'],
     },
  ]
 
