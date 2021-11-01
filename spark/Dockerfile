@@ -6,7 +6,7 @@ RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip && \
     microdnf install shadow-utils && \
-    # spark scripts
+    # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
     microdnf clean all
