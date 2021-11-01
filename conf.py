@@ -49,4 +49,9 @@ products = [
         'versions': ['3.2.2', '3.3.1'],
     },
 
+    {
+        'name': 'hive',
+        'versions': ['2.3.9'],
+    },
  ]
+
