@@ -56,5 +56,9 @@ products = [
         'name': 'hbase',
         'versions': ['2.4.6'],
     },
+    {
+        'name': 'superset',
+        'versions': ['1.3.2'],
+    },
  ]
 
