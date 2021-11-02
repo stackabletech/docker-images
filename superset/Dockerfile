@@ -11,3 +11,4 @@ LABEL maintainer="Stackable GmbH"
 
 ARG PRODUCT_VERSION
 
+COPY stackable/superset_config.py /app/pythonpath/
