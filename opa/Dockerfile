@@ -5,13 +5,15 @@ LABEL maintainer="Stackable GmbH"
 ARG PRODUCT_VERSION
 
 RUN microdnf update && \
+    microdnf install tar gzip && \
     microdnf install shadow-utils && \
     microdnf clean all
 
 # Download OPA
 WORKDIR /stackable/opa
-RUN curl -L -o opa https://openpolicyagent.org/downloads/v${PRODUCT_VERSION}/opa_linux_amd64_static && \
-    chmod 755 ./opa
+
+RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT_VERSION}.tar.gz | tar -xzC .
+RUN chmod 755 opa
 
 # Add user & group
 RUN groupadd stackable && \
