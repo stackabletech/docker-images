@@ -1,6 +1,10 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
+ARG PRODUCT_VERSION
+ARG SCALA_VERSION
+ARG OPA_AUTHORIZER_VERSION=1.1.0
+
 # Download java, tar and gzip
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
@@ -17,19 +21,20 @@ RUN groupadd stackable && \
 WORKDIR /stackable
 ADD stackable .
 
-RUN chown -R stackable:stackable /stackable
-
-USER stackable
-
-
-ARG PRODUCT_VERSION
-ARG SCALA_VERSION
-
+# kafka image
 RUN curl -L https://archive.apache.org/dist/kafka/${PRODUCT_VERSION}/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}.tgz| tar -xzC .
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+# jmx exporter
+RUN curl -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 WORKDIR /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}
+
+# opa authorizer
+RUN curl -L https://github.com/Bisnode/opa-kafka-plugin/releases/download/v${OPA_AUTHORIZER_VERSION}/opa-authorizer-${OPA_AUTHORIZER_VERSION}-all.jar \
+    -o libs/opa-authorizer-${OPA_AUTHORIZER_VERSION}-all.jar
+
+RUN chown -R stackable:stackable /stackable
+USER stackable
+
 CMD ["bin/kafka-server-start.sh", "/stackable/conf/server.properties"]
