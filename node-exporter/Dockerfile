@@ -1,19 +1,13 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
-# Download tar and gzip
 RUN microdnf update && \
     microdnf install tar gzip && \
     microdnf install shadow-utils && \
     microdnf clean all
 
-# Add user & group
-RUN groupadd stackable && \
-    useradd stackable -g stackable
-
-WORKDIR /stackable
-
-RUN chown -R stackable:stackable /stackable
+RUN groupadd -r stackable --gid=1000; \
+    useradd -r -g stackable --uid=1000 stackable;
 
 USER stackable
 

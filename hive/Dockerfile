@@ -16,7 +16,7 @@ RUN chown -R stackable:stackable /stackable
 USER stackable
 
 ARG PRODUCT_VERSION
-ARG HADOOP_VERSION
+ARG HADOOP_VERSION=2.10.1
 
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
@@ -25,7 +25,9 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin
 ENV HADOOP_HOME=/stackable/apache-hive-${PRODUCT_VERSION}-bin/hadoop-${HADOOP_VERSION}
+
+WORKDIR /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin
 COPY /stackable/bin/start-metastore bin
+
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]

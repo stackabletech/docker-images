@@ -10,5 +10,4 @@ fi
 
 dir=$1
 version=$2
-
 cp $dir/* /stackable/nifi-${version}/conf

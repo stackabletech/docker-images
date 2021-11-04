@@ -19,25 +19,29 @@ products = [
         'versions': ['2.3.9'],
     },
     {
+        # Opa authorizer 1.1.0 for Kafka version < 3.0.0
+        # Opa authorizer 1.2.0 for Kafka version >= 3.0.0
         'name': 'kafka',
         'versions': [
             {
                 'product_version': '2.8.0',
                 'scala_version': '2.12',
+                'opa_authorizer_version': '1.1.0',
             },
             {
                 'product_version': '2.8.0',
                 'scala_version': '2.13',
+                'opa_authorizer_version': '1.1.0',
             },
         ]
     },
     {
         'name': 'nifi',
-        'versions': ['1.13.2', '1.14.0'],
+        'versions': ['1.13.2'],
     },
     {
         'name': 'opa',
-        'versions': ['0.34.0'],
+        'versions': ['0.27.1'],
     },
     {
         'name': 'spark',
@@ -61,6 +65,7 @@ products = [
         'versions': ['362'],
     },
     {
+        # ZooKeeper PRODUCT_VERSION must be at least 3.5.0 in order to work
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.7.0'],
     },
