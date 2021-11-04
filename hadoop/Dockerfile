@@ -14,8 +14,8 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV HDFS_BIN_DIR=/stackable/hadoop-${PRODUCT_VERSION}/bin
 
 # Add user & group
-RUN groupadd stackable && \
-    useradd stackable -g stackable 
+RUN groupadd -r stackable --gid=1000; \
+    useradd -r -g stackable --uid=1000 stackable;
 
 WORKDIR /stackable
 ADD stackable .
