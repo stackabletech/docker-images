@@ -1,7 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
-# Download java, tar and gzip
 RUN microdnf update && \
     # druid only fully supports java 8 for now \
     # https://druid.apache.org/docs/latest/tutorials/index.html#requirements
@@ -13,9 +12,14 @@ RUN microdnf update && \
 
 ENV JAVA_HOME /etc/alternatives/jre
 
-# Add user & group
-RUN groupadd stackable && \
-    useradd stackable -g stackable
+RUN groupadd -r stackable --gid=1000; \
+    useradd -r -g stackable --uid=1000 stackable;
+
+ADD stackable /stackable
+RUN chown -R stackable:stackable /stackable; \
+    chmod +x /stackable/script/run-druid
+
+USER stackable
 
 ARG PRODUCT_VERSION
 
@@ -23,11 +27,7 @@ WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
 
 WORKDIR /stackable/apache-druid-${PRODUCT_VERSION}
-ADD stackable/script/run-druid ./stackable/run-druid
 
-RUN chmod +x stackable/run-druid && \
-    chown -R stackable:stackable /stackable
+COPY /stackable/script/run-druid ./bin
 
-USER stackable
-
-CMD ["./stackable/run-druid", "coordinator"]
+CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]

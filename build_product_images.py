@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
     return parser.parse_args()
 
-def build_image_args(version) -> list[str]:
+def build_image_args(version):
     """
     Returns a list of --build-arg command line arguments that are used by the
     docker build command.
@@ -47,7 +47,7 @@ def build_image_args(version) -> list[str]:
 
     return result
 
-def build_image_tags(image_name: str, image_version: str, product_version) -> list[str]:
+def build_image_tags(image_name, image_version, product_version):
     """
     Returns a list of --tag command line arguments that are used by the
     docker build command.
@@ -64,7 +64,7 @@ def build_image_tags(image_name: str, image_version: str, product_version) -> li
 
     return result
 
-def build_and_publish_image(args, products: list[dict]) -> list[list[str]]:
+def build_and_publish_image(args, products):
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
@@ -83,7 +83,7 @@ def build_and_publish_image(args, products: list[dict]) -> list[list[str]]:
         
     return commands
 
-def run_commands(dry: bool, commands: list):
+def run_commands(dry, commands):
     """
     Runs the commands to build and publish images. In dry-run mode it only
     lists the command on stdout.
@@ -96,7 +96,7 @@ def run_commands(dry: bool, commands: list):
             if ret.returncode != 0:
                 sys.exit(1)
 
-def products_to_build(product_names: str, products: list) -> list:
+def products_to_build(product_names, products):
     if not product_names:
         return products
     else:
