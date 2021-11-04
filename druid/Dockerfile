@@ -16,8 +16,7 @@ RUN groupadd -r stackable --gid=1000; \
     useradd -r -g stackable --uid=1000 stackable;
 
 ADD stackable /stackable
-RUN chown -R stackable:stackable /stackable; \
-    chmod +x /stackable/script/run-druid
+RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
@@ -28,6 +27,6 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
 
 WORKDIR /stackable/apache-druid-${PRODUCT_VERSION}
 
-COPY /stackable/script/run-druid ./bin
+COPY /stackable/bin/run-druid ./bin
 
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
