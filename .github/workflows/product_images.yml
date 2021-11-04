@@ -11,7 +11,7 @@ on:
         description: 'Image version'  
 jobs:
   build:
-    name: Build product images for ${{ github.event.inputs.image }}
+    name: Build product images for ${{ github.event.inputs.product }}
     runs-on: ubuntu-latest
     steps:
 
@@ -40,4 +40,4 @@ jobs:
       -
         name: Build and push images
         shell: bash
-        run: python build_product_images.py -u -p ${{ github.events.input.product }} -i ${{ github.events.input.imageVersion }}
+        run: python build_product_images.py -u -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.imageVersion }}
