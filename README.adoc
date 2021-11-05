@@ -35,7 +35,7 @@ ENTRYPOINT ["/stackable-zookeeper-operator"]
 
 == Product images
 
-Product images are used by stackable operators to set up service clusters. For example, the Apache Zookeeper product image contains Apache Zookeeper and some additional things required to monitor and set up containers corectly.
+Product images are used by stackable operators to set up service clusters. For example, the Apache ZooKeeper product image contains Apache ZooKeeper and some additional things required to monitor and set up containers corectly.
 
 Product images are tagged with `<product-version>-<image-version>` tags. The `product-version` is the version of the product installed in the image and `image-version` is the version of the image as referenced by the stackable plattform.
 
@@ -45,7 +45,7 @@ To build and push product images to the default repository, use the `build_produ
 
     build_product_images.py -p zookeeper -i 0.1 -u
 
-This will build images for Apache Zookeeper versions as defined in the `conf.py` and tag them with `image-version` 0.1.
+This will build images for Apache ZooKeeper versions as defined in the `conf.py` and tag them with `image-version` 0.1.
 
 The GitHub action called `Product images` can be triggered manually to do the same but not on the local machine.
 
