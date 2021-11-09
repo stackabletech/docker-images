@@ -30,4 +30,12 @@ ENV HADOOP_HOME=/stackable/apache-hive-${PRODUCT_VERSION}-bin/hadoop-${HADOOP_VE
 WORKDIR /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin
 COPY /stackable/bin/start-metastore bin
 
+RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/1.12.106/aws-java-sdk-s3-1.12.106.jar \
+    -o lib/aws-java-sdk-s3-1.12.106.jar && \
+    chmod -x lib/aws-java-sdk-s3-1.12.106.jar
+
+RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.106/aws-java-sdk-core-1.12.106.jar \
+    -o lib/aws-java-sdk-core-1.12.106.jar && \
+    chmod -x lib/aws-java-sdk-core-1.12.106.jar
+
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]
