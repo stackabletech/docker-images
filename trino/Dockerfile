@@ -29,5 +29,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+WORKDIR /stackable/trino-server-${PRODUCT_VERSION}/plugin
+RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-0.1.0.tar.gz | tar -xzC
+
 WORKDIR /stackable/trino-server-${PRODUCT_VERSION}
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]
