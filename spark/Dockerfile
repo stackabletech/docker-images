@@ -30,5 +30,9 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}
+RUN mkdir /stackable/spark && \
+    mv /stackable/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}/* /stackable/spark && \
+    rm -rf /stackable/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}
+
+WORKDIR /stackable/spark
 CMD ["sbin/start-master.sh"]

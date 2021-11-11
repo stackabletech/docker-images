@@ -26,7 +26,11 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/hbase-${PRODUCT_VERSION}
-ENV HBASE_CONF_DIR=/stackable/hbase-${PRODUCT_VERSION}/conf
+RUN mkdir /stackable/hbase && \
+    mv /stackable/stackable/hbase-${PRODUCT_VERSION}/* /stackable/hbase && \
+    rm -rf /stackable/hbase-${PRODUCT_VERSION}
 
+ENV HBASE_CONF_DIR=/stackable/hbase/conf
+
+WORKDIR /stackable/hbase
 CMD ["./bin/hbase", "master", "start" ]

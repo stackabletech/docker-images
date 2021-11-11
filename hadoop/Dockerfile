@@ -26,7 +26,11 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/hadoop-${PRODUCT_VERSION}
-COPY /stackable/bin/start-namenode bin
+RUN mkdir /stackable/hadoop && \
+    mv /stackable/hadoop-${PRODUCT_VERSION}/* /stackable/hadoop && \
+    rm -rf /stackable/hadoop-${PRODUCT_VERSION}
 
+COPY /stackable/bin/start-namenode /stackable/hadoop/bin
+
+WORKDIR /stackable/hadoop
 CMD ["./bin/start-namenode", "--config", "etc/hadoop"]

@@ -25,8 +25,11 @@ ARG PRODUCT_VERSION
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
 
-WORKDIR /stackable/apache-druid-${PRODUCT_VERSION}
+RUN mkdir /stackable/druid && \
+    mv /stackable/apache-druid-${PRODUCT_VERSION}/* /stackable/druid && \
+    rm -rf /stackable/apache-druid-${PRODUCT_VERSION}
 
-COPY /stackable/bin/run-druid ./bin
+COPY /stackable/bin/run-druid /stackable/druid/bin
 
+WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]

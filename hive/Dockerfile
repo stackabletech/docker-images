@@ -25,17 +25,22 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-ENV HADOOP_HOME=/stackable/apache-hive-${PRODUCT_VERSION}-bin/hadoop-${HADOOP_VERSION}
-
-WORKDIR /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin
-COPY /stackable/bin/start-metastore bin
-
 RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/1.12.106/aws-java-sdk-s3-1.12.106.jar \
-    -o lib/aws-java-sdk-s3-1.12.106.jar && \
+    -o /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar && \
     chmod -x lib/aws-java-sdk-s3-1.12.106.jar
 
 RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.106/aws-java-sdk-core-1.12.106.jar \
-    -o lib/aws-java-sdk-core-1.12.106.jar && \
+    -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
     chmod -x lib/aws-java-sdk-core-1.12.106.jar
 
+RUN mkdir /stackable/hive && \
+    mv /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin/* /stackable/hive && \
+    mv /stackable/apache-hive-${PRODUCT_VERSION}-bin/hadoop-${HADOOP_VERSION}/* /stackable/hadoop && \
+    rm -rf /stackable/apache-hive-${PRODUCT_VERSION}-bin/ && }
+
+COPY /stackable/bin/start-metastore /stackable/hive/bin
+
+ENV HADOOP_HOME=/stackable/hadoop
+
+WORKDIR /stackable/hive
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]

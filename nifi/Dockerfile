@@ -22,6 +22,9 @@ ARG PRODUCT_VERSION
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
 
-WORKDIR /stackable/nifi-${PRODUCT_VERSION}
+RUN mkdir /stackable/nifi && \
+    mv /stackable/nifi-${PRODUCT_VERSION}/* /stackable/nifi && \
+    rm -rf /stackable/nifi-${PRODUCT_VERSION}
 
+WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
