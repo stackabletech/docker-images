@@ -32,5 +32,9 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
 WORKDIR /stackable/trino-server-${PRODUCT}/plugin
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-0.1.0.tar.gz | tar -xzC .
 
-WORKDIR /stackable/trino-server-${PRODUCT}
+RUN mkdir /stackable/trino-server && \
+    mv /stackable/trino-server-${PRODUCT}/* /stackable/trino-server && \
+    rm -rf /stackable/trino-server-${PRODUCT} && \
+
+WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]

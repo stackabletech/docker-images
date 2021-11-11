@@ -27,9 +27,12 @@ RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}
 RUN curl -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/kafka_${SCALA}-${PRODUCT}
+RUN mkdir /stackable/kafka && \
+    mv /stackable/kafka_${SCALA}-${PRODUCT}/* /stackable/kafka && \
+    rm -rf /stackable/kafka_${SCALA}-${PRODUCT}
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
-    -o libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
+    -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
+WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/conf/server.properties"]
