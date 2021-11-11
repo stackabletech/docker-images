@@ -27,4 +27,4 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 WORKDIR /stackable/apache-zookeeper-${PRODUCT_VERSION}-bin
-CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg", "delete-me"]
+CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg"]
