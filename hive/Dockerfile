@@ -25,19 +25,20 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/1.12.106/aws-java-sdk-s3-1.12.106.jar \
-    -o /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar && \
-    chmod -x lib/aws-java-sdk-s3-1.12.106.jar
-
-RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.106/aws-java-sdk-core-1.12.106.jar \
-    -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
-    chmod -x lib/aws-java-sdk-core-1.12.106.jar
-
 RUN mkdir /stackable/hive && \
+    mkdir /stackable/hadoop && \
     mv /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin/* /stackable/hive && \
     mv /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP}/* /stackable/hadoop && \
     rm -rf /stackable/apache-hive-${PRODUCT}-bin/ && \
     mv /stackable/bin/start-metastore /stackable/hive/bin
+
+RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-s3/1.12.106/aws-java-sdk-s3-1.12.106.jar \
+    -o /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar && \
+    chmod -x /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar
+
+RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.106/aws-java-sdk-core-1.12.106.jar \
+    -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
+    chmod -x /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar
 
 ENV HADOOP_HOME=/stackable/hadoop
 
