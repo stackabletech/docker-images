@@ -9,6 +9,6 @@
 FROM apache/superset:9515ba68dc560307758774d1618c885e379d2011
 LABEL maintainer="Stackable GmbH"
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 COPY stackable/superset_config.py /app/pythonpath/

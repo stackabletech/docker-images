@@ -11,10 +11,10 @@ RUN groupadd -r stackable --gid=1000; \
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
-RUN curl -L https://repo.stackable.tech/repository/packages/node-exporter/node_exporter-${PRODUCT_VERSION}.linux-amd64.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/node-exporter/node_exporter-${PRODUCT}.linux-amd64.tar.gz | tar -xzC .
 
-WORKDIR /stackable/node_exporter-${PRODUCT_VERSION}.linux-amd64
+WORKDIR /stackable/node_exporter-${PRODUCT}.linux-amd64
 CMD ["./node_exporter"]
 
