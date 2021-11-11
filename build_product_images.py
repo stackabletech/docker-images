@@ -16,6 +16,7 @@ import conf
 import argparse
 import subprocess
 import sys
+import re
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Build and publish product images. See conf.py for details regarding product versions.")
@@ -54,12 +55,22 @@ def build_image_tags(image_name, image_version, product_version):
     """
     result = []
 
+    latest_image_version = re.search(r'^\d+', image_version)[0]
+
     if isinstance(product_version, dict):
         dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product_version"])
-        all_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{image_version}'])
-        result.extend(['-t', f'{image_name}:{all_versions}'])
+        full_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{image_version}'])
+
+        result.extend(['-t', f'{image_name}:{full_versions}'])
+
+        if latest_image_version != image_version:
+            latest_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{latest_image_version}'])
+            result.extend(['-t', f'{image_name}:{latest_versions}'])
+
     elif isinstance(product_version, str):
         result=['-t', f'{image_name}:{product_version}-stackable{image_version}']
+        if latest_image_version != image_version:
+            result.extend(['-t', f'{image_name}:{product_version}-stackable{latest_image_version}'])
     else:
         raise ValueError(f'Unsupported version object: {product_version}')
 
