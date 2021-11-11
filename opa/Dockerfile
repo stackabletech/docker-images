@@ -9,14 +9,14 @@ RUN microdnf update && \
 RUN groupadd -r stackable --gid=1000; \
     useradd -r -g stackable --uid=1000 stackable;
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable/opa
 RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT_VERSION}.tar.gz | tar -xzC .; \
+RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz | tar -xzC .; \
     chmod +x opa
 
 CMD ["./opa", "run", "-s"]

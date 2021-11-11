@@ -33,7 +33,7 @@ def build_image_args(version):
     docker build command.
 
     Arguments:
-    - version: Can be a str, in which case it's considered the PRODUCT_VERSION
+    - version: Can be a str, in which case it's considered the PRODUCT
                 or a dict.
     """
     result = []
@@ -42,7 +42,7 @@ def build_image_args(version):
         for k, v in version.items():
             result.extend(['--build-arg', f'{k.upper()}={v}'])
     elif isinstance(version, str):
-        result=['--build-arg', f'PRODUCT_VERSION={version}']
+        result=['--build-arg', f'PRODUCT={version}']
     else:
         raise ValueError(f'Unsupported version object: {version}')
 
@@ -58,13 +58,13 @@ def build_image_tags(image_name, image_version, product_version):
     latest_image_version = re.search(r'^\d+', image_version)[0]
 
     if isinstance(product_version, dict):
-        dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product_version"])
-        full_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{image_version}'])
+        dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product"])
+        full_versions = "-".join([product_version['product'], dep_versions, f'stackable{image_version}'])
 
         result.extend(['-t', f'{image_name}:{full_versions}'])
 
         if latest_image_version != image_version:
-            latest_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{latest_image_version}'])
+            latest_versions = "-".join([product_version['product'], dep_versions, f'stackable{latest_image_version}'])
             result.extend(['-t', f'{image_name}:{latest_versions}'])
 
     elif isinstance(product_version, str):

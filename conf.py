@@ -24,7 +24,7 @@ products = [
         'name': 'kafka',
         'versions': [
             {
-                'product_version': '2.8.0',
+                'product': '2.8.0',
                 'scala': '2.12',
                 'opa_authorizer': '1.1.0',
             },
@@ -47,11 +47,11 @@ products = [
         'name': 'spark',
         'versions': [
             {
-                'product_version': '3.0.1',
+                'product': '3.0.1',
                 'hadoop': '2.7',
             },
             {
-                'product_version': '3.1.1',
+                'product': '3.1.1',
                 'hadoop': '2.7',
             },
         ]
@@ -65,7 +65,7 @@ products = [
         'versions': ['362'],
     },
     {
-        # ZooKeeper PRODUCT_VERSION must be at least 3.5.0 in order to work
+        # ZooKeeper PRODUCT must be at least 3.5.0 in order to work
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.7.0'],
     },

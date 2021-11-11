@@ -17,17 +17,17 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 ARG SCALA
 ARG OPA_AUTHORIZER
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT_VERSION}.tgz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC .
 
 RUN curl -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/kafka_${SCALA}-${PRODUCT_VERSION}
+WORKDIR /stackable/kafka_${SCALA}-${PRODUCT}
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
