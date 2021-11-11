@@ -65,7 +65,7 @@ products = [
         'versions': ['362'],
     },
     {
-        # ZooKeeper PRODUCT must be at least 3.5.0 in order to work
+        # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.7.0'],
     },
