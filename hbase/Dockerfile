@@ -17,18 +17,18 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-bin.tar.gz | tar -xzC .
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 RUN mkdir /stackable/hbase && \
-    mv /stackable/stackable/hbase-${PRODUCT_VERSION}/* /stackable/hbase && \
-    rm -rf /stackable/hbase-${PRODUCT_VERSION}
+    mv /stackable/hbase-${PRODUCT}/* /stackable/hbase && \
+    rm -rf /stackable/hbase-${PRODUCT}
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 

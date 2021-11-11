@@ -17,18 +17,18 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT_VERSION}.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz | tar -xzC .
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 RUN mkdir /stackable/hadoop && \
-    mv /stackable/hadoop-${PRODUCT_VERSION}/* /stackable/hadoop && \
-    rm -rf /stackable/hadoop-${PRODUCT_VERSION} && \
+    mv /stackable/hadoop-${PRODUCT}/* /stackable/hadoop && \
+    rm -rf /stackable/hadoop-${PRODUCT} && \
     mv /stackable/bin/start-namenode /stackable/hadoop/bin
 
 WORKDIR /stackable/hadoop

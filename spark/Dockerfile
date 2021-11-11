@@ -20,19 +20,19 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
-ARG HADOOP_VERSION
+ARG PRODUCT
+ARG HADOOP
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP}.tgz | tar -xzC .
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 RUN mkdir /stackable/spark && \
-    mv /stackable/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}/* /stackable/spark && \
-    rm -rf /stackable/spark-${PRODUCT_VERSION}-bin-hadoop${HADOOP_VERSION}
+    mv /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}/* /stackable/spark && \
+    rm -rf /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 
 WORKDIR /stackable/spark
 CMD ["sbin/start-master.sh"]

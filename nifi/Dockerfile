@@ -17,14 +17,14 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC .
 
 RUN mkdir /stackable/nifi && \
-    mv /stackable/nifi-${PRODUCT_VERSION}/* /stackable/nifi && \
-    rm -rf /stackable/nifi-${PRODUCT_VERSION}
+    mv /stackable/nifi-${PRODUCT}/* /stackable/nifi && \
+    rm -rf /stackable/nifi-${PRODUCT}
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
