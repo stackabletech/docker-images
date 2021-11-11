@@ -27,9 +27,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
 
 RUN mkdir /stackable/druid && \
     mv /stackable/apache-druid-${PRODUCT_VERSION}/* /stackable/druid && \
-    rm -rf /stackable/apache-druid-${PRODUCT_VERSION}
-
-COPY /stackable/bin/run-druid /stackable/druid/bin
+    rm -rf /stackable/apache-druid-${PRODUCT_VERSION} && \
+    mv /stackable/bin/run-druid /stackable/druid/bin
 
 WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]

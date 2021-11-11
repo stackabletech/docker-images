@@ -36,9 +36,8 @@ RUN curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.
 RUN mkdir /stackable/hive && \
     mv /stackable/apache-hive-${PRODUCT_VERSION}-bin/apache-hive-${PRODUCT_VERSION}-bin/* /stackable/hive && \
     mv /stackable/apache-hive-${PRODUCT_VERSION}-bin/hadoop-${HADOOP_VERSION}/* /stackable/hadoop && \
-    rm -rf /stackable/apache-hive-${PRODUCT_VERSION}-bin/ && }
-
-COPY /stackable/bin/start-metastore /stackable/hive/bin
+    rm -rf /stackable/apache-hive-${PRODUCT_VERSION}-bin/ && \
+    mv /stackable/bin/start-metastore /stackable/hive/bin
 
 ENV HADOOP_HOME=/stackable/hadoop
 

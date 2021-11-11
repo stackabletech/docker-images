@@ -34,7 +34,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer
 
 RUN mkdir /stackable/trino-server && \
     mv /stackable/trino-server-${PRODUCT_VERSION}/* /stackable/trino-server && \
-    rm -rf /stackable/trino-server-${PRODUCT_VERSION}
+    rm -rf /stackable/trino-server-${PRODUCT_VERSION} && \
 
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]

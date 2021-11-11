@@ -28,9 +28,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
 
 RUN mkdir /stackable/hadoop && \
     mv /stackable/hadoop-${PRODUCT_VERSION}/* /stackable/hadoop && \
-    rm -rf /stackable/hadoop-${PRODUCT_VERSION}
-
-COPY /stackable/bin/start-namenode /stackable/hadoop/bin
+    rm -rf /stackable/hadoop-${PRODUCT_VERSION} && \
+    mv /stackable/bin/start-namenode /stackable/hadoop/bin
 
 WORKDIR /stackable/hadoop
 CMD ["./bin/start-namenode", "--config", "etc/hadoop"]
