@@ -25,13 +25,13 @@ products = [
         'versions': [
             {
                 'product_version': '2.8.0',
-                'scala_version': '2.12',
-                'opa_authorizer_version': '1.1.0',
+                'scala': '2.12',
+                'opa_authorizer': '1.1.0',
             },
             {
                 'product_version': '2.8.0',
-                'scala_version': '2.13',
-                'opa_authorizer_version': '1.1.0',
+                'scala': '2.13',
+                'opa_authorizer': '1.1.0',
             },
         ]
     },
@@ -48,11 +48,11 @@ products = [
         'versions': [
             {
                 'product_version': '3.0.1',
-                'hadoop_version': '2.7',
+                'hadoop': '2.7',
             },
             {
                 'product_version': '3.1.1',
-                'hadoop_version': '2.7',
+                'hadoop': '2.7',
             },
         ]
     },

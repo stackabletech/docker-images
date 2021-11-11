@@ -55,10 +55,11 @@ def build_image_tags(image_name, image_version, product_version):
     result = []
 
     if isinstance(product_version, dict):
-        all_versions = "-".join([v for v in product_version.values()])
-        result.extend(['-t', f'{image_name}:{all_versions}-{image_version}'])
+        dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product_version"])
+        all_versions = "-".join([product_version['product_version'], dep_versions, f'stackable{image_version}'])
+        result.extend(['-t', f'{image_name}:{all_versions}'])
     elif isinstance(product_version, str):
-        result=['-t', f'{image_name}:{product_version}-{image_version}']
+        result=['-t', f'{image_name}:{product_version}-stackable{image_version}']
     else:
         raise ValueError(f'Unsupported version object: {product_version}')
 
