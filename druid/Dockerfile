@@ -20,12 +20,12 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-bin.tar.gz | tar -xzC .
 
-WORKDIR /stackable/apache-druid-${PRODUCT_VERSION}
+WORKDIR /stackable/apache-druid-${PRODUCT}
 
 COPY /stackable/bin/run-druid ./bin
 

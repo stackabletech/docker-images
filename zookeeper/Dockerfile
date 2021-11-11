@@ -17,14 +17,14 @@ RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT_VERSION}-bin.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz | tar -xzC .
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/apache-zookeeper-${PRODUCT_VERSION}-bin
+WORKDIR /stackable/apache-zookeeper-${PRODUCT}-bin
 CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg"]

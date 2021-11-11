@@ -13,14 +13,14 @@ RUN groupadd stackable && \
 
 WORKDIR /stackable
 
-ARG PRODUCT_VERSION
+ARG PRODUCT
 
-RUN curl -L https://repo.stackable.tech/repository/packages/prometheus/prometheus-${PRODUCT_VERSION}.linux-amd64.tar.gz | tar -xzC . && \
+RUN curl -L https://repo.stackable.tech/repository/packages/prometheus/prometheus-${PRODUCT}.linux-amd64.tar.gz | tar -xzC . && \
     chown -R stackable:stackable /stackable
 
 USER stackable
 
-WORKDIR /stackable/prometheus-${PRODUCT_VERSION}.linux-amd64
+WORKDIR /stackable/prometheus-${PRODUCT}.linux-amd64
 ADD stackable/script/prometheus-wrapper.sh .
 
 CMD ["./prometheus", "--config.file=./prometheus.yml"]
