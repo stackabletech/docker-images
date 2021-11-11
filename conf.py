@@ -29,7 +29,7 @@ products = [
                 'opa_authorizer': '1.1.0',
             },
             {
-                'product_version': '2.8.0',
+                'product': '2.8.0',
                 'scala': '2.13',
                 'opa_authorizer': '1.1.0',
             },
