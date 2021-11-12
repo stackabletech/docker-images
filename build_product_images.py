@@ -52,25 +52,31 @@ def build_image_tags(image_name, image_version, product_version):
     """
     Returns a list of --tag command line arguments that are used by the
     docker build command.
+    Each image is tagged with three tags as follows:
+        1. <product>-<dependency1>-<dependency2>...-<image>
+        2. <product>-<dependency1>-<dependency2>...-<platform>
+        3. <product>-<platform>
     """
     result = []
 
-    latest_image_version = re.search(r'^\d+', image_version)[0]
+    platform_version = re.search(r'^\d+', image_version)[0]
 
     if isinstance(product_version, dict):
         dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product"])
-        full_versions = "-".join([product_version['product'], dep_versions, f'stackable{image_version}'])
+        image_tag = "-".join([product_version['product'], dep_versions, f'stackable{image_version}'])
+        platform_tag = "-".join([product_version['product'], dep_versions, f'stackable{platform_version}'])
+        latest_tag = "-".join([product_version['product'], f'stackable{platform_version}'])
 
-        result.extend(['-t', f'{image_name}:{full_versions}'])
-
-        if latest_image_version != image_version:
-            latest_versions = "-".join([product_version['product'], dep_versions, f'stackable{latest_image_version}'])
-            result.extend(['-t', f'{image_name}:{latest_versions}'])
+        result.extend([
+            '-t', f'{image_name}:{image_tag}',
+            '-t', f'{image_name}:{platform_tag}'
+            '-t', f'{image_name}:{latest_tag}'
+            ])
 
     elif isinstance(product_version, str):
-        result=['-t', f'{image_name}:{product_version}-stackable{image_version}']
-        if latest_image_version != image_version:
-            result.extend(['-t', f'{image_name}:{product_version}-stackable{latest_image_version}'])
+        result.extend([
+            '-t', f'{image_name}:{product_version}-stackable{image_version}',
+            '-t', f'{image_name}:{product_version}-stackable{platform_version}'])
     else:
         raise ValueError(f'Unsupported version object: {product_version}')
 
@@ -119,6 +125,9 @@ def main():
     args = parse_args()
 
     products = products_to_build(args.product, conf.products)
+
+    if len(products) == 0:
+        raise ValueError(f"No products configured for {args.product}")
 
     commands = build_and_publish_image(args, products)
 
