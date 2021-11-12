@@ -69,7 +69,7 @@ def build_image_tags(image_name, image_version, product_version):
 
         result.extend([
             '-t', f'{image_name}:{image_tag}',
-            '-t', f'{image_name}:{platform_tag}'
+            '-t', f'{image_name}:{platform_tag}',
             '-t', f'{image_name}:{latest_tag}'
             ])
 
