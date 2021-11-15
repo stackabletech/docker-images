@@ -12,7 +12,7 @@ products = [
     },
     {
         'name': 'hbase',
-        'versions': ['2.4.6'],
+        'versions': ['2.4.6', '2.4.8'],
     },
     {
         'name': 'hive',
@@ -24,12 +24,32 @@ products = [
         'name': 'kafka',
         'versions': [
             {
-                'product': '2.8.0',
+                'product': '2.6.2',
                 'scala': '2.12',
                 'opa_authorizer': '1.1.0',
             },
             {
-                'product': '2.8.0',
+                'product': '2.6.2',
+                'scala': '2.13',
+                'opa_authorizer': '1.1.0',
+            },
+            {
+                'product': '2.7.2',
+                'scala': '2.12',
+                'opa_authorizer': '1.1.0',
+            },
+            {
+                'product': '2.7.2',
+                'scala': '2.13',
+                'opa_authorizer': '1.1.0',
+            },
+            {
+                'product': '2.8.1',
+                'scala': '2.12',
+                'opa_authorizer': '1.1.0',
+            },
+            {
+                'product': '2.8.1',
                 'scala': '2.13',
                 'opa_authorizer': '1.1.0',
             },
@@ -41,7 +61,7 @@ products = [
     },
     {
         'name': 'opa',
-        'versions': ['0.27.1'],
+        'versions': ['0.27.1', '0.28.0'],
     },
     {
         'name': 'spark',
@@ -67,7 +87,7 @@ products = [
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
-        'versions': ['3.5.8'],
+        'versions': ['3.5.8', '3.6.3', '3.7.0'],
     },
  ]
 
