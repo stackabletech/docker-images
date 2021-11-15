@@ -25,6 +25,10 @@ ARG PRODUCT
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-bin.tar.gz | tar -xzC .
 
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+
 RUN mkdir /stackable/druid && \
     mv /stackable/apache-druid-${PRODUCT}/* /stackable/druid && \
     rm -rf /stackable/apache-druid-${PRODUCT} && \
