@@ -30,5 +30,8 @@ RUN mkdir /stackable/druid && \
     rm -rf /stackable/apache-druid-${PRODUCT} && \
     mv /stackable/bin/run-druid /stackable/druid/bin
 
+# Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
+RUN curl https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz | tar -xzC /stackable/druid/extensions
+
 WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
