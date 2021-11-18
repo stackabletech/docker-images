@@ -32,11 +32,11 @@ RUN mkdir /stackable/hive && \
     rm -rf /stackable/apache-hive-${PRODUCT}-bin/ && \
     mv /stackable/bin/start-metastore /stackable/hive/bin
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-core-1.12.106.jar \
+RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-s3-1.12.106.jar \
     -o /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar && \
     chmod -x /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-s3-1.12.106.jar \
+RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-core-1.12.106.jar \
     -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
     chmod -x /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar
 
