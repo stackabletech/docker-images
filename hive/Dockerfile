@@ -41,7 +41,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUC
     chmod -x /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/hadoop-aws-2.10.1.jar \
-    -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
+    -o /stackable/hive/lib/hadoop-aws-2.10.1.jar && \
     chmod -x /stackable/hive/lib/hadoop-aws-2.10.1.jar
 
 ENV HADOOP_HOME=/stackable/hadoop
