@@ -24,7 +24,7 @@ WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin /stackable/hive && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP} /stackable/hadoop && \
-    # Force to overwrite the existing 'run-druid'
+    # Force to overwrite the existing 'start-metastore'
     ln -sf /stackable/bin/start-metastore /stackable/hive/bin/start-metastore
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
