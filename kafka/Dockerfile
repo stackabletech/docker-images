@@ -20,7 +20,7 @@ RUN groupadd -r stackable --gid=1000 && \
 USER stackable
 
 ARG PRODUCT
-ARG SCALA=2.13
+ARG SCALA
 ARG OPA_AUTHORIZER
 
 WORKDIR /stackable
