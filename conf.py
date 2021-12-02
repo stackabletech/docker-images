@@ -25,27 +25,12 @@ products = [
         'versions': [
             {
                 'product': '2.6.2',
-                'scala': '2.12',
-                'opa_authorizer': '1.1.0',
-            },
-            {
-                'product': '2.6.2',
                 'scala': '2.13',
                 'opa_authorizer': '1.1.0',
             },
             {
                 'product': '2.7.1',
-                'scala': '2.12',
-                'opa_authorizer': '1.1.0',
-            },
-            {
-                'product': '2.7.1',
                 'scala': '2.13',
-                'opa_authorizer': '1.1.0',
-            },
-            {
-                'product': '2.8.1',
-                'scala': '2.12',
                 'opa_authorizer': '1.1.0',
             },
             {
