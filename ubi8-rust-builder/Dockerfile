@@ -1,6 +1,9 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
   && rm -rf /var/cache/yum \
