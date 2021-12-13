@@ -33,5 +33,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/spark
 CMD ["sbin/start-master.sh"]

@@ -45,5 +45,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUC
 
 ENV HADOOP_HOME=/stackable/hadoop
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/hive
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]

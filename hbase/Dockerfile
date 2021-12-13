@@ -30,5 +30,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/hbase
 CMD ["./bin/hbase", "master", "start" ]
