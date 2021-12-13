@@ -34,5 +34,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
 WORKDIR /stackable/trino-server/plugin
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-0.1.0.tar.gz | tar -xzC .
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]

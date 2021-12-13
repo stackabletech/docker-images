@@ -25,5 +25,8 @@ WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]

@@ -29,5 +29,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PROD
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/hadoop
 CMD ["./bin/start-namenode", "--config", "etc/hadoop"]

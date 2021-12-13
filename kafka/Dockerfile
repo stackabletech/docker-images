@@ -33,5 +33,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_pro
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]

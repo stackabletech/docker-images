@@ -32,5 +32,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
     # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
     curl https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz | tar -xzC /stackable/druid/extensions
 
+# Mitigate CVE-2021-44228 (Log4Shell)
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
