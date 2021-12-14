@@ -9,7 +9,7 @@ RUN microdnf update && \
     # https://druid.apache.org/docs/latest/tutorials/index.html#requirements
     microdnf install java-1.8.0-openjdk --nodocs && \
     microdnf install findutils && \
-    microdnf install tar gzip && \
+    microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf clean all
 

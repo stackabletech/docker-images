@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
-    microdnf install tar gzip && \
+    microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf clean all
 

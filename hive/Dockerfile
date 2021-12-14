@@ -5,7 +5,7 @@ LABEL maintainer="Stackable GmbH"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install --nodocs java-11-openjdk-headless tar gzip which shadow-utils && \
+    microdnf install --nodocs java-11-openjdk-headless tar gzip zip which shadow-utils && \
     microdnf clean all
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
