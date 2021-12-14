@@ -95,7 +95,7 @@ def build_and_publish_image(args, products):
             tags = build_image_tags(image_name, args.image_version, v)
             build_args = build_image_args(v)
 
-            commands.append(['docker', 'build', *build_args, *tags, p["name"]])
+            commands.append(['docker', 'build', *build_args, *tags, '-f', p["name"] + '/Dockerfile', '.'])
             if args.push:
                 commands.append(['docker', 'push', '--all-tags', image_name])
         
