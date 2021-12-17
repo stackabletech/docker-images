@@ -43,7 +43,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/druid-${PRODUCT}
+RUN /bin/log4shell.sh /stackable/apache-druid-${PRODUCT}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
