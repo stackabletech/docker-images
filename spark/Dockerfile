@@ -51,7 +51,7 @@ RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}
 # SocketNode.class, which we do not remove with our scripts.
 # Further investigation will be needed whether this should also be removed.
 COPY shared/log4shell_1.1.2-log4shell_Linux_x86_64 /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 # ===
 
 WORKDIR /stackable/spark
