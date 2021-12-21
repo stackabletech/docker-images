@@ -24,7 +24,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/prometheus/prometheu
 USER stackable
 
 WORKDIR /stackable/prometheus
-COPY stackable/script/prometheus-wrapper.sh .
+COPY prometheus/stackable/script/prometheus-wrapper.sh .
 
 CMD ["./prometheus", "--config.file=./prometheus.yml"]
 
