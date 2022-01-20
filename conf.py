@@ -70,6 +70,10 @@ products = [
         'versions': ['362'],
     },
     {
+        'name': 'tools',
+        'versions': ['0.1.0'],
+    },
+    {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.6.3', '3.7.0'],
