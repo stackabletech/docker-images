@@ -74,6 +74,10 @@ products = [
         'versions': ['0.1.0'],
     },
     {
+        'name': 'airflow',
+    	'versions': ['2.2.3'],
+    },
+    {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.6.3', '3.7.0'],
