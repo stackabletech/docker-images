@@ -9,5 +9,3 @@ FROM apache/airflow:2.2.3-python3.8
 LABEL maintainer="Stackable GmbH"
 
 ARG PRODUCT
-
-COPY airflow/stackable/airflow_config.py /app/pythonpath/
