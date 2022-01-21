@@ -5,7 +5,10 @@
 #
 # 2022.01.20: Some components (e.g. airflow triggerer) require python 3.7+
 #
-FROM apache/airflow:2.2.3-python3.8
+ARG PRODUCT=2.2.3
+ARG PYTHON=3.8
+
+FROM apache/airflow:$PRODUCT-python$PYTHON
 LABEL maintainer="Stackable GmbH"
 
-ARG PRODUCT
+

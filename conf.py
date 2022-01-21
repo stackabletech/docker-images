@@ -75,7 +75,12 @@ products = [
     },
     {
         'name': 'airflow',
-    	'versions': ['2.2.3'],
+        'versions': [
+            {
+                'product': '2.2.3',
+                'python': '3.8',
+            },
+        ]
     },
     {
         # ZooKeeper must be at least 3.5.0
