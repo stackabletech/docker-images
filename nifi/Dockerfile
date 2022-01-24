@@ -7,8 +7,13 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
+    microdnf install shadow-utils openssl && \
     microdnf clean all
+
+# A bcrypt tool is needed to locally encrypt the admin password that is mounted as a secret into config files
+RUN curl -L https://github.com/bitnami/bcrypt-cli/releases/download/v1.0.2/bcrypt-linux-amd64.tar.gz | tar -xzC . && \
+    mv bcrypt-linux-amd64 /bin/bcrypt && \
+    chmod +x /bin/bcrypt
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
 
