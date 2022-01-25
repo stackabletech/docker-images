@@ -9,10 +9,12 @@ RUN microdnf update && \
     microdnf install tar gzip zip shadow-utils curl openssl && \
     microdnf clean all
 
-# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-RUN curl -L https://github.com/bitnami/bcrypt-cli/releases/download/v1.0.2/bcrypt-linux-amd64.tar.gz | tar -xzC . && \
-    mv bcrypt-linux-amd64 /bin/bcrypt && \
-    chmod +x /bin/bcrypt
+# NiFi init containers need to be able to locally encrypt the admin password that is mounted as a secret in cleartext
+# bcrypt tool is currently included as binary, source can be found in the stackable utils repo:
+# https://github.com/stackabletech/stackable-utils
+# Once the tool has seen a release this will be replaced by a download of the actual released version
+COPY tools/bin/stackable-bcrypt /bin/stackable-bcrpyt && \
+     chmod +x /bin/stackable-bcrpyt
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
