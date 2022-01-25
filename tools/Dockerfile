@@ -5,6 +5,7 @@ LABEL maintainer="Stackable GmbH"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
+    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip shadow-utils curl openssl && \
     microdnf clean all
 
