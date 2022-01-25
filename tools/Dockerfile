@@ -13,8 +13,8 @@ RUN microdnf update && \
 # bcrypt tool is currently included as binary, source can be found in the stackable utils repo:
 # https://github.com/stackabletech/stackable-utils
 # Once the tool has seen a release this will be replaced by a download of the actual released version
-COPY tools/bin/stackable-bcrypt /bin/stackable-bcrpyt && \
-     chmod +x /bin/stackable-bcrpyt
+COPY tools/bin/stackable-bcrypt /bin
+RUN chmod +x /bin/stackable-bcrypt
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
