@@ -71,7 +71,7 @@ products = [
     },
     {
         'name': 'tools',
-        'versions': ['0.1.0'],
+        'versions': ['0.2.0'],
     },
     {
         'name': 'airflow',
