@@ -4,7 +4,7 @@ Application images will be created for products and associated versions configur
 products = [
     {
         'name': 'druid',
-        'versions': ['0.22.0'],
+        'versions': ['0.22.1'],
     },
     {
         'name': 'hadoop',
