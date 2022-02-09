@@ -63,7 +63,12 @@ products = [
     },
     {
         'name': 'superset',
-        'versions': ['1.3.2'],
+        'versions': [
+            {
+                'product': '1.3.2',
+                '_base_image_tag': '9515ba68dc560307758774d1618c885e379d2011',
+            },
+        ],
     },
     {
         'name': 'trino',
