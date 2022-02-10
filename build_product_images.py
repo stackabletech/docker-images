@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 """
 Build and possibly publish product images. It doesn't login to any registry when publishing
 but it assumes a `docker login` has been performed before.
@@ -7,9 +7,9 @@ Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product zookeeper,kafka -image_version 0.1 --push
+    build_product_images.py --product zookeeper,kafka --image_version 0.1.0 --push
 
-This whill build an image for each Apache Zookeeper and APache Kafka version configured in conf.py
+This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
 """
 
 import conf
@@ -56,15 +56,18 @@ def build_image_tags(image_name, image_version, product_version):
         1. <product>-<dependency1>-<dependency2>...-<image>
         2. <product>-<dependency1>-<dependency2>...-<platform>
         3. <product>-<platform>
+
+    Product version items starting with an underscore are not appended as
+    dependencies.
     """
     result = []
 
     platform_version = re.search(r'^\d+', image_version)[0]
 
     if isinstance(product_version, dict):
-        dep_versions = "-".join([f'{key}{value}' for key, value in product_version.items() if key != "product"])
-        image_tag = "-".join([product_version['product'], dep_versions, f'stackable{image_version}'])
-        platform_tag = "-".join([product_version['product'], dep_versions, f'stackable{platform_version}'])
+        dep_versions = [f'{key}{value}' for key, value in product_version.items() if key != "product" and not key.startswith('_')]
+        image_tag = "-".join([product_version['product'], *dep_versions, f'stackable{image_version}'])
+        platform_tag = "-".join([product_version['product'], *dep_versions, f'stackable{platform_version}'])
         latest_tag = "-".join([product_version['product'], f'stackable{platform_version}'])
 
         result.extend([
@@ -98,7 +101,7 @@ def build_and_publish_image(args, products):
             commands.append(['docker', 'build', *build_args, *tags, '-f', p["name"] + '/Dockerfile', '.'])
             if args.push:
                 commands.append(['docker', 'push', '--all-tags', image_name])
-        
+
     return commands
 
 def run_commands(dry, commands):
