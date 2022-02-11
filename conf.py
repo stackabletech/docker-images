@@ -3,8 +3,17 @@ Application images will be created for products and associated versions configur
 """
 products = [
     {
+        'name': 'airflow',
+        'versions': [
+            {
+                'product': '2.2.3',
+                'python': '3.8',
+            },
+        ]
+    },
+    {
         'name': 'druid',
-        'versions': ['0.22.0'],
+        'versions': ['0.22.1'],
     },
     {
         'name': 'hadoop',
@@ -46,7 +55,7 @@ products = [
     },
     {
         'name': 'opa',
-        'versions': ['0.27.1', '0.28.0'],
+        'versions': ['0.27.1', '0.28.0', '0.37.2'],
     },
     {
         'name': 'spark',
@@ -59,6 +68,10 @@ products = [
                 'product': '3.1.1',
                 'hadoop': '2.7',
             },
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+            },
         ]
     },
     {
@@ -66,26 +79,17 @@ products = [
         'versions': ['1.3.2'],
     },
     {
-        'name': 'trino',
-        'versions': ['362'],
-    },
-    {
         'name': 'tools',
         'versions': ['0.2.0'],
     },
     {
-        'name': 'airflow',
-        'versions': [
-            {
-                'product': '2.2.3',
-                'python': '3.8',
-            },
-        ]
+        'name': 'trino',
+        'versions': ['362', '370'],
     },
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.6.3', '3.7.0'],
     },
- ]
+]
 
