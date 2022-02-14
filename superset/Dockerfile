@@ -8,4 +8,6 @@ ARG _BASE_IMAGE_TAG
 FROM apache/superset:$_BASE_IMAGE_TAG
 LABEL maintainer="Stackable GmbH"
 
+RUN pip install statsd
+
 COPY superset/stackable/superset_config.py /app/pythonpath/
