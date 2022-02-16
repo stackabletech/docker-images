@@ -41,6 +41,10 @@ products = [
         ]
     },
     {
+        'name': 'nginx',
+        'versions': ['1.21.6'],
+    },
+    {
         'name': 'nifi',
         'versions': ['1.13.2', '1.15.0'],
     },
