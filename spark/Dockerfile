@@ -4,7 +4,6 @@ LABEL maintainer="Stackable GmbH"
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
@@ -18,28 +17,24 @@ RUN microdnf update && \
 RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
+ENV HOME=/stackable
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
-ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
+ARG PRODUCT
+ARG HADOOP
+
 COPY spark/stackable /stackable
-COPY spark/requirements.txt /tmp/requirements.txt
+COPY spark/requirements-${PRODUCT}.txt /tmp/requirements.txt
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
-# pyspark dependencies
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir \
-    -r /tmp/requirements.txt
-
 USER stackable
-
-ARG PRODUCT
-ARG HADOOP
 
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP}.tgz | tar -xzC . && \
@@ -48,6 +43,10 @@ RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUC
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+    
+# pyspark dependencies
+RUN python -m pip install --user --upgrade pip
+RUN python -m pip install --user --no-cache-dir -r /tmp/requirements.txt
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
