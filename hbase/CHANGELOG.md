@@ -4,7 +4,7 @@
 
 ### Added
 
-- HBase 2.4.9 added ([#XXX]).
+- HBase 2.4.9 added ([#57]).
 
 
-[#XXX]: https://github.com/stackabletech/docker-images/pull/XXX
+[#57]: https://github.com/stackabletech/docker-images/pull/57
