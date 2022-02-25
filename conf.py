@@ -12,7 +12,7 @@ products = [
     },
     {
         'name': 'hbase',
-        'versions': ['2.4.6', '2.4.8'],
+        'versions': ['2.4.6', '2.4.8', '2.4.9'],
     },
     {
         'name': 'hive',
