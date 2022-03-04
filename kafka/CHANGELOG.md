@@ -4,6 +4,6 @@
 
 ### Changed
 
-- Use the Kafka OPA plugin 1.4.0 for Kafka 2.7.0+.
+- Use the Kafka OPA plugin 1.4.0 for Kafka 2.7.0+. ([#61])
 
-[#56]: https://github.com/stackabletech/docker-images/pull/56
+[#61]: https://github.com/stackabletech/docker-images/pull/61
