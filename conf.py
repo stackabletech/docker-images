@@ -19,24 +19,17 @@ products = [
         'versions': ['2.3.9'],
     },
     {
-        # Opa authorizer 1.1.0 for Kafka version < 3.0.0
-        # Opa authorizer 1.4.0 for Kafka version >= 3.0.0
         'name': 'kafka',
         'versions': [
             {
-                'product': '2.6.2',
-                'scala': '2.13',
-                'opa_authorizer': '1.1.0',
-            },
-            {
                 'product': '2.7.1',
                 'scala': '2.13',
-                'opa_authorizer': '1.1.0',
+                'opa_authorizer': '1.4.0',
             },
             {
                 'product': '2.8.1',
                 'scala': '2.13',
-                'opa_authorizer': '1.1.0',
+                'opa_authorizer': '1.4.0',
             },
             {
                 'product': '3.1.0',
