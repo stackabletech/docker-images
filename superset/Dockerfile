@@ -8,7 +8,7 @@ ARG _BASE_IMAGE_TAG
 FROM apache/superset:$_BASE_IMAGE_TAG
 LABEL maintainer="Stackable GmbH"
 
-USER 0
+USER root
 RUN apt update &&\
     apt install -y python3-dev libldap2-dev libsasl2-dev libssl-dev &&\
     rm -rf /var/lib/apt/lists/*
