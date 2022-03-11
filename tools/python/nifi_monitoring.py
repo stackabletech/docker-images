@@ -124,9 +124,9 @@ def main():
                           help="Password for the user.")
     all_args.add_argument("-v", "--nifi_version", required=True,
                           help="The NiFi product version.")
-    all_args.add_argument("-c", "--cert", required=False, default="/tmp/ca_cert.pem",
+    all_args.add_argument("-c", "--cert", required=True,
                           help="The path to the public certificate.")
-    all_args.add_argument("-m", "--metrics_port", required=False, default="9505",
+    all_args.add_argument("-m", "--metrics_port", required=True,
                           help="Metrics port to be set in the ReportingTask.")
     all_args.add_argument("-t", "--task_name", required=False,
                           default="StackablePrometheusReportingTask",
