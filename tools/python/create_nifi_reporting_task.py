@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This is a script to enable monitoring in NiFi via the REST API"""
+"""This is a script to create a ReportingTask in NiFi via the REST API"""
 import sys
 import argparse
 import nipyapi
