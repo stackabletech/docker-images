@@ -102,6 +102,7 @@ def set_reporting_task_running(task):
         raise Exception("Could not set ReportingTask [{}] to RUNNING: {}".format(get_reporting_task_id(task), str(e))) from None
         exit(-1)
 
+
 def main():
     # Construct an argument parser
     all_args = argparse.ArgumentParser()
