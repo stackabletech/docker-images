@@ -1,37 +1,40 @@
 #!/usr/bin/env python3
-import nipyapi
-import argparse
+"""This is a script to enable monitoring in NiFi via the REST API"""
 import sys
+import argparse
+import nipyapi
 
 # no stack trace
 sys.tracebacklimit = 0
 
 
 def init(url: str, username: str, password: str, ca_file: str):
+    """Initialize authenticated connection to NiFi"""
     nipyapi.config.nifi_config.host = url
     nipyapi.security.set_service_ssl_context(service='nifi', ca_file=ca_file)
 
     try:
         nipyapi.security.service_login(service='nifi', username=username, password=password)
         print("Successfully authenticated and established connection with [%s]" % url)
-    except Exception as e:
-        raise Exception("Failed to connect to {}: {}".format(url, str(e))) from None
-        exit(-1)
+    except Exception as ex:
+        raise Exception("Failed to connect to {}: {}".format(url, str(ex))) from None
 
 
 def find_reporting_task(name: str, port: str):
+    """Find a ReportingTask via its name and port"""
     flow_api = nipyapi.nifi.apis.flow_api.FlowApi()
 
     try:
         reporting_tasks = flow_api.get_reporting_tasks().reporting_tasks
-    except Exception as e:
-        raise Exception("Could not find ReportingTask[{}/{}]: {}".format(name, port, str(e))) from None
-        exit(-1)
+    except Exception as ex:
+        raise Exception("Could not find ReportingTask[{}/{}]: {}"
+                        .format(name, port, str(ex))) from None
 
     for task in reporting_tasks:
         task_dict = task.to_dict()
-        task_name = task_dict["component"]["name"]
-        task_port = task_dict["component"]["properties"]["prometheus-reporting-task-metrics-endpoint-port"]
+        task_component = task_dict["component"]
+        task_name = task_component["name"]
+        task_port = task_component["properties"]["prometheus-reporting-task-metrics-endpoint-port"]
         if task_name == name and task_port == port:
             return task
 
@@ -39,6 +42,7 @@ def find_reporting_task(name: str, port: str):
 
 
 def create_reporting_task(name: str, port: str, version: str):
+    """Create a ReportingTask"""
     task = nipyapi.nifi.models.reporting_task_entity.ReportingTaskEntity(
         revision=nipyapi.nifi.models.revision_dto.RevisionDTO(version=0),
         disconnected_node_acknowledged=False,
@@ -61,31 +65,35 @@ def create_reporting_task(name: str, port: str, version: str):
 
     try:
         return controller_api.create_reporting_task(body=task)
-    except Exception as e:
-        raise Exception("Could not create reporting task: {}".format(str(e))) from None
-        exit(-1)
+    except Exception as ex:
+        raise Exception("Could not create reporting task: {}".format(str(ex))) from None
 
 
 def get_reporting_task_id(task):
+    """Return the ReportingTask ID"""
     return task.id
 
 
 def get_reporting_task_name(task):
+    """Return the ReportingTask name"""
     task_dict = task.to_dict()
     return task_dict["component"]["name"]
 
 
 def get_revision_version(task):
+    """Return the ReportingTask revision version"""
     task_dict = task.to_dict()
     return task_dict["revision"]["version"]
 
 
 def is_reporting_task_running(task):
+    """Check if the the ReportingTask is already running"""
     task_dict = task.to_dict()
     return task_dict["component"]["state"] == "RUNNING"
 
 
 def set_reporting_task_running(task):
+    """Set ReportingTask to RUNNING"""
     reporting_task_api = nipyapi.nifi.apis.reporting_tasks_api.ReportingTasksApi()
 
     state = {
@@ -98,12 +106,13 @@ def set_reporting_task_running(task):
 
     try:
         return reporting_task_api.update_run_status(id=get_reporting_task_id(task), body=state)
-    except Exception as e:
-        raise Exception("Could not set ReportingTask [{}] to RUNNING: {}".format(get_reporting_task_id(task), str(e))) from None
-        exit(-1)
+    except Exception as ex:
+        raise Exception("Could not set ReportingTask [{}] to RUNNING: {}"
+                        .format(get_reporting_task_id(task), str(ex))) from None
 
 
 def main():
+    """Main method with cli argument parsing and ReportingTask logic"""
     # Construct an argument parser
     all_args = argparse.ArgumentParser()
     # Add arguments to the parser
@@ -119,7 +128,8 @@ def main():
                           help="The path to the public certificate.")
     all_args.add_argument("-m", "--metrics_port", required=False, default="9505",
                           help="Metrics port to be set in the ReportingTask.")
-    all_args.add_argument("-t", "--task_name", required=False, default="StackablePrometheusReportingTask",
+    all_args.add_argument("-t", "--task_name", required=False,
+                          default="StackablePrometheusReportingTask",
                           help="The name of ReportingTask to create or activate.")
     args = vars(all_args.parse_args())
 
@@ -131,7 +141,8 @@ def main():
     reporting_task = find_reporting_task(name=task_name, port=port)
 
     if reporting_task is None:
-        reporting_task = create_reporting_task(name=task_name, port=port, version=args["nifi_version"])
+        reporting_task = create_reporting_task(name=task_name, port=port,
+                                               version=args["nifi_version"])
         print(get_reporting_task_name(task=reporting_task) + " [%s] -> CREATED" % reporting_task.id)
 
     if not is_reporting_task_running(task=reporting_task):
