@@ -27,7 +27,7 @@ def find_reporting_task(name: str, port: str):
     try:
         reporting_tasks = flow_api.get_reporting_tasks().reporting_tasks
     except Exception as ex:
-        raise Exception("Could not find ReportingTask[{}/{}]: {}"
+        raise Exception("Failed to retrieve ReportingTask[{}/{}]: {}"
                         .format(name, port, str(ex))) from None
 
     for task in reporting_tasks:
@@ -66,12 +66,7 @@ def create_reporting_task(name: str, port: str, version: str):
     try:
         return controller_api.create_reporting_task(body=task)
     except Exception as ex:
-        raise Exception("Could not create reporting task: {}".format(str(ex))) from None
-
-
-def get_reporting_task_id(task):
-    """Return the ReportingTask ID"""
-    return task.id
+        raise Exception("Failed to create reporting task: {}".format(str(ex))) from None
 
 
 def get_reporting_task_name(task):
@@ -105,10 +100,10 @@ def set_reporting_task_running(task):
     }
 
     try:
-        return reporting_task_api.update_run_status(id=get_reporting_task_id(task), body=state)
+        return reporting_task_api.update_run_status(id=task.id, body=state)
     except Exception as ex:
-        raise Exception("Could not set ReportingTask [{}] to RUNNING: {}"
-                        .format(get_reporting_task_id(task), str(ex))) from None
+        raise Exception("Failed to set ReportingTask [{}] to RUNNING: {}"
+                        .format(task.id, str(ex))) from None
 
 
 def main():
@@ -125,7 +120,8 @@ def main():
     all_args.add_argument("-v", "--nifi_version", required=True,
                           help="The NiFi product version.")
     all_args.add_argument("-c", "--cert", required=True,
-                          help="The path to the public certificate.")
+                          help="The path to the trusted certificate authority that "
+                               "signed our expected certificates.")
     all_args.add_argument("-m", "--metrics_port", required=True,
                           help="Metrics port to be set in the ReportingTask.")
     all_args.add_argument("-t", "--task_name", required=False,
