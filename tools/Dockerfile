@@ -15,7 +15,7 @@ COPY tools/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stac
 # add all python scripts
 COPY tools/python /stackable/python
 
-RUN pip3 install -r /stackable/python/requirements.txt && \
+RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
     groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
