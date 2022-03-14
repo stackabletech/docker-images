@@ -3,6 +3,10 @@ Application images will be created for products and associated versions configur
 """
 products = [
     {
+        'name': 'antora',
+        'versions': ['3.0.1'],
+    },
+    {
         'name': 'druid',
         'versions': ['0.22.1'],
     },
