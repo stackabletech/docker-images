@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Initial release of the antora image with the lunr extension ([#xxx])
+- Initial release of the antora image with the lunr extension ([#67])
 
-[#xxx]: https://github.com/stackabletech/spark-operator/pull/138
+[#67]: https://github.com/stackabletech/docker-images/pull/67
 
