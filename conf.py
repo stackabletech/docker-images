@@ -64,6 +64,15 @@ products = [
         ]
     },
     {
+        'name': 'spark-k8s',
+        'versions': [
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+            },
+        ]
+    },
+    {
         'name': 'superset',
         'versions': [
             {
@@ -99,4 +108,3 @@ products = [
         'versions': ['3.5.8', '3.6.3', '3.7.0'],
     },
  ]
-
