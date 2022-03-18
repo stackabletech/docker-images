@@ -14,8 +14,8 @@ RUN microdnf update && \
     microdnf install python3 python3-pip && \
     microdnf clean all
 
-RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
@@ -48,8 +48,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 # pyspark dependencies
-RUN python -m pip install --user --upgrade pip
-RUN python -m pip install --user --no-cache-dir -r /tmp/requirements.txt
+RUN python -m pip install --user --no-cache-dir --upgrade pip && \
+    python -m pip install --user --no-cache-dir -r /tmp/requirements.txt
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
