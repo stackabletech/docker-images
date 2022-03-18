@@ -27,16 +27,15 @@ ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 ARG PRODUCT
 ARG HADOOP
 
-COPY spark/stackable /stackable
-COPY spark/requirements-${PRODUCT}.txt /tmp/requirements.txt
+COPY spark-k8s/stackable /stackable
+COPY spark-k8s/requirements-${PRODUCT}.txt /tmp/requirements.txt
+COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
+
+RUN chmod +x /usr/bin/tini
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
-    
-ENV TINI_VERSION v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
-RUN chmod +x /usr/bin/tini
 
 USER stackable
 
@@ -47,7 +46,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUC
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-    
+
 # pyspark dependencies
 RUN python -m pip install --user --upgrade pip
 RUN python -m pip install --user --no-cache-dir -r /tmp/requirements.txt

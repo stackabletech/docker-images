@@ -1,0 +1,9 @@
+# Changelog
+
+## [spark-k8s-stackable0.1.0] - 2022-03-18
+
+### Added
+
+- Stackable spark-on-kubernetes image compatible with the entrypoint used by the standard Spark kubernetes image ([#73]).
+
+[#73]: https://github.com/stackabletech/docker-images/pull/73
