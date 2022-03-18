@@ -4,6 +4,6 @@
 
 ### Added
 
-- Stackable spark-on-kubernetes image compatible with the entrypoint used by the standard Spark kubernetes image ([#73]).
+- Stackable spark-on-kubernetes image compatible with the entrypoint used by the standard Spark kubernetes image. N.B. this involves copying in an external binary file (https://github.com/krallin/tini) that spark uses internally to add a level of security to called processes ([#73]).
 
 [#73]: https://github.com/stackabletech/docker-images/pull/73
