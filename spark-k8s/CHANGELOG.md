@@ -1,5 +1,13 @@
 # Changelog
 
+## [spark-k8s-stackable0.1.0] - 2022-03-21
+
+### Added
+
+- Added Python 3.9 back to the image and set /stackable as home folder. (#[xx])
+
+[#xx]: https://github.com/stackabletech/docker-images/pull/xx
+
 ## [spark-k8s-stackable0.1.0] - 2022-03-18
 
 ### Added
