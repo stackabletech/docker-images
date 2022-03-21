@@ -4,6 +4,10 @@ LABEL maintainer="Stackable GmbH"
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG PRODUCT
+ARG HADOOP
+ARG PYTHON
+
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
@@ -11,15 +15,18 @@ RUN microdnf update && \
     # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
+    microdnf install python${PYTHON} python${PYTHON}-pip && \
     microdnf clean all
+
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
-
-ARG PRODUCT
-ARG HADOOP
+ENV PYSPARK_PYTHON=/usr/bin/python
+ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
@@ -27,7 +34,7 @@ COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
 RUN chmod +x /usr/bin/tini
 
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
+    useradd -r -g stackable --uid=1000 -d /stackable stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
