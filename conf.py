@@ -3,6 +3,19 @@ Application images will be created for products and associated versions configur
 """
 products = [
     {
+        'name': 'airflow',
+        'versions': [
+            {
+                'product': '2.2.3',
+                'python': '3.8',
+            },
+            {
+                'product': '2.2.4',
+                'python': '3.9',
+            },
+        ]
+    },
+    {
         'name': 'antora',
         'versions': ['3.0.1'],
     },
@@ -93,15 +106,6 @@ products = [
     {
         'name': 'tools',
         'versions': ['0.2.0'],
-    },
-    {
-        'name': 'airflow',
-        'versions': [
-            {
-                'product': '2.2.3',
-                'python': '3.8',
-            },
-        ]
     },
     {
         # ZooKeeper must be at least 3.5.0
