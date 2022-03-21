@@ -82,6 +82,7 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
+                'python': '39',
             },
         ]
     },
