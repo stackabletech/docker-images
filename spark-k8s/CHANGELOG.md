@@ -1,5 +1,12 @@
 # Changelog
 
+## [spark-k8s-stackable0.3.0] - 2022-03-22
+
+### Added
+
+- Added AWS dependencies for Spark (#[xx])
+
+[#xx]: https://github.com/stackabletech/docker-images/pull/75
 ## [spark-k8s-stackable0.2.0] - 2022-03-21
 
 ### Added
