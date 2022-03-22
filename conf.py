@@ -8,7 +8,12 @@ products = [
     },
     {
         'name': 'druid',
-        'versions': ['0.22.1'],
+        'versions': [
+            {
+                'product': '0.22.1',
+                'authorizer': '0.1.0',
+            }
+        ]
     },
     {
         'name': 'hadoop',
