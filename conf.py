@@ -21,7 +21,12 @@ products = [
     },
     {
         'name': 'druid',
-        'versions': ['0.22.1'],
+        'versions': [
+            {
+                'product': '0.22.1',
+                'authorizer': '0.1.0',
+            }
+        ]
     },
     {
         'name': 'hadoop',
@@ -83,6 +88,7 @@ products = [
                 'product': '3.2.1',
                 'hadoop': '3.2',
                 'python': '39',
+                'aws': '1.11.375',
             },
         ]
     },
