@@ -1,5 +1,11 @@
 # Changelog
 
+## [superset-stackable0.4.0] - unreleased
+
+### Removed
+
+- Custom Superset configuration removed.
+
 ## [superset-stackable0.3.0] - 2022-02-21
 
 ### Added
