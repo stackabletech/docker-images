@@ -69,6 +69,17 @@ products = [
         'versions': ['0.27.1', '0.28.0', '0.37.2'],
     },
     {
+        'name': 'pyspark-k8s',
+        'versions': [
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+                'python': '39',
+                'aws': '1.11.375',
+            },
+        ]
+    },
+    {
         'name': 'spark',
         'versions': [
             {
@@ -87,7 +98,6 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
-                'python': '39',
                 'aws': '1.11.375',
             },
         ]
