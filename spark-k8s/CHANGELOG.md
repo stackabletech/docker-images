@@ -4,17 +4,17 @@
 
 ### Changed
 
-- Separate python and non-python images (#[xx])
+- Separate python and non-python images (#[80])
 
-[#xx]: https://github.com/stackabletech/docker-images/pull/75
+[#80]: https://github.com/stackabletech/docker-images/pull/80
 
 ## [spark-k8s-stackable0.3.0] - 2022-03-22
 
 ### Added
 
-- Added AWS dependencies for Spark (#[xx])
+- Added AWS dependencies for Spark (#[78])
 
-[#xx]: https://github.com/stackabletech/docker-images/pull/75
+[#78]: https://github.com/stackabletech/docker-images/pull/78
 
 ## [spark-k8s-stackable0.2.0] - 2022-03-21
 

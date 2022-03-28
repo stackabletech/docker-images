@@ -4,6 +4,6 @@
 
 ### Added
 
-- Separate python and non-python images (#[xx])
+- Separate python and non-python images ((#[80])
 
-[#73]: https://github.com/stackabletech/docker-images/pull/73
+[#80]: https://github.com/stackabletech/docker-images/pull/80
