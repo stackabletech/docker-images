@@ -88,7 +88,6 @@ products = [
                 'product': '3.2.1',
                 'hadoop': '3.2',
                 'python': '39',
-                'aws': '1.11.375',
             },
         ]
     },
@@ -111,7 +110,6 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
-                'aws': '1.11.375',
             },
         ]
     },
