@@ -1,19 +1,16 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
+# druid only fully supports java 8 for now
+# https://druid.apache.org/docs/latest/tutorials/index.html#requirements
+FROM docker.stackable.tech/stackable/java-base:1.8.0-stackable0
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    # druid only fully supports java 8 for now
-    # https://druid.apache.org/docs/latest/tutorials/index.html#requirements
-    microdnf install java-1.8.0-openjdk --nodocs && \
     microdnf install findutils && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf clean all
-
-ENV JAVA_HOME /etc/alternatives/jre
 
 COPY druid/stackable /stackable
 RUN groupadd -r stackable --gid=1000 && \

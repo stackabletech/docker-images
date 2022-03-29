@@ -1,11 +1,10 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
+FROM docker.stackable.tech/stackable/java-base:11-stackable0
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     # required for spark startup scripts
@@ -18,7 +17,6 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
