@@ -6,8 +6,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG PRODUCT
 ARG HADOOP
-ARG PYTHON
-ARG AWS
 
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
@@ -16,18 +14,12 @@ RUN microdnf update && \
     # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
-    microdnf install python${PYTHON} python${PYTHON}-pip && \
     microdnf clean all
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
 ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
-ENV PYSPARK_PYTHON=/usr/bin/python
-ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
@@ -46,11 +38,6 @@ RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUC
     curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-
-RUN curl -L  https://search.maven.org/remotecontent?filepath=org/apache/hadoop/hadoop-aws/${HADOOP}.0/hadoop-aws-${HADOOP}.0.jar \  
-    -o /stackable/spark/jars/hadoop-aws-${HADOOP}.0.jar && \
-    curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${AWS}/aws-java-sdk-bundle-${AWS}.jar \
-    -o /stackable/spark/jars/aws-java-sdk-bundle-${AWS}.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

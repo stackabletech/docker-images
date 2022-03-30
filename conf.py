@@ -41,6 +41,19 @@ products = [
         'versions': ['2.3.9'],
     },
     {
+        'name': 'java-base',
+        'versions': [
+            {
+                'product': '1.8.0',
+                '_security_path': '/usr/lib/jvm/jre-1.8.0/lib/security/java.security',
+            },
+            {
+                'product': '11',
+                '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
+            },
+        ],
+    },
+    {
         'name': 'kafka',
         'versions': [
             {
@@ -69,6 +82,16 @@ products = [
         'versions': ['0.27.1', '0.28.0', '0.37.2'],
     },
     {
+        'name': 'pyspark-k8s',
+        'versions': [
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+                'python': '39',
+            },
+        ]
+    },
+    {
         'name': 'spark',
         'versions': [
             {
@@ -87,8 +110,6 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
-                'python': '39',
-                'aws': '1.11.375',
             },
         ]
     },

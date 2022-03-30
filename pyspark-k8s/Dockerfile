@@ -1,31 +1,50 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0
+FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG PRODUCT
+ARG HADOOP
+ARG PYTHON
+
 RUN microdnf update && \
+    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
+    # required for spark startup scripts
+    microdnf install procps && \
+    microdnf install hostname && \
+    microdnf install python${PYTHON} python${PYTHON}-pip && \
     microdnf clean all
 
-COPY hbase/stackable /stackable
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
+ENV HOME=/stackable
+ENV JAVA_HOME=/usr/lib/jvm/jre-11
+ENV SPARK_HOME=/stackable/spark
+ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
+ENV PYSPARK_PYTHON=/usr/bin/python
+ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
+
+COPY spark-k8s/stackable /stackable
+COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
+
+RUN chmod +x /usr/bin/tini
+
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
+    useradd -r -g stackable --uid=1000 -d /stackable stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
 
-ARG PRODUCT
-
 WORKDIR /stackable
-RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-bin.tar.gz | tar -xzC . && \
-    ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
+RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP}.tgz | tar -xzC . && \
+    ln -s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP} /stackable/spark && \
     curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-
-ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -38,15 +57,15 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
 # SocketNode.class, which we do not remove with our scripts.
 # Further investigation will be needed whether this should also be removed.
 COPY shared/log4shell_1.1.2-log4shell_Linux_x86_64 /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 # ===
 
-WORKDIR /stackable/hbase
-CMD ["./bin/hbase", "master", "start" ]
+WORKDIR /stackable/spark
+ENTRYPOINT [ "/stackable/spark/kubernetes/dockerfiles/spark/entrypoint.sh" ]
