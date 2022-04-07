@@ -137,6 +137,6 @@ products = [
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
-        'versions': ['3.5.8', '3.6.3', '3.7.0'],
+        'versions': ['3.5.8', '3.6.3', '3.7.0', '3.8.0'],
     },
  ]
