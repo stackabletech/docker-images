@@ -15,5 +15,3 @@ RUN apt update &&\
 USER superset
 
 RUN pip install statsd python-ldap
-
-COPY superset/stackable/superset_config.py /app/pythonpath/
