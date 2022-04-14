@@ -1,10 +1,12 @@
 # Changelog
 
-## [superset-stackable0.4.0] - unreleased
+## [superset-stackable0.4.0] - 2022-04-14
 
 ### Removed
 
-- Custom Superset configuration removed.
+- Custom Superset configuration removed ([#85]).
+
+[#85]: https://github.com/stackabletech/docker-images/pull/85
 
 ## [superset-stackable0.3.0] - 2022-02-21
 
