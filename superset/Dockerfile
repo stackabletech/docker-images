@@ -1,12 +1,8 @@
-# We use the official Superset image here instead of building our own from scratch
-# to avoid having to deal with python dependencies and Nexus integration. We might
-# change this in the future.
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
 
 ARG PRODUCT
-ARG _BASE_IMAGE_TAG
-ARG RELEASE="1"
-
-FROM apache/superset:$_BASE_IMAGE_TAG
+ARG PYTHON
+ARG RELEASE=1
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.de" \
@@ -16,12 +12,53 @@ LABEL name="Apache Superset" \
       summary="The Stackable image for Apache Superset." \
       description="This image is deployed by the Stackable Operator for Apache Superset."
 
+ENV FLASK_ENV="production" \
+    HOME="/stackable" \
+    SUPERSET_PORT="8088"
+ENV PATH="${HOME}/app/bin:${PATH}" \
+    PYTHONPATH="${HOME}/app/pythonpath"
+
 COPY superset/licenses /licenses
+COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
-USER root
-RUN apt update &&\
-    apt install -y python3-dev libldap2-dev libsasl2-dev libssl-dev &&\
-    rm -rf /var/lib/apt/lists/*
-USER superset
+RUN microdnf update \
+        && microdnf install \
+            gcc \
+            gcc-c++ \
+            libffi-devel \
+            python${PYTHON}-devel \
+            python${PYTHON}-pip \
+            python${PYTHON}-wheel \
+            openssl-devel \
+            cyrus-sasl-devel \
+            openldap-devel \
+        && microdnf clean all \
+        && python3 -m venv --system-site-packages ${HOME}/app \
+        && source ${HOME}/app/bin/activate \
+        && pip install --upgrade setuptools pip \
+        && pip install \
+            --upgrade \
+            --constraint /tmp/constraints.txt \
+            apache-superset==${PRODUCT} \
+            gevent \
+            psycopg2-binary \
+            statsd \
+            python-ldap \
+        && rm /tmp/constraints.txt \
+        && groupadd --gid 1000 stackable \
+        && useradd --uid 1000 --gid stackable --home-dir ${HOME} stackable \
+        && chown --recursive stackable:stackable ${HOME}
 
-RUN pip install statsd python-ldap
+USER stackable
+WORKDIR ${HOME}
+
+HEALTHCHECK CMD curl -f http://localhost:${SUPERSET_PORT}/health
+
+CMD gunicorn \
+    --bind 0.0.0.0:${SUPERSET_PORT} \
+    --worker-class gthread \
+    --threads 20 \
+    --timeout 60 \
+    --limit-request-line 0 \
+    --limit-request-field_size 0 \
+    "superset.app:create_app()"
