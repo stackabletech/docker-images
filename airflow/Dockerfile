@@ -4,6 +4,13 @@ LABEL maintainer="Stackable GmbH"
 ARG PRODUCT
 ARG PYTHON
 
+COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
+COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
+COPY airflow/stackable/utils/entrypoint.sh /entrypoint
+
+RUN chmod a+x /entrypoint
+RUN chmod +x /usr/bin/tini
+
 RUN microdnf update \
         && microdnf install \
             gcc \
@@ -15,25 +22,29 @@ RUN microdnf update \
             cyrus-sasl-devel \
             openldap-devel \
         && microdnf clean all \
-        && python3 -m venv --system-site-packages app \
-        && source app/bin/activate \
+        && python3 -m venv --system-site-packages /stackable/app \
+        && source /stackable/app/bin/activate \
         && pip install --upgrade pip \
         && pip install apache-airflow[async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,microsoft.azure,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv]==${PRODUCT} \
-            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.2.5-fix/constraints-3.9.txt"
-            #--constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2-2-3-fixed/constraints-3.8.txt"
+            --constraint /tmp/constraints.txt
+
+ENV HOME=/stackable
+ENV AIRFLOW_USER_HOME_DIR=/stackable
+ENV GID=0
+
+RUN groupadd -r stackable --gid=1000 && \
+    useradd -r -g stackable --uid=1000 stackable && \
+    chown -R stackable:stackable /stackable
+
+USER stackable
+WORKDIR /stackable
 
 
-CMD ["/app/bin/airflow", "version"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint"]
+CMD []
 
-# 2.2.3/3.8 (**success**)
-#   removed: mysql
-#   constraints-2-2-3-fixed/constraints-3.8.txt
 
-# 2.2.4/3.9
-# no specific contraints fle for 2.2.4.....
-
-# 2.2.5/3.9 (**success**)
-#   removed: mysql
-#   constraints-2-2/constraints-3.9.txt
-#   or
-#   constraints-2.2.5-fix/constraints-3.9.txt
+# TODOs
+# -----
+# removed mysql
+# add odbc, pandas, google_auth?
