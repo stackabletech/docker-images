@@ -1,5 +1,12 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+LABEL name="Apache ZooKeeper" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="1" \
+      summary="The Apache ZooKeeper image used for the Stackable Operator for Apache ZooKeeper." \
+      description="This image for Apache ZooKeeper is bundled together with the Prometheus JMX Exporter."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,6 +17,7 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY zookeeper/stackable /stackable
+COPY zookeeper/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
