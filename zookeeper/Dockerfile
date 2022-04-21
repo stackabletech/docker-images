@@ -1,14 +1,15 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
+ARG RELEASE="1"
 
 LABEL name="Apache ZooKeeper" \
       maintainer="info@stackable.de" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
-      release="1" \
-      summary="The Apache ZooKeeper image used for the Stackable Operator for Apache ZooKeeper." \
-      description="This image for Apache ZooKeeper is bundled together with the Prometheus JMX Exporter."
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache ZooKeeper." \
+      description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

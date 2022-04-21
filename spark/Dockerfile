@@ -1,5 +1,16 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG HADOOP
+ARG RELEASE="1"
+
+LABEL name="Apache Spark" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Spark standalone." \
+      description="This image is deployed by the standalone Stackable Operator for Apache Spark."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -22,11 +33,9 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
-ARG PRODUCT
-ARG HADOOP
-
 COPY spark/stackable /stackable
 COPY spark/requirements-${PRODUCT}.txt /tmp/requirements.txt
+COPY spark/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \

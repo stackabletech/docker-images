@@ -4,9 +4,19 @@
 
 ARG PRODUCT
 ARG _BASE_IMAGE_TAG
+ARG RELEASE="1"
 
 FROM apache/superset:$_BASE_IMAGE_TAG
-LABEL maintainer="Stackable GmbH"
+
+LABEL name="Apache Superset" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Superset." \
+      description="This image is deployed by the Stackable Operator for Apache Superset."
+
+COPY superset/licenses /licenses
 
 USER root
 RUN apt update &&\
