@@ -1,5 +1,15 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Stackable Tools" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable Tools image." \
+      description="This tools / helper image is deployed by several Stackable Operators."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -14,6 +24,7 @@ RUN microdnf update && \
 COPY tools/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
 # add all python scripts
 COPY tools/python /stackable/python
+COPY tools/licenses /licenses
 
 RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
     groupadd -r stackable --gid=1000 && \
@@ -21,8 +32,6 @@ RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
 
 ENV STACKABLE_PRODUCT_VERSION=${PRODUCT}
 

@@ -1,7 +1,18 @@
 # druid only fully supports java 8 for now
 # https://druid.apache.org/docs/latest/tutorials/index.html#requirements
 FROM docker.stackable.tech/stackable/java-base:1.8.0-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG AUTHORIZER
+ARG RELEASE="1"
+
+LABEL name="Apache Druid" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Druid." \
+      description="This image is deployed by the Stackable Operator for Apache Druid."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -13,16 +24,15 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY druid/stackable /stackable
+COPY druid/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
-ARG AUTHORIZER
-
 WORKDIR /stackable
+
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
     # Force to overwrite the existing 'run-druid'

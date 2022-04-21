@@ -1,5 +1,15 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Apache ZooKeeper" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache ZooKeeper." \
+      description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,6 +20,7 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY zookeeper/stackable /stackable
+COPY zookeeper/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
@@ -17,7 +28,6 @@ RUN groupadd -r stackable --gid=1000 && \
 
 USER stackable
 WORKDIR /stackable
-ARG PRODUCT
 
 RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/zookeeper

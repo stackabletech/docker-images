@@ -1,5 +1,15 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Apache NiFi" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache NiFi." \
+      description="This image is deployed by the Stackable Operator for Apache NiFi."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,13 +20,13 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY nifi/stackable /stackable
+COPY nifi/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
 
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC . && \

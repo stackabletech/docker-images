@@ -16,10 +16,6 @@ products = [
         ]
     },
     {
-        'name': 'antora',
-        'versions': ['3.0.1'],
-    },
-    {
         'name': 'druid',
         'versions': [
             {
