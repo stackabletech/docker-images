@@ -1,5 +1,7 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
+ARG PRODUCT
+
 LABEL name="Apache ZooKeeper" \
       maintainer="info@stackable.de" \
       vendor="Stackable GmbH" \
@@ -25,7 +27,6 @@ RUN groupadd -r stackable --gid=1000 && \
 
 USER stackable
 WORKDIR /stackable
-ARG PRODUCT
 
 RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/zookeeper
