@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [antora-stackable0.1.0] - 2022.03.14
-
 ### Added
 
-- Initial release of the antora image with the lunr extension ([#67])
+- Added labels for openshift requirements and licenses for all images ([#xxx]).
+- Added `RELEASE` ARG for all images ([#xxx]).
 
-[#67]: https://github.com/stackabletech/docker-images/pull/67
+### Removed
+
+- Prometheus image, NodeExporter image, Antora ([#xxx]). 
 
