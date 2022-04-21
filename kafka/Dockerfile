@@ -1,5 +1,17 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG SCALA
+ARG OPA_AUTHORIZER
+ARG RELEASE="1"
+
+LABEL name="Apache Kafka" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Kafka." \
+      description="This image is deployed by the Stackable Operator for Apache Kafka."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,17 +22,15 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY kafka/stackable /stackable
+COPY kafka/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
-ARG SCALA
-ARG OPA_AUTHORIZER
-
 WORKDIR /stackable
+
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 

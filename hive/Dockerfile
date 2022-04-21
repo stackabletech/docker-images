@@ -1,5 +1,16 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG HADOOP=2.10.1
+ARG RELEASE="1"
+
+LABEL name="Apache Hive" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Hive." \
+      description="This image is deployed by the Stackable Operator for Apache Hive."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -9,16 +20,15 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY hive/stackable /stackable
+COPY hive/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
-ARG HADOOP=2.10.1
-
 WORKDIR /stackable
+
 RUN curl -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin /stackable/hive && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP} /stackable/hadoop && \

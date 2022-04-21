@@ -1,11 +1,19 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
-LABEL maintainer="Stackable GmbH"
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG PRODUCT
 ARG HADOOP
+ARG RELEASE="1"
+
+LABEL name="Apache Spark" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Spark on Kubernetes." \
+      description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
@@ -23,6 +31,7 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
+COPY spark-k8s/licenses /licenses
 
 RUN chmod +x /usr/bin/tini
 

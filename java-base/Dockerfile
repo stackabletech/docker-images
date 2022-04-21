@@ -1,15 +1,25 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG RELEASE="1"
+ARG _SECURITY_PATH
+
+LABEL name="Stackable image for OpenJDK" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable OpenJDK base image." \
+      description="This image is the base image for all Stackable Java product images."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-ARG PRODUCT
-ARG _SECURITY_PATH
-
 RUN microdnf update && \
     microdnf install java-${PRODUCT}-openjdk-headless --nodocs && \
     microdnf clean all
+
+COPY java-base/licenses /licenses
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 

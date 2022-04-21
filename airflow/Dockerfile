@@ -5,10 +5,18 @@
 #
 # 2022.01.20: Some components (e.g. airflow triggerer) require python 3.7+
 #
-ARG PRODUCT=2.2.4
-ARG PYTHON=3.9
+ARG PRODUCT
+ARG PYTHON
+ARG RELEASE="1"
 
 FROM apache/airflow:$PRODUCT-python$PYTHON
-LABEL maintainer="Stackable GmbH"
 
+LABEL name="Apache Airflow" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Airflow." \
+      description="This image is deployed by the Stackable Operator for Apache Airflow."
 
+COPY airflow/licenses /licenses

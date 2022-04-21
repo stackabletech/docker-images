@@ -1,5 +1,15 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
-LABEL maintainer="Stackable GmbH"
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Trino" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Trino." \
+      description="This image is deployed by the Stackable Operator for Trino."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,6 +20,8 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY trino/stackable /stackable
+COPY trino/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
@@ -17,10 +29,8 @@ RUN groupadd -r stackable --gid=1000 && \
 RUN alternatives --set python /usr/bin/python3
 
 USER stackable
-
-ARG PRODUCT
-
 WORKDIR /stackable
+
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
