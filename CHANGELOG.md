@@ -11,6 +11,6 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- Prometheus image, NodeExporter image, Antora ([#95]). 
+- Prometheus image, NodeExporter image, Antora ([#95]).
 
 [#95]: https://github.com/stackabletech/docker-images/pull/95
