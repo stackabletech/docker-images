@@ -1,8 +1,18 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
-LABEL maintainer="Stackable GmbH"
 
 ARG PRODUCT
 ARG PYTHON
+ARG RELEASE="1"
+
+LABEL name="Apache Airflow" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Airflow." \
+      description="This image is deployed by the Stackable Operator for Apache Airflow."
+
+COPY airflow/licenses /licenses
 
 #----------------------------------------------------------------------------
 # root: core airflow (venv) so that the python install is in an early layer
