@@ -4,12 +4,11 @@ LABEL maintainer="Stackable GmbH"
 ARG PRODUCT
 ARG PYTHON
 
+#----------------------------------------------------------------------------
+# root: core airflow (venv) so that the python install is in an early layer
+# N.B. add the virtualenv to the PATH
+#----------------------------------------------------------------------------
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
-COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
-COPY airflow/stackable/utils/entrypoint.sh /entrypoint
-
-RUN chmod a+x /entrypoint
-RUN chmod +x /usr/bin/tini
 
 RUN microdnf update \
         && microdnf install \
@@ -30,15 +29,30 @@ RUN microdnf update \
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
-ENV GID=0
+ENV PATH=$PATH:/bin:$HOME/app/bin
 
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+#----------------------------------------------------------------------------
+# add utilities for image callout (tini in place of dumb-init, entrypoint.sh)
+#----------------------------------------------------------------------------
+COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
+#COPY airflow/stackable/utils/entrypoint_exec.sh /entrypoint
+COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 
+RUN chmod a+x /entrypoint && \
+    chmod +x /usr/bin/tini
+
+RUN mkdir -pv /stackable
+
+#RUN groupadd -r stackable --gid=1000
+#RUN useradd -r -g stackable --uid=1000 -d /stackable stackable
+RUN useradd -r --gid=0 --uid=1000 -d /stackable stackable
+RUN chown -R stackable:root /stackable
+
+#----------------------------------------------------------------------------
+# stackable:
+#----------------------------------------------------------------------------
 USER stackable
 WORKDIR /stackable
-
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint"]
 CMD []
@@ -46,5 +60,5 @@ CMD []
 
 # TODOs
 # -----
-# removed mysql
+# removed mysql - re-include?
 # add odbc, pandas, google_auth?
