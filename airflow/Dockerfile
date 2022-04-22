@@ -20,7 +20,7 @@ COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv
 
 RUN microdnf update \
-        && microdnf install \
+        && microdnf install -y \
             gcc \
             gcc-c++ \
             python${PYTHON}-devel \
@@ -33,8 +33,8 @@ RUN microdnf update \
         && microdnf clean all \
         && python3 -m venv --system-site-packages /stackable/app \
         && source /stackable/app/bin/activate \
-        && pip install --upgrade pip \
-        && pip install apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
+        && pip install --no-cache-dir --upgrade pip \
+        && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
