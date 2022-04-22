@@ -3,6 +3,7 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 ARG PRODUCT
 ARG HADOOP
 ARG PYTHON
+ARG RELEASE="1"
 
 LABEL name="Apache Spark" \
       maintainer="info@stackable.de" \
