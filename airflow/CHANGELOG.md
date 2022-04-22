@@ -4,13 +4,13 @@
 
 ### Added
 
-- Added Redhat-UBI-based image ([#XX]).
+- Added Redhat-UBI-based image ([#97]).
 
 ### Removed
 
-- Removed airflow/debian-based image ([#XX]).
+- Removed airflow/debian-based image ([#97]).
 
-[#XX]: https://github.com/stackabletech/docker-images/pull/XX
+[#97]: https://github.com/stackabletech/docker-images/pull/97
 
 ## [airflow-stackable0.2.0] - 2022-03-21
 
