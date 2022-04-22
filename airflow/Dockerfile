@@ -15,6 +15,8 @@ LABEL name="Apache Airflow" \
 COPY airflow/licenses /licenses
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
+# the mysql provider is currently excluded.
+# Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv
 
 RUN microdnf update \
@@ -41,7 +43,6 @@ ENV AIRFLOW_UID="50000"
 ENV AIRFLOW_HOME=$HOME/airflow
 
 COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
-#COPY airflow/stackable/utils/entrypoint_exec.sh /entrypoint
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 
 RUN chmod a+x /entrypoint && \
@@ -61,8 +62,3 @@ WORKDIR /stackable
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint"]
 CMD []
-
-
-# TODOs
-# -----
-# mysql
