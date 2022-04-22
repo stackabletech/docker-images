@@ -2,13 +2,9 @@
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- Added Redhat-UBI-based image ([#97]).
-
-### Removed
-
-- Removed airflow/debian-based image ([#97]).
+- Replace airflow/debian-based image with Redhat-UBI-based image ([#97]).
 
 [#97]: https://github.com/stackabletech/docker-images/pull/97
 
