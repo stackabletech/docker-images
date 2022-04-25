@@ -124,7 +124,12 @@ products = [
     },
     {
         'name': 'trino',
-        'versions': ['362'],
+        'versions': [
+            {
+                'product': '377',
+                'opa_authorizer': '0.1.0'
+            },
+        ],
     },
     {
         'name': 'tools',
