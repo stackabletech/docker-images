@@ -1,6 +1,7 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
+ARG OPA_AUTHORIZER
 ARG RELEASE="1"
 
 LABEL name="Trino" \
@@ -39,7 +40,7 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 WORKDIR /stackable/trino-server/plugin
-RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-0.1.0.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC .
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
