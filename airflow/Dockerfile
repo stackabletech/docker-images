@@ -1,18 +1,8 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
-ARG RELEASE="1"
 
-LABEL name="Apache Airflow" \
-      maintainer="info@stackable.de" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Airflow." \
-      description="This image is deployed by the Stackable Operator for Apache Airflow."
-
-COPY airflow/licenses /licenses
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
 # the mysql provider is currently excluded.
@@ -39,6 +29,38 @@ RUN microdnf update \
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
+ENV AIRFLOW_HOME=$HOME/airflow
+
+RUN mkdir -pv ${HOME} && \
+    mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-main-image
+
+ARG PRODUCT
+ARG PYTHON
+ARG RELEASE="1"
+
+LABEL name="Apache Airflow" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Airflow." \
+      description="This image is deployed by the Stackable Operator for Apache Airflow."
+
+COPY airflow/licenses /licenses
+
+RUN microdnf update \
+        && microdnf install -y \
+            shadow-utils \
+            python${PYTHON} \
+        && microdnf clean all
+
+ENV HOME=/stackable
+ENV AIRFLOW_USER_HOME_DIR=/stackable
+ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_UID="50000"
 ENV AIRFLOW_HOME=$HOME/airflow
 
@@ -52,6 +74,8 @@ RUN mkdir -pv ${HOME} && \
     mkdir -pv ${AIRFLOW_HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs
+
+COPY --from=airflow-build-image /stackable/ ${HOME}/
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=${AIRFLOW_UID} -d /stackable stackable && \
