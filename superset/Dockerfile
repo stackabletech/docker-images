@@ -9,6 +9,7 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
+        --assumeyes \
         cyrus-sasl-devel \
         gcc \
         gcc-c++ \
@@ -59,6 +60,7 @@ ENV PATH="${HOME}/app/bin:${PATH}" \
 
 RUN microdnf update \
     && microdnf install \
+        --assumeyes \
         cyrus-sasl \
         openldap \
         openldap-clients \
