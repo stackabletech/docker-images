@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [airflow-stackable0.3.0] - 2022-04-28
 
 ### Changed
 
