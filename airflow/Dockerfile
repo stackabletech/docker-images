@@ -26,16 +26,6 @@ RUN microdnf update \
         && pip install --no-cache-dir --upgrade pip \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
-ENV HOME=/stackable
-ENV AIRFLOW_USER_HOME_DIR=/stackable
-ENV PATH=$PATH:/bin:$HOME/app/bin
-ENV AIRFLOW_HOME=$HOME/airflow
-
-RUN mkdir -pv ${HOME} && \
-    mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs
-
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-main-image
 
 ARG PRODUCT
@@ -52,17 +42,28 @@ LABEL name="Apache Airflow" \
 
 COPY airflow/licenses /licenses
 
-RUN microdnf update \
-        && microdnf install -y \
-            shadow-utils \
-            python${PYTHON} \
-        && microdnf clean all
+# Update image and install python
+RUN microdnf install -y yum python${PYTHON} \
+    openssl-libs \
+    openssl-pkcs11 \
+    openldap \
+    openldap-clients \
+    cyrus-sasl \
+    unixODBC \
+    && yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical \
+    && yum clean all \
+    && microdnf clean all
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_UID="50000"
 ENV AIRFLOW_HOME=$HOME/airflow
+
+RUN mkdir -pv ${HOME} && \
+    mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs
 
 COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
