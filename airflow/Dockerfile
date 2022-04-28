@@ -1,15 +1,36 @@
-#
-# We use the official Airflow image here instead of building our own from scratch
-# to avoid having to deal with python dependencies and Nexus integration. We might
-# change this in the future.
-#
-# 2022.01.20: Some components (e.g. airflow triggerer) require python 3.7+
-#
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-build-image
+
+ARG PRODUCT
+ARG PYTHON
+
+COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
+
+# the mysql provider is currently excluded.
+# Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
+ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv
+
+RUN microdnf update \
+        && microdnf install -y \
+            gcc \
+            gcc-c++ \
+            python${PYTHON}-devel \
+            python${PYTHON}-pip \
+            python${PYTHON}-wheel \
+            openssl-devel \
+            cyrus-sasl-devel \
+            openldap-devel \
+            unixODBC-devel \
+        && microdnf clean all \
+        && python3 -m venv --system-site-packages /stackable/app \
+        && source /stackable/app/bin/activate \
+        && pip install --no-cache-dir --upgrade pip \
+        && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-main-image
+
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE="1"
-
-FROM apache/airflow:$PRODUCT-python$PYTHON
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.de" \
@@ -20,3 +41,49 @@ LABEL name="Apache Airflow" \
       description="This image is deployed by the Stackable Operator for Apache Airflow."
 
 COPY airflow/licenses /licenses
+
+# Update image and install python
+RUN microdnf install -y yum python${PYTHON} \
+    openssl-libs \
+    openssl-pkcs11 \
+    openldap \
+    openldap-clients \
+    cyrus-sasl \
+    unixODBC \
+    && yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical \
+    && yum clean all \
+    && microdnf clean all
+
+ENV HOME=/stackable
+ENV AIRFLOW_USER_HOME_DIR=/stackable
+ENV PATH=$PATH:/bin:$HOME/app/bin
+ENV AIRFLOW_UID="50000"
+ENV AIRFLOW_HOME=$HOME/airflow
+
+RUN mkdir -pv ${HOME} && \
+    mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs
+
+COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
+COPY airflow/stackable/utils/entrypoint.sh /entrypoint
+
+RUN chmod a+x /entrypoint && \
+    chmod +x /usr/bin/tini
+
+RUN mkdir -pv ${HOME} && \
+    mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs
+
+COPY --from=airflow-build-image /stackable/ ${HOME}/
+
+RUN groupadd -r stackable --gid=1000 && \
+    useradd -r -g stackable --uid=${AIRFLOW_UID} -d /stackable stackable && \
+    chown -R stackable:stackable /stackable
+
+USER stackable
+WORKDIR /stackable
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint"]
+CMD []

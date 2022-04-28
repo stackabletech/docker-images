@@ -7,11 +7,15 @@ products = [
         'versions': [
             {
                 'product': '2.2.3',
-                'python': '3.8',
+                'python': '38',
             },
             {
                 'product': '2.2.4',
-                'python': '3.9',
+                'python': '39',
+            },
+            {
+                'product': '2.2.5',
+                'python': '39',
             },
         ]
     },
