@@ -1,5 +1,15 @@
 # Changelog
 
+## [superset-stackable2.0.0] - 2022-04-28
+
+### Changed
+
+- BREAKING: Replace base image with the Red Hat Univeral Base Image. The
+  location for the Superset configuration file changed to
+  `/stackable/app/pythonpath` ([#103]).
+
+[#103]: https://github.com/stackabletech/docker-images/pull/103
+
 ## [superset-stackable1.0.0] - 2022-04-14
 
 ### Removed

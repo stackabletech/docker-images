@@ -118,11 +118,11 @@ products = [
         'versions': [
             {
                 'product': '1.3.2',
-                '_base_image_tag': '286ba5d37d4e240d01bbefd2307a816829cf512d',
+                'python': '38',
             },
             {
                 'product': '1.4.1',
-                '_base_image_tag': '26545a26d195b79ab6e838631e86cb0bf20f3ced',
+                'python': '39',
             },
         ],
     },
