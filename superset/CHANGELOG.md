@@ -1,6 +1,14 @@
 # Changelog
 
-## [superset-stackable2.0.0] - 2022-04-28
+## [superset-stackable2.0.1] - 2022-05-03
+
+### Fixed
+
+- Version label set ([#108]).
+
+[#108]: https://github.com/stackabletech/docker-images/pull/108
+
+## [superset-stackable2.0.0] - 2022-05-02
 
 ### Changed
 
