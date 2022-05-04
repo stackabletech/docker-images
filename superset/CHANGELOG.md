@@ -1,5 +1,13 @@
 # Changelog
 
+## [superset-stackable2.1.0] - 2022-05-04
+
+### Added
+
+- Python package pydruid added ([#110]).
+
+[#110]: https://github.com/stackabletech/docker-images/pull/110
+
 ## [superset-stackable2.0.1] - 2022-05-03
 
 ### Fixed

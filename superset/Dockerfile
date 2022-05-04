@@ -35,6 +35,7 @@ RUN microdnf update \
         gevent \
         psycopg2-binary \
         statsd \
+        pydruid \
         python-ldap
 
 # Final image
