@@ -83,7 +83,8 @@ USER stackable
 WORKDIR ${HOME}
 
 CMD ["/bin/sh", "-c", \
-    "gunicorn \
+    "superset init && \
+    gunicorn \
     --bind 0.0.0.0:${SUPERSET_PORT} \
     --worker-class gthread \
     --threads 20 \

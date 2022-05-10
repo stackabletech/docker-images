@@ -5,6 +5,7 @@
 ### Added
 
 - Python package pydruid added ([#110]).
+- Call `superset init` before starting Superset ([#114](https://github.com/stackabletech/docker-images/pull/114))
 
 [#110]: https://github.com/stackabletech/docker-images/pull/110
 
