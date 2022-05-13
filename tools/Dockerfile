@@ -14,10 +14,11 @@ LABEL name="Stackable Tools" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY tools/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
-    microdnf install tar gzip zip shadow-utils curl openssl && \
-    microdnf install python3-devel python3-pip python3-setuptools && \
+    microdnf install tar gzip zip shadow-utils curl openssl kubectl \
+                     python3-devel python3-pip python3-setuptools && \
     microdnf clean all
 
 # The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
