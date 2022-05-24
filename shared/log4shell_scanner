@@ -1,0 +1,3 @@
+#!/bin/sh
+ARCH="$(uname --machine)"
+/bin/log4shell_scanner_${ARCH} "$@"
