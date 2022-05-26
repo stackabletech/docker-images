@@ -18,7 +18,8 @@ COPY tools/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip shadow-utils curl openssl kubectl \
-                     python3-devel python3-pip python3-setuptools && \
+                     python3-devel python3-pip python3-setuptools \
+                     gcc libxslt-devel libxml2-devel && \
     microdnf clean all
 
 # The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext

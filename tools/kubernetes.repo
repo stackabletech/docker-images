@@ -1,7 +1,7 @@
 [kubernetes]
 name=Kubernetes
 # el7 repo is also used for RHEL 8+
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
 enabled=1
 gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
