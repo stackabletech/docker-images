@@ -20,6 +20,7 @@ RUN microdnf update \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
+        libpq-devel \
     && microdnf clean all \
     && python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
