@@ -23,4 +23,7 @@ COPY java-base/licenses /licenses
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 
-RUN echo "networkaddress.cache.ttl=5" >> $_SECURITY_PATH
+# Some uses (such as Kerberos or TLS client hostname verification) requires
+# up-to-date reverse DNS information, especially when workloads migrate
+# between Nodes and/or switch Pod IPs
+RUN echo "networkaddress.cache.ttl=0\nnetworkaddress.cache.negative.ttl=0" >> $_SECURITY_PATH
