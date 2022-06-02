@@ -1,0 +1,70 @@
+---
+name: reviewdog
+on:
+  pull_request
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-actionlint@996bada963af5c9ec58e7da49f0278fe9883d11f
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  detect-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-detect-secrets@d90388cab737bf037c3fe1b7d9dbeb5d0a45eb9c # tag=v0.8.0
+        with:
+          github_token: ${{ secrets.github_token }}
+
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # renovate: tag=v2
+        with:
+          python-version: "3.9"
+      - uses: reviewdog/action-flake8@b6435e67f0cfda225b9e0c9283cfb7ea7c551bdb # tag=v3.3.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-hadolint@55be5d2c4b0b80d439247b128a9ded3747f92a29 # tag=v1.28.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-markdownlint@e44edac0f8da27da4ae220cb3d5077bd3b6e79c9 # tag=v0.5.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-shellcheck@66c9a47bf02255b250284a82251cb4cadf5043f5 # tag=v1.14.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846 # tag=v3.0.0
+      - uses: reviewdog/action-yamllint@c5a0c559f09938e902466526c71441f1de2e603b # tag=v1.5.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

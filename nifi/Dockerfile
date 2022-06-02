@@ -1,25 +1,32 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
-LABEL maintainer="Stackable GmbH"
+FROM docker.stackable.tech/stackable/java-base:11-stackable0
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Apache NiFi" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache NiFi." \
+      description="This image is deployed by the Stackable Operator for Apache NiFi."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf clean all
 
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
-
 COPY nifi/stackable /stackable
+COPY nifi/licenses /licenses
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
-
-ARG PRODUCT
 
 WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC . && \
@@ -42,7 +49,9 @@ RUN /bin/log4shell.sh /stackable/nifi-${PRODUCT}
 # This will currently report vulnerable files being present, as it also alerts on
 # SocketNode.class, which we do not remove with our scripts.
 # Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.1.2-log4shell_Linux_x86_64 /bin/log4shell_scanner
+COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
+COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
+COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
 # ===
 

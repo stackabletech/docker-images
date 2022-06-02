@@ -1,18 +1,26 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
-LABEL maintainer="Stackable GmbH"
+FROM docker.stackable.tech/stackable/java-base:11-stackable0
+
+ARG PRODUCT
+ARG RELEASE="1"
+
+LABEL name="Apache ZooKeeper" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache ZooKeeper." \
+      description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
+    microdnf install shadow-utils openssl && \
     microdnf clean all
 
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
-
 COPY zookeeper/stackable /stackable
+COPY zookeeper/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
@@ -20,7 +28,6 @@ RUN groupadd -r stackable --gid=1000 && \
 
 USER stackable
 WORKDIR /stackable
-ARG PRODUCT
 
 RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/zookeeper
@@ -46,7 +53,9 @@ RUN /bin/log4shell.sh /stackable/apache-zookeeper-${PRODUCT}-bin
 # This will currently report vulnerable files being present, as it also alerts on
 # SocketNode.class, which we do not remove with our scripts.
 # Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.1.2-log4shell_Linux_x86_64 /bin/log4shell_scanner
+COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
+COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
+COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/apache-zookeeper-${PRODUCT}-bin
 # ===
 

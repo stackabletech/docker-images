@@ -1,11 +1,21 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
-LABEL maintainer="Stackable GmbH"
+FROM docker.stackable.tech/stackable/java-base:11-stackable0
+
+ARG PRODUCT
+ARG HADOOP
+ARG RELEASE="1"
+
+LABEL name="Apache Spark" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Spark standalone." \
+      description="This image is deployed by the standalone Stackable Operator for Apache Spark."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     # required for spark startup scripts
@@ -18,17 +28,14 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
-ARG PRODUCT
-ARG HADOOP
-
 COPY spark/stackable /stackable
 COPY spark/requirements-${PRODUCT}.txt /tmp/requirements.txt
+COPY spark/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
@@ -65,7 +72,9 @@ RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 # This will currently report vulnerable files being present, as it also alerts on
 # SocketNode.class, which we do not remove with our scripts.
 # Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.1.2-log4shell_Linux_x86_64 /bin/log4shell_scanner
+COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
+COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
+COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 # ===
 

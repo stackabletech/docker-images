@@ -1,5 +1,39 @@
 # Changelog
 
+## [superset-stackable2.1.0] - 2022-05-04
+
+### Added
+
+- Python package pydruid added ([#110]).
+
+[#110]: https://github.com/stackabletech/docker-images/pull/110
+
+## [superset-stackable2.0.1] - 2022-05-03
+
+### Fixed
+
+- Version label set ([#108]).
+
+[#108]: https://github.com/stackabletech/docker-images/pull/108
+
+## [superset-stackable2.0.0] - 2022-05-02
+
+### Changed
+
+- BREAKING: Replace base image with the Red Hat Univeral Base Image. The
+  location for the Superset configuration file changed to
+  `/stackable/app/pythonpath` ([#103]).
+
+[#103]: https://github.com/stackabletech/docker-images/pull/103
+
+## [superset-stackable1.0.0] - 2022-04-14
+
+### Removed
+
+- BREAKING: Custom Superset configuration removed ([#85]).
+
+[#85]: https://github.com/stackabletech/docker-images/pull/85
+
 ## [superset-stackable0.3.0] - 2022-02-21
 
 ### Added

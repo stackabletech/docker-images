@@ -3,8 +3,30 @@ Application images will be created for products and associated versions configur
 """
 products = [
     {
+        'name': 'airflow',
+        'versions': [
+            {
+                'product': '2.2.3',
+                'python': '38',
+            },
+            {
+                'product': '2.2.4',
+                'python': '39',
+            },
+            {
+                'product': '2.2.5',
+                'python': '39',
+            },
+        ]
+    },
+    {
         'name': 'druid',
-        'versions': ['0.22.1'],
+        'versions': [
+            {
+                'product': '0.22.1',
+                'authorizer': '0.1.0',
+            }
+        ]
     },
     {
         'name': 'hadoop',
@@ -12,11 +34,24 @@ products = [
     },
     {
         'name': 'hbase',
-        'versions': ['2.4.6', '2.4.8', '2.4.9'],
+        'versions': ['2.4.6', '2.4.8', '2.4.9', '2.4.11'],
     },
     {
         'name': 'hive',
         'versions': ['2.3.9'],
+    },
+    {
+        'name': 'java-base',
+        'versions': [
+            {
+                'product': '1.8.0',
+                '_security_path': '/usr/lib/jvm/jre-1.8.0/lib/security/java.security',
+            },
+            {
+                'product': '11',
+                '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
+            },
+        ],
     },
     {
         'name': 'kafka',
@@ -47,6 +82,16 @@ products = [
         'versions': ['0.27.1', '0.28.0', '0.37.2'],
     },
     {
+        'name': 'pyspark-k8s',
+        'versions': [
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+                'python': '39',
+            },
+        ]
+    },
+    {
         'name': 'spark',
         'versions': [
             {
@@ -60,39 +105,43 @@ products = [
         ]
     },
     {
+        'name': 'spark-k8s',
+        'versions': [
+            {
+                'product': '3.2.1',
+                'hadoop': '3.2',
+            },
+        ]
+    },
+    {
         'name': 'superset',
         'versions': [
             {
                 'product': '1.3.2',
-                '_base_image_tag': '286ba5d37d4e240d01bbefd2307a816829cf512d',
+                'python': '38',
             },
             {
                 'product': '1.4.1',
-                '_base_image_tag': '26545a26d195b79ab6e838631e86cb0bf20f3ced',
+                'python': '39',
             },
         ],
     },
     {
         'name': 'trino',
-        'versions': ['362'],
+        'versions': [
+            {
+                'product': '377',
+                'opa_authorizer': '0.1.0'
+            },
+        ],
     },
     {
         'name': 'tools',
         'versions': ['0.2.0'],
     },
     {
-        'name': 'airflow',
-        'versions': [
-            {
-                'product': '2.2.3',
-                'python': '3.8',
-            },
-        ]
-    },
-    {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
-        'versions': ['3.5.8', '3.6.3', '3.7.0'],
+        'versions': ['3.5.8', '3.6.3', '3.7.0', '3.8.0'],
     },
  ]
-
