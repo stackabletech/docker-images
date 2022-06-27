@@ -23,7 +23,7 @@ products = [
         'name': 'druid',
         'versions': [
             {
-                'product': '0.22.1',
+                'product': '0.23.0',
                 'authorizer': '0.1.0',
             }
         ]

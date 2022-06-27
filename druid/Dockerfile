@@ -1,6 +1,6 @@
-# druid only fully supports java 8 for now
-# https://druid.apache.org/docs/latest/tutorials/index.html#requirements
-FROM docker.stackable.tech/stackable/java-base:1.8.0-stackable0
+# druid < 0.23 druid only fully supports java 8
+# druid >= 0.23 is java 11 ready
+FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
 ARG AUTHORIZER
@@ -37,8 +37,6 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
     ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
     # Force to overwrite the existing 'run-druid'
     ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid && \
-    # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
-    curl https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz | tar -xzC /stackable/druid/extensions && \
     # Install OPA authorizer extension.
     curl https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz | tar -xzC /stackable/druid/extensions
 
