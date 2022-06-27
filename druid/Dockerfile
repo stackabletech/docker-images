@@ -37,6 +37,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
     ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
     # Force to overwrite the existing 'run-druid'
     ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid && \
+    # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
+    curl https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz | tar -xzC /stackable/druid/extensions && \
     # Install OPA authorizer extension.
     curl https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz | tar -xzC /stackable/druid/extensions
 
