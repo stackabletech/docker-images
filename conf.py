@@ -94,6 +94,11 @@ products = [
                 'hadoop': '3.2',
                 'python': '39',
             },
+            {
+                'product': '3.3.0',
+                'hadoop': '3',
+                'python': '39',
+            },
         ]
     },
     {
