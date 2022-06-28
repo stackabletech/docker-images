@@ -24,7 +24,7 @@ products = [
         'versions': [
             {
                 'product': '0.23.0',
-                'authorizer': '0.1.0',
+                'authorizer': '0.2.0',
             }
         ]
     },
