@@ -23,7 +23,7 @@ jobs:
         env:
           TAGNAME: ${{ steps.version_tag.outputs.tag_name }}
         run: |
-          echo Checking $TAGNAME
+          echo "Checking $TAGNAME"
           [[ "$TAGNAME" =~ ^kafka|zookeeper|nifi|druid|opa|hbase|hdfs|trino|airflow|superset|spark-k8s|.+-stackable\d+\.\d+\.\d+ ]] && echo "${TAGNAME}" valid || exit 255
 
   parse_tag:
@@ -39,17 +39,17 @@ jobs:
       imageversion: ${{ steps.extractimageversion.outputs.imageversion }}
     steps:
       - id: debug
-        run: echo $TAGNAME
+        run: echo "$TAGNAME"
       - id: extractproduct
         run: |
-          PRODUCT=$(echo $TAGNAME | \
+          PRODUCT=$(echo "$TAGNAME" | \
           sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hdfs|trino|airflow|superset|spark-k8s).*/\1/" \
           )
           echo "Extracted [\"$PRODUCT\"] as product"
           echo "::set-output name=product::$PRODUCT"
       - id: extractversion
         run: |
-          VERSION=$(echo $TAGNAME | \
+          VERSION=$(echo "$TAGNAME" | \
           sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hdfs|trino|airflow|superset|spark-k8s)//" | \
           sed -r "s/([^-]+)-.*/\1/" \
           )

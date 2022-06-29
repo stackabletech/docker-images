@@ -57,7 +57,6 @@ def build_image_tags(image_name, image_version, product_version):
         1. <product>-<image>
     """
 
-    platform_version = re.search(r'^\d+', image_version)[0]
     if isinstance(product_version, dict):
         product_version = product_version['product']
 
@@ -72,7 +71,7 @@ def build_and_publish_image(args, product):
     """
     commands = []
 
-    image_name=f'{args.registry}/stackable/{product["name"]}'
+    image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(args.product_version)
 
@@ -114,7 +113,7 @@ def main():
 
     product = product_list.pop()
 
-    if product == None:
+    if product is None:
         raise ValueError(f"No products configured for {args.product}")
 
     print(product)
