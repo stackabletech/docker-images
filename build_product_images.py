@@ -21,8 +21,9 @@ import re
 def parse_args():
     parser = argparse.ArgumentParser(description="Build and publish product images. See conf.py for details regarding product versions.")
     parser.add_argument("-r", "--registry", help="Image registry to publish to.", default='docker.stackable.tech')
-    parser.add_argument("-p", "--product", help="Product names to build as a comma separated list", type=str)
+    parser.add_argument("-p", "--product", help="Product to build", type=str)
     parser.add_argument("-i", "--image_version", help="Image version", required=True)
+    parser.add_argument("-v", "--product_version", help="Product version to build an image for", required=True)
     parser.add_argument("-u", "--push", help="Push images", action='store_true')
     parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
     return parser.parse_args()
@@ -54,7 +55,6 @@ def build_image_tags(image_name, image_version, product_version):
     docker build command.
     Each image is tagged with two tags as follows:
         1. <product>-<image>
-        2. <product>-<platform>
     """
 
     platform_version = re.search(r'^\d+', image_version)[0]
@@ -63,25 +63,22 @@ def build_image_tags(image_name, image_version, product_version):
 
     return [
         '-t', f'{image_name}:{product_version}-stackable{image_version}',
-        '-t', f'{image_name}:{product_version}-stackable{platform_version}',
     ]
 
-def build_and_publish_image(args, products):
+def build_and_publish_image(args, product):
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
     """
     commands = []
 
-    for p in products:
-        for v in p['versions']:
-            image_name=f'{args.registry}/stackable/{p["name"]}'
-            tags = build_image_tags(image_name, args.image_version, v)
-            build_args = build_image_args(v)
+    image_name=f'{args.registry}/stackable/{product["name"]}'
+    tags = build_image_tags(image_name, args.image_version, args.product_version)
+    build_args = build_image_args(args.product_version)
 
-            commands.append(['docker', 'build', *build_args, *tags, '-f', p["name"] + '/Dockerfile', '.'])
-            if args.push:
-                commands.append(['docker', 'push', '--all-tags', image_name])
+    commands.append(['docker', 'build', *build_args, *tags, '-f', product["name"] + '/Dockerfile', '.'])
+    if args.push:
+        commands.append(['docker', 'push', '--all-tags', image_name])
 
     return commands
 
@@ -108,12 +105,20 @@ def products_to_build(product_names, products):
 def main():
     args = parse_args()
 
-    products = products_to_build(args.product, conf.products)
+    # Retrieve definition for product
+    product_list = [p for p in conf.products if p['name'] == args.product]
+    if len(product_list) == 0:
+        raise ValueError(f"No products configured for {args.product}")
+    elif len(product_list) > 1:
+        raise ValueError(f"Multiple products configured for {args.product}")
 
-    if len(products) == 0:
+    product = product_list.pop()
+
+    if product == None:
         raise ValueError(f"No products configured for {args.product}")
 
-    commands = build_and_publish_image(args, products)
+    print(product)
+    commands = build_and_publish_image(args, product)
 
     run_commands(args.dry, commands)
 
