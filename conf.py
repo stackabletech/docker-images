@@ -30,11 +30,11 @@ products = [
     },
     {
         'name': 'hadoop',
-        'versions': ['3.2.2', '3.3.1'],
+        'versions': ['3.2.2', '3.3.1', '3.3.3'],
     },
     {
         'name': 'hbase',
-        'versions': ['2.4.6', '2.4.8', '2.4.9', '2.4.11'],
+        'versions': ['2.4.6', '2.4.8', '2.4.9', '2.4.11', '2.4.12'],
     },
     {
         'name': 'hive',
@@ -71,6 +71,11 @@ products = [
                 'scala': '2.13',
                 'opa_authorizer': '1.4.0',
             },
+            {
+                'product': '3.2.0',
+                'scala': '2.13',
+                'opa_authorizer': '1.4.0',
+            },
         ]
     },
     {
@@ -79,7 +84,7 @@ products = [
     },
     {
         'name': 'opa',
-        'versions': ['0.27.1', '0.28.0', '0.37.2'],
+        'versions': ['0.27.1', '0.28.0', '0.37.2', '0.41.0'],
     },
     {
         'name': 'pyspark-k8s',
@@ -87,6 +92,11 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
+                'python': '39',
+            },
+            {
+                'product': '3.3.0',
+                'hadoop': '3',
                 'python': '39',
             },
         ]
@@ -110,6 +120,10 @@ products = [
             {
                 'product': '3.2.1',
                 'hadoop': '3.2',
+            },
+            {
+                'product': '3.3.0',
+                'hadoop': '3',
             },
         ]
     },
@@ -135,6 +149,10 @@ products = [
         'versions': [
             {
                 'product': '377',
+                'opa_authorizer': '0.1.0'
+            },
+            {
+                'product': '387',
                 'opa_authorizer': '0.1.0'
             },
         ],
