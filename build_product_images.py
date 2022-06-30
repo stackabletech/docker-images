@@ -18,15 +18,29 @@ import subprocess
 import sys
 import re
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Build and publish product images. See conf.py for details regarding product versions.")
-    parser.add_argument("-r", "--registry", help="Image registry to publish to.", default='docker.stackable.tech')
+    parser = argparse.ArgumentParser(
+        description="Build and publish product images. See conf.py for details regarding product versions."
+    )
+    parser.add_argument(
+        "-r",
+        "--registry",
+        help="Image registry to publish to.",
+        default="docker.stackable.tech",
+    )
     parser.add_argument("-p", "--product", help="Product to build", type=str)
     parser.add_argument("-i", "--image_version", help="Image version", required=True)
-    parser.add_argument("-v", "--product_version", help="Product version to build an image for", required=True)
-    parser.add_argument("-u", "--push", help="Push images", action='store_true')
-    parser.add_argument("-d", "--dry", help="Dry run.", action='store_true')
+    parser.add_argument(
+        "-v",
+        "--product_version",
+        help="Product version to build an image for",
+        required=True,
+    )
+    parser.add_argument("-u", "--push", help="Push images", action="store_true")
+    parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     return parser.parse_args()
+
 
 def build_image_args(version):
     """
@@ -41,13 +55,14 @@ def build_image_args(version):
 
     if isinstance(version, dict):
         for k, v in version.items():
-            result.extend(['--build-arg', f'{k.upper()}={v}'])
+            result.extend(["--build-arg", f"{k.upper()}={v}"])
     elif isinstance(version, str):
-        result=['--build-arg', f'PRODUCT={version}']
+        result = ["--build-arg", f"PRODUCT={version}"]
     else:
-        raise ValueError(f'Unsupported version object: {version}')
+        raise ValueError(f"Unsupported version object: {version}")
 
     return result
+
 
 def build_image_tags(image_name, image_version, product_version):
     """
@@ -58,10 +73,11 @@ def build_image_tags(image_name, image_version, product_version):
     """
 
     if isinstance(product_version, dict):
-        product_version = product_version['product']
+        product_version = product_version["product"]
 
     return [
-        '-t', f'{image_name}:{product_version}-stackable{image_version}',
+        "-t",
+        f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
 
@@ -76,11 +92,22 @@ def build_and_publish_image(args, product):
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    commands.append(['docker', 'build', *build_args, *tags, '-f', product["name"] + '/Dockerfile', '.'])
+    commands.append(
+        [
+            "docker",
+            "build",
+            *build_args,
+            *tags,
+            "-f",
+            product["name"] + "/Dockerfile",
+            ".",
+        ]
+    )
     if args.push:
-        commands.append(['docker', 'push', '--all-tags', image_name])
+        commands.append(["docker", "push", "--all-tags", image_name])
 
     return commands
+
 
 def run_commands(dry, commands):
     """
@@ -89,36 +116,38 @@ def run_commands(dry, commands):
     """
     for cmd in commands:
         if dry:
-            subprocess.run(['echo', *cmd])
+            subprocess.run(["echo", *cmd])
         else:
             ret = subprocess.run(cmd)
             if ret.returncode != 0:
                 sys.exit(1)
 
+
 def product_to_build(product_name, product_version, products):
-    p_to_b = [p for p in products if p["name"] == product_name]
+    product_to_build = [p for p in products if p["name"] == product_name]
 
-    assert len(p_to_b) == 1
+    assert len(product_to_build) == 1
 
-    p_to_b = p_to_b.pop()
+    product_to_build = product_to_build.pop()
 
-    p_to_b_v = []
+    product_to_build_version = []
 
-    for version_index, version in enumerate(p_to_b["versions"]):
+    for version in product_to_build["versions"]:
         if isinstance(version, dict):
             if version["product"] == product_version:
-                p_to_b_v.append(version)
+                product_to_build_version.append(version)
         elif isinstance(version, str):
             if version == product_version:
-                p_to_b_v.append(version)
+                product_to_build_version.append(version)
 
-    if len(p_to_b_v) == 1:
+    if len(product_to_build_version) == 1:
         return {
             "name": product_name,
-            "versions": p_to_b_v,
+            "versions": product_to_build_version,
         }
     else:
         return None
+
 
 def main():
     args = parse_args()
@@ -126,12 +155,15 @@ def main():
     product = product_to_build(args.product, args.product_version, conf.products)
 
     if product is None:
-        raise ValueError(f"No products configured for product {args.product} and version {args.product_version}")
+        raise ValueError(
+            f"No products configured for product {args.product} and version {args.product_version}"
+        )
 
     print(product)
     commands = build_and_publish_image(args, product)
 
     run_commands(args.dry, commands)
+
 
 if __name__ == "__main__":
     main()
