@@ -57,7 +57,7 @@ jobs:
           echo "::set-output name=version::$VERSION"
       - id: extractimageversion
         run: |
-          IMAGEVERSION=$(echo $TAGNAME | \
+          IMAGEVERSION=$(echo "$TAGNAME" | \
           sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hdfs|trino|airflow|superset|spark-k8s)//" | \
           sed -r "s/^[^-]+-stackable(.*)/\1/" \
           )

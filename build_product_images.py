@@ -64,6 +64,7 @@ def build_image_tags(image_name, image_version, product_version):
         '-t', f'{image_name}:{product_version}-stackable{image_version}',
     ]
 
+
 def build_and_publish_image(args, product):
     """
     Returns a list of commands that need to be run in order to build and
