@@ -1,5 +1,13 @@
 # Changelog
 
+## [superset-stackable2.2.0] - 2022-06-30
+
+### Added
+
+- Superset 1.5.1 added ([#144]).
+
+[#144]: https://github.com/stackabletech/docker-images/pull/144
+
 ## [superset-stackable2.1.0] - 2022-05-04
 
 ### Added

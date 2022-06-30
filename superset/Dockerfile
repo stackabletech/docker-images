@@ -17,9 +17,9 @@ RUN microdnf update \
         openldap-devel \
         openssl-devel \
         patch \
-        python${PYTHON}-devel \
-        python${PYTHON}-pip \
-        python${PYTHON}-wheel \
+        python${PYTHON//./}-devel \
+        python${PYTHON//./}-pip \
+        python${PYTHON//./}-wheel \
         libpq-devel \
     && microdnf clean all \
     && python3 -m venv /stackable/app \
@@ -40,10 +40,16 @@ RUN microdnf update \
         pydruid \
         python-ldap
 
-# Patch a bug in Flask-AppBuilder regarding LDAP integration (see https://github.com/dpgaspar/Flask-AppBuilder/pull/1846).
-# We ned to adopt it to only run on old - unfixed - versions of Superset when https://github.com/dpgaspar/Flask-AppBuilder/pull/1846 get's merged and integrated into Superset.
-COPY superset/patches/*.patch /tmp/patches/
-RUN patch /stackable/app/lib/python*/site-packages/flask_appbuilder/security/manager.py -i /tmp/patches/0001-fix-Set-certificates-before-reconnecting-to-LDAP.patch
+# Patch Python packages
+
+# In Flask-AppBuilder v4.1.1, a bug in the LDAP integration was fixed (see
+# https://github.com/dpgaspar/Flask-AppBuilder/pull/1846). Superset 2.0.0 and
+# higher depend on a Flask-AppBuilder version containing this fix. Prior
+# Superset versions must be patched.
+COPY superset/patches-${PRODUCT}/* /tmp/patches/
+RUN cat /tmp/patches/* | patch \
+    --directory=/stackable/app/lib/python${PYTHON}/site-packages \
+    --strip=1
 
 # Final image
 
@@ -75,7 +81,7 @@ RUN microdnf update \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
-        python${PYTHON} \
+        python${PYTHON//./} \
         shadow-utils \
     && microdnf clean all \
     && groupadd --gid 1000 stackable \

@@ -118,11 +118,15 @@ products = [
         'versions': [
             {
                 'product': '1.3.2',
-                'python': '38',
+                'python': '3.8',
             },
             {
                 'product': '1.4.1',
-                'python': '39',
+                'python': '3.9',
+            },
+            {
+                'product': '1.5.1',
+                'python': '3.8',
             },
         ],
     },
