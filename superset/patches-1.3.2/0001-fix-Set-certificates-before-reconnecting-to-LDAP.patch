@@ -38,5 +38,5 @@ index ada7865c..6137a818 100644
              # Initialise LDAP connection
              con = ldap.initialize(self.auth_ldap_server)
 -- 
-2.25.1
+2.36.0
 
