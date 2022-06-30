@@ -74,7 +74,7 @@ def build_and_publish_image(args, product):
 
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
-    build_args = build_image_args(args.product_version)
+    build_args = build_image_args(product["versions"][0])
 
     commands.append(['docker', 'build', *build_args, *tags, '-f', product["name"] + '/Dockerfile', '.'])
     if args.push:
@@ -95,27 +95,38 @@ def run_commands(dry, commands):
             if ret.returncode != 0:
                 sys.exit(1)
 
-def products_to_build(product_names, products):
-    if not product_names:
-        return products
+def product_to_build(product_name, product_version, products):
+    p_to_b = [p for p in products if p["name"] == product_name]
+
+    assert len(p_to_b) == 1
+
+    p_to_b = p_to_b.pop()
+
+    p_to_b_v = []
+
+    for version_index, version in enumerate(p_to_b["versions"]):
+        if isinstance(version, dict):
+            if version["product"] == product_version:
+                p_to_b_v.append(version)
+        elif isinstance(version, str):
+            if version == product_version:
+                p_to_b_v.append(version)
+
+    if len(p_to_b_v) == 1:
+        return {
+            "name": product_name,
+            "versions": p_to_b_v,
+        }
     else:
-        pnd = {n: 1 for n in product_names.split(',')}
-        return list(filter(lambda p: p['name'] in pnd, products))
+        return None
 
 def main():
     args = parse_args()
 
-    # Retrieve definition for product
-    product_list = [p for p in conf.products if p['name'] == args.product]
-    if len(product_list) == 0:
-        raise ValueError(f"No products configured for {args.product}")
-    elif len(product_list) > 1:
-        raise ValueError(f"Multiple products configured for {args.product}")
-
-    product = product_list.pop()
+    product = product_to_build(args.product, args.product_version, conf.products)
 
     if product is None:
-        raise ValueError(f"No products configured for {args.product}")
+        raise ValueError(f"No products configured for product {args.product} and version {args.product_version}")
 
     print(product)
     commands = build_and_publish_image(args, product)
