@@ -65,10 +65,11 @@ jobs:
           echo "::set-output name=imageversion::$IMAGEVERSION"
 
   build:
-    name: Build product images for ${{ github.event.inputs.product }}
+    name: Build product images for ${{ steps.reject_illegal_tags.outputs.tag_name }}
     runs-on: ubuntu-latest
     needs:
       - parse_tag
+      - reject_illegal_tags
     env:
       PRODUCT: ${{ needs.parse_tag.outputs.product }}
       PRODUCTVERSION: ${{ needs.parse_tag.outputs.version }}
@@ -100,4 +101,4 @@ jobs:
       -
         name: Build and push images
         shell: bash
-        run: python build_product_images.py -u -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.imageVersion }}
+        run: python build_product_images.py -u -p $PRODUCT -v $PRODUCTVERSION -i $IMAGEVERSION
