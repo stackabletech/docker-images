@@ -65,7 +65,7 @@ jobs:
           echo "::set-output name=imageversion::$IMAGEVERSION"
 
   build:
-    name: Build product images for ${{ steps.reject_illegal_tags.outputs.tag_name }}
+    name: Build product images for ${{ needs.reject_illegal_tags.outputs.tag_name }}
     runs-on: ubuntu-latest
     needs:
       - parse_tag
