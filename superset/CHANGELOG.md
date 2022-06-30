@@ -1,6 +1,6 @@
 # Changelog
 
-## [superset-stackable2.2.0] - 2022-06-30
+## [superset1.5.1-stackable0.1.0] - 2022-06-30
 
 ### Added
 
