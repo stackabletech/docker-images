@@ -46,7 +46,11 @@ RUN microdnf update \
 # https://github.com/dpgaspar/Flask-AppBuilder/pull/1846). Superset 2.0.0 and
 # higher depend on a Flask-AppBuilder version containing this fix. Prior
 # Superset versions must be patched.
+
 COPY superset/patches-${PRODUCT}/* /tmp/patches/
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN cat /tmp/patches/* | patch \
     --directory=/stackable/app/lib/python${PYTHON}/site-packages \
     --strip=1
@@ -67,7 +71,8 @@ LABEL name="Apache Superset" \
       summary="The Stackable image for Apache Superset." \
       description="This image is deployed by the Stackable Operator for Apache Superset."
 
-ENV FLASK_ENV="production" \
+ENV FLASK_APP="superset.app:create_app()" \
+    FLASK_ENV="production" \
     HOME="/stackable" \
     SUPERSET_PORT="8088"
 ENV PATH="${HOME}/app/bin:${PATH}" \
