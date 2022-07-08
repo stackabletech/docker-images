@@ -58,7 +58,7 @@ jobs:
       - id: extractimageversion
         run: |
           IMAGEVERSION=$(echo "$TAGNAME" | \
-          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools//" | \
+          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools)//" | \
           sed -r "s/^[^-]+-stackable(.*)/\1/" \
           )
           echo "Extracted [\"$IMAGEVERSION\"] as imageversion"
