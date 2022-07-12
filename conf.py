@@ -48,7 +48,7 @@ products = [
                 'hadoop': '3.3.3',
             },
         ],
-    }, 
+    },
     {
         'name': 'java-base',
         'versions': [
