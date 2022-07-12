@@ -1,7 +1,7 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
-ARG HADOOP=2.10.1
+ARG HADOOP
 ARG RELEASE="1"
 
 LABEL name="Apache Hive" \
