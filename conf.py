@@ -38,7 +38,16 @@ products = [
     },
     {
         'name': 'hive',
-        'versions': ['2.3.9'],
+        'versions': [
+            {
+                'product': '2.3.9',
+                'hadoop': '2.10.1',
+            },
+            {
+                'product': '3.1.3',
+                'hadoop': '3.3.3',
+            },
+        ],
     },
     {
         'name': 'java-base',
