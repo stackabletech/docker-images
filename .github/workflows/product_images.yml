@@ -24,7 +24,7 @@ jobs:
           TAGNAME: ${{ steps.version_tag.outputs.tag_name }}
         run: |
           echo "Checking $TAGNAME"
-          [[ "$TAGNAME" =~ ^kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|.+-stackable\d+\.\d+\.\d+ ]] && echo "${TAGNAME}" valid || exit 255
+          [[ "$TAGNAME" =~ ^kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools|.+-stackable\d+\.\d+\.\d+ ]] && echo "${TAGNAME}" valid || exit 255
 
   parse_tag:
     name: Extract product, version and imageversion from tag name
@@ -43,14 +43,14 @@ jobs:
       - id: extractproduct
         run: |
           PRODUCT=$(echo "$TAGNAME" | \
-          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s).*/\1/" \
+          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools).*/\1/" \
           )
           echo "Extracted [\"$PRODUCT\"] as product"
           echo "::set-output name=product::$PRODUCT"
       - id: extractversion
         run: |
           VERSION=$(echo "$TAGNAME" | \
-          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s)//" | \
+          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools)//" | \
           sed -r "s/([^-]+)-.*/\1/" \
           )
           echo "Extracted [\"$VERSION\"] as version"
@@ -58,7 +58,7 @@ jobs:
       - id: extractimageversion
         run: |
           IMAGEVERSION=$(echo "$TAGNAME" | \
-          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s)//" | \
+          sed -r "s/(kafka|zookeeper|nifi|druid|opa|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools)//" | \
           sed -r "s/^[^-]+-stackable(.*)/\1/" \
           )
           echo "Extracted [\"$IMAGEVERSION\"] as imageversion"
