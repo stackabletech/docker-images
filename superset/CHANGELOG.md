@@ -1,5 +1,11 @@
 # Changelog
 
+## [superset1.5.1-stackable0.2.0] - 2022-07-13
+
+- Add Trino sqlalchemy library ([#152]).
+
+[#152]: https://github.com/stackabletech/docker-images/pull/152
+
 ## [superset1.5.1-stackable0.1.0] - 2022-06-30
 
 ### Added
