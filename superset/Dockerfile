@@ -38,7 +38,8 @@ RUN microdnf update \
         psycopg2-binary \
         statsd \
         pydruid \
-        python-ldap
+        python-ldap \
+        trino[sqlalchemy]
 
 # Patch Python packages
 
