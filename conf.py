@@ -42,18 +42,16 @@ products = [
             {
                 'product': '2.3.9',
                 'hadoop': '2.10.1',
-                'JAVA-SDK-S3': '1.12.106',
-                'JAVA-SDK-CORE': '1.12.106',
-                'AZURE-KEYVAULT': '1.0.0',
-                'AZURE-STORAGE=': '7.0.1'
+                'aws_java_sdk_bundle': '1.11.271',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
             {
                 'product': '3.1.3',
                 'hadoop': '3.3.3',
-                'JAVA-SDK-S3': '1.12.258',
-                'JAVA-SDK-CORE': '1.12.258',
-                'AZURE-KEYVAULT': '1.2.6',
-                'AZURE-STORAGE=': '8.6.6'
+                'aws_java_sdk_bundle': '1.11.1026',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
         ],
     },

@@ -29,7 +29,7 @@ def parse_args():
         help="Image registry to publish to.",
         default="docker.stackable.tech",
     )
-    parser.add_argument("-p", "--product", help="Product to build", type=str)
+    parser.add_argument("-p", "--product", help="Product to build", type=str, required=True)
     parser.add_argument("-i", "--image_version", help="Image version", required=True)
     parser.add_argument(
         "-v",
