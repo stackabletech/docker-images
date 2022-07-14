@@ -42,10 +42,18 @@ products = [
             {
                 'product': '2.3.9',
                 'hadoop': '2.10.1',
+                'JAVA-SDK-S3': '1.12.106',
+                'JAVA-SDK-CORE': '1.12.106',
+                'AZURE-KEYVAULT': '1.0.0',
+                'AZURE-STORAGE=': '7.0.1'
             },
             {
                 'product': '3.1.3',
                 'hadoop': '3.3.3',
+                'JAVA-SDK-S3': '1.12.258',
+                'JAVA-SDK-CORE': '1.12.258',
+                'AZURE-KEYVAULT': '1.2.6',
+                'AZURE-STORAGE=': '8.6.6'
             },
         ],
     },

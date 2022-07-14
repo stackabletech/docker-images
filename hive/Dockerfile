@@ -47,9 +47,9 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUC
     -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
     chmod -x /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/hadoop-aws-2.10.1.jar \
-    -o /stackable/hive/lib/hadoop-aws-2.10.1.jar && \
-    chmod -x /stackable/hive/lib/hadoop-aws-2.10.1.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/hadoop-aws-${HADOOP}.jar \
+    -o /stackable/hive/lib/hadoop-aws-${HADOOP}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-aws-${HADOOP}.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/azure-keyvault-core-1.0.0.jar \
     -o /stackable/hive/lib/azure-keyvault-core-1.0.0.jar && \
@@ -57,9 +57,9 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PROD
 RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/azure-storage-7.0.1.jar \
     -o /stackable/hive/lib/azure-storage-7.0.1.jar && \
     chmod -x /stackable/hive/lib/azure-storage-7.0.1.jar
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/hadoop-azure-2.10.1.jar \
-    -o /stackable/hive/lib/hadoop-azure-2.10.1.jar && \
-    chmod -x /stackable/hive/lib/hadoop-azure-2.10.1.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/hadoop-azure-${HADOOP}.jar \
+    -o /stackable/hive/lib/hadoop-azure-${HADOOP}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP}.jar
 
 ENV HADOOP_HOME=/stackable/hadoop
 
