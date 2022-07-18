@@ -2,6 +2,9 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
 ARG HADOOP
+ARG AWS_JAVA_SDK_BUNDLE
+ARG AZURE_STORAGE
+ARG AZURE_KEYVAULT_CORE
 ARG RELEASE="1"
 
 LABEL name="Apache Hive" \
@@ -29,37 +32,40 @@ RUN groupadd -r stackable --gid=1000 && \
 USER stackable
 WORKDIR /stackable
 
+# Download hive and hadoop
 RUN curl -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin /stackable/hive && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP} /stackable/hadoop && \
     # Force to overwrite the existing 'start-metastore'
     ln -sf /stackable/bin/start-metastore /stackable/hive/bin/start-metastore
 
+# Download aws module for Hadoop (support for s3a://)
+RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP}.jar \
+    -o /stackable/hive/lib/hadoop-aws-${HADOOP}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-aws-${HADOOP}.jar
+
+# Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
+RUN curl -L https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
+    -o /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar && \
+    chmod -x /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar
+
+# Download azure module for Hadoop (support for abfs://)
+RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${HADOOP}.jar \
+    -o /stackable/hive/lib/hadoop-azure-${HADOOP}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP}.jar
+
+# Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
+    -o /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar && \
+    chmod -x /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
+    -o /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
+    chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
+
+# Download jmx exporter (needed for metrics)
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-s3-1.12.106.jar \
-    -o /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar && \
-    chmod -x /stackable/hive/lib/aws-java-sdk-s3-1.12.106.jar
-
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/aws-java-sdk-core-1.12.106.jar \
-    -o /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar && \
-    chmod -x /stackable/hive/lib/aws-java-sdk-core-1.12.106.jar
-
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-s3-lib/${PRODUCT}/hadoop-aws-2.10.1.jar \
-    -o /stackable/hive/lib/hadoop-aws-2.10.1.jar && \
-    chmod -x /stackable/hive/lib/hadoop-aws-2.10.1.jar
-
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/azure-keyvault-core-1.0.0.jar \
-    -o /stackable/hive/lib/azure-keyvault-core-1.0.0.jar && \
-    chmod -x /stackable/hive/lib/azure-keyvault-core-1.0.0.jar
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/azure-storage-7.0.1.jar \
-    -o /stackable/hive/lib/azure-storage-7.0.1.jar && \
-    chmod -x /stackable/hive/lib/azure-storage-7.0.1.jar
-RUN curl -L https://repo.stackable.tech/repository/packages/hive-abfs-lib/${PRODUCT}/hadoop-azure-2.10.1.jar \
-    -o /stackable/hive/lib/hadoop-azure-2.10.1.jar && \
-    chmod -x /stackable/hive/lib/hadoop-azure-2.10.1.jar
 
 ENV HADOOP_HOME=/stackable/hadoop
 
