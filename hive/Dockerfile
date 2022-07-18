@@ -56,10 +56,10 @@ RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${H
     chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP}.jar
 
 # Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
-RUN curl -L ""https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar"" \
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-storage-"${AZURE_STORAGE}".jar \
     -o /stackable/hive/lib/azure-storage-${AZURE-STORAGE}.jar && \
     chmod -x /stackable/hive/lib/azure-storage-${AZURE-STORAGE}.jar
-RUN curl -L ""https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar"" \
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-"${AZURE_KEYVAULT_CORE}".jar \
     -o /stackable/hive/lib/azure-keyvault-core-${AZURE-KEYVAULT}.jar && \
     chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE-KEYVAULT}.jar
 
