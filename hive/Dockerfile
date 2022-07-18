@@ -7,8 +7,7 @@ ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
 ARG RELEASE="1"
 
-
-LABEL name="apache hive" \
+LABEL name="Apache Hive" \
       maintainer="info@stackable.de" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
@@ -56,12 +55,12 @@ RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${H
     chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP}.jar
 
 # Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
-RUN curl -L "https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar" \
-    -o /stackable/hive/lib/azure-storage-${AZURE-STORAGE}.jar && \
-    chmod -x /stackable/hive/lib/azure-storage-${AZURE-STORAGE}.jar
-RUN curl -L https://repo.stackable.tech/repository/packages/azure/"azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar" \
-    -o /stackable/hive/lib/azure-keyvault-core-${AZURE-KEYVAULT}.jar && \
-    chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE-KEYVAULT}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
+    -o /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar && \
+    chmod -x /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
+    -o /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
+    chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
 # Download jmx exporter (needed for metrics)
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
