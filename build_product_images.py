@@ -12,7 +12,7 @@ Example:
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
 """
 
-from cProfile import label, run
+
 import conf
 import argparse
 import subprocess
