@@ -93,10 +93,15 @@ def build_and_publish_image(args, product):
     publish product images.
     """
     commands = []
+    cross_platform = "--platform " + check_platform(args.architecture)
 
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
+
+    # Currently we run into the problem that java-base and tools can not be passed with --platform 
+    if product["name"] == "java-base" or product["name"] == "tools":
+        cross_platform = ""
 
     commands.append(
         [
@@ -107,8 +112,7 @@ def build_and_publish_image(args, product):
             *tags,
             "-f",
             product["name"] + "/Dockerfile",
-            "--platform",
-            check_platform(args.architecture),
+            cross_platform,
             ".",
         ]
     )
@@ -160,14 +164,15 @@ def product_to_build(product_name, product_version, products):
 
 #Checks and dependencies for cross platform compiling
 def check_or_build_dependencies(args, architecture, products):
-    
+"""
+alsdkjf
+"""   
     client = docker.from_env()
     tools = False
     java = False
     rust_builder = False 
     args_dummy = copy.deepcopy(args)
 
-    #Check if images in desired architecture are available 
     #TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it 
     # but requires more work
     images=client.images.list(filters={"label":"architecture="+architecture})
@@ -185,7 +190,7 @@ def check_or_build_dependencies(args, architecture, products):
 
     build_dependencies(java, tools, rust_builder, args, products)
  
-# Building neccessary dependencies for product images 
+
 def build_dependencies(java, tools, rust_builder, args, products):
     
     args_dummy = copy.deepcopy(args)
@@ -214,7 +219,11 @@ def build_dependencies(java, tools, rust_builder, args, products):
 
         run_commands(args_dummy.dry ,build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products))) 
 
+
 def check_platform(architecture):
+    """
+    Checks if a desired platform is given, gives current platform if not
+    """
     if architecture == None:
         architecture = platform.machine()
 
