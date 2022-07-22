@@ -12,12 +12,16 @@ Example:
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
 """
 
+from cProfile import label, run
+from distutils.errors import CompileError
 import conf
 import argparse
 import subprocess
 import sys
 import re
 import platform
+import docker
+import copy
 
 
 def parse_args():
@@ -153,17 +157,74 @@ def product_to_build(product_name, product_version, products):
     else:
         return None
 
-#Checks and dependencies for cross platform compiling
-def check_platform(architecture):
 
+#Checks and dependencies for cross platform compiling
+def check_or_build_dependencies(args, architecture, products):
+    
+    client = docker.from_env()
+    tools = False
+    java = False
+    rust_builder = False 
+    args_dummy = copy.deepcopy(args)
+
+    #Check if images in desired architecture are available 
+    #TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it 
+    # but requires more work
+    images=client.images.list(filters={"label":"architecture="+architecture})
+    for image in images:
+        for tags in image.tags:
+            if 'java-base' in tags:
+                java = True
+                print("Found java-base image")
+            if 'ubi8-rust-builder' in tags:
+                rust_builder = True
+                print("Found rust builder")
+            if 'tools' in tags:
+                tools = True
+                print("Found tools")
+
+    build_dependencies(java, tools, rust_builder, args, products)
+ 
+# Building neccessary dependencies for product images 
+def build_dependencies(java, tools, rust_builder, args, products):
+    
+    args_dummy = copy.deepcopy(args)
+
+    if not rust_builder:
+        print("Building rust builder")
+        subprocess.run("make")
+
+    if not java: 
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '11'
+        print('Building dependencie to Java-Base', args_dummy.product_version)
+
+        run_commands(args_dummy.dry ,build_and_publish_image(args_dummy, product_to_build('java-base', '11', products)))
+        
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '1.8.0'
+        print('Building dependencie to Java-Base', args_dummy.product_version)
+
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '1.8.0', products)))
+
+    if not tools:
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '0.2.0'
+        print("Building dependencie to Tools", args_dummy.product_version)
+
+        run_commands(args_dummy.dry ,build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products))) 
+
+def check_platform(architecture):
     if architecture == None:
         architecture = platform.machine()
 
     return architecture
 
+
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine() )
+    check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
     product = product_to_build(args.product, args.product_version, conf.products)
 
     if product is None:
