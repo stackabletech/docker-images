@@ -100,7 +100,7 @@ def build_and_publish_image(args, product):
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    # Currently we run into the problem that java-base and tools can not be passed with --platform 
+    # This is a ugly hack because currently we run into the problem that java-base and tools can not be passed with --platform 
     if product["name"] == "java-base" or product["name"] == "tools":
         cross_platform = ""
 
