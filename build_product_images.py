@@ -183,10 +183,10 @@ def check_or_build_dependencies(args, architecture, products):
                 print("Found java-base image")
             if 'ubi8-rust-builder' in tags:
                 rust_builder = True
-                print("Found rust builder")
+                print("Found rust builder image")
             if 'tools' in tags:
                 tools = True
-                print("Found tools")
+                print("Found tools image")
 
     build_dependencies(java, tools, rust_builder, args, products)
 
@@ -205,20 +205,20 @@ def build_dependencies(java, tools, rust_builder, args, products):
     if not java:
         args_dummy.image_version = '0'
         args_dummy.product_version = '11'
-        print('Building dependencie to Java-Base', args_dummy.product_version)
+        print('Building dependency Java-Base', args_dummy.product_version)
 
         run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '11', products)))
 
         args_dummy.image_version = '0'
         args_dummy.product_version = '1.8.0'
-        print('Building dependencie to Java-Base', args_dummy.product_version)
+        print('Building dependency Java-Base', args_dummy.product_version)
 
         run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '1.8.0', products)))
 
     if not tools:
         args_dummy.image_version = '0'
         args_dummy.product_version = '0.2.0'
-        print("Building dependencie to Tools", args_dummy.product_version)
+        print("Building dependency Tools", args_dummy.product_version)
 
         run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products)))
 
