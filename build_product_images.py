@@ -45,6 +45,7 @@ def parse_args():
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image")
+    parser.add_argument("-c", "--check", help="Setting the flag will enable dependencie checks and building layers", action="store_true")
     return parser.parse_args()
 
 
@@ -164,9 +165,10 @@ def product_to_build(product_name, product_version, products):
 
 #Checks and dependencies for cross platform compiling
 def check_or_build_dependencies(args, architecture, products):
-"""
-alsdkjf
-"""   
+    """
+    Checks if dependencies are currently build on local system, if not they get build
+    """
+
     client = docker.from_env()
     tools = False
     java = False
@@ -192,7 +194,10 @@ alsdkjf
  
 
 def build_dependencies(java, tools, rust_builder, args, products):
-    
+    """
+    Builds neccessary dependencies for images if not available on system
+    """
+
     args_dummy = copy.deepcopy(args)
 
     if not rust_builder:
@@ -233,7 +238,10 @@ def check_platform(architecture):
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine() )
-    check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
+
+    if args.check:
+        check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
+
     product = product_to_build(args.product, args.product_version, conf.products)
 
     if product is None:
