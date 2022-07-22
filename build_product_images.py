@@ -99,7 +99,7 @@ def build_and_publish_image(args, product):
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    # This is a ugly hack because currently we run into the problem that java-base and tools can not be passed with --platform 
+    # This is a ugly hack because currently we run into the problem that java-base and tools can not be passed with --platform
     if product["name"] == "java-base" or product["name"] == "tools":
         cross_platform = ""
 
@@ -162,7 +162,7 @@ def product_to_build(product_name, product_version, products):
         return None
 
 
-#Checks and dependencies for cross platform compiling
+# Checks and dependencies for cross platform compiling
 def check_or_build_dependencies(args, architecture, products):
     """
     Checks if dependencies are currently build on local system, if not they get build
@@ -171,14 +171,13 @@ def check_or_build_dependencies(args, architecture, products):
     client = docker.from_env()
     tools = False
     java = False
-    rust_builder = False 
-    args_dummy = copy.deepcopy(args)
+    rust_builder = False
 
-    #TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it 
+    # TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it
     # but requires more work
     images=client.images.list(filters={"label":"architecture="+architecture})
-    for image in images:
-        for tags in image.tags:
+    for image in images: 
+        for tags in image.tags: 
             if 'java-base' in tags:
                 java = True
                 print("Found java-base image")
@@ -190,7 +189,7 @@ def check_or_build_dependencies(args, architecture, products):
                 print("Found tools")
 
     build_dependencies(java, tools, rust_builder, args, products)
- 
+
 
 def build_dependencies(java, tools, rust_builder, args, products):
     """
@@ -203,13 +202,13 @@ def build_dependencies(java, tools, rust_builder, args, products):
         print("Building rust builder")
         subprocess.run("make")
 
-    if not java: 
+    if not java:
         args_dummy.image_version = '0'
         args_dummy.product_version = '11'
         print('Building dependencie to Java-Base', args_dummy.product_version)
 
-        run_commands(args_dummy.dry ,build_and_publish_image(args_dummy, product_to_build('java-base', '11', products)))
-        
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '11', products)))
+
         args_dummy.image_version = '0'
         args_dummy.product_version = '1.8.0'
         print('Building dependencie to Java-Base', args_dummy.product_version)
@@ -221,14 +220,14 @@ def build_dependencies(java, tools, rust_builder, args, products):
         args_dummy.product_version = '0.2.0'
         print("Building dependencie to Tools", args_dummy.product_version)
 
-        run_commands(args_dummy.dry ,build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products))) 
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products)))
 
 
 def check_platform(architecture):
     """
     Checks if a desired platform is given, gives current platform if not
     """
-    if architecture == None:
+    if architecture is None:
         architecture = platform.machine()
 
     return architecture
@@ -236,7 +235,7 @@ def check_platform(architecture):
 
 def main():
     args = parse_args()
-    print("Current Platform: ", platform.machine() )
+    print("Current Platform: ", platform.machine())
 
     if args.check:
         check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
