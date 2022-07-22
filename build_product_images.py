@@ -175,7 +175,7 @@ def check_or_build_dependencies(args, architecture, products):
 
     # TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it
     # but requires more work
-    images = client.images.list(filters={"label":"architecture="+architecture})
+    images = client.images.list(filters={"label": "architecture=" + architecture})
     for image in images:
         for tags in image.tags:
             if 'java-base' in tags:
