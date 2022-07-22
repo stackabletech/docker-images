@@ -13,7 +13,6 @@ This will build an image for each Apache ZooKeeper and Apache Kafka version conf
 """
 
 from cProfile import label, run
-from distutils.errors import CompileError
 import conf
 import argparse
 import subprocess
