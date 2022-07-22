@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image")
-    parser.add_argument("-c", "--check", help="Setting the flag will enable dependencie checks and building layers", action="store_true")
+    parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
     return parser.parse_args()
 
 
