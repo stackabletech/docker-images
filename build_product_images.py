@@ -17,6 +17,7 @@ import argparse
 import subprocess
 import sys
 import re
+import platform
 
 
 def parse_args():
@@ -39,6 +40,7 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
+    parser.add_argument("-a", "--architecture", help="Target platform for image")
     return parser.parse_args()
 
 
@@ -95,11 +97,14 @@ def build_and_publish_image(args, product):
     commands.append(
         [
             "docker",
+            "buildx",
             "build",
             *build_args,
             *tags,
             "-f",
             product["name"] + "/Dockerfile",
+            "--platform",
+            check_platform(args.architecture),
             ".",
         ]
     )
@@ -148,10 +153,17 @@ def product_to_build(product_name, product_version, products):
     else:
         return None
 
+#Checks and dependencies for cross platform compiling
+def check_platform(architecture):
+
+    if architecture == None:
+        architecture = platform.machine()
+
+    return architecture
 
 def main():
     args = parse_args()
-
+    print("Current Platform: ", platform.machine() )
     product = product_to_build(args.product, args.product_version, conf.products)
 
     if product is None:
