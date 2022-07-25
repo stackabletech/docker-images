@@ -97,10 +97,8 @@ def build_and_publish_image(args, product):
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
-
-    # This is a ugly hack because currently we run into the problem that java-base and tools can not be passed with --platform
-    if product["name"] == "java-base" or product["name"] == "tools":
-        commands.append(
+   
+    commands.append(
         [
             "docker",
             "buildx",
@@ -109,24 +107,11 @@ def build_and_publish_image(args, product):
             *tags,
             "-f",
             product["name"] + "/Dockerfile",
+            "--platform",
+            "linux/" + check_platform(args.architecture),
             ".",
         ]
     )
-    else: 
-        commands.append(
-            [
-                "docker",
-                "buildx",
-                "build",
-                *build_args,
-                *tags,
-                "-f",
-                product["name"] + "/Dockerfile",
-                "--platform",
-                check_platform(args.architecture),
-                ".",
-            ]
-        )
 
     if args.push:
         commands.append(["docker", "push", "--all-tags", image_name])
@@ -175,7 +160,6 @@ def product_to_build(product_name, product_version, products):
         return None
 
 
-# Checks and dependencies for cross platform compiling
 def check_or_build_dependencies(args, architecture, products):
     """
     Checks if dependencies are currently build on local system, if not they get build
