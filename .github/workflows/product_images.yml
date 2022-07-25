@@ -101,6 +101,6 @@ jobs:
       -
         name: Build and push images
         shell: bash
-        run: | 
-          python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a amd64 
+        run: |
+          python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a amd64
           python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a arm64
