@@ -97,7 +97,7 @@ def build_and_publish_image(args, product):
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
-   
+
     commands.append(
         [
             "docker",
