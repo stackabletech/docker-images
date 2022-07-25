@@ -93,7 +93,6 @@ def build_and_publish_image(args, product):
     publish product images.
     """
     commands = []
-    cross_platform = "--platform " + check_platform(args.architecture)
 
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
@@ -101,9 +100,7 @@ def build_and_publish_image(args, product):
 
     # This is a ugly hack because currently we run into the problem that java-base and tools can not be passed with --platform
     if product["name"] == "java-base" or product["name"] == "tools":
-        cross_platform = ""
-
-    commands.append(
+        commands.append(
         [
             "docker",
             "buildx",
@@ -112,10 +109,25 @@ def build_and_publish_image(args, product):
             *tags,
             "-f",
             product["name"] + "/Dockerfile",
-            cross_platform,
             ".",
         ]
     )
+    else: 
+        commands.append(
+            [
+                "docker",
+                "buildx",
+                "build",
+                *build_args,
+                *tags,
+                "-f",
+                product["name"] + "/Dockerfile",
+                "--platform",
+                check_platform(args.architecture),
+                ".",
+            ]
+        )
+
     if args.push:
         commands.append(["docker", "push", "--all-tags", image_name])
 
@@ -131,6 +143,7 @@ def run_commands(dry, commands):
         if dry:
             subprocess.run(["echo", *cmd])
         else:
+            print(cmd)
             ret = subprocess.run(cmd)
             if ret.returncode != 0:
                 sys.exit(1)
