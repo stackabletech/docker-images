@@ -17,7 +17,6 @@ import conf
 import argparse
 import subprocess
 import sys
-import re
 import platform
 import docker
 import copy
@@ -109,6 +108,7 @@ def build_and_publish_image(args, product):
             product["name"] + "/Dockerfile",
             "--platform",
             "linux/" + check_platform(args.architecture),
+            "--load",
             ".",
         ]
     )
@@ -128,7 +128,6 @@ def run_commands(dry, commands):
         if dry:
             subprocess.run(["echo", *cmd])
         else:
-            print(cmd)
             ret = subprocess.run(cmd)
             if ret.returncode != 0:
                 sys.exit(1)
