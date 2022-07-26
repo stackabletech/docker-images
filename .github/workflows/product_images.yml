@@ -102,7 +102,7 @@ jobs:
         name: Build and push images (amd64)
         shell: bash
         run: python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a amd64
- 
+
       -
         name: Build and push images (arm64)
         shell: bash
