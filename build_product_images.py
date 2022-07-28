@@ -100,7 +100,6 @@ def build_and_publish_image(args, product):
     For local building, builder instances are supported.
     """
     commands = []
-
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
