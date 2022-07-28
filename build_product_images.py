@@ -191,6 +191,7 @@ In generall, the following checks weather or not dependencies are available on y
 something simular is used. However, this is not checking if a dependency of certain architecutre is existent in a repository!
 """
 
+
 def check_or_build_dependencies(args, architecture, products):
     """
     Checks if dependencies are currently build on local system, if not they get build
@@ -200,7 +201,7 @@ def check_or_build_dependencies(args, architecture, products):
     tools = False
     java = False
     rust_builder = False
-    
+
     images = client.images.list(filters={"label": "architecture=" + architecture})
     for image in images:
         for tags in image.tags:
@@ -261,7 +262,7 @@ def check_platform(architecture):
 
 def create_virtual_enviroment(args):
 
-    commands=[]
+    commands = []
 
     commands.append(
         [
@@ -278,14 +279,14 @@ def create_virtual_enviroment(args):
 
 def remove_virtual_enviroment(args):
 
-    commands=[]
+    commands = []
     commands.append(
         [
             "docker",
             "buildx",
             "rm",
             "builder"
-         ]
+        ]
     )
     run_commands(args.dry, commands)
 
