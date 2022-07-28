@@ -16,7 +16,6 @@ This assumes that the following images are available for target architecture:
     1. Java-Base 11, 1.8.0
     2. ubi8-rust-builder
     3. Tools 0.2.0
-
 """
 
 import conf
@@ -108,7 +107,7 @@ def build_and_publish_image(args, product):
 
     # Multiarch builds
     if args.multiarch:
-       commands.append(
+        commands.append(
             [
                 "docker",
                 "buildx",
@@ -118,12 +117,12 @@ def build_and_publish_image(args, product):
                 "-f",
                 product["name"] + "/Dockerfile",
                 "--platform",
-                "linux/amd64,linux/arm64", 
+                "linux/amd64,linux/arm64",
                 "--push",
                 ".",
             ]
         )
-    #local builds / single architecture
+    # local builds / single architecture
     else:
         commands.append(
             [
@@ -186,6 +185,7 @@ def product_to_build(product_name, product_version, products):
     else:
         return None
 
+
 """
 In generall, the following checks weather or not dependencies are available on your local machine. This is only useful if a local repository via Docker-Desktop or
 something simular is used. However, this is not checking if a dependency of certain architecutre is existent in a repository!
@@ -200,7 +200,7 @@ def check_or_build_dependencies(args, architecture, products):
     tools = False
     java = False
     rust_builder = False
-
+    
     images = client.images.list(filters={"label": "architecture=" + architecture})
     for image in images:
         for tags in image.tags:
@@ -215,7 +215,6 @@ def check_or_build_dependencies(args, architecture, products):
                 print("Found tools image")
 
     build_dependencies(java, tools, rust_builder, args, products)
-
 
 
 def build_dependencies(java, tools, rust_builder, args, products):
@@ -261,8 +260,9 @@ def check_platform(architecture):
 
 
 def create_virtual_enviroment(args):
-   
+
     commands=[]
+
     commands.append(
         [
             "docker",
@@ -281,9 +281,9 @@ def remove_virtual_enviroment(args):
     commands=[]
     commands.append(
         [
-            "docker", 
-            "buildx", 
-            "rm", 
+            "docker",
+            "buildx",
+            "rm",
             "builder"
          ]
     )
