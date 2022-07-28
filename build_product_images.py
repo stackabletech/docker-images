@@ -12,6 +12,15 @@ Example:
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
 """
 
+"""
+as a reminder:
+If we want to build parallel we have to use building nodes like the following example suggests (from https://docs.docker.com/build/buildx/):
+docker buildx create --use --name mybuild node-amd64
+docker buildx create --append --name mybuilde node-arm64
+
+docker buildx build --platform linux/amd64, linux/arm64
+
+"""
 
 import conf
 import argparse
@@ -44,6 +53,7 @@ def parse_args():
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image")
     parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
+    parser.add_argument("-m", "--multiarch", help="Build and publish multi-arch images", action="store_true")
     return parser.parse_args()
 
 
@@ -85,7 +95,8 @@ def build_image_tags(image_name, image_version, product_version):
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
-
+# Not sure if --load is always required. Testing revealed that it won't hurt, in case we want to use a builder instants evoked 
+# by docker buildx create --use, --load is required to bring the image out of the container
 def build_and_publish_image(args, product):
     """
     Returns a list of commands that need to be run in order to build and
@@ -97,21 +108,40 @@ def build_and_publish_image(args, product):
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    commands.append(
-        [
-            "docker",
-            "buildx",
-            "build",
-            *build_args,
-            *tags,
-            "-f",
-            product["name"] + "/Dockerfile",
-            "--platform",
-            "linux/" + check_platform(args.architecture),
-            "--load",
-            ".",
-        ]
-    )
+    # Multiarch builds
+    if args.multiarch:
+       commands.append(
+            [
+                "docker",
+                "buildx",
+                "build",
+                *build_args,
+                *tags,
+                "-f",
+                product["name"] + "/Dockerfile",
+                "--platform",
+                "linux/amd64,linux/arm64", 
+                "--push",
+                ".",
+            ]
+        )
+    #local builds / single architecture
+    else:
+        commands.append(
+            [
+                "docker",
+                "buildx",
+                "build",
+                *build_args,
+                *tags,
+                "-f",
+                product["name"] + "/Dockerfile",
+                "--platform",
+                "linux/" + check_platform(args.architecture),
+                "--load",
+                ".",
+            ]
+        )
 
     if args.push:
         commands.append(["docker", "push", "--all-tags", image_name])
@@ -158,6 +188,7 @@ def product_to_build(product_name, product_version, products):
     else:
         return None
 
+############################################################### Local dependency checks ####################################################################
 
 def check_or_build_dependencies(args, architecture, products):
     """
@@ -169,8 +200,6 @@ def check_or_build_dependencies(args, architecture, products):
     java = False
     rust_builder = False
 
-    # TODO: Parse more architectures (like all) | currently buildx build is not supporting multi-platform, docker buildx create --use should solve it
-    # but requires more work
     images = client.images.list(filters={"label": "architecture=" + architecture})
     for image in images:
         for tags in image.tags:
@@ -187,11 +216,13 @@ def check_or_build_dependencies(args, architecture, products):
     build_dependencies(java, tools, rust_builder, args, products)
 
 
+
 def build_dependencies(java, tools, rust_builder, args, products):
     """
     Builds neccessary dependencies for images if not available on system
     """
 
+    # edenhall/kcat is not checked yet, since it is supposed to be moved to tools. But not sure about that.
     args_dummy = copy.deepcopy(args)
 
     if not rust_builder:
@@ -228,6 +259,36 @@ def check_platform(architecture):
 
     return architecture
 
+############################################################### Multi-Arch-Images #########################################################################
+def create_virtual_enviroment(args):
+   
+    commands=[]
+    commands.append(
+        [
+            "docker",
+            "buildx",
+            "create",
+            "--name",
+            "builder",
+            "--use"
+        ]
+    )
+    run_commands(args.dry, commands)
+
+
+def remove_virtual_enviroment(args):
+
+    commands=[]
+    commands.append(
+        [
+            "docker", 
+            "buildx", 
+            "rm", 
+            "builder"
+         ]
+    )
+    run_commands(args.dry, commands)
+
 
 def main():
     args = parse_args()
@@ -235,6 +296,9 @@ def main():
 
     if args.check:
         check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
+
+    if args.multiarch:
+        create_virtual_enviroment(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -247,6 +311,9 @@ def main():
     commands = build_and_publish_image(args, product)
 
     run_commands(args.dry, commands)
+
+    if args.multiarch:
+        remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":

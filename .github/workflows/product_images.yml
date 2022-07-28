@@ -99,11 +99,7 @@ jobs:
           password: ${{ secrets.NEXUS_PASSWORD }}
 
       -
-        name: Build and push images (amd64)
+        name: Build and push images
         shell: bash
-        run: python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a amd64
+        run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -m
 
-      -
-        name: Build and push images (arm64)
-        shell: bash
-        run: python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a arm64
