@@ -10,15 +10,12 @@ Example:
     build_product_images.py --product zookeeper,kafka --image_version 0.1.0 --push
 
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
-"""
 
-"""
-as a reminder:
-If we want to build parallel we have to use building nodes like the following example suggests (from https://docs.docker.com/build/buildx/):
-docker buildx create --use --name mybuild node-amd64
-docker buildx create --append --name mybuilde node-arm64
-
-docker buildx build --platform linux/amd64, linux/arm64
+Multiarchitecture builds:
+This assumes that the following images are available for target architecture:
+    1. Java-Base 11, 1.8.0
+    2. ubi8-rust-builder
+    3. Tools 0.2.0
 
 """
 
@@ -53,7 +50,7 @@ def parse_args():
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image")
     parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
-    parser.add_argument("-m", "--multiarch", help="Build and publish multi-arch images", action="store_true")
+    parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
     return parser.parse_args()
 
 
@@ -95,12 +92,13 @@ def build_image_tags(image_name, image_version, product_version):
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
-# Not sure if --load is always required. Testing revealed that it won't hurt, in case we want to use a builder instants evoked 
-# by docker buildx create --use, --load is required to bring the image out of the container
+
 def build_and_publish_image(args, product):
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
+
+    For local building, builder instances are supported.
     """
     commands = []
 
@@ -188,7 +186,10 @@ def product_to_build(product_name, product_version, products):
     else:
         return None
 
-############################################################### Local dependency checks ####################################################################
+"""
+In generall, the following checks weather or not dependencies are available on your local machine. This is only useful if a local repository via Docker-Desktop or
+something simular is used. However, this is not checking if a dependency of certain architecutre is existent in a repository!
+"""
 
 def check_or_build_dependencies(args, architecture, products):
     """
@@ -222,7 +223,6 @@ def build_dependencies(java, tools, rust_builder, args, products):
     Builds neccessary dependencies for images if not available on system
     """
 
-    # edenhall/kcat is not checked yet, since it is supposed to be moved to tools. But not sure about that.
     args_dummy = copy.deepcopy(args)
 
     if not rust_builder:
@@ -234,20 +234,20 @@ def build_dependencies(java, tools, rust_builder, args, products):
         args_dummy.product_version = '11'
         print('Building dependency Java-Base', args_dummy.product_version)
 
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '11', products)))
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
 
         args_dummy.image_version = '0'
         args_dummy.product_version = '1.8.0'
         print('Building dependency Java-Base', args_dummy.product_version)
 
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', '1.8.0', products)))
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
 
     if not tools:
         args_dummy.image_version = '0'
         args_dummy.product_version = '0.2.0'
         print("Building dependency Tools", args_dummy.product_version)
 
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', '0.2.0', products)))
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', args_dummy.product_version, products)))
 
 
 def check_platform(architecture):
@@ -259,7 +259,7 @@ def check_platform(architecture):
 
     return architecture
 
-############################################################### Multi-Arch-Images #########################################################################
+
 def create_virtual_enviroment(args):
    
     commands=[]
