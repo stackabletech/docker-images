@@ -10,13 +10,21 @@ Example:
     build_product_images.py --product zookeeper,kafka --image_version 0.1.0 --push
 
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
+
+Multiarchitecture builds:
+This assumes that the following images are available for target architecture:
+    1. Java-Base 11, 1.8.0
+    2. ubi8-rust-builder
+    3. Tools 0.2.0
 """
 
 import conf
 import argparse
 import subprocess
 import sys
-import re
+import platform
+import docker
+import copy
 
 
 def parse_args():
@@ -39,6 +47,9 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
+    parser.add_argument("-a", "--architecture", help="Target platform for image")
+    parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
+    parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
     return parser.parse_args()
 
 
@@ -85,24 +96,53 @@ def build_and_publish_image(args, product):
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
+
+    For local building, builder instances are supported.
     """
     commands = []
-
+    push = ""
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    commands.append(
-        [
-            "docker",
-            "build",
-            *build_args,
-            *tags,
-            "-f",
-            product["name"] + "/Dockerfile",
-            ".",
-        ]
-    )
+    if args.push:
+        push = "--push"
+
+    # Multiarch builds
+    if args.multiarch:
+        commands.append(
+            [
+                "docker",
+                "buildx",
+                "build",
+                *build_args,
+                *tags,
+                "-f",
+                product["name"] + "/Dockerfile",
+                "--platform",
+                "linux/amd64,linux/arm64",
+                push,
+                ".",
+            ]
+        )
+    # local builds / single architecture
+    else:
+        commands.append(
+            [
+                "docker",
+                "buildx",
+                "build",
+                *build_args,
+                *tags,
+                "-f",
+                product["name"] + "/Dockerfile",
+                "--platform",
+                "linux/" + check_platform(args.architecture),
+                "--load",
+                ".",
+            ]
+        )
+
     if args.push:
         commands.append(["docker", "push", "--all-tags", image_name])
 
@@ -149,8 +189,120 @@ def product_to_build(product_name, product_version, products):
         return None
 
 
+"""
+In generall, the following checks weather or not dependencies are available on your local machine. This is only useful if a local repository via Docker-Desktop or
+something simular is used. However, this is not checking if a dependency of certain architecutre is existent in a repository!
+"""
+
+
+def check_or_build_dependencies(args, architecture, products):
+    """
+    Checks if dependencies are currently build on local system, if not they get build
+    """
+
+    client = docker.from_env()
+    tools = False
+    java = False
+    rust_builder = False
+
+    images = client.images.list(filters={"label": "architecture=" + architecture})
+    for image in images:
+        for tags in image.tags:
+            if 'java-base' in tags:
+                java = True
+                print("Found java-base image")
+            if 'ubi8-rust-builder' in tags:
+                rust_builder = True
+                print("Found rust builder image")
+            if 'tools' in tags:
+                tools = True
+                print("Found tools image")
+
+    build_dependencies(java, tools, rust_builder, args, products)
+
+
+def build_dependencies(java, tools, rust_builder, args, products):
+    """
+    Builds neccessary dependencies for images if not available on system
+    """
+
+    args_dummy = copy.deepcopy(args)
+
+    if not rust_builder:
+        print("Building rust builder")
+        subprocess.run("make")
+
+    if not java:
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '11'
+        print('Building dependency Java-Base', args_dummy.product_version)
+
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
+
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '1.8.0'
+        print('Building dependency Java-Base', args_dummy.product_version)
+
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
+
+    if not tools:
+        args_dummy.image_version = '0'
+        args_dummy.product_version = '0.2.0'
+        print("Building dependency Tools", args_dummy.product_version)
+
+        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', args_dummy.product_version, products)))
+
+
+def check_platform(architecture):
+    """
+    Checks if a desired platform is given, gives current platform if not
+    """
+    if architecture is None:
+        architecture = platform.machine()
+
+    return architecture
+
+
+def create_virtual_enviroment(args):
+
+    commands = []
+
+    commands.append(
+        [
+            "docker",
+            "buildx",
+            "create",
+            "--name",
+            "builder",
+            "--use"
+        ]
+    )
+    run_commands(args.dry, commands)
+
+
+def remove_virtual_enviroment(args):
+
+    commands = []
+    commands.append(
+        [
+            "docker",
+            "buildx",
+            "rm",
+            "builder"
+        ]
+    )
+    run_commands(args.dry, commands)
+
+
 def main():
     args = parse_args()
+    print("Current Platform: ", platform.machine())
+
+    if args.check:
+        check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
+
+    if args.multiarch:
+        create_virtual_enviroment(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -163,6 +315,9 @@ def main():
     commands = build_and_publish_image(args, product)
 
     run_commands(args.dry, commands)
+
+    if args.multiarch:
+        remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
