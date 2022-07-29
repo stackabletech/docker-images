@@ -102,4 +102,3 @@ jobs:
         name: Build and push images
         shell: bash
         run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -m
-
