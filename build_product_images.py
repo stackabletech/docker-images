@@ -16,6 +16,8 @@ This assumes that the following images are available for target architecture:
     1. Java-Base 11, 1.8.0
     2. ubi8-rust-builder
     3. Tools 0.2.0
+
+For native nodes, it assumes that native node exists in docker context ls
 """
 
 import conf
@@ -50,6 +52,7 @@ def parse_args():
     parser.add_argument("-a", "--architecture", help="Target platform for image")
     parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
     parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
+    parser.add_argument("-n", "--node", help="Append a native node to docker builder", type=str)
     return parser.parse_args()
 
 
@@ -143,8 +146,8 @@ def build_and_publish_image(args, product):
             ]
         )
 
-    if args.push:
-        commands.append(["docker", "push", "--all-tags", image_name])
+        if args.push:
+            commands.append(["docker", "push", "--all-tags", image_name])
 
     return commands
 
@@ -279,6 +282,50 @@ def create_virtual_enviroment(args):
     )
     run_commands(args.dry, commands)
 
+def use_native_node(args):
+
+    commands = []
+    nodes = args.node.split(',')
+
+    assert(len(nodes) != 0)
+
+    commands.append(
+            [
+                "docker",
+                "buildx",
+                "create",
+                "--use",
+                "--name",
+                nodes[0]
+            ]
+        )
+
+    run_commands(args.dry, commands)
+
+
+def append_native_node(args):
+
+    i = 0
+    commands = []
+
+    for nodes in args.node.split(','):
+        commands = []
+        if i == 0:
+            use_native_node(args)
+            i += 1
+        else:
+            commands.append(
+                [
+                    "docker",
+                    "buildx",
+                    "create",
+                    "--append",
+                    "--name",
+                    nodes
+                ]
+            )
+            run_commands(args.dry, commands)
+
 
 def remove_virtual_enviroment(args):
 
@@ -302,7 +349,10 @@ def main():
         check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
 
     if args.multiarch:
-        create_virtual_enviroment(args)
+        if args.node is None:
+            create_virtual_enviroment(args)
+    if args.node is not None:
+        append_native_node(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -317,7 +367,8 @@ def main():
     run_commands(args.dry, commands)
 
     if args.multiarch:
-        remove_virtual_enviroment(args)
+        if args.node is None:
+            remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
