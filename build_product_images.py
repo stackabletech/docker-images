@@ -306,14 +306,14 @@ def use_native_node(args):
 
 def append_native_node(args):
 
-    i = 0
+    i = False
     commands = []
 
     for nodes in args.node.split(','):
         commands = []
-        if i == 0:
+        if not i:
             use_native_node(args)
-            i += 1
+            i = True
         else:
             commands.append(
                 [
