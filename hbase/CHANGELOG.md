@@ -1,5 +1,13 @@
 # Changelog
 
+## [hbase-stackable0.5.0] - 2022-08-01
+
+### Added
+
+- Phoenix support added ([#157]).
+
+[#157]: https://github.com/stackabletech/docker-images/pull/157
+
 ## [hbase-stackable0.4.0] - 2022-03-22
 
 ### Added
