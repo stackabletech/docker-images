@@ -282,23 +282,24 @@ def create_virtual_enviroment(args):
     )
     run_commands(args.dry, commands)
 
+
 def use_native_node(args):
 
     commands = []
     nodes = args.node.split(',')
 
-    assert(len(nodes) != 0)
+    assert len(nodes) != 0
 
     commands.append(
-            [
-                "docker",
-                "buildx",
-                "create",
-                "--use",
-                "--name",
-                nodes[0]
-            ]
-        )
+        [
+            "docker",
+            "buildx",
+            "create",
+            "--use",
+            "--name",
+            nodes[0]
+        ]
+    )
 
     run_commands(args.dry, commands)
 
