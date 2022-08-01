@@ -1,6 +1,6 @@
 # Changelog
 
-## [hbase-stackable0.5.0] - 2022-08-01
+## [hbase2.4.6-stackable0.7.0] [hbase2.4.8-stackable0.7.0] [hbase2.4.9-stackable0.7.0] [hbase2.4.11-stackable0.7.0] [hbase2.4.12-stackable0.2.0] - 2022-08-01
 
 ### Added
 
