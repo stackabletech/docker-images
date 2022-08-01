@@ -1,6 +1,7 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0
 
 ARG PRODUCT
+ARG PHOENIX
 ARG RELEASE="1"
 
 LABEL name="Apache HBase" \
@@ -17,7 +18,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
+    microdnf install python3 python3-pip && \
     microdnf clean all
+
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY hbase/stackable /stackable
 COPY hbase/licenses /licenses
@@ -33,7 +38,10 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
     curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
+    curl -L https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz | tar -xzC . && \
+    ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
+    ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
