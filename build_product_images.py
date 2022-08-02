@@ -16,8 +16,6 @@ This assumes that the following images are available for target architecture:
     1. Java-Base 11, 1.8.0
     2. ubi8-rust-builder
     3. Tools 0.2.0
-
-For native nodes, it assumes that native node exists in docker buildx context. If node is not exisiting, a virtual one will be created.
 """
 
 import conf
@@ -47,8 +45,7 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
-    parser.add_argument("-a", "--architecture", help="Target platform for image", nargs='*')
-    parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
+    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ...", nargs='+') 
     return parser.parse_args()
 
 
