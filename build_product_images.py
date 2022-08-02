@@ -233,7 +233,7 @@ def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
 
-    args.architecture = check_platform(args.architecture)    
+    args.architecture = check_platform(args.architecture)
 
     if len(args.architecture) > 1:
         create_virtual_enviroment(args)
@@ -251,7 +251,7 @@ def main():
     run_commands(args.dry, commands)
 
     if len(args.architecture) > 1:
-        remove_virtual_enviroment(args)
+            remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
