@@ -17,9 +17,10 @@ This assumes that the following images are available for target architecture:
     2. ubi8-rust-builder
     3. Tools 0.2.0
 
-For native nodes, it assumes that native node exists in docker context ls
+For native nodes, it assumes that native node exists in docker buildx context. If node is not exisiting, a virtual one will be created. 
 """
 
+from venv import create
 import conf
 import argparse
 import subprocess
@@ -283,50 +284,18 @@ def create_virtual_enviroment(args):
     run_commands(args.dry, commands)
 
 
-"""
-def use_native_node(args):
+def remove_virtual_enviroment(args):
 
     commands = []
-    nodes = args.node.split(',')
-
-    assert len(nodes) != 0
-
     commands.append(
         [
             "docker",
             "buildx",
-            "create",
-            "--use",
-            "--name",
-            nodes[0]
+            "rm",
+            "builder"
         ]
     )
-
     run_commands(args.dry, commands)
-
-
-def create_nodes(args):
-
-    i = False
-    commands = []
-
-    for nodes in args.node.split(','):
-        commands = []
-        if not i:
-            use_native_node(args)
-            i = True
-        else:
-            commands.append(
-                [
-                    "docker",
-                    "buildx",
-                    "create",
-                    "--name",
-                    nodes
-                ]
-            )
-            run_commands(args.dry, commands)
-"""
 
 
 def join_nodes(args):
@@ -348,10 +317,8 @@ def join_nodes(args):
                 ]
             )
             run_commands(args.dry, commands)
-            use_builder(args)
 
-        elif len(nodes) == 1:
-            use_builder(args)
+    use_builder(args)
 
 
 def use_builder(args):
@@ -363,25 +330,11 @@ def use_builder(args):
         [
             "docker",
             "buildx",
-            "use", 
+            "use",
             nodes[0]
         ]
     )
 
-    run_commands(args.dry, commands)
-
-
-def remove_virtual_enviroment(args):
-
-    commands = []
-    commands.append(
-        [
-            "docker",
-            "buildx",
-            "rm",
-            "builder"
-        ]
-    )
     run_commands(args.dry, commands)
 
 
@@ -395,10 +348,9 @@ def main():
     if args.multiarch:
         if args.node is None:
             create_virtual_enviroment(args)
-            
+
     if args.node is not None:
-        #create_nodes(args)
-        join_nodes(args) 
+        join_nodes(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
