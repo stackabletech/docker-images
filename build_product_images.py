@@ -195,7 +195,7 @@ def check_platform(architecture):
     """
     Checks if a desired platform is given, gives current platform if not
     """
-    if architecture is None:
+    if architecture is None or len(architecture) == 0:
         architecture = ["linux/" + platform.machine()]
 
     return architecture
@@ -232,52 +232,6 @@ def remove_virtual_enviroment(args):
     run_commands(args.dry, commands)
 
 
-def join_nodes(args):
-    """
-    Takes all nodes provided and bundels them into a builder. If only one node is given, it gets used by buildx.
-    If a node given is not in context, a virtual one with the name will be created.
-
-    If a set of nodes is not in context, they will be created virtually and used by buildx
-    """
-
-    nodes = args.node.split(',')
-
-    for node in nodes:
-        commands = []
-        if node != nodes[0]:
-            commands.append(
-                [
-                    "docker",
-                    "buildx",
-                    "create",
-                    "--name",
-                    nodes[0],
-                    "--append",
-                    node
-                ]
-            )
-            run_commands(args.dry, commands)
-
-    use_builder(args)
-
-
-def use_builder(args):
-
-    nodes = args.node.split(',')
-    commands = []
-
-    commands.append(
-        [
-            "docker",
-            "buildx",
-            "use",
-            nodes[0]
-        ]
-    )
-
-    run_commands(args.dry, commands)
-
-
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
@@ -285,11 +239,7 @@ def main():
     args.architecture = check_platform(args.architecture)    
 
     if len(args.architecture) > 1:
-        if args.node is None:
-            create_virtual_enviroment(args)
-
-    if args.node is not None:
-        join_nodes(args)
+            create_virtual_enviroment(args)  
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -304,7 +254,6 @@ def main():
     run_commands(args.dry, commands)
 
     if len(args.architecture) > 1:
-        if args.node is None:
             remove_virtual_enviroment(args)
 
 
