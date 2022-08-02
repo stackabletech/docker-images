@@ -30,7 +30,7 @@ COPY hbase/stackable /stackable
 COPY hbase/licenses /licenses
 
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
+    useradd -r -g stackable --uid=1000 -d /stackable stackable && \
     chown -R stackable:stackable /stackable
 
 USER stackable
