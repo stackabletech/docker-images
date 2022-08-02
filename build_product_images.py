@@ -123,7 +123,7 @@ def build_and_publish_image(args, product):
                 "-f",
                 product["name"] + "/Dockerfile",
                 "--platform",
-                "linux/amd64,linux/arm64",
+                args.architecture,
                 push,
                 ".",
             ]
@@ -140,7 +140,7 @@ def build_and_publish_image(args, product):
                 "-f",
                 product["name"] + "/Dockerfile",
                 "--platform",
-                "linux/" + check_platform(args.architecture),
+                check_platform(args.architecture),
                 "--load",
                 ".",
             ]
@@ -200,7 +200,7 @@ something simular is used. However, this is not checking if a dependency of cert
 
 def check_or_build_dependencies(args, architecture, products):
     """
-    Checks if dependencies are currently build on local system, if not they get build
+    Checks if dependencies are currently build on local system, if not they get build. Local usage only.
     """
 
     client = docker.from_env()
@@ -226,7 +226,7 @@ def check_or_build_dependencies(args, architecture, products):
 
 def build_dependencies(java, tools, rust_builder, args, products):
     """
-    Builds neccessary dependencies for images if not available on system
+    Builds neccessary dependencies for images if not available on system. Local usage only
     """
 
     args_dummy = copy.deepcopy(args)
@@ -261,7 +261,7 @@ def check_platform(architecture):
     Checks if a desired platform is given, gives current platform if not
     """
     if architecture is None:
-        architecture = platform.machine()
+        architecture = "linux/" + platform.machine()
 
     return architecture
 
@@ -298,6 +298,12 @@ def remove_virtual_enviroment(args):
 
 
 def join_nodes(args):
+    """
+    Takes all nodes provided and bundels them into a builder. If only one node is given, it gets used by buildx.
+    If a node given is not in context, a virtual one with the name will be created.
+
+    If a set of nodes is not in context, they will be created virtually and used by buildx
+    """
 
     nodes = args.node.split(',')
 
