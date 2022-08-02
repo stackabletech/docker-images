@@ -45,7 +45,7 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
-    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ...", nargs='+') 
+    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ...", nargs='+')
     return parser.parse_args()
 
 
