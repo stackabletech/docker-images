@@ -25,8 +25,6 @@ import argparse
 import subprocess
 import sys
 import platform
-import docker
-import copy
 
 
 def parse_args():
@@ -53,7 +51,6 @@ def parse_args():
     parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
     return parser.parse_args()
 
-# Remove -m, rather check if -a contains more platforms, -a can be a list, check up in docu
 
 def build_image_args(version):
     """
@@ -239,7 +236,7 @@ def main():
     args.architecture = check_platform(args.architecture)    
 
     if len(args.architecture) > 1:
-            create_virtual_enviroment(args)  
+        create_virtual_enviroment(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -254,7 +251,7 @@ def main():
     run_commands(args.dry, commands)
 
     if len(args.architecture) > 1:
-            remove_virtual_enviroment(args)
+        remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
