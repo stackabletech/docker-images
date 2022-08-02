@@ -49,7 +49,7 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
-    parser.add_argument("-a", "--architecture", help="Target platform for image")
+    parser.add_argument("-a", "--architecture", help="Target platform for image", nargs='*')
     parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
     parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
     return parser.parse_args()
@@ -112,7 +112,7 @@ def build_and_publish_image(args, product):
         push = "--push"
 
     # Multiarch builds
-    if args.multiarch:
+    if len(args.architecture) > 1:
         commands.append(
             [
                 "docker",
@@ -123,7 +123,7 @@ def build_and_publish_image(args, product):
                 "-f",
                 product["name"] + "/Dockerfile",
                 "--platform",
-                args.architecture,
+                ','.join(args.architecture),
                 push,
                 ".",
             ]
@@ -140,7 +140,7 @@ def build_and_publish_image(args, product):
                 "-f",
                 product["name"] + "/Dockerfile",
                 "--platform",
-                check_platform(args.architecture),
+                ','.join(args.architecture),
                 "--load",
                 ".",
             ]
@@ -197,7 +197,7 @@ def check_platform(architecture):
     Checks if a desired platform is given, gives current platform if not
     """
     if architecture is None:
-        architecture = "linux/" + platform.machine()
+        architecture = ["linux/" + platform.machine()]
 
     return architecture
 
@@ -283,7 +283,9 @@ def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
 
-    if args.multiarch:
+    args.architecture = check_platform(args.architecture)    
+
+    if len(args.architecture) > 1:
         if args.node is None:
             create_virtual_enviroment(args)
 
@@ -302,7 +304,7 @@ def main():
 
     run_commands(args.dry, commands)
 
-    if args.multiarch:
+    if len(args.architecture) > 1:
         if args.node is None:
             remove_virtual_enviroment(args)
 
