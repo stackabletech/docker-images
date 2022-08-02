@@ -50,11 +50,11 @@ def parse_args():
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image")
-    parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
     parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
     parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
     return parser.parse_args()
 
+# Remove -m, rather check if -a contains more platforms, -a can be a list, check up in docu
 
 def build_image_args(version):
     """
@@ -192,70 +192,6 @@ def product_to_build(product_name, product_version, products):
         return None
 
 
-"""
-In generall, the following checks weather or not dependencies are available on your local machine. This is only useful if a local repository via Docker-Desktop or
-something simular is used. However, this is not checking if a dependency of certain architecutre is existent in a repository!
-"""
-
-
-def check_or_build_dependencies(args, architecture, products):
-    """
-    Checks if dependencies are currently build on local system, if not they get build. Local usage only.
-    """
-
-    client = docker.from_env()
-    tools = False
-    java = False
-    rust_builder = False
-
-    images = client.images.list(filters={"label": "architecture=" + architecture})
-    for image in images:
-        for tags in image.tags:
-            if 'java-base' in tags:
-                java = True
-                print("Found java-base image")
-            if 'ubi8-rust-builder' in tags:
-                rust_builder = True
-                print("Found rust builder image")
-            if 'tools' in tags:
-                tools = True
-                print("Found tools image")
-
-    build_dependencies(java, tools, rust_builder, args, products)
-
-
-def build_dependencies(java, tools, rust_builder, args, products):
-    """
-    Builds neccessary dependencies for images if not available on system. Local usage only
-    """
-
-    args_dummy = copy.deepcopy(args)
-
-    if not rust_builder:
-        print("Building rust builder")
-        subprocess.run("make")
-
-    if not java:
-        args_dummy.image_version = '0'
-        args_dummy.product_version = '11'
-        print('Building dependency Java-Base', args_dummy.product_version)
-
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
-
-        args_dummy.image_version = '0'
-        args_dummy.product_version = '1.8.0'
-        print('Building dependency Java-Base', args_dummy.product_version)
-
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('java-base', args_dummy.product_version, products)))
-
-    if not tools:
-        args_dummy.image_version = '0'
-        args_dummy.product_version = '0.2.0'
-        print("Building dependency Tools", args_dummy.product_version)
-
-        run_commands(args_dummy.dry, build_and_publish_image(args_dummy, product_to_build('tools', args_dummy.product_version, products)))
-
-
 def check_platform(architecture):
     """
     Checks if a desired platform is given, gives current platform if not
@@ -346,9 +282,6 @@ def use_builder(args):
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
-
-    if args.check:
-        check_or_build_dependencies(args, check_platform(args.architecture), conf.products)
 
     if args.multiarch:
         if args.node is None:
