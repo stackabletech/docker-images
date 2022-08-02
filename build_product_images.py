@@ -251,7 +251,7 @@ def main():
     run_commands(args.dry, commands)
 
     if len(args.architecture) > 1:
-            remove_virtual_enviroment(args)
+        remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
