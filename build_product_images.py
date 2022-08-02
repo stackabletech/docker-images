@@ -17,10 +17,9 @@ This assumes that the following images are available for target architecture:
     2. ubi8-rust-builder
     3. Tools 0.2.0
 
-For native nodes, it assumes that native node exists in docker buildx context. If node is not exisiting, a virtual one will be created. 
+For native nodes, it assumes that native node exists in docker buildx context. If node is not exisiting, a virtual one will be created.
 """
 
-from venv import create
 import conf
 import argparse
 import subprocess
