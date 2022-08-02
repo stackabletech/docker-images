@@ -50,7 +50,6 @@ def parse_args():
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument("-a", "--architecture", help="Target platform for image", nargs='*')
-    parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
     parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
     return parser.parse_args()
 
