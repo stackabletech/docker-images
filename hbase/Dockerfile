@@ -24,6 +24,8 @@ RUN microdnf update && \
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
+ENV HOME=/stackable
+
 COPY hbase/stackable /stackable
 COPY hbase/licenses /licenses
 
