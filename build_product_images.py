@@ -52,7 +52,7 @@ def parse_args():
     parser.add_argument("-a", "--architecture", help="Target platform for image")
     parser.add_argument("-c", "--check", help="Setting the flag will enable dependency checks and building layers", action="store_true")
     parser.add_argument("-m", "--multiarch", help="Build and publish multi-architecture images", action="store_true")
-    parser.add_argument("-n", "--node", help="Append a native node to docker builder", type=str)
+    parser.add_argument("-n", "--node", help="Create nodes to a builder. First is Master.", type=str)
     return parser.parse_args()
 
 
@@ -283,6 +283,7 @@ def create_virtual_enviroment(args):
     run_commands(args.dry, commands)
 
 
+"""
 def use_native_node(args):
 
     commands = []
@@ -304,7 +305,7 @@ def use_native_node(args):
     run_commands(args.dry, commands)
 
 
-def append_native_node(args):
+def create_nodes(args):
 
     i = False
     commands = []
@@ -320,12 +321,54 @@ def append_native_node(args):
                     "docker",
                     "buildx",
                     "create",
-                    "--append",
                     "--name",
                     nodes
                 ]
             )
             run_commands(args.dry, commands)
+"""
+
+
+def join_nodes(args):
+
+    nodes = args.node.split(',')
+
+    for node in nodes:
+        commands = []
+        if node != nodes[0]:
+            commands.append(
+                [
+                    "docker",
+                    "buildx",
+                    "create",
+                    "--name",
+                    nodes[0],
+                    "--append",
+                    node
+                ]
+            )
+            run_commands(args.dry, commands)
+            use_builder(args)
+
+        elif len(nodes) == 1:
+            use_builder(args)
+
+
+def use_builder(args):
+
+    nodes = args.node.split(',')
+    commands = []
+
+    commands.append(
+        [
+            "docker",
+            "buildx",
+            "use", 
+            nodes[0]
+        ]
+    )
+
+    run_commands(args.dry, commands)
 
 
 def remove_virtual_enviroment(args):
@@ -352,8 +395,10 @@ def main():
     if args.multiarch:
         if args.node is None:
             create_virtual_enviroment(args)
+            
     if args.node is not None:
-        append_native_node(args)
+        #create_nodes(args)
+        join_nodes(args) 
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
