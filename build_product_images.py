@@ -51,7 +51,7 @@ def parse_args():
         help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument",
         nargs="+",
         required=True,
-        type = check_architecture_input
+        type=check_architecture_input
     )
     return parser.parse_args()
 
