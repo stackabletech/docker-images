@@ -218,7 +218,7 @@ def remove_virtual_enviroment(args):
 
 def check_architecture_input(args):
 
-    supported_arch = ["linux/amd64","linux/arm64"]
+    supported_arch = ["linux/amd64", "linux/arm64"]
 
     for target_arch in args.architecture:
         if target_arch not in supported_arch:
