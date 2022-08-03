@@ -7,7 +7,7 @@ Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product zookeeper,kafka --image_version 0.1.0 --push
+    build_product_images.py --product zookeeper,kafka --image_version 0.1.0 -a linux/amd64 -u
 
 This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
 
@@ -216,9 +216,22 @@ def remove_virtual_enviroment(args):
     run_commands(args.dry, commands)
 
 
+def check_architecture_input(args):
+
+    supported_arch = ["linux/amd64","linux/arm64"]
+
+    for target_arch in args.architecture:
+        if target_arch not in supported_arch:
+            raise ValueError(
+                f"Architecture {target_arch} not supported. Supported: {supported_arch}"
+            )
+
+
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
+
+    check_architecture_input(args)
 
     if len(args.architecture) > 1:
         create_virtual_enviroment(args)
