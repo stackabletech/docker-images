@@ -191,7 +191,7 @@ def check_architecture_input(architecture):
 
     if architecture not in supported_arch:
         raise ValueError(
-            f"Architecture {architectures} not supported. Supported: {supported_arch}"
+            f"Architecture {architecture} not supported. Supported: {supported_arch}"
         )
     
     return architecture
