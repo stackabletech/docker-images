@@ -21,8 +21,6 @@ This assumes that the following images are available for target architecture:
 import conf
 import argparse
 import subprocess
-import sys
-import platform
 
 
 def parse_args():
@@ -35,7 +33,9 @@ def parse_args():
         help="Image registry to publish to.",
         default="docker.stackable.tech",
     )
-    parser.add_argument("-p", "--product", help="Product to build", type=str, required=True)
+    parser.add_argument(
+        "-p", "--product", help="Product to build", type=str, required=True
+    )
     parser.add_argument("-i", "--image_version", help="Image version", required=True)
     parser.add_argument(
         "-v",
@@ -45,7 +45,13 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
-    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument", nargs='+', required=True)
+    parser.add_argument(
+        "-a",
+        "--architecture",
+        help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument",
+        nargs="+",
+        required=True,
+    )
     return parser.parse_args()
 
 
@@ -88,61 +94,41 @@ def build_image_tags(image_name, image_version, product_version):
     ]
 
 
-def build_and_publish_image(args, product):
+def build_and_publish_image(args, product) -> list[list[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
 
     For local building, builder instances are supported.
     """
-    commands = []
-    push = ""
     image_name = f'{args.registry}/stackable/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
+    commands = [
+        "docker",
+        "buildx",
+        "build",
+        *build_args,
+        *tags,
+        "-f",
+        product["name"] + "/Dockerfile",
+        "--platform",
+        ",".join(args.architecture),
+    ]
+
     if args.push:
-        push = "--push"
-
-    # Multiarch builds
-    if len(args.architecture) > 1:
         commands.append(
-            [
-                "docker",
-                "buildx",
-                "build",
-                *build_args,
-                *tags,
-                "-f",
-                product["name"] + "/Dockerfile",
-                "--platform",
-                ','.join(args.architecture),
-                push,
-                ".",
-            ]
+            "--push",
         )
-    # local builds / single architecture
-    else:
+    if len(args.architecture) == 1:
         commands.append(
-            [
-                "docker",
-                "buildx",
-                "build",
-                *build_args,
-                *tags,
-                "-f",
-                product["name"] + "/Dockerfile",
-                "--platform",
-                ','.join(args.architecture),
-                "--load",
-                ".",
-            ]
+            "--load",
         )
 
-        if args.push:
-            commands.append(["docker", "push", "--all-tags", image_name])
+    commands.append(".")
 
-    return commands
+    return [commands]
 
 
 def run_commands(dry, commands):
@@ -154,9 +140,7 @@ def run_commands(dry, commands):
         if dry:
             subprocess.run(["echo", *cmd])
         else:
-            ret = subprocess.run(cmd)
-            if ret.returncode != 0:
-                sys.exit(1)
+            subprocess.run(cmd, check=True)
 
 
 def product_to_build(product_name, product_version, products):
@@ -189,30 +173,14 @@ def create_virtual_enviroment(args):
 
     commands = []
 
-    commands.append(
-        [
-            "docker",
-            "buildx",
-            "create",
-            "--name",
-            "builder",
-            "--use"
-        ]
-    )
+    commands.append(["docker", "buildx", "create", "--name", "builder", "--use"])
     run_commands(args.dry, commands)
 
 
 def remove_virtual_enviroment(args):
 
     commands = []
-    commands.append(
-        [
-            "docker",
-            "buildx",
-            "rm",
-            "builder"
-        ]
-    )
+    commands.append(["docker", "buildx", "rm", "builder"])
     run_commands(args.dry, commands)
 
 
@@ -229,12 +197,8 @@ def check_architecture_input(args):
 
 def main():
     args = parse_args()
-    print("Current Platform: ", platform.machine())
 
     check_architecture_input(args)
-
-    if len(args.architecture) > 1:
-        create_virtual_enviroment(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
@@ -243,13 +207,17 @@ def main():
             f"No products configured for product {args.product} and version {args.product_version}"
         )
 
-    print(product)
-    commands = build_and_publish_image(args, product)
-
-    run_commands(args.dry, commands)
-
     if len(args.architecture) > 1:
-        remove_virtual_enviroment(args)
+        create_virtual_enviroment(args)
+
+    try:
+        commands = build_and_publish_image(args, product)
+
+        run_commands(args.dry, commands)
+
+    finally:
+        if len(args.architecture) > 1:
+            remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":
