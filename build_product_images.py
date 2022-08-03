@@ -51,6 +51,7 @@ def parse_args():
         help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument",
         nargs="+",
         required=True,
+        type = check_architecture_input
     )
     return parser.parse_args()
 
@@ -184,21 +185,20 @@ def remove_virtual_enviroment(args):
     run_commands(args.dry, commands)
 
 
-def check_architecture_input(args):
+def check_architecture_input(architecture):
 
     supported_arch = ["linux/amd64", "linux/arm64"]
 
-    for target_arch in args.architecture:
-        if target_arch not in supported_arch:
-            raise ValueError(
-                f"Architecture {target_arch} not supported. Supported: {supported_arch}"
-            )
+    if architecture not in supported_arch:
+        raise ValueError(
+            f"Architecture {architectures} not supported. Supported: {supported_arch}"
+        )
+    
+    return architecture
 
 
 def main():
     args = parse_args()
-
-    check_architecture_input(args)
 
     product = product_to_build(args.product, args.product_version, conf.products)
 
