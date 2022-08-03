@@ -45,7 +45,7 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
-    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ...", nargs='+')
+    parser.add_argument("-a", "--architecture", help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument", nargs='+', required=True)
     return parser.parse_args()
 
 
@@ -185,16 +185,6 @@ def product_to_build(product_name, product_version, products):
         return None
 
 
-def check_platform(architecture):
-    """
-    Checks if a desired platform is given, gives current platform if not
-    """
-    if architecture is None or len(architecture) == 0:
-        architecture = ["linux/" + platform.machine()]
-
-    return architecture
-
-
 def create_virtual_enviroment(args):
 
     commands = []
@@ -229,8 +219,6 @@ def remove_virtual_enviroment(args):
 def main():
     args = parse_args()
     print("Current Platform: ", platform.machine())
-
-    args.architecture = check_platform(args.architecture)
 
     if len(args.architecture) > 1:
         create_virtual_enviroment(args)
