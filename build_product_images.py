@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
 Build and possibly publish product images.
-but it assumes a `docker login` has been performed before.
 
 Requirements:
 
