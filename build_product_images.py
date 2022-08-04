@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 """
-Build and possibly publish product images. It doesn't login to any registry when publishing
+Build and possibly publish product images.
 but it assumes a `docker login` has been performed before.
+
+Requirements:
+
+- Python 3
+- Docker with buildx. Installation details here: https://github.com/docker/buildx
 
 Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product zookeeper,kafka --image_version 0.1.0 -a linux/amd64 -u
+    build_product_images.py --product zookeeper --product_version 3.8.0 --image_version 0.1.0 --architecture linux/amd64
 
-This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
+This will build the image `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable0.1.0` for the linux/amd64 architecture.
+To also push the image to a remote registry, add the the `--push` argument.
 
-Multiarchitecture builds:
-This assumes that the following images are available for target architecture:
-    1. Java-Base 11, 1.8.0
+NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
+
+Some images build on top of others. These images are used as base images and might need to be built first:
+    1. java-base
     2. ubi8-rust-builder
-    3. Tools 0.2.0
+    3. tools
 """
 
 import conf
@@ -25,7 +32,7 @@ import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Build and publish product images. See conf.py for details regarding product versions."
+        description="Build and publish product images. Requires docker and buildx (https://github.com/docker/buildx)."
     )
     parser.add_argument(
         "-r",
@@ -204,7 +211,7 @@ def main():
 
     if product is None:
         raise ValueError(
-            f"No products configured for product {args.product} and version {args.product_version}"
+            f"No products configured for product {args.product} and version {args.product_version}. See conf.py for available products and versions."
         )
 
     if len(args.architecture) > 1:
