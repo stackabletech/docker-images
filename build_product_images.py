@@ -122,7 +122,7 @@ def build_and_publish_image(args, product) -> list[list[str]]:
         commands.append(
             "--push",
         )
-    if len(args.architecture) == 1:
+    if not args.push and len(args.architecture) == 1:
         commands.append(
             "--load",
         )
