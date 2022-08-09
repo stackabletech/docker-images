@@ -24,9 +24,10 @@ Some images build on top of others. These images are used as base images and mig
     3. tools
 """
 
-import conf
+from typing import List
 import argparse
 import subprocess
+import conf
 
 
 def parse_args():
@@ -101,7 +102,7 @@ def build_image_tags(image_name, image_version, product_version):
     ]
 
 
-def build_and_publish_image(args, product) -> list[list[str]]:
+def build_and_publish_image(args, product) -> List[List[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
@@ -145,7 +146,7 @@ def run_commands(dry, commands):
     """
     for cmd in commands:
         if dry:
-            subprocess.run(["echo", *cmd])
+            subprocess.run(["echo", *cmd], check=True)
         else:
             subprocess.run(cmd, check=True)
 
@@ -172,8 +173,8 @@ def product_to_build(product_name, product_version, products):
             "name": product_name,
             "versions": product_to_build_version,
         }
-    else:
-        return None
+
+    return None
 
 
 def create_virtual_enviroment(args):
