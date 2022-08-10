@@ -21,7 +21,7 @@ on:
 
 jobs:
   reject_illegal_tags:
-    if: ${{ github.event.intputs.product }} = ''
+    if: ${{ github.event_name == 'push' }}
     name: Check if tag adheres to format 'productx.y.z-stackablea.b.c'
     runs-on: ubuntu-latest
     outputs:
@@ -42,7 +42,7 @@ jobs:
           [[ "$TAGNAME" =~ ^kafka|zookeeper|nifi|druid|opa|hive|hbase|hadoop|trino|airflow|superset|spark-k8s|pyspark-k8s|tools|.+-stackable\d+\.\d+\.\d+ ]] && echo "${TAGNAME}" valid || exit 255
 
   parse_tag:
-    if: ${{ github.event.intputs.product }} = ''
+    if: ${{ github.event_name == 'push' }}
     name: Extract product, version and imageversion from tag name
     runs-on: ubuntu-latest
     needs:
@@ -121,11 +121,11 @@ jobs:
       -
         name: Build and push images
         shell: bash
-        if: ${{ github.event.intputs.product }} = ''
+        if: ${{ github.event_name == 'push' }}
         run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a linux/arm64 linux/amd64 -u
 
       -
         name: Build and push images on dispatch
         shell: bash
-        if: ${{ github.event.intputs.tags }} != ''
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         run: python build_product_images.py -p ${{ github.event.inputs.product }} -v ${{ github.event.inputs.product-version }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a linux/arm64 linux/amd64 -u
