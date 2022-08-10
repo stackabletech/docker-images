@@ -16,14 +16,13 @@ on:
           description: 'Organization of the image'
           default: 'stackable'
         architecture:
-          descritption: 'Target architecture to build, multi arch is defualt'
+          description: 'Target architecture to build, multi arch is defualt'
           default: 'linux/arm64 linux/amd64'
 
 jobs:
   build:
     name: Build product images for ${{ github.event.inputs.product }}
     runs-on: ubuntu-latest
-
     steps:
 
       -
