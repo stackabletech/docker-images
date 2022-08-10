@@ -21,7 +21,7 @@ on:
 
 jobs:
   reject_illegal_tags:
-    if: ${{ github.event.intputs.product }} = '' 
+    if: ${{ github.event.intputs.product }} = ''
     name: Check if tag adheres to format 'productx.y.z-stackablea.b.c'
     runs-on: ubuntu-latest
     outputs:
