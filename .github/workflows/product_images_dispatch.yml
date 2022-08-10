@@ -1,23 +1,24 @@
+---
 name: Product images workflow_dispatch
 
 on:
   workflow_dispatch:
-      inputs:
-        product:
-          description: 'Product to build'
-          required: true
-        product-version:
-          description: 'Productversion'
-          required: true
-        image-version:
-          description: 'Imageversion'
-          default: '0'
-        organization:
-          description: 'Organization of the image'
-          default: 'stackable'
-        architecture:
-          description: 'Target architecture to build, multi arch is defualt'
-          default: 'linux/arm64 linux/amd64'
+    inputs:
+      product:
+        description: 'Product to build'
+        required: true
+      product-version:
+        description: 'Productversion'
+        required: true
+      image-version:
+        description: 'Imageversion'
+        default: '0'
+      organization:
+        description: 'Organization of the image'
+        default: 'stackable'
+      architecture:
+        description: 'Target architecture to build, multi arch is defualt'
+        default: 'linux/arm64 linux/amd64'
 
 jobs:
   build:
