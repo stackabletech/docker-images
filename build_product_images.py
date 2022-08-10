@@ -61,7 +61,8 @@ def parse_args():
         type=check_architecture_input
     )
     parser.add_argument(
-        "--path",
+        "-o",
+        "--organization",
         help="Define a custom location or repository",
         default="stackable"
     )
