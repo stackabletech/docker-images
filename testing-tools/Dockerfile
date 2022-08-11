@@ -15,9 +15,27 @@ LABEL name="Stackable Testing Tools" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && \
-    apt-get install -y python3-thrift python3-certifi python3-idna python3-semver python3-toml python3-urllib3 python3-requests \
-        tar gzip zip curl libssl-dev jq pkg-config \
-        build-essential ca-certificates libxslt1-dev libxml2-dev 
+    apt-get install -y --no-install-recommends \
+        build-essential=12.9 \
+        ca-certificates=20210119 \
+        curl=7.74.0-1.3+deb11u2 \
+        gzip=1.10-4+deb11u1 \
+        jq=1.6-2.1 \
+        libssl-dev=1.1.1n-0+deb11u3 \
+        libxml2-dev=2.9.10+dfsg-6.7+deb11u2 \
+        libxslt1-dev=1.1.34-4 \
+        pkg-config=0.29.2-1 \
+        python3-certifi=2020.6.20-1 \
+        python3-idna=2.10-1 \
+        python3-requests=2.25.1+dfsg-2 \
+        python3-semver=2.10.2-2 \
+        python3-thrift=0.13.0-6 \
+        python3-toml=0.10.1-1 \
+        python3-urllib3=1.26.5-1~exp1 \
+        tar=1.34+dfsg-1 \
+        zip=3.0-12
+
+RUN rm -rf /var/lib/apt/lists/*
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
