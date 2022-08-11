@@ -1,6 +1,6 @@
 .PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, login
 
-ORG=stackable-experimental
+ORG=stackable
 
 REPO   := docker.stackable.tech/${ORG}
 TAG    := $(shell git rev-parse --short HEAD)
