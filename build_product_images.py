@@ -115,7 +115,7 @@ def build_and_publish_image(args, product) -> List[List[str]]:
 
     For local building, builder instances are supported.
     """
-    image_name = f'{args.registry}/{args.path}/{product["name"]}'
+    image_name = f'{args.registry}/{args.organization}/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
