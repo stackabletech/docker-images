@@ -14,8 +14,8 @@ LABEL name="Stackable Testing Tools" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt update && \
-    apt install -y python3-thrift python3-certifi python3-idna python3-semver python3-toml python3-urllib3 python3-requests \
+RUN apt-get update && \
+    apt-get install -y python3-thrift python3-certifi python3-idna python3-semver python3-toml python3-urllib3 python3-requests \
         tar gzip zip curl libssl-dev jq pkg-config \
         build-essential ca-certificates libxslt1-dev libxml2-dev 
 
