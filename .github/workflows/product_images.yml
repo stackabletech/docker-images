@@ -111,4 +111,4 @@ jobs:
       -
         name: Build and push images (multi arch)
         shell: bash
-        run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION"  -o stackable-experimental -a linux/amd64 -u
+        run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION"  -o stackable-experimental -a linux/amd64 linux/arm64 -u
