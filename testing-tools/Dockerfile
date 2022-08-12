@@ -33,14 +33,14 @@ RUN apt-get update && \
         python3-toml=0.10.1-1 \
         python3-urllib3=1.26.5-1~exp1 \
         tar=1.34+dfsg-1 \
-        zip=3.0-12
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+        zip=3.0-12 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
-RUN pip install --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /stackable/python/requirements.txt && \
     groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
