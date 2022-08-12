@@ -4,6 +4,6 @@
 
 ### Added
 
-- Initial version with Java, Python and all packages currently installed by kuttl tests at runtime ([#xxx]).
+- Initial version with Java, Python and all packages currently installed by kuttl tests at runtime ([#162]).
 
-[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
+[#162]: https://github.com/stackabletech/docker-images/pull/162
