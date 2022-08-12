@@ -177,8 +177,12 @@ products = [
         'versions': ['0.2.0'],
     },
     {
+        'name': 'testing-tools',
+        'versions': ['0.1.0'],
+    },
+    {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.6.3', '3.7.0', '3.8.0'],
     },
- ]
+]
