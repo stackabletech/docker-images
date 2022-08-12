@@ -35,12 +35,13 @@ RUN apt-get update && \
         tar=1.34+dfsg-1 \
         zip=3.0-12
 
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
-RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /stackable/python/requirements.txt && \
     groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
