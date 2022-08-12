@@ -1,0 +1,58 @@
+---
+name: Product images workflow_dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: 'Product to build'
+        required: true
+      product-version:
+        description: 'Productversion'
+        required: true
+      image-version:
+        description: 'Imageversion'
+        default: '0'
+      organization:
+        description: 'Organization of the image'
+        default: 'stackable'
+      architecture:
+        description: 'Target architecture to build, multi arch is defualt'
+        default: 'linux/arm64 linux/amd64'
+
+jobs:
+  build:
+    name: Build product images for ${{ github.event.inputs.product }}
+    runs-on: ubuntu-latest
+    steps:
+
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+
+      -
+        name: Set up QEMU for multiarch builds
+        uses: docker/setup-qemu-action@v2
+
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      -
+        name: Install python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      -
+        name: Login to Stackable Nexus
+        uses: docker/login-action@v2
+        with:
+          registry: docker.stackable.tech
+          username: github
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      -
+        name: Build and push images on dispatch
+        shell: bash
+        run: python build_product_images.py -p ${{ github.event.inputs.product }} -v ${{ github.event.inputs.product-version }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u

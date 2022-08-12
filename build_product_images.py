@@ -1,27 +1,38 @@
 #!/usr/bin/env python
 """
-Build and possibly publish product images. It doesn't login to any registry when publishing
-but it assumes a `docker login` has been performed before.
+Build and possibly publish product images.
+
+Requirements:
+
+- Python 3
+- Docker with buildx. Installation details here: https://github.com/docker/buildx
 
 Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product zookeeper,kafka --image_version 0.1.0 --push
+    build_product_images.py --product zookeeper --product_version 3.8.0 --image_version 0.1.0 --architecture linux/amd64
 
-This will build an image for each Apache ZooKeeper and Apache Kafka version configured in conf.py
+This will build the image `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable0.1.0` for the linux/amd64 architecture.
+To also push the image to a remote registry, add the the `--push` argument.
+
+NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
+
+Some images build on top of others. These images are used as base images and might need to be built first:
+    1. java-base
+    2. ubi8-rust-builder
+    3. tools
 """
 
-import conf
+from typing import List
 import argparse
 import subprocess
-import sys
-import re
+import conf
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Build and publish product images. See conf.py for details regarding product versions."
+        description="Build and publish product images. Requires docker and buildx (https://github.com/docker/buildx)."
     )
     parser.add_argument(
         "-r",
@@ -29,7 +40,9 @@ def parse_args():
         help="Image registry to publish to.",
         default="docker.stackable.tech",
     )
-    parser.add_argument("-p", "--product", help="Product to build", type=str, required=True)
+    parser.add_argument(
+        "-p", "--product", help="Product to build", type=str, required=True
+    )
     parser.add_argument("-i", "--image_version", help="Image version", required=True)
     parser.add_argument(
         "-v",
@@ -39,6 +52,20 @@ def parse_args():
     )
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
+    parser.add_argument(
+        "-a",
+        "--architecture",
+        help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument",
+        nargs="+",
+        required=True,
+        type=check_architecture_input
+    )
+    parser.add_argument(
+        "-o",
+        "--organization",
+        help="Define a custom location or repository",
+        default="stackable"
+    )
     return parser.parse_args()
 
 
@@ -81,32 +108,41 @@ def build_image_tags(image_name, image_version, product_version):
     ]
 
 
-def build_and_publish_image(args, product):
+def build_and_publish_image(args, product) -> List[List[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
-    """
-    commands = []
 
-    image_name = f'{args.registry}/stackable/{product["name"]}'
+    For local building, builder instances are supported.
+    """
+    image_name = f'{args.registry}/{args.organization}/{product["name"]}'
     tags = build_image_tags(image_name, args.image_version, args.product_version)
     build_args = build_image_args(product["versions"][0])
 
-    commands.append(
-        [
-            "docker",
-            "build",
-            *build_args,
-            *tags,
-            "-f",
-            product["name"] + "/Dockerfile",
-            ".",
-        ]
-    )
-    if args.push:
-        commands.append(["docker", "push", "--all-tags", image_name])
+    commands = [
+        "docker",
+        "buildx",
+        "build",
+        *build_args,
+        *tags,
+        "-f",
+        product["name"] + "/Dockerfile",
+        "--platform",
+        ",".join(args.architecture),
+    ]
 
-    return commands
+    if args.push:
+        commands.append(
+            "--push",
+        )
+    if not args.push and len(args.architecture) == 1:
+        commands.append(
+            "--load",
+        )
+
+    commands.append(".")
+
+    return [commands]
 
 
 def run_commands(dry, commands):
@@ -116,11 +152,9 @@ def run_commands(dry, commands):
     """
     for cmd in commands:
         if dry:
-            subprocess.run(["echo", *cmd])
+            subprocess.run(["echo", *cmd], check=True)
         else:
-            ret = subprocess.run(cmd)
-            if ret.returncode != 0:
-                sys.exit(1)
+            subprocess.run(cmd, check=True)
 
 
 def product_to_build(product_name, product_version, products):
@@ -145,8 +179,35 @@ def product_to_build(product_name, product_version, products):
             "name": product_name,
             "versions": product_to_build_version,
         }
-    else:
-        return None
+
+    return None
+
+
+def create_virtual_enviroment(args):
+
+    commands = []
+
+    commands.append(["docker", "buildx", "create", "--name", "builder", "--use"])
+    run_commands(args.dry, commands)
+
+
+def remove_virtual_enviroment(args):
+
+    commands = []
+    commands.append(["docker", "buildx", "rm", "builder"])
+    run_commands(args.dry, commands)
+
+
+def check_architecture_input(architecture):
+
+    supported_arch = ["linux/amd64", "linux/arm64"]
+
+    if architecture not in supported_arch:
+        raise ValueError(
+            f"Architecture {architecture} not supported. Supported: {supported_arch}"
+        )
+
+    return architecture
 
 
 def main():
@@ -156,13 +217,20 @@ def main():
 
     if product is None:
         raise ValueError(
-            f"No products configured for product {args.product} and version {args.product_version}"
+            f"No products configured for product {args.product} and version {args.product_version}. See conf.py for available products and versions."
         )
 
-    print(product)
-    commands = build_and_publish_image(args, product)
+    if len(args.architecture) > 1:
+        create_virtual_enviroment(args)
 
-    run_commands(args.dry, commands)
+    try:
+        commands = build_and_publish_image(args, product)
+
+        run_commands(args.dry, commands)
+
+    finally:
+        if len(args.architecture) > 1:
+            remove_virtual_enviroment(args)
 
 
 if __name__ == "__main__":

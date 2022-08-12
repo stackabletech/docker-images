@@ -1,3 +1,4 @@
+---
 name: Product images
 
 on:
@@ -81,6 +82,10 @@ jobs:
         uses: actions/checkout@v3
 
       -
+        name: Set up QEMU for multiarch builds
+        uses: docker/setup-qemu-action@v2
+
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -99,6 +104,11 @@ jobs:
           password: ${{ secrets.NEXUS_PASSWORD }}
 
       -
-        name: Build and push images
+        name: Build and push images (single arch)
         shell: bash
-        run: python build_product_images.py -u -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION"
+        run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION" -a linux/amd64 -u
+
+      -
+        name: Build and push images (multi arch)
+        shell: bash
+        run: python build_product_images.py -p "$PRODUCT" -v "$PRODUCTVERSION" -i "$IMAGEVERSION"  -o stackable-experimental -a linux/amd64 linux/arm64 -u
