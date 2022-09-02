@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS builder
+FROM --platform=linux/arm64 python:3.10-slim AS builder
 
 ARG PRODUCT
 ARG RELEASE="1"
@@ -23,7 +23,7 @@ RUN apt-get update && \
         jq=1.6-2.1 \
         libssl-dev=1.1.1n-0+deb11u3 \
         libxml2-dev=2.9.10+dfsg-6.7+deb11u2 \
-        libxslt1-dev=1.1.34-4 \
+        libxslt1-dev=1.1.34-4+deb11u1 \
         pkg-config=0.29.2-1 \
         python3-certifi=2020.6.20-1 \
         python3-idna=2.10-1 \
