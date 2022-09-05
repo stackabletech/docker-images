@@ -7,8 +7,16 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
   && rm -rf /var/cache/yum
+
+WORKDIR /opt/protoc
+RUN PROTOC_VERSION=21.5 \
+  && curl --location --output protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-$(arch).zip" \
+  && unzip protoc.zip \
+  && rm protoc.zip
+ENV PROTOC=/opt/protoc/bin/protoc
+WORKDIR /
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
  && . $HOME/.cargo/env \
