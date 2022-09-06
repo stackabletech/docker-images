@@ -12,7 +12,7 @@ RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ub
 
 WORKDIR /opt/protoc
 RUN PROTOC_VERSION=21.5 \
-  ARCH=$(arch | sed 's/^arm64$/aarch_64/') \
+  ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
   && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
   && rm protoc.zip
