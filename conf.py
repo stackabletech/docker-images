@@ -34,7 +34,28 @@ products = [
     },
     {
         'name': 'hbase',
-        'versions': ['2.4.6', '2.4.8', '2.4.9', '2.4.11', '2.4.12'],
+        'versions': [
+            {
+                'product': '2.4.6',
+                'phoenix': '2.4-5.1.2',
+            },
+            {
+                'product': '2.4.8',
+                'phoenix': '2.4-5.1.2',
+            },
+            {
+                'product': '2.4.9',
+                'phoenix': '2.4-5.1.2',
+            },
+            {
+                'product': '2.4.11',
+                'phoenix': '2.4-5.1.2',
+            },
+            {
+                'product': '2.4.12',
+                'phoenix': '2.4-5.1.2',
+            },
+        ]
     },
     {
         'name': 'hive',
@@ -177,8 +198,12 @@ products = [
         'versions': ['0.2.0'],
     },
     {
+        'name': 'testing-tools',
+        'versions': ['0.1.0'],
+    },
+    {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': ['3.5.8', '3.6.3', '3.7.0', '3.8.0'],
     },
- ]
+]
