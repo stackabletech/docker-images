@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added s3a and abfs libs (#[168])
+- Added s3a and abfs libs ([#168])
 
 [#168]: https://github.com/stackabletech/docker-images/pull/168
 
@@ -20,7 +20,7 @@
 
 ### Added
 
-- Added AWS dependencies for Spark (#[78])
+- Added AWS dependencies for Spark ([#78])
 
 [#78]: https://github.com/stackabletech/docker-images/pull/78
 

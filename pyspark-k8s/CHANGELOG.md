@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added s3a and abfs libs (#[168])
+- Added s3a and abfs libs ([#168])
 
 [#168]: https://github.com/stackabletech/docker-images/pull/168
 
