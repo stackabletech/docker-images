@@ -60,7 +60,7 @@ ONBUILD RUN \
   fi 
 # Copy the "interesting" files into /app.
 
-#/src/target/aarch64-unknown-linux-gnu/release
+#/src/target/aarch64-unknown-linux-gnu/release is where cross-build is putting binaries 
 ONBUILD RUN find /src/target \
                 -regextype egrep \
                 # The interesting binaries are all directly in ${BUILD_DIR}.
@@ -72,7 +72,7 @@ ONBUILD RUN find /src/target \
                 # Filter out tests.
                 ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
                 # Ignore some .so files
-                ! -regex ".so$" \
+                ! -regex ".*\.so$" \
                 # Copy the matching files into /app.
                 -exec cp {} /app \;
 
