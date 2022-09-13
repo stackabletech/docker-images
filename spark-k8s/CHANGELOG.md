@@ -12,7 +12,7 @@
 
 ### Changed
 
-- Separate python and non-python images (#[80])
+- Separate python and non-python images ([#80])
 
 [#80]: https://github.com/stackabletech/docker-images/pull/80
 
@@ -28,7 +28,7 @@
 
 ### Added
 
-- Added Python 3.9 back to the image and set /stackable as home folder. (#[75])
+- Added Python 3.9 back to the image and set /stackable as home folder. ([#75])
 
 [#75]: https://github.com/stackabletech/docker-images/pull/75
 
