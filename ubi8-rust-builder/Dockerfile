@@ -64,14 +64,15 @@ ONBUILD RUN \
 ONBUILD RUN find /src/target \
                 -regextype egrep \
                 # The interesting binaries are all directly in ${BUILD_DIR}.
-                -maxdepth 2 \
                 # Well, binaries are executable.
+                -maxdepth 3 \
                 -executable \
                 # Well, binaries are files.
                 -type f \
                 # Filter out tests.
                 ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
                 # Copy the matching files into /app.
+                ! -regex ".*\.so$" \
                 -exec cp {} /app \;
 
 ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
