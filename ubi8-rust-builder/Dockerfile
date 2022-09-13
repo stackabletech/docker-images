@@ -5,9 +5,9 @@ LABEL maintainer="Stackable GmbH"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
+RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip perl -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip perl -y \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
@@ -64,13 +64,15 @@ ONBUILD RUN \
 ONBUILD RUN find /src/target \
                 -regextype egrep \
                 # The interesting binaries are all directly in ${BUILD_DIR}.
-                -maxdepth 2 \
+                -maxdepth 3 \
                 # Well, binaries are executable.
                 -executable \
                 # Well, binaries are files.
                 -type f \
                 # Filter out tests.
                 ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
+                # Ignore some .so files
+                ! -regex ".so$" \
                 # Copy the matching files into /app.
                 -exec cp {} /app \;
 
