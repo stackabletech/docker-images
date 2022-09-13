@@ -59,10 +59,12 @@ ONBUILD RUN \
   . $HOME/.cargo/env && cargo build --release --target=x86_64-unknown-linux-gnu; \
   fi 
 # Copy the "interesting" files into /app.
-ONBUILD RUN find /src/target/release \
+
+#/src/target/aarch64-unknown-linux-gnu/release
+ONBUILD RUN find /src/target \
                 -regextype egrep \
                 # The interesting binaries are all directly in ${BUILD_DIR}.
-                -maxdepth 1 \
+                -maxdepth 2 \
                 # Well, binaries are executable.
                 -executable \
                 # Well, binaries are files.
