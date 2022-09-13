@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip perl -y \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
@@ -30,8 +30,34 @@ RUN mkdir /app
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . $HOME/.cargo/env && cargo build --release
+# Getting target specific things for cross-compiling
+ONBUILD RUN \
+  if [ $(arch) = "aarch64" ]; then \
+  . $HOME/.cargo/env && rustup target add aarch64-unknown-linux-gnu; \
+  else \
+  . $HOME/.cargo/env && rustup target add x86_64-unknown-linux-gnu; \
+  fi
 
+# Setting up linker and compiler
+ONBUILD ENV \ 
+   . $HOME/.cargo/env && \ 
+  if [ $(arch) = "aarch64" ]; then \
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
+  CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
+  CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++; \
+  else \
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc \
+  CC_X86_64_unknown_linux_gnu=x86_64-linux-gnu-gcc \
+  CXX_X86_64_unknown_linux_gnu=x86_64-linux-gnu-g++; \ 
+  fi
+
+# Building platform specific binary
+ONBUILD RUN \
+  if [ $(arch) = "aarch64" ]; then \
+  . $HOME/.cargo/env && cargo build --release --target=aarch64-unknown-linux-gnu; \
+  else \
+  . $HOME/.cargo/env && cargo build --release --target=x86_64-unknown-linux-gnu; \
+  fi 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
                 -regextype egrep \

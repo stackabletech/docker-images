@@ -24,7 +24,7 @@ build-ubi8-rust-builder:
 	$(call build,${NAME})
 
 build-ubi8-rust-builder-multi-arch: NAME = ubi8-rust-builder
-build-ubi8-rust-builder-multi-arch: login
+build-ubi8-rust-builder-multi-arch: 
 	$(call build-multi-arch,${NAME})	
 
 push-ubi8-rust-builder: NAME = ubi8-rust-builder
