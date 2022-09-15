@@ -208,7 +208,7 @@ products = [
             {
                 'product': '395',
                 'java': '17',
-                'opa_authorizer': '0.1.0'
+                'opa_authorizer': 'stackable0.1.0'
             },
         ],
     },

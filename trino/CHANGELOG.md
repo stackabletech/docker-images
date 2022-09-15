@@ -1,3 +1,7 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [395-stackable0.1.0] - 2022-09-15
 
 ### Added
