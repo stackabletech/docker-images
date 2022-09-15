@@ -127,13 +127,17 @@ products = [
         'versions': [
             {
                 'product': '3.2.1',
-                'hadoop': '3.2',
                 'python': '39',
+                'hadoop_short_version': '3.2',
             },
             {
                 'product': '3.3.0',
-                'hadoop': '3',
                 'python': '39',
+                'hadoop_short_version': '3',
+                'hadoop_long_version': '3.3.3',
+                'aws_java_sdk_bundle': '1.11.1026',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
         ]
     },
@@ -155,11 +159,15 @@ products = [
         'versions': [
             {
                 'product': '3.2.1',
-                'hadoop': '3.2',
+                'hadoop_short_version': '3.2',
             },
             {
                 'product': '3.3.0',
-                'hadoop': '3',
+                'hadoop_short_version': '3',
+                'hadoop_long_version': '3.3.3',
+                'aws_java_sdk_bundle': '1.11.1026',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
         ]
     },
