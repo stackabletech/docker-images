@@ -2,6 +2,6 @@
 
 ### Added
 
-- Added Trino version 395 (using Java 17) ([#172]).
+- Added Trino version 395 (using Java 17) ([#173]).
 
-[#172]: https://github.com/stackabletech/docker-images/pull/172
+[#173]: https://github.com/stackabletech/docker-images/pull/173
