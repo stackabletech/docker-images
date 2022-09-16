@@ -210,6 +210,11 @@ products = [
                 'java': '17',
                 'opa_authorizer': 'stackable0.1.0'
             },
+            {
+                'product': '396',
+                'java': '17',
+                'opa_authorizer': 'stackable0.1.0'
+            },
         ],
     },
     {
