@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6-941
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 ARG PRODUCT
 ARG RELEASE="1"
