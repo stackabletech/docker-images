@@ -87,6 +87,10 @@ products = [
                 'product': '11',
                 '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
             },
+            {
+                'product': '17',
+                '_security_path': '/usr/lib/jvm/jre-17/conf/security/java.security',
+            },
         ],
     },
     {
@@ -127,13 +131,17 @@ products = [
         'versions': [
             {
                 'product': '3.2.1',
-                'hadoop': '3.2',
                 'python': '39',
+                'hadoop_short_version': '3.2',
             },
             {
                 'product': '3.3.0',
-                'hadoop': '3',
                 'python': '39',
+                'hadoop_short_version': '3',
+                'hadoop_long_version': '3.3.3',
+                'aws_java_sdk_bundle': '1.11.1026',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
         ]
     },
@@ -155,11 +163,15 @@ products = [
         'versions': [
             {
                 'product': '3.2.1',
-                'hadoop': '3.2',
+                'hadoop_short_version': '3.2',
             },
             {
                 'product': '3.3.0',
-                'hadoop': '3',
+                'hadoop_short_version': '3',
+                'hadoop_long_version': '3.3.3',
+                'aws_java_sdk_bundle': '1.11.1026',
+                'azure_storage': '7.0.1',
+                'azure_keyvault_core': '1.0.0',
             },
         ]
     },
@@ -185,11 +197,23 @@ products = [
         'versions': [
             {
                 'product': '377',
-                'opa_authorizer': '0.1.0'
+                'java': '11',
+                'opa_authorizer': '0.1.0',
             },
             {
                 'product': '387',
+                'java': '11',
                 'opa_authorizer': '0.1.0'
+            },
+            {
+                'product': '395',
+                'java': '17',
+                'opa_authorizer': 'stackable0.1.0'
+            },
+            {
+                'product': '396',
+                'java': '17',
+                'opa_authorizer': 'stackable0.1.0'
             },
         ],
     },
