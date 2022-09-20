@@ -5,9 +5,9 @@ LABEL maintainer="Stackable GmbH"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos --enablerepo=ubi-8-baseos -y \
+RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms --enablerepo=ubi-8-baseos -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream --enablerepo=ubi-8-baseos curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
