@@ -26,7 +26,7 @@ RUN microdnf update \
         && pip install --no-cache-dir --upgrade pip \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5 as airflow-main-image
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 as airflow-main-image
 
 ARG PRODUCT
 ARG PYTHON

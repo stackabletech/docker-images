@@ -58,7 +58,7 @@ RUN cat /tmp/patches/* | patch \
 
 # Final image
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.5
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
 
 ARG PRODUCT
 ARG PYTHON
