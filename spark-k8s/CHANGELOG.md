@@ -1,10 +1,18 @@
 # Changelog
 
+## [3.3.0-stackable0.2.0] - 2022-09-13
+
+### Added
+
+- Added s3a and abfs libs ([#168])
+
+[#168]: https://github.com/stackabletech/docker-images/pull/168
+
 ## [spark-k8s-stackable0.4.0] - 2022-03-28
 
 ### Changed
 
-- Separate python and non-python images (#[80])
+- Separate python and non-python images ([#80])
 
 [#80]: https://github.com/stackabletech/docker-images/pull/80
 
@@ -12,7 +20,7 @@
 
 ### Added
 
-- Added AWS dependencies for Spark (#[78])
+- Added AWS dependencies for Spark ([#78])
 
 [#78]: https://github.com/stackabletech/docker-images/pull/78
 
@@ -20,7 +28,7 @@
 
 ### Added
 
-- Added Python 3.9 back to the image and set /stackable as home folder. (#[75])
+- Added Python 3.9 back to the image and set /stackable as home folder. ([#75])
 
 [#75]: https://github.com/stackabletech/docker-images/pull/75
 

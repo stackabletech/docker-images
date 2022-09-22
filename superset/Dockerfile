@@ -1,6 +1,6 @@
 # Build stage
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:37b1bbdc042d32573738c72e4e0f0592b4198a5de1c3a3f32515d29ba4605488 as builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:37b1bbdc042d32573738c72e4e0f0592b4198a5de1c3a3f32515d29ba4605488 AS builder
 
 ARG PRODUCT
 ARG PYTHON

@@ -1,4 +1,5 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0
+ARG JAVA
+FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
