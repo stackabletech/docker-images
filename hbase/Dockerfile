@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0
+FROM docker.stackable.tech/stackable/java-base:17-stackable0@sha256:daba65085560d3f20ba3afeec3f2fba22bf82219d4f1dd1920da3a44982da357
 
 ARG PRODUCT
 ARG PHOENIX
