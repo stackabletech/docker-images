@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6 AS builder
 
 ARG PRODUCT
 ARG HADOOP_SHORT_VERSION
