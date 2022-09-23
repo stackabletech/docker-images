@@ -1,1 +1,1 @@
-nipyapi==0.15.0
+nipyapi==0.19.1
