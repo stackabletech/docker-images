@@ -1,12 +1,8 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal AS builder
 
 ARG PRODUCT
+ARG HADOOP
 ARG PYTHON
-ARG HADOOP_SHORT_VERSION
-ARG HADOOP_LONG_VERSION
-ARG AWS_JAVA_SDK_BUNDLE
-ARG AZURE_STORAGE
-ARG AZURE_KEYVAULT_CORE
 ARG RELEASE="1"
 
 LABEL name="Apache Spark" \
@@ -39,9 +35,24 @@ ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
+ENV TINI_VERSION=v0.19.0
+
+# Ugly to download both archs here, there isn't a decent way to export an environment variable or have an if-else switch 
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 spark-k8s/stackable/utils/tini-arm64
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-amd64 spark-k8s/stackable/utils/tini-amd64 
+
+# according to arch, copy binary to the name "tini"
+# throwing unused binaries away afterwards
+RUN \
+    if [ $(arch) = "aarch64" ]; then \
+    cp spark-k8s/stackable/utils/tini-arm64 /usr/bin/tini; \
+    rm -rf spark-k8s/*; \
+    else \
+    cp spark-k8s/stackable/utils/tini-amd64 /usr/bin/tini; \
+    rm -rf sprk-k8s/*; \
+    fi
 
 COPY spark-k8s/stackable /stackable
-COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
 COPY spark-k8s/licenses /licenses
 
 RUN chmod +x /usr/bin/tini
@@ -53,35 +64,9 @@ RUN groupadd -r stackable --gid=1000 && \
 USER stackable
 
 WORKDIR /stackable
-# Download Spark (including Hadoop)
-RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}.tgz | tar -xzC . && \
-    ln -s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION} /stackable/spark
-
-# Download aws module for Hadoop (support for s3a://)
-RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
-    -o /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar && \
-    chmod -x /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar
-
-# Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
-RUN curl -L https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
-    -o /stackable/spark/jars/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar && \
-    chmod -x /stackable/spark/jars/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar
-
-# Download azure module for Hadoop (support for abfs://)
-RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
-    -o /stackable/spark/jars/hadoop-azure-${HADOOP_LONG_VERSION}.jar && \
-    chmod -x /stackable/spark/jars/hadoop-azure-${HADOOP_LONG_VERSION}.jar
-
-# Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
-RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
-    -o /stackable/spark/jars/azure-storage-${AZURE_STORAGE}.jar && \
-    chmod -x /stackable/spark/jars/azure-storage-${AZURE_STORAGE}.jar
-RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
-    -o /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
-    chmod -x /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
-
-# Download jmx exporter (needed for metrics)
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
+RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP}.tgz | tar -xzC . && \
+    ln -s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP} /stackable/spark && \
+    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
@@ -96,7 +81,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -105,7 +90,7 @@ RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSI
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP}
 # ===
 
 WORKDIR /stackable/spark
