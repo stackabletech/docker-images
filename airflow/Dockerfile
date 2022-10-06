@@ -59,27 +59,14 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_UID="50000"
 ENV AIRFLOW_HOME=$HOME/airflow
-ENV TINI_VERSION=v0.19.0
 
 RUN mkdir -pv ${HOME} && \
     mkdir -pv ${AIRFLOW_HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs
 
-# Ugly to download both archs here, there isn't a decent way to export an environment variable or have an if-else switch 
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 spark-k8s/stackable/utils/tini-arm64
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-amd64 spark-k8s/stackable/utils/tini-amd64 
-
 # according to arch, copy binary to the name "tini"
-# throwing unused binaries away afterwards
-RUN \
-    if [ $(arch) = "aarch64" ]; then \
-    cp spark-k8s/stackable/utils/tini-arm64 /usr/bin/tini; \
-    rm -rf spark-k8s/*; \
-    else \
-    cp spark-k8s/stackable/utils/tini-amd64 /usr/bin/tini; \
-    rm -rf sprk-k8s/*; \
-    fi 
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 
