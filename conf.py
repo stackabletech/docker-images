@@ -116,6 +116,11 @@ products = [
                 'scala': '2.13',
                 'opa_authorizer': '1.4.0',
             },
+            {
+                'product': '3.3.1',
+                'scala': '2.13',
+                'opa_authorizer': '1.4.0',
+            },
         ]
     },
     {
