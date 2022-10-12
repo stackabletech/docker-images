@@ -17,6 +17,10 @@ products = [
                 'product': '2.2.5',
                 'python': '39',
             },
+            {
+                'product': '2.4.1',
+                'python': '39',
+            },
         ]
     },
     {
