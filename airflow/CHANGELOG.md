@@ -1,5 +1,13 @@
 # Changelog
 
+## [airflow-stackable0.4.0] - 2022-10-12
+
+### Added
+
+- Support for Airflow 2.4.1 ([#xxx])
+
+[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
+
 ## [airflow-stackable0.3.0] - 2022-04-28
 
 ### Changed

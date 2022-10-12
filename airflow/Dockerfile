@@ -20,6 +20,7 @@ RUN microdnf update \
             cyrus-sasl-devel \
             openldap-devel \
             unixODBC-devel \
+            libpq-devel \
         && microdnf clean all \
         && python3 -m venv --system-site-packages /stackable/app \
         && source /stackable/app/bin/activate \
@@ -50,6 +51,7 @@ RUN microdnf install -y yum python${PYTHON} \
     openldap-clients \
     cyrus-sasl \
     unixODBC \
+    libpq \
     && yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical \
     && yum clean all \
     && microdnf clean all
