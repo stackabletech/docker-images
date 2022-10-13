@@ -29,6 +29,10 @@ products = [
             {
                 'product': '0.23.0',
                 'authorizer': '0.2.0',
+            },
+            {
+                'product': '24.0.0',
+                'authorizer': '0.3.0',
             }
         ]
     },
