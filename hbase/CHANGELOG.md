@@ -5,10 +5,10 @@
 ### Added
 
 - Phoenix support added ([#157]).
-- Hadoop native libs added for compression support ([#])
+- Hadoop native libs added for compression support ([#230])
 
 [#157]: https://github.com/stackabletech/docker-images/pull/157
-[#157]: https://github.com/stackabletech/docker-images/pull/157
+[#230]: https://github.com/stackabletech/docker-images/pull/230
 
 ## [hbase-stackable0.4.0] - 2022-03-22
 
