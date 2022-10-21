@@ -2,6 +2,7 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0@sha256:fd428a260606
 
 ARG PRODUCT
 ARG PHOENIX
+ARG HADOOP
 ARG RELEASE="1"
 
 LABEL name="Apache HBase" \
@@ -45,7 +46,11 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
+RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${HADOOP}.tar.gz | tar -xzC . && \
+    ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
+
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
+ENV HBASE_LIBRARY_PATH=/stackable/hadoop-${HADOOP}/lib/native
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

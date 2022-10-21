@@ -46,22 +46,27 @@ products = [
             {
                 'product': '2.4.6',
                 'phoenix': '2.4-5.1.2',
+                'hadoop': '3.3.4',
             },
             {
                 'product': '2.4.8',
                 'phoenix': '2.4-5.1.2',
+                'hadoop': '3.3.4',
             },
             {
                 'product': '2.4.9',
                 'phoenix': '2.4-5.1.2',
+                'hadoop': '3.3.4',
             },
             {
                 'product': '2.4.11',
                 'phoenix': '2.4-5.1.2',
+                'hadoop': '3.3.4',
             },
             {
                 'product': '2.4.12',
                 'phoenix': '2.4-5.1.2',
+                'hadoop': '3.3.4',
             },
         ]
     },
