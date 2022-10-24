@@ -51,9 +51,6 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
 RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz | tar -xzC . && \
     ln -s /stackable/hadoop-2.10.2 /stackable/hadoop
 
-RUN cp /lib64/libsnappy.so.1.1.3 /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1.1.3 && \
-    ln -s /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1.1.3 /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1
-
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV LD_LIBRARY_PATH=/stackable/hadoop-2.10.2/lib/native
 
