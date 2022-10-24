@@ -20,6 +20,8 @@ RUN microdnf update && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf install python3 python3-pip && \
+    microdnf install yum && \
+    yum -y install https://rpmfind.net/linux/dag/redhat/el6/en/x86_64/dag/RPMS/snappy-1.0.5-1.el6.rf.x86_64.rpm && \
     microdnf clean all
 
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
@@ -46,11 +48,14 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${HADOOP}.tar.gz | tar -xzC . && \
-    ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
+RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz | tar -xzC . && \
+    ln -s /stackable/hadoop-2.10.2 /stackable/hadoop
+
+RUN cp /lib64/libsnappy.so.1.1.3 /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1.1.3 && \
+    ln -s /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1.1.3 /stackable/hadoop-2.10.2/lib/native/libsnappy.so.1
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
-ENV HBASE_LIBRARY_PATH=/stackable/hadoop-${HADOOP}/lib/native
+ENV LD_LIBRARY_PATH=/stackable/hadoop-2.10.2/lib/native
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
