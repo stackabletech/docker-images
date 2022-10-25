@@ -27,7 +27,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
 
 ENV HOME=/stackable
 
-# This is a hack for the atruvia demo to enable snappy and other compression algorithms (lz4, bzip2)
+# This is a hack for the snappy demo to enable snappy and other compression algorithms (lz4, bzip2)
 COPY hbase/hadoop-native /hadoop-native
 RUN tar -xzf /hadoop-native/hadoop-native.tar.gz && rm /hadoop-native/hadoop-native.tar.gz
 
