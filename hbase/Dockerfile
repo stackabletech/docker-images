@@ -48,11 +48,13 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
-RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-2.10.2/hadoop-2.10.2.tar.gz | tar -xzC . && \
-    ln -s /stackable/hadoop-2.10.2 /stackable/hadoop
+# works for 2.10.2 and 3.2.2
+# fails for 3.3.4
+RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP}/hadoop-${HADOOP}.tar.gz | tar -xzC . && \
+    ln -s /stackable/hadoop-${HADOOP}/stackable/hadoop
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
-ENV LD_LIBRARY_PATH=/stackable/hadoop-2.10.2/lib/native
+ENV LD_LIBRARY_PATH=/stackable/hadoop-${HADOOP}/lib/native
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
