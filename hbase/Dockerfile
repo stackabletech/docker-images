@@ -38,6 +38,13 @@ RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 -d /stackable stackable && \
     chown -R stackable:stackable /stackable
 
+USER 0
+RUN sed -i '$d' /usr/lib/jvm/jre-*/conf/security/java.security
+RUN sed -i '$d' /usr/lib/jvm/jre-*/conf/security/java.security
+
+RUN sed -i '$d' /etc/java/java-*-openjdk/java-*/conf/security/java.security
+RUN sed -i '$d' /etc/java/java-*-openjdk/java-*/conf/security/java.security
+
 USER stackable
 WORKDIR /stackable
 
