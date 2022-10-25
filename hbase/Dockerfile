@@ -20,14 +20,16 @@ RUN microdnf update && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf install python3 python3-pip && \
-    microdnf install yum && \
-    yum -y install https://rpmfind.net/linux/dag/redhat/el6/en/x86_64/dag/RPMS/snappy-1.0.5-1.el6.rf.x86_64.rpm && \
     microdnf clean all
 
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
+
+# This is a hack for the atruvia demo to enable snappy and other compression algorithms (lz4, bzip2)
+COPY hbase/hadoop-native /hadoop-native
+RUN tar -xzf /hadoop-native/hadoop-native.tar.gz && rm /hadoop-native/hadoop-native.tar.gz
 
 COPY hbase/stackable /stackable
 COPY hbase/licenses /licenses
@@ -48,13 +50,8 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
-# works for 2.10.2 and 3.2.2
-# fails for 3.3.4
-RUN curl -L https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP}/hadoop-${HADOOP}.tar.gz | tar -xzC . && \
-    ln -s /stackable/hadoop-${HADOOP}/stackable/hadoop
-
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
-ENV LD_LIBRARY_PATH=/stackable/hadoop-${HADOOP}/lib/native
+ENV LD_LIBRARY_PATH=/hadoop-native
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
