@@ -33,11 +33,13 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
-COPY spark-k8s/licenses /licenses
+# according to arch, copy binary to the name "tini"
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
 
-RUN chmod +x /usr/bin/tini
+COPY spark-k8s/stackable /stackable
+COPY spark-k8s/licenses /licenses
+  
+RUN  chmod +x /usr/bin/tini
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 -d /stackable stackable && \
