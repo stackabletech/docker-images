@@ -67,7 +67,9 @@ RUN mkdir -pv ${HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs
 
-COPY airflow/stackable/utils/tini-v0.19.0 /usr/bin/tini
+# according to arch, copy binary to the name "tini"
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
+
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 
 RUN chmod a+x /entrypoint && \
