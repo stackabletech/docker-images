@@ -32,7 +32,7 @@ jobs:
 
       -
         name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8 # tag=v2
+        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
 
       -
         name: Set up Docker Buildx
@@ -46,7 +46,7 @@ jobs:
 
       -
         name: Login to Stackable Nexus
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # tag=v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
         with:
           registry: docker.stackable.tech
           username: github
