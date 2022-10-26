@@ -1,6 +1,6 @@
 # druid < 0.23 druid only fully supports java 8
 # druid >= 0.23 is java 11 ready
-FROM docker.stackable.tech/stackable/java-base:11-stackable0@sha256:fd428a260606ab9047ca67cf3bceba5ac3859c35fd63feeda014e7523b2ccacc
+FROM docker.stackable.tech/stackable/java-base:17-stackable0@sha256:daba65085560d3f20ba3afeec3f2fba22bf82219d4f1dd1920da3a44982da357
 
 ARG PRODUCT
 ARG AUTHORIZER
