@@ -16,19 +16,15 @@ LABEL name="Apache Kafka" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY docker/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
+    microdnf install curl openssl kubectl && \
     microdnf clean all
 
 COPY kafka/stackable /stackable
 COPY kafka/licenses /licenses
-
-# copy relevant parts of the tools image (speculative)
-COPY docker/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
-RUN microdnf update && \
-    microdnf install tar gzip zip shadow-utils curl openssl kubectl
-    microdnf clean all
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
