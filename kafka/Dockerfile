@@ -24,6 +24,12 @@ RUN microdnf update && \
 COPY kafka/stackable /stackable
 COPY kafka/licenses /licenses
 
+# copy relevant parts of the tools image (speculative)
+COPY docker/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+RUN microdnf update && \
+    microdnf install tar gzip zip shadow-utils curl openssl kubectl
+    microdnf clean all
+
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
