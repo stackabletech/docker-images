@@ -207,21 +207,25 @@ products = [
             {
                 'product': '377',
                 'java': '11',
+                'java_base_image_sha256': '7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e',
                 'opa_authorizer': '0.1.0',
             },
             {
                 'product': '387',
                 'java': '11',
+                'java_base_image_sha256': '7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e',
                 'opa_authorizer': '0.1.0'
             },
             {
                 'product': '395',
                 'java': '17',
+                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
                 'opa_authorizer': 'stackable0.1.0'
             },
             {
                 'product': '396',
                 'java': '17',
+                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
                 'opa_authorizer': 'stackable0.1.0'
             },
         ],

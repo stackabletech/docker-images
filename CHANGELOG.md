@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Updated base images to latest ubi8 tag 8.6-994 ([#249]).
+- Updated java base image to latest ubi8 tag 8.6-994 ([#249]).
+- Updated all java-base images to stackable0.2.2 ([#250]).
+- Updated all ubi8 base images to latest (8.6-994) ([#250]).
 
 ### Removed
 
@@ -21,3 +23,4 @@ All notable changes to this project will be documented in this file.
 [#95]: https://github.com/stackabletech/docker-images/pull/95
 [#248]: https://github.com/stackabletech/docker-images/pull/248
 [#249]: https://github.com/stackabletech/docker-images/pull/249
+[#250]: https://github.com/stackabletech/docker-images/pull/250
