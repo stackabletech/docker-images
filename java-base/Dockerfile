@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c6184bf1780638e3d1032030cf6381e40627ed66410405daad6543fa4dbf8fed
 
 ARG PRODUCT
 ARG RELEASE="1"
