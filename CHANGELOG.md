@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Updated base images to latest ubi8 tag 8.6-990 ([#248]).
+- Updated base images to latest ubi8 tag 8.6-994 ([#249]).
 
 ### Removed
 
@@ -20,3 +20,4 @@ All notable changes to this project will be documented in this file.
 
 [#95]: https://github.com/stackabletech/docker-images/pull/95
 [#248]: https://github.com/stackabletech/docker-images/pull/248
+[#249]: https://github.com/stackabletech/docker-images/pull/249
