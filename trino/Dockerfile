@@ -1,6 +1,6 @@
 ARG JAVA
-ARG SHA256
-FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${SHA256}
+ARG JAVA_BASE_IMAGE_SHA256
+FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${JAVA_BASE_IMAGE_SHA256}
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
