@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM docker.stackable.tech/sandbox/logging/java-base:11-stackable0.3.0@sha256:4e47b9dd91d5ce5c7b8be9561b3efcf108106fe71ec9b97976a647d7025c14fd
 
 ARG PRODUCT
 ARG RELEASE="1"
@@ -16,15 +16,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils openssl && \
+    microdnf install openssl && \
     microdnf clean all
 
-COPY zookeeper/stackable /stackable
+COPY --chown=stackable:stackable zookeeper/stackable /stackable
 COPY zookeeper/licenses /licenses
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
 
 USER stackable
 WORKDIR /stackable
