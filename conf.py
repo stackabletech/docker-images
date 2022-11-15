@@ -32,7 +32,7 @@ products = [
             },
             {
                 'product': '24.0.0',
-                'authorizer': '0.3.0',
+                'authorizer': '0.4.0',
             }
         ]
     },
