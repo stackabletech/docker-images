@@ -7,7 +7,7 @@ COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
 # the mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
-ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv
+ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
 
 RUN microdnf update \
         && microdnf install -y \
@@ -80,11 +80,11 @@ RUN mkdir -pv ${HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs
 
-COPY --from=airflow-build-image /stackable/ ${HOME}/
-
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=${AIRFLOW_UID} -d /stackable stackable && \
     chown -R stackable:stackable /stackable
+
+COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 
 USER stackable
 WORKDIR /stackable
