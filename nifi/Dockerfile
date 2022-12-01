@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM docker.stackable.tech/stackable-experimental/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
 
 ARG PRODUCT
 ARG RELEASE="1"
@@ -15,15 +15,23 @@ LABEL name="Apache NiFi" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip && \
+    microdnf install tar gzip zip openssl && \
+    microdnf install python3-devel python3-pip python3-setuptools \
+    gcc  && \ 
     microdnf install shadow-utils && \
     microdnf clean all
 
 
+# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
+COPY nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
+# add all python scripts
+COPY nifi/python /stackable/python
+
 COPY nifi/stackable /stackable
 COPY nifi/licenses /licenses
 
-RUN groupadd -r stackable --gid=1000 && \
+RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
+    groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 stackable && \
     chown -R stackable:stackable /stackable
 
@@ -55,11 +63,6 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
 # ===
-
-# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-COPY nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
-# add all python scripts
-COPY nifi/python /stackable/python
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
