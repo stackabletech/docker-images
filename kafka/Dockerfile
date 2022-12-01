@@ -1,3 +1,14 @@
+FROM docker.stackable.tech/stackable/javabase:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e AS builder
+
+RUN microdnf install zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel
+RUN microdnf install tar which wget zlib gcc-c++ make cmake
+
+WORKDIR /stackable
+RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
+    && tar xvfz 1.7.0.tar.gz \
+    && cd kcat-1.7.0 \
+    && ./bootstrap.sh
+
 FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
 
 ARG PRODUCT
@@ -62,6 +73,8 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
+
+COPY --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
