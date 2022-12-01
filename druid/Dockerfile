@@ -18,7 +18,7 @@ LABEL name="Apache Druid" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install findutils && \
+    microdnf install findutils openssl && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     microdnf clean all

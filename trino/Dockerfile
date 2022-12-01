@@ -18,7 +18,7 @@ LABEL name="Trino" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip python3 && \
+    microdnf install tar gzip zip python3 openssl && \
     microdnf install shadow-utils && \
     microdnf clean all
 
