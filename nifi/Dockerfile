@@ -19,6 +19,7 @@ RUN microdnf update && \
     microdnf install shadow-utils && \
     microdnf clean all
 
+
 COPY nifi/stackable /stackable
 COPY nifi/licenses /licenses
 
@@ -54,6 +55,9 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
 # ===
+
+# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
+COPY nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
