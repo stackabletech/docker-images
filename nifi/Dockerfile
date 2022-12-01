@@ -58,6 +58,8 @@ RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
 
 # The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
 COPY nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
+# add all python scripts
+COPY nifi/python /stackable/python
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
