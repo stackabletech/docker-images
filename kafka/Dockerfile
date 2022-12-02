@@ -1,7 +1,8 @@
 FROM docker.stackable.tech/stackable/javabase:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e AS builder
 
-RUN microdnf install zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel
-RUN microdnf install tar which wget zlib gcc-c++ make cmake
+RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
+    microdnf install -y tar which wget zlib gcc-c++ make cmake && \
+    microdnf clean all
 
 WORKDIR /stackable
 RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
