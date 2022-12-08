@@ -11,9 +11,9 @@ Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --product zookeeper --product_version 3.8.0 --image_version 0.1.0 --architecture linux/amd64
+    build_product_images.py --image-version 23.01.01 --architecture linux/amd64
 
-This will build the image `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable0.1.0` for the linux/amd64 architecture.
+This will build all images parsed from conf.py (e.g. `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable23.01.01`) for the linux/amd64 architecture.
 To also push the image to a remote registry, add the the `--push` argument.
 
 NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
@@ -23,11 +23,12 @@ Some images build on top of others. These images are used as base images and mig
     2. ubi8-rust-builder
     3. tools
 """
-
+from os.path import isdir
 from typing import List
 import argparse
 import subprocess
 import conf
+import re
 
 
 def parse_args():
@@ -40,16 +41,8 @@ def parse_args():
         help="Image registry to publish to.",
         default="docker.stackable.tech",
     )
-    parser.add_argument(
-        "-p", "--product", help="Product to build", type=str, required=True
-    )
-    parser.add_argument("-i", "--image_version", help="Image version", required=True)
-    parser.add_argument(
-        "-v",
-        "--product_version",
-        help="Product version to build an image for",
-        required=True,
-    )
+    parser.add_argument("-i", "--image-version", help="Image version", required=True)
+    parser.add_argument("-p", "--product", help="Product to build images for")
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
     parser.add_argument(
@@ -69,7 +62,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_image_args(version):
+def build_image_args(version, release_version):
     """
     Returns a list of --build-arg command line arguments that are used by the
     docker build command.
@@ -80,11 +73,12 @@ def build_image_args(version):
     """
     result = []
 
+    print(f'build_image_args_check:{version}, {release_version}')
     if isinstance(version, dict):
         for k, v in version.items():
             result.extend(["--build-arg", f"{k.upper()}={v}"])
-    elif isinstance(version, str):
-        result = ["--build-arg", f"PRODUCT={version}"]
+    elif isinstance(version, str) and isinstance(release_version, str):
+        result = ["--build-arg", f"PRODUCT={version}", "--build-arg", f"RELEASE={release_version}"]
     else:
         raise ValueError(f"Unsupported version object: {version}")
 
@@ -97,27 +91,30 @@ def build_image_tags(image_name, image_version, product_version):
     docker build command.
     Each image is tagged with two tags as follows:
         1. <product>-<image>
+        2. <product>-<platform>
     """
+    arr = re.split('\.', image_version)
 
+    platform_version = arr[0] + "." + arr[1]
     if isinstance(product_version, dict):
-        product_version = product_version["product"]
+        product_version = product_version['product']
 
     return [
-        "-t",
-        f"{image_name}:{product_version}-stackable{image_version}",
+        "-t", f"{image_name}:{product_version}-stackable{image_version}",
+        "-t", f"{image_name}:{product_version}-stackable{platform_version}",
     ]
 
 
-def build_and_publish_image(args, product) -> List[List[str]]:
+def build_and_publish_image(args, product_to_build) -> List[List[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
 
     For local building, builder instances are supported.
     """
-    image_name = f'{args.registry}/{args.organization}/{product["name"]}'
-    tags = build_image_tags(image_name, args.image_version, args.product_version)
-    build_args = build_image_args(product["versions"][0])
+    image_name = f'{args.registry}/{args.organization}/{product_to_build["name"]}'
+    tags = build_image_tags(image_name, args.image_version, product_to_build['versions']['product'])
+    build_args = build_image_args(product_to_build['versions'], args.image_version)
 
     commands = [
         "docker",
@@ -126,7 +123,7 @@ def build_and_publish_image(args, product) -> List[List[str]]:
         *build_args,
         *tags,
         "-f",
-        product["name"] + "/Dockerfile",
+        product_to_build["name"] + "/Dockerfile",
         "--platform",
         ",".join(args.architecture),
     ]
@@ -157,49 +154,17 @@ def run_commands(dry, commands):
             subprocess.run(cmd, check=True)
 
 
-def product_to_build(product_name, product_version, products):
-    product_to_build = [p for p in products if p["name"] == product_name]
-
-    assert len(product_to_build) == 1
-
-    product_to_build = product_to_build.pop()
-
-    product_to_build_version = []
-
-    for version in product_to_build["versions"]:
-        if isinstance(version, dict):
-            if version["product"] == product_version:
-                product_to_build_version.append(version)
-        elif isinstance(version, str):
-            if version == product_version:
-                product_to_build_version.append(version)
-
-    if len(product_to_build_version) == 1:
-        return {
-            "name": product_name,
-            "versions": product_to_build_version,
-        }
-
-    return None
-
-
-def create_virtual_enviroment(args):
-
-    commands = []
-
-    commands.append(["docker", "buildx", "create", "--name", "builder", "--use"])
+def create_virtual_environment(args):
+    commands = [["docker", "buildx", "create", "--name", "builder", "--use"]]
     run_commands(args.dry, commands)
 
 
-def remove_virtual_enviroment(args):
-
-    commands = []
-    commands.append(["docker", "buildx", "rm", "builder"])
+def remove_virtual_environment(args):
+    commands = [["docker", "buildx", "rm", "builder"]]
     run_commands(args.dry, commands)
 
 
 def check_architecture_input(architecture):
-
     supported_arch = ["linux/amd64", "linux/arm64"]
 
     if architecture not in supported_arch:
@@ -213,24 +178,28 @@ def check_architecture_input(architecture):
 def main():
     args = parse_args()
 
-    product = product_to_build(args.product, args.product_version, conf.products)
-
-    if product is None:
-        raise ValueError(
-            f"No products configured for product {args.product} and version {args.product_version}. See conf.py for available products and versions."
-        )
-
     if len(args.architecture) > 1:
-        create_virtual_enviroment(args)
+        create_virtual_environment(args)
+
+    print(f'args:{args}')
 
     try:
-        commands = build_and_publish_image(args, product)
+        for product in conf.products:
+            product_name = product.get('name')
+            if args.product is not None and (product_name != args.product):
+                continue
 
-        run_commands(args.dry, commands)
-
+            for version_dict in product.get('versions'):
+                product_to_build={
+                    "name": product_name,
+                    "versions": version_dict,
+                }
+                if isdir(product_name):
+                    commands = build_and_publish_image(args, product_to_build)
+                    run_commands(args.dry, commands)
     finally:
         if len(args.architecture) > 1:
-            remove_virtual_enviroment(args)
+            remove_virtual_environment(args)
 
 
 if __name__ == "__main__":

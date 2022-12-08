@@ -2,7 +2,7 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:79298334
 
 ARG PRODUCT
 ARG PHOENIX
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache HBase" \
       maintainer="info@stackable.de" \

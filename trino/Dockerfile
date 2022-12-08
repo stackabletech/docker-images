@@ -4,7 +4,7 @@ FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${J
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Trino" \
       maintainer="info@stackable.de" \

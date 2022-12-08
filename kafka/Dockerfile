@@ -3,7 +3,7 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:79298334
 ARG PRODUCT
 ARG SCALA
 ARG OPA_AUTHORIZER
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Kafka" \
       maintainer="info@stackable.de" \

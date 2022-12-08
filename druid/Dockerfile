@@ -4,7 +4,7 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:79298334
 
 ARG PRODUCT
 ARG AUTHORIZER
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Druid" \
       maintainer="info@stackable.de" \
