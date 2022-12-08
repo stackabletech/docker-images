@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:4e47b9dd91d5ce5c7b8be9561b3efcf108106fe71ec9b97976a647d7025c14fd
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:7161eff7fb57ce18e458da5ec7846d98f2492ecba3b22b044cb36f85d169def0
 
 ARG PRODUCT
 ARG RELEASE="1"

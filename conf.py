@@ -129,7 +129,7 @@ products = [
     },
     {
         'name': 'vector',
-        'versions': ['0.25.1'],
+        'versions': ['0.26.0'],
     },
     {
         'name': 'nifi',
