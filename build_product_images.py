@@ -93,7 +93,7 @@ def build_image_tags(image_name, image_version, product_version):
         1. <product>-<image>
         2. <product>-<platform>
     """
-    arr = re.split('\.', image_version)
+    arr = re.split('\\.', image_version)
 
     platform_version = arr[0] + "." + arr[1]
     if isinstance(product_version, dict):
@@ -190,7 +190,7 @@ def main():
                 continue
 
             for version_dict in product.get('versions'):
-                product_to_build={
+                product_to_build = {
                     "name": product_name,
                     "versions": version_dict,
                 }
