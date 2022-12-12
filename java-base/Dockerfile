@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.0.0@sha256:fcc7a5e1e69753a7bb1dd0525f1dbc7a73b19c65595aa3db0e6c632941fa81e1
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.0.0@sha256:4be0d98ca353b3ddb54212ced702504d58995b2b75fbfa07fe001fd992513692
 
 ARG PRODUCT
 ARG RELEASE="1"
