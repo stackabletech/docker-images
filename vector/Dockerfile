@@ -1,6 +1,6 @@
 # Build stage
 
-FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:566607cbbfc78be4004dd4ecd06a2673788b56eaa3c330e3e2953902c5b6b94c AS builder
+FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:18a6434eea00c911aaa3dec773e642933bbbfefa953153553998d16b54f349ad AS builder
 
 ARG PRODUCT
 
@@ -21,6 +21,6 @@ RUN microdnf update && \
 
 # Final image
 
-FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:566607cbbfc78be4004dd4ecd06a2673788b56eaa3c330e3e2953902c5b6b94c
+FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:18a6434eea00c911aaa3dec773e642933bbbfefa953153553998d16b54f349ad
 
 COPY --from=builder /build /
