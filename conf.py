@@ -128,6 +128,10 @@ products = [
         ]
     },
     {
+        'name': 'vector',
+        'versions': ['0.26.0'],
+    },
+    {
         'name': 'nifi',
         'versions': ['1.15.0', '1.15.1', '1.15.2', '1.15.3', '1.16.0', '1.16.1', '1.16.2', '1.16.3', '1.18.0'],
     },
@@ -183,6 +187,10 @@ products = [
                 'azure_keyvault_core': '1.0.0',
             },
         ]
+    },
+    {
+        'name': 'stackable-base',
+        'versions': ['1.0.0'],
     },
     {
         'name': 'superset',

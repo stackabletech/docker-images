@@ -1,5 +1,13 @@
 # Changelog
 
+## [airflow-stackable0.5.0] - 2022-11-30
+
+### Added
+
+- Add Trino dependency and reduce image size ([#264])
+
+[#264]: https://github.com/stackabletech/docker-images/pull/264
+
 ## [airflow-stackable0.4.0] - 2022-10-12
 
 ### Added
