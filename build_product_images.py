@@ -100,8 +100,8 @@ def build_image_tags(image_name, image_version, product_version):
         product_version = product_version['product']
 
     return [
-        "-t", f"{image_name}:{product_version}-stackable{image_version}",
-        "-t", f"{image_name}:{product_version}-stackable{platform_version}",
+        '-t', f'{image_name}:{product_version}-stackable{image_version}',
+        '-t', f'{image_name}:{product_version}-stackable{platform_version}',
     ]
 
 

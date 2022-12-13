@@ -34,7 +34,8 @@ jobs:
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
         with:
           registry: docker.stackable.tech
-          username: github2
+          username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Build and push images (single arch)
+        # TODO: change organization to stackable when merging!!!
         run: python build_product_images.py --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization sandbox/test --architecture linux/amd64 --push
