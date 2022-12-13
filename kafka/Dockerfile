@@ -28,8 +28,9 @@ LABEL name="Apache Kafka" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip shadow-utils openssl && \
+    microdnf install tar gzip zip shadow-utils openssl kubectl && \
     microdnf clean all
 
 RUN groupadd -r stackable --gid=1000 && \
