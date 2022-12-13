@@ -18,20 +18,17 @@ LABEL name="Apache Druid" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install findutils openssl && \
-    microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
+    microdnf install findutils openssl tar gzip zip shadow-utils && \
     microdnf clean all
 
-COPY druid/stackable /stackable
-COPY druid/licenses /licenses
-
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable druid/stackable /stackable
+COPY --chown=stackable:stackable druid/licenses /licenses
 
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
