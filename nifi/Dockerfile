@@ -15,29 +15,23 @@ LABEL name="Apache NiFi" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel&& \
-    microdnf install python3-devel python3-pip python3-setuptools \
-    gcc  && \ 
-    microdnf install shadow-utils && \
+    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel gcc shadow-utils && \
+    microdnf install python3-devel python3-pip python3-setuptools && \
     microdnf clean all
 
-
-# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-COPY nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
-# add all python scripts
-COPY nifi/python /stackable/python
-
-COPY nifi/stackable /stackable
-COPY nifi/licenses /licenses
-
-RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
-    groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+RUN pip3 install --no-cache-dir nipyapi==0.19.1
+RUN groupadd -r stackable --gid=1000 && \
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
-
 WORKDIR /stackable
+
+# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
+COPY --chown=stackable:stackable nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
+COPY --chown=stackable:stackable nifi/stackable /stackable
+COPY --chown=stackable:stackable nifi/licenses /licenses
+COPY --chown=stackable:stackable nifi/python /stackable/python
+
 RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
