@@ -29,19 +29,17 @@ LABEL name="Apache Kafka" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip && \
-    microdnf install shadow-utils openssl && \
+    microdnf install tar gzip zip shadow-utils openssl && \
     microdnf clean all
 
-COPY kafka/stackable /stackable
-COPY kafka/licenses /licenses
-
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable kafka/stackable /stackable
+COPY --chown=stackable:stackable kafka/licenses /licenses
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
