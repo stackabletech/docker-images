@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3.0.2
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # tag=v4
+      - uses: actions/setup-python@2c3dd9e7e29afd70cc0950079bde6c979d1f69f9 # tag=v4
         with:
           python-version: "3.9"
       - uses: reviewdog/action-flake8@b6435e67f0cfda225b9e0c9283cfb7ea7c551bdb # tag=v3.6.0
