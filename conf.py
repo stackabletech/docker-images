@@ -236,6 +236,12 @@ products = [
                 'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
                 'opa_authorizer': 'stackable0.1.0'
             },
+            {
+                'product': '403',
+                'java': '17',
+                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
+                'opa_authorizer': 'stackable0.1.0'
+            },
         ],
     },
     {
