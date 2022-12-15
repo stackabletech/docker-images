@@ -27,6 +27,7 @@ RUN microdnf update \
         && pip install --no-cache-dir --upgrade pip \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
+FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 as airflow-main-image
 
 ARG PRODUCT
@@ -71,6 +72,7 @@ RUN mkdir -pv ${HOME} && \
 RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
+COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
 
 RUN chmod a+x /entrypoint && \
     chmod +x /usr/bin/tini

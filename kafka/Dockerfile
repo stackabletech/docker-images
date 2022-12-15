@@ -1,3 +1,15 @@
+FROM docker.stackable.tech/stackable/javabase:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e AS builder
+
+RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
+    microdnf install -y tar which wget zlib gcc-c++ make cmake && \
+    microdnf clean all
+
+WORKDIR /stackable
+RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
+    && tar xvfz 1.7.0.tar.gz \
+    && cd kcat-1.7.0 \
+    && ./bootstrap.sh
+
 FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
 
 ARG PRODUCT
@@ -16,20 +28,19 @@ LABEL name="Apache Kafka" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
+    microdnf install tar gzip zip shadow-utils openssl kubectl && \
     microdnf clean all
 
-COPY kafka/stackable /stackable
-COPY kafka/licenses /licenses
-
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable kafka/stackable /stackable
+COPY --chown=stackable:stackable kafka/licenses /licenses
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
@@ -62,6 +73,8 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
+
+COPY --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
