@@ -19,10 +19,13 @@ RUN PROTOC_VERSION=21.5 \
 ENV PROTOC=/opt/protoc/bin/protoc
 WORKDIR /
 
+# IMPORTANT
+# If you change the toolchain version here, make sure to also change the "rust_version"
+# property in operator-templating/repositories.yaml
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
  && . $HOME/.cargo/env \
- && rustup toolchain install stable \
- && rustup default stable
+ && rustup toolchain install 1.63 \
+ && rustup default 1.63
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
