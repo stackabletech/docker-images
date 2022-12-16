@@ -1,5 +1,4 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS opa-bundle-builder
-LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -38,16 +37,15 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY opa/licenses /licenses
-COPY --from=opa-bundle-builder /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 
-WORKDIR /stackable/opa
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
+WORKDIR /stackable/opa
 
 RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz | tar -xzC . && \
     chmod +x opa
+COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 
 CMD ["./opa", "run", "-s"]
