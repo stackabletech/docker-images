@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
 
 ARG PRODUCT
 ARG PHOENIX
@@ -17,7 +17,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
     microdnf install python3 python3-pip && \
     microdnf clean all
 
@@ -26,12 +25,8 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
 
 ENV HOME=/stackable
 
-COPY hbase/stackable /stackable
+COPY --chown=stackable:stackable hbase/stackable /stackable
 COPY hbase/licenses /licenses
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 -d /stackable stackable && \
-    chown -R stackable:stackable /stackable
 
 USER stackable
 WORKDIR /stackable
