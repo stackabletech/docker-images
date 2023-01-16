@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS opa-bundle-builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7@sha256:c7036d048252451451bfc70493c2a849737e91c5517559ec508a0dbe7dfb6d15 AS opa-bundle-builder
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -15,7 +15,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch 1.0.0 https://github.com/stackabletech/opa-bundle-builder
 RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7@sha256:c7036d048252451451bfc70493c2a849737e91c5517559ec508a0dbe7dfb6d15
 
 ARG PRODUCT
 ARG RELEASE="1"
