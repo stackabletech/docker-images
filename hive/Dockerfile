@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
 
 ARG PRODUCT
 ARG HADOOP
@@ -22,12 +22,8 @@ RUN microdnf update && \
     microdnf install tar gzip zip which shadow-utils && \
     microdnf clean all
 
-COPY hive/stackable /stackable
+COPY --chown=stackable:stackable hive/stackable /stackable
 COPY hive/licenses /licenses
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
 
 USER stackable
 WORKDIR /stackable
