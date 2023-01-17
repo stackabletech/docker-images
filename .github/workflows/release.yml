@@ -15,6 +15,17 @@ jobs:
       matrix:
         product:
           - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - nifi
+          - opa
+          - pyspark-k8s
+          - spark-k8s
+          - superset
+          - trino
           - zookeeper
     env:
       GITHUB_REF: ${{ github.ref }}

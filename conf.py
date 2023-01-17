@@ -160,19 +160,6 @@ products = [
         ]
     },
     {
-        'name': 'spark',
-        'versions': [
-            {
-                'product': '3.0.1',
-                'hadoop': '2.7',
-            },
-            {
-                'product': '3.1.1',
-                'hadoop': '2.7',
-            },
-        ]
-    },
-    {
         'name': 'spark-k8s',
         'versions': [
             {
