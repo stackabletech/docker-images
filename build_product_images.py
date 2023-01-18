@@ -11,9 +11,9 @@ Usage: build_product_images.py --help
 
 Example:
 
-    build_product_images.py --image-version 23.01.01 --architecture linux/amd64
+    build_product_images.py --image-version 23.1.1 --architecture linux/amd64
 
-This will build all images parsed from conf.py (e.g. `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable23.01.01`) for the linux/amd64 architecture.
+This will build all images parsed from conf.py (e.g. `docker.stackable.tech/stackable/zookeeper:3.8.0-stackable23.1.1`) for the linux/amd64 architecture.
 To also push the image to a remote registry, add the the `--push` argument.
 
 NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
