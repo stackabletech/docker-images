@@ -48,5 +48,4 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Build and push images (single arch)
-        # TODO: change organization to stackable when merging!!!
-        run: python build_product_images.py --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization sandbox/test --architecture linux/amd64 --push
+        run: python build_product_images.py --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
