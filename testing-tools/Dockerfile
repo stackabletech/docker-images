@@ -1,4 +1,4 @@
-FROM python:3.10-slim@sha256:13b98a4ddf43c98e3f91bd5136844ff0b0c1d2a4c913b4a430d552a43d4c7b3b AS builder
+FROM python:3.11-slim@sha256:22425d7178ff023c501b32b1bdaa2e99ccb20a48e2dc7e3ac08c5dc6282aca46 AS builder
 
 ARG PRODUCT
 ARG RELEASE="1"
