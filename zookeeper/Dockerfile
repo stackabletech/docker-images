@@ -1,7 +1,7 @@
 FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
 
 ARG PRODUCT
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache ZooKeeper" \
       maintainer="info@stackable.de" \

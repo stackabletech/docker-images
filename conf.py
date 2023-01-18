@@ -38,7 +38,7 @@ products = [
     },
     {
         'name': 'hadoop',
-        'versions': ['3.2.2', '3.3.1', '3.3.3', '3.3.4'],
+        'versions': [{'product': '3.2.2'}, {'product': '3.3.1'}, {'product': '3.3.3'}, {'product': '3.3.4'}],
     },
     {
         'name': 'hbase',
@@ -133,11 +133,12 @@ products = [
     },
     {
         'name': 'nifi',
-        'versions': ['1.15.0', '1.15.1', '1.15.2', '1.15.3', '1.16.0', '1.16.1', '1.16.2', '1.16.3', '1.18.0'],
+        'versions': [{'product': '1.15.3'}, {'product': '1.16.3'}, {'product': '1.18.0'}],
     },
     {
         'name': 'opa',
-        'versions': ['0.27.1', '0.28.0', '0.37.2', '0.41.0', '0.45.0'],
+        'versions': [{'product': '0.27.1'}, {'product': '0.28.0'}, {'product': '0.37.2'}, {'product': '0.41.0'},
+                     {'product': '0.45.0'}],
     },
     {
         'name': 'pyspark-k8s',
@@ -155,19 +156,6 @@ products = [
                 'aws_java_sdk_bundle': '1.11.1026',
                 'azure_storage': '7.0.1',
                 'azure_keyvault_core': '1.0.0',
-            },
-        ]
-    },
-    {
-        'name': 'spark',
-        'versions': [
-            {
-                'product': '3.0.1',
-                'hadoop': '2.7',
-            },
-            {
-                'product': '3.1.1',
-                'hadoop': '2.7',
             },
         ]
     },
@@ -246,15 +234,15 @@ products = [
     },
     {
         'name': 'tools',
-        'versions': ['0.2.0'],
+        'versions': [{'product': '0.2.0'}],
     },
     {
         'name': 'testing-tools',
-        'versions': ['0.1.0'],
+        'versions': [{'product': '0.1.0'}],
     },
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
-        'versions': ['3.5.8', '3.6.3', '3.7.0', '3.8.0'],
+        'versions': [{'product': '3.5.8'}, {'product': '3.6.3'}, {'product': '3.7.0'}, {'product': '3.8.0'}],
     },
 ]

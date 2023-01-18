@@ -5,7 +5,7 @@ ARG HADOOP
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Hive" \
       maintainer="info@stackable.de" \

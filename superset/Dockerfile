@@ -64,7 +64,7 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0
 
 ARG PRODUCT
 ARG PYTHON
-ARG RELEASE=1
+ARG RELEASE
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.de" \
