@@ -10,7 +10,8 @@ jobs:
     name: Release product images for ${{ matrix.product }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
+      max-parallel: 1
       # If we want more parallelism we can schedule a dedicated task for every tuple (product, product version)
       matrix:
         product:
