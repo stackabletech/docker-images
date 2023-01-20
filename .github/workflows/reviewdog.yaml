@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # tag=v3.3.0
-      - uses: reviewdog/action-actionlint@fc2561183b8b8c6db81720084bbe97a6c81991c1
+      - uses: reviewdog/action-actionlint@41f27961f74609625c7d2dd980be7e26906c5e7e
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
