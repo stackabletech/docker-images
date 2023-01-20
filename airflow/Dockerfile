@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS airflow-build-image
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.0.0@sha256:4be0d98ca353b3ddb54212ced702504d58995b2b75fbfa07fe001fd992513692 AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
@@ -28,7 +28,7 @@ RUN microdnf update \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 as airflow-main-image
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.0.0@sha256:4be0d98ca353b3ddb54212ced702504d58995b2b75fbfa07fe001fd992513692 AS airflow-main-image
 
 ARG PRODUCT
 ARG PYTHON
@@ -60,31 +60,23 @@ RUN microdnf install -y yum python${PYTHON} \
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
-ENV AIRFLOW_UID="50000"
+ENV AIRFLOW_UID="1000"
 ENV AIRFLOW_HOME=$HOME/airflow
 
-RUN mkdir -pv ${HOME} && \
-    mkdir -pv ${AIRFLOW_HOME} && \
+RUN mkdir -pv ${AIRFLOW_HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs
+
+RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # according to arch, copy binary to the name "tini"
 RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
-COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
 
 RUN chmod a+x /entrypoint && \
     chmod +x /usr/bin/tini
-
-RUN mkdir -pv ${HOME} && \
-    mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=${AIRFLOW_UID} -d /stackable stackable && \
-    chown -R stackable:stackable /stackable
 
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 

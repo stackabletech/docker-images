@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Upgraded to the base image vector:0.26.0-stackable1.0.0. The new base image
+  provides Vector. The creation of the stackable user and group happens in the
+  stackable-base layer and is therefore removed from this image ([#291]).
+
+[#291]: https://github.com/stackabletech/docker-images/pull/291
+
 ## [airflow-stackable0.5.0] - 2022-11-30
 
 ### Added
