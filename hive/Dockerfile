@@ -63,7 +63,21 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Download logging
+RUN curl https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.6/slf4j-api-2.0.6.jar \
+    -o /stackable/hive/lib/slf4j-api-2.0.6.jar && \
+    chmod -x /stackable/hive/lib/slf4j-api-2.0.6.jar && \
+    curl https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.6/slf4j-simple-2.0.6.jar \
+    -o /stackable/hive/lib/slf4j-simple-2.0.6.jar && \
+    chmod -x /stackable/hive/lib/slf4j-simple-2.0.6.jar
+
+# for XmlLayout
+RUN curl https://repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/2.12.0/jackson-dataformat-xml-2.12.0.jar \
+    -o /stackable/hive/lib/jackson-dataformat-xml-2.12.0.jar && \
+    chmod -x /stackable/hive/lib/jackson-dataformat-xml-2.12.0.jar
+
 ENV HADOOP_HOME=/stackable/hadoop
+ENV HIVE_HOME=/stackable/hive
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
