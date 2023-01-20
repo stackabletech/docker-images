@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      max-parallel: 1
+      # This setting can be changed to throttle the build load
+      #max-parallel: 1
       # If we want more parallelism we can schedule a dedicated task for every tuple (product, product version)
       matrix:
         product:
