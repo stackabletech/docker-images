@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
 
 ARG PRODUCT
 ARG RELEASE
@@ -15,13 +15,11 @@ LABEL name="Apache NiFi" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel gcc shadow-utils && \
+    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel gcc && \
     microdnf install python3-devel python3-pip python3-setuptools && \
     microdnf clean all
 
 RUN pip3 install --no-cache-dir nipyapi==0.19.1
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
