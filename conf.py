@@ -71,6 +71,7 @@ products = [
             {
                 'product': '2.3.9',
                 'hadoop': '2.10.1',
+                'jackson_dataformat_xml': '2.7.9',
                 'aws_java_sdk_bundle': '1.11.271',
                 'azure_storage': '7.0.1',
                 'azure_keyvault_core': '1.0.0',
@@ -78,6 +79,7 @@ products = [
             {
                 'product': '3.1.3',
                 'hadoop': '3.3.3',
+                'jackson_dataformat_xml': '2.12.3',
                 'aws_java_sdk_bundle': '1.11.1026',
                 'azure_storage': '7.0.1',
                 'azure_keyvault_core': '1.0.0',
