@@ -2,6 +2,7 @@ FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e72
 
 ARG PRODUCT
 ARG HADOOP
+ARG JACKSON_DATAFORMAT_XML
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
@@ -63,7 +64,14 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Logging
+RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
+    curl https://repo.stackable.tech/repository/packages/hive-jackson-dataformat-xml/${PRODUCT}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    -o /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    chmod -x /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+
 ENV HADOOP_HOME=/stackable/hadoop
+ENV HIVE_HOME=/stackable/hive
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

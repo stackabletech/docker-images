@@ -7,9 +7,6 @@ on:
       product:
         description: 'Product to build'
         required: true
-      product-version:
-        description: 'Productversion'
-        required: true
       image-version:
         description: 'Imageversion'
         default: '0'
@@ -17,8 +14,8 @@ on:
         description: 'Organization of the image'
         default: 'stackable'
       architecture:
-        description: 'Target architecture to build, multi arch is defualt'
-        default: 'linux/arm64 linux/amd64'
+        description: 'Target architecture to build (linux/arm64 linux/amd64)'
+        default: 'linux/amd64'
 
 jobs:
   build:
@@ -55,4 +52,4 @@ jobs:
       -
         name: Build and push images on dispatch
         shell: bash
-        run: python build_product_images.py -p ${{ github.event.inputs.product }} -v ${{ github.event.inputs.product-version }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u
+        run: python build_product_images.py -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u
