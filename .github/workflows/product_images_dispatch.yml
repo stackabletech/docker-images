@@ -14,7 +14,7 @@ on:
         description: 'Organization of the image'
         default: 'stackable'
       architecture:
-        description: 'Target architecture to build (linux/arm64 linux/amd64)',
+        description: 'Target architecture to build (linux/arm64 linux/amd64)'
         default: 'linux/amd64'
 
 jobs:
