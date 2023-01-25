@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Added `jackson-dataformat-xml-2.7.9.jar` (2.3.9) and `jackson-dataformat-xml-2.12.3.jar` (3.1.3) for XmlFormat conversion for logging ([#293]).
+
+[#293]: https://github.com/stackabletech/docker-images/pull/293
+
 ## [hive2.3.9-stackable0.7.0] [hive3.1.3-stackable0.3.0] - 2023-01-16
 
 ### Changed
