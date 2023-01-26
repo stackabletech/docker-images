@@ -77,6 +77,7 @@ def build_image_args(version, release_version):
     if isinstance(version, dict):
         for k, v in version.items():
             result.extend(["--build-arg", f"{k.upper()}={v}"])
+        result.extend(["--build-arg", "--build-arg", f"RELEASE={release_version}"])
     elif isinstance(version, str) and isinstance(release_version, str):
         result = ["--build-arg", f"PRODUCT={version}", "--build-arg", f"RELEASE={release_version}"]
     else:
