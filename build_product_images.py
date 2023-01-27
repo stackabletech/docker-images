@@ -35,12 +35,6 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Build and publish product images. Requires docker and buildx (https://github.com/docker/buildx)."
     )
-    parser.add_argument(
-        "-r",
-        "--registry",
-        help="Image registry to publish to.",
-        default="docker.stackable.tech",
-    )
     parser.add_argument("-i", "--image-version", help="Image version", required=True)
     parser.add_argument("-p", "--product", help="Product to build images for")
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
@@ -48,16 +42,22 @@ def parse_args():
     parser.add_argument(
         "-a",
         "--architecture",
-        help="Target platform for image, Expecting -a <platform 1> <platform 2> ... At least one argument",
+        help="Target platform for image. Default: linux/amd64.",
         nargs="+",
-        required=True,
-        type=check_architecture_input
+        default=["linux/amd64"],
+        type=check_architecture_input,
     )
     parser.add_argument(
         "-o",
         "--organization",
-        help="Define a custom location or repository",
-        default="stackable"
+        help="Organization name within the given registry. Default: stackable",
+        default="stackable",
+    )
+    parser.add_argument(
+        "-r",
+        "--registry",
+        help="Image registry to publish to. Default: docker.stackable.tech",
+        default="docker.stackable.tech",
     )
     return parser.parse_args()
 
@@ -73,13 +73,18 @@ def build_image_args(version, release_version):
     """
     result = []
 
-    print(f'build_image_args_check:{version}, {release_version}')
+    print(f"build_image_args_check:{version}, {release_version}")
     if isinstance(version, dict):
         for k, v in version.items():
             result.extend(["--build-arg", f"{k.upper()}={v}"])
         result.extend(["--build-arg", f"RELEASE={release_version}"])
     elif isinstance(version, str) and isinstance(release_version, str):
-        result = ["--build-arg", f"PRODUCT={version}", "--build-arg", f"RELEASE={release_version}"]
+        result = [
+            "--build-arg",
+            f"PRODUCT={version}",
+            "--build-arg",
+            f"RELEASE={release_version}",
+        ]
     else:
         raise ValueError(f"Unsupported version object: {version}")
 
@@ -94,15 +99,17 @@ def build_image_tags(image_name, image_version, product_version):
         1. <product>-<image>
         2. <product>-<platform>
     """
-    arr = re.split('\\.', image_version)
+    arr = re.split("\\.", image_version)
 
     platform_version = arr[0] + "." + arr[1]
     if isinstance(product_version, dict):
-        product_version = product_version['product']
+        product_version = product_version["product"]
 
     return [
-        '-t', f'{image_name}:{product_version}-stackable{image_version}',
-        '-t', f'{image_name}:{product_version}-stackable{platform_version}',
+        "-t",
+        f"{image_name}:{product_version}-stackable{image_version}",
+        "-t",
+        f"{image_name}:{product_version}-stackable{platform_version}",
     ]
 
 
@@ -114,8 +121,10 @@ def build_and_publish_image(args, product_to_build) -> List[List[str]]:
     For local building, builder instances are supported.
     """
     image_name = f'{args.registry}/{args.organization}/{product_to_build["name"]}'
-    tags = build_image_tags(image_name, args.image_version, product_to_build['versions']['product'])
-    build_args = build_image_args(product_to_build['versions'], args.image_version)
+    tags = build_image_tags(
+        image_name, args.image_version, product_to_build["versions"]["product"]
+    )
+    build_args = build_image_args(product_to_build["versions"], args.image_version)
 
     commands = [
         "docker",
@@ -182,15 +191,15 @@ def main():
     if len(args.architecture) > 1:
         create_virtual_environment(args)
 
-    print(f'args:{args}')
+    print(f"args:{args}")
 
     try:
         for product in conf.products:
-            product_name = product.get('name')
+            product_name = product.get("name")
             if args.product is not None and (product_name != args.product):
                 continue
 
-            for version_dict in product.get('versions'):
+            for version_dict in product.get("versions"):
                 product_to_build = {
                     "name": product_name,
                     "versions": version_dict,
