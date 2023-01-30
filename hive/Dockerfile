@@ -1,11 +1,12 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0@sha256:fd428a260606ab9047ca67cf3bceba5ac3859c35fd63feeda014e7523b2ccacc
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
 
 ARG PRODUCT
 ARG HADOOP
+ARG JACKSON_DATAFORMAT_XML
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Hive" \
       maintainer="info@stackable.de" \
@@ -19,15 +20,11 @@ LABEL name="Apache Hive" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip which shadow-utils && \
+    microdnf install tar gzip zip which && \
     microdnf clean all
 
-COPY hive/stackable /stackable
+COPY --chown=stackable:stackable hive/stackable /stackable
 COPY hive/licenses /licenses
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
 
 USER stackable
 WORKDIR /stackable
@@ -67,7 +64,14 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Logging
+RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
+    curl https://repo.stackable.tech/repository/packages/hive-jackson-dataformat-xml/${PRODUCT}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    -o /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    chmod -x /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+
 ENV HADOOP_HOME=/stackable/hadoop
+ENV HIVE_HOME=/stackable/hive
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -80,7 +84,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/apache-hive-${PRODUCT}
+RUN /bin/log4shell.sh /stackable/hive
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -89,7 +93,7 @@ RUN /bin/log4shell.sh /stackable/apache-hive-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/apache-hive-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable/hive
 # ===
 
 WORKDIR /stackable/hive

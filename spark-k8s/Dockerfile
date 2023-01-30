@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
 
 ARG PRODUCT
 ARG HADOOP_SHORT_VERSION
@@ -6,7 +6,7 @@ ARG HADOOP_LONG_VERSION
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Spark" \
       maintainer="info@stackable.de" \
@@ -33,11 +33,13 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
-COPY spark-k8s/licenses /licenses
+# according to arch, copy binary to the name "tini"
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
 
-RUN chmod +x /usr/bin/tini
+COPY spark-k8s/stackable /stackable
+COPY spark-k8s/licenses /licenses
+  
+RUN  chmod +x /usr/bin/tini
 
 RUN groupadd -r stackable --gid=1000 && \
     useradd -r -g stackable --uid=1000 -d /stackable stackable && \

@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
 
 ARG PRODUCT
 ARG PYTHON
@@ -7,7 +7,7 @@ ARG HADOOP_LONG_VERSION
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Spark" \
       maintainer="info@stackable.de" \
@@ -40,8 +40,10 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
+# according to arch, copy binary to the name "tini"
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
+
 COPY spark-k8s/stackable /stackable
-COPY spark-k8s/stackable/utils/tini-v0.19.0 /usr/bin/tini
 COPY spark-k8s/licenses /licenses
 
 RUN chmod +x /usr/bin/tini

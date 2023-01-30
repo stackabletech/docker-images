@@ -1,7 +1,7 @@
-FROM python:3.10-slim@sha256:6de22c9cf887098265b7614582b00641c0c8c6735af538d0f267d6bb457634f1 AS builder
+FROM python:3.10-slim@sha256:13b98a4ddf43c98e3f91bd5136844ff0b0c1d2a4c913b4a430d552a43d4c7b3b AS builder
 
 ARG PRODUCT
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Stackable Testing Tools" \
       maintainer="info@stackable.de" \

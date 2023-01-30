@@ -7,18 +7,15 @@ on:
       product:
         description: 'Product to build'
         required: true
-      product-version:
-        description: 'Productversion'
-        required: true
       image-version:
         description: 'Imageversion'
-        default: '0'
+        default: 'YY.mm.0-rc1'
       organization:
         description: 'Organization of the image'
         default: 'stackable'
       architecture:
-        description: 'Target architecture to build, multi arch is defualt'
-        default: 'linux/arm64 linux/amd64'
+        description: 'Target architecture to build (linux/arm64 linux/amd64)'
+        default: 'linux/amd64'
 
 jobs:
   build:
@@ -28,25 +25,25 @@ jobs:
 
       -
         name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # tag=v3
 
       -
         name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8 # tag=v2
+        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
 
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6 # tag=v2
+        uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # tag=v2
 
       -
         name: Install python 3
-        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5 # tag=v4
+        uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
         with:
           python-version: '3.x'
 
       -
         name: Login to Stackable Nexus
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # tag=v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
         with:
           registry: docker.stackable.tech
           username: github
@@ -55,4 +52,4 @@ jobs:
       -
         name: Build and push images on dispatch
         shell: bash
-        run: python build_product_images.py -p ${{ github.event.inputs.product }} -v ${{ github.event.inputs.product-version }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u
+        run: python build_product_images.py -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u

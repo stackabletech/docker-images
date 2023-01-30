@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.0.0@sha256:4be0d98ca353b3ddb54212ced702504d58995b2b75fbfa07fe001fd992513692
 
 ARG PRODUCT
 ARG RELEASE="1"

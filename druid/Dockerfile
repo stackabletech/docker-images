@@ -1,10 +1,10 @@
 # druid < 0.23 druid only fully supports java 8
 # druid >= 0.23 is java 11 ready
-FROM docker.stackable.tech/stackable/java-base:11-stackable0@sha256:fd428a260606ab9047ca67cf3bceba5ac3859c35fd63feeda014e7523b2ccacc
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
 
 ARG PRODUCT
 ARG AUTHORIZER
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Druid" \
       maintainer="info@stackable.de" \
@@ -18,20 +18,17 @@ LABEL name="Apache Druid" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install findutils && \
-    microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
+    microdnf install findutils openssl tar gzip zip shadow-utils && \
     microdnf clean all
 
-COPY druid/stackable /stackable
-COPY druid/licenses /licenses
-
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable druid/stackable /stackable
+COPY --chown=stackable:stackable druid/licenses /licenses
 
 RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \

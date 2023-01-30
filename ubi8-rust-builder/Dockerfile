@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -19,10 +19,11 @@ RUN PROTOC_VERSION=21.5 \
 ENV PROTOC=/opt/protoc/bin/protoc
 WORKDIR /
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
- && . $HOME/.cargo/env \
- && rustup toolchain install stable \
- && rustup default stable
+# IMPORTANT
+# If you change the toolchain version here, make sure to also change the "rust_version"
+# property in operator-templating/repositories.yaml
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.65.0 \
+ && . $HOME/.cargo/env
 
 # Build artifacts will be available in /app.
 RUN mkdir /app

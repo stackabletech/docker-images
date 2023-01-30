@@ -1,8 +1,8 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0@sha256:fd428a260606ab9047ca67cf3bceba5ac3859c35fd63feeda014e7523b2ccacc
+FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
 
 ARG PRODUCT
 ARG HADOOP
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Apache Spark" \
       maintainer="info@stackable.de" \

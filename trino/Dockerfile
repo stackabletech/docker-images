@@ -1,9 +1,10 @@
 ARG JAVA
-FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0
+ARG JAVA_BASE_IMAGE_SHA256
+FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${JAVA_BASE_IMAGE_SHA256}
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
-ARG RELEASE="1"
+ARG RELEASE
 
 LABEL name="Trino" \
       maintainer="info@stackable.de" \
@@ -17,21 +18,18 @@ LABEL name="Trino" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip python3 && \
-    microdnf install shadow-utils && \
-    microdnf clean all
-
-COPY trino/stackable /stackable
-COPY trino/licenses /licenses
+    microdnf install tar gzip zip python3 openssl shadow-utils && \
+    microdnf clean all && \
+    alternatives --set python /usr/bin/python3
 
 RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
-
-RUN alternatives --set python /usr/bin/python3
+    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable trino/stackable /stackable
+COPY --chown=stackable:stackable trino/licenses /licenses
 
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
@@ -40,8 +38,7 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-WORKDIR /stackable/trino-server/plugin
-RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC .
+RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

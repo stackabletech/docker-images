@@ -1,6 +1,6 @@
 # Build stage
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
 
 ARG PRODUCT
 ARG PYTHON
@@ -56,13 +56,15 @@ RUN cat /tmp/patches/* | patch \
     --directory=/stackable/app/lib/python${PYTHON}/site-packages \
     --strip=1
 
-# Final image
+# Get statsd-exporter
+FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
 
+# Final image
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
 
 ARG PRODUCT
 ARG PYTHON
-ARG RELEASE=1
+ARG RELEASE
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.de" \
@@ -94,9 +96,8 @@ RUN microdnf update \
     && useradd --uid 1000 --gid stackable --home-dir ${HOME} stackable
 
 COPY superset/licenses /licenses
-COPY --from=builder /stackable ${HOME}
-
-RUN chown --recursive stackable:stackable ${HOME}
+COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
+COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
 
 USER stackable
 WORKDIR ${HOME}
