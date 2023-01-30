@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # tag=v3.3.0
-      - uses: reviewdog/action-shellcheck@66c9a47bf02255b250284a82251cb4cadf5043f5 # tag=v1.15.0
+      - uses: reviewdog/action-shellcheck@f52d78284b4941028952125a10c76676c3d456eb # tag=v1.17.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
