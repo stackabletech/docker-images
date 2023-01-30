@@ -9,7 +9,7 @@ on:
         required: true
       image-version:
         description: 'Imageversion'
-        default: '0'
+        default: 'YY.mm.0-prerelease'
       organization:
         description: 'Organization of the image'
         default: 'stackable'
