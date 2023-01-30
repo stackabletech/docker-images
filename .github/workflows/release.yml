@@ -3,8 +3,9 @@ name: Release product images
 on:
   push:
     tags:
-      - '[0-9][0-9].[0-9]+.[0-9]+'
-      - '[0-9][0-9].[0-9]+.[0-9]+-rc[1-9][0-9]*'
+      # Tag names are used passed as 'image_version' to the build_product_images.py and
+      # are validated there.
+      - '*'
 
 jobs:
   release:
