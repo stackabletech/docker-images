@@ -71,7 +71,7 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-COPY --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
+COPY --chown=stackable:stackable --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
