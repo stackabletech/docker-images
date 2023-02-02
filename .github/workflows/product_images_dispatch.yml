@@ -9,7 +9,7 @@ on:
         required: true
       image-version:
         description: 'Imageversion'
-        default: '0'
+        default: 'YY.mm.0-rc1'
       organization:
         description: 'Organization of the image'
         default: 'stackable'
@@ -37,7 +37,7 @@ jobs:
 
       -
         name: Install python 3
-        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # tag=v4
+        uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
         with:
           python-version: '3.x'
 

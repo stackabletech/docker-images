@@ -3,7 +3,9 @@ name: Release product images
 on:
   push:
     tags:
-      - '[0-9][0-9].[0-9]+.[0-9]+'
+      # Tag names are used passed as 'image_version' to the build_product_images.py and
+      # are validated there.
+      - '*'
 
 jobs:
   release:
@@ -40,7 +42,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # tag=v2
       - name: Install python 3
-        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # tag=v4
+        uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
         with:
           python-version: '3.x'
       - name: Login to Stackable Nexus
