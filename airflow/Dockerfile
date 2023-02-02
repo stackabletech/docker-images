@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/sandbox/logging/vector:0.26.0-stackable23.4.0-rc1@sha256:d350ad8da54acec6e285130911762135cbe16cbc307d2ae977e6dd2fc1980d23 AS airflow-build-image
+FROM docker.stackable.tech/sandbox/logging/vector:0.26.0-stackable1.1.0@sha256:d350ad8da54acec6e285130911762135cbe16cbc307d2ae977e6dd2fc1980d23 AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON

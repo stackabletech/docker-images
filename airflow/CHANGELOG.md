@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Upgraded to the base image vector:0.26.0-stackable1.0.0. The new base image
+- Upgraded to the base image vector:0.26.0-stackable1.1.0. The new base image
   provides Vector. The creation of the stackable user and group happens in the
   stackable-base layer and is therefore removed from this image ([#291]).
 
