@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Package inotify-tools added ([#291]).
+
+[#291]: https://github.com/stackabletech/docker-images/pull/291
+
 ## [vector-stackable1.0.0] - 2022-12-12
 
 ### Added
