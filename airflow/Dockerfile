@@ -1,4 +1,4 @@
-FROM docker.stackable.tech/sandbox/logging/vector:0.26.0-stackable1.1.0@sha256:d350ad8da54acec6e285130911762135cbe16cbc307d2ae977e6dd2fc1980d23 AS airflow-build-image
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable1.1.0@sha256:a0555b112329409669e33ebfb4044b332ade5a8286cf6506e34f2608c66c05d4 AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
@@ -28,7 +28,7 @@ RUN microdnf update \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
-FROM docker.stackable.tech/sandbox/logging/vector:0.26.0-stackable23.4.0-rc1@sha256:d350ad8da54acec6e285130911762135cbe16cbc307d2ae977e6dd2fc1980d23 AS airflow-main-image
+FROM docker.stackable.tech/stackable/vector:0.26.0-stackable23.4.0-rc1@sha256:a0555b112329409669e33ebfb4044b332ade5a8286cf6506e34f2608c66c05d4 AS airflow-main-image
 
 ARG PRODUCT
 ARG PYTHON
