@@ -23,4 +23,12 @@ RUN microdnf update && \
 
 FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:18a6434eea00c911aaa3dec773e642933bbbfefa953153553998d16b54f349ad
 
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN rpm --install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm  && \
+    microdnf update && \
+    microdnf --assumeyes install inotify-tools && \
+    microdnf clean all
+
 COPY --from=builder /build /
