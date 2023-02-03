@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- setuptools pinned to version 66.1.1 because newer versions are not
+  compatible with the supported Superset versions. With version 67.0.0,
+  the requirements of Superset cannot be parsed anymore (see also
+  https://github.com/pypa/setuptools/pull/3790) [(#307)].
+
+[#307]: https://github.com/stackabletech/docker-images/pull/307
+
 ## [superset1.5.1-stackable0.2.0] - 2022-07-13
 
 - Add Trino sqlalchemy library ([#153]).

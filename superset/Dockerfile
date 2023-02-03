@@ -27,7 +27,7 @@ RUN microdnf update \
     && pip install \
         --no-cache-dir \
         --upgrade \
-        setuptools \
+        setuptools==66.1.1 \
         pip \
     && pip install \
         --no-cache-dir \
