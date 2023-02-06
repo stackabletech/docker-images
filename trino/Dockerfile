@@ -1,6 +1,6 @@
 ARG JAVA
 ARG JAVA_BASE_IMAGE_SHA256
-FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${JAVA_BASE_IMAGE_SHA256}
+FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.3.0@sha256:${JAVA_BASE_IMAGE_SHA256}
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
@@ -18,12 +18,9 @@ LABEL name="Trino" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip python3 openssl shadow-utils && \
+    microdnf install tar gzip zip python3 openssl && \
     microdnf clean all && \
     alternatives --set python /usr/bin/python3
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable

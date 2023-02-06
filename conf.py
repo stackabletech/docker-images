@@ -205,31 +205,31 @@ products = [
             {
                 'product': '377',
                 'java': '11',
-                'java_base_image_sha256': '7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e',
+                'java_base_image_sha256': '5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837',
                 'opa_authorizer': '0.1.0',
             },
             {
                 'product': '387',
                 'java': '11',
-                'java_base_image_sha256': '7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e',
+                'java_base_image_sha256': '5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837',
                 'opa_authorizer': '0.1.0'
             },
             {
                 'product': '395',
                 'java': '17',
-                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
+                'java_base_image_sha256': 'b9b62377b16d37f7a3faa8ed3e08b554fae5fc14b9110774ca550541ca73758e',
                 'opa_authorizer': 'stackable0.1.0'
             },
             {
                 'product': '396',
                 'java': '17',
-                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
+                'java_base_image_sha256': 'b9b62377b16d37f7a3faa8ed3e08b554fae5fc14b9110774ca550541ca73758e',
                 'opa_authorizer': 'stackable0.1.0'
             },
             {
                 'product': '403',
                 'java': '17',
-                'java_base_image_sha256': '2b8d60d1ab50d56240cb6286d6bc377410442afbfc3292d81be5674bc0b51724',
+                'java_base_image_sha256': 'b9b62377b16d37f7a3faa8ed3e08b554fae5fc14b9110774ca550541ca73758e',
                 'opa_authorizer': 'stackable0.1.0'
             },
         ],
