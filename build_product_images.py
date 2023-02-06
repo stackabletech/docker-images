@@ -22,10 +22,13 @@ To also push the image to a remote registry, add the the `--push` argument.
 
 NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
 
-Some images build on top of others. These images are used as base images and might need to be built first:
+Some images build on top of others. These images are used as base images and will be built first:
     1. java-base
     2. ubi8-rust-builder
     3. tools
+
+If a key in products[_].versions matches another product definition then it is assumed that it is a dependency,
+and that product will be built first. It can then be used as a base layer using the format `stackable/image/{product}`.
 """
 from os.path import isdir
 from typing import List, Dict
