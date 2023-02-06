@@ -9,18 +9,22 @@ products = [
             {
                 'product': '2.2.3',
                 'python': '38',
+                'vector': '0.26.0',
             },
             {
                 'product': '2.2.4',
                 'python': '39',
+                'vector': '0.26.0',
             },
             {
                 'product': '2.2.5',
                 'python': '39',
+                'vector': '0.26.0',
             },
             {
                 'product': '2.4.1',
                 'python': '39',
+                'vector': '0.26.0',
             },
         ]
     },
