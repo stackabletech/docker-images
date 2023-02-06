@@ -127,7 +127,7 @@ def build_image_tags(image_name: str, image_version: str, product_version: str) 
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
-def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[str, str]) -> List[List[str]]:
+def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[str, str], dependencies: List[Dict[str, str]]) -> List[List[str]]:
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
@@ -155,9 +155,17 @@ def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[s
                 "args": build_args,
                 "platforms": args.architecture,
                 "output": [main_output],
-            }
+                "context": ".",
+                "contexts": {dep['name']: f"target:{dep['name']}" for dep in dependencies},
+            },
         }
     }
+    bakefile['target'].update({dep['name']: {
+        "dockerfile": f"{ dep['name'] }/Dockerfile",
+        "args": build_image_args(dep['versions'], args.image_version),
+        "platforms": args.architecture,
+        "context": ".",
+    } for dep in dependencies})
 
     command = {
         "args": [
@@ -231,7 +239,7 @@ def main():
 
             for version_dict in product.get("versions"):
                 if isdir(product_name):
-                    commands = build_and_publish_image(args, product_name, version_dict)
+                    commands = build_and_publish_image(args, product_name, version_dict, product.get('dependencies', []))
                     run_commands(args.dry, commands)
     finally:
         if len(args.architecture) > 1:

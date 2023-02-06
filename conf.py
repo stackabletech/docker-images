@@ -1,6 +1,15 @@
 """
 Application images will be created for products and associated versions configured here.
 """
+
+java_base_11 = {
+    'name': 'java-base',
+    'versions': {
+        'product': '11',
+        '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
+    },
+}
+
 products = [
     {
         'name': 'airflow',
@@ -246,5 +255,6 @@ products = [
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
         'versions': [{'product': '3.5.8'}, {'product': '3.6.3'}, {'product': '3.7.0'}, {'product': '3.8.0'}],
+        'dependencies': [java_base_11],
     },
 ]
