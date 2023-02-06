@@ -127,12 +127,41 @@ def build_image_tags(image_name: str, image_version: str, product_version: str) 
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
-def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[str, str], dependencies: List[Dict[str, str]]) -> List[List[str]]:
+def generate_bakefile(args: Namespace):
     """
-    Returns a list of commands that need to be run in order to build and
-    publish product images.
+    Generates a Bakefile (https://docs.docker.com/build/bake/file-definition/) describing how to build the whole image graph.
 
-    For local building, builder instances are supported.
+    build_and_publish_images() ensures that only the desired images are actually built.
+    """
+    targets = {}
+    groups = {}
+    contexts = {}
+    products = {product["name"]: product for product in conf.products}
+    product_names = list(products.keys())
+    for product_name, product in products.items():
+        product_targets = {}
+        for version_dict in product.get("versions"):
+            product_targets.update(bakefile_product_version_targets(args, product_name, version_dict, contexts, product_names))
+        groups[product_name] = {
+            "targets": list(product_targets.keys()),
+        }
+        targets.update(product_targets)
+    return {
+        "target": targets,
+        "group": groups,
+    }
+
+def bakefile_target_name_for_product_version(product_name: str, version: str) -> str:
+    """
+    Creates a normalized Bakefile target name for a given (product, version) combination.
+    """
+    return f"{ product_name }-{ version.replace('.', '_') }"
+
+def bakefile_product_version_targets(args: Namespace, product_name: str, versions: Dict[str, str], contexts: Dict[str, str], product_names: List[str]):
+    """
+    Creates Bakefile targets defining how to build a given product version.
+
+    A product is assumed to depend on another if it defines a `versions` field with the same name as the other product.
     """
     image_name = f'{args.registry}/{args.organization}/{product_name}'
     tags = build_image_tags(
@@ -141,31 +170,39 @@ def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[s
     build_args = build_image_args(versions, args.image_version)
 
     if args.push:
+        outputs = ["type=registry"]
+    elif len(args.architecture) == 1:
+        outputs = ["type=docker"]
+    else:
+        outputs = []
+
+    return {
+        bakefile_target_name_for_product_version(product_name, versions['product']): {
+            "dockerfile": f"{ product_name }/Dockerfile",
+            "tags": tags,
+            "args": build_args,
+            "platforms": args.architecture,
+            "output": outputs,
+            "context": ".",
+            "contexts": {f"stackable/image/{dep_name}": f"target:{bakefile_target_name_for_product_version(dep_name, dep_version)}" for dep_name, dep_version in versions.items() if dep_name in product_names},
+        },
+    }
+
+
+def build_and_publish_image(args: Namespace, product_name: str, bakefile) -> List[List[str]]:
+    """
+    Returns a list of commands that need to be run in order to build and
+    publish product images.
+
+    For local building, builder instances are supported.
+    """
+
+    if args.push:
         main_output = "type=registry"
     elif len(args.architecture) == 1:
         main_output = "type=docker"
     else:
         main_output = None
-
-    bakefile = {
-        "target": {
-            product_name: {
-                "dockerfile": f"{ product_name }/Dockerfile",
-                "tags": tags,
-                "args": build_args,
-                "platforms": args.architecture,
-                "output": [main_output],
-                "context": ".",
-                "contexts": {dep['name']: f"target:{dep['name']}" for dep in dependencies},
-            },
-        }
-    }
-    bakefile['target'].update({dep['name']: {
-        "dockerfile": f"{ dep['name'] }/Dockerfile",
-        "args": build_image_args(dep['versions'], args.image_version),
-        "platforms": args.architecture,
-        "context": ".",
-    } for dep in dependencies})
 
     command = {
         "args": [
@@ -227,6 +264,7 @@ def check_architecture_input(architecture):
 
 def main():
     args = parse_args()
+    bakefile = generate_bakefile(args)
 
     if len(args.architecture) > 1:
         create_virtual_environment(args)
@@ -237,10 +275,8 @@ def main():
             if args.product is not None and (product_name != args.product):
                 continue
 
-            for version_dict in product.get("versions"):
-                if isdir(product_name):
-                    commands = build_and_publish_image(args, product_name, version_dict, product.get('dependencies', []))
-                    run_commands(args.dry, commands)
+            commands = build_and_publish_image(args, product_name, bakefile)
+            run_commands(args.dry, commands)
     finally:
         if len(args.architecture) > 1:
             remove_virtual_environment(args)

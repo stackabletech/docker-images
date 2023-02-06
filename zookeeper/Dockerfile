@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM java-base
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE

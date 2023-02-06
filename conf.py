@@ -2,14 +2,6 @@
 Application images will be created for products and associated versions configured here.
 """
 
-java_base_11 = {
-    'name': 'java-base',
-    'versions': {
-        'product': '11',
-        '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
-    },
-}
-
 products = [
     {
         'name': 'airflow',
@@ -100,10 +92,12 @@ products = [
         'versions': [
             {
                 'product': '11',
+                'vector': '0.26.0',
                 '_security_path': '/usr/lib/jvm/jre-11/conf/security/java.security',
             },
             {
                 'product': '17',
+                'vector': '0.26.0',
                 '_security_path': '/usr/lib/jvm/jre-17/conf/security/java.security',
             },
         ],
@@ -140,7 +134,7 @@ products = [
     },
     {
         'name': 'vector',
-        'versions': ['0.26.0'],
+        'versions': [{'product': '0.26.0', 'stackable-base': '1.0.0'}],
     },
     {
         'name': 'nifi',
@@ -189,7 +183,7 @@ products = [
     },
     {
         'name': 'stackable-base',
-        'versions': ['1.0.0'],
+        'versions': [{'product': '1.0.0'}],
     },
     {
         'name': 'superset',
@@ -254,7 +248,11 @@ products = [
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
-        'versions': [{'product': '3.5.8'}, {'product': '3.6.3'}, {'product': '3.7.0'}, {'product': '3.8.0'}],
-        'dependencies': [java_base_11],
+        'versions': [
+            {'product': '3.5.8', 'java-base': '11'},
+            {'product': '3.6.3', 'java-base': '11'},
+            {'product': '3.7.0', 'java-base': '11'},
+            {'product': '3.8.0', 'java-base': '11'},
+        ],
     },
 ]
