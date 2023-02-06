@@ -33,6 +33,7 @@ from argparse import Namespace, ArgumentParser
 import subprocess
 import conf
 import re
+import json
 
 # This is the stackable release version
 DEFAULT_IMAGE_VERSION_FROMATS = [re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+"), re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?")]
@@ -101,19 +102,17 @@ def build_image_args(version, release_version):
     - version: Can be a str, in which case it's considered the PRODUCT
                 or a dict.
     """
-    result = []
+    result = {}
 
     if isinstance(version, dict):
         for k, v in version.items():
-            result.extend(["--build-arg", f"{k.upper()}={v}"])
-        result.extend(["--build-arg", f"RELEASE={release_version}"])
+            result[k.upper()] = v
+        result["RELEASE"] = release_version
     elif isinstance(version, str) and isinstance(release_version, str):
-        result = [
-            "--build-arg",
-            f"PRODUCT={version}",
-            "--build-arg",
-            f"RELEASE={release_version}",
-        ]
+        {
+            "PRODUCT": version,
+            "RELEASE": release_version,
+        }
     else:
         raise ValueError(f"Unsupported version object: {version}")
 
@@ -125,10 +124,8 @@ def build_image_tags(image_name: str, image_version: str, product_version: str) 
     Returns the --tag command line arguments that are used by the docker build command.
     """
     return [
-        "-t",
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
-
 
 def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[str, str]) -> List[List[str]]:
     """
@@ -143,31 +140,37 @@ def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[s
     )
     build_args = build_image_args(versions, args.image_version)
 
-    commands = [
-        "docker",
-        "buildx",
-        "build",
-        *build_args,
-        *tags,
-        "-f",
-        f"{ product_name }/Dockerfile",
-        "--platform",
-        ",".join(args.architecture),
-    ]
-
     if args.push:
-        commands.append(
-            "--push",
-        )
-    if not args.push and len(args.architecture) == 1:
-        commands.append(
-            "--load",
-        )
+        main_output = "type=registry"
+    elif len(args.architecture) == 1:
+        main_output = "type=docker"
+    else:
+        main_output = None
 
-    commands.append(".")
+    bakefile = {
+        "target": {
+            product_name: {
+                "dockerfile": f"{ product_name }/Dockerfile",
+                "tags": tags,
+                "args": build_args,
+                "platforms": args.architecture,
+                "output": [main_output],
+            }
+        }
+    }
 
-    return [commands]
-
+    command = {
+        "args": [
+            "docker",
+            "buildx",
+            "bake",
+            "-f",
+            "-",
+            product_name,
+        ],
+        "stdin": json.dumps(bakefile),
+    }
+    return [command]
 
 def run_commands(dry, commands):
     """
@@ -175,10 +178,22 @@ def run_commands(dry, commands):
     lists the command on stdout.
     """
     for cmd in commands:
-        if dry:
-            subprocess.run(["echo", *cmd], check=True)
+        if isinstance(cmd, dict):
+            args = cmd['args']
+            stdin = cmd.get('stdin')
         else:
-            subprocess.run(cmd, check=True)
+            args = cmd
+            stdin = None
+
+        if dry:
+            if stdin:
+                print(f"{' '.join(args)} <<<EOF")
+                print(stdin)
+                print("EOF;")
+            else:
+                print(' '.join(args))
+        else:
+            subprocess.run(args, input=stdin.encode("UTF-8"), check=True)
 
 
 def create_virtual_environment(args):
