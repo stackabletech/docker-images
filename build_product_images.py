@@ -130,6 +130,7 @@ def build_image_tags(image_name: str, image_version: str, product_version: str) 
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
+
 def generate_bakefile(args: Namespace):
     """
     Generates a Bakefile (https://docs.docker.com/build/bake/file-definition/) describing how to build the whole image graph.
@@ -157,11 +158,13 @@ def generate_bakefile(args: Namespace):
         "group": groups,
     }
 
+
 def bakefile_target_name_for_product_version(product_name: str, version: str) -> str:
     """
     Creates a normalized Bakefile target name for a given (product, version) combination.
     """
     return f"{ product_name }-{ version.replace('.', '_') }"
+
 
 def bakefile_product_version_targets(args: Namespace, product_name: str, versions: Dict[str, str], contexts: Dict[str, str], product_names: List[str]):
     """
@@ -209,12 +212,13 @@ def build_and_publish_image(args: Namespace, product_name: str, bakefile) -> Lis
             "bake",
             "--file",
             "-",
-            *([] if product_name == None else [product_name]),
+            *([] if product_name is None else [product_name]),
             *target_mode,
         ],
         "stdin": json.dumps(bakefile),
     }
     return [command]
+
 
 def run_commands(dry, commands):
     """
