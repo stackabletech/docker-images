@@ -169,20 +169,12 @@ def bakefile_product_version_targets(args: Namespace, product_name: str, version
     )
     build_args = build_image_args(versions, args.image_version)
 
-    if args.push:
-        outputs = ["type=registry"]
-    elif len(args.architecture) == 1:
-        outputs = ["type=docker"]
-    else:
-        outputs = []
-
     return {
         bakefile_target_name_for_product_version(product_name, versions['product']): {
             "dockerfile": f"{ product_name }/Dockerfile",
             "tags": tags,
             "args": build_args,
             "platforms": args.architecture,
-            "output": outputs,
             "context": ".",
             "contexts": {f"stackable/image/{dep_name}": f"target:{bakefile_target_name_for_product_version(dep_name, dep_version)}" for dep_name, dep_version in versions.items() if dep_name in product_names},
         },
@@ -198,20 +190,21 @@ def build_and_publish_image(args: Namespace, product_name: str, bakefile) -> Lis
     """
 
     if args.push:
-        main_output = "type=registry"
+        target_mode = ["--push"]
     elif len(args.architecture) == 1:
-        main_output = "type=docker"
+        target_mode = ["--load"]
     else:
-        main_output = None
+        target_mode = []
 
     command = {
         "args": [
             "docker",
             "buildx",
             "bake",
-            "-f",
+            "--file",
             "-",
             product_name,
+            *target_mode,
         ],
         "stdin": json.dumps(bakefile),
     }
