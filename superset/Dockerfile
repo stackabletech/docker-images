@@ -1,6 +1,7 @@
-# Build stage
+# syntax=docker/dockerfile:1
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
+# Build stage
+FROM stackable/image/stackable-base AS builder
 
 ARG PRODUCT
 ARG PYTHON
@@ -60,7 +61,7 @@ RUN cat /tmp/patches/* | patch \
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
 
 # Final image
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:e58664de16551db29fb0eaaeb3c4a44eaf95ad89a5b2399a1107041c4f2d6d34
+FROM stackable/image/stackable-base
 
 ARG PRODUCT
 ARG PYTHON
@@ -91,9 +92,7 @@ RUN microdnf update \
         openssl-pkcs11 \
         python${PYTHON//./} \
         shadow-utils \
-    && microdnf clean all \
-    && groupadd --gid 1000 stackable \
-    && useradd --uid 1000 --gid stackable --home-dir ${HOME} stackable
+    && microdnf clean all
 
 COPY superset/licenses /licenses
 COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter

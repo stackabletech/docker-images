@@ -1,6 +1,5 @@
-ARG JAVA
-ARG JAVA_BASE_IMAGE_SHA256
-FROM docker.stackable.tech/stackable/java-base:${JAVA}-stackable0.2.2@sha256:${JAVA_BASE_IMAGE_SHA256}
+# syntax=docker/dockerfile:1
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
@@ -21,9 +20,6 @@ RUN microdnf update && \
     microdnf install tar gzip zip python3 openssl shadow-utils && \
     microdnf clean all && \
     alternatives --set python /usr/bin/python3
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable

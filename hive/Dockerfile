@@ -1,4 +1,5 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
+# syntax=docker/dockerfile:1
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG HADOOP

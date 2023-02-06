@@ -1,6 +1,7 @@
+# syntax=docker/dockerfile:1
 # druid < 0.23 druid only fully supports java 8
 # druid >= 0.23 is java 11 ready
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.2.2@sha256:7929833412c331fc23cde0e23ca730d652c0be61a8a69c8a82b2af937a3fbd4e
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG AUTHORIZER
@@ -20,9 +21,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install findutils openssl tar gzip zip shadow-utils && \
     microdnf clean all
-
-RUN groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable
 
 USER stackable
 WORKDIR /stackable

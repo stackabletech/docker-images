@@ -1,4 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
+# syntax=docker/dockerfile:1
+FROM stackable/image/stackable-base
 
 ARG PRODUCT
 ARG RELEASE
@@ -22,16 +23,9 @@ RUN microdnf update && \
                      gcc libxslt-devel libxml2-devel && \
     microdnf clean all
 
-# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-COPY tools/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
-# add all python scripts
-COPY tools/python /stackable/python
 COPY tools/licenses /licenses
 
-RUN pip3 install --no-cache-dir -r /stackable/python/requirements.txt && \
-    groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
+RUN chown -R stackable:stackable /stackable
 
 USER stackable
 
