@@ -149,6 +149,9 @@ def generate_bakefile(args: Namespace):
             "targets": list(product_targets.keys()),
         }
         targets.update(product_targets)
+    groups["default"] = {
+        "targets": list(groups.keys()),
+    }
     return {
         "target": targets,
         "group": groups,
@@ -206,7 +209,7 @@ def build_and_publish_image(args: Namespace, product_name: str, bakefile) -> Lis
             "bake",
             "--file",
             "-",
-            product_name,
+            *([] if product_name == None else [product_name]),
             *target_mode,
         ],
         "stdin": json.dumps(bakefile),
@@ -266,13 +269,8 @@ def main():
         create_virtual_environment(args)
 
     try:
-        for product in conf.products:
-            product_name = product.get("name")
-            if args.product is not None and (product_name != args.product):
-                continue
-
-            commands = build_and_publish_image(args, product_name, bakefile)
-            run_commands(args.dry, commands)
+        commands = build_and_publish_image(args, args.product, bakefile)
+        run_commands(args.dry, commands)
     finally:
         if len(args.architecture) > 1:
             remove_virtual_environment(args)
