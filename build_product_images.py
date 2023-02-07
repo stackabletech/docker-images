@@ -139,13 +139,12 @@ def generate_bakefile(args: Namespace):
     """
     targets = {}
     groups = {}
-    contexts = {}
     products = {product["name"]: product for product in conf.products}
     product_names = list(products.keys())
     for product_name, product in products.items():
         product_targets = {}
         for version_dict in product.get("versions"):
-            product_targets.update(bakefile_product_version_targets(args, product_name, version_dict, contexts, product_names))
+            product_targets.update(bakefile_product_version_targets(args, product_name, version_dict, product_names))
         groups[product_name] = {
             "targets": list(product_targets.keys()),
         }
@@ -166,7 +165,7 @@ def bakefile_target_name_for_product_version(product_name: str, version: str) ->
     return f"{ product_name }-{ version.replace('.', '_') }"
 
 
-def bakefile_product_version_targets(args: Namespace, product_name: str, versions: Dict[str, str], contexts: Dict[str, str], product_names: List[str]):
+def bakefile_product_version_targets(args: Namespace, product_name: str, versions: Dict[str, str], product_names: List[str]):
     """
     Creates Bakefile targets defining how to build a given product version.
 
