@@ -139,9 +139,9 @@ def generate_bakefile(args: Namespace):
     """
     targets = {}
     groups = {}
-    products = {product["name"]: product for product in conf.products}
-    product_names = list(products.keys())
-    for product_name, product in products.items():
+    product_names = [product["name"] for product in conf.products]
+    for product in conf.products:
+        product_name = product["name"]
         product_targets = {}
         for version_dict in product.get("versions"):
             product_targets.update(bakefile_product_version_targets(args, product_name, version_dict, product_names))
