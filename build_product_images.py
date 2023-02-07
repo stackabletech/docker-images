@@ -189,7 +189,7 @@ def bakefile_product_version_targets(args: Namespace, product_name: str, version
     }
 
 
-def build_and_publish_image(args: Namespace, product_name: str, bakefile) -> List[List[str]]:
+def build_and_publish_image(args: Namespace, product_name: str, bakefile):
     """
     Returns a list of commands that need to be run in order to build and
     publish product images.
