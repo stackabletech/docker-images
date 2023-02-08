@@ -272,10 +272,6 @@ products = [
         ],
     },
     {
-        'name': 'tools',
-        'versions': [{'product': '0.2.0', 'stackable-base': '1.0.0'}],
-    },
-    {
         'name': 'testing-tools',
         'versions': [{'product': '0.1.0'}],
     },
