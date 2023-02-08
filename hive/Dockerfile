@@ -2,7 +2,7 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
-ARG HADOOP
+ARG HADOOP_LIBS
 ARG JACKSON_DATAFORMAT_XML
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
@@ -33,14 +33,14 @@ WORKDIR /stackable
 # Download hive and hadoop
 RUN curl -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin /stackable/hive && \
-    ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP} /stackable/hadoop && \
+    ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP_LIBS} /stackable/hadoop && \
     # Force to overwrite the existing 'start-metastore'
     ln -sf /stackable/bin/start-metastore /stackable/hive/bin/start-metastore
 
 # Download aws module for Hadoop (support for s3a://)
-RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP}.jar \
-    -o /stackable/hive/lib/hadoop-aws-${HADOOP}.jar && \
-    chmod -x /stackable/hive/lib/hadoop-aws-${HADOOP}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LIBS}.jar \
+    -o /stackable/hive/lib/hadoop-aws-${HADOOP_LIBS}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-aws-${HADOOP_LIBS}.jar
 
 # Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
 RUN curl -L https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
@@ -48,9 +48,9 @@ RUN curl -L https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bun
     chmod -x /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar
 
 # Download azure module for Hadoop (support for abfs://)
-RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${HADOOP}.jar \
-    -o /stackable/hive/lib/hadoop-azure-${HADOOP}.jar && \
-    chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${HADOOP_LIBS}.jar \
+    -o /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar && \
+    chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar
 
 # Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
 RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
