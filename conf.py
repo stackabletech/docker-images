@@ -271,11 +271,10 @@ products = [
             },
         ],
     },
-    # Build is broken
-    # {
-    #     'name': 'testing-tools',
-    #     'versions': [{'product': '0.1.0'}],
-    # },
+    {
+        'name': 'testing-tools',
+        'versions': [{'product': '0.1.0'}],
+    },
     {
         # ZooKeeper must be at least 3.5.0
         'name': 'zookeeper',
