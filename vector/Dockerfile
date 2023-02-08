@@ -1,6 +1,7 @@
-# Build stage
+# syntax=docker/dockerfile:1
 
-FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:18a6434eea00c911aaa3dec773e642933bbbfefa953153553998d16b54f349ad AS builder
+# Build stage
+FROM stackable/image/stackable-base AS builder
 
 ARG PRODUCT
 
@@ -21,7 +22,7 @@ RUN microdnf update && \
 
 # Final image
 
-FROM docker.stackable.tech/stackable/stackable-base:1.0.0-stackable1.0.0@sha256:18a6434eea00c911aaa3dec773e642933bbbfefa953153553998d16b54f349ad
+FROM stackable/image/stackable-base
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

@@ -1,4 +1,5 @@
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837 AS builder
+# syntax=docker/dockerfile:1
+FROM stackable/image/java-base AS builder
 
 RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
     microdnf install -y tar which wget zlib gcc-c++ make cmake && \
@@ -10,7 +11,7 @@ RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
     && cd kcat-1.7.0 \
     && ./bootstrap.sh
 
-FROM docker.stackable.tech/stackable/java-base:11-stackable0.3.0@sha256:5c7f9e7274bd68ea264138b13504efa16fb22ee1122e7d12af32f343eb93c837
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG SCALA

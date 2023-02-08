@@ -22,10 +22,13 @@ To also push the image to a remote registry, add the the `--push` argument.
 
 NOTE: Pushing images to a remote registry assumes you have performed a `docker login` beforehand.
 
-Some images build on top of others. These images are used as base images and might need to be built first:
+Some images build on top of others. These images are used as base images and will be built first:
     1. java-base
     2. ubi8-rust-builder
     3. tools
+
+If a key in products[_].versions matches another product definition then it is assumed that it is a dependency,
+and that product will be built first. It can then be used as a base layer using the format `stackable/image/{product}`.
 """
 from os.path import isdir
 from typing import List, Dict
@@ -33,6 +36,7 @@ from argparse import Namespace, ArgumentParser
 import subprocess
 import conf
 import re
+import json
 
 # This is the stackable release version
 DEFAULT_IMAGE_VERSION_FROMATS = [re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+"), re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?")]
@@ -101,19 +105,17 @@ def build_image_args(version, release_version):
     - version: Can be a str, in which case it's considered the PRODUCT
                 or a dict.
     """
-    result = []
+    result = {}
 
     if isinstance(version, dict):
         for k, v in version.items():
-            result.extend(["--build-arg", f"{k.upper()}={v}"])
-        result.extend(["--build-arg", f"RELEASE={release_version}"])
+            result[k.upper()] = v
+        result["RELEASE"] = release_version
     elif isinstance(version, str) and isinstance(release_version, str):
-        result = [
-            "--build-arg",
-            f"PRODUCT={version}",
-            "--build-arg",
-            f"RELEASE={release_version}",
-        ]
+        {
+            "PRODUCT": version,
+            "RELEASE": release_version,
+        }
     else:
         raise ValueError(f"Unsupported version object: {version}")
 
@@ -125,17 +127,49 @@ def build_image_tags(image_name: str, image_version: str, product_version: str) 
     Returns the --tag command line arguments that are used by the docker build command.
     """
     return [
-        "-t",
         f"{image_name}:{product_version}-stackable{image_version}",
     ]
 
 
-def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[str, str]) -> List[List[str]]:
+def generate_bakefile(args: Namespace):
     """
-    Returns a list of commands that need to be run in order to build and
-    publish product images.
+    Generates a Bakefile (https://docs.docker.com/build/bake/file-definition/) describing how to build the whole image graph.
 
-    For local building, builder instances are supported.
+    build_and_publish_images() ensures that only the desired images are actually built.
+    """
+    targets = {}
+    groups = {}
+    product_names = [product["name"] for product in conf.products]
+    for product in conf.products:
+        product_name = product["name"]
+        product_targets = {}
+        for version_dict in product.get("versions"):
+            product_targets.update(bakefile_product_version_targets(args, product_name, version_dict, product_names))
+        groups[product_name] = {
+            "targets": list(product_targets.keys()),
+        }
+        targets.update(product_targets)
+    groups["default"] = {
+        "targets": list(groups.keys()),
+    }
+    return {
+        "target": targets,
+        "group": groups,
+    }
+
+
+def bakefile_target_name_for_product_version(product_name: str, version: str) -> str:
+    """
+    Creates a normalized Bakefile target name for a given (product, version) combination.
+    """
+    return f"{ product_name }-{ version.replace('.', '_') }"
+
+
+def bakefile_product_version_targets(args: Namespace, product_name: str, versions: Dict[str, str], product_names: List[str]):
+    """
+    Creates Bakefile targets defining how to build a given product version.
+
+    A product is assumed to depend on another if it defines a `versions` field with the same name as the other product.
     """
     image_name = f'{args.registry}/{args.organization}/{product_name}'
     tags = build_image_tags(
@@ -143,30 +177,46 @@ def build_and_publish_image(args: Namespace, product_name: str, versions: Dict[s
     )
     build_args = build_image_args(versions, args.image_version)
 
-    commands = [
-        "docker",
-        "buildx",
-        "build",
-        *build_args,
-        *tags,
-        "-f",
-        f"{ product_name }/Dockerfile",
-        "--platform",
-        ",".join(args.architecture),
-    ]
+    return {
+        bakefile_target_name_for_product_version(product_name, versions['product']): {
+            "dockerfile": f"{ product_name }/Dockerfile",
+            "tags": tags,
+            "args": build_args,
+            "platforms": args.architecture,
+            "context": ".",
+            "contexts": {f"stackable/image/{dep_name}": f"target:{bakefile_target_name_for_product_version(dep_name, dep_version)}" for dep_name, dep_version in versions.items() if dep_name in product_names},
+        },
+    }
+
+
+def build_and_publish_image(args: Namespace, product_name: str, bakefile):
+    """
+    Returns a list of commands that need to be run in order to build and
+    publish product images.
+
+    For local building, builder instances are supported.
+    """
 
     if args.push:
-        commands.append(
-            "--push",
-        )
-    if not args.push and len(args.architecture) == 1:
-        commands.append(
-            "--load",
-        )
+        target_mode = ["--push"]
+    elif len(args.architecture) == 1:
+        target_mode = ["--load"]
+    else:
+        target_mode = []
 
-    commands.append(".")
-
-    return [commands]
+    command = {
+        "args": [
+            "docker",
+            "buildx",
+            "bake",
+            "--file",
+            "-",
+            *([] if product_name is None else [product_name]),
+            *target_mode,
+        ],
+        "stdin": json.dumps(bakefile),
+    }
+    return [command]
 
 
 def run_commands(dry, commands):
@@ -175,10 +225,22 @@ def run_commands(dry, commands):
     lists the command on stdout.
     """
     for cmd in commands:
-        if dry:
-            subprocess.run(["echo", *cmd], check=True)
+        if isinstance(cmd, dict):
+            args = cmd['args']
+            stdin = cmd.get('stdin')
         else:
-            subprocess.run(cmd, check=True)
+            args = cmd
+            stdin = None
+
+        if dry:
+            if stdin:
+                print(f"{' '.join(args)} <<<EOF")
+                print(stdin)
+                print("EOF;")
+            else:
+                print(' '.join(args))
+        else:
+            subprocess.run(args, input=stdin.encode("UTF-8"), check=True)
 
 
 def create_virtual_environment(args):
@@ -204,20 +266,14 @@ def check_architecture_input(architecture):
 
 def main():
     args = parse_args()
+    bakefile = generate_bakefile(args)
 
     if len(args.architecture) > 1:
         create_virtual_environment(args)
 
     try:
-        for product in conf.products:
-            product_name = product.get("name")
-            if args.product is not None and (product_name != args.product):
-                continue
-
-            for version_dict in product.get("versions"):
-                if isdir(product_name):
-                    commands = build_and_publish_image(args, product_name, version_dict)
-                    run_commands(args.dry, commands)
+        commands = build_and_publish_image(args, args.product, bakefile)
+        run_commands(args.dry, commands)
     finally:
         if len(args.architecture) > 1:
             remove_virtual_environment(args)
