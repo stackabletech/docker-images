@@ -3,6 +3,8 @@ FROM stackable/image/stackable-base
 
 ARG PRODUCT
 ARG PYTHON
+ARG JAVA
+ARG SPARK
 ARG HADOOP_SHORT_VERSION
 ARG HADOOP_LONG_VERSION
 ARG AWS_JAVA_SDK_BUNDLE
@@ -22,7 +24,7 @@ LABEL name="Apache Spark" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
+    microdnf install java-${JAVA}-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     microdnf install shadow-utils && \
     # required for spark startup scripts
@@ -35,7 +37,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
+ENV JAVA_HOME=/usr/lib/jvm/jre-${JAVA}
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
@@ -55,8 +57,8 @@ USER stackable
 
 WORKDIR /stackable
 # Download Spark (including Hadoop)
-RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}.tgz | tar -xzC . && \
-    ln -s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION} /stackable/spark
+RUN curl -L https://repo.stackable.tech/repository/packages/spark/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}.tgz | tar -xzC . && \
+    ln -s /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION} /stackable/spark
 
 # Download aws module for Hadoop (support for s3a://)
 RUN curl -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
@@ -97,7 +99,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell.sh /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -106,7 +108,7 @@ RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSI
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell_scanner s /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}
 # ===
 
 WORKDIR /stackable/spark
