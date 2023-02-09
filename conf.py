@@ -226,18 +226,18 @@ products = [
         'versions': [
             {
                 'product': '1.3.2',
-                'stackable-base': '1.0.0',
                 'python': '3.8',
+                'vector': '0.26.0',
             },
             {
                 'product': '1.4.1',
-                'stackable-base': '1.0.0',
                 'python': '3.9',
+                'vector': '0.26.0',
             },
             {
                 'product': '1.5.1',
-                'stackable-base': '1.0.0',
                 'python': '3.8',
+                'vector': '0.26.0',
             },
         ],
     },
