@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Decoupled product from the archive name so that product can run on different java versions ([#327]).
+
+[#327]: https://github.com/stackabletech/docker-images/pull/327
+
 ## [3.3.0-stackable0.2.0] - 2022-09-13
 
 ### Added
