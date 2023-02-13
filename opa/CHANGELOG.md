@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Upgraded to the base image vector:0.26.0-stackable1.1.0. The new base image
+  provides Vector ([#329]).
+
+[#329]: https://github.com/stackabletech/docker-images/pull/329
+
 ## [opa:0.27.1-stackable0.4.0, opa:0.28.0-stackable0.4.0, opa:0.37.2-stackable0.4.0, opa:0.41.0-stackable0.3.0, opa:0.45.0-stackable0.3.0] - 2022-12-16
 
 ### Added
