@@ -20,4 +20,3 @@
 ### Added
 
 - OpenPolicyAgent 0.37.2 added ([#59](https://github.com/stackabletech/docker-images/pull/59))
-

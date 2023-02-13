@@ -177,11 +177,11 @@ products = [
             {
                 'product': '0.28.0',
                 'vector': '0.26.0',
-             },
+            },
             {
                 'product': '0.37.2',
                 'vector': '0.26.0',
-             },
+            },
             {
                 'product': '0.41.0',
                 'vector': '0.26.0',
@@ -190,7 +190,7 @@ products = [
                 'product': '0.45.0',
                 'vector': '0.26.0',
             },
-        ],
+        ]
     },
     {
         'name': 'pyspark-k8s',
