@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/stackable-base AS opa-bundle-builder
+FROM stackable/image/vector AS opa-bundle-builder
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -16,7 +16,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch 1.0.0 https://github.com/stackabletech/opa-bundle-builder
 RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
-FROM stackable/image/stackable-base
+FROM stackable/image/vector
 
 ARG PRODUCT
 ARG RELEASE
@@ -34,7 +34,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip && \
-    microdnf install shadow-utils && \
     microdnf clean all
 
 COPY opa/licenses /licenses

@@ -170,11 +170,26 @@ products = [
     {
         'name': 'opa',
         'versions': [
-            {'product': '0.27.1', 'stackable-base': '1.0.0'},
-            {'product': '0.28.0', 'stackable-base': '1.0.0'},
-            {'product': '0.37.2', 'stackable-base': '1.0.0'},
-            {'product': '0.41.0', 'stackable-base': '1.0.0'},
-            {'product': '0.45.0', 'stackable-base': '1.0.0'},
+            {
+                'product': '0.27.1',
+                'vector': '0.26.0',
+            },
+            {
+                'product': '0.28.0',
+                'vector': '0.26.0',
+             },
+            {
+                'product': '0.37.2',
+                'vector': '0.26.0',
+             },
+            {
+                'product': '0.41.0',
+                'vector': '0.26.0',
+            },
+            {
+                'product': '0.45.0',
+                'vector': '0.26.0',
+            },
         ],
     },
     {
