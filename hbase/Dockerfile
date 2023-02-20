@@ -24,6 +24,10 @@ RUN microdnf update && \
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
+# include hadoop native libs for snappy compression et al
+COPY hbase/hadoop-native /hadoop-native
+RUN tar -xzf /hadoop-native/hadoop-native.tar.gz && rm /hadoop-native/hadoop-native.tar.gz
+
 ENV HOME=/stackable
 
 COPY --chown=stackable:stackable hbase/stackable /stackable
@@ -42,6 +46,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
+ENV LD_LIBRARY_PATH=/hadoop-native
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
