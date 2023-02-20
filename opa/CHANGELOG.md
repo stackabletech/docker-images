@@ -4,8 +4,7 @@
 
 ### Changed
 
-- Upgraded to the base image vector:0.26.0-stackable1.1.0. The new base image
-  provides Vector ([#329]).
+- Upgraded to the vector base image ([#329]).
 
 [#329]: https://github.com/stackabletech/docker-images/pull/329
 
