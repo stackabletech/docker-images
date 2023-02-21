@@ -1,0 +1,12 @@
+--- multilog.c.original	2014-08-18 11:48:59.705338651 +0000
++++ multilog.c	2014-08-18 11:49:32.222822787 +0000
+@@ -398,7 +398,8 @@
+     if (script[i][0] == 's') {
+       scan_ulong(script[i] + 1,&size);
+       if (size < 4096) size = 4096;
+-      if (size > 16777215) size = 16777215;
++      //removing constraint of 16M log size
++      //if (size > 16777215) size = 16777215;
+     }
+     else if (script[i][0] == 'n') {
+       scan_ulong(script[i] + 1,&num);
