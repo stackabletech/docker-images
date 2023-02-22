@@ -18,23 +18,31 @@ RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
 FROM stackable/image/vector AS multilog-builder
 
+ARG DAEMON_TOOLS=daemontools-0.76
+
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN microdnf update && \
-    microdnf install tar gzip yum make gcc && \
-    microdnf clean all
-
 COPY opa/daemontools /daemontools
 
-RUN yum install patch -y && \
-    cd /daemontools && \
-    tar xzvf daemontools-0.76.tar.gz && \
-    cd /daemontools/admin/daemontools-0.76/src && \
-    patch < /daemontools/conf-cc.patch && \
-    patch multilog.c < /daemontools/multilog_max_file_size.patch && \
-    cd .. && \
-    package/install
+RUN microdnf update -y && \
+    microdnf install tar gzip yum make gcc -y && \
+    yum install patch -y && \
+    yum clean all -y && \
+    microdnf clean all
+
+WORKDIR /daemontools
+
+RUN tar xzvf ${DAEMON_TOOLS}.tar.gz
+
+WORKDIR /daemontools/admin/${DAEMON_TOOLS}/src
+
+RUN patch < /daemontools/conf-cc.patch && \
+    patch multilog.c < /daemontools/multilog_max_file_size.patch
+
+WORKDIR /daemontools/admin/${DAEMON_TOOLS}
+
+RUN package/install
 
 FROM stackable/image/vector
 
