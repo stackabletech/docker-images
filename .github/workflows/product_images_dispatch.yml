@@ -42,14 +42,29 @@ jobs:
           python-version: '3.x'
 
       -
-        name: Login to Stackable Nexus
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
-        with:
-          registry: docker.stackable.tech
-          username: github
-          password: ${{ secrets.NEXUS_PASSWORD }}
-
-      -
         name: Build and push images on dispatch
         shell: bash
-        run: python build_product_images.py -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u
+        run: python build_product_images.py --print-built-tags -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u > built_tags.txt
+      
+      - 
+        name: Install preflight
+        run: |
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          chmod +x preflight-linux-amd64
+
+      -
+        name: Run preflight
+        shell: bash
+        run: |
+          echo "Built images:"
+          cat built_tags.txt
+          for tag in $(cat built_tags.txt); do
+            echo "Checking $tag"
+            ./preflight-linux-amd64 --artifacts artifacts check container "$tag"
+            echo $tag $(jq .passed artifacts/results.json) >> results.txt
+          done
+          cat results.txt
+          if grep -q ".*false$" results.txt; then
+            echo "At least one of the images failed the preflight"
+            exit 1
+          fi
