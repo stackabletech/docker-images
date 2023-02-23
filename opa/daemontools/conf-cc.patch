@@ -1,0 +1,7 @@
+--- conf-cc.old	2014-07-14 12:06:58.270692758 +0000
++++ conf-cc	2014-07-14 12:07:14.837994394 +0000
+@@ -1,3 +1,3 @@
+-gcc -O2 -Wimplicit -Wunused -Wcomment -Wchar-subscripts -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wwrite-strings
++gcc -O2 -Wimplicit -Wunused -Wcomment -Wchar-subscripts -Wuninitialized -Wshadow -Wcast-qual -Wcast-align -Wwrite-strings -include /usr/include/errno.h
+
+ This will be used to compile .c files.

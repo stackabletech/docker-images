@@ -16,6 +16,34 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch 1.0.0 https://github.com/stackabletech/opa-bundle-builder
 RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
+FROM stackable/image/vector AS multilog-builder
+
+ARG DAEMONTOOLS_VERSION=0.76
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+COPY opa/daemontools /daemontools
+
+RUN microdnf update -y && \
+    microdnf install tar gzip yum make gcc -y && \
+    yum install patch -y && \
+    yum clean all -y && \
+    microdnf clean all
+
+WORKDIR /daemontools
+
+RUN tar xzf daemontools-${DAEMONTOOLS_VERSION}.tar.gz
+
+WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}/src
+
+RUN patch < /daemontools/conf-cc.patch && \
+    patch multilog.c < /daemontools/multilog_max_file_size.patch
+
+WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
+
+RUN package/install
+
 FROM stackable/image/vector
 
 ARG PRODUCT
@@ -44,5 +72,6 @@ WORKDIR /stackable/opa
 RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz | tar -xzC . && \
     chmod +x opa
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 CMD ["./opa", "run", "-s"]
