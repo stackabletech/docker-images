@@ -42,6 +42,14 @@ jobs:
           python-version: '3.x'
 
       -
+        name: Login to Stackable Nexus
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
+        with:
+          registry: docker.stackable.tech
+          username: github
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      -
         name: Build and push images on dispatch
         shell: bash
         run: python build_product_images.py --print-built-tags -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u > built_tags.txt
