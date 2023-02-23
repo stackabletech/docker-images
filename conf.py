@@ -34,11 +34,13 @@ products = [
             {
                 'product': '0.23.0',
                 'java-base': '11',
+                'jackson_dataformat_xml': '2.10.5',
                 'authorizer': '0.2.0',
             },
             {
                 'product': '24.0.0',
                 'java-base': '11',
+                'jackson_dataformat_xml': '2.10.5',
                 'authorizer': '0.4.0',
             }
         ]

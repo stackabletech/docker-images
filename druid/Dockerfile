@@ -4,6 +4,7 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG JACKSON_DATAFORMAT_XML
 ARG AUTHORIZER
 ARG RELEASE
 
@@ -35,7 +36,10 @@ RUN curl -L https://repo.stackable.tech/repository/packages/druid/apache-druid-$
     # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
     curl https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz | tar -xzC /stackable/druid/extensions && \
     # Install OPA authorizer extension.
-    curl https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz | tar -xzC /stackable/druid/extensions
+    curl https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz | tar -xzC /stackable/druid/extensions && \
+    # Install jackson-dataformat-xml.jar which is used for logging.
+    curl -L -o /stackable/druid/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+        https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
 
 WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]

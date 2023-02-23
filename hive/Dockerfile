@@ -67,7 +67,7 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
 
 # Logging
 RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
-    curl https://repo.stackable.tech/repository/packages/hive-jackson-dataformat-xml/${PRODUCT}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    curl https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
     -o /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
     chmod -x /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
 
