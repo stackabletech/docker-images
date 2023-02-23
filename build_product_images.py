@@ -50,6 +50,7 @@ def parse_args() -> Namespace:
     parser.add_argument("-p", "--product", help="Product to build images for")
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
+    parser.add_argument("--print-built-tags", help="Dry run.", action="store_true")
     parser.add_argument(
         "-a",
         "--architecture",
@@ -264,6 +265,14 @@ def check_architecture_input(architecture):
     return architecture
 
 
+def get_tags_for_product(bakefile, product: str) -> List[str]:
+    tags = []
+    targets = bakefile["group"][product]["targets"]
+    for t in targets:
+        tags.extend(bakefile["target"][t]["tags"])
+    return tags
+
+
 def main():
     args = parse_args()
     bakefile = generate_bakefile(args)
@@ -277,6 +286,11 @@ def main():
     finally:
         if len(args.architecture) > 1:
             remove_virtual_environment(args)
+
+    if args.print_built_tags:
+        built_tags = get_tags_for_product(bakefile, args.product)
+        for t in built_tags:
+            print(t)
 
 
 if __name__ == "__main__":
