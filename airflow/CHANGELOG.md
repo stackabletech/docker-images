@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added git-sync functionality to the airflow image ([#337]).
+
+[#337]: https://github.com/stackabletech/docker-images/pull/337
+
 ### Changed
 
 - Upgraded to the base image vector:0.26.0-stackable1.1.0. The new base image
