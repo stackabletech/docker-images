@@ -156,6 +156,10 @@ products = [
         ]
     },
     {
+        'name': 'krb5',
+        'versions': [{'product': '1.18.2'}],
+    },
+    {
         'name': 'vector',
         'versions': [{'product': '0.26.0', 'stackable-base': '1.0.0'}],
     },
