@@ -3,7 +3,10 @@ from argparse import Namespace, ArgumentParser
 from typing import List
 import re
 
-DEFAULT_IMAGE_VERSION_FORMATS = [re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+"), re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?")]
+DEFAULT_IMAGE_VERSION_FORMATS = [
+    re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+"),
+    re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?"),
+]
 
 
 def parse() -> Namespace:
