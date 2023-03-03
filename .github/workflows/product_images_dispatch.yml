@@ -53,7 +53,8 @@ jobs:
         name: Build and push images on dispatch
         shell: bash
         run: python -m image_tools.bake -p ${{ github.event.inputs.product }} -i ${{ github.event.inputs.image-version }} -o ${{ github.event.inputs.organization }} -a ${{ github.event.inputs.architecture }} -u
-      - 
+
+      -
         name: Install preflight
         run: |
           curl -fLo preflight https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64

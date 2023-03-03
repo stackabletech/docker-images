@@ -1,8 +1,6 @@
 """Library code for image tools."""
 from dataclasses import dataclass, field
 from typing import List, Optional
-from collections.abc import Sequence
-from itertools import chain
 
 
 @dataclass(frozen=True)

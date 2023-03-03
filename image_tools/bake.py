@@ -11,7 +11,7 @@ import image_tools.conf as conf
 from image_tools.args import parse
 from typing import List, Dict, Any
 from argparse import Namespace
-from subprocess import run, CompletedProcess
+from subprocess import run
 import json
 
 

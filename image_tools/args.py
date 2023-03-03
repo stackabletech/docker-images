@@ -1,6 +1,6 @@
 # This is the stackable release version
 from argparse import Namespace, ArgumentParser
-from typing import List, Dict, Optional
+from typing import List
 import re
 
 DEFAULT_IMAGE_VERSION_FORMATS = [re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+"), re.compile("[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?")]
