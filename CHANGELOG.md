@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Prometheus image, NodeExporter image, Antora ([#95]).
 - Retired Java 1.8.0 support ([#248]).
 - Tools image ([#325]).
+- Replace `build_product_images.py` with the `image_tools` package and add OpenShift preflight checks for images ([xxx])
 
 [#95]: https://github.com/stackabletech/docker-images/pull/95
 [#248]: https://github.com/stackabletech/docker-images/pull/248
