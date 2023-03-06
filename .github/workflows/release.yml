@@ -52,4 +52,4 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Build and push images (single arch)
-        run: python build_product_images.py --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push

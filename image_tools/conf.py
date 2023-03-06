@@ -34,11 +34,17 @@ products = [
             {
                 'product': '0.23.0',
                 'java-base': '11',
+                'jackson_dataformat_xml': '2.10.5',
+                'stax2_api': '4.2.1',
+                'woodstox_core': '6.2.1',
                 'authorizer': '0.2.0',
             },
             {
                 'product': '24.0.0',
                 'java-base': '11',
+                'jackson_dataformat_xml': '2.10.5',
+                'stax2_api': '4.2.1',
+                'woodstox_core': '6.2.1',
                 'authorizer': '0.4.0',
             }
         ]
