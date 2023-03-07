@@ -18,7 +18,7 @@ LABEL name="Stackable Tools" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install iputils tar gzip zip openssl && \
+    microdnf install iputils tar gzip zip openssl gettext && \
     microdnf clean all
 
 COPY tools/licenses /licenses
