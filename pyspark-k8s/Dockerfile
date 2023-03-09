@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/stackable-base
+FROM stackable/image/vector
 
 ARG PRODUCT
 ARG PYTHON
@@ -26,7 +26,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install java-${JAVA}-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
     # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
