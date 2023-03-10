@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip clang krb5-libs libkadm5 -y \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
@@ -31,7 +31,7 @@ RUN mkdir /app
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . $HOME/.cargo/env && cargo build --release
+ONBUILD RUN . $HOME/.cargo/env && cargo build --release --workspace
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
