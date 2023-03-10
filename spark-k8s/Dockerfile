@@ -114,4 +114,4 @@ RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHOR
 # ===
 
 WORKDIR /stackable/spark
-ENTRYPOINT [ "/stackable/spark/kubernetes/dockerfiles/spark/entrypoint.sh" ]
+ENTRYPOINT [ "/stackable/run-spark.sh" ]
