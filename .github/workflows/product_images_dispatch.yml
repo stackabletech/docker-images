@@ -57,8 +57,9 @@ jobs:
       -
         name: Install preflight
         run: |
-          curl -fLo preflight https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          curl -Lo preflight https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
           chmod +x preflight
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
 
       -
         name: Run preflight
