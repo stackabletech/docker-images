@@ -4,9 +4,9 @@
 
 ### Added
 
-- Add krb5-workstation and openssl packages - needed for Kerberos support ([#346]).
+- Add krb5-workstation and openssl packages - needed for Kerberos support ([#347]).
 
-[#346]: https://github.com/stackabletech/docker-images/pull/346
+[#347]: https://github.com/stackabletech/docker-images/pull/347
 
 ## [3.2.2-stackable0.7.0] [3.3.1-stackable0.7.0] [3.3.3-stackable0.3.0] [3.3.4-stackable0.3.0] - 2022-12-27
 
