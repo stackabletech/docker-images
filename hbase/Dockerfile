@@ -18,7 +18,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip zip && \
-    microdnf install python3 python3-pip && \
+    microdnf install python3 python3-pip krb5-workstation openssl && \
     microdnf clean all
 
 RUN ln -s /usr/bin/python3 /usr/bin/python && \

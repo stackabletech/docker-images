@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add krb5-workstation and openssl packages - needed for Kerberos support ([#352]).
+
+[#352]: https://github.com/stackabletech/docker-images/pull/352
+
 ## [hbase2.4.6-stackable0.9.0] [hbase2.4.8-stackable0.9.0] [hbase2.4.9-stackable0.9.0] [hbase2.4.11-stackable0.9.0] [hbase2.4.12-stackable0.4.0] - 2022-12-21
 
 ### Changed
