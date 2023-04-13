@@ -300,6 +300,16 @@ products = [
                 'python': '3.8',
                 'vector': '0.26.0',
             },
+            {
+                'product': '2.0.0',
+                'python': '3.9',
+                'vector': '0.26.0',
+            },
+            {
+                'product': '2.1.0',
+                'python': '3.9',
+                'vector': '0.26.0',
+            },
         ],
     },
     {
