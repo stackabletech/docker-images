@@ -13,6 +13,7 @@ from typing import List, Dict, Any
 from argparse import Namespace
 from subprocess import run
 import json
+import re
 
 
 def build_image_args(version, release_version):
@@ -43,12 +44,18 @@ def build_image_args(version, release_version):
 
 def build_image_tags(image_name: str, image_version: str, product_version: str) -> List[str]:
     """
-    Returns the --tag command line arguments that are used by the docker build command.
+    Returns a list of --tag command line arguments that are used by the
+    docker build command.
+    Each image is tagged with two tags as follows:
+        1. <product>-<image>
+        2. <product>-<platform>
     """
+    arr = re.split("\\.", image_version)
+    platform_version = arr[0] + "." + arr[1]
     return [
         f"{image_name}:{product_version}-stackable{image_version}",
+        f"{image_name}:{product_version}-stackable{platform_version}",
     ]
-
 
 def generate_bakefile(args: Namespace) -> Dict[str, Any]:
     """
