@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [java-base-stackable0.3.0] - 2022-12-12
 
 ### Changed
