@@ -22,7 +22,7 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/repositories.yaml
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.65.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2 \
  && . $HOME/.cargo/env
 
 # Build artifacts will be available in /app.
