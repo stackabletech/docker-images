@@ -13,7 +13,13 @@ def parse() -> Namespace:
     parser = ArgumentParser(
         description="Build and publish product images. Requires docker and buildx (https://github.com/docker/buildx)."
     )
-    parser.add_argument("-i", "--image-version", help="Image version", required=True, type=check_image_version_format)
+    parser.add_argument(
+        "-i",
+        "--image-version",
+        help="Image version",
+        required=True,
+        type=check_image_version_format,
+    )
     parser.add_argument("-p", "--product", help="Product to build images for")
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")
