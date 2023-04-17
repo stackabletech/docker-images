@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 ## [stackable-base-stackable1.0.0] - 2022-12-12
 
 ### Added

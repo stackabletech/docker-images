@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 ## [zookeeper-stackable0.9.0] - 2022-12-12
 
 ### Changed

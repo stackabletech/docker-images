@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 ### Changed
 
 - Upgraded to the vector base image ([#328]).

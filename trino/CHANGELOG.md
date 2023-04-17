@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 All notable changes to this project will be documented in this file.
 
 ## [396-stackable0.1.0] - 2022-09-16

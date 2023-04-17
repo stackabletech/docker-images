@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 ### Changed
 
 - Upgraded to the base image java-base:11-stackable0.3.0. The java-base image

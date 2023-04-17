@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.4.0] - 2023-04-17
+
 ### Changed
 
 - Add multilog (daemontools) to opa image ([#333]).
