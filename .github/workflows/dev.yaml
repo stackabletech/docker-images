@@ -1,11 +1,9 @@
 ---
-name: Release product images
+name: Build development images (tagged with 0.0.0-dev) from main
 on:
   push:
-    tags:
-      # Tag names are used passed as 'image_version' to image_tools.bake and
-      # are validated there.
-      - '*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -52,4 +50,4 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Build and push images (single arch)
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --organization stackable --architecture linux/amd64 --push

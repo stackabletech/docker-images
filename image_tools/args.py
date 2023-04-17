@@ -6,6 +6,7 @@ import re
 DEFAULT_IMAGE_VERSION_FORMATS = [
     re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+"),
     re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?"),
+    re.compile(r"0\.0\.0-dev"),
 ]
 
 
