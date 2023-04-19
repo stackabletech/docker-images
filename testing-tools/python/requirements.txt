@@ -1,4 +1,4 @@
-charset-normalizer==2.0.12 # Do not upgrade to 2.1.0 (requests expects ~2.0.x)
+charset-normalizer==3.1.0 # Do not upgrade to 2.1.0 (requests expects ~2.0.x)
 hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 nipyapi==0.19.1
