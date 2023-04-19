@@ -62,7 +62,7 @@ RUN cat /tmp/patches/* | patch \
     --strip=1
 
 # Get statsd-exporter
-FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
+FROM prom/statsd-exporter:0.3.0@sha256:71c40fe9074b24e6f17c8c0ad02b3b2b7b6ef245defd977b4269c68372ef2562 as statsd-exporter
 
 # Final image
 FROM stackable/image/vector
