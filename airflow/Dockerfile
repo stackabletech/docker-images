@@ -28,7 +28,7 @@ RUN microdnf update \
         && pip install --no-cache-dir --upgrade pip \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 
-FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
+FROM prom/statsd-exporter:v0.23.1@sha256:75440b4fda85e4c603baaf7fedaeeedff0dfbca943bc7bafb94ade0355a7d02d as statsd-exporter
 FROM k8s.gcr.io/git-sync/git-sync:v3.6.4 as gitsync-image
 FROM stackable/image/vector AS airflow-main-image
 
