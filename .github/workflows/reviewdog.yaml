@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # tag=v3.3.0
-      - uses: reviewdog/action-detect-secrets@12f2ab19731110962f547d78960315f3065be4c4 # tag=v0.11.3
+      - uses: reviewdog/action-detect-secrets@ecb2ca4acd3915ce2dc4d566159b368d98c0ea8b # v0.11.5
         with:
           github_token: ${{ secrets.github_token }}
 
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
         with:
           python-version: "3.9"
-      - uses: reviewdog/action-flake8@b16c6ad82f65b138429a4633e9ba836ecfb66b15 # tag=v3.6.1
+      - uses: reviewdog/action-flake8@fe9cda430414b0ebe84c6419bd5e93f554012d38 # v3.6.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
