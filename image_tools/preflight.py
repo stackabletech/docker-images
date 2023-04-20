@@ -96,6 +96,12 @@ def parse_args() -> Namespace:
         help="Image registry to publish to. Default: docker.stackable.tech",
         default="docker.stackable.tech",
     )
+    parser.add_argument(
+        "-c",
+        "--preflight-cmd",
+        help="Name of the preflight program. Default: preflight",
+        default="preflight",
+    )
 
     result = parser.parse_args()
 
@@ -109,7 +115,7 @@ def preflight_commands(images: List[str], args: Namespace) -> Dict[str, Command]
     """A mapping of image name to preflight command"""
     result = {}
     for img in images:
-        cmd_args = ["preflight", "check", "container", img]
+        cmd_args = [args.preflight_cmd, "check", "container", img]
         if args.submit:
             cmd_args.extend(
                 [
