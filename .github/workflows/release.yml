@@ -1,5 +1,5 @@
 ---
-name: Release product images
+name: Publish release images
 on:
   push:
     tags:
@@ -33,7 +33,6 @@ jobs:
           - tools
           - zookeeper
     env:
-      GITHUB_REF: ${{ github.ref }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
@@ -52,7 +51,7 @@ jobs:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
-      - name: Build and push images (single arch)
+      - name: Publish release product images
         run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
   preflight:
     name: ${{ matrix.product }} preflight checks

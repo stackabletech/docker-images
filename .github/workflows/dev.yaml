@@ -1,5 +1,5 @@
 ---
-name: Build development images (tagged with 0.0.0-dev) from main
+name: Publish 0.0.0-dev images
 on:
   push:
     branches:
@@ -29,9 +29,6 @@ jobs:
           - trino
           - tools
           - zookeeper
-    env:
-      GITHUB_REF: ${{ github.ref }}
-      GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
@@ -49,8 +46,8 @@ jobs:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
-      - name: Build and push images (single arch)
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --organization stackable --architecture linux/amd64 --push
+      - name: Publish dev images
+        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
@@ -78,8 +75,6 @@ jobs:
           - trino
           - tools
           - zookeeper
-    env:
-      GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
