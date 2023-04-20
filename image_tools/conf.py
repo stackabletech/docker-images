@@ -330,4 +330,10 @@ products = [
             {"product": "3.8.0", "java-base": "11"},
         ],
     },
+    {
+        'name': 'tools',
+        'versions': [
+            {'product': '1.0.0', 'kubectl_version': '1.26.2', 'jq_version': '1.6', 'stackable-base': '1.0.0'},
+        ],
+    },
 ]
