@@ -30,6 +30,7 @@ jobs:
           - spark-k8s
           - superset
           - trino
+          - tools
           - zookeeper
     env:
       GITHUB_REF: ${{ github.ref }}
