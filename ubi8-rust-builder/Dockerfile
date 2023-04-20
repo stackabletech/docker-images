@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6@sha256:c5ffdf5938d73283cec018f2adf59f0ed9f8c376d93e415a27b16c3c6aad6f45 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7@sha256:3e1adcc31c6073d010b8043b070bd089d7bf37ee2c397c110211a6273453433f AS builder
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip clang krb5-libs libkadm5 -y \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
@@ -22,7 +22,7 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/repositories.yaml
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.65.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2 \
  && . $HOME/.cargo/env
 
 # Build artifacts will be available in /app.
@@ -31,7 +31,7 @@ RUN mkdir /app
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . $HOME/.cargo/env && cargo build --release
+ONBUILD RUN . $HOME/.cargo/env && cargo build --release --workspace
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \

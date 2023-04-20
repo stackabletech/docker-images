@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## spark-stackable0.3.0 - 2022-02-21
 
 ### Added

@@ -37,13 +37,17 @@ def get_preflight_failures(image_commands: Dict[str, Command]) -> Dict[str, List
     failures = {}
     for image, cmd in image_commands.items():
         try:
-            preflight_result = subprocess.run(cmd.args, input=cmd.input, check=True, capture_output=True)
+            preflight_result = subprocess.run(
+                cmd.args, input=cmd.input, check=True, capture_output=True
+            )
             preflight_json = json.loads(preflight_result.stdout)
             failures[image] = preflight_json.get("results", {}).get("failed", [])
         except subprocess.CalledProcessError as error:
-            failures[image] = [error.stderr.decode('utf-8')]
+            failures[image] = [error.stderr.decode("utf-8")]
         except FileNotFoundError:
-            failures[image] = ["preflight: command not found. Install from https://github.com/redhat-openshift-ecosystem/openshift-preflight"]
+            failures[image] = [
+                "preflight: command not found. Install from https://github.com/redhat-openshift-ecosystem/openshift-preflight"
+            ]
         except json.JSONDecodeError as error:
             failures[image] = [error.msg]
     return failures
@@ -51,7 +55,11 @@ def get_preflight_failures(image_commands: Dict[str, Command]) -> Dict[str, List
 
 def main() -> int:
     """Run OpenShift verification checks against the product images."""
-    logging.basicConfig(encoding="utf-8", level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+    logging.basicConfig(
+        encoding="utf-8",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
 
     args = parse()
     bakefile = generate_bakefile(args)
@@ -62,7 +70,10 @@ def main() -> int:
         return 1
 
     # A mapping of image name to preflight command
-    image_commands = {image: Command(args=["preflight", "check", "container", image]) for image in images}
+    image_commands = {
+        image: Command(args=["preflight", "check", "container", image])
+        for image in images
+    }
 
     if args.dry:
         for _, cmd in image_commands.items():
@@ -76,11 +87,13 @@ def main() -> int:
         if len(img_fails) == 0:
             logging.info("Image [%s] preflight check successful.", image)
         else:
-            logging.error("Image [%s] preflight check failures: %s", image, ",".join(img_fails))
+            logging.error(
+                "Image [%s] preflight check failures: %s", image, ",".join(img_fails)
+            )
 
     fail_count = sum(map(lambda f: len(f), failures.values()))
     return fail_count
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

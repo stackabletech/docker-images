@@ -6,6 +6,7 @@ from typing import List, Optional
 @dataclass(frozen=True)
 class Command:
     """Command line program including arguments and optional standard input."""
+
     args: List[str] = field(default_factory=list)
     stdin: Optional[str] = field(default=None)
 
@@ -21,4 +22,4 @@ class Command:
         if self.stdin:
             return f"{' '.join(self.args)} <<<EOF\n{self.stdin}\nEOF;"
         else:
-            return ' '.join(self.args)
+            return " ".join(self.args)

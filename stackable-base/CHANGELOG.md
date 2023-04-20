@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### changed
+
+- Update ubi-minimal base image from 8.6 to 8.7@sha256:3e1adcc31c6073d010b8043b070bd089d7bf37ee2c397c110211a6273453433f
+
 ## [stackable-base-stackable1.0.0] - 2022-12-12
 
 ### Added

@@ -16,7 +16,7 @@ LABEL name="Apache Hadoop" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip && \
+    microdnf install tar gzip zip krb5-workstation openssl && \
     microdnf clean all
 
 COPY --chown=stackable:stackable hadoop/stackable /stackable

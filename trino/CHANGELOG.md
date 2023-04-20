@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 All notable changes to this project will be documented in this file.
 
 ## [396-stackable0.1.0] - 2022-09-16

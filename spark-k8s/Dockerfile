@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/stackable-base
+FROM stackable/image/vector
 
 ARG PRODUCT
 ARG HADOOP_SHORT_VERSION
@@ -7,6 +7,9 @@ ARG HADOOP_LONG_VERSION
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
+ARG JACKSON_DATAFORMAT_XML
+ARG STAX2_API
+ARG WOODSTOX_CORE
 ARG RELEASE
 
 LABEL name="Apache Spark" \
@@ -23,7 +26,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
-    microdnf install shadow-utils && \
     # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
@@ -74,6 +76,15 @@ RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault
     -o /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
     chmod -x /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
+# Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
+RUN mkdir /stackable/spark/extra-jars && \
+    curl -L -o /stackable/spark/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+        https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    curl -L -o /stackable/spark/extra-jars/stax2-api-${STAX2_API}.jar \
+        https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar && \
+    curl -L -o /stackable/spark/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar \
+        https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+
 # Download jmx exporter (needed for metrics)
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
@@ -103,4 +114,4 @@ RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHOR
 # ===
 
 WORKDIR /stackable/spark
-ENTRYPOINT [ "/stackable/spark/kubernetes/dockerfiles/spark/entrypoint.sh" ]
+ENTRYPOINT [ "/stackable/run-spark.sh" ]
