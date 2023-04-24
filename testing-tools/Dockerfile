@@ -27,7 +27,6 @@ RUN apt-get update && \
         pkg-config \
         python3-certifi \
         python3-idna \
-        python3-requests \
         python3-semver \
         python3-thrift \
         python3-toml \
