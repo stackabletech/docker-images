@@ -29,6 +29,7 @@ jobs:
           - pyspark-k8s
           - spark-k8s
           - superset
+          - testing-tools
           - trino
           - tools
           - zookeeper

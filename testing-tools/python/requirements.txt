@@ -1,7 +1,8 @@
-charset-normalizer==2.0.12 # Do not upgrade to 2.1.0 (requests expects ~2.0.x)
+requests==2.28.2
+charset-normalizer==3.1.0 #
 hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 nipyapi==0.19.1
-pandas==1.5.0
-trino==0.318.0
+pandas==1.5.3
+trino==0.322.0
 #thrift==0.13.0 # Installed as deb package because it fails to build from source with pip. Needs to match the version from hive-metastore-client

@@ -318,7 +318,7 @@ products = [
     },
     {
         "name": "testing-tools",
-        "versions": [{"product": "0.1.0"}],
+        "versions": [{"product": "0.2.0"}],
     },
     {
         # ZooKeeper must be at least 3.5.0
