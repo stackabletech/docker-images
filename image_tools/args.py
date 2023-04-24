@@ -6,6 +6,7 @@ import re
 DEFAULT_IMAGE_VERSION_FORMATS = [
     re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+"),
     re.compile(r"[2-9][0-9]\.[1-9][0-2]?\.\d+-rc[1-9]\d?"),
+    re.compile(r"0\.0\.0-dev"),
 ]
 
 
@@ -13,7 +14,13 @@ def parse() -> Namespace:
     parser = ArgumentParser(
         description="Build and publish product images. Requires docker and buildx (https://github.com/docker/buildx)."
     )
-    parser.add_argument("-i", "--image-version", help="Image version", required=True, type=check_image_version_format)
+    parser.add_argument(
+        "-i",
+        "--image-version",
+        help="Image version",
+        required=True,
+        type=check_image_version_format,
+    )
     parser.add_argument("-p", "--product", help="Product to build images for")
     parser.add_argument("-u", "--push", help="Push images", action="store_true")
     parser.add_argument("-d", "--dry", help="Dry run.", action="store_true")

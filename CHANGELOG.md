@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Added labels for openshift requirements and licenses for all images ([#95]).
 - Added `RELEASE` ARG for all images ([#95]).
+- Added krb5 image ([#338]).
 
 ### Changed
 
@@ -31,4 +32,5 @@ All notable changes to this project will be documented in this file.
 [#321]: https://github.com/stackabletech/docker-images/pull/321
 [#325]: https://github.com/stackabletech/docker-images/pull/325
 [#326]: https://github.com/stackabletech/docker-images/pull/326
+[#338]: https://github.com/stackabletech/docker-images/pull/338
 [#339]: https://github.com/stackabletech/docker-images/pull/339

@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `jackson-dataformat-xml`, `stax2-api`, and `woodstox-core` added which are
+  used for XML log output ([#342]).
+
+### Changed
+
+- Base image changed to `stackable/image/vector` ([#342]).
+
+[#342]: https://github.com/stackabletech/docker-images/pull/342
+
 ## [3.3.0-stackable0.2.0] - 2022-09-13
 
 ### Added
