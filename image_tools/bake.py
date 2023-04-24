@@ -71,9 +71,9 @@ def generate_bakefile(args: Namespace) -> Dict[str, Any]:
     groups = {}
     product_names = [product["name"] for product in conf.products]
     for product in conf.products:
-        product_name = product["name"]
+        product_name: str = product["name"]
         product_targets = {}
-        for version_dict in product.get("versions"):
+        for version_dict in product.get("versions", []):
             product_targets.update(
                 bakefile_product_version_targets(
                     args, product_name, version_dict, product_names

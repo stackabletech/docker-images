@@ -1,5 +1,5 @@
 ---
-name: Release product images
+name: Publish release images
 on:
   push:
     tags:
@@ -30,17 +30,17 @@ jobs:
           - spark-k8s
           - superset
           - trino
+          - tools
           - zookeeper
     env:
-      GITHUB_REF: ${{ github.ref }}
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
       - name: Set up QEMU for multiarch builds
         uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # tag=v2
+        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # tag=v2
       - name: Install python 3
         uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
         with:
@@ -51,5 +51,47 @@ jobs:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
-      - name: Build and push images (single arch)
+      - name: Publish release product images
         run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+  preflight:
+    name: ${{ matrix.product }} preflight checks
+    # Run preflight checks and submit results to the RH certification portal.
+    # This job only runs if the "release" job was successful
+    # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      # This setting can be changed to throttle the build load
+      # max-parallel: 1
+      matrix:
+        product:
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - nifi
+          - opa
+          - pyspark-k8s
+          - spark-k8s
+          - superset
+          - trino
+          - tools
+          - zookeeper
+    env:
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+      - name: Install python 3
+        uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435 # tag=v4
+        with:
+          python-version: '3.x'
+      - name: Install preflight
+        run: |
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          chmod +x preflight-linux-amd64
+      - name: Submit images to OpenShift certification projects
+        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit
