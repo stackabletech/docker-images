@@ -298,7 +298,17 @@ products = [
                 "vector": "0.26.0",
             },
             {
+                "product": "1.4.2",
+                "python": "3.9",
+                "vector": "0.26.0",
+            },
+            {
                 "product": "1.5.1",
+                "python": "3.8",
+                "vector": "0.26.0",
+            },
+            {
+                "product": "1.5.3",
                 "python": "3.8",
                 "vector": "0.26.0",
             },
