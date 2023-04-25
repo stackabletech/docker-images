@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bullseye@sha256:13b98a4ddf43c98e3f91bd5136844ff0b0c1d2a4c913b4a430d552a43d4c7b3b AS builder
+FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e AS builder
 
 ARG PRODUCT
 ARG RELEASE
@@ -27,7 +27,6 @@ RUN apt-get update && \
         pkg-config \
         python3-certifi \
         python3-idna \
-        python3-requests \
         python3-semver \
         python3-thrift \
         python3-toml \
