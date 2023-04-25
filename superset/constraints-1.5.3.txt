@@ -1,3 +1,4 @@
+# from https://raw.githubusercontent.com/apache/superset/1.5.3/requirements/base.txt
 aiohttp==3.7.4.post0
     # via slackclient
 alembic==1.6.5
@@ -289,6 +290,14 @@ yarl==1.6.3
     # via aiohttp
 zipp==3.4.1
     # via -r requirements/base.in
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
+# from https://raw.githubusercontent.com/apache/superset/1.5.3/requirements/docker.txt
+gevent==21.8.0
+    # via -r requirements/docker.in
+greenlet==1.1.1
+    # via gevent
+psycopg2-binary==2.9.1
+    # via -r requirements/docker.in
+zope.event==4.5.0
+    # via gevent
+zope.interface==5.4.0
+    # via gevent
