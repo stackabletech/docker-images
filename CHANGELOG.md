@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Added labels for openshift requirements and licenses for all images ([#95]).
 - Added `RELEASE` ARG for all images ([#95]).
 - Added krb5 image ([#338]).
+- Added NiFi version `1.20.0`, `1.21.0` ([#365]).
 
 ### Changed
 
@@ -34,3 +35,4 @@ All notable changes to this project will be documented in this file.
 [#326]: https://github.com/stackabletech/docker-images/pull/326
 [#338]: https://github.com/stackabletech/docker-images/pull/338
 [#339]: https://github.com/stackabletech/docker-images/pull/339
+[#365]: https://github.com/stackabletech/docker-images/pull/365
