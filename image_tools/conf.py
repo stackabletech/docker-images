@@ -313,7 +313,7 @@ products = [
                 "vector": "0.26.0",
             },
             {
-                'product': '2.0.0',
+                'product': '2.0.1',
                 'python': '3.9',
                 'vector': '0.26.0',
             },
