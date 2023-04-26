@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added NiFi version `1.20.0`, `1.21.0` ([#365]).
+
 ### Changed
 
 - Upgraded to the base image java-base:11-stackable0.3.0. The java-base image
@@ -10,3 +14,4 @@
   this image ([#297]).
 
 [#297]: https://github.com/stackabletech/docker-images/pull/297
+[#365]: https://github.com/stackabletech/docker-images/pull/365
