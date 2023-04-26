@@ -87,6 +87,11 @@ products = [
                 "phoenix": "2.4-5.1.2",
             },
             {
+                "product": "2.4.17",
+                "java-base": "11",
+                "phoenix": "2.4-5.1.2",
+            },
+            {
                 'product': '2.5.3',
                 'java-base': '11',
                 'phoenix': '2.5-5.1.3',

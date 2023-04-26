@@ -4,7 +4,7 @@
 
 ### Added
 
-- Add versions `2.5.3` and `2.5.3-hadoop3` ([#352]).
+- Add versions `2.4.17`, `2.5.3` and `2.5.3-hadoop3` ([#352]).
 - Add krb5-workstation and openssl packages - needed for Kerberos support ([#352]).
 
 [#352]: https://github.com/stackabletech/docker-images/pull/352
