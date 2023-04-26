@@ -13,7 +13,7 @@
 
 ### Changed
 
-- Bump to Apache Phoenix `5.1.3 ([#352]).
+- Bump to Apache Phoenix `5.1.3` ([#352]).
 - Upgraded to the base image java-base:11-stackable0.3.0. The java-base image
   contains a layer which provides Vector. The creation of the stackable user
   and group happens in the stackable-base layer and is therefore removed from
