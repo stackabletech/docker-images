@@ -69,7 +69,6 @@ jobs:
           - hbase
           - hive
           - kafka
-          - krb5
           - nifi
           - opa
           - pyspark-k8s
