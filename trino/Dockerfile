@@ -3,6 +3,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG OPA_AUTHORIZER
+ARG JMX_EXPORTER
 ARG RELEASE
 
 LABEL name="Trino" \
@@ -17,7 +18,7 @@ LABEL name="Trino" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip python3 openssl shadow-utils && \
+    microdnf install tar gzip zip python3 openssl && \
     microdnf clean all && \
     alternatives --set python /usr/bin/python3
 
@@ -30,9 +31,10 @@ COPY --chown=stackable:stackable trino/licenses /licenses
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
 
