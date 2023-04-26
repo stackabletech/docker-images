@@ -1,8 +1,21 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
 ## [Unreleased]
 
-All notable changes to this project will be documented in this file.
+## [414] - 2023-04-26
+
+### Added
+
+- Added Trino version 414 ([#367]).
+- Make soft link for `jmx-exporter` e.g. `jmx_prometheus_javaagent-<version>.jar` -> `jmx_prometheus_javaagent.jar` ([#367]).
+
+### Changed
+
+- Make `jmx-exporter` configurable in `conf.py` ([#367]).
+
+[#367]: https://github.com/stackabletech/docker-images/pull/367
 
 ## [396-stackable0.1.0] - 2022-09-16
 
