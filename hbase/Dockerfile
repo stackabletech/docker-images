@@ -3,6 +3,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG PHOENIX
+ARG JACKSON_DATAFORMAT_XML
 ARG RELEASE
 
 LABEL name="Apache HBase" \
@@ -39,7 +40,10 @@ RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUC
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     curl -L https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
-    ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
+    ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar && \
+    # Install jackson-dataformat-xml which is required for xml logging with log4j2 (starting from hbase version 2.5)
+    curl -L -o /stackable/hbase/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+        https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 

@@ -6,6 +6,7 @@
 
 - Add versions `2.4.17`, `2.5.3` and `2.5.3-hadoop3` ([#352]).
 - Add krb5-workstation and openssl packages - needed for Kerberos support ([#352]).
+- Add `jackson-dataformat-xml` library (used for logging) ([#352]).
 
 ### Changed
 
