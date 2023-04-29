@@ -8,11 +8,11 @@
 - update Python base image from 3.10-slim-bullseye to 3.11-slim-bullseye ([#316])
 - update various Python packages ([#361])
 - added to GH actions (but not to the preflight checks) ([#361])
-- requirements.txt: added aws-cli ([#xxx])
+- requirements.txt: added aws-cli ([#368])
 
 [#316]: https://github.com/stackabletech/docker-images/pull/316
 [#361]: https://github.com/stackabletech/docker-images/pull/361
-[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
+[#368]: https://github.com/stackabletech/docker-images/pull/368
 
 ## [23.4.0] - 2023.04.20
 
