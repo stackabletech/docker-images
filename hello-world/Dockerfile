@@ -21,6 +21,6 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar -o hello.jar
 
-CMD ["java" "-jar" "hello-world-${PRODUCT}.jar"]
+CMD ["java", "-jar", "hello.jar", "--spring.config.location=file:mount/config/"]
