@@ -90,6 +90,9 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/jmx-exporter/
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+# Symlink example jar, so that we can easily use it in tests
+RUN ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
