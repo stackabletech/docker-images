@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+FROM stackable/image/java-base
+
+ARG PRODUCT
+ARG RELEASE
+
+LABEL name="Hello World" \
+      maintainer="info@stackable.de" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Druid." \
+      description="This image is deployed by the Stackable Operator for Apache Druid."
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN microdnf update && \
+    microdnf clean all
+
+USER stackable
+WORKDIR /stackable
+
+RUN curl -L https://repo.stackable.tech/repository/packages/edc/dataspace-connector.jar -o connector.jar
+
+ENTRYPOINT java -Dedc.keystore=./mount/cert/cert.pfx -Dedc.keystore.password=123456 -Dedc.vault=./mount/cert/vault.properties -jar -Dedc.fs.config=./mount/config/config.properties ./connector.jar

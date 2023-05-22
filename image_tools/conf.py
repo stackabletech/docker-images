@@ -50,6 +50,15 @@ products = [
         ],
     },
     {
+        "name": "edc",
+        "versions": [
+            {
+                "product": "0.0.1-SNAPSHOT",
+                "java-base": "17",
+            },
+        ],
+    },
+    {
         "name": "hadoop",
         "versions": [
             {"product": "3.2.2", "java-base": "11"},
