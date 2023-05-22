@@ -260,6 +260,22 @@ products = [
                 "woodstox_core": "6.2.1",
                 "vector": "0.26.0",
             },
+            {
+                "product": "3.4.0",
+                "spark": "3.4.0",
+                "stackable-base": "1.0.0",
+                "python": "3.11",
+                "java": "11",
+                "hadoop_short_version": "3",
+                "hadoop_long_version": "3.3.4",
+                "aws_java_sdk_bundle": "1.12.262",
+                "azure_storage": "7.0.1",
+                "azure_keyvault_core": "1.0.0",
+                "jackson_dataformat_xml": "2.15.1",
+                "stax2_api": "4.2.1",
+                "woodstox_core": "6.5.1",
+                "vector": "0.26.0",
+            },
         ],
     },
     {
@@ -285,6 +301,19 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
+                "vector": "0.26.0",
+            },
+            {
+                "product": "3.4.0",
+                "stackable-base": "1.0.0",
+                "hadoop_short_version": "3",
+                "hadoop_long_version": "3.3.4", # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
+                "aws_java_sdk_bundle": "1.12.262", # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1", # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0", # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.15.1", # latest and greatest
+                "stax2_api": "4.2.1", # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.1
+                "woodstox_core": "6.5.1", # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.1
                 "vector": "0.26.0",
             },
         ],
