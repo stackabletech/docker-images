@@ -217,18 +217,6 @@ products = [
         "name": "pyspark-k8s",
         "versions": [
             {
-                "product": "3.2.1",
-                "spark": "3.2.1",
-                "stackable-base": "1.0.0",
-                "python": "39",
-                "java": "11",
-                "hadoop_short_version": "3.2",
-                "jackson_dataformat_xml": "2.12.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
-            },
-            {
                 "product": "3.3.0",
                 "spark": "3.3.0",
                 "stackable-base": "1.0.0",
@@ -281,15 +269,6 @@ products = [
     {
         "name": "spark-k8s",
         "versions": [
-            {
-                "product": "3.2.1",
-                "stackable-base": "1.0.0",
-                "hadoop_short_version": "3.2",
-                "jackson_dataformat_xml": "2.12.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
-            },
             {
                 "product": "3.3.0",
                 "stackable-base": "1.0.0",
