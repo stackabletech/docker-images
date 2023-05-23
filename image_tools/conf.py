@@ -373,5 +373,5 @@ open_shift_projects = {
     "superset": {"id": "62557e5fea1feb8bec4aaaa0"},
     "tools": {"id": "62557cd575ab7e30884aaaa0"},
     "trino": {"id": "62557c4a0030f6483318e203"},
-    "zookeeper": {"id": "62552b0aadd9d54d56cda11d "},
+    "zookeeper": {"id": "62552b0aadd9d54d56cda11d"},
 }
