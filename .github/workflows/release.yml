@@ -54,7 +54,7 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish release product images
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+        run: echo python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
   preflight:
     name: ${{ matrix.product }} preflight checks
     # Run preflight checks and submit results to the RH certification portal.
@@ -93,7 +93,10 @@ jobs:
           python-version: '3.x'
       - name: Install preflight
         run: |
-          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/1.6.2/download/preflight-linux-amd64
           chmod +x preflight-linux-amd64
+      - name: Debug - Submit images to OpenShift certification projects
+        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit --dry
       - name: Submit images to OpenShift certification projects
         run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit
+
