@@ -95,8 +95,6 @@ jobs:
         run: |
           wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.6.2/preflight-linux-amd64
           chmod +x preflight-linux-amd64
-      - name: Debug - Submit images to OpenShift certification projects
-        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit --dry
       - name: Submit images to OpenShift certification projects
         run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit
 
