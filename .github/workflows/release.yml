@@ -65,7 +65,10 @@ jobs:
     strategy:
       fail-fast: true
       # This setting can be changed to throttle the build load
-      # max-parallel: 1
+      # Another reason to have no parallelism is that the RedHat portal is not reliable and
+      # and preflight submissions are not idempotent. This means that if one of the products below
+      # fails, we need to clean up everything that was done for all other products in the failed run.
+      max-parallel: 1
       matrix:
         product:
           - airflow
