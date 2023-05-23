@@ -16,6 +16,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG SCALA
 ARG OPA_AUTHORIZER
+ARG JMX_EXPORTER
 ARG RELEASE
 
 LABEL name="Apache Kafka" \
@@ -43,8 +44,10 @@ COPY --chown=stackable:stackable kafka/licenses /licenses
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 
-RUN curl -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
