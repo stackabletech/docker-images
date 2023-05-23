@@ -14,7 +14,7 @@
 - Update `jmx-exporter` to `0.18.0` ([#376]).
 - Update `kafka-opa-authorizer` to `1.5.1` ([#376]).
 
-[#306]: https://github.com/stackabletech/docker-images/pull/376
+[#376]: https://github.com/stackabletech/docker-images/pull/376
 
 ## [kafka-stackable0.3.0] - 2022-03-04
 
