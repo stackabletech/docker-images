@@ -54,7 +54,7 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish release product images
-        run: echo python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
   preflight:
     name: ${{ matrix.product }} preflight checks
     # Run preflight checks and submit results to the RH certification portal.
