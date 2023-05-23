@@ -46,7 +46,7 @@ RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}
 
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
