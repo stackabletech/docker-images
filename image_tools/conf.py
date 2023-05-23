@@ -217,6 +217,22 @@ products = [
         "name": "pyspark-k8s",
         "versions": [
             {
+                "product": "3.2.1",
+                "spark": "3.2.1",
+                "stackable-base": "1.0.0",
+                "python": "39",
+                "java": "11",
+                "hadoop_short_version": "3.2",
+                "hadoop_long_version": "3.3.1",
+                "aws_java_sdk_bundle": "1.11.901",
+                "azure_storage": "7.0.1",
+                "azure_keyvault_core": "1.0.0",
+                "jackson_dataformat_xml": "2.12.3",
+                "stax2_api": "4.2.1",
+                "woodstox_core": "6.2.1",
+                "vector": "0.26.0",
+            },
+            {
                 "product": "3.3.0",
                 "spark": "3.3.0",
                 "stackable-base": "1.0.0",
