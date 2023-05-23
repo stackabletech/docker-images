@@ -40,7 +40,7 @@ def get_preflight_failures(image_commands: Dict[str, Command]) -> Dict[str, List
     for image, cmd in image_commands.items():
         try:
             preflight_result = subprocess.run(
-                cmd.args, input=cmd.input, check=True, capture_output=True
+                cmd.args, input=cmd.input, check=True, stdout=subprocess.PIPE
             )
             preflight_json = json.loads(preflight_result.stdout)
             failures[image] = preflight_json.get("results", {}).get("failed", [])
@@ -118,7 +118,8 @@ def preflight_commands(images: List[str], args: Namespace) -> Dict[str, Command]
         cmd_args = [args.preflight_cmd, "check", "container", img]
         if args.submit:
             cmd_args.extend(
-                [
+                [   "--loglevel",
+                    "trace",
                     "--submit",
                     "--pyxis-api-token",
                     args.token,
