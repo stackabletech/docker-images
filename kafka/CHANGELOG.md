@@ -12,7 +12,7 @@
 
 - Make soft link for `jmx-exporter` e.g. `jmx_prometheus_javaagent-<version>.jar` -> `jmx_prometheus_javaagent.jar` ([#376]).
 - Update `jmx-exporter` to `0.18.0` ([#376]).
-- Update `kafka-opa-authorizer` to `1.5.1` ([#376]). 
+- Update `kafka-opa-authorizer` to `1.5.1` ([#376]).
 
 [#306]: https://github.com/stackabletech/docker-images/pull/376
 
