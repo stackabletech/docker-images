@@ -46,7 +46,7 @@ ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 # according to arch, copy binary to the name "tini"
-RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch)
+RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-$(arch)"
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses

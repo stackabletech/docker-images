@@ -37,7 +37,7 @@ ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 
 # according to arch, copy binary to the name "tini"
-RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch)
+RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-$(arch)"
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses
