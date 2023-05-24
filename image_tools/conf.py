@@ -26,6 +26,11 @@ products = [
                 "python": "39",
                 "vector": "0.26.0",
             },
+            {
+                "product": "2.6.1",
+                "python": "39",
+                "vector": "0.26.0",
+            },
         ],
     },
     {
