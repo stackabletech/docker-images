@@ -2,6 +2,7 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG JMX_EXPORTER
 ARG RELEASE
 
 LABEL name="Apache ZooKeeper" \
@@ -29,9 +30,10 @@ WORKDIR /stackable
 RUN curl -L https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/zookeeper
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
