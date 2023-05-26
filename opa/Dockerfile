@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM stackable/image/vector AS opa-bundle-builder
 
-ARG BUNDLE_BUILDER_VERSION=1.0.0
+ARG BUNDLE_BUILDER_VERSION
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
