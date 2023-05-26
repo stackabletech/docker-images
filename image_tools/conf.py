@@ -208,25 +208,35 @@ products = [
     {
         "name": "opa",
         "versions": [
+            # {
+            #     "product": "0.27.1",
+            #     "vector": "0.26.0",
+            #     "opa_bundle_builder_version": "1.0.0",
+            # },
+            # {
+            #     "product": "0.28.0",
+            #     "vector": "0.26.0",
+            #     "opa_bundle_builder_version": "1.0.0",
+            # },
+            # {
+            #     "product": "0.37.2",
+            #     "vector": "0.26.0",
+            #     "opa_bundle_builder_version": "1.0.0",
+            # },
+            # {
+            #     "product": "0.41.0",
+            #     "vector": "0.26.0",
+            #     "opa_bundle_builder_version": "1.0.0",
+            # },
+            # {
+            #     "product": "0.45.0",
+            #     "vector": "0.26.0",
+            #     "opa_bundle_builder_version": "1.0.0",
+            # },
             {
-                "product": "0.27.1",
+                "product": "0.51.0",
                 "vector": "0.26.0",
-            },
-            {
-                "product": "0.28.0",
-                "vector": "0.26.0",
-            },
-            {
-                "product": "0.37.2",
-                "vector": "0.26.0",
-            },
-            {
-                "product": "0.41.0",
-                "vector": "0.26.0",
-            },
-            {
-                "product": "0.45.0",
-                "vector": "0.26.0",
+                "bundle_builder_version": "1.1.0",
             },
         ],
     },

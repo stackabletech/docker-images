@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM stackable/image/vector AS opa-bundle-builder
 
+ARG BUNDLE_BUILDER_VERSION=1.0.0
+
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -13,7 +15,7 @@ RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablere
 WORKDIR /
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN git clone --depth 1 --branch 1.0.0 https://github.com/stackabletech/opa-bundle-builder
+RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
 RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
 FROM stackable/image/vector AS multilog-builder
