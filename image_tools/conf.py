@@ -409,10 +409,11 @@ products = [
         # ZooKeeper must be at least 3.5.0
         "name": "zookeeper",
         "versions": [
-            {"product": "3.5.8", "java-base": "11"},
-            {"product": "3.6.3", "java-base": "11"},
-            {"product": "3.7.0", "java-base": "11"},
-            {"product": "3.8.0", "java-base": "11"},
+            # {"product": "3.5.8", "java-base": "11", "jmx_exporter": "0.16.1"},
+            # {"product": "3.6.3", "java-base": "11", "jmx_exporter": "0.16.1"},
+            # {"product": "3.7.0", "java-base": "11", "jmx_exporter": "0.16.1"},
+            # {"product": "3.8.0", "java-base": "11", "jmx_exporter": "0.16.1"},
+            {"product": "3.8.1", "java-base": "11", "jmx_exporter": "0.18.0"},
         ],
     },
     {
