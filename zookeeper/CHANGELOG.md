@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added ZooKeeper version 3.8.1 ([#381]).
+- Make soft link for `jmx-exporter` e.g. `jmx_prometheus_javaagent-<version>.jar` -> `jmx_prometheus_javaagent.jar` ([#381]).
+
+[#381]: https://github.com/stackabletech/docker-images/pull/381
+
 ## [zookeeper-stackable0.9.0] - 2022-12-12
 
 ### Changed
