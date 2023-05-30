@@ -52,6 +52,14 @@ products = [
                 "woodstox_core": "6.2.1",
                 "authorizer": "0.4.0",
             },
+            {
+                "product": "26.0.0",
+                "java-base": "11",
+                "jackson_dataformat_xml": "2.10.5",
+                "stax2_api": "4.2.1",
+                "woodstox_core": "6.2.1",
+                "authorizer": "0.5.0",
+            },
         ],
     },
     {
