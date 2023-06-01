@@ -53,7 +53,7 @@ products = [
         "name": "edc",
         "versions": [
             {
-                "product": "0.0.1-SNAPSHOT",
+                "product": "77c6e17",
                 "java-base": "17",
             },
         ],

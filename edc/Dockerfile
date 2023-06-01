@@ -21,6 +21,6 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/edc/dataspace-connector.jar -o connector.jar
+RUN curl -L https://repo.stackable.tech/repository/packages/edc/dataspace-connector-${PRODUCT}.jar -o connector.jar
 
-CMD ["java", "-Dedc.keystore=./mount/cert/cert.pfx", "-Dedc.keystore.password=123456", "-Dedc.vault=./mount/cert/vault.properties", "-Dedc.fs.config=./mount/config/config.properties", "-jar", "connector.jar" ]
+CMD ["java", "-Dedc.fs.config=./mount/config/config.properties", "-jar", "connector.jar" ]
