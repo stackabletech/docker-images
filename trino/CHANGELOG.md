@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add `htpasswd` tool  ([#XXX]).
+
 ## [414] - 2023-04-26
 
 ### Added
