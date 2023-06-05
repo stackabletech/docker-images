@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add `htpasswd` tool ([#385]).
+
+[#385]: https://github.com/stackabletech/docker-images/pull/385
+
 ## [414] - 2023-04-26
 
 ### Added

@@ -5,8 +5,10 @@
 ### Added
 
 - Added git-sync functionality to the airflow image ([#337]).
+- Added new airflow version `2.6.1` ([#379]).
 
 [#337]: https://github.com/stackabletech/docker-images/pull/337
+[#379]: https://github.com/stackabletech/docker-images/pull/379
 
 ### Changed
 

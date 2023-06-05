@@ -6,9 +6,11 @@
 
 - Add multilog (daemontools) to opa image ([#333]).
 - Upgraded to the vector base image ([#329]).
+- Support OPA version 0.51.0 ([#382]).
 
 [#329]: https://github.com/stackabletech/docker-images/pull/329
 [#333]: https://github.com/stackabletech/docker-images/pull/333
+[#382]: https://github.com/stackabletech/docker-images/pull/382
 
 ## [opa:0.27.1-stackable0.4.0, opa:0.28.0-stackable0.4.0, opa:0.37.2-stackable0.4.0, opa:0.41.0-stackable0.3.0, opa:0.45.0-stackable0.3.0] - 2022-12-16
 
