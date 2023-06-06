@@ -400,13 +400,13 @@ products = [
                 'product': '2.0.1',
                 'python': '3.9',
                 'vector': '0.26.0',
-                'authlib': '0.15.4' # https://github.com/dpgaspar/Flask-AppBuilder/blob/4ac9bba008e404b9a1e783cd272c81bb8634de3d/requirements-extra.txt#L10
+                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4ac9bba008e404b9a1e783cd272c81bb8634de3d/requirements-extra.txt#L10
             },
             {
                 'product': '2.1.0',
                 'python': '3.9',
                 'vector': '0.26.0',
-                'authlib': '0.15.4' # https://github.com/dpgaspar/Flask-AppBuilder/blob/4554c40e2298d11c4472ca64b9a60236b12c6535/requirements-extra.txt#L10
+                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4554c40e2298d11c4472ca64b9a60236b12c6535/requirements-extra.txt#L10
             },
         ],
     },
