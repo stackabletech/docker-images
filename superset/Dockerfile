@@ -5,6 +5,7 @@ FROM stackable/image/vector AS builder
 
 ARG PRODUCT
 ARG PYTHON
+ARG AUTHLIB
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
@@ -44,7 +45,8 @@ RUN microdnf update \
     && pip install \
         --no-cache-dir \
         --upgrade \
-        python-json-logger
+        python-json-logger \
+    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
 # Patch Python packages
 

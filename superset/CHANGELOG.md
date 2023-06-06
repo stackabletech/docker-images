@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add AuthLib lib, needed for OAuth integration ([#XXX]).
+
 ### Changed
 
 - Upgraded to the vector base image ([#328]).
