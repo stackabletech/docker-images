@@ -10,7 +10,7 @@ ARG AZURE_KEYVAULT_CORE
 ARG RELEASE
 
 LABEL name="Apache Hive" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

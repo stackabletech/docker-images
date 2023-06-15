@@ -52,7 +52,7 @@ ARG PRODUCT
 ARG RELEASE
 
 LABEL name="Open Policy Agent" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

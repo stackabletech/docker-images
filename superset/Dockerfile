@@ -74,7 +74,7 @@ ARG PYTHON
 ARG RELEASE
 
 LABEL name="Apache Superset" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

@@ -5,7 +5,7 @@ ARG PRODUCT
 ARG RELEASE
 
 LABEL name="Hello World" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
