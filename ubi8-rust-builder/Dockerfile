@@ -29,11 +29,13 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 # Build artifacts will be available in /app.
 RUN mkdir /app
 
+COPY copy_artifacts.sh /
+
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
 # hadolint ignore=SC1091
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
@@ -47,10 +49,6 @@ ONBUILD RUN find /src/target/release \
                 # Filter out tests.
                 ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
                 # Copy the matching files into /app.
-                -exec cp {} /app \;
-
-# The CRD crate also has a bom but we're only interested in the final one
-# Also only copy if the file exists, hence the somewhat convoluted find expression
-ONBUILD RUN find /src/rust/operator-binary -name bom.xml -exec cp {} /app \;
+                -exec /copy_artifacts.sh {} \;
 
 ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
