@@ -23,7 +23,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/repositories.yaml
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2 \
- && . $HOME/.cargo/env
+ && . "$HOME"/.cargo/env && cargo install cargo-cyclonedx@0.3.7 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -31,7 +31,7 @@ RUN mkdir /app
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . $HOME/.cargo/env && cargo build --release --workspace
+ONBUILD RUN . "$HOME"/.cargo/env && cargo auditable build --release --workspace && cargo cyclonedx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
@@ -46,5 +46,9 @@ ONBUILD RUN find /src/target/release \
                 ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
                 # Copy the matching files into /app.
                 -exec cp {} /app \;
+
+# The CRD crate also has a bom but we're only interested in the final one
+# Also only copy if the file exists, hence the somewhat convoluted find expression
+ONBUILD RUN find /src/rust/operator-binary -name bom.xml -exec cp {} /app \;
 
 ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
