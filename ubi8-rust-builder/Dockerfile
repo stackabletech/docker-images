@@ -22,8 +22,9 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/repositories.yaml
+# hadolint ignore=SC1091
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2 \
- && . "$HOME"/.cargo/env && cargo install cargo-cyclonedx@0.3.7 cargo-auditable@0.6.1
+ && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.3.7 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -31,7 +32,8 @@ RUN mkdir /app
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . "$HOME"/.cargo/env && cargo auditable build --release --workspace && cargo cyclonedx
+# hadolint ignore=SC1091
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
