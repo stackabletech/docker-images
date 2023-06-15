@@ -7,7 +7,7 @@ ARG RELEASE
 ARG JQ_VERSION
 
 LABEL name="Stackable Tools" \
-    maintainer="info@stackable.de" \
+    maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
     version="${PRODUCT}" \
     release="${RELEASE}" \

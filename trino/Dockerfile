@@ -7,7 +7,7 @@ ARG JMX_EXPORTER
 ARG RELEASE
 
 LABEL name="Trino" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
