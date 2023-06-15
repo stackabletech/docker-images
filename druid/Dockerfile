@@ -11,7 +11,7 @@ ARG AUTHORIZER
 ARG RELEASE
 
 LABEL name="Apache Druid" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

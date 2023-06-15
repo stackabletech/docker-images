@@ -6,7 +6,7 @@ ARG RELEASE="1"
 ARG _SECURITY_PATH
 
 LABEL name="Stackable image for OpenJDK" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

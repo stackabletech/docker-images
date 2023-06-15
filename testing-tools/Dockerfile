@@ -4,7 +4,7 @@ ARG PRODUCT
 ARG RELEASE
 
 LABEL name="Stackable Testing Tools" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
@@ -50,4 +50,3 @@ USER stackable
 ENV STACKABLE_PRODUCT_VERSION=${PRODUCT}
 
 WORKDIR /stackable
-
