@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build stage
+#version=ubi8-minimal:8.8, tag=8.8-860 
 FROM stackable/image/stackable-base AS builder
 
 ARG PRODUCT

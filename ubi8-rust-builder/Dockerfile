@@ -1,3 +1,4 @@
+#version=ubi8-minimal:8.8, tag=8.8-860 
 FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:621f5245fb3e8597a626163cdf1229e1f8311e07ab71bb1e9332014b51c59f9c AS builder
 LABEL maintainer="Stackable GmbH"
 
