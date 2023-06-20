@@ -49,7 +49,7 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish dev images
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev -o stackable-experminetal -a linux/arm64 --push
+        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev -o stackable-experimental -a linux/arm64 --push
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
