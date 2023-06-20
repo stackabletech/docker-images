@@ -87,6 +87,6 @@ jobs:
       - name: Install preflight
         run: |
           wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-arm64
-          chmod +x preflight-linux-amd64
+          chmod +x preflight-linux-arm64
       - name: OpenShift certification checks
         run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version 0.0.0-dev --preflight-cmd ./preflight-linux-arm64
