@@ -1,0 +1,90 @@
+---
+name: Publish 0.0.0-dev images
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  development:
+    name: ${{ matrix.product }} 0.0.0-dev
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
+    strategy:
+      fail-fast: true
+      # This setting can be changed to throttle the build load
+      # max-parallel: 1
+      matrix:
+        product:
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - krb5
+          - nifi
+          - opa
+          - pyspark-k8s
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - tools
+          - zookeeper
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+      - name: Set up QEMU for multiarch builds
+        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # tag=v2
+      - name: Install python 3
+        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        with:
+          python-version: '3.x'
+      - name: Login to Stackable Nexus
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
+        with:
+          registry: docker.stackable.tech
+          username: github
+          password: ${{ secrets.NEXUS_PASSWORD }}
+  preflight:
+    name: ${{ matrix.product }} OpenShift checks
+    # Run preflight check but do not submit anything to the RH certification portal.
+    # This job only runs if the "development" job was successful
+    # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs: development
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
+    strategy:
+      fail-fast: true
+      # This setting can be changed to throttle the build load
+      # max-parallel: 1
+      matrix:
+        product:
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - nifi
+          - opa
+          - pyspark-k8s
+          - spark-k8s
+          - superset
+          - trino
+          - tools
+          - zookeeper
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+      - name: Install python 3
+        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        with:
+          python-version: '3.x'
+      - name: Install preflight
+        run: |
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-arm64
+          chmod +x preflight-linux-amd64
+      - name: OpenShift certification checks
+        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version 0.0.0-dev --preflight-cmd ./preflight-linux-arm64
