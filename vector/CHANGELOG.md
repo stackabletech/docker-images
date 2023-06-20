@@ -7,7 +7,6 @@
 ### Added
 
 - Package inotify-tools added ([#291]).
-- Update ubi-minimal base image from 8.7 to 8.8@sha256:621f5245fb3e8597a626163cdf1229e1f8311e07ab71bb1e9332014b51c59f9c
 
 [#291]: https://github.com/stackabletech/docker-images/pull/291
 
