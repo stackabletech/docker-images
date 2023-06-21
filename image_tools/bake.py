@@ -44,7 +44,7 @@ def build_image_args(version, release_version):
 
 
 def build_image_tags(
-    image_name: str, image_version: str, product_version: str
+    image_name: str, image_version: str, product_version: str,
 ) -> List[str]:
     """
     Returns a list of --tag command line arguments that are used by the
@@ -55,6 +55,7 @@ def build_image_tags(
     """
     arr = re.split("\\.", image_version)
     platform_version = arr[0] + "." + arr[1]
+
     return [
         f"{image_name}:{product_version}-stackable{image_version}",
         f"{image_name}:{product_version}-stackable{platform_version}",
@@ -114,6 +115,11 @@ def bakefile_product_version_targets(
     tags = build_image_tags(image_name, args.image_version, versions["product"])
     build_args = build_image_args(versions, args.image_version)
 
+    if args.multiarch:
+        if args.architecture[0] == "linux/amd64":
+            tags[0] = tags[0] + "-amd64"
+        else:
+            tags[0] = tags[0] + "-arm64" 
     return {
         bakefile_target_name_for_product_version(product_name, versions["product"]): {
             "dockerfile": f"{ product_name }/Dockerfile",
