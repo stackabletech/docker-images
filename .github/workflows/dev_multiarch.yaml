@@ -99,7 +99,6 @@ jobs:
   create-manifest-list:
     needs: [development-arm64, development-amd64]
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: true
       # This setting can be changed to throttle the build load
@@ -122,21 +121,17 @@ jobs:
           - trino
           - tools
           - zookeeper
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
       - name: Install Docker CLI
         uses: docker/setup-docker@v1
-      
       - name: Login to Stackable Nexus
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
         with:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
-
       - name: Create and push manifest list
         run: |
           docker manifest create docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev \
