@@ -119,7 +119,7 @@ def bakefile_product_version_targets(
         if args.architecture[0] == "linux/amd64":
             tags[0] = tags[0] + "-amd64"
         else:
-            tags[0] = tags[0] + "-arm64" 
+            tags[0] = tags[0] + "-arm64"
     return {
         bakefile_target_name_for_product_version(product_name, versions["product"]): {
             "dockerfile": f"{ product_name }/Dockerfile",
