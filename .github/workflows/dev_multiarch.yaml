@@ -50,7 +50,7 @@ jobs:
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish dev images
         run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev -o stackable-experimental -a linux/arm64 --push
-  
+
   development-amd64:
     name: ${{ matrix.product }} 0.0.0-dev-amd64
     runs-on: ubuntu-latest
