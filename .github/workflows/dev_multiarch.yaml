@@ -135,7 +135,7 @@ jobs:
       - name: Create and push manifest list
         run: |
           docker manifest create docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev \
-            docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev-amd64 \
-            docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev-arm64
+            --amend docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev-amd64 \
+            --amend docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev-arm64
 
           docker manifest push docker.stackable.tech/stackable-experimental/"${{ matrix.product }}":0.0.0-dev
