@@ -39,7 +39,8 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
 
 RUN curl https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${PRODUCT}.zip -o /tmp/trino-storage-${PRODUCT}.zip && \
-    unzip /tmp/trino-storage-${PRODUCT}.zip -d /stackable/trino-server/plugin
+    unzip /tmp/trino-storage-${PRODUCT}.zip -d /stackable/trino-server/plugin && \
+    rm -f /tmp/trino-storage-${PRODUCT}.zip
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
