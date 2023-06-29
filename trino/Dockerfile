@@ -5,6 +5,7 @@ ARG PRODUCT
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG RELEASE
+ARG STORAGE_CONNECTOR
 
 LABEL name="Trino" \
       maintainer="info@stackable.tech" \
@@ -37,6 +38,10 @@ RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_promet
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
+
+RUN if [ -n "$STORAGE_CONNECTOR" ]; then curl https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
+    unzip /tmp/trino-storage-${STORAGE_CONNECTOR}.zip -d /stackable/trino-server/plugin && \
+    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip ; fi
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

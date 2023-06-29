@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add `htpasswd` tool ([#385]).
+- [EXPERIMENTAL] Add [Snowlift Trino Storage Connector](https://github.com/snowlift/trino-storage), but only for Trino version 414 ([#397])
 
 [#385]: https://github.com/stackabletech/docker-images/pull/385
+[#397]: https://github.com/stackabletech/docker-images/pull/397
 
 ## [414] - 2023-04-26
 
