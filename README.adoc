@@ -36,12 +36,14 @@ ENTRYPOINT ["/stackable-zookeeper-operator"]
 == Build Product Images
 
 Product images are published to the `docker.stackable.tech` registry under the `stackable` organization.
+This uses the Docker CLI plugin `buildx` which is not necessarily installed by default when installing Docker.
+Make sure that `docker buildx` works before running the following commands.
 
 To build and push product images to the default repository, use the `build_product_images.py` like this:
 
-    python -m image_tools.bake --product zookeeper --image 23.1.0-dev --push
+    python -m image_tools.bake --product zookeeper --image 0.0.0-dev --push
 
-This will build images for Apache ZooKeeper versions as defined in the `image_tools/conf.py` and tag them with the `image-version` 23.1.0-dev
+This will build images for Apache ZooKeeper versions as defined in the `image_tools/conf.py` and tag them with the `image-version` 0.0.0-dev
 
 The GitHub action called `Product images` can be triggered manually to do the same but not on the local machine.
 
@@ -49,4 +51,4 @@ The GitHub action called `Product images` can be triggered manually to do the sa
 
 To verify if Apache Zookeeper validate against OpenShift preflight, run:
 
-    python -m image_tools.preflight --product zookeeper --image 23.1.0-dev
+    python -m image_tools.preflight --product zookeeper --image 0.0.0-dev
