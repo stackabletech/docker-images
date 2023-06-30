@@ -10,4 +10,5 @@ RUN microdnf update && \
     mkdir /stackable && \
     chown stackable:stackable /stackable && \
     microdnf remove shadow-utils && \
-    microdnf clean all
+    microdnf clean all && \
+    echo "alias ll='ls -alF --color=auto'" >> /etc/profile.d/00-aliases.sh

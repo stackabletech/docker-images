@@ -1,36 +1,41 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/java-base
+FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG RELEASE
-
-LABEL name="Apache Hadoop" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Hadoop." \
-      description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
+ARG JMX_EXPORTER_VERSION=0.18.0
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# unzip & zip are required for log4shell.sh
+# All others are required for the FUSE build
 RUN microdnf update && \
-    microdnf install tar gzip zip krb5-workstation openssl && \
+    microdnf install \
+    cmake \
+    cyrus-sasl-devel \
+    fuse-devel \
+    gcc \
+    gcc-c++ \
+    java-11-openjdk-devel \
+    maven \
+    openssl-devel \
+    tar \
+    unzip \
+    zip && \
     microdnf clean all
 
-COPY --chown=stackable:stackable hadoop/stackable /stackable
-COPY hadoop/licenses /licenses
-
-USER stackable
 WORKDIR /stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz | tar -xzC . && \
+# This is needed here because it creates the JMX directory, we could create it any other way but this works
+COPY hadoop/stackable /stackable
+
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz | tar -xzC . && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop && \
-    ln -sf /stackable/bin/start-namenode /stackable/hadoop/bin && \
-    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+    rm -rf /stackable/hadoop/lib/native/examples && \
+    rm -rf /stackable/hadoop/share/doc && \
+    curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -55,5 +60,71 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/hadoop-${PRODUCT}
 # ===
 
+
+# This Protobuf version is the exact version as used in the Hadoop Dockerfile
+# See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
+# (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
+# For now all versions of Hadoop we support use Protobuf 3.7.1 so we can hardcode it here.
+# Should it ever differ between versions we'll need to make this a variable as well.
+RUN mkdir -p /opt/protobuf-src && \
+    curl -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
+    tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
+    cd /opt/protobuf-src && \
+    ./configure --prefix=/opt/protobuf && \
+    make "-j$(nproc)" && \
+    make install && \
+    cd /root && \
+    rm -rf /opt/protobuf-src
+
+ENV PROTOBUF_HOME /opt/protobuf
+ENV PATH "${PATH}:/opt/protobuf/bin"
+
+WORKDIR /stackable/hadoop-${PRODUCT}-src/hadoop-hdfs-project/hadoop-hdfs-native-client
+
+# This command comes from hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/fuse-dfs/doc/README
+RUN mvn clean package -Pnative -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    cp target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop/bin && \
+    rm -rf /stackable/hadoop-${PRODUCT}-src
+
+
+# Final Image
+FROM stackable/image/java-base
+
+ARG PRODUCT
+ARG RELEASE
+
+LABEL name="Apache Hadoop" \
+      maintainer="info@stackable.tech" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Hadoop." \
+      description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# fuse-libs is required for fuse_dfs (not included in fuse)
+# kmod is required for fuse_dfs to load the fuse module
+# openssl -> not sure
+RUN microdnf update && \
+    microdnf install \
+    krb5-workstation \
+    openssl && \
+    microdnf clean all
+
+COPY hadoop/licenses /licenses
+
+USER stackable
+WORKDIR /stackable
+
+COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
+COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+
+RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+
+ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
+ENV PATH="${PATH}":/stackable/hadoop/bin
+
 WORKDIR /stackable/hadoop
-CMD ["./bin/start-namenode", "--config", "etc/hadoop"]
+CMD ["echo", "This image is not meant to be 'run' directly."]
