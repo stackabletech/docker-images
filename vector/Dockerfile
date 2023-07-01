@@ -21,7 +21,6 @@ RUN microdnf update && \
     chown --recursive stackable:stackable /build/stackable/
 
 # Final image
-
 FROM stackable/image/stackable-base
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
