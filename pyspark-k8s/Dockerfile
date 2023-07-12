@@ -16,7 +16,7 @@ ARG WOODSTOX_CORE
 ARG RELEASE
 
 LABEL name="Apache Spark" \
-      maintainer="info@stackable.de" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \

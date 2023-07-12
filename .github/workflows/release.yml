@@ -38,17 +38,17 @@ jobs:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
       - name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
+        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7 # tag=v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # tag=v2
+        uses: docker/setup-buildx-action@16c0bc4a6e6ada2cfd8afd41d22d95379cf7c32a # tag=v2
       - name: Install python 3
-        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0 # tag=v4
         with:
           python-version: '3.x'
       - name: Login to Stackable Nexus
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
         with:
           registry: docker.stackable.tech
           username: github
@@ -89,9 +89,9 @@ jobs:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
       - name: Install python 3
-        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0 # tag=v4
         with:
           python-version: '3.x'
       - name: Install preflight
