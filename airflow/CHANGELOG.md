@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ### Added
 
 - Added git-sync functionality to the airflow image ([#337]).

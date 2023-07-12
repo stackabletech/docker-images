@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ### Added
 
 - Added ZooKeeper version 3.8.1 ([#381]).

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ### Added
 
 - `jackson-dataformat-xml`, `stax2-api`, and `woodstox-core` added which are

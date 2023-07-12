@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ### Changed
 
 - testing-tools: raise version to 0.2.0 ([#361])

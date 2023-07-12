@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ## [java-base-stackable0.3.0] - 2022-12-12
 
 ### Changed

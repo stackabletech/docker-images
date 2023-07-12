@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ### Added
 
 - Add krb5-workstation and openssl packages - needed for Kerberos support ([#347]).

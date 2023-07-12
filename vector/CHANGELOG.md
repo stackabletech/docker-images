@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7.0] - 2023-07-12
+
 ## [vector-stackable1.1.0] - 2023-02-03
 
 ### Added
