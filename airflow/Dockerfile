@@ -26,7 +26,8 @@ RUN microdnf update \
         && python3 -m venv --system-site-packages /stackable/app \
         && source /stackable/app/bin/activate \
         && pip install --no-cache-dir --upgrade pip \
-        && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
+        && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt \
+        && pip install --no-cache-dir s3fs
 
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
 FROM docker.stackable.tech/stackable/git-sync:v3.6.4 as gitsync-image
@@ -76,7 +77,7 @@ RUN mkdir -pv ${AIRFLOW_HOME} && \
 RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # according to arch, copy binary to the name "tini"
-RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch) 
+RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch)
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
