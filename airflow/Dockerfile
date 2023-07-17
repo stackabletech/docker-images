@@ -77,7 +77,7 @@ RUN mkdir -pv ${AIRFLOW_HOME} && \
 RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # according to arch, copy binary to the name "tini"
-RUN curl -o /usr/bin/tini https://repo.stackable.tech/repository/packages/tini/tini-$(arch)
+RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-$(arch)"
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
