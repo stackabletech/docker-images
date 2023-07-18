@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: "3.9"
-      - uses: reviewdog/action-flake8@fe9cda430414b0ebe84c6419bd5e93f554012d38 # tag=v3.6.3
+      - uses: reviewdog/action-flake8@1212bd6f1c67830dcff438cf39522d4b58407e71 # tag=v3.7.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
