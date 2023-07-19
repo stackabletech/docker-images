@@ -27,6 +27,7 @@ RUN microdnf update \
         && source /stackable/app/bin/activate \
         && pip install --no-cache-dir --upgrade pip \
         && pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt \
+        # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
         && pip install --no-cache-dir s3fs
 
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
