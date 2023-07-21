@@ -104,27 +104,35 @@ LABEL name="Apache Hadoop" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)
-# kmod is required for fuse_dfs to load the fuse module
 # openssl -> not sure
 RUN microdnf update && \
     microdnf install \
+    fuse \
+    fuse-libs \
     krb5-workstation \
     openssl && \
     microdnf clean all
 
 COPY hadoop/licenses /licenses
 
+# Without this fuse_dfs does not work
+# It is so non-root users (as we are) can mount a FUSE device and let other users access it
+RUN echo "user_allow_other" > /etc/fuse.conf
+
 USER stackable
 WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
-
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
 ENV PATH="${PATH}":/stackable/hadoop/bin
+ENV HADOOP_HOME=/stackable/hadoop
+ENV HADOOP_CONF_DIR=/stackable/config
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
