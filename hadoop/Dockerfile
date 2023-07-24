@@ -29,6 +29,13 @@ WORKDIR /stackable
 # This is needed here because it creates the JMX directory, we could create it any other way but this works
 COPY hadoop/stackable /stackable
 
+
+# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
+# the version of JMX Exporter: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
+# This is a TEMPORARY fix which means that we can keep the hardcoded path in HDFS operator FOR NOW as it will still point to a newer version
+# At the same time a new HDFS Operator will still work with older images.
+# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versiond symlink (jmx_prometheus_javaagent.jar)
+# And then we can also remove the symlink from this Dockerfile.
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz | tar -xzC . && \
     curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop && \
@@ -36,7 +43,9 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop
     rm -rf /stackable/hadoop/share/doc && \
     curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /stackable/jmx/jmx_prometheus_javaagent.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
