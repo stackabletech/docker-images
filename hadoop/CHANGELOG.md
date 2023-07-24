@@ -14,6 +14,12 @@
 [#347]: https://github.com/stackabletech/docker-images/pull/347
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 
+### Changed
+
+- Upgraded to JMX Exporter 0.19 ([#400])
+
+[#400]: https://github.com/stackabletech/docker-images/pull/400
+
 ## [3.2.2-stackable0.7.0] [3.3.1-stackable0.7.0] [3.3.3-stackable0.3.0] [3.3.4-stackable0.3.0] - 2022-12-27
 
 ### Changed
