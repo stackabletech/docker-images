@@ -36,14 +36,14 @@ COPY hadoop/stackable /stackable
 # At the same time a new HDFS Operator will still work with older images.
 # After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versiond symlink (jmx_prometheus_javaagent.jar)
 # And then we can also remove the symlink from this Dockerfile.
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz | tar -xzC . && \
-    curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz | tar -xzC . && \
-    ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop && \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz" | tar -xzC . && \
+    ln -s "/stackable/hadoop-${PRODUCT}" /stackable/hadoop && \
     rm -rf /stackable/hadoop/lib/native/examples && \
     rm -rf /stackable/hadoop/share/doc && \
-    curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /stackable/jmx/jmx_prometheus_javaagent.jar && \
+    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" && \
+    chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" && \
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 
@@ -58,7 +58,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hadoop-${PRODUCT}
+RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -67,7 +67,7 @@ RUN /bin/log4shell.sh /stackable/hadoop-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hadoop-${PRODUCT}
+RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # ===
 
 
