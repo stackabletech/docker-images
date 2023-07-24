@@ -18,7 +18,22 @@ jobs:
       # max-parallel: 1
       matrix:
         product:
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
           - krb5
+          - nifi
+          - opa
+          - pyspark-k8s
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - tools
+          - zookeeper
     steps:
       - name: Checkout
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
@@ -48,8 +63,8 @@ jobs:
       - name: Sign images
         run: |
           for MANIFEST in $(echo "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}" | tr ' ' '\n'); do
-            echo "signing ${MANIFEST}"
-            cosign sign -y "${MANIFEST}"
+            echo "signing $MANIFEST"
+            cosign sign -y "$MANIFEST"
           done
   preflight:
     name: ${{ matrix.product }} OpenShift checks
