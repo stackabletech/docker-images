@@ -33,13 +33,13 @@ bin_file=hadoop-$VERSION.tar.gz
 src_file=hadoop-$VERSION-src.tar.gz
 
 echo "Downloading Hadoop (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file"
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.asc"
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.sha512"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.asc"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.sha512"
 
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file"
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.asc"
-curl -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.sha512"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.asc"
+curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.sha512"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not

@@ -2,7 +2,7 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG JMX_EXPORTER_VERSION=0.18.0
+ARG JMX_EXPORTER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -35,7 +35,8 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/hadoop/hadoop
     rm -rf /stackable/hadoop/lib/native/examples && \
     rm -rf /stackable/hadoop/share/doc && \
     curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
