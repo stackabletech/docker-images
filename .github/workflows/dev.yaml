@@ -9,6 +9,8 @@ on:
 jobs:
   development:
     name: ${{ matrix.product }} 0.0.0-dev
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -46,6 +48,7 @@ jobs:
       - name: Sign images
         run: |
           for MANIFEST in $(echo "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}" | tr ' ' '\n'); do
+            echo "signing ${MANIFEST}"
             cosign sign -y "${MANIFEST}"
           done
   preflight:
