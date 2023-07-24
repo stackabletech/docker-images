@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/sign-container-images
 
 jobs:
   development:
@@ -15,22 +16,7 @@ jobs:
       # max-parallel: 1
       matrix:
         product:
-          - airflow
-          - druid
-          - hadoop
-          - hbase
-          - hive
-          - kafka
           - krb5
-          - nifi
-          - opa
-          - pyspark-k8s
-          - spark-k8s
-          - superset
-          - testing-tools
-          - trino
-          - tools
-          - zookeeper
     steps:
       - name: Checkout
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
@@ -49,7 +35,20 @@ jobs:
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish dev images
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push
+        id: publish_images
+        run: |
+          BAKE_OUTPUT=$(python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push 2>&1)
+          echo $BAKE_OUTPUT
+          PUSHED_MANIFESTS=$(echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }')
+          echo "PUSHED_MANIFESTS=$PUSHED_MANIFESTS" >> $GITHUB_OUTPUT
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@v3.0.5
+      - name: Sign images
+        run: |
+          PUSHED_MANIFESTS="${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
+          for MANIFEST in $PUSHED_MANIFESTS; do
+            cosign sign -y "${MANIFEST}"
+          done
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
