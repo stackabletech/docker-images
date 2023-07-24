@@ -39,14 +39,13 @@ jobs:
         run: |
           BAKE_OUTPUT=$(python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push 2>&1)
           echo $BAKE_OUTPUT
-          PUSHED_MANIFESTS=$(echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }')
+          PUSHED_MANIFESTS=$(echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }' | tr '\n' ' ')
           echo "PUSHED_MANIFESTS=$PUSHED_MANIFESTS" >> $GITHUB_OUTPUT
       - name: Set up Cosign
         uses: sigstore/cosign-installer@v3.0.5
       - name: Sign images
         run: |
-          PUSHED_MANIFESTS="${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
-          for MANIFEST in $PUSHED_MANIFESTS; do
+          for MANIFEST in $(echo "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}" | tr ' ' '\n'); do
             cosign sign -y "${MANIFEST}"
           done
   preflight:
