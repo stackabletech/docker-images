@@ -44,6 +44,12 @@ def parse() -> Namespace:
         help="Image registry to publish to. Default: docker.stackable.tech",
         default="docker.stackable.tech",
     )
+    parser.add_argument(
+        "-m",
+        "--multiarch",
+        help="If set, first input for -a or default is taken and label is added like image:version-amd64 for default",
+        action="store_true",
+    )
     return parser.parse_args()
 
 
