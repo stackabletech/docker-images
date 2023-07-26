@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Add needed tzdata-java package ([#425]).
+
+[#425]: https://github.com/stackabletech/docker-images/pull/425
+
 ## [java-base-stackable0.3.0] - 2022-12-12
 
 ### Changed
