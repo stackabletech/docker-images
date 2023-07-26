@@ -1,5 +1,5 @@
 requests==2.28.2
-charset-normalizer==3.1.0 #
+charset-normalizer==3.2.0 #
 hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 nipyapi==0.19.1
