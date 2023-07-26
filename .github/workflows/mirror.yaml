@@ -1,3 +1,4 @@
+---
 name: Mirror container image
 on:
   workflow_dispatch:
