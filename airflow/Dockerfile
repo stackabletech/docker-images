@@ -31,7 +31,7 @@ RUN microdnf update \
         && pip install --no-cache-dir s3fs
 
 FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
-FROM docker.stackable.tech/stackable/git-sync:v3.6.4 as gitsync-image
+FROM docker.stackable.tech/stackable/git-sync:v3.6.4@sha256:55f275fa0700a7b55f3b414a4119e390cfd558f2564d4762f3e10b5ad4b68f02 as gitsync-image
 FROM stackable/image/vector AS airflow-main-image
 
 ARG PRODUCT
