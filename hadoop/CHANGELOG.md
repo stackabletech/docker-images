@@ -5,8 +5,14 @@
 ### Added
 
 - Add krb5-workstation and openssl packages - needed for Kerberos support ([#347]).
+- Add all necessary components to the image to mount HDFS using FUSE ([#400])
+
+### Changed
+
+- Upgraded to JMX Exporter 0.19 ([#400])
 
 [#347]: https://github.com/stackabletech/docker-images/pull/347
+[#400]: https://github.com/stackabletech/docker-images/pull/400
 
 ## [3.2.2-stackable0.7.0] [3.3.1-stackable0.7.0] [3.3.3-stackable0.3.0] [3.3.4-stackable0.3.0] - 2022-12-27
 

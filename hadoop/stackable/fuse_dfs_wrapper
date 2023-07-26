@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -e
+
+# JNI does _NOT_ support wildcards in the Classpath so we can't use the usual /stackable/hadoop/share/hadoop/client/* here
+# Instead we need to use find and then concatenate them all with colons.
+# There is a trailing colon at the end but that does seem to work just fine
+# Not all three directories might be needed, common is definitely needed
+CLASSPATH=$(find -L /stackable/hadoop/share/hadoop/client/ /stackable/hadoop/share/hadoop/hdfs/ /stackable/hadoop/share/hadoop/common -type f -name "*.jar" -print0 | xargs -0 printf "%s:")
+
+export CLASSPATH=$HADOOP_CONF_DIR:$CLASSPATH
+export LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
+export PATH="${PATH}":/stackable/hadoop/bin
+export HADOOP_HOME=/stackable/hadoop
+
+fuse_dfs "$@"
