@@ -24,8 +24,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ${{ env.DST_REGISTRY }}
-          username: "robot$stackable+github-action-build"
-          password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+          username: "robot$mirror+github-action-build"
+          password: ${{ secrets.HARBOR_ROBOT_MIRROR_GITHUB_ACTION_BUILD_SECRET }}
       - name: Pull image from source registry
         run: docker pull "${{ github.event.inputs.src }}"
       - name: Retag image
