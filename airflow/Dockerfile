@@ -68,7 +68,6 @@ RUN microdnf install -y yum python${PYTHON} \
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
-ENV AIRFLOW_UID="1000"
 ENV AIRFLOW_HOME=$HOME/airflow
 
 RUN mkdir -pv ${AIRFLOW_HOME} && \
