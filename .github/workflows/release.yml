@@ -70,7 +70,7 @@ jobs:
             echo "$EOF" >> "$GITHUB_OUTPUT";
           } >> "$GITHUB_OUTPUT"
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3.0.5
+        uses: sigstore/cosign-installer@v3.1.1
       - name: Sign images
         run: |
           while IFS= read -r MANIFEST; do

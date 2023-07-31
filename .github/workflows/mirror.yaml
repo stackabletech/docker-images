@@ -31,7 +31,7 @@ jobs:
       - name: Retag image
         run: docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY/$DST_PROJECT/${{ github.event.inputs.dst }}"
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3.0.5
+        uses: sigstore/cosign-installer@v3.1.1
       - name: Push image to destination registry
         run: |
           DOCKER_OUTPUT=$(docker push "$DST_REGISTRY/$DST_PROJECT/${{ github.event.inputs.dst }}");
