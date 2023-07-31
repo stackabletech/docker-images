@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Package inotify-tools added ([#291]).
 - Added krb5 image ([#338]).
 
 ### Changed
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Replace `build_product_images.py` with the `image_tools` package and
   add OpenShift preflight checks for images ([#339])
 
+[#291]: https://github.com/stackabletech/docker-images/pull/291
 [#321]: https://github.com/stackabletech/docker-images/pull/321
 [#325]: https://github.com/stackabletech/docker-images/pull/325
 [#326]: https://github.com/stackabletech/docker-images/pull/326
@@ -37,6 +39,11 @@ All notable changes to this project will be documented in this file.
 [#339]: https://github.com/stackabletech/docker-images/pull/339
 
 ## [23.1.0] - 2023-01-23
+
+### Added
+
+- Image vector added which installs Vector and is based on the
+  stackable-base image. ([#268]).
 
 ### Changed
 
@@ -51,3 +58,4 @@ All notable changes to this project will be documented in this file.
 [#248]: https://github.com/stackabletech/docker-images/pull/248
 [#249]: https://github.com/stackabletech/docker-images/pull/249
 [#250]: https://github.com/stackabletech/docker-images/pull/250
+[#268]: https://github.com/stackabletech/docker-images/pull/268
