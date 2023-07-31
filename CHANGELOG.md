@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Updated all ubi8 base images to latest (8.6-994) ([#250]).
 - Updated all internal images to rebuild their base images on demand ([#321]).
 - Unpinned testing-tools dependencies ([#326]).
+- Bump ubi8-rust-builder toolchain to 1.71.0 ([#419]).
 
 ### Removed
 
@@ -34,3 +35,4 @@ All notable changes to this project will be documented in this file.
 [#326]: https://github.com/stackabletech/docker-images/pull/326
 [#338]: https://github.com/stackabletech/docker-images/pull/338
 [#339]: https://github.com/stackabletech/docker-images/pull/339
+[#419]: https://github.com/stackabletech/docker-images/pull/419
