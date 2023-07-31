@@ -7,8 +7,20 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Bump ubi8-rust-builder toolchain to 1.71.0 ([#419]).
+- BREAKING: Upgrade Vector in all product images to version 0.31.0. The
+  integration tests of the operators must be adapted because the metric
+  `processedEventsTotal` was replaced by `receivedEventsTotal` ([#429]).
+- BREAKING: Use RPM instead of tar.gz for Vector. Because of that, the
+  location of the Vector executable changed, and the operator-rs version
+  0.45.0 is required ([#429]).
+
+### Removed
+
+- Remove unused environment variable `AIRFLOW_UID` from the Airflow
+  image ([#429]).
 
 [#419]: https://github.com/stackabletech/docker-images/pull/419
+[#429]: https://github.com/stackabletech/docker-images/pull/429
 
 ## [23.7.0] - 2023-07-14
 
