@@ -3,6 +3,7 @@
 FROM stackable/image/stackable-base
 
 ARG PRODUCT
+ARG RPM_RELEASE
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -16,7 +17,7 @@ RUN rpm --install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.no
     microdnf update && \
     microdnf --assumeyes install inotify-tools && \
     microdnf clean all && \
-    rpm --install "https://github.com/vectordotdev/vector/releases/download/v${PRODUCT}/vector-${PRODUCT}-1.$(arch).rpm" && \
+    rpm --install "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.$(arch).rpm" && \
     mkdir /licenses && \
     cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE && \
     # Create the directory /stackable/vector/var.

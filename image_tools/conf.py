@@ -201,7 +201,13 @@ products = [
     },
     {
         "name": "vector",
-        "versions": [{"product": "0.31.0", "stackable-base": "1.0.0"}],
+        "versions": [
+            {
+                "product": "0.31.0",
+                "rpm_release": "1",
+                "stackable-base": "1.0.0"
+            }
+        ],
     },
     {
         "name": "nifi",
