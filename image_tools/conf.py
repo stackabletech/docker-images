@@ -8,27 +8,42 @@ products = [
         "versions": [
             {
                 "product": "2.2.3",
+                "git_sync": "v3.6.8",
                 "python": "38",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
                 "vector": "0.31.0",
             },
             {
                 "product": "2.2.4",
+                "git_sync": "v3.6.8",
                 "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
                 "vector": "0.31.0",
             },
             {
                 "product": "2.2.5",
+                "git_sync": "v3.6.8",
                 "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
                 "vector": "0.31.0",
             },
             {
                 "product": "2.4.1",
+                "git_sync": "v3.6.8",
                 "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
                 "vector": "0.31.0",
             },
             {
                 "product": "2.6.1",
+                "git_sync": "v3.6.8",
                 "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
                 "vector": "0.31.0",
             },
         ],
@@ -74,26 +89,6 @@ products = [
     {
         "name": "hbase",
         "versions": [
-            {
-                "product": "2.4.6",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.8",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.9",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.11",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
             {
                 "product": "2.4.12",
                 "java-base": "11",

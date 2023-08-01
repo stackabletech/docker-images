@@ -125,7 +125,8 @@ RUN microdnf update && \
     fuse-libs \
     krb5-workstation \
     openssl && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY hadoop/licenses /licenses
 
@@ -141,6 +142,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
+ENV HOME=/stackable
 ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
 ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
