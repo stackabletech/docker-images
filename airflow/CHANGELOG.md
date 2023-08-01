@@ -2,13 +2,30 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Updated Vector to 0.31 ([#429]).
+- Updated git-sync to 3.6.8 ([#431]).
+- Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431])
+
+[#429]: https://github.com/stackabletech/docker-images/pull/429
+[#431]: https://github.com/stackabletech/docker-images/pull/431
+
+## [23.7.0]
+
+NOTE: Some of these changes might have been released in earlier versions already, we just forgot to update the changelog
+
+### Added
+
+- Added new airflow version `2.6.1` ([#379]).
+
+[#379]: https://github.com/stackabletech/docker-images/pull/379
+
+## [23.4.0]
+
 ### Added
 
 - Added git-sync functionality to the airflow image ([#337]).
-- Added new airflow version `2.6.1` ([#379]).
-
-[#337]: https://github.com/stackabletech/docker-images/pull/337
-[#379]: https://github.com/stackabletech/docker-images/pull/379
 
 ### Changed
 
@@ -17,6 +34,7 @@
   stackable-base layer and is therefore removed from this image ([#291]).
 
 [#291]: https://github.com/stackabletech/docker-images/pull/291
+[#337]: https://github.com/stackabletech/docker-images/pull/337
 
 ## [airflow-stackable0.5.0] - 2022-11-30
 
