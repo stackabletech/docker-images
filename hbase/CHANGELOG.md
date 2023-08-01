@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add versions `2.4.17`, `2.5.3` and `2.5.3-hadoop3` ([#352]).
+- Add krb5-workstation and openssl packages - needed for Kerberos support ([#352]).
+- Add `jackson-dataformat-xml` library (used for logging) ([#352]).
+
+### Changed
+
+- Bump to Apache Phoenix `5.1.3` ([#352]).
+
+[#352]: https://github.com/stackabletech/docker-images/pull/352
+
 ## [hbase2.4.6-stackable0.9.0] [hbase2.4.8-stackable0.9.0] [hbase2.4.9-stackable0.9.0] [hbase2.4.11-stackable0.9.0] [hbase2.4.12-stackable0.4.0] - 2022-12-21
 
 ### Changed
