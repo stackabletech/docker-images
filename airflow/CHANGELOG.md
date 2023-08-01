@@ -6,7 +6,7 @@
 
 - Updated Vector to 0.31 ([#429]).
 - Updated git-sync to 3.6.8 ([#431]).
-- Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431])
+- Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 
 [#429]: https://github.com/stackabletech/docker-images/pull/429
 [#431]: https://github.com/stackabletech/docker-images/pull/431
