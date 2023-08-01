@@ -13,8 +13,6 @@
 
 ## [23.7.0]
 
-NOTE: Some of these changes might have been released in earlier versions already, we just forgot to update the changelog
-
 ### Added
 
 - Added new airflow version `2.6.1` ([#379]).
