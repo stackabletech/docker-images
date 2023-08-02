@@ -79,7 +79,7 @@ RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # For now all versions of Hadoop we support use Protobuf 3.7.1 so we can hardcode it here.
 # Should it ever differ between versions we'll need to make this a variable as well.
 RUN mkdir -p /opt/protobuf-src && \
-    curl -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
+    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
     tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
     cd /opt/protobuf-src && \
     ./configure --prefix=/opt/protobuf && \
