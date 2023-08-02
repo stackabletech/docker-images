@@ -89,7 +89,7 @@ RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$(arch)"
+RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$(arch)"
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint
 RUN chmod a+x /entrypoint && \
     chmod +x /usr/bin/tini
