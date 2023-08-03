@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/vector
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG HADOOP_SHORT_VERSION
@@ -24,7 +24,6 @@ LABEL name="Apache Spark" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install java-11-openjdk-headless --nodocs && \
     microdnf install tar gzip zip && \
     # required for spark startup scripts
     microdnf install procps && \
@@ -32,7 +31,6 @@ RUN microdnf update && \
     microdnf clean all
 
 ENV HOME=/stackable
-ENV JAVA_HOME=/usr/lib/jvm/jre-11
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 
