@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Remove unused environment variable `AIRFLOW_UID` from the Airflow
   image ([#429]).
-- Java base image: hard-coded security properties for DNS caching ([#433])
+- Java base image: Remove hard-coded JVM security properties containing DNS cache settings. Going forward operators will configure DNS cache settings ([#433])
 
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#429]: https://github.com/stackabletech/docker-images/pull/429
