@@ -52,3 +52,8 @@ The GitHub action called `Product images` can be triggered manually to do the sa
 To verify if Apache Zookeeper validate against OpenShift preflight, run:
 
     python -m image_tools.preflight --product zookeeper --image 0.0.0-dev
+
+== Mirror Images
+
+To mirror a third-party image into our OCI registry, please use our https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml[Github Workflow for mirroring images].
+This will mirror the image into oci.stackable.tech and also sign it.
