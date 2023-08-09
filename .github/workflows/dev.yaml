@@ -47,6 +47,8 @@ jobs:
           # find all pushed manifests based on the output of the bake command
           # this is needed for image signing, since images should be referenced by their digest
           IMAGE_LIST=$(echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }')
+          echo "docker images:"
+          docker images
 
           # Also publish images to Harbor
           # This has to happen in the same step unfortunately, the images that were just built are not available in other steps

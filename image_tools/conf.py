@@ -7,38 +7,6 @@ products = [
         "name": "airflow",
         "versions": [
             {
-                "product": "2.2.3",
-                "git_sync": "v3.6.8",
-                "python": "38",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "2.2.4",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "2.2.5",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "2.4.1",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.31.0",
-            },
-            {
                 "product": "2.6.1",
                 "git_sync": "v3.6.8",
                 "python": "39",
@@ -367,37 +335,6 @@ products = [
     {
         "name": "superset",
         "versions": [
-            {
-                "product": "1.3.2",
-                "python": "3.8",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "1.4.1",
-                "python": "3.9",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "1.4.2",
-                "python": "3.9",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "1.5.1",
-                "python": "3.8",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "1.5.3",
-                "python": "3.8",
-                "vector": "0.31.0",
-            },
-            {
-                'product': '2.0.1',
-                'python': '3.9',
-                'vector': '0.31.0',
-                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4ac9bba008e404b9a1e783cd272c81bb8634de3d/requirements-extra.txt#L10
-            },
             {
                 'product': '2.1.0',
                 'python': '3.9',
