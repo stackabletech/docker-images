@@ -38,37 +38,44 @@ jobs:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
-      - name: Publish and sign dev images
+      - name: Publish dev images to Nexus
         id: publish_images
         run: |
           BAKE_OUTPUT=$(python -m image_tools.bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push 2>&1)
           echo "$BAKE_OUTPUT"
-
-          # find all pushed manifests based on the output of the bake command
-          # this is needed for image signing, since images should be referenced by their digest
-          IMAGE_LIST=$(echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }')
-          echo "docker images:"
-          docker images
-
-          # Also publish images to Harbor
-          # This has to happen in the same step unfortunately, the images that were just built are not available in other steps
-
-          docker login oci.stackable.tech -u 'robot$stackable+github-action-build' -p '${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}'
-
-          # loop over all pushed images, retag them, push them to Harbor and sign them
-          while IFS= read -r IMAGE; do
-            # drop the digest from the image identifier
-            NEXUS_IMAGE=$(echo $IMAGE | awk -F '@' '{ print $1 }')
-
+          # needed for multiline strings in github actions
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          {
+            echo "PUSHED_MANIFESTS<<$EOF";
+            # find all pushed manifests based on the output of the bake command
+            # this is needed for image signing, since images should be referenced by their digest
+            echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }' >> "$GITHUB_OUTPUT";
+            echo "$EOF" >> "$GITHUB_OUTPUT";
+          } >> "$GITHUB_OUTPUT"
+      - name: Sign Nexus images
+        run: |
+          while IFS= read -r MANIFEST; do
+            echo "signing $MANIFEST";
+            cosign sign -y "$MANIFEST";
+          done <<< "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
+        with:
+          registry: oci.stackable.tech
+          username: "robot$stackable+github-action-build"
+          password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Retag dev images, publish them to Harbor and sign them
+        id: publish_images_harbor
+        run: |
+          while IFS= read -r MANIFEST; do
+            NEXUS_IMAGE=$(echo $MANIFEST | awk -F '@' '{ print $1 }')
             HARBOR_IMAGE=$(echo $NEXUS_IMAGE | sed 's#docker\.stackable\.tech/stackable#oci.stackable.tech/stackable/images#')
-
+            docker pull "$NEXUS_IMAGE"
             docker tag "$NEXUS_IMAGE" "$HARBOR_IMAGE"
             docker push "$HARBOR_IMAGE"
-
-            echo "signing $NEXUS_IMAGE and $HARBOR_IMAGE"
-            cosign sign -y "$NEXUS_IMAGE"
-            cosign sign -y "$HARBOR_IMAGE"
-          done <<< "$IMAGE_LIST"
+            echo "signing $HARBOR_IMAGE";
+            cosign sign -y "$HARBOR_IMAGE";
+          done <<< "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
