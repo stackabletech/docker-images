@@ -253,9 +253,8 @@ products = [
             {
                 "product": "3.2.1",
                 "spark": "3.2.1",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "39",
-                "java": "11",
                 "hadoop_short_version": "3.2",
                 "hadoop_long_version": "3.3.1",
                 "aws_java_sdk_bundle": "1.11.901",
@@ -269,9 +268,8 @@ products = [
             {
                 "product": "3.3.0",
                 "spark": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "39",
-                "java": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -285,9 +283,8 @@ products = [
             {
                 "product": "3.3.0-java17",
                 "spark": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "17",
                 "python": "39",
-                "java": "17",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -301,9 +298,8 @@ products = [
             {
                 "product": "3.4.0",
                 "spark": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "3.11",
-                "java": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",
                 "aws_java_sdk_bundle": "1.12.262",
@@ -317,9 +313,8 @@ products = [
             {
                 "product": "3.4.0-java17",
                 "spark": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "17",
                 "python": "3.11",
-                "java": "17",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",
                 "aws_java_sdk_bundle": "1.12.262",
@@ -337,7 +332,7 @@ products = [
         "versions": [
             {
                 "product": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -350,7 +345,7 @@ products = [
             },
             {
                 "product": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4

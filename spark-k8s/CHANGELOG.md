@@ -4,6 +4,15 @@
 
 ### Added
 
+- Rework spark images to build on top of java-base image.
+  This fixes the missing tzdata-java package in 0.0.0-dev versions ([#434]).
+
+[#434]: https://github.com/stackabletech/docker-images/pull/434
+
+## [23.4.0]
+
+### Added
+
 - `jackson-dataformat-xml`, `stax2-api`, and `woodstox-core` added which are
   used for XML log output ([#342]).
 
