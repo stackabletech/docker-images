@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add AuthLib lib, needed for OAuth integration ([#386]).
+
 ### Changed
 
 - Upgraded to the vector base image ([#328]).
@@ -12,6 +16,7 @@
 
 [#307]: https://github.com/stackabletech/docker-images/pull/307
 [#328]: https://github.com/stackabletech/docker-images/pull/328
+[#386]: https://github.com/stackabletech/docker-images/pull/386
 
 ## [superset1.5.1-stackable0.2.0] - 2022-07-13
 

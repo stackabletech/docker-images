@@ -10,6 +10,8 @@ on:
 jobs:
   release:
     name: Release product images for ${{ matrix.product }}
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -38,23 +40,43 @@ jobs:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
       - name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # tag=v2
+        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7 # tag=v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # tag=v2
+        uses: docker/setup-buildx-action@4c0219f9ac95b02789c1075625400b2acbff50b1 # tag=v2
       - name: Install python 3
-        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: '3.x'
       - name: Login to Stackable Nexus
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # tag=v2
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
         with:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Publish release product images
-        run: python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push
+        id: publish_images
+        run: |
+          BAKE_OUTPUT=$(python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push 2>&1)
+          echo "$BAKE_OUTPUT"
+          # needed for multiline strings in github actions
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          {
+            echo "PUSHED_MANIFESTS<<$EOF";
+            # find all pushed manifests based on the output of the bake command
+            # this is needed for image signing, since images should be referenced by their digest
+            echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }' >> "$GITHUB_OUTPUT";
+            echo "$EOF" >> "$GITHUB_OUTPUT";
+          } >> "$GITHUB_OUTPUT"
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@v3.1.1
+      - name: Sign images
+        run: |
+          while IFS= read -r MANIFEST; do
+            echo "signing $MANIFEST";
+            cosign sign -y "$MANIFEST";
+          done <<< "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
   preflight:
     name: ${{ matrix.product }} preflight checks
     # Run preflight checks and submit results to the RH certification portal.
@@ -89,9 +111,9 @@ jobs:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # tag=v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
       - name: Install python 3
-        uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b # tag=v4
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: '3.x'
       - name: Install preflight

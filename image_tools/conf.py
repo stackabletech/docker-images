@@ -8,28 +8,43 @@ products = [
         "versions": [
             {
                 "product": "2.2.3",
+                "git_sync": "v3.6.8",
                 "python": "38",
-                "vector": "0.26.0",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "2.2.4",
+                "git_sync": "v3.6.8",
                 "python": "39",
-                "vector": "0.26.0",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "2.2.5",
+                "git_sync": "v3.6.8",
                 "python": "39",
-                "vector": "0.26.0",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "2.4.1",
+                "git_sync": "v3.6.8",
                 "python": "39",
-                "vector": "0.26.0",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "2.6.1",
+                "git_sync": "v3.6.8",
                 "python": "39",
-                "vector": "0.26.0",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.31.0",
             },
         ],
     },
@@ -74,35 +89,15 @@ products = [
     {
         "name": "hadoop",
         "versions": [
-            {"product": "3.2.2", "java-base": "11"},
-            {"product": "3.3.1", "java-base": "11"},
-            {"product": "3.3.3", "java-base": "11"},
-            {"product": "3.3.4", "java-base": "11"},
+            {"product": "3.2.2", "java-base": "11", "jmx_exporter": "0.19.0"},
+            {"product": "3.3.1", "java-base": "11", "jmx_exporter": "0.19.0"},
+            {"product": "3.3.3", "java-base": "11", "jmx_exporter": "0.19.0"},
+            {"product": "3.3.4", "java-base": "11", "jmx_exporter": "0.19.0"},
         ],
     },
     {
         "name": "hbase",
         "versions": [
-            {
-                "product": "2.4.6",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.8",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.9",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
-            {
-                "product": "2.4.11",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
             {
                 "product": "2.4.12",
                 "java-base": "11",
@@ -147,12 +142,12 @@ products = [
         "versions": [
             {
                 "product": "11",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "_security_path": "/usr/lib/jvm/jre-11/conf/security/java.security",
             },
             {
                 "product": "17",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "_security_path": "/usr/lib/jvm/jre-17/conf/security/java.security",
             },
         ],
@@ -210,7 +205,13 @@ products = [
     },
     {
         "name": "vector",
-        "versions": [{"product": "0.26.0", "stackable-base": "1.0.0"}],
+        "versions": [
+            {
+                "product": "0.31.0",
+                "rpm_release": "1",
+                "stackable-base": "1.0.0"
+            }
+        ],
     },
     {
         "name": "nifi",
@@ -227,32 +228,32 @@ products = [
         "versions": [
             {
                 "product": "0.27.1",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.0.0",
             },
             {
                 "product": "0.28.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.0.0",
             },
             {
                 "product": "0.37.2",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.0.0",
             },
             {
                 "product": "0.41.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.0.0",
             },
             {
                 "product": "0.45.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.0.0",
             },
             {
                 "product": "0.51.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
                 "bundle_builder_version": "1.1.0",
             },
         ],
@@ -263,9 +264,8 @@ products = [
             {
                 "product": "3.2.1",
                 "spark": "3.2.1",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "39",
-                "java": "11",
                 "hadoop_short_version": "3.2",
                 "hadoop_long_version": "3.3.1",
                 "aws_java_sdk_bundle": "1.11.901",
@@ -274,14 +274,13 @@ products = [
                 "jackson_dataformat_xml": "2.12.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "3.3.0",
                 "spark": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "39",
-                "java": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -290,14 +289,13 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "3.3.0-java17",
                 "spark": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "17",
                 "python": "39",
-                "java": "17",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -306,14 +304,13 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "3.4.0",
                 "spark": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "python": "3.11",
-                "java": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",
                 "aws_java_sdk_bundle": "1.12.262",
@@ -322,14 +319,13 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.5.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "3.4.0-java17",
                 "spark": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "17",
                 "python": "3.11",
-                "java": "17",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",
                 "aws_java_sdk_bundle": "1.12.262",
@@ -338,7 +334,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.5.0",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
         ],
     },
@@ -347,7 +343,7 @@ products = [
         "versions": [
             {
                 "product": "3.3.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -356,11 +352,11 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "3.4.0",
-                "stackable-base": "1.0.0",
+                "java-base": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
@@ -369,7 +365,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
         ],
     },
@@ -383,37 +379,39 @@ products = [
             {
                 "product": "1.3.2",
                 "python": "3.8",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "1.4.1",
                 "python": "3.9",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "1.4.2",
                 "python": "3.9",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "1.5.1",
                 "python": "3.8",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 "product": "1.5.3",
                 "python": "3.8",
-                "vector": "0.26.0",
+                "vector": "0.31.0",
             },
             {
                 'product': '2.0.1',
                 'python': '3.9',
-                'vector': '0.26.0',
+                'vector': '0.31.0',
+                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4ac9bba008e404b9a1e783cd272c81bb8634de3d/requirements-extra.txt#L10
             },
             {
                 'product': '2.1.0',
                 'python': '3.9',
-                'vector': '0.26.0',
+                'vector': '0.31.0',
+                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4554c40e2298d11c4472ca64b9a60236b12c6535/requirements-extra.txt#L10
             },
         ],
     },
@@ -425,7 +423,7 @@ products = [
             {"product": "395", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
             {"product": "396", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
             {"product": "403", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.18.0"},
+            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.18.0", "storage_connector": "414"},
         ],
     },
     {

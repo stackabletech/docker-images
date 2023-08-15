@@ -16,9 +16,26 @@
 # specific language governing permissions and limitations
 # under the License.
 # Might be empty
+
+# Stackable notes:
+# Source of this file is the upstream Apache Airflow project
+# https://github.com/apache/airflow/blob/main/scripts/docker/entrypoint_prod.sh
+# It was last synced from the upstream repo on 2023-07-31 and is up-to-date as of commit 86193f5
+
+
 AIRFLOW_COMMAND="${1:-}"
 
 set -euo pipefail
+
+# This one is to workaround https://github.com/apache/airflow/issues/17546
+# issue with /usr/lib/<MACHINE>-linux-gnu/libstdc++.so.6: cannot allocate memory in static TLS block
+# We do not yet a more "correct" solution to the problem but in order to avoid raising new issues
+# by users of the prod image, we implement the workaround now.
+# The side effect of this is slightly (in the range of 100s of milliseconds) slower load for any
+# binary started and a little memory used for Heap allocated by initialization of libstdc++
+# This overhead is not happening for binaries that already link dynamically libstdc++
+LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
+export LD_PRELOAD
 
 function run_check_with_retries {
     local cmd
@@ -87,7 +104,7 @@ function wait_for_connection {
     local detected_backend
     detected_backend=$(python -c "from urllib.parse import urlsplit; import sys; print(urlsplit(sys.argv[1]).scheme)" "${connection_url}")
     local detected_host
-    detected_host=$(python -c "from urllib.parse import urlsplit; import sys; print(urlsplit(sys.argv[1]).hostname)" "${connection_url}")
+    detected_host=$(python -c "from urllib.parse import urlsplit; import sys; print(urlsplit(sys.argv[1]).hostname or '')" "${connection_url}")
     local detected_port
     detected_port=$(python -c "from urllib.parse import urlsplit; import sys; print(urlsplit(sys.argv[1]).port or '')" "${connection_url}")
 
@@ -116,7 +133,11 @@ function wait_for_connection {
 
     echo DB_PORT="${DB_PORT:=${detected_port}}"
     readonly DB_PORT
-    run_check_with_retries "run_nc ${DB_HOST@Q} ${DB_PORT@Q}"
+    if [[ -n "${DB_HOST=}" ]] && [[ -n "${DB_PORT=}" ]]; then
+        run_check_with_retries "run_nc ${DB_HOST@Q} ${DB_PORT@Q}"
+    else
+        >&2 echo "The connection details to the broker could not be determined. Connectivity checks were skipped."
+    fi
 }
 
 function create_www_user() {
@@ -281,7 +302,7 @@ if [[ -n "${_PIP_ADDITIONAL_REQUIREMENTS=}" ]] ; then
     >&2 echo
     >&2 echo "!!!!!  Installing additional requirements: '${_PIP_ADDITIONAL_REQUIREMENTS}' !!!!!!!!!!!!"
     >&2 echo
-    >&2 echo "WARNING: This is a developpment/test feature only. NEVER use it in production!"
+    >&2 echo "WARNING: This is a development/test feature only. NEVER use it in production!"
     >&2 echo "         Instead, build a custom image as described in"
     >&2 echo
     >&2 echo "         https://airflow.apache.org/docs/docker-stack/build.html"
@@ -290,7 +311,7 @@ if [[ -n "${_PIP_ADDITIONAL_REQUIREMENTS=}" ]] ; then
     >&2 echo "         the container starts, so it is onlny useful for testing and trying out"
     >&2 echo "         of adding dependencies."
     >&2 echo
-    pip install --no-cache-dir ${_PIP_ADDITIONAL_REQUIREMENTS}
+    pip install --root-user-action ignore --no-cache-dir ${_PIP_ADDITIONAL_REQUIREMENTS}
 fi
 
 
