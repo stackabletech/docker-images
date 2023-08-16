@@ -1,4 +1,6 @@
-# EDC Connector Image
+# Technology Preview: EDC Connector Image
+
+This image is in an experimental state and only provided as a technology preview component.
 
 Links:
 
