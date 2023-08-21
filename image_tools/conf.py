@@ -81,7 +81,7 @@ products = [
         "name": "edc",
         "versions": [
             {
-                "product": "77c6e17",
+                "product": "0.1.2-ionos-technology-preview",
                 "java-base": "17",
             },
         ],
