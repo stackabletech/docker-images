@@ -2,6 +2,8 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG PYTHON
+ARG SPARK
 ARG HADOOP_SHORT_VERSION
 ARG HADOOP_LONG_VERSION
 ARG AWS_JAVA_SDK_BUNDLE
@@ -13,12 +15,12 @@ ARG WOODSTOX_CORE
 ARG RELEASE
 
 LABEL name="Apache Spark" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Spark on Kubernetes." \
-      description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Spark with PySpark support." \
+    description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -28,11 +30,17 @@ RUN microdnf update && \
     # required for spark startup scripts
     microdnf install procps && \
     microdnf install hostname && \
+    microdnf install python${PYTHON} python${PYTHON}-pip && \
     microdnf clean all
+
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
+ENV PYSPARK_PYTHON=/usr/bin/python
+ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 # according to arch, copy binary to the name "tini"
 RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-$(arch)"
@@ -40,7 +48,7 @@ RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses
 
-RUN  chmod +x /usr/bin/tini
+RUN chmod +x /usr/bin/tini
 
 RUN chown -R stackable:stackable /stackable
 
@@ -48,8 +56,8 @@ USER stackable
 
 WORKDIR /stackable
 # Download Spark (including Hadoop)
-RUN curl -L --fail https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}.tgz | tar -xzC . && \
-    ln -s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION} /stackable/spark
+RUN curl -L --fail https://repo.stackable.tech/repository/packages/spark/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}.tgz | tar -xzC . && \
+    ln -s /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION} /stackable/spark
 
 # Download aws module for Hadoop (support for s3a://)
 RUN curl -L --fail https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
@@ -77,19 +85,16 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/azure/azure-k
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
 RUN mkdir /stackable/spark/extra-jars && \
     curl -L --fail -o /stackable/spark/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-        https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
     curl -L --fail -o /stackable/spark/extra-jars/stax2-api-${STAX2_API}.jar \
-        https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar && \
+    https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar && \
     curl -L --fail -o /stackable/spark/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar \
-        https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+    https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
 # Download jmx exporter (needed for metrics)
 RUN curl -L --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-
-# Symlink example jar, so that we can easily use it in tests
-RUN ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -102,7 +107,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell.sh /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -111,7 +116,7 @@ RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSI
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}-bin-hadoop${HADOOP_SHORT_VERSION}
+RUN /bin/log4shell_scanner s /stackable/spark-${SPARK}-bin-hadoop${HADOOP_SHORT_VERSION}
 # ===
 
 WORKDIR /stackable/spark
