@@ -143,12 +143,10 @@ products = [
             {
                 "product": "11",
                 "vector": "0.31.0",
-                "_security_path": "/usr/lib/jvm/jre-11/conf/security/java.security",
             },
             {
                 "product": "17",
                 "vector": "0.31.0",
-                "_security_path": "/usr/lib/jvm/jre-17/conf/security/java.security",
             },
         ],
     },
