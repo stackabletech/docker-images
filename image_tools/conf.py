@@ -78,6 +78,15 @@ products = [
         ],
     },
     {
+        "name": "edc",
+        "versions": [
+            {
+                "product": "0.1.2-ionos-technology-preview",
+                "java-base": "17",
+            },
+        ],
+    },
+    {
         "name": "hadoop",
         "versions": [
             {"product": "3.2.2", "java-base": "11", "jmx_exporter": "0.19.0"},
