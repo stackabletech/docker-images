@@ -29,7 +29,6 @@ jobs:
           - krb5
           - nifi
           - opa
-          - pyspark-k8s
           - spark-k8s
           - superset
           - testing-tools
@@ -101,7 +100,6 @@ jobs:
           - kafka
           - nifi
           - opa
-          - pyspark-k8s
           - spark-k8s
           - superset
           - trino
