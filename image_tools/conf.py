@@ -422,7 +422,6 @@ open_shift_projects = {
     "kafka": {"id": "625ff25b91bdcd4b49c823a4"},
     "nifi": {"id": "625586a32e9e14bc8118e203"},
     "opa": {"id": "6255838bea1feb8bec4aaaa3"},
-    "pyspark-k8s": {"id": "625581e28801ddc4aad30d5c"},
     "spark-k8s": {"id": "62613e81f8ce82a2f247dda5"},
     "superset": {"id": "62557e5fea1feb8bec4aaaa0"},
     "tools": {"id": "62557cd575ab7e30884aaaa0"},
