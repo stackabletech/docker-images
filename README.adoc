@@ -39,7 +39,7 @@ Product images are published to the `docker.stackable.tech` registry under the `
 
 Prerequisites:
 
-* Stackable Image Tools: https://github.com/stackabletech/image-tools
+* Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools 
 * Docker including the `buildx` plugin: https://github.com/docker/buildx
 
 To build and push product images to the default repository, use the `build_product_images.py` like this:
@@ -54,7 +54,7 @@ The GitHub action called `Product images` can be triggered manually to do the sa
 
 Prerequisites:
 
-* Stackable Image Tools: https://github.com/stackabletech/image-tools
+* Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools
 * OpenShift preflight tool: https://github.com/redhat-openshift-ecosystem/openshift-preflight
 
 To verify if Apache Zookeeper validate against OpenShift preflight, run:
