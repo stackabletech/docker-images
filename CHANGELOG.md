@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Extract image tools their own repository: https://github.com/stackabletech/image-tools ([#437])
+- Extract image tools their own (repository)[https://github.com/stackabletech/image-tools] ([#437])
 - Bump ubi8-rust-builder toolchain to 1.71.0 ([#419]).
 - BREAKING: Upgrade Vector in all product images to version 0.31.0. The
   integration tests of the operators must be adapted because the metric
