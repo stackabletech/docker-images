@@ -19,7 +19,9 @@
 ### Changed
 
 - Base image changed to `stackable/image/vector` ([#342]).
+- Decoupled product from the archive name so that product can run on different java versions ([#327]).
 
+[#327]: https://github.com/stackabletech/docker-images/pull/327
 [#342]: https://github.com/stackabletech/docker-images/pull/342
 
 ## [3.3.0-stackable0.2.0] - 2022-09-13

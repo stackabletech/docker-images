@@ -250,7 +250,7 @@ products = [
         ],
     },
     {
-        "name": "pyspark-k8s",
+        "name": "spark-k8s",
         "versions": [
             {
                 "product": "3.2.1",
@@ -317,37 +317,6 @@ products = [
                 "spark": "3.4.0",
                 "java-base": "17",
                 "python": "3.11",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.4",
-                "aws_java_sdk_bundle": "1.12.262",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.14.2",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.5.0",
-                "vector": "0.31.0",
-            },
-        ],
-    },
-    {
-        "name": "spark-k8s",
-        "versions": [
-            {
-                "product": "3.3.0",
-                "java-base": "11",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.3",
-                "aws_java_sdk_bundle": "1.11.1026",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.13.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.31.0",
-            },
-            {
-                "product": "3.4.0",
-                "java-base": "11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
@@ -454,7 +423,6 @@ open_shift_projects = {
     "kafka": {"id": "625ff25b91bdcd4b49c823a4"},
     "nifi": {"id": "625586a32e9e14bc8118e203"},
     "opa": {"id": "6255838bea1feb8bec4aaaa3"},
-    "pyspark-k8s": {"id": "625581e28801ddc4aad30d5c"},
     "spark-k8s": {"id": "62613e81f8ce82a2f247dda5"},
     "superset": {"id": "62557e5fea1feb8bec4aaaa0"},
     "tools": {"id": "62557cd575ab7e30884aaaa0"},
