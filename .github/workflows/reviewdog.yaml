@@ -13,7 +13,7 @@ jobs:
   actionlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: reviewdog/action-actionlint@7485c2136bd093d2317a854c72910eebaee35238
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -21,7 +21,7 @@ jobs:
   detect-secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.5.3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.6.0
       - uses: reviewdog/action-detect-secrets@b04766f677ad3366ec30246a60d84522aba6c710 # tag=v0.12.1
         with:
           github_token: ${{ secrets.github_token }}
@@ -29,7 +29,7 @@ jobs:
   flake8:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: "3.9"
@@ -40,7 +40,7 @@ jobs:
   hadolint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: reviewdog/action-hadolint@7bd0800b7ce35c6d644cde762174e69f18896973 # v1.35.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
   markdownlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: reviewdog/action-markdownlint@e3a1300e4ead323f710e9b711ee269e0d29ba5ec # tag=v0.12.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -56,7 +56,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: reviewdog/action-shellcheck@50e5e1e2284575f23a1e409d9c0804cdfc4f6e31 # tag=v1.18.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +64,7 @@ jobs:
   yamllint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3.3.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
       - uses: reviewdog/action-yamllint@49fe172669b506f0c688207a67b4cf93fee52699 # tag=v1.7.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
