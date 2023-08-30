@@ -48,6 +48,7 @@ jobs:
         uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: '3.x'
+      - run: pip install image-tools-stackabletech
       - name: Login to Stackable Nexus
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
         with:
@@ -57,7 +58,7 @@ jobs:
       - name: Publish release product images
         id: publish_images
         run: |
-          BAKE_OUTPUT=$(python -m image_tools.bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push 2>&1)
+          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push 2>&1)
           echo "$BAKE_OUTPUT"
           # needed for multiline strings in github actions
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
@@ -114,9 +115,10 @@ jobs:
         uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
         with:
           python-version: '3.x'
+      - run: pip install image-tools-stackabletech
       - name: Install preflight
         run: |
           wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.6.2/preflight-linux-amd64
           chmod +x preflight-linux-amd64
       - name: Submit images to OpenShift certification projects
-        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --preflight-cmd ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit
+        run: check-container --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --executable ./preflight-linux-amd64 --token "${{ secrets.RH_PYXIS_API_TOKEN }}" --submit
