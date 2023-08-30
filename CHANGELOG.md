@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Airflow: Remove unused environment variable `AIRFLOW_UID` ([#429]).
 - Java: Remove hard-coded JVM security properties containing DNS cache settings. Going forward operators will configure DNS cache settings ([#433])
 - PySpark: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
+- Removed all product specific changelogs and updated the root file ([#440])
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
@@ -43,6 +44,7 @@ All notable changes to this project will be documented in this file.
 [#435]: https://github.com/stackabletech/docker-images/pull/435
 [#436]: https://github.com/stackabletech/docker-images/pull/436
 [#437]: https://github.com/stackabletech/docker-images/pull/437
+[#440]: https://github.com/stackabletech/docker-images/pull/440
 
 ## [23.7.0] - 2023-07-14
 
