@@ -13,6 +13,6 @@ if [ -z "$JAVA_BIN" ]; then
   >&2 echo "Could not find java - please run ./bin/verify-java to confirm it is installed."
   exit 1
 fi
-exec "$JAVA_BIN"/java `cat "$CONFDIR"/jvm.config | xargs` \
+exec "$JAVA_BIN"/java "$(< "$CONFDIR"/jvm.config)" \
   -cp "$CONFDIR":"./lib/*" \
   org.apache.druid.cli.Main server "$WHATAMI"
