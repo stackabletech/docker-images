@@ -21,6 +21,7 @@ RUN apt-get update && \
         curl \
         gzip \
         jq \
+        kubernetes-client \
         libssl-dev \
         libxml2-dev \
         libxslt1-dev \
