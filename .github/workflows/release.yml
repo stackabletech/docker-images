@@ -50,7 +50,7 @@ jobs:
           python-version: '3.x'
       - run: pip install image-tools-stackabletech
       - name: Login to Stackable Nexus
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
           registry: docker.stackable.tech
           username: github
