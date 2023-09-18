@@ -7,7 +7,7 @@ ARG PRODUCT
 RUN microdnf update && \
     microdnf --assumeyes install shadow-utils && \
     groupadd --gid 1000 --system stackable && \
-    useradd --gid stackable --uid 1000 --system stackable && \
+    useradd --gid stackable --uid 1000 --system stackable -d /stackable && \
     mkdir /stackable && \
     chown stackable:stackable /stackable && \
     microdnf remove shadow-utils && \
