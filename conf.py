@@ -373,6 +373,12 @@ products = [
                 'vector': '0.31.0',
                 'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4554c40e2298d11c4472ca64b9a60236b12c6535/requirements-extra.txt#L10
             },
+            {
+                'product': '3.0.0',
+                'python': '3.9',
+                'vector': '0.31.0',
+                'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/74f37e21a3c9c7ca7fb3e56f73759e3eaa2ead6b/requirements-extra.txt#L7
+            },
         ],
     },
     {

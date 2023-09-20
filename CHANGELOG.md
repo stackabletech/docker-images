@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: Add all necessary components to the image to mount HDFS using FUSE ([#400])
 - java-base: Add needed tzdata-java package ([#425]).
+- superset: Add version 3.0.0 ([#XXX]).
 
 ### Changed
 
