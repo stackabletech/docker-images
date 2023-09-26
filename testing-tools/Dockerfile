@@ -33,7 +33,8 @@ RUN apt-get update && \
         python3-toml \
         python3-urllib3 \
         tar \
-        zip && \
+        zip \
+        unzip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
