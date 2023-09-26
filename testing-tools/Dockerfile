@@ -34,7 +34,10 @@ RUN apt-get update && \
         python3-urllib3 \
         tar \
         zip \
-        unzip && \
+        unzip \
+        # Java 11 seems like the best middle-ground for all tools
+        java-11-openjdk-headless \
+        tzdata-java && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
