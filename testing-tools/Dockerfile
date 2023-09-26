@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e AS builder
+FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e
 
 ARG PRODUCT
 ARG RELEASE
@@ -36,8 +36,7 @@ RUN apt-get update && \
         zip \
         unzip \
         # Java 11 seems like the best middle-ground for all tools
-        java-11-openjdk-headless \
-        tzdata-java && \
+        openjdk-11-jdk-headless && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
