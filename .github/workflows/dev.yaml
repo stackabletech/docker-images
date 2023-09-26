@@ -41,9 +41,8 @@ jobs:
         uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # tag=v2
       - name: Install python 3
         uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
-      - run: pip install image-tools-stackabletech
-        with:
-          python-version: '3.x'
+      - name: Install image-tools-stackabletech
+        run: pip install image-tools-stackabletech
       - name: Login to Stackable Nexus
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
