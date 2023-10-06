@@ -27,7 +27,7 @@ USER stackable
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}-bin.tar.gz" | tar -xzC . && \
-    ln -s "/stackable/apache-zookeeper-${PRODUCT}-bin /stackable/zookeeper"
+    ln -s "/stackable/apache-zookeeper-${PRODUCT}-bin" /stackable/zookeeper
 
 RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
