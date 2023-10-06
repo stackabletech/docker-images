@@ -35,7 +35,7 @@ WORKDIR /stackable
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
 # This is a TEMPORARY fix which means that we can keep the hardcoded path in HBase operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
-# At the same time a new HDFS Operator will still work with older images which do not have the symlink to the versionless jar.
+# At the same time a new HBase Operator will still work with older images which do not have the symlink to the versionless jar.
 # After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
 # And then we can also remove the symlink to 0.16.1 from this Dockerfile.
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-bin.tar.gz" | tar -xzC . && \
