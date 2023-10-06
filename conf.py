@@ -95,6 +95,13 @@ products = [
                 "product": "2.4.12",
                 "java-base": "11",
                 "phoenix": "2.4-5.1.2",
+                "jmx_exporter": "0.20.0",
+            },
+            {
+                "product": "2.4.17",
+                "java-base": "11",
+                "phoenix": "2.4-5.1.3",
+                "jmx_exporter": "0.20.0",
             },
         ],
     },
