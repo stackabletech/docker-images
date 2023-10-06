@@ -32,13 +32,13 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-bin.tar.gz | tar -xzC . && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
-    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    curl -L https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz | tar -xzC . && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz | tar -xzC . && \
     ln -s /stackable/phoenix-hbase-${PHOENIX}-bin /stackable/phoenix && \
     ln -s /stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar /stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar
 
