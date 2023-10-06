@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- hbase: added new version 2.4.17 ([#469]).
+- hbase: use jmx-exporter 0.20.0 ([#469]).
+
 ### Changed
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
@@ -26,6 +29,8 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
+
+- hbase: added soft link for jmx-exporter ([#469]).
 
 ### Removed
 
@@ -49,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
+[#469]: https://github.com/stackabletech/docker-images/pull/469
 
 ## [23.7.0] - 2023-07-14
 
