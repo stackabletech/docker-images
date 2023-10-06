@@ -18,7 +18,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip zip && \
-    microdnf install openssl && \
     microdnf clean all
 
 COPY --chown=stackable:stackable zookeeper/stackable /stackable
