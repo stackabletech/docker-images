@@ -2,6 +2,7 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG JMX_EXPORTER
 ARG HADOOP_LIBS
 ARG JACKSON_DATAFORMAT_XML
 ARG AWS_JAVA_SDK_BUNDLE
@@ -60,10 +61,16 @@ RUN curl -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault
     -o /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
     chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
-# Download jmx exporter (needed for metrics)
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
+# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
+# This is a TEMPORARY fix which means that we can keep the hardcoded path in HDFS operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
+# At the same time a new HDFS Operator will still work with older images which do not have the symlink to the versionless jar.
+# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
+# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
+RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 # Logging
 RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
