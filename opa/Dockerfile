@@ -71,7 +71,7 @@ COPY opa/licenses /licenses
 USER stackable
 WORKDIR /stackable/opa
 
-RUN curl -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz | tar -xzC . && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz | tar -xzC . && \
     chmod +x opa
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
