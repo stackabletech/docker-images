@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
-- hive: added upload new version script ([#472]). 
+- hive: added upload new version script ([#472]).
 
 ### Changed
 
