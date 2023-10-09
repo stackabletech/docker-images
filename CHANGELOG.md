@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- hive: added upload new version script ([#472]). 
+
 ### Changed
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
@@ -27,12 +29,16 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
 
+- hive: bump jmx-exporter to 0.20.0 ([#472]).
+
 ### Removed
 
 - airflow: Remove unused environment variable `AIRFLOW_UID` ([#429]).
 - java-base: Remove hard-coded JVM security properties containing DNS cache settings. Going forward operators will configure DNS cache settings ([#433])
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
+
+hive: remove version 2.3.9 ([#472]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
@@ -49,6 +55,7 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
+[#472]: https://github.com/stackabletech/docker-images/pull/472
 
 ## [23.7.0] - 2023-07-14
 
