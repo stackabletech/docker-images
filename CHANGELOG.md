@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- nifi: added support for version 1.23.2 ([#473]).
+
 ### Changed
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
@@ -34,6 +36,9 @@ All notable changes to this project will be documented in this file.
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
 
+- nifi: removed support for version 1.15.x, 1.16.x, 1.18.x, 1.20.x ([#473]).
+- nifi: removed openssl from image ([#473]).
+
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#425]: https://github.com/stackabletech/docker-images/pull/425
@@ -49,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
+[#473]: https://github.com/stackabletech/docker-images/pull/473
 
 ## [23.7.0] - 2023-07-14
 
