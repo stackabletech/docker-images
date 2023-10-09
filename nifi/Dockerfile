@@ -16,7 +16,7 @@ LABEL name="Apache NiFi" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel gcc && \
+    microdnf install tar gzip zip libxslt-devel libxml2-devel gcc && \
     microdnf install python3-devel python3-pip python3-setuptools && \
     microdnf clean all
 
