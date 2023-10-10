@@ -6,7 +6,7 @@ RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel 
     microdnf clean all
 
 WORKDIR /stackable
-RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
+RUN curl --fail -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
     && tar xvfz 1.7.0.tar.gz \
     && cd kcat-1.7.0 \
     && ./bootstrap.sh
@@ -41,15 +41,15 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable kafka/stackable /stackable
 COPY --chown=stackable:stackable kafka/licenses /licenses
 
-RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
 # ===
