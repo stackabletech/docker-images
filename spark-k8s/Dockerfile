@@ -12,6 +12,7 @@ ARG AZURE_KEYVAULT_CORE
 ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
+ARG JMX_EXPORTER
 ARG RELEASE
 
 LABEL name="Apache Spark" \
@@ -91,10 +92,9 @@ RUN mkdir /stackable/spark/extra-jars && \
     curl -L --fail -o /stackable/spark/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar \
     https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
-# Download jmx exporter (needed for metrics)
-RUN curl -L --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # Symlink example jar, so that we can easily use it in tests
 RUN ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
