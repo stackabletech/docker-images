@@ -14,15 +14,15 @@ All notable changes to this project will be documented in this file.
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
 - Bump ubi8-rust-builder toolchain to 1.71.0 ([#419]).
-- BREAKING: Upgrade Vector in all product images to version 0.31.0. The
+- BREAKING: Upgrade Vector in all product images to version 0.33.0. The
   integration tests of the operators must be adapted because the metric
-  `processedEventsTotal` was replaced by `receivedEventsTotal` ([#429]).
+  `processedEventsTotal` was replaced by `receivedEventsTotal` ([#429],
+  [#479]).
 - BREAKING: Use RPM instead of tar.gz for Vector. Because of that, the
   location of the Vector executable changed, and the operator-rs version
-  0.45.0 is required ([#429]).
+  0.45.0 or newer is required ([#429]).
 - spark-k8s: Rework spark images to build on top of java-base image.  This fixes the missing tzdata-java package in 0.0.0-dev versions ([#434]).
 
-- airflow: Updated Vector to 0.31 ([#429]).
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
+[#479]: https://github.com/stackabletech/docker-images/pull/479
 
 ## [23.7.0] - 2023-07-14
 
