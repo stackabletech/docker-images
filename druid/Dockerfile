@@ -22,7 +22,7 @@ LABEL name="Apache Druid" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install findutils openssl tar gzip zip && \
+    microdnf install findutils tar gzip zip && \
     microdnf clean all
 
 USER stackable
