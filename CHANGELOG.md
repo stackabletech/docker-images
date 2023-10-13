@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
-- zookeeper: add version 3.8.2 ([#470]).
+- zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
 ### Changed
