@@ -39,7 +39,7 @@ curl --fail -LOs "$download_url/zookeeper-$VERSION/$bin_file.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksums"
-if ! (sha512sum "$bin_file" | diff - "$bin_file.sha512"); then
+if ! (sha512sum "$bin_file" | diff -Z - "$bin_file.sha512"); then
   echo "ERROR: One of the SHA512 sums does not match"
   exit 1
 fi

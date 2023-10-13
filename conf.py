@@ -394,7 +394,7 @@ products = [
         "name": "zookeeper",
         "versions": [
             {"product": "3.8.1", "java-base": "11", "jmx_exporter": "0.20.0"},
-            {"product": "3.8.2", "java-base": "11", "jmx_exporter": "0.20.0"},
+            {"product": "3.8.3", "java-base": "11", "jmx_exporter": "0.20.0"},
         ],
     },
     {
