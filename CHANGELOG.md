@@ -10,24 +10,33 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- hadoop: added support for 3.2.4, 3.3.6 ([#478]).
+- hive: added upload new version script ([#472]).
 - nifi: added support for version 1.23.2 ([#473]).
+- opa: add version 0.57.0 ([#471]).
+- opa: add new version upload script ([#471]).
+- zookeeper: add version 3.8.3 ([#470]).
+- zookeeper: add upload script ([#470]).
 
 ### Changed
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
 - Bump ubi8-rust-builder toolchain to 1.71.0 ([#419]).
-- BREAKING: Upgrade Vector in all product images to version 0.31.0. The
+- BREAKING: Upgrade Vector in all product images to version 0.33.0. The
   integration tests of the operators must be adapted because the metric
-  `processedEventsTotal` was replaced by `receivedEventsTotal` ([#429]).
+  `processedEventsTotal` was replaced by `receivedEventsTotal` ([#429],
+  [#479]).
 - BREAKING: Use RPM instead of tar.gz for Vector. Because of that, the
   location of the Vector executable changed, and the operator-rs version
-  0.45.0 is required ([#429]).
+  0.45.0 or newer is required ([#429]).
 - spark-k8s: Rework spark images to build on top of java-base image.  This fixes the missing tzdata-java package in 0.0.0-dev versions ([#434]).
 
-- airflow: Updated Vector to 0.31 ([#429]).
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
+- hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
+- hive: bump jmx-exporter to 0.20.0 ([#472]).
+- zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
 ### Removed
 
@@ -36,8 +45,12 @@ All notable changes to this project will be documented in this file.
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
 
+- hadoop: removed support for 3.3.1, 3.3.3 ([#478]).
+- hive: remove version 2.3.9 ([#472]).
 - nifi: removed support for version 1.15.x, 1.16.x, 1.18.x, 1.20.x ([#473]).
 - nifi: removed openssl from image ([#473]).
+- opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
+- zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
@@ -54,7 +67,12 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
+[#470]: https://github.com/stackabletech/docker-images/pull/470
+[#471]: https://github.com/stackabletech/docker-images/pull/471
+[#472]: https://github.com/stackabletech/docker-images/pull/472
 [#473]: https://github.com/stackabletech/docker-images/pull/473
+[#478]: https://github.com/stackabletech/docker-images/pull/478
+[#479]: https://github.com/stackabletech/docker-images/pull/479
 
 ## [23.7.0] - 2023-07-14
 
