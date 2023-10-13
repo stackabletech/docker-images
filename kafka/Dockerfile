@@ -1,20 +1,23 @@
 # syntax=docker/dockerfile:1
 FROM stackable/image/java-base AS builder
 
+ARG KCAT
+
 RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
     microdnf install -y tar which wget zlib gcc-c++ make cmake && \
     microdnf clean all
 
 WORKDIR /stackable
-RUN curl --fail -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
-    && tar xvfz 1.7.0.tar.gz \
-    && cd kcat-1.7.0 \
+RUN curl --fail -L -O https://github.com/edenhill/kcat/archive/refs/tags/${KCAT}.tar.gz \
+    && tar xvfz ${KCAT}.tar.gz \
+    && cd kcat-${KCAT} \
     && ./bootstrap.sh
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG SCALA
+ARG KCAT
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG RELEASE
@@ -75,7 +78,9 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
+# Store kcat version with binary name and add softlink
+COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
