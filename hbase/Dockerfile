@@ -4,6 +4,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG PHOENIX
 ARG RELEASE
+ARG JMX_EXPORTER
 
 LABEL name="Apache HBase" \
       maintainer="info@stackable.tech" \
