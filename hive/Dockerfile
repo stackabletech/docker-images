@@ -49,7 +49,7 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/aws/aws-java-
     chmod -x /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar
 
 # Download azure module for Hadoop (support for abfs://)
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/aws/hadoop-azure-${HADOOP_LIBS}.jar \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LIBS}.jar \
     -o /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar && \
     chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar
 
