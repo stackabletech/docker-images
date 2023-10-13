@@ -11,10 +11,8 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
-
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
-
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
@@ -34,7 +32,6 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
-
 - hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
 - zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
