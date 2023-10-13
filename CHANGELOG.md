@@ -10,9 +10,9 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- hadoop: added support for 3.2.4, 3.3.6 ([#478]).
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
-
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
@@ -32,6 +32,8 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
+- hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
+- zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
 ### Removed
 
@@ -41,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - Removed all product specific changelogs and updated the root file ([#440])
 
 - opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
+- hadoop: removed support for 3.3.1, 3.3.3 ([#478]).
 - zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
@@ -60,6 +63,7 @@ All notable changes to this project will be documented in this file.
 [#466]: https://github.com/stackabletech/docker-images/pull/466
 [#470]: https://github.com/stackabletech/docker-images/pull/470
 [#471]: https://github.com/stackabletech/docker-images/pull/471
+[#478]: https://github.com/stackabletech/docker-images/pull/478
 [#479]: https://github.com/stackabletech/docker-images/pull/479
 
 ## [23.7.0] - 2023-07-14
