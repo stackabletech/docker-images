@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
 - hive: added upload new version script ([#472]).
+- nifi: added support for version 1.23.2 ([#473]).
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
 - zookeeper: add version 3.8.3 ([#470]).
@@ -46,6 +47,8 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: removed support for 3.3.1, 3.3.3 ([#478]).
 - hive: remove version 2.3.9 ([#472]).
+- nifi: removed support for version 1.15.x, 1.16.x, 1.18.x, 1.20.x ([#473]).
+- nifi: removed openssl from image ([#473]).
 - opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
 - zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
@@ -67,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#470]: https://github.com/stackabletech/docker-images/pull/470
 [#471]: https://github.com/stackabletech/docker-images/pull/471
 [#472]: https://github.com/stackabletech/docker-images/pull/472
+[#473]: https://github.com/stackabletech/docker-images/pull/473
 [#478]: https://github.com/stackabletech/docker-images/pull/478
 [#479]: https://github.com/stackabletech/docker-images/pull/479
 

@@ -199,11 +199,8 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {"product": "1.15.3", "java-base": "11"},
-            {"product": "1.16.3", "java-base": "11"},
-            {"product": "1.18.0", "java-base": "11"},
-            {"product": "1.20.0", "java-base": "11"},
             {"product": "1.21.0", "java-base": "11"},
+            {"product": "1.23.2", "java-base": "11"},
         ],
     },
     {
