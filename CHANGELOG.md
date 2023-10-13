@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
 
 - hbase: added soft link for jmx-exporter ([#469]).
+- hbase: rename jmx_exporter configs to match rolenames in operators ([#469]). 
 
 ### Removed
 
