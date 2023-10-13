@@ -13,7 +13,7 @@ read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
 
 # Vector does not currently publish signatures or SBOMs (as of
-# 2023-07-31, latest version at this point 0.31.0)
+# 2023-10-11, latest version at this point 0.33.0)
 
 for arch in "${ARCHITECTURES[@]}"; do
     file="vector-$VERSION-$RELEASE.$arch.rpm"
