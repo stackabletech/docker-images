@@ -14,7 +14,7 @@ products = [
                 "python": "38",
                 "statsd_exporter": "v0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "2.2.4",
@@ -22,7 +22,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "v0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "2.2.5",
@@ -30,7 +30,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "v0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "2.4.1",
@@ -38,7 +38,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "v0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "2.6.1",
@@ -46,7 +46,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "v0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
         ],
     },
@@ -135,11 +135,11 @@ products = [
         "versions": [
             {
                 "product": "11",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "17",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
         ],
     },
@@ -198,7 +198,7 @@ products = [
         "name": "vector",
         "versions": [
             {
-                "product": "0.31.0",
+                "product": "0.33.0",
                 "rpm_release": "1",
                 "stackable-base": "1.0.0"
             }
@@ -218,33 +218,13 @@ products = [
         "name": "opa",
         "versions": [
             {
-                "product": "0.27.1",
-                "vector": "0.31.0",
-                "bundle_builder_version": "1.0.0",
-            },
-            {
-                "product": "0.28.0",
-                "vector": "0.31.0",
-                "bundle_builder_version": "1.0.0",
-            },
-            {
-                "product": "0.37.2",
-                "vector": "0.31.0",
-                "bundle_builder_version": "1.0.0",
-            },
-            {
-                "product": "0.41.0",
-                "vector": "0.31.0",
-                "bundle_builder_version": "1.0.0",
-            },
-            {
-                "product": "0.45.0",
-                "vector": "0.31.0",
-                "bundle_builder_version": "1.0.0",
-            },
-            {
                 "product": "0.51.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
+                "bundle_builder_version": "1.1.0",
+            },
+            {
+                "product": "0.57.0",
+                "vector": "0.33.0",
                 "bundle_builder_version": "1.1.0",
             },
         ],
@@ -265,7 +245,7 @@ products = [
                 "jackson_dataformat_xml": "2.12.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "3.3.0",
@@ -280,7 +260,7 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "3.3.0-java17",
@@ -295,7 +275,7 @@ products = [
                 "jackson_dataformat_xml": "2.13.3",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "3.4.0",
@@ -310,7 +290,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.5.0",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "3.4.0-java17",
@@ -325,7 +305,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
         ],
     },
@@ -339,38 +319,38 @@ products = [
             {
                 "product": "1.3.2",
                 "python": "3.8",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "1.4.1",
                 "python": "3.9",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "1.4.2",
                 "python": "3.9",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "1.5.1",
                 "python": "3.8",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "1.5.3",
                 "python": "3.8",
-                "vector": "0.31.0",
+                "vector": "0.33.0",
             },
             {
                 'product': '2.0.1',
                 'python': '3.9',
-                'vector': '0.31.0',
+                'vector': '0.33.0',
                 'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4ac9bba008e404b9a1e783cd272c81bb8634de3d/requirements-extra.txt#L10
             },
             {
                 'product': '2.1.0',
                 'python': '3.9',
-                'vector': '0.31.0',
+                'vector': '0.33.0',
                 'authlib': '0.15.4'  # https://github.com/dpgaspar/Flask-AppBuilder/blob/4554c40e2298d11c4472ca64b9a60236b12c6535/requirements-extra.txt#L10
             },
         ],
@@ -391,14 +371,10 @@ products = [
         "versions": [{"product": "0.2.0"}],
     },
     {
-        # ZooKeeper must be at least 3.5.0
         "name": "zookeeper",
         "versions": [
-            {"product": "3.5.8", "java-base": "11", "jmx_exporter": "0.16.1"},
-            {"product": "3.6.3", "java-base": "11", "jmx_exporter": "0.16.1"},
-            {"product": "3.7.0", "java-base": "11", "jmx_exporter": "0.16.1"},
-            {"product": "3.8.0", "java-base": "11", "jmx_exporter": "0.16.1"},
-            {"product": "3.8.1", "java-base": "11", "jmx_exporter": "0.18.0"},
+            {"product": "3.8.1", "java-base": "11", "jmx_exporter": "0.20.0"},
+            {"product": "3.8.3", "java-base": "11", "jmx_exporter": "0.20.0"},
         ],
     },
     {
