@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- opa: add version 0.57.0 ([#471]).
+- opa: add new version upload script ([#471]).
+
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
@@ -37,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
 
+- opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
 - zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
@@ -55,6 +59,7 @@ All notable changes to this project will be documented in this file.
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
 [#470]: https://github.com/stackabletech/docker-images/pull/470
+[#471]: https://github.com/stackabletech/docker-images/pull/471
 [#479]: https://github.com/stackabletech/docker-images/pull/479
 
 ## [23.7.0] - 2023-07-14
