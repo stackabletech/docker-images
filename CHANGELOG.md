@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- kafka: add support for versions 3.4.1, 3.5.1 ([#476]).
+
 ### Changed
 
 - Extract image tools their own [repository](https://github.com/stackabletech/image-tools) ([#437])
@@ -26,8 +28,6 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
-
-- kafka: add support for versions 3.4.1, 3.5.0 ([#476]).
 
 ### Removed
 
