@@ -57,7 +57,7 @@ jobs:
       - name: Publish dev images
         id: publish_images
         run: |
-          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --shard-count "${{matrix.shard_count}}" --shard-index quantile "${{matrix.shard_index}}" --push 2>&1)
+          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --shard-count "${{matrix.shard_count}}" --shard-index "${{matrix.shard_index}}" --push 2>&1)
           echo "$BAKE_OUTPUT"
           # needed for multiline strings in github actions
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
