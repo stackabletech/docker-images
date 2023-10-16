@@ -35,9 +35,9 @@ jobs:
           - trino
           - tools
           - zookeeper
-        shard-count:
+        shard_count:
           - 5
-        shard-index: [0, 1, 2, 3, 4] # between 0 and shard-count-1
+        shard_index: [0, 1, 2, 3, 4] # between 0 and shard-count-1
     env:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
