@@ -35,6 +35,9 @@ jobs:
           - trino
           - tools
           - zookeeper
+        shard_count:
+          - 5
+        shard_index: [0, 1, 2, 3, 4] # between 0 and shard-count-1
     env:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
@@ -58,7 +61,7 @@ jobs:
       - name: Publish release product images
         id: publish_images
         run: |
-          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --push 2>&1)
+          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version "$GITHUB_REF_NAME" --organization stackable --architecture linux/amd64 --shard-count "${{matrix.shard_count}}" --shard-index "${{matrix.shard_index}}" --push 2>&1)
           echo "$BAKE_OUTPUT"
           # needed for multiline strings in github actions
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
