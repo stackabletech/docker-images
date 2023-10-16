@@ -3,7 +3,7 @@ alembic==1.6.5
     # via flask-migrate
 amqp==5.1.0
     # via kombu
-apispec[yaml]==3.3.2
+apispec==3.3.2
     # via flask-appbuilder
 attrs==21.2.0
     # via jsonschema
