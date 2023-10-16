@@ -37,12 +37,11 @@ curl --fail -LOs "https://archive.apache.org/dist/druid/${VERSION}/${bin_file}.a
 curl --fail -LOs "https://archive.apache.org/dist/druid/${VERSION}/${bin_file}.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
-# This currently does not work because the sha512 file has a LF in the end
-#echo "Validating SHA512 Checksum"
-#if ! (sha512sum "${bin_file}" | cut -d " " -f 1 | diff - "${bin_file}.sha512"); then
-#  echo "ERROR: The SHA512 sum does not match"
-#  exit 1
-#fi
+echo "Validating SHA512 Checksum"
+if ! (sha512sum "${bin_file}" | cut -d " " -f 1 | diff -Z - "${bin_file}.sha512"); then
+  echo "ERROR: The SHA512 sum does not match"
+  exit 1
+fi
 
 echo "Validating signature"
 echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://www.apache.org/dist/druid/KEYS) to GPG: https://www.apache.org/info/verification.html'
