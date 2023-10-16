@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
-- airflow: added support for 2.6.3, 2.7.1 ([#477]).
+- airflow: added support for 2.6.3, 2.7.2 ([#477]).
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
 - hive: added upload new version script ([#472]).
 - kafka: add support for versions 3.4.1, 3.5.1 ([#476]).
