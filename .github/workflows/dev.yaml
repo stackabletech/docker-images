@@ -32,9 +32,9 @@ jobs:
           - trino
           - tools
           - zookeeper
-        max_bake_runners:
+        shard_count:
           - 5
-        product_version_quantile: [0, 1, 2, 3, 4] # between 0 and max_bake_runners-1
+        shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
@@ -57,7 +57,7 @@ jobs:
       - name: Publish dev images
         id: publish_images
         run: |
-          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --max-bake-runners "${{matrix.max_bake_runners}}" --product-version-quantile "${{matrix.product_version_quantile}}" --push 2>&1)
+          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --shard-count "${{matrix.shard_count}}" --shard-index quantile "${{matrix.shard_index}}" --push 2>&1)
           echo "$BAKE_OUTPUT"
           # needed for multiline strings in github actions
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
