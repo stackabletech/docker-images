@@ -73,7 +73,7 @@ jobs:
       - name: Sign images
         run: |
           if [ -f bake-target-tags ]; then
-            cosign sign -y < bake-target-tags
+            cosign sign -y "$(< bake-target-tags)"
           fi
   preflight:
     name: ${{ matrix.product }} OpenShift checks
