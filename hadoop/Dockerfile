@@ -123,8 +123,7 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation \
-    openssl && \
+    krb5-workstation && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 

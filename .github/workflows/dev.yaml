@@ -12,7 +12,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      # fail-fast: true
       # This setting can be changed to throttle the build load
       # max-parallel: 1
       matrix:
@@ -32,6 +32,9 @@ jobs:
           - trino
           - tools
           - zookeeper
+        shard_count:
+          - 5
+        shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
@@ -44,7 +47,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install image-tools-stackabletech
-        run: pip install image-tools-stackabletech
+        run: pip install image-tools-stackabletech==0.0.4
       - name: Login to Stackable Nexus
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
@@ -54,25 +57,24 @@ jobs:
       - name: Publish dev images
         id: publish_images
         run: |
-          BAKE_OUTPUT=$(bake --product "${{ matrix.product }}" --image-version 0.0.0-dev --push 2>&1)
-          echo "$BAKE_OUTPUT"
-          # needed for multiline strings in github actions
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          {
-            echo "PUSHED_MANIFESTS<<$EOF";
-            # find all pushed manifests based on the output of the bake command
-            # this is needed for image signing, since images should be referenced by their digest
-            echo "$BAKE_OUTPUT" | awk '/^#[0-9]+ pushing manifest for docker.stackable.tech\/stackable\/${{ matrix.product }}:.+ done$/ { print $5 }' >> "$GITHUB_OUTPUT";
-            echo "$EOF" >> "$GITHUB_OUTPUT";
-          } >> "$GITHUB_OUTPUT"
+          # bake images and load them to local docker repo for signing
+          # TODO: buildx cannot --load and --push at the same time
+          bake --product "${{ matrix.product }}" \
+          --image-version 0.0.0-dev \
+          --shard-count "${{matrix.shard_count}}" \
+          --shard-index "${{matrix.shard_index}}" \
+          --export-tags-file bake-target-tags
+          # push images to image repository
+          if [ -f bake-target-tags ]; then
+            docker image push "$(< bake-target-tags)"
+          fi
       - name: Set up Cosign
         uses: sigstore/cosign-installer@v3.1.2
       - name: Sign images
         run: |
-          while IFS= read -r MANIFEST; do
-            echo "signing $MANIFEST";
-            cosign sign -y "$MANIFEST";
-          done <<< "${{steps.publish_images.outputs.PUSHED_MANIFESTS}}"
+          if [ -f bake-target-tags ]; then
+            cosign sign -y "$(< bake-target-tags)"
+          fi
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
@@ -109,7 +111,7 @@ jobs:
       - run: pip install image-tools-stackabletech
       - name: Install preflight
         run: |
-          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.6.11/preflight-linux-amd64
           chmod +x preflight-linux-amd64
       - name: OpenShift certification checks
         run: check-container --product "${{ matrix.product }}" --image-version 0.0.0-dev --executable ./preflight-linux-amd64
