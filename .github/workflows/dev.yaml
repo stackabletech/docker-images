@@ -65,12 +65,11 @@ jobs:
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
           # push images to image repository
-          cat bake-target-tags | xargs docker image push
+          docker image push < bake-target-tags
       - name: Set up Cosign
         uses: sigstore/cosign-installer@v3.1.2
       - name: Sign images
-        run: |
-            cat bake-target-tags | xargs cosign -y
+        run: cosign -y < bake-target-tags
   preflight:
     name: ${{ matrix.product }} OpenShift checks
     # Run preflight check but do not submit anything to the RH certification portal.
