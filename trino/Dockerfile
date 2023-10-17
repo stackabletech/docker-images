@@ -39,9 +39,9 @@ RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx
 
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
 
-RUN if [ -n "$STORAGE_CONNECTOR" ]; then curl --fail https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
+RUN curl --fail https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
     unzip /tmp/trino-storage-${STORAGE_CONNECTOR}.zip -d /stackable/trino-server/plugin && \
-    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip ; fi
+    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
