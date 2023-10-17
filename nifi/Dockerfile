@@ -16,7 +16,7 @@ LABEL name="Apache NiFi" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip openssl libxslt-devel libxml2-devel gcc && \
+    microdnf install tar gzip zip unzip libxslt-devel libxml2-devel gcc && \
     microdnf install python3-devel python3-pip python3-setuptools && \
     microdnf clean all
 
@@ -31,7 +31,10 @@ COPY --chown=stackable:stackable nifi/stackable /stackable
 COPY --chown=stackable:stackable nifi/licenses /licenses
 COPY --chown=stackable:stackable nifi/python /stackable/python
 
-RUN curl -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.tar.gz | tar -xzC . && \
+# zip is different than tar and cannot be just piped, therefore the intermediate save and remove step to unzip
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.zip -o /stackable/nifi-${PRODUCT}-bin.zip && \
+    unzip /stackable/nifi-${PRODUCT}-bin.zip && \
+    rm /stackable/nifi-${PRODUCT}-bin.zip && \
     ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
 # ===
