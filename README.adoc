@@ -42,7 +42,7 @@ Prerequisites:
 * Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools 
 * Docker including the `buildx` plugin: https://github.com/docker/buildx
 
-To build and push product images to the default repository, use the `build_product_images.py` like this:
+To build and push product images to the default repository, use the `bake`-tool like this:
 
     bake --product zookeeper --image 0.0.0-dev --push
 
