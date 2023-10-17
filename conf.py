@@ -378,12 +378,8 @@ products = [
     {
         "name": "trino",
         "versions": [
-            {"product": "377", "java-base": "11", "opa_authorizer": "0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "387", "java-base": "11", "opa_authorizer": "0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "395", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "396", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "403", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.18.0", "storage_connector": "414"},
+            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.20.0", "storage_connector": "414"},
+            {"product": "428", "java-base": "17", "opa_authorizer": "stackable0.3.0", "jmx_exporter": "0.20.0", "storage_connector": "428"},
         ],
     },
     {
