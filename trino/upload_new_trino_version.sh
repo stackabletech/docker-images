@@ -45,7 +45,7 @@ fi
 
 echo "Adding pinned public key for signature"
 # We lock the public key here until trino has a better workflow for signing
-gpg --no-default-keyring --keyring ${WORK_DIR}/keyring --import <<-EOF
+gpg --no-default-keyring --keyring "${WORK_DIR}"/keyring --import <<-EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: Hostname:
 Version: Hockeypuck 2.1.0-223-gdc2762b
@@ -80,7 +80,7 @@ LoKR7XroVADNIdggJawYzZNyU6clw/O1if5vSURumLeul13T
 EOF
 
 echo "Validating signature"
-if ! (gpgv --keyring ${WORK_DIR}/keyring "${bin_file}.asc" "${bin_file}" 2> /dev/null); then
+if ! (gpgv --keyring "${WORK_DIR}"/keyring "${bin_file}.asc" "${bin_file}" 2> /dev/null); then
   echo "ERROR: The signature could not be verified"
   exit 1
 fi
