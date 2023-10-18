@@ -19,7 +19,7 @@ LABEL name="Trino" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install tar gzip zip python3 openssl httpd-tools && \
+    microdnf install tar gzip zip python3 httpd-tools && \
     microdnf clean all && \
     alternatives --set python /usr/bin/python3
 
@@ -29,19 +29,19 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable trino/stackable /stackable
 COPY --chown=stackable:stackable trino/licenses /licenses
 
-RUN curl -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
     ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
 
-RUN if [ -n "$STORAGE_CONNECTOR" ]; then curl https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
+RUN curl --fail https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
     unzip /tmp/trino-storage-${STORAGE_CONNECTOR}.zip -d /stackable/trino-server/plugin && \
-    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip ; fi
+    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
