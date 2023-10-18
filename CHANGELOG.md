@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - nifi: added support for version 1.23.2 ([#473]).
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
+- spark: added versions 3.4.1, 3.5.0 ([#475]).
+- superset: add new version 2.1.1, 3.0.0 ([#482]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
@@ -38,6 +40,9 @@ All notable changes to this project will be documented in this file.
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
 - hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
 - hive: bump jmx-exporter to 0.20.0 ([#472]).
+- spark: bump jmx-exporter to 0.20.0 and access via softlink ([#475]).
+- superset: removed patches that are obsolete since 2.0.0 ([#482]).
+- superset: bump statsd_exporter to 0.24.0 and set via conf.py ([#482]).
 - zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
 ### Removed
@@ -54,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - nifi: removed support for version 1.15.x, 1.16.x, 1.18.x, 1.20.x ([#473]).
 - nifi: removed openssl from image ([#473]).
 - opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
+- spark: removed versions 3.2.1, 3.3.0 versions ([#475]).
+- superset: removed versions 1.3.2, 1.4.1, 1.4.2, 1.5.1, 1.5.3, 2.0.1 ([#482]).
 - zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
@@ -75,9 +82,11 @@ All notable changes to this project will be documented in this file.
 [#471]: https://github.com/stackabletech/docker-images/pull/471
 [#472]: https://github.com/stackabletech/docker-images/pull/472
 [#473]: https://github.com/stackabletech/docker-images/pull/473
+[#475]: https://github.com/stackabletech/docker-images/pull/475
 [#476]: https://github.com/stackabletech/docker-images/pull/476
 [#478]: https://github.com/stackabletech/docker-images/pull/478
 [#479]: https://github.com/stackabletech/docker-images/pull/479
+[#482]: https://github.com/stackabletech/docker-images/pull/482
 [#485]: https://github.com/stackabletech/docker-images/pull/485
 
 ## [23.7.0] - 2023-07-14
