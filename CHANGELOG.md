@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- airflow: added support for 2.6.3, 2.7.2 ([#477]).
 - druid: added support for 27.0.0 ([#485]).
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
 - hive: added upload new version script ([#472]).
@@ -54,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
 
+- airflow: removed support for 2.2.3, 2.2.4, 2.2.5, 2.4.1 ([#477]).
 - druid: removed support for 0.23.0, 24.0.0 ([#485]).
 - hadoop: removed support for 3.3.1, 3.3.3 ([#478]).
 - hive: remove version 2.3.9 ([#472]).
@@ -87,6 +89,7 @@ All notable changes to this project will be documented in this file.
 [#473]: https://github.com/stackabletech/docker-images/pull/473
 [#475]: https://github.com/stackabletech/docker-images/pull/475
 [#476]: https://github.com/stackabletech/docker-images/pull/476
+[#477]: https://github.com/stackabletech/docker-images/pull/477
 [#478]: https://github.com/stackabletech/docker-images/pull/478
 [#479]: https://github.com/stackabletech/docker-images/pull/479
 [#482]: https://github.com/stackabletech/docker-images/pull/482
