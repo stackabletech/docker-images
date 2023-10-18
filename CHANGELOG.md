@@ -43,7 +43,7 @@ All notable changes to this project will be documented in this file.
 - spark: bump jmx-exporter to 0.20.0 and access via softlink ([#475]).
 - superset: removed patches that are obsolete since 2.0.0 ([#482]).
 - superset: bump statsd_exporter to 0.24.0 and set via conf.py ([#482]).
-- trino: using new OPA authorizer from <https://github.com/bloomberg/trino/tree/add-open-policy-agent> for version 428 ([#487]). 
+- trino: using new OPA authorizer from <https://github.com/bloomberg/trino/tree/add-open-policy-agent> for version 428 ([#487]).
 - zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
 ### Removed
