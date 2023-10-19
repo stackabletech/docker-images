@@ -1,4 +1,4 @@
-# from https://raw.githubusercontent.com/apache/superset/3.0.0/requirements/base.txt
+# from https://raw.githubusercontent.com/apache/superset/3.0.1/requirements/base.txt
 alembic==1.6.5
     # via flask-migrate
 amqp==5.1.0
@@ -80,7 +80,7 @@ flask==2.2.5
     #   flask-migrate
     #   flask-sqlalchemy
     #   flask-wtf
-flask-appbuilder==4.3.6
+flask-appbuilder==4.3.7
     # via apache-superset
 flask-babel==1.0.0
     # via flask-appbuilder
@@ -317,7 +317,7 @@ xlsxwriter==3.0.7
     # via apache-superset
 zipp==3.15.0
     # via importlib-metadata
-# from https://raw.githubusercontent.com/apache/superset/3.0.0/requirements/docker.txt
+# from https://raw.githubusercontent.com/apache/superset/3.0.1/requirements/docker.txt
 gevent==22.10.2
     # via -r requirements/docker.in
 greenlet==2.0.2
