@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
 - spark: added versions 3.4.1, 3.5.0 ([#475]).
-- superset: add new version 2.1.1, 3.0.0 ([#482]).
+- superset: add new version 2.1.1, 3.0.1 ([#482], [#489]).
 - trino: removed support for versions 428 ([#487]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
@@ -95,6 +95,7 @@ All notable changes to this project will be documented in this file.
 [#482]: https://github.com/stackabletech/docker-images/pull/482
 [#485]: https://github.com/stackabletech/docker-images/pull/485
 [#487]: https://github.com/stackabletech/docker-images/pull/487
+[#489]: https://github.com/stackabletech/docker-images/pull/489
 
 ## [23.7.0] - 2023-07-14
 

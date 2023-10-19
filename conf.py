@@ -284,7 +284,7 @@ products = [
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
-                "product": "3.0.0",
+                "product": "3.0.1",
                 "python": "3.9",
                 "vector": "0.33.0",
                 "statsd_exporter": "v0.24.0",
