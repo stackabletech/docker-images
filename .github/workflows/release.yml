@@ -52,7 +52,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install image-tools-stackabletech
-        run: pip install image-tools-stackabletech==0.0.4
+        run: pip install image-tools-stackabletech==0.0.5
       - name: Login to Stackable Nexus
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
