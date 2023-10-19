@@ -91,13 +91,15 @@ products = [
     {
         "name": "hbase",
         "versions": [
-            {
-                "product": "2.4.12",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-                "hadoop": "3.3.6",
-                "jmx_exporter": "0.20.0",
-            },
+        # TODO 2.4.12 does not seem to build with Java 11, 2.4.17 does not build with Java 8. Need to investigate. If 2.4.12 only fails on the site build we might be able to leave that out but it is part of the "official" release. I assume assembly works without it as well but I haven't tested it yet
+        # Seems to be https://issues.apache.org/jira/browse/HBASE-25983
+#              {
+#                  "product": "2.4.12",
+#                  "java-base": "11",
+#                  "phoenix": "2.4-5.1.2",
+#                  "hadoop": "3.3.6",
+#                  "jmx_exporter": "0.20.0",
+#              },
             {
                 "product": "2.4.17",
                 "java-base": "11",
