@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - trino: removed support for versions 428 ([#487]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
+- omid: init at 1.1.0 ([#493]).
 
 ### Changed
 
@@ -96,6 +97,7 @@ All notable changes to this project will be documented in this file.
 [#485]: https://github.com/stackabletech/docker-images/pull/485
 [#487]: https://github.com/stackabletech/docker-images/pull/487
 [#489]: https://github.com/stackabletech/docker-images/pull/489
+[#493]: https://github.com/stackabletech/docker-images/pull/493
 
 ## [23.7.0] - 2023-07-14
 
