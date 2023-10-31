@@ -111,7 +111,7 @@ for targetdir in ${1}
 do
   echo "Removing JNDI from tar.gz files in $targetdir"
   for targzfile in $(find $targetdir -name '*.tar.gz') ; do
-    delete_jndi_from_targz_file $targzfile $backupdir
+    delete_jndi_from_targz_file $targzfile
   done
 done
 

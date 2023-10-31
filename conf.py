@@ -178,6 +178,15 @@ products = [
         ],
     },
     {
+        "name": "omid",
+        "versions": [
+            {
+                "product": "1.1.0",
+                "java-base": "11",
+            },
+        ],
+    },
+    {
         "name": "opa",
         "versions": [
             {
