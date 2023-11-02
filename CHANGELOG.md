@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
+- airflow: added support for 2.6.3, 2.7.2 ([#477]).
+- druid: added support for 27.0.0 ([#485]).
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
 - hbase: added new version 2.4.17 ([#469]).
 - hbase: use jmx-exporter 0.20.0 ([#469]).
@@ -18,7 +20,9 @@ All notable changes to this project will be documented in this file.
 - nifi: added support for version 1.23.2 ([#473]).
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
-- superset: add new version 2.1.1, 3.0.0 ([#482]).
+- spark: added versions 3.4.1, 3.5.0 ([#475]).
+- superset: add new version 2.1.1, 3.0.1 ([#482], [#489]).
+- trino: removed support for versions 428 ([#487]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
 
@@ -42,8 +46,10 @@ All notable changes to this project will be documented in this file.
 - hbase: added soft link for jmx-exporter ([#469]).
 - hbase: rename jmx_exporter configs to match rolenames in operators ([#469]).
 - hive: bump jmx-exporter to 0.20.0 ([#472]).
+- spark: bump jmx-exporter to 0.20.0 and access via softlink ([#475]).
 - superset: removed patches that are obsolete since 2.0.0 ([#482]).
 - superset: bump statsd_exporter to 0.24.0 and set via conf.py ([#482]).
+- trino: using new OPA authorizer from <https://github.com/bloomberg/trino/tree/add-open-policy-agent> for version 428 ([#487]).
 - zookeeper: bumped jmx-exporter version to 0.20.0 ([#470]).
 
 ### Removed
@@ -53,13 +59,17 @@ All notable changes to this project will be documented in this file.
 - pyspark-k8s: The PySpark image has been removed completely. Python is now installed with the Spark image ([#436])
 - Removed all product specific changelogs and updated the root file ([#440])
 
+- airflow: removed support for 2.2.3, 2.2.4, 2.2.5, 2.4.1 ([#477]).
+- druid: removed support for 0.23.0, 24.0.0 ([#485]).
 - hadoop: removed support for 3.3.1, 3.3.3 ([#478]).
 - hive: remove version 2.3.9 ([#472]).
 - kafka: removed support for versions 2.7.1, 3.1.0, 3.2.0, 3.3.1 ([#476]).
 - nifi: removed support for version 1.15.x, 1.16.x, 1.18.x, 1.20.x ([#473]).
 - nifi: removed openssl from image ([#473]).
 - opa: removed versions 0.27.1, 0.28.0, 0.37.2, 0.41.0, 0.45.0 ([#471]).
+- spark: removed versions 3.2.1, 3.3.0 versions ([#475]).
 - superset: removed versions 1.3.2, 1.4.1, 1.4.2, 1.5.1, 1.5.3, 2.0.1 ([#482]).
+- trino: removed support for versions 377, 387, 395, 396, 403 ([#487]).
 - zookeeper: removed versions 3.5.8, 3.6.3, 3.7.0, 3.8.0 ([#470]).
 
 [#400]: https://github.com/stackabletech/docker-images/pull/400
@@ -82,10 +92,15 @@ All notable changes to this project will be documented in this file.
 [#471]: https://github.com/stackabletech/docker-images/pull/471
 [#472]: https://github.com/stackabletech/docker-images/pull/472
 [#473]: https://github.com/stackabletech/docker-images/pull/473
+[#475]: https://github.com/stackabletech/docker-images/pull/475
 [#476]: https://github.com/stackabletech/docker-images/pull/476
+[#477]: https://github.com/stackabletech/docker-images/pull/477
 [#478]: https://github.com/stackabletech/docker-images/pull/478
 [#479]: https://github.com/stackabletech/docker-images/pull/479
 [#482]: https://github.com/stackabletech/docker-images/pull/482
+[#485]: https://github.com/stackabletech/docker-images/pull/485
+[#487]: https://github.com/stackabletech/docker-images/pull/487
+[#489]: https://github.com/stackabletech/docker-images/pull/489
 
 ## [23.7.0] - 2023-07-14
 
