@@ -13,8 +13,9 @@ All notable changes to this project will be documented in this file.
 - airflow: added support for 2.6.3, 2.7.2 ([#477]).
 - druid: added support for 27.0.0 ([#485]).
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
-- hbase: added new version 2.4.17 ([#469]).
-- hbase: use jmx-exporter 0.20.0 ([#469]).
+- hbase: added new version 2.4.17 ([#494]).
+- hbase: use jmx-exporter 0.20.0 ([#494]).
+- hbase: added hadoop native compression ([#494]).
 - hive: added upload new version script ([#472]).
 - kafka: add support for versions 3.4.1, 3.5.1 ([#476]).
 - nifi: added support for version 1.23.2 ([#473]).
@@ -43,8 +44,8 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
 - hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
-- hbase: added soft link for jmx-exporter ([#469]).
-- hbase: rename jmx_exporter configs to match rolenames in operators ([#469]).
+- hbase: added soft link for jmx-exporter ([#494]).
+- hbase: rename jmx_exporter configs to match rolenames in operators ([#494]).
 - hive: bump jmx-exporter to 0.20.0 ([#472]).
 - spark: bump jmx-exporter to 0.20.0 and access via softlink ([#475]).
 - superset: removed patches that are obsolete since 2.0.0 ([#482]).
@@ -87,7 +88,6 @@ All notable changes to this project will be documented in this file.
 [#464]: https://github.com/stackabletech/docker-images/pull/464
 [#465]: https://github.com/stackabletech/docker-images/pull/465
 [#466]: https://github.com/stackabletech/docker-images/pull/466
-[#469]: https://github.com/stackabletech/docker-images/pull/469
 [#470]: https://github.com/stackabletech/docker-images/pull/470
 [#471]: https://github.com/stackabletech/docker-images/pull/471
 [#472]: https://github.com/stackabletech/docker-images/pull/472
@@ -101,6 +101,7 @@ All notable changes to this project will be documented in this file.
 [#485]: https://github.com/stackabletech/docker-images/pull/485
 [#487]: https://github.com/stackabletech/docker-images/pull/487
 [#489]: https://github.com/stackabletech/docker-images/pull/489
+[#494]: https://github.com/stackabletech/docker-images/pull/494
 
 ## [23.7.0] - 2023-07-14
 
