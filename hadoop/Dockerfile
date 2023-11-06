@@ -2,6 +2,7 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
+ARG JAVA
 ARG JMX_EXPORTER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -16,7 +17,7 @@ RUN microdnf update && \
     fuse-devel \
     gcc \
     gcc-c++ \
-    java-11-openjdk-devel \
+    java-${JAVA}-openjdk-devel \
     maven \
     openssl-devel \
     tar \

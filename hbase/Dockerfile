@@ -3,19 +3,22 @@ FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
 ARG PHOENIX
+ARG JAVA
 ARG JMX_EXPORTER
-ARG HADOOP
+ARG HADOOP_M2
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN echo "${JAVA}"
+RUN echo "${PRODUCT}"
 
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
     git \
     gzip \
-    java-11-openjdk-devel \
-    #java-1.8.0-openjdk-devel \
+    java-${JAVA}-openjdk-devel \
     maven \
     tar \
     zip && \
@@ -29,29 +32,16 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-
-#RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-#    mv hbase-${PRODUCT} hbase-${PRODUCT}-src && \
-#    chmod +x patches/apply_patches.sh && \
-#    patches/apply_patches.sh ${PRODUCT} && \
-#    cd /stackable/hbase-${PRODUCT}-src/ && \
-#    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
-#    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} site -DskipTests && \
-#    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
-#    tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
-#    rm -rf /stackable/hbase-${PRODUCT}-src
-
+# The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here). I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 RUN chmod +x patches/apply_patches.sh
 RUN patches/apply_patches.sh ${PRODUCT}
 RUN cd /stackable/hbase-${PRODUCT}-src/ && \
-    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
-    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} site -DskipTests && \
-    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
+    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} clean install -DskipTests && \
+    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
-
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
