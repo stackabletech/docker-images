@@ -10,9 +10,6 @@ ARG HADOOP_M2
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN echo "${JAVA}"
-RUN echo "${PRODUCT}"
-
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
@@ -32,7 +29,8 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-# The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here). I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
+# The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
+# I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 RUN chmod +x patches/apply_patches.sh
