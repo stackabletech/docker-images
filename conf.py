@@ -9,39 +9,23 @@ products = [
         "name": "airflow",
         "versions": [
             {
-                "product": "2.2.3",
-                "git_sync": "v3.6.8",
-                "python": "38",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.33.0",
-            },
-            {
-                "product": "2.2.4",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.33.0",
-            },
-            {
-                "product": "2.2.5",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.33.0",
-            },
-            {
-                "product": "2.4.1",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.33.0",
-            },
-            {
                 "product": "2.6.1",
+                "git_sync": "v3.6.8",
+                "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.33.0",
+            },
+            {
+                "product": "2.6.3",
+                "git_sync": "v3.6.8",
+                "python": "39",
+                "statsd_exporter": "v0.24.0",
+                "tini": "0.19.0",
+                "vector": "0.33.0",
+            },
+            {
+                "product": "2.7.2",
                 "git_sync": "v3.6.8",
                 "python": "39",
                 "statsd_exporter": "v0.24.0",
@@ -54,23 +38,15 @@ products = [
         "name": "druid",
         "versions": [
             {
-                "product": "0.23.0",
-                "java-base": "11",
-                "jackson_dataformat_xml": "2.10.5",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "authorizer": "0.2.0",
-            },
-            {
-                "product": "24.0.0",
-                "java-base": "11",
-                "jackson_dataformat_xml": "2.10.5",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "authorizer": "0.4.0",
-            },
-            {
                 "product": "26.0.0",
+                "java-base": "11",
+                "jackson_dataformat_xml": "2.10.5",
+                "stax2_api": "4.2.1",
+                "woodstox_core": "6.2.1",
+                "authorizer": "0.5.0",
+            },
+            {
+                "product": "27.0.0",
                 "java-base": "11",
                 "jackson_dataformat_xml": "2.10.5",
                 "stax2_api": "4.2.1",
@@ -254,51 +230,6 @@ products = [
         "name": "spark-k8s",
         "versions": [
             {
-                "product": "3.2.1",
-                "spark": "3.2.1",
-                "java-base": "11",
-                "python": "39",
-                "hadoop_short_version": "3.2",
-                "hadoop_long_version": "3.3.1",
-                "aws_java_sdk_bundle": "1.11.901",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.12.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.33.0",
-            },
-            {
-                "product": "3.3.0",
-                "spark": "3.3.0",
-                "java-base": "11",
-                "python": "39",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.3",
-                "aws_java_sdk_bundle": "1.11.1026",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.13.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.33.0",
-            },
-            {
-                "product": "3.3.0-java17",
-                "spark": "3.3.0",
-                "java-base": "17",
-                "python": "39",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.3",
-                "aws_java_sdk_bundle": "1.11.1026",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.13.3",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "vector": "0.33.0",
-            },
-            {
                 "product": "3.4.0",
                 "spark": "3.4.0",
                 "java-base": "11",
@@ -312,7 +243,9 @@ products = [
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.5.0",
                 "vector": "0.33.0",
+                "jmx_exporter": "0.20.0",
             },
+            # required for a customer
             {
                 "product": "3.4.0-java17",
                 "spark": "3.4.0",
@@ -327,6 +260,39 @@ products = [
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "vector": "0.33.0",
+                "jmx_exporter": "0.20.0",
+            },
+            {
+                "product": "3.4.1",
+                "spark": "3.4.1",
+                "java-base": "11",
+                "python": "3.11",
+                "hadoop_short_version": "3",
+                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
+                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
+                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
+                "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
+                "vector": "0.33.0",
+                "jmx_exporter": "0.20.0",
+            },
+            {
+                "product": "3.5.0",
+                "spark": "3.5.0",
+                "java-base": "11",
+                "python": "3.11",
+                "hadoop_short_version": "3",
+                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
+                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.0
+                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "vector": "0.33.0",
+                "jmx_exporter": "0.20.0",
             },
         ],
     },
@@ -352,7 +318,7 @@ products = [
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
-                "product": "3.0.0",
+                "product": "3.0.1",
                 "python": "3.9",
                 "vector": "0.33.0",
                 "statsd_exporter": "v0.24.0",
@@ -363,12 +329,8 @@ products = [
     {
         "name": "trino",
         "versions": [
-            {"product": "377", "java-base": "11", "opa_authorizer": "0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "387", "java-base": "11", "opa_authorizer": "0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "395", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "396", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "403", "java-base": "17", "opa_authorizer": "stackable0.1.0", "jmx_exporter": "0.16.1"},
-            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.18.0", "storage_connector": "414"},
+            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.20.0", "storage_connector": "414"},
+            {"product": "428", "java-base": "17", "opa_authorizer": "stackable0.3.0", "jmx_exporter": "0.20.0", "storage_connector": "428"},
         ],
     },
     {
