@@ -1,0 +1,35 @@
+From 86db56e17a5392a4b58ee42dc3cd2aae6704fd1c Mon Sep 17 00:00:00 2001
+From: Lars Francke <larsfrancke@apache.org>
+Date: Thu, 19 Oct 2023 21:27:49 +0200
+Subject: [PATCH] Add packages for hadoop-3.3.5
+
+---
+ hbase-shaded/pom.xml | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/hbase-shaded/pom.xml b/hbase-shaded/pom.xml
+index 5d3b66a9fe5..a27b2040d26 100644
+--- a/hbase-shaded/pom.xml
++++ b/hbase-shaded/pom.xml
+@@ -164,6 +164,18 @@
+                                 </artifactSet>
+                                 <relocations>
+                                     <!-- top level com not including sun-->
++                                  <relocation>
++                                    <pattern>com.sun.istack</pattern>
++                                    <shadedPattern>${shaded.prefix}.com.sun.istack</shadedPattern>
++                                  </relocation>
++                                  <relocation>
++                                    <pattern>com.sun.jersey</pattern>
++                                    <shadedPattern>${shaded.prefix}.com.sunjersey</shadedPattern>
++                                  </relocation>
++                                  <relocation>
++                                    <pattern>com.sun.xml</pattern>
++                                    <shadedPattern>${shaded.prefix}.com.sun.xml</shadedPattern>
++                                  </relocation>
+                                     <relocation>
+                                         <pattern>com.cedarsoftware</pattern>
+                                         <shadedPattern>${shaded.prefix}.com.cedarsoftware</shadedPattern>
+-- 
+2.42.0
+

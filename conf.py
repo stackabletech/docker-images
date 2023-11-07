@@ -58,20 +58,54 @@ products = [
     {
         "name": "hadoop",
         "versions": [
-            {"product": "3.2.2", "java-base": "11", "jmx_exporter": "0.20.0"},
-            {"product": "3.2.4", "java-base": "11", "jmx_exporter": "0.20.0"},
-            {"product": "3.3.4", "java-base": "11", "jmx_exporter": "0.20.0"},
-            {"product": "3.3.6", "java-base": "11", "jmx_exporter": "0.20.0"},
+            {
+                "product": "3.2.2",
+                "java-base": "11",
+                "java": "11",
+                "jmx_exporter": "0.20.0"
+            },
+            {
+                "product": "3.2.4",
+                "java-base": "11",
+                "java": "11",
+                "jmx_exporter": "0.20.0"
+            },
+            {
+                "product": "3.3.4",
+                "java-base": "11",
+                "java": "11",
+                "jmx_exporter": "0.20.0"
+            },
+            {
+                "product": "3.3.6",
+                "java-base": "11",
+                "java": "11",
+                "jmx_exporter": "0.20.0"
+            },
         ],
     },
     {
         "name": "hbase",
         "versions": [
-            {
-                "product": "2.4.12",
-                "java-base": "11",
-                "phoenix": "2.4-5.1.2",
-            },
+        # Note: Do NOT rename "hadoop-m2" below because if it's renamed to "hadoop"
+        # our image tool magic will think HBase has a dependency on the Hadoop Docker image and build that!
+        # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
+             {
+                 "product": "2.4.12",
+                 "java-base": "11",
+                 "java": "11",
+                 "phoenix": "2.4-5.1.2",
+                 "hadoop_m2": "3.3.6",
+                 "jmx_exporter": "0.20.0",
+             },
+             {
+                 "product": "2.4.17",
+                 "java-base": "11",
+                 "java": "11",
+                 "phoenix": "2.4-5.1.3",
+                 "hadoop_m2": "3.3.6",
+                 "jmx_exporter": "0.20.0",
+             },
         ],
     },
     {
