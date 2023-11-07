@@ -90,23 +90,32 @@ ARG PRODUCT
 ARG RELEASE
 
 LABEL name="Apache HBase" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache HBase." \
-      description="This image is deployed by the Stackable Operator for Apache HBase."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache HBase." \
+    description="This image is deployed by the Stackable Operator for Apache HBase."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# krb5-workstation for Kerberos support
+# The krb5-workstation is needed for Kerberos support.
+# The tar and python packages are required by the Phoenix command line.
+# We add zip and gzip because tar without compression is seldom useful.
 RUN microdnf update && \
     microdnf install \
     krb5-workstation \
-    tar && \
+    tar \
+    gzip \
+    zip \
+    python3 \
+    python3-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
+
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
