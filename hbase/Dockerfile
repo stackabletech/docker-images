@@ -109,8 +109,11 @@ RUN microdnf update && \
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
 
+USER stackable
+ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV HOME=/stackable
 ENV PATH="${PATH}":/stackable/hbase/bin
 
