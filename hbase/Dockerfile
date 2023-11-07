@@ -2,6 +2,8 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
+ARG HBASE_THIRDPARTY
+ARG HBASE_OPERATOR_TOOLS
 ARG PHOENIX
 ARG JAVA
 ARG JMX_EXPORTER
@@ -40,6 +42,14 @@ RUN cd /stackable/hbase-${PRODUCT}-src/ && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
+
+# Build the hbase-operator-tools
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
+    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
+    cd hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
+    mvn -Dhbase.version=${PRODUCT} -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} -DskipTests package assembly:single && \
+    tar -xzf hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz -C /stackable/ && \
+    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -88,6 +98,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG HBASE_OPERATOR_TOOLS
 
 LABEL name="Apache HBase" \
     maintainer="info@stackable.tech" \
@@ -118,9 +129,11 @@ RUN ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
+COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
-RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
+RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
+    ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf

@@ -90,8 +90,11 @@ products = [
         # Note: Do NOT rename "hadoop-m2" below because if it's renamed to "hadoop"
         # our image tool magic will think HBase has a dependency on the Hadoop Docker image and build that!
         # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
+        # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
              {
                  "product": "2.4.12",
+                 "hbase_thirdparty": "3.5.1",
+                 "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
                  "java": "11",
                  "phoenix": "2.4-5.1.2",
@@ -100,6 +103,8 @@ products = [
              },
              {
                  "product": "2.4.17",
+                 "hbase_thirdparty": "4.1.4",
+                 "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
                  "java": "11",
                  "phoenix": "2.4-5.1.3",
