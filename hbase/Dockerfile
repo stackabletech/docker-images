@@ -103,7 +103,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # krb5-workstation for Kerberos support
 RUN microdnf update && \
     microdnf install \
-    krb5-workstation && \
+    krb5-workstation \
+    tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
