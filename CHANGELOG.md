@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - hadoop: Add all necessary components to the image to mount HDFS using FUSE ([#400])
+- hbase: Add hbase-operator-tools ([#497]).
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
@@ -102,6 +103,7 @@ All notable changes to this project will be documented in this file.
 [#487]: https://github.com/stackabletech/docker-images/pull/487
 [#489]: https://github.com/stackabletech/docker-images/pull/489
 [#494]: https://github.com/stackabletech/docker-images/pull/494
+[#497]: https://github.com/stackabletech/docker-images/pull/497
 
 ## [23.7.0] - 2023-07-14
 

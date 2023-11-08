@@ -1,0 +1,5 @@
+#!/bin/sh
+
+exec /stackable/hbase-${PRODUCT}/bin/hbase hbck \
+  -j /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-hbck2/hbase-hbck2-${HBASE_OPERATOR_TOOLS}.jar \
+  "$@"
