@@ -15,6 +15,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
+    # The GNU gettext utilities contain the envsubst program which \
+    # substitutes the values of environment variables. \
     gettext \
     git \
     gzip \
