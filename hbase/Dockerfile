@@ -47,13 +47,22 @@ RUN cd /stackable/hbase-${PRODUCT}-src/ && \
 # Build the hbase-operator-tools
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
     mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
-    cd hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
-    mvn -Dhbase.version=${PRODUCT} -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} -DskipTests package assembly:single && \
-    tar -xzf hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz -C /stackable/ && \
+    mvn \
+        -Dhbase.version=${PRODUCT} \
+        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
+        -DskipTests \
+        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
+        package assembly:single && \
+    tar -xz \
+        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
+        -C /stackable/ && \
     rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # Resolve paths in bin/hbck2
-RUN mv bin/hbck2 bin/hbck2.env && \
+RUN # The variable names are intentionally passed to envsubst in single-quotes, \
+    # so that they are not expanded. Disable the according ShellCheck rule: \
+    # shellcheck disable=SC2016 \
+    mv bin/hbck2 bin/hbck2.env && \
     envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
     chmod +x bin/hbck2 && \
     rm bin/hbck2.env
