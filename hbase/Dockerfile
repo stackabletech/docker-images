@@ -15,6 +15,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
+    gettext \
     git \
     gzip \
     java-${JAVA}-openjdk-devel \
@@ -50,6 +51,12 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operat
     mvn -Dhbase.version=${PRODUCT} -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} -DskipTests package assembly:single && \
     tar -xzf hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+
+# Resolve paths in bin/hbck2
+RUN mv bin/hbck2 bin/hbck2.env && \
+    envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
+    chmod +x bin/hbck2 && \
+    rm bin/hbck2.env
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -132,13 +139,14 @@ COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /sta
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
+COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
 RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
     ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV HOME=/stackable
-ENV PATH="${PATH}":/stackable/hbase/bin
+ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
 
 WORKDIR /stackable/hbase
 CMD ["./bin/hbase", "master", "start" ]
