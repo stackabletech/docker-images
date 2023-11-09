@@ -46,6 +46,10 @@ RUN microdnf update \
         pydruid \
         python-ldap \
         trino[sqlalchemy] \
+        # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
+        # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
+        # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
+        # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
         tzdata \
     && pip install \
         --no-cache-dir \
