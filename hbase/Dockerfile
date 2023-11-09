@@ -15,8 +15,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
-    # The GNU gettext utilities contain the envsubst program which \
-    # substitutes the values of environment variables. \
+    # The GNU gettext utilities contain the envsubst program which
+    # substitutes the values of environment variables.
     gettext \
     git \
     gzip \
@@ -61,10 +61,10 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operat
     rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # Resolve paths in bin/hbck2
-RUN # The variable names are intentionally passed to envsubst in single-quotes, \
-    # so that they are not expanded. Disable the according ShellCheck rule: \
-    # shellcheck disable=SC2016 \
-    mv bin/hbck2 bin/hbck2.env && \
+RUN mv bin/hbck2 bin/hbck2.env && \
+    # The variable names are intentionally passed to envsubst in single-quotes,
+    # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+    # does not work, so please ignore the according warning (SC2016).
     envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
     chmod +x bin/hbck2 && \
     rm bin/hbck2.env
