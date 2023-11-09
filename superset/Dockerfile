@@ -46,6 +46,7 @@ RUN microdnf update \
         pydruid \
         python-ldap \
         trino[sqlalchemy] \
+        tzdata \
     && pip install \
         --no-cache-dir \
         --upgrade \
