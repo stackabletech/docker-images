@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - opa: add new version upload script ([#471]).
 - spark: added versions 3.4.1, 3.5.0 ([#475]).
 - superset: add new version 2.1.1, 3.0.1 ([#482], [#489]).
+- superset: add tzdata library as ubi-minimal has removed it ([#499]).
 - trino: removed support for versions 428 ([#487]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
@@ -105,6 +106,7 @@ All notable changes to this project will be documented in this file.
 [#494]: https://github.com/stackabletech/docker-images/pull/494
 [#497]: https://github.com/stackabletech/docker-images/pull/497
 [#498]: https://github.com/stackabletech/docker-images/pull/498
+[#499]: https://github.com/stackabletech/docker-images/pull/499
 
 ## [23.7.0] - 2023-07-14
 
