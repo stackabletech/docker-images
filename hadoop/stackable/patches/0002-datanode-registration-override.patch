@@ -1,0 +1,213 @@
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
+index 88a18d9cf07..b07fcb0b17a 100755
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
+@@ -152,6 +152,13 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
+   public static final boolean DFS_DATANODE_DROP_CACHE_BEHIND_READS_DEFAULT = false;
+   public static final String  DFS_DATANODE_USE_DN_HOSTNAME = "dfs.datanode.use.datanode.hostname";
+   public static final boolean DFS_DATANODE_USE_DN_HOSTNAME_DEFAULT = false;
++
++  public static final String  DFS_DATANODE_ADVERTISED_HOSTNAME = "dfs.datanode.advertised.hostname";
++  public static final String  DFS_DATANODE_ADVERTISED_DATA_PORT = "dfs.datanode.advertised.port";
++  public static final String  DFS_DATANODE_ADVERTISED_HTTP_PORT = "dfs.datanode.advertised.http.port";
++  public static final String  DFS_DATANODE_ADVERTISED_HTTPS_PORT = "dfs.datanode.advertised.https.port";
++  public static final String  DFS_DATANODE_ADVERTISED_IPC_PORT = "dfs.datanode.advertised.ipc.port";
++
+   public static final String  DFS_DATANODE_MAX_LOCKED_MEMORY_KEY = "dfs.datanode.max.locked.memory";
+   public static final long    DFS_DATANODE_MAX_LOCKED_MEMORY_DEFAULT = 0;
+   public static final String  DFS_DATANODE_FSDATASETCACHE_MAX_THREADS_PER_VOLUME_KEY = "dfs.datanode.fsdatasetcache.max.threads.per.volume";
+@@ -484,6 +491,8 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
+   public static final long DFS_DATANODE_PROCESS_COMMANDS_THRESHOLD_DEFAULT =
+       TimeUnit.SECONDS.toMillis(2);
+ 
++  public static final String DFS_NAMENODE_DATANODE_REGISTRATION_UNSAFE_ALLOW_ADDRESS_OVERRIDE_KEY = "dfs.namenode.datanode.registration.unsafe.allow-address-override";
++  public static final boolean DFS_NAMENODE_DATANODE_REGISTRATION_UNSAFE_ALLOW_ADDRESS_OVERRIDE_DEFAULT = false;
+   public static final String DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_KEY = "dfs.namenode.datanode.registration.ip-hostname-check";
+   public static final boolean DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_DEFAULT = true;
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
+index bdd20d7e276..c10db0611c9 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
+@@ -181,6 +181,8 @@ public class DatanodeManager {
+   private boolean hasClusterEverBeenMultiRack = false;
+ 
+   private final boolean checkIpHostnameInRegistration;
++  private final boolean allowRegistrationAddressOverride;
++
+   /**
+    * Whether we should tell datanodes what to cache in replies to
+    * heartbeat messages.
+@@ -314,6 +316,11 @@ public class DatanodeManager {
+     // Block invalidate limit also has some dependency on heartbeat interval.
+     // Check setBlockInvalidateLimit().
+     setBlockInvalidateLimit(configuredBlockInvalidateLimit);
++    this.allowRegistrationAddressOverride = conf.getBoolean(
++        DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_UNSAFE_ALLOW_ADDRESS_OVERRIDE_KEY,
++        DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_UNSAFE_ALLOW_ADDRESS_OVERRIDE_DEFAULT);
++    LOG.info(DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_UNSAFE_ALLOW_ADDRESS_OVERRIDE_KEY
++        + "=" + allowRegistrationAddressOverride);
+     this.checkIpHostnameInRegistration = conf.getBoolean(
+         DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_KEY,
+         DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_DEFAULT);
+@@ -1146,27 +1153,29 @@ void startAdminOperationIfNecessary(DatanodeDescriptor nodeReg) {
+    */
+   public void registerDatanode(DatanodeRegistration nodeReg)
+       throws DisallowedDatanodeException, UnresolvedTopologyException {
+-    InetAddress dnAddress = Server.getRemoteIp();
+-    if (dnAddress != null) {
+-      // Mostly called inside an RPC, update ip and peer hostname
+-      String hostname = dnAddress.getHostName();
+-      String ip = dnAddress.getHostAddress();
+-      if (checkIpHostnameInRegistration && !isNameResolved(dnAddress)) {
+-        // Reject registration of unresolved datanode to prevent performance
+-        // impact of repetitive DNS lookups later.
+-        final String message = "hostname cannot be resolved (ip="
+-            + ip + ", hostname=" + hostname + ")";
+-        LOG.warn("Unresolved datanode registration: " + message);
+-        throw new DisallowedDatanodeException(nodeReg, message);
++    if (!allowRegistrationAddressOverride) {
++      InetAddress dnAddress = Server.getRemoteIp();
++      if (dnAddress != null) {
++        // Mostly called inside an RPC, update ip and peer hostname
++        String hostname = dnAddress.getHostName();
++        String ip = dnAddress.getHostAddress();
++        if (checkIpHostnameInRegistration && !isNameResolved(dnAddress)) {
++          // Reject registration of unresolved datanode to prevent performance
++          // impact of repetitive DNS lookups later.
++          final String message = "hostname cannot be resolved (ip="
++              + ip + ", hostname=" + hostname + ")";
++          LOG.warn("Unresolved datanode registration: " + message);
++          throw new DisallowedDatanodeException(nodeReg, message);
++        }
++        // update node registration with the ip and hostname from rpc request
++        nodeReg.setIpAddr(ip);
++        nodeReg.setPeerHostName(hostname);
+       }
+-      // update node registration with the ip and hostname from rpc request
+-      nodeReg.setIpAddr(ip);
+-      nodeReg.setPeerHostName(hostname);
+     }
+-    
++
+     try {
+       nodeReg.setExportedKeys(blockManager.getBlockKeys());
+-  
++
+       // Checks if the node is not on the hosts list.  If it is not, then
+       // it will be disallowed from registering. 
+       if (!hostConfigManager.isIncluded(nodeReg)) {
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
+index 9b5343321d3..8ce6a61204b 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
+@@ -100,6 +100,11 @@ public class DNConf {
+   final boolean syncOnClose;
+   final boolean encryptDataTransfer;
+   final boolean connectToDnViaHostname;
++  private final String advertisedHostname;
++  private final int advertisedDataPort;
++  private final int advertisedHttpPort;
++  private final int advertisedHttpsPort;
++  private final int advertisedIpcPort;
+   final boolean overwriteDownstreamDerivedQOP;
+   private final boolean pmemCacheRecoveryEnabled;
+ 
+@@ -188,6 +193,11 @@ public DNConf(final Configurable dn) {
+     connectToDnViaHostname = getConf().getBoolean(
+         DFSConfigKeys.DFS_DATANODE_USE_DN_HOSTNAME,
+         DFSConfigKeys.DFS_DATANODE_USE_DN_HOSTNAME_DEFAULT);
++    advertisedHostname = getConf().get(DFSConfigKeys.DFS_DATANODE_ADVERTISED_HOSTNAME);
++    advertisedDataPort = getConf().getInt(DFSConfigKeys.DFS_DATANODE_ADVERTISED_DATA_PORT, -1);
++    advertisedHttpPort = getConf().getInt(DFSConfigKeys.DFS_DATANODE_ADVERTISED_HTTP_PORT, -1);
++    advertisedHttpsPort = getConf().getInt(DFSConfigKeys.DFS_DATANODE_ADVERTISED_HTTPS_PORT, -1);
++    advertisedIpcPort = getConf().getInt(DFSConfigKeys.DFS_DATANODE_ADVERTISED_IPC_PORT, -1);
+     this.blockReportInterval = getConf().getLong(
+         DFS_BLOCKREPORT_INTERVAL_MSEC_KEY,
+         DFS_BLOCKREPORT_INTERVAL_MSEC_DEFAULT);
+@@ -362,6 +372,32 @@ public boolean getConnectToDnViaHostname() {
+     return connectToDnViaHostname;
+   }
+ 
++  /**
++   * Returns a hostname to advertise instead of the system hostname.
++   * This is an expert setting and can be used in multihoming scenarios to override the detected hostname.
++   *
++   * @return null if the system hostname should be used, otherwise a hostname
++   */
++  public String getAdvertisedHostname() {
++    return advertisedHostname;
++  }
++
++  public int getAdvertisedDataPort() {
++    return advertisedDataPort;
++  }
++
++  public int getAdvertisedHttpPort() {
++    return advertisedHttpPort;
++  }
++
++  public int getAdvertisedHttpsPort() {
++    return advertisedHttpsPort;
++  }
++
++  public int getAdvertisedIpcPort() {
++    return advertisedIpcPort;
++  }
++
+   /**
+    * Returns socket timeout
+    * 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
+index 8fb009dab85..228bcce62b3 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
+@@ -133,6 +133,7 @@
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Optional;
+ import java.util.Map.Entry;
+ import java.util.Set;
+ import java.util.UUID;
+@@ -2053,11 +2054,35 @@ DatanodeRegistration createBPRegistration(NamespaceInfo nsInfo) {
+           NodeType.DATA_NODE);
+     }
+ 
+-    DatanodeID dnId = new DatanodeID(
+-        streamingAddr.getAddress().getHostAddress(), hostName, 
+-        storage.getDatanodeUuid(), getXferPort(), getInfoPort(),
+-            infoSecurePort, getIpcPort());
+-    return new DatanodeRegistration(dnId, storageInfo, 
++    String advertisedHostname = Optional
++      .ofNullable(dnConf.getAdvertisedHostname())
++      .orElseGet(() -> streamingAddr.getAddress().getHostAddress());
++    int advertisedDataPort = dnConf.getAdvertisedDataPort();
++    if (advertisedDataPort == -1) {
++      advertisedDataPort = getXferPort();
++    }
++    int advertisedHttpPort = dnConf.getAdvertisedHttpPort();
++    if (advertisedHttpPort == -1) {
++      advertisedHttpPort = getInfoPort();
++    }
++    int advertisedHttpsPort = dnConf.getAdvertisedHttpPort();
++    if (advertisedHttpsPort == -1) {
++      advertisedHttpPort = getInfoSecurePort();
++    }
++    int advertisedIpcPort = dnConf.getAdvertisedIpcPort();
++    if (advertisedIpcPort == -1) {
++      advertisedIpcPort = getIpcPort();
++    }
++
++    DatanodeID dnId = new DatanodeID(advertisedHostname,
++                                     hostName,
++                                     storage.getDatanodeUuid(),
++                                     advertisedDataPort,
++                                     advertisedHttpPort,
++                                     advertisedHttpsPort,
++                                     advertisedIpcPort);
++
++    return new DatanodeRegistration(dnId, storageInfo,
+         new ExportedBlockKeys(), VersionInfo.getVersion());
+   }
+ 

@@ -1,0 +1,30 @@
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 8a3e93c1037..8604a3325d9 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -85,13 +85,6 @@
+       <artifactId>hadoop-gridmix</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-pipes</artifactId>
+-      <scope>compile</scope>
+-      <type>pom</type>
+-      <version>${project.version}</version>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-aws</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 4e934cd101f..2654dea5dd6 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -41,7 +41,6 @@
+     <module>hadoop-datajoin</module>
+     <module>hadoop-tools-dist</module>
+     <module>hadoop-extras</module>
+-    <module>hadoop-pipes</module>
+     <module>hadoop-openstack</module>
+     <module>hadoop-sls</module>
+     <module>hadoop-resourceestimator</module>
