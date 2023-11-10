@@ -159,5 +159,10 @@ ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV HOME=/stackable
 ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
 
+
+USER 0
+RUN ln -s /stackable/jmx/regionserver.yaml /stackable/jmx/region-server.yaml
+USER stackable
+
 WORKDIR /stackable/hbase
 CMD ["./bin/hbase", "master", "start" ]
