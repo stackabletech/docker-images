@@ -162,6 +162,7 @@ ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
 
 USER 0
 RUN ln -s /stackable/jmx/regionserver.yaml /stackable/jmx/region-server.yaml
+RUN ln -s /stackable/jmx/restserver.yaml /stackable/jmx/rest-server.yaml
 USER stackable
 
 WORKDIR /stackable/hbase
