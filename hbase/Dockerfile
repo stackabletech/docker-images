@@ -163,7 +163,9 @@ ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
 # The idea is to remove this for 24.X (first 24 release)
 USER 0
 RUN ln -s /stackable/jmx/regionserver.yaml /stackable/jmx/region-server.yaml && \
-    ln -s /stackable/jmx/restserver.yaml /stackable/jmx/rest-server.yaml
+    ln -s /stackable/jmx/restserver.yaml /stackable/jmx/rest-server.yaml && \
+    mkdir -p /stackable/vector/bin && \
+    ln -s /bin/vector /stackable/vector/bin
 USER stackable
 
 WORKDIR /stackable/hbase
