@@ -69,7 +69,7 @@ jobs:
             docker image push "$(< bake-target-tags)"
           fi
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3.1.2
+        uses: sigstore/cosign-installer@v3.2.0
       - name: Sign images
         run: |
           if [ -f bake-target-tags ]; then
