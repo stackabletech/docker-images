@@ -48,7 +48,7 @@ jobs:
       - name: Install python 3
         run: sudo apt-get install --yes python3
       - name: Install image-tools-stackabletech
-        run: python3 -m pip --user install image-tools-stackabletech==0.0.5
+        run: python3 -m pipx install image-tools-stackabletech==0.0.5
       - name: Login to Stackable Nexus
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
