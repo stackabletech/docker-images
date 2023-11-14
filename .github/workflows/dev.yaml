@@ -10,7 +10,7 @@ jobs:
     name: ${{ matrix.product }} 0.0.0-dev
     permissions:
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       # fail-fast: true
       # This setting can be changed to throttle the build load
@@ -35,6 +35,7 @@ jobs:
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
+        runner: [stackable-arm64, ubuntu-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
@@ -60,6 +61,7 @@ jobs:
           # bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
+          --organization "stackable-experimental-${{ matrix.runner }}"
           --image-version 0.0.0-dev \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
@@ -81,7 +83,7 @@ jobs:
     # This job only runs if the "development" job was successful
     # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: development
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: true
       # This setting can be changed to throttle the build load
@@ -101,6 +103,7 @@ jobs:
           - trino
           - tools
           - zookeeper
+        runner: [stackable-arm64, ubuntu-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
