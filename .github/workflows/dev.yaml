@@ -38,6 +38,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
+        # Qemu will not be needed anymore after we switch to self hosted ARM
       - name: Set up QEMU for multiarch builds
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v2
       - name: Set up Docker Buildx
