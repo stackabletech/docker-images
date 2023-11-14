@@ -21,7 +21,7 @@ jobs:
       id-token: write
     steps:
       - name: Login to destination registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.DST_REGISTRY }}
           username: "robot$mirror+github-action-build"

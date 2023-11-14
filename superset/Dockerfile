@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1
 
+# Get statsd-exporter
+ARG STATSD_EXPORTER
+FROM oci.stackable.tech/mirror/prom/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+
 # Build stage
 FROM stackable/image/vector AS builder
 
@@ -42,29 +46,16 @@ RUN microdnf update \
         pydruid \
         python-ldap \
         trino[sqlalchemy] \
+        # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
+        # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
+        # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
+        # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
+        tzdata \
     && pip install \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
     && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
-
-# Patch Python packages
-
-# In Flask-AppBuilder v4.1.1, a bug in the LDAP integration was fixed (see
-# https://github.com/dpgaspar/Flask-AppBuilder/pull/1846). Superset 2.0.0 and
-# higher depend on a Flask-AppBuilder version containing this fix. Prior
-# Superset versions must be patched.
-
-COPY superset/patches-${PRODUCT}/* /tmp/patches/
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN cat /tmp/patches/* | patch \
-    --directory=/stackable/app/lib/python${PYTHON}/site-packages \
-    --strip=1
-
-# Get statsd-exporter
-FROM prom/statsd-exporter:0.3.0@sha256:a9c27602d6f6b86527657922b6a87c12789f7f9b39a90f1513e8c665c941f26a as statsd-exporter
 
 # Final image
 FROM stackable/image/vector

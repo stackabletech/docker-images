@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
-      - uses: reviewdog/action-actionlint@67ec075cacebd361442f6e3ef7671f74c6548909
+      - uses: reviewdog/action-actionlint@17ea0452ae2cd009a22ca629732a9ce7f49a55e6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.6.0
-      - uses: reviewdog/action-detect-secrets@b04766f677ad3366ec30246a60d84522aba6c710 # tag=v0.12.1
+      - uses: reviewdog/action-detect-secrets@8507d8897b8f9a5d6ce1decbf0a00ac96045f93e # tag=v0.13.0
         with:
           github_token: ${{ secrets.github_token }}
 
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3.3.0
-      - uses: reviewdog/action-markdownlint@e3a1300e4ead323f710e9b711ee269e0d29ba5ec # tag=v0.12.1
+      - uses: reviewdog/action-markdownlint@6e02140816b5fcc7295ea7ae2a664af18190ff29 # tag=v0.14.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
