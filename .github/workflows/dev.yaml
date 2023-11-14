@@ -13,7 +13,7 @@ jobs:
       id-token: write
     runs-on: ${{ matrix.runner }}
     strategy:
-      # fail-fast: true
+      fail-fast: false
       # This setting can be changed to throttle the build load
       # max-parallel: 1
       matrix:
