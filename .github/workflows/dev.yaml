@@ -62,7 +62,7 @@ jobs:
           # bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
-          --organization "stackable-experimental-${{ matrix.runner }}"
+          --organization "stackable-experimental-${{ matrix.runner }}" \
           --image-version 0.0.0-dev \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
