@@ -44,7 +44,7 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/hive/apache-h
 # Note: We hardcode the versions here to make sure this replacement will be removed once Hive ships with a more recent driver
 # version as the "rm" statement will fail.
 RUN rm /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin/lib/postgresql-9.4.1208.jre7.jar && \
-    curl --fail -L https://jdbc.postgresql.org/download/postgresql-42.6.0.jar \
+    curl --fail -L https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.6.0.jar \
     -o /stackable/hive/lib/postgresql-42.6.0.jre7.jar && \
     chmod -x /stackable/hive/lib/postgresql-42.6.0.jre7.jar
 
