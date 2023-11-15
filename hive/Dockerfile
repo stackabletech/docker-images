@@ -38,6 +38,16 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/hive/apache-h
     # Force to overwrite the existing 'start-metastore'
     ln -sf /stackable/bin/start-metastore /stackable/hive/bin/start-metastore
 
+# Replace the old (postgresql-9.4.1208.jre7.jar) postgresql JDBC driver with a newer one, as the old one does only support
+# MD5 based authentication. Because of this, the contained driver version does not work against more recent PostgresQL versions.
+# See https://github.com/stackabletech/hive-operator/issues/170 for details
+# Note: We hardcode the versions here to make sure this replacement will be removed once Hive ships with a more recent driver
+# version as the "rm" statement will fail.
+RUN rm /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin/lib/postgresql-9.4.1208.jre7.jar && \
+    curl --fail -L https://jdbc.postgresql.org/download/postgresql-42.6.0.jar \
+    -o /stackable/hive/lib/postgresql-42.6.0.jre7.jar && \
+    chmod -x /stackable/hive/lib/postgresql-42.6.0.jre7.jar
+
 # Download aws module for Hadoop (support for s3a://)
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LIBS}.jar \
     -o /stackable/hive/lib/hadoop-aws-${HADOOP_LIBS}.jar && \
