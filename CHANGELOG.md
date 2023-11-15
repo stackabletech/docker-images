@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - hbase: use jmx-exporter 0.20.0 ([#494]).
 - hbase: added hadoop native compression ([#494]).
 - hive: added upload new version script ([#472]).
+- hive: Update postgresql driver in Hive metastore 3.1.3 to 42.6.0 ([#505]).
 - kafka: add support for versions 3.4.1, 3.5.1 ([#476]).
 - nifi: added support for version 1.23.2 ([#473]).
 - opa: add version 0.57.0 ([#471]).
@@ -107,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#497]: https://github.com/stackabletech/docker-images/pull/497
 [#498]: https://github.com/stackabletech/docker-images/pull/498
 [#499]: https://github.com/stackabletech/docker-images/pull/499
+[#505]: https://github.com/stackabletech/docker-images/pull/505
 
 ## [23.7.0] - 2023-07-14
 
