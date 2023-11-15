@@ -21,8 +21,7 @@ fi
 
 # deletes the temp directory
 function cleanup {
-  #rm -rf "$WORK_DIR"
-  echo "quitting"
+  rm -rf "$WORK_DIR"
 }
 
 # register the cleanup function to be called on the EXIT signal
@@ -30,56 +29,53 @@ trap cleanup EXIT
 
 cd "$WORK_DIR" || exit
 
-bin_file=postgresql-$VERSION.jar
-src_file=postgresql-$VERSION-sources.jar
+bin_file=postgresql-${VERSION}.jar
+src_file=postgresql-${VERSION}-sources.jar
 
 echo "Downloading Postgresql jdbc jar from Maven Central"
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$bin_file"
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$bin_file.asc"
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$bin_file.sha1"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${bin_file}"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${bin_file}.asc"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${bin_file}.sha1"
 
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$src_file"
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$src_file.asc"
-curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/$VERSION/$src_file.sha1"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${src_file}"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${src_file}.asc"
+curl --fail -LOs "https://repo1.maven.org/maven2/org/postgresql/postgresql/${VERSION}/${src_file}.sha1"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA1 Checksums"
 # The sha1files do not contain the filenames of the files the hold the checksum for, so we add that to make checking the
 # checksums easier
-echo " ${bin_file}" >> ${bin_file}.sha1
-echo " ${src_file}" >> ${src_file}.sha1
+echo " ${bin_file}" >> "${bin_file}.sha1"
+echo " ${src_file}" >> "${src_file}.sha1"
 
-# if ! (sha512sum --tag "$bin_file" | diff - "$bin_file.sha512" && sha512sum --tag "$src_file" | diff - "$src_file.sha512"); then
-if ! (sha1sum -c $bin_file.sha1 && sha1sum -c $src_file.sha1); then
+if ! (sha1sum -c ${bin_file}.sha1 && sha1sum -c ${src_file}.sha1); then
   echo "ERROR: One of the SHA1 sums does not match"
   exit 1
 fi
 
 echo "Validating signatures"
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://raw.githubusercontent.com/pgjdbc/pgjdbc/master/KEYS) to GPG: https://www.apache.org/info/verification.html'
 
-# TODO: check where to obtain keys used for signing these and fix the comment below
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/hadoop/common/KEYS) to GPG: https://www.apache.org/info/verification.html'
-
- if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
+ if ! (gpg --verify "${bin_file}.asc" "${bin_file}" 2> /dev/null && gpg --verify "${src_file}.asc" "${src_file}" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
   exit 1
  fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.asc" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.sha1" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
 
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha1" 'https://repo.stackable.tech/repository/packages/hive/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.asc" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha1" 'https://repo.stackable.tech/repository/packages/pgjdbc/' || EXIT_STATUS=$?
 
-if [ $EXIT_STATUS -ne 0 ]; then
+if [ ${EXIT_STATUS} -ne 0 ]; then
   echo "ERROR: Upload failed"
   exit 1
 fi
 
-echo "Successfully uploaded version $VERSION of Postgresql JDBC driver to Nexus"
-echo "https://repo.stackable.tech/service/rest/repository/browse/packages/hadoop/"
+echo "Successfully uploaded version ${VERSION} of Postgresql JDBC driver to Nexus"
+echo "https://repo.stackable.tech/service/rest/repository/browse/packages/pgjdbc/"
