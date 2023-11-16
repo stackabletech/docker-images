@@ -8,21 +8,13 @@ ARG JMX_EXPORTER
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# unzip & zip are required for log4shell.sh
 # All others are required for the FUSE build
 RUN microdnf update && \
     microdnf install \
-    cmake \
-    cyrus-sasl-devel \
-    fuse-devel \
-    gcc \
-    gcc-c++ \
-    java-11-openjdk-devel \
-    maven \
-    openssl-devel \
-    tar xz \
-    unzip \
-    zip git && \
+    # Required for Hadoop build
+    cmake cyrus-sasl-devel fuse-devel gcc gcc-c++ java-11-openjdk-devel maven openssl-devel tar xz git \
+    # Required for log4shell.sh
+    unzip zip && \
     microdnf clean all
 
 WORKDIR /stackable
@@ -30,13 +22,8 @@ WORKDIR /stackable
 # This is needed here because it creates the JMX directory, we could create it any other way but this works
 COPY hadoop/stackable /stackable
 
-# The source is needed to build FUSE. The rest of the src package will not make it into the final image.
-# Both the src and binary variants extract into different root folders
+# Build from source to enable FUSE module, and to apply custom patches.
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC .
-    # curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz" | tar -xzC . && \
-    # ln -s "/stackable/hadoop-${PRODUCT}" /stackable/hadoop && \
-    # rm -rf /stackable/hadoop/lib/native/examples && \
-    # rm -rf /stackable/hadoop/share/doc
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -77,6 +64,7 @@ RUN cd /stackable/hadoop-${PRODUCT}-src && \
     # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI
     git apply < /stackable/patches/0001-disable-pipes.patch && \
     # Datanode registration override is required for Listener Operator integration
+    # Developed at https://github.com/stackabletech/hadoop/tree/spike/override-datanode-id
     git apply < /stackable/patches/0002-datanode-registration-override.patch && \
     mvn clean package -Pdist,native -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
