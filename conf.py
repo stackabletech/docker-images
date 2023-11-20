@@ -335,7 +335,7 @@ products = [
         "name": "trino",
         "versions": [
             {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.20.0", "storage_connector": "414"},
-            {"product": "428", "java-base": "17", "opa_authorizer": "stackable0.3.0", "jmx_exporter": "0.20.0", "storage_connector": "428"},
+            {"product": "428", "java-base": "17", "opa_authorizer": "stackable0.3.0", "jmx_exporter": "0.20.0", "storage_connector": "428-jackson"},
         ],
     },
     {
