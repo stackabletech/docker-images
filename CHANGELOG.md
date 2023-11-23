@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- hadoop: Added Stackable topology provider jar to enable k8s-based rack awareness ([#509])
 - hadoop: Add all necessary components to the image to mount HDFS using FUSE ([#400])
 - hbase: Add hbase-operator-tools ([#497], [#498]).
 - java-base: Add needed tzdata-java package ([#425]).
@@ -109,6 +110,7 @@ All notable changes to this project will be documented in this file.
 [#498]: https://github.com/stackabletech/docker-images/pull/498
 [#499]: https://github.com/stackabletech/docker-images/pull/499
 [#505]: https://github.com/stackabletech/docker-images/pull/505
+[#509]: https://github.com/stackabletech/docker-images/pull/509
 
 ## [23.7.0] - 2023-07-14
 
