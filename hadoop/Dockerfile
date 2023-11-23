@@ -144,7 +144,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from
 # source code is at: https://github.com/stackabletech/hdfs-topology-provider
-ADD --chown=stackable:stackable https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar /stackable/hadoop/share/hadoop/tools/lib/
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/tools/lib/ --chown=stackable:stackable
 
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
