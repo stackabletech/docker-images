@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [23.11.0] - 2023-11-23
+
 ### Added
 
 - hadoop: Added Stackable topology provider jar to enable k8s-based rack awareness ([#509])
