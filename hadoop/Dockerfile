@@ -4,6 +4,7 @@ FROM stackable/image/java-base AS builder
 ARG PRODUCT
 ARG JAVA
 ARG JMX_EXPORTER
+ARG TOPOLOGY_PROVIDER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -139,6 +140,12 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+
+# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
+# labels to build a rackID from
+# source code is at: https://github.com/stackabletech/hdfs-topology-provider
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/tools/lib/ --chown=stackable:stackable
+
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
