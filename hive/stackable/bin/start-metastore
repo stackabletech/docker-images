@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# This file was created by the Stackable developers.
+#
 # Usage: start-metastore <options> namenode [namenode-options]
 # Options:
 #   --help
