@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 #
-# Usage: start-metastore <options> namenode [namenode-options]
+# This file was created by the Stackable developers.
+#
+# Usage: start-metastore <options>
 # Options:
 #   --help
 #   --config <path-to-hadoop-conf-folder> 
+#   --db-type <db>
+#   --hive-bin-dir <path>
 # 
 # Checks if the metastore database schema is initialized. If so it starts the metastore,
 # otherwise it tries to initialize the schma first.
