@@ -2,6 +2,7 @@ FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6
 
 ARG PRODUCT
 ARG RELEASE
+ARG KEYCLOAK_VERSION
 
 LABEL name="Stackable Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -42,6 +43,11 @@ RUN apt-get update && \
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
+
+ENV PATH=/stackable/keycloak/bin:$PATH
+# todo: do we need to maintain this via the mirror script?
+RUN curl --fail https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
+    ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /stackable/python/requirements.txt && \
