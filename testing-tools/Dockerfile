@@ -45,7 +45,6 @@ COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
 ENV PATH=/stackable/keycloak/bin:$PATH
-# todo: do we need to maintain this via the mirror script?
 RUN curl --fail https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
     ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
