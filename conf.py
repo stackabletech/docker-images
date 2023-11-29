@@ -344,7 +344,10 @@ products = [
     },
     {
         "name": "testing-tools",
-        "versions": [{"product": "0.2.0"}],
+        "versions": [{
+            "product": "0.2.0",
+            "keycloak_version": "23.0.0",
+        }],
     },
     {
         "name": "zookeeper",
