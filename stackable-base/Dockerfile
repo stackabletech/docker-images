@@ -1,5 +1,5 @@
-# 8.8-1014 as of 2023-07-20
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8@sha256:14b404f4181904fb5edfde1a7a6b03fe1b0bb4dad1f5c02e16f797d5eea8c0cb
+# 8.9-1029 as of 2023-12-01
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:0e1879febd1be94e0d234060770ce33a543488374d91881259de9119ea75d33f
 
 # intentionally unused
 ARG PRODUCT
