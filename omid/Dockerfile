@@ -4,17 +4,18 @@ FROM stackable/image/java-base AS builder
 ARG PRODUCT
 
 RUN microdnf update && \
-    microdnf install tar && \
-    microdnf install maven java-11-openjdk-devel && \
+    microdnf install tar maven java-11-openjdk-devel && \
     microdnf clean all
 
 USER stackable
 WORKDIR /stackable
 
+SHELL ["bash", "-euo", "pipefail", "-c"]
+
 RUN curl -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
 
-RUN cd /stackable/phoenix-omid-${PRODUCT} && \
-    mvn package -Phbase-2 -DskipTests && \
+WORKDIR /stackable/phoenix-omid-${PRODUCT}
+RUN mvn package -Phbase-2 -DskipTests && \
     tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
 
 FROM stackable/image/java-base
