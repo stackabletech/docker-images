@@ -1,4 +1,39 @@
-Subject: [PATCH] Adds a MethodTimer class which can be used to do poor man's profiling
+Subject: [PATCH] HBASE-25292 Improve InetSocketAddress usage discipline
+ (#2669)
+
+Network identities should be bound late. Remote addresses should be
+resolved at the last possible moment, just before connect(). Network
+identity mappings can change, so our code should not inappropriately
+cache them. Otherwise we might miss a change and fail to operate normally.
+
+Revert "HBASE-14544 Allow HConnectionImpl to not refresh the dns on errors"
+Removes hbase.resolve.hostnames.on.failure and related code. We always
+resolve hostnames, as late as possible.
+
+Preserve InetSocketAddress caching per RPC connection. Avoids potential
+lookups per Call.
+
+Replace InetSocketAddress with Address where used as a map key. If we want
+to key by hostname and/or resolved address we should be explicit about it.
+Using Address chooses mapping by hostname and port only.
+
+Add metrics for potential nameservice resolution attempts, whenever an
+InetSocketAddress is instantiated for connect; and metrics for failed
+resolution, whenever InetSocketAddress#isUnresolved on the new instance
+is true.
+
+* Use ServerName directly to build a stub key
+
+* Resolve and cache ISA on a RpcChannel as late as possible, at first call
+
+* Remove now invalid unit test TestCIBadHostname
+
+We resolve DNS at the latest possible time, at first call, and do not
+resolve hostnames for creating stubs at all, so this unit test cannot
+work now.
+
+Reviewed-by: Mingliang Liu <liuml07@apache.org>
+Signed-off-by: Duo Zhang <zhangduo@apache.org>
 ---
 Index: hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java
 IDEA additional info:
@@ -7,9 +42,9 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java
 new file mode 100644
---- /dev/null	(date 1701184144286)
-+++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java	(date 1701184144286)
-@@ -0,0 +1,64 @@
+--- /dev/null	(date 1701385840105)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java	(date 1701385840105)
+@@ -0,0 +1,75 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -58,7 +93,11 @@ new file mode 100644
 +    long totalTime = endTime - startTime;
 +    if (totalTime > threshold) {
 +      StringBuilder builder = new StringBuilder();
++      int size = checkpoints.size();
++
++      builder.append('[');
 +      long lastCheckpoint = startTime;
++      int count = 0;
 +      for (Map.Entry<String, Long> entry : checkpoints.entrySet()) {
 +        long currentCheckpoint = entry.getValue();
 +        builder.append(entry.getKey());
@@ -66,8 +105,15 @@ new file mode 100644
 +        builder.append(currentCheckpoint - startTime);
 +        builder.append("/");
 +        builder.append(currentCheckpoint - lastCheckpoint);
++
++        count++;
++        // Append ", " only if it's not the last element
++        if (count < size) {
++          builder.append(", ");
++        }
 +        lastCheckpoint = entry.getValue();
 +      }
++      builder.append(']');
 +
 +      LOG.info("STACKABLE slow get detected. Total Execution Time: {}ms. Timings: {}", totalTime,
 +        builder);
@@ -98,7 +144,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
-+++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(date 1701183999751)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(date 1701422978372)
 @@ -142,6 +142,7 @@
  import org.apache.hadoop.hbase.util.Bytes;
  import org.apache.hadoop.hbase.util.DNS;
@@ -144,56 +190,71 @@ diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSR
      final RpcSchedulerFactory rpcSchedulerFactory;
      try {
        rpcSchedulerFactory = getRpcSchedulerFactoryClass().asSubclass(RpcSchedulerFactory.class)
-@@ -2552,14 +2560,21 @@
-   public GetResponse get(final RpcController controller,
-       final GetRequest request) throws ServiceException {
-     long before = EnvironmentEdgeManager.currentTime();
-+    MethodTimer timer = new MethodTimer();
-     OperationQuota quota = null;
-     HRegion region = null;
-     try {
-+      // timestamp
-+
-+      timer.checkpoint("start_checkOpen");
-       checkOpen();
-+      timer.checkpoint("end_checkOpen");
+@@ -2559,7 +2567,6 @@
        requestCount.increment();
        rpcGetRequestCount.increment();
-+      timer.checkpoint("start_getRegion");
        region = getRegion(request.getRegion());
 -
-+      timer.checkpoint("end_getRegion");
-+// TODO 1
        GetResponse.Builder builder = GetResponse.newBuilder();
        ClientProtos.Get get = request.getGet();
        // An asynchbase client, https://github.com/OpenTSDB/asynchbase, starts by trying to do
-@@ -2573,16 +2588,20 @@
-       }
-       Boolean existence = null;
+@@ -2575,7 +2582,6 @@
        Result r = null;
-+
        RpcCallContext context = RpcServer.getCurrentCall().orElse(null);
-+      timer.checkpoint("start_checkQuota");
        quota = getRpcQuotaManager().checkQuota(region, OperationQuota.OperationType.GET);
 -
-+      timer.checkpoint("end_checkQuota");
        Get clientGet = ProtobufUtil.toGet(get);
        if (get.getExistenceOnly() && region.getCoprocessorHost() != null) {
          existence = region.getCoprocessorHost().preExists(clientGet);
+@@ -2636,6 +2642,8 @@
+ 
+   private Result get(Get get, HRegion region, RegionScannersCloseCallBack closeCallBack,
+       RpcCallContext context) throws IOException {
++    MethodTimer timer = new MethodTimer();
++
+     region.prepareGet(get);
+     boolean stale = region.getRegionInfo().getReplicaId() != 0;
+ 
+@@ -2643,6 +2651,7 @@
+     List<Cell> results = new ArrayList<>();
+     long before = EnvironmentEdgeManager.currentTime();
+     // pre-get CP hook
++    timer.checkpoint("start_preget");
+     if (region.getCoprocessorHost() != null) {
+       if (region.getCoprocessorHost().preGet(get, results)) {
+         region.metricsUpdateForGet(results, before);
+@@ -2650,14 +2659,19 @@
+             .create(results, get.isCheckExistenceOnly() ? !results.isEmpty() : null, stale);
        }
-       if (existence == null) {
-         if (context != null) {
-+          timer.checkpoint("start_get");
-           r = get(clientGet, (region), null, context);
-+          timer.checkpoint("end_get");
-         } else {
-           // for test purpose
-           r = region.get(clientGet);
-@@ -2616,6 +2635,7 @@
-       if (r != null && r.rawCells() != null) {
-         quota.addGetResult(r);
-       }
-+      timer.endAndLogIfSlow(slowOperationWarningThreshold);
-       return builder.build();
-     } catch (IOException ie) {
-       throw new ServiceException(ie);
+     }
++    timer.checkpoint("end_preget");
+     Scan scan = new Scan(get);
+     if (scan.getLoadColumnFamiliesOnDemandValue() == null) {
+       scan.setLoadColumnFamiliesOnDemand(region.isLoadingCfsOnDemandDefault());
+     }
+     RegionScannerImpl scanner = null;
+     try {
++      timer.checkpoint("start_getscanner");
+       scanner = region.getScanner(scan);
++      timer.checkpoint("end_getscanner");
++      timer.checkpoint("start_scannernext");
+       scanner.next(results);
++      timer.checkpoint("end_scannernext");
+     } finally {
+       if (scanner != null) {
+         if (closeCallBack == null) {
+@@ -2677,10 +2691,14 @@
+     }
+ 
+     // post-get CP hook
++    timer.checkpoint("start_postget");
+     if (region.getCoprocessorHost() != null) {
+       region.getCoprocessorHost().postGet(get, results);
+     }
+     region.metricsUpdateForGet(results, before);
++    timer.checkpoint("end_postget");
++
++    timer.endAndLogIfSlow(slowOperationWarningThreshold);
+ 
+     return Result.create(results, get.isCheckExistenceOnly() ? !results.isEmpty() : null, stale);
+   }
