@@ -12,7 +12,7 @@ WORKDIR /stackable
 
 SHELL ["bash", "-euo", "pipefail", "-c"]
 
-RUN curl -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
 
 WORKDIR /stackable/phoenix-omid-${PRODUCT}
 RUN mvn package -Phbase-2 -DskipTests && \
