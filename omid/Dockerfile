@@ -23,7 +23,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 
-LABEL name="Apache Omid" \
+LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
