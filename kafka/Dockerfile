@@ -1,20 +1,23 @@
 # syntax=docker/dockerfile:1
 FROM stackable/image/java-base AS builder
 
+ARG KCAT
+
 RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
     microdnf install -y tar which wget zlib gcc-c++ make cmake && \
     microdnf clean all
 
 WORKDIR /stackable
-RUN curl -L -O https://github.com/edenhill/kcat/archive/refs/tags/1.7.0.tar.gz \
-    && tar xvfz 1.7.0.tar.gz \
-    && cd kcat-1.7.0 \
+RUN curl --fail -L -O https://github.com/edenhill/kcat/archive/refs/tags/${KCAT}.tar.gz \
+    && tar xvfz ${KCAT}.tar.gz \
+    && cd kcat-${KCAT} \
     && ./bootstrap.sh
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG SCALA
+ARG KCAT
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG RELEASE
@@ -32,7 +35,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip openssl kubectl && \
+    microdnf install tar gzip zip kubectl && \
     microdnf clean all
 
 USER stackable
@@ -41,15 +44,15 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable kafka/stackable /stackable
 COPY --chown=stackable:stackable kafka/licenses /licenses
 
-RUN curl -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 
-RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-RUN curl -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
 # ===
@@ -75,7 +78,9 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-1.7.0/kcat /stackable/kcat
+# Store kcat version with binary name and add softlink
+COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]

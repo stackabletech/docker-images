@@ -1,7 +1,8 @@
-FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e AS builder
+FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e
 
 ARG PRODUCT
 ARG RELEASE
+ARG KEYCLOAK_VERSION
 
 LABEL name="Stackable Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -21,6 +22,7 @@ RUN apt-get update && \
         curl \
         gzip \
         jq \
+        kubernetes-client \
         libssl-dev \
         libxml2-dev \
         libxslt1-dev \
@@ -32,12 +34,19 @@ RUN apt-get update && \
         python3-toml \
         python3-urllib3 \
         tar \
-        zip && \
+        zip \
+        unzip \
+        # Java 11 seems like the best middle-ground for all tools
+        openjdk-11-jdk-headless && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
+
+ENV PATH=/stackable/keycloak/bin:$PATH
+RUN curl --fail https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
+    ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /stackable/python/requirements.txt && \

@@ -2,7 +2,9 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
+ARG JAVA
 ARG JMX_EXPORTER
+ARG TOPOLOGY_PROVIDER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -16,7 +18,7 @@ RUN microdnf update && \
     fuse-devel \
     gcc \
     gcc-c++ \
-    java-11-openjdk-devel \
+    java-${JAVA}-openjdk-devel \
     maven \
     openssl-devel \
     tar \
@@ -104,6 +106,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG TOPOLOGY_PROVIDER
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -123,8 +126,7 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation \
-    openssl && \
+    krb5-workstation && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -139,6 +141,12 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+
+# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
+# labels to build a rackID from
+# source code is at: https://github.com/stackabletech/hdfs-topology-provider
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/topology-provider-${TOPOLOGY_PROVIDER}.jar
+
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 

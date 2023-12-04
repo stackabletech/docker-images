@@ -13,7 +13,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      # fail-fast: true
       # This setting can be changed to throttle the build load
       # max-parallel: 1
       matrix:
@@ -24,19 +24,21 @@ jobs:
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
       - name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7 # tag=v2
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4c0219f9ac95b02789c1075625400b2acbff50b1 # tag=v2
+        uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # tag=v2
       - name: Install python 3
-        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # tag=v4
         with:
           python-version: '3.x'
       - name: Set up Cosign
         uses: sigstore/cosign-installer@v3.1.2
+      - name: Install image-tools-stackabletech
+        run: pip install image-tools-stackabletech==0.0.5
       - name: Login to Stackable Nexus
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # tag=v2
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
           registry: docker.stackable.tech
           username: github
@@ -100,14 +102,15 @@ jobs:
           - airflow
     steps:
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # tag=v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
       - name: Install python 3
-        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # tag=v4
+        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # tag=v4
         with:
           python-version: '3.x'
+      - run: pip install image-tools-stackabletech
       - name: Install preflight
         run: |
-          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.6.11/preflight-linux-amd64
           chmod +x preflight-linux-amd64
       - name: OpenShift certification checks
-        run: python -m image_tools.preflight --product "${{ matrix.product }}" --image-version 0.0.0-dev --preflight-cmd ./preflight-linux-amd64
+        run: check-container --product "${{ matrix.product }}" --image-version 0.0.0-dev --executable ./preflight-linux-amd64
