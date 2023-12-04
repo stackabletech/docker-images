@@ -61,8 +61,9 @@ jobs:
           --export-tags-file bake-target-tags
           # Push images to image repository
           if [ -f bake-target-tags ]; then
-            IMAGE_NAME=$(< bake-target-tags | cut -d ":" -f 1)
-            TAG_NAME=$(< bake-target-tags | cut -d ":" -f 2)
+            echo "bake-target-tags: "$(< bake-target-tags)
+            IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+            TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
             echo "image: $IMAGE_NAME"
             echo "tag: $TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
