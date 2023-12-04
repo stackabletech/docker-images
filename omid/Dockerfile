@@ -64,12 +64,7 @@ LABEL name="Apache Phoenix Omid" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN microdnf update && \
-    microdnf install tar gzip zip && \
-    microdnf clean all
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+RUN microdnf update && microdnf clean all
 
 ENV HOME=/stackable
 
