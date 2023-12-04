@@ -1,4 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7@sha256:3e1adcc31c6073d010b8043b070bd089d7bf37ee2c397c110211a6273453433f AS builder
+# 8.9-1029 as of 2023-12-01
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:0e1879febd1be94e0d234060770ce33a543488374d91881259de9119ea75d33f AS builder
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -24,7 +25,7 @@ WORKDIR /
 # property in operator-templating/repositories.yaml
 # hadolint ignore=SC1091
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.71.0 \
- && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.3.8 cargo-auditable@0.6.1
+ && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
 RUN mkdir /app

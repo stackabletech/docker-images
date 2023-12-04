@@ -6,24 +6,44 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- omid: init at 1.1.0 ([#493]).
+
+### Changed
+
+- ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
+- stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
+
+[#514]: https://github.com/stackabletech/docker-images/pull/514
+[#493]: https://github.com/stackabletech/docker-images/pull/493
+
+## [23.11.0] - 2023-11-30
+
+### Added
+
+- hadoop: Added Stackable topology provider jar to enable k8s-based rack awareness ([#509])
 - hadoop: Add all necessary components to the image to mount HDFS using FUSE ([#400])
+- hbase: Add hbase-operator-tools ([#497], [#498]).
 - java-base: Add needed tzdata-java package ([#425]).
 - testing-tools: Add java, tzdata-java, unzip ([#464], [#465], [#466]).
 
 - airflow: added support for 2.6.3, 2.7.2 ([#477]).
 - druid: added support for 27.0.0 ([#485]).
 - hadoop: added support for 3.2.4, 3.3.6 ([#478]).
+- hbase: added new version 2.4.17 ([#494]).
+- hbase: use jmx-exporter 0.20.0 ([#494]).
+- hbase: added hadoop native compression ([#494]).
 - hive: added upload new version script ([#472]).
+- hive: Update postgresql driver in Hive metastore 3.1.3 to 42.6.0 ([#505]).
 - kafka: add support for versions 3.4.1, 3.5.1 ([#476]).
 - nifi: added support for version 1.23.2 ([#473]).
 - opa: add version 0.57.0 ([#471]).
 - opa: add new version upload script ([#471]).
 - spark: added versions 3.4.1, 3.5.0 ([#475]).
 - superset: add new version 2.1.1, 3.0.1 ([#482], [#489]).
+- superset: add tzdata library as ubi-minimal has removed it ([#499]).
 - trino: removed support for versions 428 ([#487]).
 - zookeeper: add version 3.8.3 ([#470]).
 - zookeeper: add upload script ([#470]).
-- omid: init at 1.1.0 ([#493]).
 
 ### Changed
 
@@ -42,6 +62,8 @@ All notable changes to this project will be documented in this file.
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
 - airflow: Added wrapper script to allow the triggering of pre/post hook actions ([#435]).
 - hadoop: bumped jmx-exporter version to 0.20.0 ([#478]).
+- hbase: added soft link for jmx-exporter ([#494]).
+- hbase: rename jmx_exporter configs to match rolenames in operators ([#494]).
 - hive: bump jmx-exporter to 0.20.0 ([#472]).
 - spark: bump jmx-exporter to 0.20.0 and access via softlink ([#475]).
 - superset: removed patches that are obsolete since 2.0.0 ([#482]).
@@ -97,7 +119,12 @@ All notable changes to this project will be documented in this file.
 [#485]: https://github.com/stackabletech/docker-images/pull/485
 [#487]: https://github.com/stackabletech/docker-images/pull/487
 [#489]: https://github.com/stackabletech/docker-images/pull/489
-[#493]: https://github.com/stackabletech/docker-images/pull/493
+[#494]: https://github.com/stackabletech/docker-images/pull/494
+[#497]: https://github.com/stackabletech/docker-images/pull/497
+[#498]: https://github.com/stackabletech/docker-images/pull/498
+[#499]: https://github.com/stackabletech/docker-images/pull/499
+[#505]: https://github.com/stackabletech/docker-images/pull/505
+[#509]: https://github.com/stackabletech/docker-images/pull/509
 
 ## [23.7.0] - 2023-07-14
 

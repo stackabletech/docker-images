@@ -23,12 +23,12 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 
-LABEL name="Apache Omid" \
+LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
-      summary="The Stackable image for Apache Omid." \
+      summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
