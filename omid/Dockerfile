@@ -22,6 +22,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG JMX_EXPORTER
 
 LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
@@ -50,9 +51,9 @@ USER stackable
 WORKDIR /stackable
 
 RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
-    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-0.16.1.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 
 COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 
