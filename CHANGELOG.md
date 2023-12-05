@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
+- stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
+
+[#514]: https://github.com/stackabletech/docker-images/pull/514
+
+## [23.11.0] - 2023-11-30
+
 ### Added
 
 - hadoop: Added Stackable topology provider jar to enable k8s-based rack awareness ([#509])

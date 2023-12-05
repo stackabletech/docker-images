@@ -1,4 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7@sha256:3e1adcc31c6073d010b8043b070bd089d7bf37ee2c397c110211a6273453433f AS builder
+# 8.9-1029 as of 2023-12-01
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:0e1879febd1be94e0d234060770ce33a543488374d91881259de9119ea75d33f AS builder
 LABEL maintainer="Stackable GmbH"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
