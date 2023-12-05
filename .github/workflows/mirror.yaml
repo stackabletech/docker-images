@@ -12,7 +12,7 @@ on:
 
 env:
   DST_REGISTRY: oci.stackable.tech
-  DST_PROJECT: mirror
+  DST_PROJECT: stackable
 
 jobs:
   mirror-image:
