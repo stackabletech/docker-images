@@ -42,15 +42,6 @@ diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSR
 
  /**
   * Implements the regionserver RPC services.
-@@ -312,7 +315,7 @@
-
-   // Request counter for rpc scan
-   final LongAdder rpcScanRequestCount = new LongAdder();
--
-+
-   // Request counter for scans that might end up in full scans
-   final LongAdder rpcFullScanRequestCount = new LongAdder();
-
 @@ -357,6 +360,9 @@
     * Row size threshold for multi requests above which a warning is logged
     */
