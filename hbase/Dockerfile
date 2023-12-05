@@ -34,6 +34,10 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
+RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
+
+
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
@@ -84,6 +88,11 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
+
+
+RUN curl --fail https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
+
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
@@ -151,6 +160,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
+COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
 RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
     ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
@@ -158,6 +168,7 @@ USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV HOME=/stackable
 ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
+ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
 # This is a temporary "fix" so that new images (23.11++) _might_ work with 23.7 operators
 # The idea is to remove this for 24.X (first 24 release)
