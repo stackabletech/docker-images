@@ -1,5 +1,126 @@
 Subject: [PATCH] Adds a MethodTimer class which can be used to do poor man's profiling
 ---
+Index: hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java	(date 1701182891572)
+@@ -62,7 +62,7 @@
+   // Incremented per write.
+   private Meter serverWriteQueryMeter;
+   protected long slowMetricTime;
+-  protected static final int DEFAULT_SLOW_METRIC_TIME = 1000; // milliseconds
++  public static final int DEFAULT_SLOW_METRIC_TIME = 1000; // milliseconds
+
+   public MetricsRegionServer(MetricsRegionServerWrapper regionServerWrapper, Configuration conf,
+       MetricsTable metricsTable) {
+Index: hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(date 1701721386187)
+@@ -142,6 +142,7 @@
+ import org.apache.hadoop.hbase.util.Bytes;
+ import org.apache.hadoop.hbase.util.DNS;
+ import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
++import org.apache.hadoop.hbase.util.MethodTimer;
+ import org.apache.hadoop.hbase.util.Pair;
+ import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
+ import org.apache.hadoop.hbase.wal.WAL;
+@@ -260,6 +261,8 @@
+ import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.CompactionDescriptor;
+ import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.FlushDescriptor;
+ import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.RegionEventDescriptor;
++import static org.apache.hadoop.hbase.regionserver.MetricsRegionServer.DEFAULT_SLOW_METRIC_TIME;
++import static org.apache.hadoop.hbase.regionserver.MetricsRegionServer.SLOW_METRIC_TIME;
+
+ /**
+  * Implements the regionserver RPC services.
+@@ -312,7 +315,7 @@
+
+   // Request counter for rpc scan
+   final LongAdder rpcScanRequestCount = new LongAdder();
+-
++
+   // Request counter for scans that might end up in full scans
+   final LongAdder rpcFullScanRequestCount = new LongAdder();
+
+@@ -357,6 +360,9 @@
+    * Row size threshold for multi requests above which a warning is logged
+    */
+   private final int rowSizeWarnThreshold;
++
++  private final long slowOperationWarningThreshold;
++
+   /*
+    * Whether we should reject requests with very high no of rows i.e. beyond threshold
+    * defined by rowSizeWarnThreshold
+@@ -1207,6 +1213,8 @@
+     rejectRowsWithSizeOverThreshold =
+       conf.getBoolean(REJECT_BATCH_ROWS_OVER_THRESHOLD, DEFAULT_REJECT_BATCH_ROWS_OVER_THRESHOLD);
+
++    slowOperationWarningThreshold = conf.getLong(SLOW_METRIC_TIME, DEFAULT_SLOW_METRIC_TIME);
++
+     final RpcSchedulerFactory rpcSchedulerFactory;
+     try {
+       rpcSchedulerFactory = getRpcSchedulerFactoryClass().asSubclass(RpcSchedulerFactory.class)
+@@ -2556,10 +2564,10 @@
+     HRegion region = null;
+     try {
+       checkOpen();
++
+       requestCount.increment();
+       rpcGetRequestCount.increment();
+       region = getRegion(request.getRegion());
+-
+       GetResponse.Builder builder = GetResponse.newBuilder();
+       ClientProtos.Get get = request.getGet();
+       // An asynchbase client, https://github.com/OpenTSDB/asynchbase, starts by trying to do
+@@ -2575,13 +2583,13 @@
+       Result r = null;
+       RpcCallContext context = RpcServer.getCurrentCall().orElse(null);
+       quota = getRpcQuotaManager().checkQuota(region, OperationQuota.OperationType.GET);
+-
+       Get clientGet = ProtobufUtil.toGet(get);
+       if (get.getExistenceOnly() && region.getCoprocessorHost() != null) {
+         existence = region.getCoprocessorHost().preExists(clientGet);
+       }
+       if (existence == null) {
+         if (context != null) {
++          // SUP-56: Slowness always occurs in this method
+           r = get(clientGet, (region), null, context);
+         } else {
+           // for test purpose
+@@ -2636,6 +2644,8 @@
+
+   private Result get(Get get, HRegion region, RegionScannersCloseCallBack closeCallBack,
+       RpcCallContext context) throws IOException {
++    MethodTimer timer = new MethodTimer();
++
+     region.prepareGet(get);
+     boolean stale = region.getRegionInfo().getReplicaId() != 0;
+
+@@ -2656,8 +2666,14 @@
+     }
+     RegionScannerImpl scanner = null;
+     try {
++      // SUP-56: Slowness mostly occurs in "getScanner" but sometimes also in "next"
++      timer.checkpoint("start_getscanner");
+       scanner = region.getScanner(scan);
++      timer.checkpoint("end_getscanner");
++      timer.checkpoint("start_scannernext");
+       scanner.next(results);
++      timer.checkpoint("end_scannernext");
++      timer.endAndLogIfSlow(slowOperationWarningThreshold, get.toString());
+     } finally {
+       if (scanner != null) {
+         if (closeCallBack == null) {
 Index: hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -7,9 +128,9 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java
 new file mode 100644
---- /dev/null	(date 1701385840105)
-+++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java	(date 1701385840105)
-@@ -0,0 +1,75 @@
+--- /dev/null	(date 1701719493666)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/util/MethodTimer.java	(date 1701719493666)
+@@ -0,0 +1,74 @@
 +/*
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -35,8 +156,7 @@ new file mode 100644
 +import org.slf4j.Logger;
 +import org.slf4j.LoggerFactory;
 +
-+@InterfaceAudience.Private
-+public class MethodTimer {
++@InterfaceAudience.Private public class MethodTimer {
 +
 +  private static final Logger LOG = LoggerFactory.getLogger(MethodTimer.class);
 +
@@ -51,7 +171,7 @@ new file mode 100644
 +    checkpoints.put(identifier, EnvironmentEdgeManager.currentTime());
 +  }
 +
-+  public void endAndLogIfSlow(long threshold) {
++  public void endAndLogIfSlow(long threshold, String debugMessage) {
 +    checkpoint("End");
 +
 +    long endTime = EnvironmentEdgeManager.currentTime();
@@ -80,146 +200,112 @@ new file mode 100644
 +      }
 +      builder.append(']');
 +
-+      LOG.info("STACKABLE slow get detected. Total Execution Time: {}ms. Timings: {}", totalTime,
-+        builder);
++      LOG.info("STACKABLE slow get detected. Total Execution Time: {}ms. Timings: {}, Message: {}",
++        totalTime, builder, debugMessage);
 +    }
 +  }
 +}
-Index: hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java
+Index: hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegion.java
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java
---- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
-+++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/MetricsRegionServer.java	(date 1701182891572)
-@@ -62,7 +62,7 @@
-   // Incremented per write.
-   private Meter serverWriteQueryMeter;
-   protected long slowMetricTime;
--  protected static final int DEFAULT_SLOW_METRIC_TIME = 1000; // milliseconds
-+  public static final int DEFAULT_SLOW_METRIC_TIME = 1000; // milliseconds
- 
-   public MetricsRegionServer(MetricsRegionServerWrapper regionServerWrapper, Configuration conf,
-       MetricsTable metricsTable) {
-Index: hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
-diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
---- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
-+++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java	(date 1701422978372)
-@@ -142,6 +142,7 @@
- import org.apache.hadoop.hbase.util.Bytes;
- import org.apache.hadoop.hbase.util.DNS;
- import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
-+import org.apache.hadoop.hbase.util.MethodTimer;
- import org.apache.hadoop.hbase.util.Pair;
- import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
- import org.apache.hadoop.hbase.wal.WAL;
-@@ -260,6 +261,8 @@
- import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.CompactionDescriptor;
- import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.FlushDescriptor;
- import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.RegionEventDescriptor;
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegion.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegion.java
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegion.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegion.java	(date 1701720322002)
+@@ -19,6 +19,8 @@
+
+ import static org.apache.hadoop.hbase.HConstants.REPLICATION_SCOPE_LOCAL;
+ import static org.apache.hadoop.hbase.regionserver.HStoreFile.MAJOR_COMPACTION_KEY;
 +import static org.apache.hadoop.hbase.regionserver.MetricsRegionServer.DEFAULT_SLOW_METRIC_TIME;
 +import static org.apache.hadoop.hbase.regionserver.MetricsRegionServer.SLOW_METRIC_TIME;
- 
+ import static org.apache.hadoop.hbase.util.ConcurrentMapUtils.computeIfAbsent;
+
+ import com.google.errorprone.annotations.RestrictedApi;
+@@ -189,6 +191,7 @@
+ import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
+ import org.apache.hadoop.hbase.util.FSUtils;
+ import org.apache.hadoop.hbase.util.HashedBytes;
++import org.apache.hadoop.hbase.util.MethodTimer;
+ import org.apache.hadoop.hbase.util.NonceKey;
+ import org.apache.hadoop.hbase.util.Pair;
+ import org.apache.hadoop.hbase.util.ServerRegionReplicaUtil;
+@@ -216,25 +219,6 @@
+ import org.apache.hbase.thirdparty.com.google.protobuf.UnsafeByteOperations;
+ import org.apache.hbase.thirdparty.org.apache.commons.collections4.CollectionUtils;
+
+-import org.apache.yetus.audience.InterfaceAudience;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import org.apache.hadoop.hbase.shaded.protobuf.ProtobufUtil;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClientProtos.CoprocessorServiceCall;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClusterStatusProtos.RegionLoad;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.ClusterStatusProtos.StoreSequenceId;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.SnapshotProtos.SnapshotDescription;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.CompactionDescriptor;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.FlushDescriptor;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.FlushDescriptor.FlushAction;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.FlushDescriptor.StoreFlushDescriptor;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.RegionEventDescriptor;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.RegionEventDescriptor.EventType;
+-import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.StoreDescriptor;
+-
  /**
-  * Implements the regionserver RPC services.
-@@ -312,7 +315,7 @@
- 
-   // Request counter for rpc scan
-   final LongAdder rpcScanRequestCount = new LongAdder();
--  
+  * Regions store data for a certain region of a table.  It stores all columns
+  * for each row. A given table consists of one or more Regions.
+@@ -7167,6 +7151,9 @@
+
+     RegionScannerImpl(Scan scan, List<KeyValueScanner> additionalScanners, HRegion region,
+         long nonceGroup, long nonce) throws IOException {
 +
-   // Request counter for scans that might end up in full scans
-   final LongAdder rpcFullScanRequestCount = new LongAdder();
- 
-@@ -357,6 +360,9 @@
-    * Row size threshold for multi requests above which a warning is logged
-    */
-   private final int rowSizeWarnThreshold;
++      MethodTimer timer = new MethodTimer();
 +
-+  private final long slowOperationWarningThreshold;
-+
-   /*
-    * Whether we should reject requests with very high no of rows i.e. beyond threshold
-    * defined by rowSizeWarnThreshold
-@@ -1207,6 +1213,8 @@
-     rejectRowsWithSizeOverThreshold =
-       conf.getBoolean(REJECT_BATCH_ROWS_OVER_THRESHOLD, DEFAULT_REJECT_BATCH_ROWS_OVER_THRESHOLD);
- 
-+    slowOperationWarningThreshold = conf.getLong(SLOW_METRIC_TIME, DEFAULT_SLOW_METRIC_TIME);
-+
-     final RpcSchedulerFactory rpcSchedulerFactory;
-     try {
-       rpcSchedulerFactory = getRpcSchedulerFactoryClass().asSubclass(RpcSchedulerFactory.class)
-@@ -2559,7 +2567,6 @@
-       requestCount.increment();
-       rpcGetRequestCount.increment();
-       region = getRegion(request.getRegion());
--
-       GetResponse.Builder builder = GetResponse.newBuilder();
-       ClientProtos.Get get = request.getGet();
-       // An asynchbase client, https://github.com/OpenTSDB/asynchbase, starts by trying to do
-@@ -2575,7 +2582,6 @@
-       Result r = null;
-       RpcCallContext context = RpcServer.getCurrentCall().orElse(null);
-       quota = getRpcQuotaManager().checkQuota(region, OperationQuota.OperationType.GET);
--
-       Get clientGet = ProtobufUtil.toGet(get);
-       if (get.getExistenceOnly() && region.getCoprocessorHost() != null) {
-         existence = region.getCoprocessorHost().preExists(clientGet);
-@@ -2636,6 +2642,8 @@
- 
-   private Result get(Get get, HRegion region, RegionScannersCloseCallBack closeCallBack,
-       RpcCallContext context) throws IOException {
-+    MethodTimer timer = new MethodTimer();
-+
-     region.prepareGet(get);
-     boolean stale = region.getRegionInfo().getReplicaId() != 0;
- 
-@@ -2643,6 +2651,7 @@
-     List<Cell> results = new ArrayList<>();
-     long before = EnvironmentEdgeManager.currentTime();
-     // pre-get CP hook
-+    timer.checkpoint("start_preget");
-     if (region.getCoprocessorHost() != null) {
-       if (region.getCoprocessorHost().preGet(get, results)) {
-         region.metricsUpdateForGet(results, before);
-@@ -2650,14 +2659,19 @@
-             .create(results, get.isCheckExistenceOnly() ? !results.isEmpty() : null, stale);
+       this.region = region;
+       this.maxResultSize = scan.getMaxResultSize();
+       if (scan.hasFilter()) {
+@@ -7189,6 +7176,7 @@
+       // getSmallestReadPoint, before scannerReadPoints is updated.
+       IsolationLevel isolationLevel = scan.getIsolationLevel();
+       long mvccReadPoint = PackagePrivateFieldAccessor.getMvccReadPoint(scan);
++      timer.checkpoint("pre_sync");
+       synchronized (scannerReadPoints) {
+         if (mvccReadPoint > 0) {
+           this.readPt = mvccReadPoint;
+@@ -7200,10 +7188,14 @@
+         }
+         scannerReadPoints.put(this, this.readPt);
        }
+-      initializeScanners(scan, additionalScanners);
++      timer.checkpoint("post_sync");
++      initializeScanners(scan, additionalScanners, timer);
++      timer.checkpoint("post_initscanners");
++      timer.endAndLogIfSlow(conf.getLong(SLOW_METRIC_TIME, DEFAULT_SLOW_METRIC_TIME), scan.toString());
      }
-+    timer.checkpoint("end_preget");
-     Scan scan = new Scan(get);
-     if (scan.getLoadColumnFamiliesOnDemandValue() == null) {
-       scan.setLoadColumnFamiliesOnDemand(region.isLoadingCfsOnDemandDefault());
-     }
-     RegionScannerImpl scanner = null;
-     try {
-+      timer.checkpoint("start_getscanner");
-       scanner = region.getScanner(scan);
-+      timer.checkpoint("end_getscanner");
-+      timer.checkpoint("start_scannernext");
-       scanner.next(results);
-+      timer.checkpoint("end_scannernext");
-     } finally {
-       if (scanner != null) {
-         if (closeCallBack == null) {
-@@ -2677,10 +2691,14 @@
-     }
- 
-     // post-get CP hook
-+    timer.checkpoint("start_postget");
-     if (region.getCoprocessorHost() != null) {
-       region.getCoprocessorHost().postGet(get, results);
-     }
-     region.metricsUpdateForGet(results, before);
-+    timer.checkpoint("end_postget");
-+
-+    timer.endAndLogIfSlow(slowOperationWarningThreshold);
- 
-     return Result.create(results, get.isCheckExistenceOnly() ? !results.isEmpty() : null, stale);
-   }
+
+-    protected void initializeScanners(Scan scan, List<KeyValueScanner> additionalScanners)
++    protected void initializeScanners(Scan scan, List<KeyValueScanner> additionalScanners,
++      MethodTimer timer)
+         throws IOException {
+       // Here we separate all scanners into two lists - scanner that provide data required
+       // by the filter to operate (scanners list) and all others (joinedScanners list).
+@@ -7218,6 +7210,7 @@
+       }
+
+       try {
++        timer.checkpoint("pre_getstorescanners");
+         for (Map.Entry<byte[], NavigableSet<byte[]>> entry : scan.getFamilyMap().entrySet()) {
+           HStore store = stores.get(entry.getKey());
+           KeyValueScanner scanner = store.getScanner(scan, entry.getValue(), this.readPt);
+@@ -7229,7 +7222,9 @@
+             joinedScanners.add(scanner);
+           }
+         }
++        timer.checkpoint("post_getstorescanners");
+         initializeKVHeap(scanners, joinedScanners, region);
++        timer.checkpoint("post_initkvheap");
+       } catch (Throwable t) {
+         throw handleException(instantiatedScanners, t);
+       }
