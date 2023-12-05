@@ -1,0 +1,26 @@
+Subject: [PATCH] HBASE-25685: Switches default support for async-profiler to version 2.0
+
+This patch was partially applied already but for branch 2.4 the default was kept as it is needed for async-profiler 1.0.
+As we have control over the environment and 2.0 is old by now, we switch to the new version as well
+---
+Index: hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
+--- a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java	(revision e04956f7bb5d95a54612a99905ee2d8e7f0de23a)
++++ b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java	(date 1701818500309)
+@@ -358,10 +358,10 @@
+       try {
+         return Output.valueOf(outputArg.trim().toUpperCase());
+       } catch (IllegalArgumentException e) {
+-        return Output.SVG;
++        return Output.HTML;
+       }
+     }
+-    return Output.SVG;
++    return Output.HTML;
+   }
+ 
+   static void setResponseHeader(final HttpServletResponse response) {
