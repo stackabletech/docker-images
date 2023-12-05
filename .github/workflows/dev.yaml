@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/push-images-to-harbor
 
 jobs:
   development:
@@ -19,6 +18,20 @@ jobs:
       matrix:
         product:
           - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - krb5
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - tools
+          - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
@@ -104,6 +117,18 @@ jobs:
       matrix:
         product:
           - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - trino
+          - tools
+          - zookeeper
     steps:
       - name: Checkout
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3

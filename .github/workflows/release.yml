@@ -51,6 +51,8 @@ jobs:
         uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # tag=v4
         with:
           python-version: '3.x'
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@v3.1.2
       - name: Install image-tools-stackabletech
         run: pip install image-tools-stackabletech==0.0.5
       - name: Login to Stackable Nexus
@@ -59,10 +61,16 @@ jobs:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$stackable+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
       - name: Publish release product images
         id: publish_images
         run: |
-          # bake images and load them to local docker repo for signing
+          # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
           --image-version "$GITHUB_REF_NAME" \
@@ -71,16 +79,36 @@ jobs:
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
-          # push images to image repository
+          # Push images to image repository
           if [ -f bake-target-tags ]; then
-            docker image push "$(< bake-target-tags)"
-          fi
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3.1.2
-      - name: Sign images
-        run: |
-          if [ -f bake-target-tags ]; then
-            cosign sign -y "$(< bake-target-tags)"
+            echo "bake-target-tags: "$(< bake-target-tags)
+            IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+            TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
+            echo "image: $IMAGE_NAME"
+            echo "tag: $TAG_NAME"
+            # Store the output of `docker image push` into a variable, so we can parse it for the digest
+            PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1)
+            echo "$PUSH_OUTPUT"
+            # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
+            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+            # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
+            # This generates a signature and publishes it to the registry, next to the image
+            # Uses the keyless signing flow with Github Actions as identity provider
+            cosign sign -y "$IMAGE_NAME@$DIGEST"
+
+            # Push to oci.stackable.tech as well
+            IMAGE_NAME=oci.stackable.tech/stackable/${{ matrix.product }}
+            echo "image: $IMAGE_NAME"
+            docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
+            # Store the output of `docker image push` into a variable, so we can parse it for the digest
+            PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
+            echo "$PUSH_OUTPUT"
+            # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
+            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+            # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
+            # This generates a signature and publishes it to the registry, next to the image
+            # Uses the keyless signing flow with Github Actions as identity provider
+            cosign sign -y "$IMAGE_NAME@$DIGEST"
           fi
   preflight:
     name: ${{ matrix.product }} preflight checks
