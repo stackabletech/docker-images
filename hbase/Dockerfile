@@ -90,7 +90,7 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
 
-RUN curl --fail https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
+RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
     ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
 
 
