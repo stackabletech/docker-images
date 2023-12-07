@@ -8,8 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
+- Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
 
 [#514]: https://github.com/stackabletech/docker-images/pull/514
+[#517]: https://github.com/stackabletech/docker-images/pull/517
 
 ## [23.11.0] - 2023-11-30
 
