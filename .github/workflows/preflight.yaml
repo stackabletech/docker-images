@@ -23,8 +23,8 @@ on:
         required: true
         default: '0.0.0-dev'
         type: string
-      publish:
-        description: 'Publish results to the RH portal'
+      submit:
+        description: 'Submit results to the RH portal'
         required: true
         default: false
         type: boolean
@@ -33,7 +33,6 @@ on:
         required: true
         default: 'docker.stackable.tech'
         type: string
-        required: true
 jobs:
   preflight:
     name: ${{ matrix.product }} preflight checks
@@ -77,7 +76,7 @@ jobs:
         run: |
           wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.7.2/preflight-linux-amd64
           chmod +x preflight-linux-amd64
-      - name: Publish preflight checks
+      - name: Submit preflight checks
         if: ${{ inputs.submit == true }}
         run: |
           check-container --product "${{ matrix.product }}" \
