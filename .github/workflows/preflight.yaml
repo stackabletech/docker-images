@@ -80,7 +80,7 @@ jobs:
         if: ${{ inputs.submit == true }}
         run: |
           check-container --product "${{ matrix.product }}" \
-            --image-version "${{inputs.tags }}" \
+            --image-version "${{inputs.tag }}" \
             --registry "${{ inputs.registry }}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
@@ -89,7 +89,7 @@ jobs:
         if: ${{ inputs.submit == false }}
         run: |
           check-container --product "${{ matrix.product }}" \
-            --image-version "${{inputs.tags }}" \
+            --image-version "${{inputs.tag }}" \
             --registry "${{ inputs.registry }}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
