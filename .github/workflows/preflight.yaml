@@ -10,8 +10,8 @@
 # But the preflight checks were trigerred only after a successful release
 # workflow, which it's self was only triggered by a new tag.
 #
-# As you can imagine, retaging this repository just to force a new round
-# of possibly unsueccsuful checks was not very productive.
+# As you can imagine, retagging this repository just to force a new round
+# of possibly unsuccessful checks was not very productive.
 #
 ---
 name: Preflight checks
