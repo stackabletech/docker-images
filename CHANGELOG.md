@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- opa: Add user-info-fetcher binary ([#XXX])
+- opa: Add user-info-fetcher binary ([#518])
 
 ### Changed
 
@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 [#514]: https://github.com/stackabletech/docker-images/pull/514
 [#517]: https://github.com/stackabletech/docker-images/pull/517
+[#518]: https://github.com/stackabletech/docker-images/pull/518
 
 ## [23.11.0] - 2023-11-30
 
