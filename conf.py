@@ -227,11 +227,15 @@ products = [
                 "product": "0.51.0",
                 "vector": "0.33.0",
                 "bundle_builder_version": "1.1.0",
+                # FIXME: Once merged create tag user-info-fetcher-v1.0.0 and use that
+                "user_info_fetcher_version": "spike/user-info-fetcher",
             },
             {
                 "product": "0.57.0",
                 "vector": "0.33.0",
                 "bundle_builder_version": "1.1.0",
+                # FIXME: Once merged create tag user-info-fetcher-v1.0.0 and use that
+                "user_info_fetcher_version": "spike/user-info-fetcher",
             },
         ],
     },

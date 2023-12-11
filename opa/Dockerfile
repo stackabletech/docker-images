@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
-FROM stackable/image/vector AS opa-bundle-builder
+FROM stackable/image/vector AS rust-builder
 
 ARG BUNDLE_BUILDER_VERSION
+ARG USER_INFO_FETCHER_VERSION
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -16,7 +17,10 @@ WORKDIR /
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
-RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
+RUN pushd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release && popd
+
+RUN git clone --depth 1 --branch ${USER_INFO_FETCHER_VERSION} https://github.com/stackabletech/opa-operator
+RUN pushd ./opa-operator/rust/user-info-fetcher && . $HOME/.cargo/env && cargo build --release && popd
 
 FROM stackable/image/vector AS multilog-builder
 
@@ -76,7 +80,9 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/opa/opa_linux
     chmod +x opa_linux_amd64_static_${PRODUCT} && \
     ln -s opa_linux_amd64_static_${PRODUCT} opa
 
-COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+ENV PATH="/stackable:${PATH}"
+COPY --from=rust-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+COPY --from=rust-builder --chown=stackable:stackable /opa-operator/target/release/stackable-opa-user-info-fetcher /stackable/user-info-fetcher
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 CMD ["./opa", "run", "-s"]

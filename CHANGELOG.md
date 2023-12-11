@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- opa: Add user-info-fetcher binary ([#XXX])
+
 ### Changed
 
 - ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
