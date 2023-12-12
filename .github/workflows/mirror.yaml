@@ -12,7 +12,7 @@ on:
 
 env:
   DST_REGISTRY: oci.stackable.tech
-  DST_PROJECT: stackable
+  DST_PROJECT: sdp
 
 jobs:
   mirror-image:
@@ -24,8 +24,8 @@ jobs:
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.DST_REGISTRY }}
-          username: "robot$stackable+github-action-build"
-          password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+          username: "robot$sdp+github-action-build"
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Pull image from source registry
         run: docker pull "${{ github.event.inputs.src }}"
       - name: Retag image

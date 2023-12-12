@@ -60,8 +60,8 @@ jobs:
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
           registry: oci.stackable.tech
-          username: robot$stackable+github-action-build
-          password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Publish dev images
         id: publish_images
         run: |
@@ -90,7 +90,7 @@ jobs:
             cosign sign -y "$IMAGE_NAME@$DIGEST"
 
             # Push to oci.stackable.tech as well
-            IMAGE_NAME=oci.stackable.tech/stackable/${{ matrix.product }}
+            IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
             echo "image: $IMAGE_NAME"
             docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
