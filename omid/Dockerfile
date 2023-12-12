@@ -82,6 +82,7 @@ RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
 COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
-
+# omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
+RUN rm /stackable/omid-tso-server/conf/hbase-site.xml
 WORKDIR /stackable/omid-tso-server
 CMD ["./bin/omid.sh", "tso" ]
