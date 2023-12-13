@@ -384,7 +384,7 @@ open_shift_projects = {
     "druid": {"id": "626140028ccb9938ba3cfde7"},
     "hadoop": {"id": "6261407f887d6e0b8614660c"},
     "hbase": {"id": "62614109992bac3f9a4a24b8"},
-    "hive": {"id": "626140028ccb9938ba3cfde7"},
+    "hive": {"id": "626140806812078a392dceaa"},
     "kafka": {"id": "625ff25b91bdcd4b49c823a4"},
     "nifi": {"id": "625586a32e9e14bc8118e203"},
     "opa": {"id": "6255838bea1feb8bec4aaaa3"},
