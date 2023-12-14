@@ -34,7 +34,7 @@ COPY hadoop/stackable /stackable
 # The source is needed to build FUSE. The rest of the src package will not make it into the final image.
 # Both the src and binary variants extract into different root folders
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}.tar.gz" | tar -xzC . && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-with-HADOOP-18055-HADOOP-18077-YARN-11527.tar.gz" | tar -xzC . && \
     ln -s "/stackable/hadoop-${PRODUCT}" /stackable/hadoop && \
     rm -rf /stackable/hadoop/lib/native/examples && \
     rm -rf /stackable/hadoop/share/doc
@@ -50,6 +50,8 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
+RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -141,6 +143,7 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
 
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from
@@ -155,6 +158,7 @@ ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
 ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
+ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
