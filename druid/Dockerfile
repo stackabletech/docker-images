@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 # druid < 0.23 druid only fully supports java 8
 # druid >= 0.23 is java 11 ready
 FROM stackable/image/java-base
