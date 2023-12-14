@@ -36,20 +36,15 @@ jobs:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
-      - name: Checkout
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # tag=v3
-      - name: Set up QEMU for multiarch builds
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # tag=v2
-      - name: Install python 3
-        uses: actions/setup-python@65d7f2d534ac1bc67fcd62888c5f4f3d2cb2b236 # tag=v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v3.0.0
+      - uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # tag=v3.0.0
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
         with:
           python-version: '3.x'
       - name: Install image-tools-stackabletech
         run: pip install image-tools-stackabletech==0.0.5
-      - name: Login to Stackable Nexus
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+      - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
         with:
           registry: docker.stackable.tech
           username: github
@@ -68,8 +63,7 @@ jobs:
           if [ -f bake-target-tags ]; then
             docker image push "$(< bake-target-tags)"
           fi
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
+      - uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Sign images
         run: |
           if [ -f bake-target-tags ]; then
