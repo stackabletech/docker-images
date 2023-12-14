@@ -34,7 +34,7 @@ COPY hadoop/stackable /stackable
 # The source is needed to build FUSE. The rest of the src package will not make it into the final image.
 # Both the src and binary variants extract into different root folders
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-with-HADOOP-18055-HADOOP-18077-YARN-11527.tar.gz" | tar -xzC . && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-with-HADOOP-18055-HADOOP-18077-YARN-11527-and-itimer.tar.gz" | tar -xzC . && \
     ln -s "/stackable/hadoop-${PRODUCT}" /stackable/hadoop && \
     rm -rf /stackable/hadoop/lib/native/examples && \
     rm -rf /stackable/hadoop/share/doc
