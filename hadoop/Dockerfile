@@ -168,5 +168,10 @@ ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
+# This is a temporary "fix" so that new images (23.11++) _might_ work with 23.7 operators
+# The idea is to remove this for 24.X (first 24 release)
+RUN mkdir -p /stackable/vector/bin && \
+    ln -s /bin/vector /stackable/vector/bin
+
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
