@@ -128,7 +128,15 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation && \
+    krb5-workstation \
+    # openssl is required by the HDFS operator version 23.7 to convert the TLS
+    # certificate. In version 23.11, this functionality was moved to the
+    # secret-operator (https://github.com/stackabletech/hdfs-operator/pull/392)
+    # and therefore openssl is not required anymore.
+    openssl \
+    # tar is required for `kubectl cp` which can be used to copy the log files
+    # or profiler flamegraph from the Pod
+    tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
