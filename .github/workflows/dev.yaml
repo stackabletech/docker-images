@@ -74,8 +74,11 @@ jobs:
             # Push to oci.stackable.tech as well
             IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
             echo "image: $IMAGE_NAME"
+            echo "about to run: docker tag $(< bake-target-tags) $IMAGE_NAME:$TAG_NAME"
             docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
+            echo "ran docker tag"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
+            echo "about to run docker image push $IMAGE_NAME:$TAG_NAME"
             PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
             echo "$PUSH_OUTPUT"
             # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
