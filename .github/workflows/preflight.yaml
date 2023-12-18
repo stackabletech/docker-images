@@ -1,0 +1,93 @@
+# Manual job to run the preflight checks and possibly submit the results
+# to the RedHat Technology Portal.
+#
+# This job used to be part of the dev and release workflow but now it's an
+# independent manually triggered workflow.
+#
+# The primary reason for this is that it made the release process unnecessary
+# chaotic. The RH tech portal is notoriously unstable, and in cases where it
+# failed to respond, a way to re-run the preflight checks was necessary.
+# But the preflight checks were trigerred only after a successful release
+# workflow, which it's self was only triggered by a new tag.
+#
+# As you can imagine, retagging this repository just to force a new round
+# of possibly unsuccessful checks was not very productive.
+#
+---
+name: Preflight checks
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image version (0.0.0-dev, 23.11.0, etc)'
+        required: true
+        default: '0.0.0-dev'
+        type: string
+      submit:
+        description: 'Submit results to the RH portal'
+        required: true
+        default: false
+        type: boolean
+      registry:
+        description: 'Image repository.'
+        required: true
+        default: 'docker.stackable.tech'
+        type: string
+jobs:
+  preflight:
+    name: ${{ matrix.product }} preflight checks
+    # Run preflight checks and submit results to the RH certification portal.
+    # This job only runs if the "release" job was successful
+    # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      # This setting can be changed to throttle the build load
+      # Another reason to have no parallelism is that the RedHat portal is not reliable and
+      # and preflight submissions are not idempotent. This means that if one of the products below
+      # fails, we need to clean up everything that was done for all other products in the failed run.
+      max-parallel: 1
+      matrix:
+        product:
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - trino
+          - tools
+          - zookeeper
+    env:
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
+        with:
+          python-version: '3.x'
+      - run: pip install image-tools-stackabletech
+      - name: Install preflight
+        run: |
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.7.2/preflight-linux-amd64
+          chmod +x preflight-linux-amd64
+      - name: Submit preflight checks
+        if: ${{ inputs.submit == true }}
+        run: |
+          check-container --product "${{ matrix.product }}" \
+            --image-version "${{inputs.tag }}" \
+            --registry "${{ inputs.registry }}" \
+            --executable ./preflight-linux-amd64 \
+            --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
+            --submit
+      - name: Run preflight checks (no submit)
+        if: ${{ inputs.submit == false }}
+        run: |
+          check-container --product "${{ matrix.product }}" \
+            --image-version "${{inputs.tag }}" \
+            --registry "${{ inputs.registry }}" \
+            --executable ./preflight-linux-amd64 \
+            --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
