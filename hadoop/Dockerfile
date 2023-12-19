@@ -4,6 +4,7 @@ FROM stackable/image/java-base AS builder
 ARG PRODUCT
 ARG JAVA
 ARG JMX_EXPORTER
+ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -39,10 +40,8 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
-# For now all versions of Hadoop we support use Protobuf 3.7.1 so we can hardcode it here.
-# Should it ever differ between versions we'll need to make this a variable as well.
 RUN mkdir -p /opt/protobuf-src && \
-    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
+    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
     tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
     cd /opt/protobuf-src && \
     ./configure --prefix=/opt/protobuf && \
