@@ -40,23 +40,22 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
-RUN mkdir -p /opt/protobuf-src && \
-    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
-    tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
-    cd /opt/protobuf-src && \
+WORKDIR /opt/protobuf-src
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
+    tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner && \
     ./configure --prefix=/opt/protobuf && \
     make "-j$(nproc)" && \
-    make install && \
-    cd /root && \
-    rm -rf /opt/protobuf-src
+    make install
 
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
-RUN patches/apply_patches.sh ${PRODUCT} && \
-    cd /stackable/hadoop-${PRODUCT}-src && \
-    # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
-    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+WORKDIR /stackable
+RUN patches/apply_patches.sh ${PRODUCT}
+
+WORKDIR /stackable/hadoop-${PRODUCT}-src
+# Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
+RUN mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin
