@@ -225,6 +225,16 @@ products = [
         ],
     },
     {
+        "name": "omid",
+        "versions": [
+            {
+                "product": "1.1.0",
+                "java-base": "11",
+                "jmx_exporter": "0.20.0",
+            },
+        ],
+    },
+    {
         "name": "opa",
         "versions": [
             {

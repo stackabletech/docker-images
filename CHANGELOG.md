@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- omid: init at 1.1.0 ([#493]).
+
 ### Changed
 
 - ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
@@ -12,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
 
+[#493]: https://github.com/stackabletech/docker-images/pull/493
 [#514]: https://github.com/stackabletech/docker-images/pull/514
 [#517]: https://github.com/stackabletech/docker-images/pull/517
 [#519]: https://github.com/stackabletech/docker-images/pull/519
