@@ -1,43 +1,30 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
 ARG JAVA
 ARG JMX_EXPORTER
+ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# unzip & zip are required for log4shell.sh
 # All others are required for the FUSE build
 RUN microdnf update && \
     microdnf install \
-    cmake \
-    cyrus-sasl-devel \
-    fuse-devel \
-    gcc \
-    gcc-c++ \
-    java-${JAVA}-openjdk-devel \
-    maven \
-    openssl-devel \
-    tar \
-    unzip \
-    zip && \
+    # Required for Hadoop build
+    cmake cyrus-sasl-devel fuse-devel gcc gcc-c++ java-11-openjdk-devel maven openssl-devel tar xz git \
+    # Required for log4shell.sh
+    unzip zip && \
     microdnf clean all
 
 WORKDIR /stackable
 
-# This is needed here because it creates the JMX directory, we could create it any other way but this works
 COPY hadoop/stackable /stackable
 
-# The source is needed to build FUSE. The rest of the src package will not make it into the final image.
-# Both the src and binary variants extract into different root folders
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-with-HADOOP-18055-HADOOP-18077-YARN-11527-and-itimer.tar.gz" | tar -xzC . && \
-    ln -s "/stackable/hadoop-${PRODUCT}" /stackable/hadoop && \
-    rm -rf /stackable/hadoop/lib/native/examples && \
-    rm -rf /stackable/hadoop/share/doc
+# Build from source to enable FUSE module, and to apply custom patches.
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -52,6 +39,29 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
 
 RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
     ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
+
+# This Protobuf version is the exact version as used in the Hadoop Dockerfile
+# See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
+# (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
+WORKDIR /opt/protobuf-src
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
+    tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner && \
+    ./configure --prefix=/opt/protobuf && \
+    make "-j$(nproc)" && \
+    make install
+
+ENV PROTOBUF_HOME /opt/protobuf
+ENV PATH "${PATH}:/opt/protobuf/bin"
+
+WORKDIR /stackable
+RUN patches/apply_patches.sh ${PRODUCT}
+
+WORKDIR /stackable/hadoop-${PRODUCT}-src
+# Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
+RUN mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
+    # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
+    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -75,33 +85,6 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # ===
-
-
-# This Protobuf version is the exact version as used in the Hadoop Dockerfile
-# See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
-# (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
-# For now all versions of Hadoop we support use Protobuf 3.7.1 so we can hardcode it here.
-# Should it ever differ between versions we'll need to make this a variable as well.
-RUN mkdir -p /opt/protobuf-src && \
-    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
-    tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
-    cd /opt/protobuf-src && \
-    ./configure --prefix=/opt/protobuf && \
-    make "-j$(nproc)" && \
-    make install && \
-    cd /root && \
-    rm -rf /opt/protobuf-src
-
-ENV PROTOBUF_HOME /opt/protobuf
-ENV PATH "${PATH}:/opt/protobuf/bin"
-
-WORKDIR /stackable/hadoop-${PRODUCT}-src/hadoop-hdfs-project/hadoop-hdfs-native-client
-
-# This command comes from hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/fuse-dfs/doc/README
-RUN mvn clean package -Pnative -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
-    cp target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop/bin && \
-    rm -rf /stackable/hadoop-${PRODUCT}-src
-
 
 # Final Image
 FROM stackable/image/java-base

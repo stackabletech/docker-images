@@ -104,14 +104,14 @@ fi
 for targetdir in ${1}
 do
   echo "Removing JNDI from jar files in $targetdir"
-  delete_jndi_from_jar_files $targetdir
+  delete_jndi_from_jar_files "$targetdir"
 done
 
 for targetdir in ${1}
 do
   echo "Removing JNDI from tar.gz files in $targetdir"
-  for targzfile in $(find $targetdir -name '*.tar.gz') ; do
-    delete_jndi_from_targz_file $targzfile $backupdir
+  for targzfile in $(find "$targetdir" -name '*.tar.gz') ; do
+    delete_jndi_from_targz_file "$targzfile"
   done
 done
 
