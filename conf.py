@@ -63,6 +63,7 @@ products = [
                 "java-base": "11",
                 "java": "11",
                 "jmx_exporter": "0.20.0",
+                "protobuf": "2.5.0",
                 "topology_provider": "0.1.0"
             },
             {
@@ -70,6 +71,7 @@ products = [
                 "java-base": "11",
                 "java": "11",
                 "jmx_exporter": "0.20.0",
+                "protobuf": "2.5.0",
                 "topology_provider": "0.1.0"
             },
             {
@@ -77,6 +79,7 @@ products = [
                 "java-base": "11",
                 "java": "11",
                 "jmx_exporter": "0.20.0",
+                "protobuf": "3.7.1",
                 "topology_provider": "0.1.0"
             },
             {
@@ -84,6 +87,7 @@ products = [
                 "java-base": "11",
                 "java": "11",
                 "jmx_exporter": "0.20.0",
+                "protobuf": "3.7.1",
                 "topology_provider": "0.1.0"
             },
         ],
