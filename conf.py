@@ -60,7 +60,7 @@ products = [
         "versions": [
             {"product": "3.2.2", "java-base": "11", "jmx_exporter": "0.20.0"},
             {"product": "3.2.4", "java-base": "11", "jmx_exporter": "0.20.0"},
-            {"product": "3.3.4", "java-base": "11", "jmx_exporter": "0.20.0"},
+            {"product": "3.3.4", "java-base": "11", "jmx_exporter": "0.20.0", "node": "18.16.0"},
             {"product": "3.3.6", "java-base": "11", "jmx_exporter": "0.20.0", "node": "18.16.0"},
         ],
     },
