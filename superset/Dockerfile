@@ -2,7 +2,6 @@
 
 # Get statsd-exporter
 ARG STATSD_EXPORTER
-FROM oci.stackable.tech/mirror/prom/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
 
 # Build stage
 FROM stackable/image/vector AS builder
@@ -63,6 +62,8 @@ FROM stackable/image/vector
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
+ARG STATSD_EXPORTER
+ARG TARGETPLATFORM
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.tech" \
@@ -87,11 +88,16 @@ RUN microdnf update \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
+        tar \
         python${PYTHON//./} \
     && microdnf clean all
 
 COPY superset/licenses /licenses
-COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
+
+# Choosing correct binary with respect to architecture
+RUN ARCH=$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/') \
+    && pushd /stackable && curl --fail -L https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz | tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter && popd
+
 COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
 
 USER stackable

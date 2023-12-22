@@ -2,8 +2,6 @@
 ARG GIT_SYNC
 ARG STATSD_EXPORTER
 
-FROM oci.stackable.tech/mirror/prom/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
-
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/mirror/git-sync/git-sync:${GIT_SYNC} as gitsync-image
@@ -47,6 +45,8 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG TINI
+ARG STATSD_EXPORTER
+ARG TARGETPLATFORM
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
@@ -61,6 +61,7 @@ COPY airflow/licenses /licenses
 # Update image and install python
 RUN microdnf update && \
     microdnf install  \
+    tar \
     ca-certificates \
     cyrus-sasl \
     git \
@@ -96,7 +97,10 @@ RUN chmod a+x /entrypoint.sh && \
     chmod a+x /run-airflow.sh && \
     chmod +x /usr/bin/tini
 
-COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
+# Choosing correct binary with respect to architecture
+# Choosing correct binary with respect to architecture
+RUN ARCH=$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/') \
+    && pushd /stackable && curl --fail -L https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz | tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter && popd
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
 
