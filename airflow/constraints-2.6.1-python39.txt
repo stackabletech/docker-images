@@ -313,7 +313,7 @@ google-resumable-media==2.5.0
 googleapis-common-protos==1.56.4
 graphql-core==3.2.3
 graphviz==0.20.1
-greenlet==2.0.2
+greenlet==3.0.2
 grpc-google-iam-v1==0.12.4
 grpcio-gcp==0.2.2
 grpcio-status==1.48.2

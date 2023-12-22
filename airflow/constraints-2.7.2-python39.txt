@@ -291,7 +291,7 @@ gcloud-aio-bigquery==7.0.0
 gcloud-aio-storage==9.0.0
 gcsfs==2023.9.2
 geomet==0.2.1.post1
-gevent==23.9.1
+gevent==22.10.2
 gitdb==4.0.10
 google-ads==22.0.0
 google-api-core==2.12.0
@@ -346,7 +346,7 @@ google-re2==1.1
 google-resumable-media==2.6.0
 googleapis-common-protos==1.60.0
 graphviz==0.20.1
-greenlet==3.0.0
+greenlet==3.0.2
 grpc-google-iam-v1==0.12.6
 grpcio-gcp==0.2.2
 grpcio-status==1.59.0
