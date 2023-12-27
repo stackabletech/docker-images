@@ -71,7 +71,7 @@ COPY opa/licenses /licenses
 USER stackable
 WORKDIR /stackable/opa
 
-RUN ARCH=$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/') \
+RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
     && curl --fail -L https://repo.stackable.tech/repository/packages/opa/opa_linux_${ARCH}_static_${PRODUCT} \
      -o opa_linux_${ARCH}_static_${PRODUCT} && \
     chmod +x opa_linux_${ARCH}_static_${PRODUCT} && \
