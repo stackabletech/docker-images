@@ -63,7 +63,6 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG STATSD_EXPORTER
-ARG TARGETPLATFORM
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.tech" \

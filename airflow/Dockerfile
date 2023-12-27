@@ -46,7 +46,6 @@ ARG PYTHON
 ARG RELEASE
 ARG TINI
 ARG STATSD_EXPORTER
-ARG TARGETPLATFORM
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
