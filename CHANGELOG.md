@@ -4,8 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [23.11.0] - 2023-11-23
-
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
