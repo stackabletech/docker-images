@@ -1,8 +1,5 @@
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# Get statsd-exporter
-ARG STATSD_EXPORTER
-
 # Build stage
 FROM stackable/image/vector AS builder
 
