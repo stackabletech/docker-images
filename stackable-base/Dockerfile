@@ -1,4 +1,4 @@
-# 8.8-1014 as of 2023-07-20
+# 8.9-1029 as of 2023-12-01
 FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639 
 
 # intentionally unused
