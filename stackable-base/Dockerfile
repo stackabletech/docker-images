@@ -1,5 +1,6 @@
 # 8.8-1014 as of 2023-07-20
 FROM registry.access.redhat.com/ubi8@sha256:449da7f8f2ef6285a8445a1e31af57a97b9dae5dcf009b1629c59742c89c68c3 
+
 # intentionally unused
 ARG PRODUCT
 

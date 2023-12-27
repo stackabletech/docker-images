@@ -8,6 +8,26 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- omid: init at 1.1.0 ([#493]).
+
+### Changed
+
+- ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
+- stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
+- Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
+- GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
+- hadoop: Build from source ([#526]).
+
+[#493]: https://github.com/stackabletech/docker-images/pull/493
+[#514]: https://github.com/stackabletech/docker-images/pull/514
+[#517]: https://github.com/stackabletech/docker-images/pull/517
+[#519]: https://github.com/stackabletech/docker-images/pull/519
+[#526]: https://github.com/stackabletech/docker-images/pull/526
+
+## [23.11.0] - 2023-11-30
+
+### Added
+
 - hadoop: Added Stackable topology provider jar to enable k8s-based rack awareness ([#509])
 - hadoop: Add all necessary components to the image to mount HDFS using FUSE ([#400])
 - hbase: Add hbase-operator-tools ([#497], [#498]).
