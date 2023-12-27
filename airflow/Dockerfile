@@ -96,8 +96,11 @@ RUN chmod a+x /entrypoint.sh && \
     chmod +x /usr/bin/tini
 
 # Choosing correct binary with respect to architecture
+WORKDIR /stackable
 RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
-    && pushd /stackable && curl --fail -L https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz | tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter && popd
+    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
+
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
 
