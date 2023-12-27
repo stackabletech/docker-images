@@ -1,5 +1,5 @@
 # 8.9-1029 as of 2023-12-01
-FROM registry.access.redhat.com/ubi8@sha256:449da7f8f2ef6285a8445a1e31af57a97b9dae5dcf009b1629c59742c89c68c3 
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639 
 
 LABEL maintainer="Stackable GmbH"
 
