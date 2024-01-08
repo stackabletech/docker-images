@@ -9,13 +9,14 @@ All notable changes to this project will be documented in this file.
 - omid: init at 1.1.0 ([#493]).
 
 ### Changed
-
+- Fixing base images to multi-architecture lists. ([#527])
 - ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
 - Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
 
+[#527]: https://github.com/stackabletech/docker-images/pull/527
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#514]: https://github.com/stackabletech/docker-images/pull/514
 [#517]: https://github.com/stackabletech/docker-images/pull/517
