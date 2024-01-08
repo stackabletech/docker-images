@@ -73,7 +73,7 @@ ensure_release_version() {
 		exit 1
 	fi
 
-	# create release version if it does not exist
+	# Create release version if it does not exist
 	psql -q -c "INSERT INTO $DB_SCHEMA.release_versions (release_id, version, created_at) VALUES ($RELEASE_ID, '$RELEASE_VERSION', now()) ON CONFLICT DO NOTHING"
 }
 
