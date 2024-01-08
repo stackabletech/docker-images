@@ -64,8 +64,8 @@ ensure_release_version() {
 	# RELEASE_NAME    - Example: 2023-11
 	# RELEASE_VERSION - Example: 23.11.0
 
-	# -AtR "": in this case this basically means "just output the content of the selected column"
-	# -c: execute the provided command and exit
+	# -AtR "": In this case this basically means "just output the content of the selected column"
+	# -c: Execute the provided command and exit
 	RELEASE_ID=$(psql -qAtR "" -c "SELECT id FROM $DB_SCHEMA.releases WHERE name = '$RELEASE_NAME'")
 
 	if [ -z "$RELEASE_ID" ]; then
