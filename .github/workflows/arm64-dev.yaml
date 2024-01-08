@@ -1,5 +1,5 @@
 ---
-name: Publish 0.0.0-dev images
+name: Publish 0.0.0-dev arm64 images
 on:
   push:
     branches:
@@ -67,7 +67,7 @@ jobs:
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
-          --organization stackable-experimental
+          -o stackable-experimental
           # Push images to image repository
           if [ -f bake-target-tags ]; then
             echo "bake-target-tags: "$(< bake-target-tags)
