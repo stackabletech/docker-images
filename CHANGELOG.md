@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
+- nifi: Add Apache Iceberg extensions ([#XXX]).
 
 ### Changed
 
