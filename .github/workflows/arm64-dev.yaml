@@ -1,9 +1,6 @@
 ---
 name: Publish 0.0.0-dev arm64 images
-on:
-  push:
-    branches:
-      - main
+on: workflow_dispatch
 
 jobs:
   development:
