@@ -1,10 +1,14 @@
 #!/bin/bash
-# Update the release components table with image identifiers and
-# product versions for a given release version.
+#
+# Update the release components table with image identifiers and product
+# versions for a given release version.
+#
+# This script is idempotent, provided the inputs (especially the image digests)
+# do not change.
 #
 # Requirements:
 #
-# 1. crane - Remote image handler
+# 1. crane - https://github.com/google/go-containerregistry/tree/main/cmd/crane
 # 2. psql  - Postgres command line client.
 #
 # Environment:
@@ -181,6 +185,8 @@ main() {
 		exit 1
 	fi
 
+	echo "Update release components for release $RELEASE_NAME and version $RELEASE_VERSION"
+
 	ensure_release_version "${RELEASE_NAME}" "${RELEASE_VERSION}"
 
 	for PRODUCT_CODE_NAME in "${PRODUCT_CODE_NAMES[@]}"; do
@@ -195,9 +201,13 @@ main() {
 
 			PRODUCT_IMAGE_DIGEST=$(product_image_digest "${IMAGE_NAME}")
 
+			echo "Updating compnents for image $IMAGE_NAME"
+
 			update_release_components "${RELEASE_VERSION}" "${PRODUCT_VERSION_ID}" "${REPOSITORY_NAME}" "${PRODUCT_IMAGE_DIGEST}"
 		done
 	done
+
+	echo "Done."
 }
 
 main "$@"
