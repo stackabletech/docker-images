@@ -1,16 +1,14 @@
 ---
 name: Publish 0.0.0-dev images
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   development:
     name: ${{ matrix.product }} 0.0.0-dev
     permissions:
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: sble-native-arm64-runner
     strategy:
       # fail-fast: true
       # This setting can be changed to throttle the build load
@@ -67,6 +65,7 @@ jobs:
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
+          --organization stackable-experimental
           # Push images to image repository
           if [ -f bake-target-tags ]; then
             echo "bake-target-tags: "$(< bake-target-tags)
