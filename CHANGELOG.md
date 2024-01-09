@@ -7,11 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
-- nifi: Add Apache Iceberg extensions ([#XXX]).
+- nifi: Add Apache Iceberg extensions ([#529]).
 
 ### Changed
 
-- ubi8-rust-bilder: bump ubi8-minimal image to latest 8.9 ([#514]).
+- ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
 - Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 [#517]: https://github.com/stackabletech/docker-images/pull/517
 [#519]: https://github.com/stackabletech/docker-images/pull/519
 [#526]: https://github.com/stackabletech/docker-images/pull/526
+[#529]: https://github.com/stackabletech/docker-images/pull/529
 
 ## [23.11.0] - 2023-11-30
 
