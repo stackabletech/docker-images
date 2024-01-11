@@ -12,7 +12,7 @@ jobs:
     strategy:
       # fail-fast: true
       # This setting can be changed to throttle the build load
-      # max-parallel: 1
+      max-parallel: 5
       matrix:
         product:
           - airflow
