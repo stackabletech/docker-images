@@ -42,7 +42,7 @@ jobs:
       - name: Update apt
         run: sudo apt update -y
       - name: Install pipx
-        run: sudo apt install pipx==1.3.3 -y && pipx --version
+        run: sudo apt install pipx -y && pipx --version
       # - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
         # with:
           # python-version: '3.x'
@@ -67,7 +67,7 @@ jobs:
         run: |
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
-          bake --product "${{ matrix.product }}" \
+          $HOME/.local/bin/bake --product "${{ matrix.product }}" \
           --image-version 0.0.0-dev \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
