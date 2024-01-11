@@ -12,7 +12,7 @@ on:
 
 env:
   DST_REGISTRY: oci.stackable.tech
-  DST_PROJECT: mirror
+  DST_PROJECT: sdp
 
 jobs:
   mirror-image:
@@ -20,18 +20,16 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Login to destination registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+      - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
         with:
           registry: ${{ env.DST_REGISTRY }}
-          username: "robot$mirror+github-action-build"
-          password: ${{ secrets.HARBOR_ROBOT_MIRROR_GITHUB_ACTION_BUILD_SECRET }}
+          username: "robot$sdp+github-action-build"
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Pull image from source registry
         run: docker pull "${{ github.event.inputs.src }}"
       - name: Retag image
         run: docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY/$DST_PROJECT/${{ github.event.inputs.dst }}"
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@v3.1.2
+      - uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Push image to destination registry
         run: |
           DOCKER_OUTPUT=$(docker push "$DST_REGISTRY/$DST_PROJECT/${{ github.event.inputs.dst }}");

@@ -1,9 +1,11 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG NODE
+ARG JAVA
 ARG JMX_EXPORTER
+ARG PROTOBUF
+ARG TOPOLOGY_PROVIDER
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -19,7 +21,6 @@ RUN microdnf update && \
 
 WORKDIR /stackable
 
-# This is needed here because it creates the JMX directory, we could create it any other way but this works
 COPY hadoop/stackable /stackable
 
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -39,34 +40,22 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
-# For now all versions of Hadoop we support use Protobuf 3.7.1 so we can hardcode it here.
-# Should it ever differ between versions we'll need to make this a variable as well.
-RUN mkdir -p /opt/protobuf-src && \
-    curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-3.7.1.tar.gz -o /opt/protobuf.tar.gz && \
-    tar xzf /opt/protobuf.tar.gz --strip-components 1 -C /opt/protobuf-src --no-same-owner && \
-    cd /opt/protobuf-src && \
+WORKDIR /opt/protobuf-src
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
+    tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner && \
     ./configure --prefix=/opt/protobuf && \
     make "-j$(nproc)" && \
-    make install && \
-    cd /root && \
-    rm -rf /opt/protobuf-src
+    make install
 
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/node/node-v${NODE}-linux-x64.tar.xz | tar -xJC . && \
-    ln -s /stackable/node-v${NODE}-linux-x64 /stackable/node
-ENV PATH "${PATH}:/stackable/node/bin"
-RUN corepack enable yarn && \
-    yarn config set ignore-engines true
+WORKDIR /stackable
+RUN patches/apply_patches.sh ${PRODUCT}
 
-RUN cd /stackable/hadoop-${PRODUCT}-src && \
-    # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI
-    git apply < /stackable/patches/0001-disable-pipes.patch && \
-    # Datanode registration override is required for Listener Operator integration
-    # Developed at https://github.com/stackabletech/hadoop/tree/spike/override-datanode-id
-    git apply < /stackable/patches/0002-datanode-registration-override.patch && \
-    mvn clean package -Pdist,native -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+WORKDIR /stackable/hadoop-${PRODUCT}-src
+# Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
+RUN mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin
@@ -99,6 +88,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG TOPOLOGY_PROVIDER
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -133,6 +123,12 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+
+# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
+# labels to build a rackID from
+# source code is at: https://github.com/stackabletech/hdfs-topology-provider
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/topology-provider-${TOPOLOGY_PROVIDER}.jar
+
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 

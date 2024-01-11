@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 FROM stackable/image/vector
 
 ARG PRODUCT
@@ -17,7 +17,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install \
-    # Obviously needed to run Java programms
+    # Obviously needed to run Java programs
     java-${PRODUCT}-openjdk-headless \
     # Needed, because otherwise e.g. Zookeeper fails with
     # Caused by: java.io.FileNotFoundException: /usr/lib/jvm/java-11-openjdk-11.0.20.0.8-2.el8.x86_64/lib/tzdb.dat (No such file or directory)
