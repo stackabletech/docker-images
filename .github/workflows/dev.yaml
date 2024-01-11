@@ -41,7 +41,7 @@ jobs:
         run: sudo apt install python3 -y
       - name: Update apt
         run: sudo apt update -y
-      - name: Install pip3
+      - name: Install pipx
         run: sudo apt install pipx -y
       # - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
         # with:
@@ -50,7 +50,7 @@ jobs:
       # - name: Set up Cosign
         # uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Install image-tools-stackabletech
-        run: pipx install image-tools-stackabletech==0.0.5 && pipx ensurepath && bash
+        run: pipx install image-tools-stackabletech==0.0.5 && export PATH=$HOME/.local/bin:$PATH
       - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
         with:
           registry: docker.stackable.tech
