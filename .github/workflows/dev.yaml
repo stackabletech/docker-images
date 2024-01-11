@@ -37,27 +37,27 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v3.0.0
       - uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # tag=v3.0.0
-      - name: Install python3 and Tools
-        run: sudo apt install python3 curl -y
+      - name: Install python3
+        run: sudo apt install python3 -y
       # - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
         # with:
           # python-version: '3.x'
           # architecture: arm64
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
-      - name: Install image-tools-stackabletech
-        run: pip install image-tools-stackabletech==0.0.5
-      - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
-        with:
-          registry: docker.stackable.tech
-          username: github
-          password: ${{ secrets.NEXUS_PASSWORD }}
-      - name: Login to Stackable Harbor
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
-        with:
-          registry: oci.stackable.tech
-          username: robot$sdp+github-action-build
-          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      # - name: Set up Cosign
+        # uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+      # - name: Install image-tools-stackabletech
+        # run: pip install image-tools-stackabletech==0.0.5
+      # - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
+        # with:
+          # registry: docker.stackable.tech
+          # username: github
+          # password: ${{ secrets.NEXUS_PASSWORD }}
+      # - name: Login to Stackable Harbor
+        # uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        # with:
+          # registry: oci.stackable.tech
+          # username: robot$sdp+github-action-build
+          # password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Publish dev images
         id: publish_images
         run: |
@@ -80,23 +80,23 @@ jobs:
             PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1)
             echo "$PUSH_OUTPUT"
             # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
-            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+            # ( Test M.W. ) DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
             # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$IMAGE_NAME@$DIGEST"
+            # ( Test M.W. ) cosign sign -y "$IMAGE_NAME@$DIGEST"
 
             # Push to oci.stackable.tech as well
-            IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
-            echo "image: $IMAGE_NAME"
-            docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
+            # IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
+            # echo "image: $IMAGE_NAME"
+            # docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
-            PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
-            echo "$PUSH_OUTPUT"
+            # PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
+            # echo "$PUSH_OUTPUT"
             # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
-            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+            # DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
             # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$IMAGE_NAME@$DIGEST"
+            # cosign sign -y "$IMAGE_NAME@$DIGEST"
           fi
