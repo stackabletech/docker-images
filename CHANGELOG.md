@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
+- hadoop: Allow datanodes to override their registration addresses ([#506]).
 
 ### Changed
 
@@ -17,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
+[#506]: https://github.com/stackabletech/docker-images/pull/506
 [#514]: https://github.com/stackabletech/docker-images/pull/514
 [#517]: https://github.com/stackabletech/docker-images/pull/517
 [#519]: https://github.com/stackabletech/docker-images/pull/519
