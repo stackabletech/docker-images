@@ -2,12 +2,11 @@
 ARG GIT_SYNC
 ARG STATSD_EXPORTER
 
-FROM oci.stackable.tech/mirror/prom/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/mirror/git-sync/git-sync:${GIT_SYNC} as gitsync-image
-
+FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
 
 FROM stackable/image/vector AS airflow-build-image
 
