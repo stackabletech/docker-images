@@ -49,8 +49,8 @@ jobs:
           # architecture: arm64
       # - name: Set up Cosign
         # uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
-      - name: Install image-tools-stackabletech
-        run: sudo PIPX_BIN_DIR=/usr/local/bin pipx install image-tools-stackabletech==0.0.5 && pipx ensurepath 
+      # - name: Install image-tools-stackabletech
+        # run: sudo PIPX_BIN_DIR=/usr/local/bin pipx install image-tools-stackabletech==0.0.5 && pipx ensurepath 
       - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
         with:
           registry: docker.stackable.tech
@@ -67,7 +67,7 @@ jobs:
         run: |
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
-          bake --product "${{ matrix.product }}" \
+          ~/.local/bin/bake --product "${{ matrix.product }}" \
           --image-version 0.0.0-dev \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
