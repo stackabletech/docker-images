@@ -67,8 +67,7 @@ jobs:
         run: |
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
-          sudo PIPX_BIN_DIR=/usr/local/bin pipx install image-tools-stackabletech==0.0.5 && pipx ensurepath &&
-          ~/.local/bin/bake --product "${{ matrix.product }}" \
+          bash --login && bake --product "${{ matrix.product }}" \
           --image-version 0.0.0-dev \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
