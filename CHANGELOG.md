@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - omid: init at 1.1.0 ([#493]).
 - hadoop: Allow datanodes to override their registration addresses ([#506]).
 - nifi: Add Apache Iceberg extensions ([#529]).
+- testing-tools: Add krb5-user library for Kerberos tests ([#531]).
 
 ### Changed
 
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file.
 [#519]: https://github.com/stackabletech/docker-images/pull/519
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
+[#531]: https://github.com/stackabletech/docker-images/pull/531
 
 ## [23.11.0] - 2023-11-30
 

@@ -15,6 +15,10 @@ LABEL name="Stackable Testing Tools" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# This is needed so that krb5-user installs without prompting for a realm.
+ENV DEBIAN_FRONTEND=noninteractive
+
+# krb5-user/libkrb5-dev are needed for Kerberos support.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -22,7 +26,9 @@ RUN apt-get update && \
         curl \
         gzip \
         jq \
+        krb5-user \
         kubernetes-client \
+        libkrb5-dev \
         libssl-dev \
         libxml2-dev \
         libxslt1-dev \
