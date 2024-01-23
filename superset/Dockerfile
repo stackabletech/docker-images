@@ -13,6 +13,7 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 RUN microdnf update \
     && microdnf install \
         --assumeyes \
+        # added to use statsd_exporter with respect to multi architecture
         tar \
         cyrus-sasl-devel \
         gcc \
@@ -55,6 +56,12 @@ RUN microdnf update \
         python-json-logger \
     && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
+    # Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
+    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
+
 # Final image
 FROM stackable/image/vector
 
@@ -89,12 +96,6 @@ RUN microdnf update \
     && microdnf clean all
 
 COPY superset/licenses /licenses
-
-# Choosing correct binary with respect to architecture
-WORKDIR /stackable
-RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
-    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
 
 COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
 
