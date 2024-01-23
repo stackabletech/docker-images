@@ -9,18 +9,19 @@ LABEL name="Hello World" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
-      summary="The Stackable image for Apache Druid." \
-      description="This image is deployed by the Stackable Operator for Apache Druid."
+      summary="The Stackable image for the Stackable Hello World Operator" \
+      description="This image is deployed by the Stackable Hello World Operator."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
 
-RUN curl -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar -o hello-world.jar
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar -o hello-world.jar
 
 CMD ["java", "-jar", "hello-world.jar"]
