@@ -13,7 +13,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Fixing base images to multi-architecture lists. ([#534])
+- Fixing base images to multi-architecture lists ([#534]).
+- airflow and superset: Pull statsd-exporter as binary from Nexus instead of extracting out of the official docker image ([#534]).
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
 - Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
