@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
@@ -19,6 +19,7 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
+        # added to use statsd_exporter with respect to multi architecture
         tar \
         cyrus-sasl-devel \
         gcc \
@@ -37,6 +38,12 @@ RUN microdnf update && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs
+
+# Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
+    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
 
 
 FROM stackable/image/vector AS airflow-main-image
@@ -93,12 +100,6 @@ COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 RUN chmod a+x /entrypoint.sh && \
     chmod a+x /run-airflow.sh && \
     chmod +x /usr/bin/tini
-
-# Choosing correct binary with respect to architecture
-WORKDIR /stackable
-RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
-    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
 
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
