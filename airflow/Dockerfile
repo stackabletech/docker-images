@@ -1,8 +1,5 @@
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 ARG GIT_SYNC
-ARG STATSD_EXPORTER
-
-FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
@@ -12,6 +9,7 @@ FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
+ARG STATSD_EXPORTER
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
