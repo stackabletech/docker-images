@@ -1,5 +1,6 @@
 # 8.9-1029 as of 2023-12-01
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:0e1879febd1be94e0d234060770ce33a543488374d91881259de9119ea75d33f
+# Manifest list digest because of multi architecture builds
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639
 
 # intentionally unused
 ARG PRODUCT

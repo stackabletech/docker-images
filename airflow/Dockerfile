@@ -21,6 +21,7 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
+        tar \
         cyrus-sasl-devel \
         gcc \
         gcc-c++ \
@@ -95,7 +96,12 @@ RUN chmod a+x /entrypoint.sh && \
     chmod a+x /run-airflow.sh && \
     chmod +x /usr/bin/tini
 
-COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
+# Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
+    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
+
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
 
