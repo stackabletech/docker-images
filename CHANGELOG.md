@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Allow datanodes to override their registration addresses ([#506]).
 - nifi: Add Apache Iceberg extensions ([#529]).
 - testing-tools: Add krb5-user library for Kerberos tests ([#531]).
+- testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 
 ### Changed
 
@@ -27,6 +28,7 @@ All notable changes to this project will be documented in this file.
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
+[#536]: https://github.com/stackabletech/docker-images/pull/536
 
 ## [23.11.0] - 2023-11-30
 
