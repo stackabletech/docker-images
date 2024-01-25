@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add Apache Iceberg extensions ([#529]).
 - testing-tools: Add krb5-user library for Kerberos tests ([#531]).
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
-- java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#XXX]).
+- java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 
 ### Changed
 
@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
 [#536]: https://github.com/stackabletech/docker-images/pull/536
+[#537]: https://github.com/stackabletech/docker-images/pull/537
 
 ## [23.11.0] - 2023-11-30
 
