@@ -20,7 +20,6 @@ RUN microdnf update && \
     gettext \
     git \
     gzip \
-    java-${JAVA}-openjdk-devel \
     maven \
     tar \
     zip && \
