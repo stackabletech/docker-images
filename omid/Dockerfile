@@ -7,8 +7,6 @@ RUN microdnf update && \
     microdnf install \
     # Required to unpack Omid tarball
     tar \
-    # Required to build Omid
-    maven java-11-openjdk-devel \
     # Required by log4shell mitigation script
     zip && \
     microdnf clean all
