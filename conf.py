@@ -241,6 +241,13 @@ products = [
                 "vector": "0.33.0",
                 "bundle_builder_version": "1.1.0",
             },
+            # 2024-01-30: We only added 0.61.0 to be able to write Rego rules v1.
+            # The regular product version update process must take care of removing unsupported versions and bumping vector
+            {
+                "product": "0.61.0",
+                "vector": "0.33.0",
+                "bundle_builder_version": "1.1.0",
+            },
         ],
     },
     {

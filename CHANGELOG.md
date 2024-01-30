@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add krb5-user library for Kerberos tests ([#531]).
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
+- opa: Add version `0.61.0` ([#XXX]).
 
 ### Changed
 
