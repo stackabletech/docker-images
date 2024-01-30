@@ -150,11 +150,11 @@ products = [
         "versions": [
             {
                 "product": "11",
-                "vector": "0.26.0",
+                "vector": "0.33.0",
             },
             {
                 "product": "17",
-                "vector": "0.26.0",
+                "vector": "0.33.0",
             },
         ],
     },
@@ -210,11 +210,6 @@ products = [
     {
         "name": "vector",
         "versions": [
-            {
-                "product": "0.26.0",
-                "rpm_release": "1",
-                "stackable-base": "1.0.0"
-            },
             {
                 "product": "0.33.0",
                 "rpm_release": "1",
