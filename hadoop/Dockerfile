@@ -112,11 +112,6 @@ RUN microdnf update && \
     fuse \
     fuse-libs \
     krb5-workstation \
-    # openssl is required by the HDFS operator version 23.7 to convert the TLS
-    # certificate. In version 23.11, this functionality was moved to the
-    # secret-operator (https://github.com/stackabletech/hdfs-operator/pull/392)
-    # and therefore openssl is not required anymore.
-    openssl \
     # tar is required for `kubectl cp` which can be used to copy the log files
     # or profiler flamegraph from the Pod
     tar && \
@@ -150,11 +145,6 @@ ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
-
-# This is a temporary "fix" so that new images (23.11++) _might_ work with 23.7 operators
-# The idea is to remove this for 24.X (first 24 release)
-RUN mkdir -p /stackable/vector/bin && \
-    ln -s /bin/vector /stackable/vector/bin
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
