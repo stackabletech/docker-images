@@ -3,9 +3,11 @@ FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
 ARG JAVA
+ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
+ARG TARGETARCH
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -37,8 +39,15 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+      arch=x64; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+      arch=arm64; \
+    else \
+      exit 1; \
+    fi; \
+    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
 
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh

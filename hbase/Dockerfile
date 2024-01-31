@@ -4,10 +4,12 @@ FROM stackable/image/java-base AS builder
 ARG PRODUCT
 ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
+ARG ASYNC_PROFILER
 ARG PHOENIX
 ARG JAVA
 ARG JMX_EXPORTER
 ARG HADOOP_M2
+ARG TARGETARCH
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -32,9 +34,15 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
-
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+      arch=x64; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+      arch=arm64; \
+    else \
+      exit 1; \
+    fi; \
+    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
