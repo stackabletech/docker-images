@@ -34,16 +34,6 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-      arch=x64; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-      arch=arm64; \
-    else \
-      exit 1; \
-    fi; \
-    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
-
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
@@ -95,10 +85,15 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
-
-RUN curl --fail -L https://github.com/jvm-profiling-tools/async-profiler/releases/download/v2.9/async-profiler-2.9-linux-x64.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-2.9-linux-x64 /stackable/async-profiler
-
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+      arch=x64; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+      arch=arm64; \
+    else \
+      exit 1; \
+    fi; \
+    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
