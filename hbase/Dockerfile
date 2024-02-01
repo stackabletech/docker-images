@@ -171,14 +171,5 @@ ENV HOME=/stackable
 ENV PATH="${PATH}":/stackable/bin:/stackable/hbase/bin
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
-# This is a temporary "fix" so that new images (23.11++) _might_ work with 23.7 operators
-# The idea is to remove this for 24.X (first 24 release)
-USER 0
-RUN ln -s /stackable/jmx/regionserver.yaml /stackable/jmx/region-server.yaml && \
-    ln -s /stackable/jmx/restserver.yaml /stackable/jmx/rest-server.yaml && \
-    mkdir -p /stackable/vector/bin && \
-    ln -s /bin/vector /stackable/vector/bin
-USER stackable
-
 WORKDIR /stackable/hbase
 CMD ["./bin/hbase", "master", "start" ]
