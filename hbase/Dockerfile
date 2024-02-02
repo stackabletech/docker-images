@@ -9,6 +9,7 @@ ARG PHOENIX
 ARG JMX_EXPORTER
 ARG HADOOP_M2
 ARG TARGETARCH
+ARG TARGETOS
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -83,9 +84,9 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
-RUN ARCH="$(sed 's/^amd64$/x64/' <<< $TARGETARCH)" && \
-    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$ARCH.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$ARCH /stackable/async-profiler
+RUN ARCH="${TARGETARCH/amd64/x64}" && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
+    ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
