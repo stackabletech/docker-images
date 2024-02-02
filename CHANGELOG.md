@@ -18,14 +18,13 @@ All notable changes to this project will be documented in this file.
 
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
-- Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
+- bump ubi8-rust-builder toolchain to `1.75.0` ([#540]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
 [#514]: https://github.com/stackabletech/docker-images/pull/514
-[#517]: https://github.com/stackabletech/docker-images/pull/517
 [#519]: https://github.com/stackabletech/docker-images/pull/519
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
@@ -33,6 +32,7 @@ All notable changes to this project will be documented in this file.
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538
+[#540]: https://github.com/stackabletech/docker-images/pull/540
 
 ## [23.11.0] - 2023-11-30
 
