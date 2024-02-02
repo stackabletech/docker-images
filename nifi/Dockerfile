@@ -37,6 +37,14 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/nifi/nifi-${P
     rm /stackable/nifi-${PRODUCT}-bin.zip && \
     ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
+# Add Iceberg extensions as they are not included by default and are important enough
+# They need to be build from source, as https://mvnrepository.com/artifact/org.apache.nifi/nifi-iceberg-processors-nar does not ship the org.apache.hadoop.fs.s3a.S3AFileSystem (see https://github.com/apache/nifi/pull/6368#issuecomment-1502175258)
+# See https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/README.md for details on how to build them
+RUN cd /stackable/nifi/lib/ && \
+    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-processors-nar-${PRODUCT}-with-aws.nar" && \
+    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-nar-${PRODUCT}-with-aws.nar" && \
+    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-api-nar-${PRODUCT}-with-aws.nar"
+
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and

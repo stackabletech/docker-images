@@ -6,7 +6,6 @@ ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
-ARG JAVA
 ARG JMX_EXPORTER
 ARG HADOOP_M2
 ARG TARGETARCH
@@ -22,7 +21,6 @@ RUN microdnf update && \
     gettext \
     git \
     gzip \
-    java-${JAVA}-openjdk-devel \
     maven \
     tar \
     zip && \

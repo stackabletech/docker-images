@@ -2,7 +2,6 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG JAVA
 ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
@@ -16,7 +15,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN microdnf update && \
     microdnf install \
     # Required for Hadoop build
-    cmake cyrus-sasl-devel fuse-devel gcc gcc-c++ java-11-openjdk-devel maven openssl-devel tar xz git \
+    cmake cyrus-sasl-devel fuse-devel gcc gcc-c++ maven openssl-devel tar xz git \
     # Required for log4shell.sh
     unzip zip && \
     microdnf clean all

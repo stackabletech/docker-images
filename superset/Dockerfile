@@ -2,7 +2,7 @@
 
 # Get statsd-exporter
 ARG STATSD_EXPORTER
-FROM oci.stackable.tech/mirror/prom/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
 
 # Build stage
 FROM stackable/image/vector AS builder

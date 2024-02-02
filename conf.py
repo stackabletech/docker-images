@@ -61,7 +61,6 @@ products = [
             {
                 "product": "3.2.2",
                 "java-base": "11",
-                "java": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "2.5.0",
@@ -70,7 +69,6 @@ products = [
             {
                 "product": "3.2.4",
                 "java-base": "11",
-                "java": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "2.5.0",
@@ -79,7 +77,6 @@ products = [
             {
                 "product": "3.3.4",
                 "java-base": "11",
-                "java": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
@@ -88,7 +85,6 @@ products = [
             {
                 "product": "3.3.6",
                 "java-base": "11",
-                "java": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
@@ -108,7 +104,6 @@ products = [
                  "hbase_thirdparty": "3.5.1",
                  "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
-                 "java": "11",
                  "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.2",
                  "hadoop_m2": "3.3.6",
@@ -119,7 +114,6 @@ products = [
                  "hbase_thirdparty": "4.1.4",
                  "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
-                 "java": "11",
                  "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.3",
                  "hadoop_m2": "3.3.6",
@@ -250,6 +244,13 @@ products = [
             },
             {
                 "product": "0.57.0",
+                "vector": "0.33.0",
+                "bundle_builder_version": "1.1.0",
+            },
+            # 2024-01-30: We only added 0.61.0 to be able to write Rego rules v1.
+            # The regular product version update process must take care of removing unsupported versions and bumping vector
+            {
+                "product": "0.61.0",
                 "vector": "0.33.0",
                 "bundle_builder_version": "1.1.0",
             },
