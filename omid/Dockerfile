@@ -9,18 +9,25 @@ RUN microdnf update && \
     maven \
     # Required to unpack Omid tarball
     tar \
+    git \
     # Required by log4shell mitigation script
     zip && \
     microdnf clean all
 
 USER stackable
+COPY omid/stackable /stackable
 WORKDIR /stackable
+
 
 SHELL ["bash", "-euo", "pipefail", "-c"]
 
-RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+RUN curl --fail -L https://github.com/apache/phoenix-omid/archive/refs/tags/${PRODUCT}RC1.tar.gz | tar -xzC .
 
-WORKDIR /stackable/phoenix-omid-${PRODUCT}
+RUN patches/apply_patches.sh ${PRODUCT}
+
+WORKDIR /stackable/phoenix-omid-${PRODUCT}RC1
+
+
 RUN mvn package -Phbase-2 -DskipTests && \
     tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
 
