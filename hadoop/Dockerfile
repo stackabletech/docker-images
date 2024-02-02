@@ -38,15 +38,9 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-      arch=x64; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-      arch=arm64; \
-    else \
-      exit 1; \
-    fi; \
-    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
+RUN ARCH="$(sed 's/^amd64$/x64/' <<< $TARGETARCH)" && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$ARCH.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$ARCH /stackable/async-profiler
 
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh

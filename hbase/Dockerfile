@@ -83,15 +83,9 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-      arch=x64; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-      arch=arm64; \
-    else \
-      exit 1; \
-    fi; \
-    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$arch.tar.gz  | tar -xzC . && \
-    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$arch /stackable/async-profiler
+RUN ARCH="$(sed 's/^amd64$/x64/' <<< $TARGETARCH)" && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-linux-$ARCH.tar.gz  | tar -xzC . && \
+    ln -s /stackable/async-profiler-${ASYNC_PROFILER}-linux-$ARCH /stackable/async-profiler
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
