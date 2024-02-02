@@ -26,6 +26,10 @@ All notable changes to this project will be documented in this file.
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
 
+### Removed
+
+- hadoop: Remove support for version 3.2.2 ([#540]).
+
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
 [#514]: https://github.com/stackabletech/docker-images/pull/514
