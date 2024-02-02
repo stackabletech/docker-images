@@ -5,6 +5,8 @@ ARG PRODUCT
 
 RUN microdnf update && \
     microdnf install \
+    # Required to build Omid \
+    maven \
     # Required to unpack Omid tarball
     tar \
     # Required by log4shell mitigation script
