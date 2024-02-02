@@ -17,6 +17,7 @@ RUN microdnf update \
     && microdnf install \
         --assumeyes \
         cyrus-sasl-devel \
+        # Needed to find all patch files
         findutils \
         gcc \
         gcc-c++ \
