@@ -59,14 +59,6 @@ products = [
         "name": "hadoop",
         "versions": [
             {
-                "product": "3.2.2",
-                "java-base": "11",
-                "async_profiler": "2.9",
-                "jmx_exporter": "0.20.0",
-                "protobuf": "2.5.0",
-                "topology_provider": "0.1.0"
-            },
-            {
                 "product": "3.2.4",
                 "java-base": "11",
                 "async_profiler": "2.9",
