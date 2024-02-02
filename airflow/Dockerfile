@@ -19,7 +19,7 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
-        # added to use statsd_exporter with respect to multi architecture
+        # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
         gcc \
@@ -43,7 +43,7 @@ RUN microdnf update && \
 WORKDIR /stackable
 RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
     && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter statsd_exporter
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter" statsd_exporter
 
 
 FROM stackable/image/vector AS airflow-main-image
