@@ -1,0 +1,22 @@
+Subject: [PATCH] Replace HTrace dependency with noop dep
+---
+Index: hbase-protocol-shaded/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-protocol-shaded/pom.xml b/hbase-protocol-shaded/pom.xml
+--- a/hbase-protocol-shaded/pom.xml	(revision 7fd096f39b4284da9a71da3ce67c48d259ffa79a)
++++ b/hbase-protocol-shaded/pom.xml	(date 1707088780684)
+@@ -51,8 +51,9 @@
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+-      <groupId>org.apache.htrace</groupId>
+-      <artifactId>htrace-core4</artifactId>
++      <groupId>org.apache.hbase.thirdparty</groupId>
++      <artifactId>hbase-noop-htrace</artifactId>
++      <version>3.5.0</version>
+     </dependency>
+   </dependencies>
+   <build>

@@ -227,9 +227,10 @@ products = [
                 "jmx_exporter": "0.20.0",
             },
             {
-                "product": "1.1.1",
+                "product": "1.1.1RC1",
                 "java-base": "11",
                 "jmx_exporter": "0.20.0",
+                "hbase": "2.4.17",
             },
         ],
     },

@@ -1,0 +1,651 @@
+Subject: [PATCH] Replace version with 1.1.1RC1
+Replace HTrace Dependencies with Noop implementation
+---
+Index: hbase-client/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-client/pom.xml b/hbase-client/pom.xml
+--- a/hbase-client/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/hbase-client/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-hbase-client</artifactId>
+@@ -89,6 +89,10 @@
+                 <exclusion>
+                     <groupId>org.slf4j</groupId>
+                     <artifactId>slf4j-log4j12</artifactId>
++                </exclusion>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
+                 </exclusion>
+             </exclusions>
+         </dependency>
+@@ -149,6 +153,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+Index: hbase-commit-table/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-commit-table/pom.xml b/hbase-commit-table/pom.xml
+--- a/hbase-commit-table/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/hbase-commit-table/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-hbase-commit-table</artifactId>
+@@ -79,6 +79,10 @@
+                 <exclusion>
+                     <groupId>org.slf4j</groupId>
+                     <artifactId>slf4j-log4j12</artifactId>
++                </exclusion>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
+                 </exclusion>
+             </exclusions>
+         </dependency>
+@@ -114,6 +118,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+Index: hbase-common/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-common/pom.xml b/hbase-common/pom.xml
+--- a/hbase-common/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/hbase-common/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-hbase-common</artifactId>
+@@ -33,6 +33,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+
+         <!-- end storage related -->
+@@ -90,6 +96,12 @@
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
+             <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+
+         <!-- end testing -->
+Index: hbase-coprocessor/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-coprocessor/pom.xml b/hbase-coprocessor/pom.xml
+--- a/hbase-coprocessor/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/hbase-coprocessor/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-hbase-coprocessor</artifactId>
+@@ -62,10 +62,22 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-server</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <!-- end storage related -->
+
+@@ -147,6 +159,12 @@
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
+             <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+Index: hbase-tools/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
+--- a/hbase-tools/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/hbase-tools/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-hbase-tools</artifactId>
+@@ -48,6 +48,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+
+         <!-- end storage related -->
+@@ -118,6 +124,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+             <scope>test</scope>
+         </dependency>
+
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -27,7 +27,7 @@
+     <artifactId>omid</artifactId>
+     <packaging>pom</packaging>
+     <!-- WARNING: do not update version manually, use mvn versions:set -->
+-    <version>1.1.1</version>
++    <version>1.1.1RC1</version>
+
+     <organization>
+         <name>Apache Software Foundation</name>
+@@ -174,8 +174,8 @@
+         <hamcrest.version>1.3</hamcrest.version>
+         <guava.version>32.1.3-jre</guava.version>
+         <!-- 2.12+ shades guava -->
+-        <curator.version>4.2.0</curator.version>
+-        <zookeeper.version>3.5.9</zookeeper.version>
++        <curator.version>5.6.0</curator.version>
++        <zookeeper.version>3.9.1</zookeeper.version>
+         <snakeyaml.version>2.0</snakeyaml.version>
+         <beanutils.version>1.9.4</beanutils.version>
+         <commons-io.version>2.11.0</commons-io.version>
+@@ -243,11 +243,32 @@
+     </properties>
+
+     <build>
+-
+         <pluginManagement>
+
+             <plugins>
+
++                <plugin>
++                    <artifactId>maven-enforcer-plugin</artifactId>
++                    <version>1.0.1</version>
++                    <executions>
++                        <execution>
++                            <id>htrace-is-not-used</id>
++                            <goals>
++                                <goal>enforce</goal>
++                            </goals>
++                            <configuration>
++                                <rules>
++                                    <bannedDependencies>
++                                        <excludes>
++                                            <exclude>org.apache.htrace:htrace-core4</exclude>
++                                        </excludes>
++                                    </bannedDependencies>
++                                </rules>
++                            </configuration>
++                        </execution>
++                    </executions>
++                </plugin>
++
+                 <!-- ============================================================================================== -->
+                 <!-- Basic plugins                                                                                  -->
+                 <!-- ============================================================================================== -->
+@@ -770,17 +791,33 @@
+     <dependencyManagement>
+
+         <dependencies>
+-
++            <dependency>
++                <groupId>org.apache.hbase.thirdparty</groupId>
++                <artifactId>hbase-noop-htrace</artifactId>
++                <version>3.5.0</version>
++            </dependency>
+             <dependency>
+                 <groupId>org.apache.hbase</groupId>
+                 <artifactId>hbase-common</artifactId>
+                 <version>${hbase.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+                 <groupId>org.apache.hbase</groupId>
+                 <artifactId>hbase-client</artifactId>
+                 <version>${hbase.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+@@ -796,6 +833,10 @@
+                         <groupId>org.slf4j</groupId>
+                         <artifactId>slf4j-log4j12</artifactId>
+                     </exclusion>
++                        <exclusion>
++                            <groupId>org.apache.htrace</groupId>
++                            <artifactId>htrace-core4</artifactId>
++                        </exclusion>
+                 </exclusions>
+             </dependency>
+
+@@ -803,12 +844,24 @@
+                 <groupId>org.apache.hbase</groupId>
+                 <artifactId>hbase-server</artifactId>
+                 <version>${hbase.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+                 <groupId>org.apache.hbase</groupId>
+                 <artifactId>hbase-endpoint</artifactId>
+                 <version>${hbase.version}</version>
++                <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+             </dependency>
+
+             <dependency>
+@@ -821,6 +874,12 @@
+                 <groupId>org.apache.hadoop</groupId>
+                 <artifactId>hadoop-annotations</artifactId>
+                 <version>${hadoop.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+@@ -836,6 +895,10 @@
+                         <groupId>org.slf4j</groupId>
+                         <artifactId>slf4j-log4j12</artifactId>
+                     </exclusion>
++                        <exclusion>
++                            <groupId>org.apache.htrace</groupId>
++                            <artifactId>htrace-core4</artifactId>
++                        </exclusion>
+                 </exclusions>
+             </dependency>
+
+@@ -843,6 +906,12 @@
+                 <groupId>org.apache.hadoop</groupId>
+                 <artifactId>hadoop-client</artifactId>
+                 <version>${hadoop.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+@@ -850,6 +919,10 @@
+                 <artifactId>hadoop-common</artifactId>
+                 <version>${hadoop.version}</version>
+                 <exclusions>
++                        <exclusion>
++                            <groupId>org.apache.htrace</groupId>
++                            <artifactId>htrace-core4</artifactId>
++                        </exclusion>
+                     <exclusion>
+                         <groupId>log4j</groupId>
+                         <artifactId>log4j</artifactId>
+@@ -871,6 +944,12 @@
+                 <groupId>org.apache.hadoop</groupId>
+                 <artifactId>hadoop-hdfs-client</artifactId>
+                 <version>${hadoop.version}</version>
++                <exclusions>
++                    <exclusion>
++                        <groupId>org.apache.htrace</groupId>
++                        <artifactId>htrace-core4</artifactId>
++                    </exclusion>
++                </exclusions>
+             </dependency>
+
+             <dependency>
+@@ -886,6 +965,10 @@
+                         <groupId>org.slf4j</groupId>
+                         <artifactId>slf4j-log4j12</artifactId>
+                     </exclusion>
++                        <exclusion>
++                            <groupId>org.apache.htrace</groupId>
++                            <artifactId>htrace-core4</artifactId>
++                        </exclusion>
+                 </exclusions>
+             </dependency>
+
+Index: timestamp-storage/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/timestamp-storage/pom.xml b/timestamp-storage/pom.xml
+--- a/timestamp-storage/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/timestamp-storage/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-timestamp-storage</artifactId>
+@@ -61,6 +61,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+
+         <!-- end storage related -->
+@@ -136,6 +142,12 @@
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
+             <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.curator</groupId>
+Index: tso-server/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tso-server/pom.xml b/tso-server/pom.xml
+--- a/tso-server/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
++++ b/tso-server/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-tso-server</artifactId>
+@@ -161,6 +161,12 @@
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+
+         <!-- end storage related -->
+@@ -252,6 +258,12 @@
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-testing-util</artifactId>
+             <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.htrace</groupId>
++                    <artifactId>htrace-core4</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.curator</groupId>
+Index: benchmarks/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarks/pom.xml b/benchmarks/pom.xml
+--- a/benchmarks/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/benchmarks/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-benchmarks</artifactId>
+Index: codahale-metrics/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/codahale-metrics/pom.xml b/codahale-metrics/pom.xml
+--- a/codahale-metrics/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/codahale-metrics/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -17,7 +17,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <modelVersion>4.0.0</modelVersion>
+Index: commit-table/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/commit-table/pom.xml b/commit-table/pom.xml
+--- a/commit-table/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/commit-table/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-commit-table</artifactId>
+Index: common/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common/pom.xml b/common/pom.xml
+--- a/common/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/common/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-common</artifactId>
+Index: examples/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/examples/pom.xml b/examples/pom.xml
+--- a/examples/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/examples/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-examples</artifactId>
+Index: metrics/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/metrics/pom.xml b/metrics/pom.xml
+--- a/metrics/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/metrics/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-metrics</artifactId>
+Index: statemachine/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/statemachine/pom.xml b/statemachine/pom.xml
+--- a/statemachine/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/statemachine/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <name>State Machine</name>
+Index: transaction-client/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/transaction-client/pom.xml b/transaction-client/pom.xml
+--- a/transaction-client/pom.xml	(revision f664229af3cd038a17fa6222f8ce68895b962606)
++++ b/transaction-client/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
+@@ -19,7 +19,7 @@
+     <parent>
+         <groupId>org.apache.omid</groupId>
+         <artifactId>omid</artifactId>
+-        <version>1.1.1</version>
++        <version>1.1.1RC1</version>
+     </parent>
+
+     <artifactId>omid-transaction-client</artifactId>
