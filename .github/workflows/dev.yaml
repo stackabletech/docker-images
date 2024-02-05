@@ -19,6 +19,20 @@ jobs:
       matrix:
         product:
           - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - krb5
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - tools
+          - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
