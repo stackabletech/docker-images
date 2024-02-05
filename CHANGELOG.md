@@ -8,10 +8,15 @@ All notable changes to this project will be documented in this file.
 
 - omid: init at 1.1.0 ([#493]).
 - hadoop: Allow datanodes to override their registration addresses ([#506]).
-- hadoop: Add async-profiler ([#540]).
+- hadoop: Add async-profiler and backport HADOOP-18055 and HADOOP-18077
+  to support it ([#540]).
 - hadoop: Add `tar` package, so that `kubectl cp` can be used to copy
   log files and profiler flamegraphs ([#540]).
-- hbase: Add async-profiler ([#540]).
+- hbase: Add async-profiler and backport HBASE-28242 to support it
+  ([#540]).
+- hbase: Allow multiple certificates in the KeyStores which is required for
+  rotating CA certificates. Because of this, HBASE-27027 was backported to
+  HBase version 2.4.12 ([#540]).
 - nifi: Add Apache Iceberg extensions ([#529]).
 - testing-tools: Add krb5-user library for Kerberos tests ([#531]).
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
