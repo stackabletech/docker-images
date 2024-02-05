@@ -18,6 +18,8 @@ RUN microdnf update \
         # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
+        # Needed to find all patch files, used in `apply_patches.sh`
+        findutils \
         gcc \
         gcc-c++ \
         libffi-devel \
@@ -62,6 +64,10 @@ RUN microdnf update \
 WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
     tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter" statsd_exporter
+
+COPY superset/stackable/patches /patches
+RUN /patches/apply_patches.sh ${PRODUCT}
+
 
 # Final image
 FROM stackable/image/vector

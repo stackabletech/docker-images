@@ -20,9 +20,10 @@ All notable changes to this project will be documented in this file.
 - airflow and superset: Pull statsd-exporter as binary from Nexus instead of extracting out of the official docker image ([#534]).
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
-- Bump ubi8-rust-builder toolchain to `1.74.0` ([#517]).
+- ubi8-rust-builder: bump rust toolchain to `1.75.0` ([#542], [#517]).
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
+- superset: Add patch that fixes saved queries export ([#539]).
 
 [#534]: https://github.com/stackabletech/docker-images/pull/534
 [#493]: https://github.com/stackabletech/docker-images/pull/493
@@ -36,6 +37,8 @@ All notable changes to this project will be documented in this file.
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538
+[#539]: https://github.com/stackabletech/docker-images/pull/539
+[#542]: https://github.com/stackabletech/docker-images/pull/542
 
 ## [23.11.0] - 2023-11-30
 
