@@ -1,0 +1,39 @@
+diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/HttpServer.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/HttpServer.java
+index 884780cecc..72cb7bed07 100644
+--- a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/HttpServer.java
++++ b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/HttpServer.java
+@@ -425,7 +425,7 @@ public class HttpServer implements FilterContainer {
+         } else if ("https".equals(scheme)) {
+           HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+           httpsConfig.addCustomizer(new SecureRequestCustomizer());
+-          SslContextFactory sslCtxFactory = new SslContextFactory();
++          SslContextFactory.Server sslCtxFactory = new SslContextFactory.Server();
+           sslCtxFactory.setNeedClientAuth(needsClientAuth);
+           sslCtxFactory.setKeyManagerPassword(keyPassword);
+ 
+diff --git a/hbase-rest/src/main/java/org/apache/hadoop/hbase/rest/RESTServer.java b/hbase-rest/src/main/java/org/apache/hadoop/hbase/rest/RESTServer.java
+index 1ff59c245c..66a0ec999c 100644
+--- a/hbase-rest/src/main/java/org/apache/hadoop/hbase/rest/RESTServer.java
++++ b/hbase-rest/src/main/java/org/apache/hadoop/hbase/rest/RESTServer.java
+@@ -314,7 +314,7 @@ public class RESTServer implements Constants {
+       HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+       httpsConfig.addCustomizer(new SecureRequestCustomizer());
+ 
+-      SslContextFactory sslCtxFactory = new SslContextFactory();
++      SslContextFactory.Server sslCtxFactory = new SslContextFactory.Server();
+       String keystore = conf.get(REST_SSL_KEYSTORE_STORE);
+       String keystoreType = conf.get(REST_SSL_KEYSTORE_TYPE);
+       String password = HBaseConfiguration.getPassword(conf,
+diff --git a/hbase-thrift/src/main/java/org/apache/hadoop/hbase/thrift/ThriftServer.java b/hbase-thrift/src/main/java/org/apache/hadoop/hbase/thrift/ThriftServer.java
+index 0b86061bd7..cf7e1db86a 100644
+--- a/hbase-thrift/src/main/java/org/apache/hadoop/hbase/thrift/ThriftServer.java
++++ b/hbase-thrift/src/main/java/org/apache/hadoop/hbase/thrift/ThriftServer.java
+@@ -417,7 +417,7 @@ public class ThriftServer  extends Configured implements Tool {
+       HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+       httpsConfig.addCustomizer(new SecureRequestCustomizer());
+ 
+-      SslContextFactory sslCtxFactory = new SslContextFactory();
++      SslContextFactory.Server sslCtxFactory = new SslContextFactory.Server();
+       String keystore = conf.get(THRIFT_SSL_KEYSTORE_STORE_KEY);
+       String password = HBaseConfiguration.getPassword(conf,
+           THRIFT_SSL_KEYSTORE_PASSWORD_KEY, null);
