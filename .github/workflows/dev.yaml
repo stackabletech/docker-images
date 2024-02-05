@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/generate-sboms
 
 jobs:
   development:
@@ -18,20 +19,6 @@ jobs:
       matrix:
         product:
           - airflow
-          - druid
-          - hadoop
-          - hbase
-          - hive
-          - kafka
-          - krb5
-          - nifi
-          - opa
-          - spark-k8s
-          - superset
-          - testing-tools
-          - trino
-          - tools
-          - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
@@ -97,4 +84,16 @@ jobs:
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
             cosign sign -y "$IMAGE_NAME@$DIGEST"
+
+            # Generate SBOM for the image
+            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+            # Determine the PURL for the container image
+            PURL="pkg:docker/sdp/${{ matrix.product }}@$DIGEST?repository_url=oci.stackable.tech";
+            # Get metadata from the image
+            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+            # Merge the SBOM with the metadata for the operator
+            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+            # Attest the SBOM to the image
+            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
           fi
