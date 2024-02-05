@@ -84,6 +84,7 @@ RUN microdnf update && \
 
 COPY --chown=stackable:stackable hbase/stackable /stackable
 COPY hbase/licenses /licenses
+COPY --chown=stackable:stackable omid/stackable /stackable
 
 USER stackable
 WORKDIR /stackable
@@ -92,7 +93,7 @@ WORKDIR /stackable
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${HBASE}-src.tar.gz" | tar -xzC .
 RUN mv hbase-${HBASE} hbase-${HBASE}-src
-RUN chmod +x patches/apply_patches.sh
+RUN chmod +x patches/hbase/apply_patches.sh
 RUN patches/hbase/apply_patches.sh ${HBASE}
 RUN cd /stackable/hbase-${HBASE}-src/hbase-protocol-shaded && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} clean install -DskipTests
