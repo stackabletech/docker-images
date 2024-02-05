@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - ubi8-rust-builder: bump rust toolchain to `1.75.0` ([#542], [#517]).
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
+- superset: Add patch that fixes saved queries export ([#539]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
@@ -33,6 +34,7 @@ All notable changes to this project will be documented in this file.
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538
+[#539]: https://github.com/stackabletech/docker-images/pull/539
 [#542]: https://github.com/stackabletech/docker-images/pull/542
 
 ## [23.11.0] - 2023-11-30
