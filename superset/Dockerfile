@@ -17,6 +17,8 @@ RUN microdnf update \
     && microdnf install \
         --assumeyes \
         cyrus-sasl-devel \
+        # Needed to find all patch files, used in `apply_patches.sh`
+        findutils \
         gcc \
         gcc-c++ \
         libffi-devel \
@@ -56,6 +58,9 @@ RUN microdnf update \
         --upgrade \
         python-json-logger \
     && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+
+COPY superset/stackable/patches /patches
+RUN /patches/apply_patches.sh ${PRODUCT}
 
 # Final image
 FROM stackable/image/vector
