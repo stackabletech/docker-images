@@ -10,6 +10,8 @@ FROM stackable/image/vector AS airflow-build-image
 ARG PRODUCT
 ARG PYTHON
 ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
@@ -41,8 +43,7 @@ RUN microdnf update && \
 
 # Choosing correct binary with respect to architecture
 WORKDIR /stackable
-RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
-    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
     tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter" statsd_exporter
 
 
@@ -52,6 +53,8 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG TINI
+ARG TARGETARCH
+ARG TARGETOS
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
@@ -94,7 +97,8 @@ RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$(arch)"
+RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" \ 
+    && curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${ARCH}"
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 RUN chmod a+x /entrypoint.sh && \

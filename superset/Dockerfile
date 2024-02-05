@@ -7,6 +7,8 @@ ARG PRODUCT
 ARG PYTHON
 ARG AUTHLIB
 ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
@@ -58,8 +60,7 @@ RUN microdnf update \
 
     # Choosing correct binary with respect to architecture
 WORKDIR /stackable
-RUN ARCH="$(arch | sed 's/^aarch64$/arm64/' | sed 's/^x86_64$/amd64/')" \
-    && curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}.tar.gz" | \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
     tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.linux-${ARCH}/statsd_exporter" statsd_exporter
 
 # Final image
