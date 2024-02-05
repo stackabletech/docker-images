@@ -2,7 +2,6 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG HBASE
 
 RUN microdnf update && \
     microdnf install \
@@ -61,7 +60,7 @@ RUN /bin/log4shell_scanner s /stackable/omid-tso-server-${PRODUCT}
 FROM stackable/image/java-base AS hbasebuilder
 
 ARG PRODUCT
-ARG HBASE
+ARG HBASECLIENT
 ARG HADOOP_M2
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
@@ -91,18 +90,18 @@ WORKDIR /stackable
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${HBASE}-src.tar.gz" | tar -xzC .
-RUN mv hbase-${HBASE} hbase-${HBASE}-src
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${HBASECLIENT}-src.tar.gz" | tar -xzC .
+RUN mv hbase-${HBASECLIENT} hbase-${HBASECLIENT}-src
 RUN chmod +x patches/hbase/apply_patches.sh
-RUN patches/hbase/apply_patches.sh ${HBASE}
-RUN cd /stackable/hbase-${HBASE}-src/hbase-protocol-shaded && \
+RUN patches/hbase/apply_patches.sh ${HBASECLIENT}
+RUN cd /stackable/hbase-${HBASECLIENT}-src/hbase-protocol-shaded && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} clean install -DskipTests
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
-ARG HBASE
+ARG HBASECLIENT
 ARG JMX_EXPORTER
 
 LABEL name="Apache Phoenix Omid" \
@@ -133,9 +132,9 @@ RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
 
 COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 RUN rm /stackable/omid-tso-server-${PRODUCT}/lib/hbase-protocol-shaded-2.4.17.jar
-COPY --from=hbasebuilder /stackable/hbase-${HBASE}-src/hbase-protocol-shaded/target/hbase-protocol-shaded-2.4.17.jar /stackable/omid-tso-server-${PRODUCT}/lib/
+COPY --from=hbasebuilder /stackable/hbase-${HBASECLIENT}-src/hbase-protocol-shaded/target/hbase-protocol-shaded-2.4.17.jar /stackable/omid-tso-server-${PRODUCT}/lib/
 
-ENV HBASE_CONF_DIR=/stackable/hbase/conf
+ENV HBASECLIENT_CONF_DIR=/stackable/hbase/conf
 # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
 RUN rm /stackable/omid-tso-server/conf/hbase-site.xml
 WORKDIR /stackable/omid-tso-server
