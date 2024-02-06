@@ -1,4 +1,5 @@
-Subject: [PATCH] Replace version with 1.1.1RC1
+Subject: [PATCH] Added noop-htrace dep to submodules
+Replace version with 1.1.1RC1
 Replace HTrace Dependencies with Noop implementation
 ---
 Index: hbase-client/pom.xml
@@ -8,7 +9,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-client/pom.xml b/hbase-client/pom.xml
 --- a/hbase-client/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/hbase-client/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/hbase-client/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -18,7 +19,18 @@ diff --git a/hbase-client/pom.xml b/hbase-client/pom.xml
      </parent>
 
      <artifactId>omid-hbase-client</artifactId>
-@@ -89,6 +89,10 @@
+@@ -28,6 +28,10 @@
+     <description>HBase specific implementation of transaction-client module</description>
+
+     <dependencies>
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+
+         <!-- Dependencies on Omid modules -->
+
+@@ -89,6 +93,10 @@
                  <exclusion>
                      <groupId>org.slf4j</groupId>
                      <artifactId>slf4j-log4j12</artifactId>
@@ -29,7 +41,7 @@ diff --git a/hbase-client/pom.xml b/hbase-client/pom.xml
                  </exclusion>
              </exclusions>
          </dependency>
-@@ -149,6 +153,12 @@
+@@ -149,6 +157,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
@@ -49,7 +61,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-commit-table/pom.xml b/hbase-commit-table/pom.xml
 --- a/hbase-commit-table/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/hbase-commit-table/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/hbase-commit-table/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -59,7 +71,18 @@ diff --git a/hbase-commit-table/pom.xml b/hbase-commit-table/pom.xml
      </parent>
 
      <artifactId>omid-hbase-commit-table</artifactId>
-@@ -79,6 +79,10 @@
+@@ -27,6 +27,10 @@
+     <name>HBase Commit Table</name>
+
+     <dependencies>
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+
+         <!-- Dependencies on Omid modules -->
+
+@@ -79,6 +83,10 @@
                  <exclusion>
                      <groupId>org.slf4j</groupId>
                      <artifactId>slf4j-log4j12</artifactId>
@@ -70,7 +93,7 @@ diff --git a/hbase-commit-table/pom.xml b/hbase-commit-table/pom.xml
                  </exclusion>
              </exclusions>
          </dependency>
-@@ -114,6 +118,12 @@
+@@ -114,6 +122,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
@@ -90,7 +113,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-common/pom.xml b/hbase-common/pom.xml
 --- a/hbase-common/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/hbase-common/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/hbase-common/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -100,7 +123,17 @@ diff --git a/hbase-common/pom.xml b/hbase-common/pom.xml
      </parent>
 
      <artifactId>omid-hbase-common</artifactId>
-@@ -33,6 +33,12 @@
+@@ -27,12 +27,21 @@
+     <packaging>jar</packaging>
+
+     <dependencies>
+-
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+         <!-- storage related -->
+
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-client</artifactId>
@@ -113,7 +146,7 @@ diff --git a/hbase-common/pom.xml b/hbase-common/pom.xml
          </dependency>
 
          <!-- end storage related -->
-@@ -90,6 +96,12 @@
+@@ -90,6 +99,12 @@
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
              <scope>test</scope>
@@ -133,7 +166,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-coprocessor/pom.xml b/hbase-coprocessor/pom.xml
 --- a/hbase-coprocessor/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/hbase-coprocessor/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/hbase-coprocessor/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -143,7 +176,19 @@ diff --git a/hbase-coprocessor/pom.xml b/hbase-coprocessor/pom.xml
      </parent>
 
      <artifactId>omid-hbase-coprocessor</artifactId>
-@@ -62,10 +62,22 @@
+@@ -27,7 +27,10 @@
+     <name>HBase Coprocessors</name>
+
+     <dependencies>
+-
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+         <!-- Dependencies on Omid modules -->
+
+         <dependency>
+@@ -62,10 +65,22 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-client</artifactId>
@@ -166,7 +211,7 @@ diff --git a/hbase-coprocessor/pom.xml b/hbase-coprocessor/pom.xml
          </dependency>
          <!-- end storage related -->
 
-@@ -147,6 +159,12 @@
+@@ -147,6 +162,12 @@
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
              <scope>test</scope>
@@ -186,7 +231,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
 --- a/hbase-tools/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/hbase-tools/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/hbase-tools/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -196,7 +241,19 @@ diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
      </parent>
 
      <artifactId>omid-hbase-tools</artifactId>
-@@ -48,6 +48,12 @@
+@@ -27,7 +27,10 @@
+     <packaging>jar</packaging>
+
+     <dependencies>
+-
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+         <!-- Dependencies on Omid modules -->
+
+         <dependency>
+@@ -48,6 +51,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-client</artifactId>
@@ -209,7 +266,7 @@ diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
          </dependency>
 
          <!-- end storage related -->
-@@ -118,6 +124,12 @@
+@@ -118,6 +127,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
@@ -434,7 +491,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/timestamp-storage/pom.xml b/timestamp-storage/pom.xml
 --- a/timestamp-storage/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/timestamp-storage/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/timestamp-storage/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -444,7 +501,18 @@ diff --git a/timestamp-storage/pom.xml b/timestamp-storage/pom.xml
      </parent>
 
      <artifactId>omid-timestamp-storage</artifactId>
-@@ -61,6 +61,12 @@
+@@ -28,6 +28,10 @@
+
+     <dependencies>
+
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+         <!-- Dependencies on Omid modules -->
+
+         <dependency>
+@@ -61,6 +65,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-client</artifactId>
@@ -457,7 +525,7 @@ diff --git a/timestamp-storage/pom.xml b/timestamp-storage/pom.xml
          </dependency>
 
          <!-- end storage related -->
-@@ -136,6 +142,12 @@
+@@ -136,6 +146,12 @@
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
              <scope>test</scope>
@@ -477,7 +545,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/tso-server/pom.xml b/tso-server/pom.xml
 --- a/tso-server/pom.xml	(revision cd546d58d93f380fec9bf65dbfa618f53493f662)
-+++ b/tso-server/pom.xml	(revision ca61b0b47ee1615a13dbe94d73dc03a6c85f78bd)
++++ b/tso-server/pom.xml	(revision 5f669c10b3d9af3b5a48c8cd8f2294843282ca53)
 @@ -19,7 +19,7 @@
      <parent>
          <groupId>org.apache.omid</groupId>
@@ -487,7 +555,19 @@ diff --git a/tso-server/pom.xml b/tso-server/pom.xml
      </parent>
 
      <artifactId>omid-tso-server</artifactId>
-@@ -161,6 +161,12 @@
+@@ -30,7 +30,10 @@
+     <dependencies>
+
+         <!-- Dependencies on Omid modules -->
+-
++        <dependency>
++            <groupId>org.apache.hbase.thirdparty</groupId>
++            <artifactId>hbase-noop-htrace</artifactId>
++        </dependency>
+         <dependency>
+             <groupId>org.apache.omid</groupId>
+             <artifactId>omid-commit-table</artifactId>
+@@ -161,6 +164,12 @@
          <dependency>
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-client</artifactId>
@@ -500,7 +580,7 @@ diff --git a/tso-server/pom.xml b/tso-server/pom.xml
          </dependency>
 
          <!-- end storage related -->
-@@ -252,6 +258,12 @@
+@@ -252,6 +261,12 @@
              <groupId>org.apache.hbase</groupId>
              <artifactId>hbase-testing-util</artifactId>
              <scope>test</scope>

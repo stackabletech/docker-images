@@ -137,6 +137,8 @@ RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 
+
+#COPY omid/stackable/hbase-noop-htrace-4.1.5.jar /stackable/omid-tso-server-${PRODUCT}/lib/
 COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 RUN rm /stackable/omid-tso-server-${PRODUCT}/lib/hbase-protocol-shaded-2.4.17.jar
 COPY --from=hbasebuilder /stackable/hbase-${HBASECLIENT}-src/hbase-protocol-shaded/target/hbase-protocol-shaded-2.4.17.jar /stackable/omid-tso-server-${PRODUCT}/lib/

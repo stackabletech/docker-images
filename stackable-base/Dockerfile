@@ -12,4 +12,6 @@ RUN microdnf update && \
     chown stackable:stackable /stackable && \
     microdnf remove shadow-utils && \
     microdnf clean all && \
-    echo "alias ll='ls -alF --color=auto'" >> /etc/profile.d/00-aliases.sh
+    echo "alias ll='ls -alF --color=auto'" >> /etc/profile.d/00-aliases.sh && \
+    echo "[main]" >> /etc/dnf/dnf.conf && \
+    echo "install_weak_deps=0" >> /etc/dnf/dnf.conf
