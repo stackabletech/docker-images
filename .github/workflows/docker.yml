@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     name: Build and push Docker image
-    runs-on: [ubuntu-latest, macos-latest-large]
+    runs-on: [ubuntu-latest, macos-14]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - shell: bash
