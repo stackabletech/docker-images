@@ -59,15 +59,9 @@ products = [
         "name": "hadoop",
         "versions": [
             {
-                "product": "3.2.2",
-                "java-base": "11",
-                "jmx_exporter": "0.20.0",
-                "protobuf": "2.5.0",
-                "topology_provider": "0.1.0"
-            },
-            {
                 "product": "3.2.4",
                 "java-base": "11",
+                "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "2.5.0",
                 "topology_provider": "0.1.0"
@@ -75,6 +69,7 @@ products = [
             {
                 "product": "3.3.4",
                 "java-base": "11",
+                "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
                 "topology_provider": "0.1.0"
@@ -82,6 +77,7 @@ products = [
             {
                 "product": "3.3.6",
                 "java-base": "11",
+                "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
                 "topology_provider": "0.1.0"
@@ -100,6 +96,7 @@ products = [
                  "hbase_thirdparty": "3.5.1",
                  "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
+                 "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.2",
                  "hadoop_m2": "3.3.6",
                  "jmx_exporter": "0.20.0",
@@ -109,6 +106,7 @@ products = [
                  "hbase_thirdparty": "4.1.4",
                  "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
+                 "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.3",
                  "hadoop_m2": "3.3.6",
                  "jmx_exporter": "0.20.0",
