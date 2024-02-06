@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Pulling kcat from Nexus rather then vendor ([#534])
+- kafka: Pulling kcat from Nexus rather then vendor ([#534])
 - Reworking architecture selection mechanism for binaries ([#534])
 - Fixing base images to multi-architecture lists ([#534]).
 - airflow and superset: Pull statsd-exporter as binary from Nexus instead of extracting out of the official docker image ([#534]).
@@ -27,7 +27,6 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 
-[#534]: https://github.com/stackabletech/docker-images/pull/534
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
 [#514]: https://github.com/stackabletech/docker-images/pull/514
@@ -36,6 +35,7 @@ All notable changes to this project will be documented in this file.
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
+[#534]: https://github.com/stackabletech/docker-images/pull/534
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538

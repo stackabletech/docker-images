@@ -44,7 +44,7 @@ RUN microdnf update && \
 # Choosing correct binary with respect to architecture
 WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${ARCH}/statsd_exporter" statsd_exporter
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
 
 
 FROM stackable/image/vector AS airflow-main-image
