@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
-- hadoop: Allow datanodes to override their registration addresses ([#506]).
+- hadoop: Allow datanodes to override their registration addresses ([#506], [#544]).
 - hadoop: Add async-profiler and backport HADOOP-18055 and HADOOP-18077
   to support it ([#540]).
 - hadoop: Add `tar` package, so that `kubectl cp` can be used to copy
@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 [#539]: https://github.com/stackabletech/docker-images/pull/539
 [#540]: https://github.com/stackabletech/docker-images/pull/540
 [#542]: https://github.com/stackabletech/docker-images/pull/542
+[#544]: https://github.com/stackabletech/docker-images/pull/544
 
 ## [23.11.0] - 2023-11-30
 
