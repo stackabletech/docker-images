@@ -11,7 +11,11 @@ on:
 jobs:
   build:
     name: Build and push Docker image
-    runs-on: [ubuntu-latest, macos-14]
+    strategy:
+        fail-fast: true
+        matrix:
+          runner: [ubuntu-latest, macos-14]
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - shell: bash
