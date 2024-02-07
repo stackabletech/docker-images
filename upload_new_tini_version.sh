@@ -41,7 +41,7 @@ for arch in "${ARCHITECTURES[@]}"; do
   curl --fail -Ls -o "tini-$VERSION-$arch" "https://github.com/krallin/tini/releases/download/v$VERSION/tini-$arch" 
 
   echo "Uploading to Nexus"
-  curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "tini-$arch" 'https://repo.stackable.tech/repository/packages/tini/'
+  curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "tini-$VERSION-$arch" 'https://repo.stackable.tech/repository/packages/tini/'
 done
 
 echo "Successfully uploaded new version of TINI ($VERSION) to Nexus"
