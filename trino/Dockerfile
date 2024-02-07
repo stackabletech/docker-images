@@ -2,6 +2,8 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+# External OPA authorizer only required for 414 and 428, included in 438
+# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG RELEASE
@@ -37,7 +39,10 @@ RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin
+# TODO: remove the following RUN statement once Trino versions 414 and 428 are removed
+RUN if [[ -n ${OPA_AUTHORIZER} ]] ; then \
+        curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin ; \
+    fi
 
 RUN curl --fail https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
     unzip /tmp/trino-storage-${STORAGE_CONNECTOR}.zip -d /stackable/trino-server/plugin && \

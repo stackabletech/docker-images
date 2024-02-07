@@ -142,11 +142,15 @@ products = [
         "versions": [
             {
                 "product": "11",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
             },
             {
                 "product": "17",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
+            },
+            {
+                "product": "21",
+                "vector": "0.35.0",
             },
         ],
     },
@@ -203,7 +207,7 @@ products = [
         "name": "vector",
         "versions": [
             {
-                "product": "0.33.0",
+                "product": "0.35.0",
                 "rpm_release": "1",
                 "stackable-base": "1.0.0"
             }
@@ -230,20 +234,13 @@ products = [
         "name": "opa",
         "versions": [
             {
-                "product": "0.51.0",
-                "vector": "0.33.0",
-                "bundle_builder_version": "1.1.0",
-            },
-            {
                 "product": "0.57.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "bundle_builder_version": "1.1.0",
             },
-            # 2024-01-30: We only added 0.61.0 to be able to write Rego rules v1.
-            # The regular product version update process must take care of removing unsupported versions and bumping vector
             {
                 "product": "0.61.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "bundle_builder_version": "1.1.0",
             },
         ],
@@ -351,8 +348,27 @@ products = [
     {
         "name": "trino",
         "versions": [
-            {"product": "414", "java-base": "17", "opa_authorizer": "stackable0.2.0", "jmx_exporter": "0.20.0", "storage_connector": "414"},
-            {"product": "428", "java-base": "17", "opa_authorizer": "stackable0.3.0", "jmx_exporter": "0.20.0", "storage_connector": "428-jackson"},
+            {
+                "product": "414",
+                "java-base": "17",
+                "opa_authorizer": "stackable0.2.0", 
+                "jmx_exporter": "0.20.0", 
+                "storage_connector": "414"
+            },
+            {
+                "product": "428",
+                "java-base": "17",
+                "opa_authorizer": "stackable0.3.0",
+                "jmx_exporter": "0.20.0",
+                "storage_connector": "428-jackson"
+            },
+            {
+                # OPA authorizer included
+                "product": "438",
+                "java-base": "21",
+                "jmx_exporter": "0.20.0",
+                "storage_connector": "438"
+            },
         ],
     },
     {
