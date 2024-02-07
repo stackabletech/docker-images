@@ -234,7 +234,7 @@ index c1507a45120..d253779e70d 100644
 +    }
 +
 +    DatanodeID dnId = new DatanodeID(registeredHostname,
-+                                     hostName,
++                                     registeredHostname,
 +                                     storage.getDatanodeUuid(),
 +                                     registeredDataPort,
 +                                     registeredHttpPort,
