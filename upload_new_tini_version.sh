@@ -38,7 +38,7 @@ for arch in "${ARCHITECTURES[@]}"; do
   # tini does not currently publish signatures or SBOMs
   # renaming binary because original file name has no version
   echo "Downloading TINI"
-  curl --fail -Ls -o tini-$VERSION-$arch "https://github.com/krallin/tini/releases/download/v$VERSION/tini-$arch" 
+  curl --fail -Ls -o "tini-$VERSION-$arch" "https://github.com/krallin/tini/releases/download/v$VERSION/tini-$arch" 
 
   echo "Uploading to Nexus"
   curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "tini-$arch" 'https://repo.stackable.tech/repository/packages/tini/'
