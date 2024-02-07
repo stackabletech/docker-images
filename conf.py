@@ -263,6 +263,7 @@ products = [
                 "woodstox_core": "6.5.0",
                 "vector": "0.33.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
             # required for a customer
             {
@@ -280,6 +281,7 @@ products = [
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "vector": "0.33.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
             {
                 "product": "3.4.1",
@@ -296,6 +298,7 @@ products = [
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "vector": "0.33.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
             {
                 "product": "3.5.0",
@@ -312,6 +315,7 @@ products = [
                 "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
                 "vector": "0.33.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
         ],
     },

@@ -14,6 +14,8 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG JMX_EXPORTER
 ARG RELEASE
+ARG TARGETARCH
+ARG TINI
 
 LABEL name="Apache Spark" \
     maintainer="info@stackable.tech" \
