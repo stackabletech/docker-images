@@ -44,8 +44,7 @@ ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 # Get the correct `tini` binary for our architecture.
-RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" \ 
-    && curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${ARCH}"
+RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses
