@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add JDK 21 ([#547]).
 - opa: Add version `0.61.0` ([#538]).
 - trino: Add version `438` ([#547]).
-- vector: Add version `0.35.0` ([#547]).
+- vector: Switch from version `0.33.0` to `0.35.0` ([#547]).
 
 ### Changed
 
