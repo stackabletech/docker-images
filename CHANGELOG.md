@@ -21,7 +21,10 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add krb5-user library for Kerberos tests ([#531]).
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
+- java-base: Add JDK 21 ([#547]).
 - opa: Add version `0.61.0` ([#538]).
+- trino: Add version `438` ([#547]).
+- vector: Add version `0.35.0` ([#547]).
 
 ### Changed
 
@@ -34,7 +37,8 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- hadoop: Remove support for version 3.2.2 ([#540]).
+- hadoop: Remove support for version `3.2.2` ([#540]).
+- opa: Remove support for version `0.51.0` ([#547]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
@@ -51,6 +55,7 @@ All notable changes to this project will be documented in this file.
 [#540]: https://github.com/stackabletech/docker-images/pull/540
 [#542]: https://github.com/stackabletech/docker-images/pull/542
 [#544]: https://github.com/stackabletech/docker-images/pull/544
+[#547]: https://github.com/stackabletech/docker-images/pull/547
 
 ## [23.11.0] - 2023-11-30
 
