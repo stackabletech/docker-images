@@ -41,6 +41,7 @@ for arch in "${ARCHITECTURES[@]}"; do
 
   echo "Uploading to Nexus"
   curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "statsd_exporter-$VERSION.linux-$arch.tar.gz" 'https://repo.stackable.tech/repository/packages/statsd_exporter/'
+done
 
 echo "Successfully uploaded new version of STATSD-EXPORTER ($VERSION) to Nexus"
 echo "https://repo.stackable.tech/service/rest/repository/browse/packages/statsd_exporter/"
