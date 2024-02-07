@@ -36,7 +36,7 @@ cd "$WORK_DIR" || exit
 
 for arch in "${ARCHITECTURES[@]}"; do
   # tini does not currently publish signatures or SBOMs
-  # renaming binary since original file name has no version
+  # renaming binary because original file name has no version
   echo "Downloading TINI"
   curl --fail -Ls -o tini-$VERSION-$arch "https://github.com/krallin/tini/releases/download/v$VERSION/tini-$arch" 
 
