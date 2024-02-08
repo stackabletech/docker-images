@@ -338,14 +338,14 @@ products = [
                 "product": "2.1.1",
                 "python": "3.9",
                 "vector": "0.35.0",
-                "statsd_exporter": "v0.24.0",
+                "statsd_exporter": "0.24.0",
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "3.0.1",
                 "python": "3.9",
                 "vector": "0.35.0",
-                "statsd_exporter": "v0.24.0",
+                "statsd_exporter": "0.24.0",
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.6/requirements-extra.txt#L7
             },
         ],
