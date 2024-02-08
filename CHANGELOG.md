@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
 - omid: Add version `1.1.1` ([#553])
 - omid: init at 1.1.0 ([#493]).
 - hadoop: Allow datanodes to override their registration addresses ([#506], [#544]).
