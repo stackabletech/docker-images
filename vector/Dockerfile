@@ -4,6 +4,8 @@ FROM stackable/image/stackable-base
 
 ARG PRODUCT
 ARG RPM_RELEASE
+ARG INOTIFY_TOOLS
+ARG TARGETARCH
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -13,11 +15,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # This happens by writing a "shutdown file" in a shared volume
 # See https://github.com/stackabletech/airflow-operator/blob/23.4.1/rust/operator-binary/src/airflow_db_controller.rs#L269 for an example
 # The Vector container waits for this file to appear and this waiting happens using `inotifywait` which comes from the `inotify-tools` package
-RUN rpm --install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm  && \
-    microdnf update && \
-    microdnf --assumeyes install inotify-tools && \
-    microdnf clean all && \
-    rpm --install "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.$(arch).rpm" && \
+RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" && \
+    rpm --install \
+        "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.${ARCH}.rpm" \
+        "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm" && \
     mkdir /licenses && \
     cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE && \
     # Create the directory /stackable/vector/var.
