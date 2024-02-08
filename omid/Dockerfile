@@ -16,7 +16,7 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-SHELL ["bash", "-euo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
 
