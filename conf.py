@@ -14,7 +14,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
             },
             {
                 "product": "2.6.3",
@@ -22,7 +22,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
             },
             {
                 "product": "2.7.2",
@@ -30,7 +30,7 @@ products = [
                 "python": "39",
                 "statsd_exporter": "0.24.0",
                 "tini": "0.19.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
             },
         ],
     },
@@ -209,7 +209,8 @@ products = [
             {
                 "product": "0.35.0",
                 "rpm_release": "1",
-                "stackable-base": "1.0.0"
+                "stackable-base": "1.0.0",
+                "inotify_tools": "3.14-19.el8",
             }
         ],
     },
@@ -261,7 +262,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.5.0",
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
                 "tini": "0.19.0",
             },
@@ -279,7 +280,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
                 "tini": "0.19.0",
             },
@@ -296,7 +297,7 @@ products = [
                 "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
                 "tini": "0.19.0",
             },
@@ -313,7 +314,7 @@ products = [
                 "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.0
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
                 "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
-                "vector": "0.33.0",
+                "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
                 "tini": "0.19.0",
             },
@@ -329,22 +330,22 @@ products = [
             {
                 "product": "2.1.0",
                 "python": "3.9",
-                "vector": "0.33.0",
-                "statsd_exporter": "0.24.0",
+                "vector": "0.35.0",
+                "statsd_exporter": "v0.24.0",
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "2.1.1",
                 "python": "3.9",
-                "vector": "0.33.0",
-                "statsd_exporter": "0.24.0",
+                "vector": "0.35.0",
+                "statsd_exporter": "v0.24.0",
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "3.0.1",
                 "python": "3.9",
-                "vector": "0.33.0",
-                "statsd_exporter": "0.24.0",
+                "vector": "0.35.0",
+                "statsd_exporter": "v0.24.0",
                 "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.6/requirements-extra.txt#L7
             },
         ],

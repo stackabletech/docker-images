@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add JDK 21 ([#547]).
 - opa: Add version `0.61.0` ([#538]).
 - trino: Add version `438` ([#547]).
-- vector: Switch from version `0.33.0` to `0.35.0` ([#547]).
+- vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 
 ### Changed
 
@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - GH workflows: make preflight an independent manual workflow and update to version 1.7.2 ([#519]).
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
+- inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
 
 ### Removed
 
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#542]: https://github.com/stackabletech/docker-images/pull/542
 [#544]: https://github.com/stackabletech/docker-images/pull/544
 [#547]: https://github.com/stackabletech/docker-images/pull/547
+[#549]: https://github.com/stackabletech/docker-images/pull/549
 
 ## [23.11.0] - 2023-11-30
 
