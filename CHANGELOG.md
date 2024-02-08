@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add version `0.61.0` ([#538]).
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
+- zookeeper: Add version `3.9.1` ([#551]).
 
 ### Changed
 
@@ -40,6 +41,7 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: Remove support for version `3.2.2` ([#540]).
 - opa: Remove support for version `0.51.0` ([#547]).
+- zookeeper: Remove support for version `3.8.1` ([#551]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
 [#506]: https://github.com/stackabletech/docker-images/pull/506
@@ -58,6 +60,7 @@ All notable changes to this project will be documented in this file.
 [#544]: https://github.com/stackabletech/docker-images/pull/544
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
+[#551]: https://github.com/stackabletech/docker-images/pull/551
 
 ## [23.11.0] - 2023-11-30
 
