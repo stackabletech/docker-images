@@ -22,6 +22,9 @@ RUN microdnf update && \
     gettext \
     git \
     gzip \
+    # diff is required by maven during the build of hbase \
+    # Cannot run program "diff" (in directory "/stackable/hbase-2.4.12-src/hbase-shaded/hbase-shaded-check-invariants"
+    diffutils \
     maven \
     tar \
     zip && \
