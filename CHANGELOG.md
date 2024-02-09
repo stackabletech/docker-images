@@ -36,7 +36,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
-- hadoop: Add patches to fix authorizer properly checking `create` operations ([#XXX]).
+- hadoop: Add patches to fix authorizer properly checking `create` operations ([#555]).
 
 ### Removed
 
@@ -62,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
+[#555]: https://github.com/stackabletech/docker-images/pull/555
 
 ## [23.11.0] - 2023-11-30
 
