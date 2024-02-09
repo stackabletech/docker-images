@@ -9,7 +9,7 @@ RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel 
 
 WORKDIR /stackable
 RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${KCAT}.tar.gz \
-    && tar xvfz ${KCAT}.tar.gz \
+    && tar xvfz kcat-${KCAT}.tar.gz \
     && cd kcat-${KCAT} \
     && ./bootstrap.sh
 
