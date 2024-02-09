@@ -56,6 +56,9 @@ ARG TINI
 ARG TARGETARCH
 ARG TARGETOS
 
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
@@ -89,15 +92,15 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-RUN mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs
-
-RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+RUN mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs && \
+    chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
+    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 RUN chmod a+x /entrypoint.sh && \

@@ -10,6 +10,9 @@ ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
