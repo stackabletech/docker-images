@@ -60,14 +60,13 @@ RUN microdnf update \
         python-json-logger \
     && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
-    # Choosing correct binary with respect to architecture
-WORKDIR /stackable
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
-
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
 
+   # Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
 
 # Final image
 FROM stackable/image/vector
