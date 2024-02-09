@@ -29,6 +29,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- kafka: Pulling kcat from Nexus rather than GitHub ([#534]).
+- Reworking architecture selection mechanism for binaries ([#534]).
+- Fixing base images to multi-architecture lists ([#534]).
+- airflow and superset: Pull statsd-exporter as binary from Nexus instead of extracting out of the official docker image ([#534]).
 - changed microdnf configuration to not install weak dependencies by adding `install_weak_deps=0` ([#533])
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
@@ -52,6 +56,7 @@ All notable changes to this project will be documented in this file.
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
+[#534]: https://github.com/stackabletech/docker-images/pull/534
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538
