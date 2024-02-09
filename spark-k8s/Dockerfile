@@ -67,6 +67,15 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/aws/hadoop-aw
     -o /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar && \
     chmod -x /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar
 
+# Download the delta module for Spark
+RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.1.0/delta-spark_2.12-3.1.0.jar \
+    -o /stackable/spark/jars/delta-spark_2.12-3.1.0.jar && \
+    chmod -x /stackable/spark/jars/delta-spark_2.12-3.1.0.jar
+RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-contribs_2.12/3.1.0/delta-contribs_2.12-3.1.0.jar \
+    -o /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar && \
+    chmod -x /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar
+
+
 # Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
 RUN curl -L --fail https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     -o /stackable/spark/jars/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar && \
