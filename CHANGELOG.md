@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- changed microdnf configuration to not install weak dependencies by adding `install_weak_deps=0` ([#553])
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
 - ubi8-rust-builder: bump rust toolchain to `1.75.0` ([#542], [#517]).
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
+[#553]: https://github.com/stackabletech/docker-images/pull/553
 
 ## [23.11.0] - 2023-11-30
 
