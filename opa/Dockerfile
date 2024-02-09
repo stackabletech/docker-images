@@ -73,7 +73,7 @@ COPY opa/licenses /licenses
 USER stackable
 WORKDIR /stackable/opa
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT}" \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_linux_${TARGETOS}_${TARGETARCH}_static_${PRODUCT}" \
      -o opa_linux_${TARGETARCH}_static_${PRODUCT} && \
     chmod +x opa_linux_${TARGETARCH}_static_${PRODUCT} && \
     ln -s opa_linux_${TARGETARCH}_static_${PRODUCT} opa
