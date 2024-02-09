@@ -73,10 +73,10 @@ COPY opa/licenses /licenses
 USER stackable
 WORKDIR /stackable/opa
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_linux_${TARGETOS}_${TARGETARCH}_static_${PRODUCT}" \
-     -o opa_linux_${TARGETARCH}_static_${PRODUCT} && \
-    chmod +x opa_linux_${TARGETARCH}_static_${PRODUCT} && \
-    ln -s opa_linux_${TARGETARCH}_static_${PRODUCT} opa
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT}" \
+     -o opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} && \
+    chmod +x opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} && \
+    ln -s opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} opa
 
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
