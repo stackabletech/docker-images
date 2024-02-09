@@ -1,0 +1,47 @@
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+index 9855b434e9c4..93fd65157ab3 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
+@@ -2619,6 +2619,7 @@ HdfsFileStatus startFile(String src, PermissionStatus permissions,
+       boolean createParent, short replication, long blockSize,
+       CryptoProtocolVersion[] supportedVersions, String ecPolicyName,
+       String storagePolicy, boolean logRetryCache) throws IOException {
++    final String operationName = "create";
+ 
+     HdfsFileStatus status;
+     try {
+@@ -2626,10 +2627,10 @@ HdfsFileStatus startFile(String src, PermissionStatus permissions,
+           createParent, replication, blockSize, supportedVersions, ecPolicyName,
+           storagePolicy, logRetryCache);
+     } catch (AccessControlException e) {
+-      logAuditEvent(false, "create", src);
++      logAuditEvent(false, operationName, src);
+       throw e;
+     }
+-    logAuditEvent(true, "create", src, status);
++    logAuditEvent(true, operationName, src, status);
+     return status;
+   }
+ 
+@@ -2674,9 +2675,11 @@ private HdfsFileStatus startFileInt(String src,
+     HdfsFileStatus stat = null;
+     BlocksMapUpdateInfo toRemoveBlocks = null;
+ 
++    final String operationName = "create";
++    FSPermissionChecker.setOperationType(operationName);
++
+     checkOperation(OperationCategory.WRITE);
+     final FSPermissionChecker pc = getPermissionChecker();
+-    FSPermissionChecker.setOperationType(null);
+     writeLock();
+     try {
+       checkOperation(OperationCategory.WRITE);
+@@ -2740,7 +2743,7 @@ private HdfsFileStatus startFileInt(String src,
+         dir.writeUnlock();
+       }
+     } finally {
+-      writeUnlock("create");
++      writeUnlock(operationName);
+       // There might be transactions logged while trying to recover the lease.
+       // They need to be sync'ed even when an exception was thrown.
+       if (!skipSync) {
