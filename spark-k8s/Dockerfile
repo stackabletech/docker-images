@@ -74,6 +74,9 @@ RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.1.
 RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-contribs_2.12/3.1.0/delta-contribs_2.12-3.1.0.jar \
     -o /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar && \
     chmod -x /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar
+RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-storage/3.1.0/delta-storage-3.1.0.jar \
+    -o /stackable/spark/jars/delta-storage-3.1.0.jar && \
+    chmod -x /stackable/spark/jars/delta-storage-3.1.0.jar
 
 
 # Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
