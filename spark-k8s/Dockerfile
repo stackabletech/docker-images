@@ -86,8 +86,6 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/azure/azure-k
     chmod -x /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-# if they are not already there.
-# Spark 3.5 comes jackson-dataformat-xml already.
 RUN curl -L --fail -o /stackable/spark/jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
     https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
     curl -L --fail -o /stackable/spark/jars/stax2-api-${STAX2_API}.jar \
