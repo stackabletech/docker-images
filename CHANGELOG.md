@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- omid: Add version `1.1.1` ([#553])
 - omid: init at 1.1.0 ([#493]).
 - hadoop: Allow datanodes to override their registration addresses ([#506], [#544]).
 - hadoop: Add async-profiler and backport HADOOP-18055 and HADOOP-18077
@@ -68,6 +69,7 @@ All notable changes to this project will be documented in this file.
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
 [#533]: https://github.com/stackabletech/docker-images/pull/533
+[#553]: https://github.com/stackabletech/docker-images/pull/553
 
 ## [23.11.0] - 2023-11-30
 
