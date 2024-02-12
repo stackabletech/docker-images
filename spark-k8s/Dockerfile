@@ -67,18 +67,6 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/aws/hadoop-aw
     -o /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar && \
     chmod -x /stackable/spark/jars/hadoop-aws-${HADOOP_LONG_VERSION}.jar
 
-# Download the delta module for Spark
-RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.1.0/delta-spark_2.12-3.1.0.jar \
-    -o /stackable/spark/jars/delta-spark_2.12-3.1.0.jar && \
-    chmod -x /stackable/spark/jars/delta-spark_2.12-3.1.0.jar
-RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-contribs_2.12/3.1.0/delta-contribs_2.12-3.1.0.jar \
-    -o /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar && \
-    chmod -x /stackable/spark/jars/delta-contribs_2.12-3.1.0.jar
-RUN curl -L --fail https://repo1.maven.org/maven2/io/delta/delta-storage/3.1.0/delta-storage-3.1.0.jar \
-    -o /stackable/spark/jars/delta-storage-3.1.0.jar && \
-    chmod -x /stackable/spark/jars/delta-storage-3.1.0.jar
-
-
 # Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
 RUN curl -L --fail https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     -o /stackable/spark/jars/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar && \
@@ -98,12 +86,13 @@ RUN curl -L --fail https://repo.stackable.tech/repository/packages/azure/azure-k
     chmod -x /stackable/spark/jars/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-RUN mkdir /stackable/spark/extra-jars && \
-    curl -L --fail -o /stackable/spark/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+# if they are not already there.
+# Spark 3.5 comes jackson-dataformat-xml already.
+RUN curl -L --fail -o /stackable/spark/jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
     https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
-    curl -L --fail -o /stackable/spark/extra-jars/stax2-api-${STAX2_API}.jar \
+    curl -L --fail -o /stackable/spark/jars/stax2-api-${STAX2_API}.jar \
     https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar && \
-    curl -L --fail -o /stackable/spark/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar \
+    curl -L --fail -o /stackable/spark/jars/woodstox-core-${WOODSTOX_CORE}.jar \
     https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
 RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
