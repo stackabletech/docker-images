@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - opa: Add version `0.61.0` ([#538]).
+- spark: Add version `3.4.2` ([#560]).
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
@@ -49,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Remove support for version `3.2.2` ([#540]).
 - kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
+- spark: Remove support for version `3.4.0`, `3.4.0-java17` ([#560]).
 - zookeeper: Remove support for version `3.8.1` ([#551]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
@@ -73,6 +75,7 @@ All notable changes to this project will be documented in this file.
 [#533]: https://github.com/stackabletech/docker-images/pull/533
 [#558]: https://github.com/stackabletech/docker-images/pull/558
 [#559]: https://github.com/stackabletech/docker-images/pull/559
+[#560]: https://github.com/stackabletech/docker-images/pull/560
 
 ## [23.11.0] - 2023-11-30
 
