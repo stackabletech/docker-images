@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
 - druid: Add `28.0.1` ([#558]).
+- kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - opa: Add version `0.61.0` ([#538]).
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
@@ -46,6 +47,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - hadoop: Remove support for version `3.2.2` ([#540]).
+- kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
 - zookeeper: Remove support for version `3.8.1` ([#551]).
 
@@ -70,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#551]: https://github.com/stackabletech/docker-images/pull/551
 [#533]: https://github.com/stackabletech/docker-images/pull/533
 [#558]: https://github.com/stackabletech/docker-images/pull/558
+[#559]: https://github.com/stackabletech/docker-images/pull/559
 
 ## [23.11.0] - 2023-11-30
 
