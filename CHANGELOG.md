@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
+- druid: Add `28.0.1` ([#558]).
 - opa: Add version `0.61.0` ([#538]).
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
@@ -68,6 +69,7 @@ All notable changes to this project will be documented in this file.
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
 [#533]: https://github.com/stackabletech/docker-images/pull/533
+[#558]: https://github.com/stackabletech/docker-images/pull/558
 
 ## [23.11.0] - 2023-11-30
 
