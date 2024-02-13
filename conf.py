@@ -264,7 +264,7 @@ products = [
             },
             {
                 "product": "3.4.2",
-                "spark": "3.4.1",
+                "spark": "3.4.2",
                 "java-base": "11",
                 "python": "3.11",
                 "hadoop_short_version": "3",
