@@ -44,7 +44,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
-- hadoop: Add patches to fix authorizer properly checking `create` operations ([#555]).
+- hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555]).
 
 ### Removed
 
