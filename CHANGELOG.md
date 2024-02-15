@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
+- airflow: Add `2.7.3`, `2.8.1` ([#562]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - opa: Add version `0.61.0` ([#538]).
@@ -44,9 +45,11 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
+- airflow: bump git-sync to `4.2.1` ([#562]).
 
 ### Removed
 
+- airflow: Remove support for `2.6.1` ([#562]).
 - hadoop: Remove support for version `3.2.2` ([#540]).
 - kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
@@ -76,6 +79,7 @@ All notable changes to this project will be documented in this file.
 [#558]: https://github.com/stackabletech/docker-images/pull/558
 [#559]: https://github.com/stackabletech/docker-images/pull/559
 [#560]: https://github.com/stackabletech/docker-images/pull/560
+[#562]: https://github.com/stackabletech/docker-images/pull/562
 
 ## [23.11.0] - 2023-11-30
 
