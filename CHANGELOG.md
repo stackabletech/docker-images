@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
+- superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
@@ -45,7 +46,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
-- hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555]).
+- hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555], [#564]).
 - airflow: bump git-sync to `4.2.1` ([#562]).
 
 ### Removed
@@ -55,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
 - spark: Remove support for version `3.4.0`, `3.4.0-java17` ([#560]).
+- superset: Remove support for version `2.1.0` ([#563]).
 - zookeeper: Remove support for version `3.8.1` ([#551]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
@@ -82,6 +84,8 @@ All notable changes to this project will be documented in this file.
 [#559]: https://github.com/stackabletech/docker-images/pull/559
 [#560]: https://github.com/stackabletech/docker-images/pull/560
 [#562]: https://github.com/stackabletech/docker-images/pull/562
+[#563]: https://github.com/stackabletech/docker-images/pull/563
+[#564]: https://github.com/stackabletech/docker-images/pull/564
 
 ## [23.11.0] - 2023-11-30
 
