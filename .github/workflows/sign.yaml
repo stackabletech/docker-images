@@ -15,7 +15,7 @@ env:
   DST_PROJECT: sdp
 
 jobs:
-  mirror-image:
+  sign-image:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -30,4 +30,4 @@ jobs:
         run: |
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/git-sync@sha256:22d1a4fa1e94cf9bddf2143e3349420572c997176ff818e59969b95a07267558"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/git-sync@sha256:fd95a95edec74e5a9d42d46045a6ef17dcfb39e623f711acbf5ce4fe25a735e2"
