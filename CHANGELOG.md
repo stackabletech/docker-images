@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
+- hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555]).
 - airflow: bump git-sync to `4.2.1` ([#562]).
 
 ### Removed
@@ -64,6 +65,7 @@ All notable changes to this project will be documented in this file.
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
+[#533]: https://github.com/stackabletech/docker-images/pull/533
 [#534]: https://github.com/stackabletech/docker-images/pull/534
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
@@ -75,7 +77,7 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
-[#533]: https://github.com/stackabletech/docker-images/pull/533
+[#555]: https://github.com/stackabletech/docker-images/pull/555
 [#558]: https://github.com/stackabletech/docker-images/pull/558
 [#559]: https://github.com/stackabletech/docker-images/pull/559
 [#560]: https://github.com/stackabletech/docker-images/pull/560
