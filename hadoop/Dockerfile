@@ -143,7 +143,7 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-to
 
 # The Stackable HDFS utils contain an OPA authorizer and group mapper
 RUN if [[ -n ${HDFS_UTILS} ]] ; then \
-        curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-utils-${HDFS_UTILS}.jar \
+        curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-utils-${HDFS_UTILS}.jar ; \
     fi
 
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
