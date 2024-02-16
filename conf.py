@@ -84,7 +84,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "2.5.0",
-                "topology_provider": "0.1.0"
+                "topology_provider": "0.2.0"
             },
             {
                 "product": "3.3.4",
@@ -92,7 +92,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "topology_provider": "0.1.0"
+                "topology_provider": "0.2.0"
             },
             {
                 "product": "3.3.6",
@@ -100,7 +100,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "topology_provider": "0.1.0"
+                "topology_provider": "0.2.0"
             },
         ],
     },
