@@ -65,7 +65,7 @@ products = [
                 "product": "28.0.1",
                 # Java 17 should be fully supported as of 27.0.0 https://github.com/apache/druid/releases#27.0.0-highlights-java-17-support
                 # Did not work in a quick test due to reflection error:
-                # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class 
+                # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class
                 # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
                 "java-base": "11",
                 "jackson_dataformat_xml": "2.12.7", # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
@@ -84,6 +84,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "2.5.0",
+                # no HDFS utils, as e.g. patches from https://github.com/apache/hadoop/pull/6553 are missing. 3.2.x will probably removed shortly anyway.
                 "topology_provider": "0.2.0"
             },
             {
@@ -92,6 +93,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
+                "hdfs_utils": "0.1.0-SNAPSHOT",
                 "topology_provider": "0.2.0"
             },
             {
@@ -100,6 +102,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
+                "hdfs_utils": "0.1.0-SNAPSHOT",
                 "topology_provider": "0.2.0"
             },
         ],
@@ -356,8 +359,8 @@ products = [
             {
                 "product": "414",
                 "java-base": "17",
-                "opa_authorizer": "stackable0.2.0", 
-                "jmx_exporter": "0.20.0", 
+                "opa_authorizer": "stackable0.2.0",
+                "jmx_exporter": "0.20.0",
                 "storage_connector": "414"
             },
             {

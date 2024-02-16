@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
+- hadoop: Add hdfs-utils ([#XXX]).
 
 ### Changed
 
