@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - name: Install brew
         run: export HOMEBREW_NO_INSTALL_FROM_API=1 && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      - name: install docker
+        run: brew install docker
       - shell: bash
         env:
           DOCKER_USER: github
