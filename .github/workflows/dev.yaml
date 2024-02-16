@@ -77,8 +77,8 @@ jobs:
             echo "image: $IMAGE_NAME"
             echo "tag: $TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
-            PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1)
-            echo "$PUSH_OUTPUT"
+            exec 5>&1
+            PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1 | tee >(cat - >&5))
             # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
             DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
             # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
@@ -91,8 +91,8 @@ jobs:
             echo "image: $IMAGE_NAME"
             docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
-            PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
-            echo "$PUSH_OUTPUT"
+            exec 5>&1
+            PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1 | tee >(cat - >&5))
             # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
             DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
             # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
