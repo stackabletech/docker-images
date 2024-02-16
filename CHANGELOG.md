@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: Remove support for `2.6.1` ([#562]).
 - hadoop: Remove support for version `3.2.2` ([#540]).
+- hbase: Remove support for version `2.4.12` ([#567]).
 - kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
 - spark: Remove support for version `3.4.0`, `3.4.0-java17` ([#560]).
@@ -90,6 +91,7 @@ All notable changes to this project will be documented in this file.
 [#564]: https://github.com/stackabletech/docker-images/pull/564
 [#565]: https://github.com/stackabletech/docker-images/pull/565
 [#566]: https://github.com/stackabletech/docker-images/pull/566
+[#567]: https://github.com/stackabletech/docker-images/pull/567
 
 ## [23.11.0] - 2023-11-30
 
