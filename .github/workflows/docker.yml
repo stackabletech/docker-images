@@ -21,7 +21,7 @@ jobs:
       - name: Install brew
         run: export HOMEBREW_NO_INSTALL_FROM_API=1 && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
       - name: install docker
-        run: brew install homebrew/cask/docker 
+        run: brew install docker 
       - shell: bash
         env:
           DOCKER_USER: github
