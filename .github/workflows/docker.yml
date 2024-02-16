@@ -18,7 +18,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: docker-practice/actions-setup-docker@master
+      - name: Install docker
+        run: brew install docker buildx docker-compose
       - shell: bash
         env:
           DOCKER_USER: github
