@@ -21,10 +21,10 @@ jobs:
       - name: Install brew
         run: export HOMEBREW_NO_INSTALL_FROM_API=1 && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
       - name: install docker
-        run: brew install homebrew/cask/docker
+        run: brew install homebrew/cask/docker 
       - shell: bash
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-ubi8-rust-builder
+        run: open -a docker && make push-ubi8-rust-builder
 
