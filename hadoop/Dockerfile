@@ -6,7 +6,6 @@ ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
-ARG HDFS_UTILS
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -96,6 +95,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG TOPOLOGY_PROVIDER
+ARG HDFS_UTILS
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -142,7 +142,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stack
 RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
 
 # The Stackable HDFS utils contain an OPA authorizer and group mapper
-RUN if [[ -n ${HDFS_UTILS} ]] ; then \
+RUN if [[ -n "${HDFS_UTILS}" ]] ; then \
         curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-utils-${HDFS_UTILS}.jar ; \
     fi
 
