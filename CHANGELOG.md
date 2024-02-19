@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add `2.7.3`, `2.8.1` ([#562]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
+- nifi: Add version `1.25.0` using java 21 ([#552]).
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
@@ -82,6 +83,7 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
+[#552]: https://github.com/stackabletech/docker-images/pull/552
 [#555]: https://github.com/stackabletech/docker-images/pull/555
 [#558]: https://github.com/stackabletech/docker-images/pull/558
 [#559]: https://github.com/stackabletech/docker-images/pull/559
