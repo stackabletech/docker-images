@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `438` ([#547]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
+- hadoop: Add hdfs-utils ([#566]).
 
 ### Changed
 
@@ -89,6 +90,7 @@ All notable changes to this project will be documented in this file.
 [#563]: https://github.com/stackabletech/docker-images/pull/563
 [#564]: https://github.com/stackabletech/docker-images/pull/564
 [#565]: https://github.com/stackabletech/docker-images/pull/565
+[#566]: https://github.com/stackabletech/docker-images/pull/566
 [#567]: https://github.com/stackabletech/docker-images/pull/567
 
 ## [23.11.0] - 2023-11-30
