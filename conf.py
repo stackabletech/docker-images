@@ -372,10 +372,10 @@ products = [
             },
             {
                 # OPA authorizer included
-                "product": "438",
+                "product": "439",
                 "java-base": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "438"
+                "storage_connector": "439"
             },
         ],
     },
