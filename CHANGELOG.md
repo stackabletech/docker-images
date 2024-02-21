@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file.
 - airflow: bump git-sync to `4.2.1` ([#562]).
 - hdfs: bump topology-provider to `0.2.0` ([#565]).
 - java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
-  HDFS, HBase, Trino, Spark, Druid ([#XXX]).
+  HDFS, HBase, Trino, Spark, Druid ([#572]).
 
 ### Removed
 
@@ -98,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#567]: https://github.com/stackabletech/docker-images/pull/567
 [#570]: https://github.com/stackabletech/docker-images/pull/570
 [#571]: https://github.com/stackabletech/docker-images/pull/571
+[#572]: https://github.com/stackabletech/docker-images/pull/572
 
 ## [23.11.0] - 2023-11-30
 
