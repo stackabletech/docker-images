@@ -134,6 +134,7 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
+RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from
@@ -144,7 +145,6 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-to
 # The Stackable HDFS utils contain an OPA authorizer and group mapper
 RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 
-RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 ENV HOME=/stackable
