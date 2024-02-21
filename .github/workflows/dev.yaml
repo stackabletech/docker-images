@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feat/push-sbombs-to-nexus
+      - feat/push-sboms-to-nexus
 
 jobs:
   development:
