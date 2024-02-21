@@ -79,15 +79,6 @@ products = [
         "name": "hadoop",
         "versions": [
             {
-                "product": "3.2.4",
-                "java-base": "11",
-                "async_profiler": "2.9",
-                "jmx_exporter": "0.20.0",
-                "protobuf": "2.5.0",
-                # no HDFS utils, as e.g. patches from https://github.com/apache/hadoop/pull/6553 are missing. 3.2.x will probably removed in version 24.3 anyway.
-                "topology_provider": "0.2.0"
-            },
-            {
                 "product": "3.3.4",
                 "java-base": "11",
                 "async_profiler": "2.9",
