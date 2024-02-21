@@ -139,11 +139,11 @@ COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stack
 # labels to build a rackID from
 # source code is at: https://github.com/stackabletech/hdfs-topology-provider
 # N.B. the artifact name changed from 0.2.0 onwards i.e. from topology-provider-0.1.0.jar to hdfs-topology-provider-0.2.0.jar
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
 
 # The Stackable HDFS utils contain an OPA authorizer and group mapper
 RUN if [[ -n "${HDFS_UTILS}" ]] ; then \
-        curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/hdfs-utils-${HDFS_UTILS}.jar ; \
+        curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar ; \
     fi
 
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
