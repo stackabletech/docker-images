@@ -142,9 +142,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stack
 RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
 
 # The Stackable HDFS utils contain an OPA authorizer and group mapper
-RUN if [[ -n "${HDFS_UTILS}" ]] ; then \
-        curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar ; \
-    fi
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
