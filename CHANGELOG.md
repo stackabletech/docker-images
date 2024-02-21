@@ -51,6 +51,8 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555], [#564]).
 - airflow: bump git-sync to `4.2.1` ([#562]).
 - hdfs: bump topology-provider to `0.2.0` ([#565]).
+- java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
+  HDFS, HBase, Trino, Spark, Druid ([#XXX]).
 
 ### Removed
 

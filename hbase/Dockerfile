@@ -135,12 +135,10 @@ LABEL name="Apache HBase" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# The krb5-workstation is needed for Kerberos support.
 # The tar and python packages are required by the Phoenix command line.
 # We add zip and gzip because tar without compression is seldom useful.
 RUN microdnf update && \
     microdnf install \
-    krb5-workstation \
     tar \
     gzip \
     zip \
