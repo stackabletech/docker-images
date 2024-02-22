@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
 - hadoop: Add hdfs-utils ([#566]).
+- testing-tools: add pytest `8.0.1` ([#575]).
 
 ### Changed
 
@@ -99,6 +100,7 @@ All notable changes to this project will be documented in this file.
 [#570]: https://github.com/stackabletech/docker-images/pull/570
 [#571]: https://github.com/stackabletech/docker-images/pull/571
 [#572]: https://github.com/stackabletech/docker-images/pull/572
+[#575]: https://github.com/stackabletech/docker-images/pull/575
 
 ## [23.11.0] - 2023-11-30
 
