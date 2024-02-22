@@ -18,7 +18,7 @@ define manifest
 endef
 
 define manifest_push
-	docker manifest push ${REPO}/${1}-${ARCH}:latest
+	docker manifest push ${REPO}/${1}:latest
 endef
 
 # Pulling both images after building them, ugly need a better way
