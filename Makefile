@@ -5,7 +5,7 @@ TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 
 define push
-	docker push --all-tags ${REPO}/$(1)
+	docker push --all-tags ${REPO}/$(1)-${ARCH}
 endef
 
 define build
