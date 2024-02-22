@@ -12,7 +12,6 @@ jobs:
   build:
     name: Build and publish both arch
     strategy:
-      fail-fast: true
       matrix:
         runner: [ubuntu:latest, buildjet-4vcpu-ubuntu-2204-arm]
     runs-on: ${{ matrix.runner }} 
