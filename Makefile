@@ -5,16 +5,16 @@ TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 
 define push
-	docker push --all-tags ${REPO}/$(1)-${ARCH}
+	docker push --all-tags ${REPO}/$(1)
 endef
 
 define build
-	@docker build --force-rm -t "${REPO}/${1}-${ARCH}:${TAG}" -t "${REPO}/${1}-${ARCH}:latest" -f $(1)/Dockerfile .
+	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
 endef
 
 # Tag for arm64 is fixed since this will run on gh ubuntu-latest
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}-${ARCH}:latest ${REPO}/${1}-aarch64:latest
+	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}:latest-${ARCH} ${REPO}/${1}:latest-aarch64
 endef
 
 define manifest_push
@@ -23,11 +23,11 @@ endef
 
 # Pulling both images after building them, ugly need a better way
 define pull-arm64
-	@docker pull ${REPO}/${1}-aarch64:latest 
+	@docker pull ${REPO}/${1}:latest-aarch64 
 endef
 
 define pull-amd64
-	@docker pull ${REPO}/${1}-${ARCH}:latest 
+	@docker pull ${REPO}/${1}:latest-${ARCH} 
 endef
 
 build-ubi8-rust-builder: NAME = ubi8-rust-builder
