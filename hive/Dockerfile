@@ -21,10 +21,8 @@ LABEL name="Apache Hive" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# The krb5-workstation is needed for Kerberos support.
 RUN microdnf update && \
     microdnf install \
-    krb5-workstation \
     tar \
     gzip \
     zip \

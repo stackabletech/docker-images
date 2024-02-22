@@ -115,7 +115,6 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation \
     # tar is required for `kubectl cp` which can be used to copy the log files
     # or profiler flamegraph from the Pod
     tar && \
