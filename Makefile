@@ -27,7 +27,7 @@ define pull-arm64
 endef
 
 define pull-amd64
-	@docker pull ${REPO}/${1}-amd64:latest 
+	@docker pull ${REPO}/${1}-${ARCH}:latest 
 endef
 
 build-ubi8-rust-builder: NAME = ubi8-rust-builder
