@@ -14,16 +14,16 @@ endef
 
 # Tag for arm64 is fixed since this will run on gh ubuntu-latest
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}-${ARCH}:latest ${REPO}/${1}-arm64:latest
+	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}-${ARCH}:latest ${REPO}/${1}-aarch64:latest
 endef
 
 define manifest_push
-	docker manifest push ${REPO}/${1}:latest
+	docker manifest push ${REPO}/${1}-${ARCH}:latest
 endef
 
 # Pulling both images after building them, ugly need a better way
 define pull-arm64
-	@docker pull ${REPO}/${1}-arm64:latest 
+	@docker pull ${REPO}/${1}-aarch64:latest 
 endef
 
 define pull-amd64
