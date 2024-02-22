@@ -21,7 +21,8 @@ define manifest_push
 	docker manifest push ${REPO}/${1}:latest
 endef
 
-# Pulling both images after building them, ugly need a better way
+# Pulling both images after building them, ugly
+# TODO: find a better way
 define pull-arm64
 	@docker pull ${REPO}/${1}:latest-aarch64 
 endef
