@@ -13,18 +13,12 @@ jobs:
     name: Build and push Docker image
     strategy:
         fail-fast: true
-        matrix:
-          runner: [ubuntu-latest, macos-14]
-    runs-on: ${{ matrix.runner }}
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - name: Install brew
-        run: export HOMEBREW_NO_INSTALL_FROM_API=1 && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-      - name: install docker
-        run: brew install docker && open -a Docker 
       - shell: bash
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: open -a Docker && make push-ubi8-rust-builder
+        run: make push-ubi8-rust-builder
 
