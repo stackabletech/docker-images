@@ -11,4 +11,5 @@ trino==0.322.0
 gssapi==1.8.3
 kerberos==1.3.1
 pure-sasl==0.6.2
+pytest==8.0.1
 #thrift==0.13.0 # Installed as deb package because it fails to build from source with pip. Needs to match the version from hive-metastore-client
