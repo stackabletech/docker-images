@@ -14,6 +14,8 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG JMX_EXPORTER
 ARG RELEASE
+ARG TARGETARCH
+ARG TINI
 
 LABEL name="Apache Spark" \
     maintainer="info@stackable.tech" \
@@ -43,8 +45,8 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
-# according to arch, copy binary to the name "tini"
-RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-$(arch)"
+# Get the correct `tini` binary for our architecture.
+RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses

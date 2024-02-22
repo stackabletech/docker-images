@@ -2,9 +2,12 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
+ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
+ARG TARGETARCH
+ARG TARGETOS
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -35,6 +38,10 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jm
     chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+
+RUN ARCH="${TARGETARCH/amd64/x64}" && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
+    ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
@@ -88,6 +95,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG TOPOLOGY_PROVIDER
+ARG HDFS_UTILS
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -107,7 +115,9 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation && \
+    # tar is required for `kubectl cp` which can be used to copy the log files
+    # or profiler flamegraph from the Pod
+    tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -122,13 +132,18 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
+RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from
 # source code is at: https://github.com/stackabletech/hdfs-topology-provider
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/topology-provider-${TOPOLOGY_PROVIDER}.jar
+# N.B. the artifact name changed from 0.2.0 onwards i.e. from topology-provider-0.1.0.jar to hdfs-topology-provider-0.2.0.jar
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
 
-RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+# The Stackable HDFS utils contain an OPA authorizer and group mapper
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 ENV HOME=/stackable
@@ -136,6 +151,7 @@ ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
 ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
+ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
