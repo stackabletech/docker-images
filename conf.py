@@ -84,7 +84,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "hdfs_utils": "0.1.0",
+                "hdfs_utils": "0.1.1",
                 "topology_provider": "0.2.0"
             },
             {
@@ -93,7 +93,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "hdfs_utils": "0.1.0",
+                "hdfs_utils": "0.1.1",
                 "topology_provider": "0.2.0"
             },
         ],
