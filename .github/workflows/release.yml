@@ -93,6 +93,18 @@ jobs:
             # Uses the keyless signing flow with Github Actions as identity provider
             cosign sign -y "$IMAGE_NAME@$DIGEST"
 
+            # Generate SBOM for the image
+            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+            # Determine the PURL for the image
+            PURL="pkg:docker/stackable/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
+            # Get metadata from the image
+            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+            # Merge the SBOM with the metadata for the image
+            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+            # Attest the SBOM to the image
+            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
+
             # Push to oci.stackable.tech as well
             IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
             echo "image: $IMAGE_NAME"
