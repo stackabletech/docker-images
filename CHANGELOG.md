@@ -25,12 +25,14 @@ All notable changes to this project will be documented in this file.
 - airflow: Add `2.7.3`, `2.8.1` ([#562]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
+- nifi: Add version `1.25.0` using java 21 ([#552]).
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
-- trino: Add version `438` ([#547]).
+- trino: Add version `439` ([#570]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
+- hadoop: Add hdfs-utils ([#566]).
 
 ### Changed
 
@@ -49,11 +51,14 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555], [#564]).
 - airflow: bump git-sync to `4.2.1` ([#562]).
 - hdfs: bump topology-provider to `0.2.0` ([#565]).
+- java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
+  HDFS, HBase, Trino, Spark, Druid ([#572]).
 
 ### Removed
 
 - airflow: Remove support for `2.6.1` ([#562]).
-- hadoop: Remove support for version `3.2.2` ([#540]).
+- hadoop: Remove support for version `3.2.2` and `3.2.4` (this ends the `3.2` line) ([#540], [#571]).
+- hbase: Remove support for version `2.4.12` ([#567]).
 - kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
 - spark: Remove support for version `3.4.0`, `3.4.0-java17` ([#560]).
@@ -80,6 +85,7 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
+[#552]: https://github.com/stackabletech/docker-images/pull/552
 [#555]: https://github.com/stackabletech/docker-images/pull/555
 [#558]: https://github.com/stackabletech/docker-images/pull/558
 [#559]: https://github.com/stackabletech/docker-images/pull/559
@@ -88,6 +94,11 @@ All notable changes to this project will be documented in this file.
 [#563]: https://github.com/stackabletech/docker-images/pull/563
 [#564]: https://github.com/stackabletech/docker-images/pull/564
 [#565]: https://github.com/stackabletech/docker-images/pull/565
+[#566]: https://github.com/stackabletech/docker-images/pull/566
+[#567]: https://github.com/stackabletech/docker-images/pull/567
+[#570]: https://github.com/stackabletech/docker-images/pull/570
+[#571]: https://github.com/stackabletech/docker-images/pull/571
+[#572]: https://github.com/stackabletech/docker-images/pull/572
 
 ## [23.11.0] - 2023-11-30
 

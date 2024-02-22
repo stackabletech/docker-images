@@ -65,7 +65,7 @@ products = [
                 "product": "28.0.1",
                 # Java 17 should be fully supported as of 27.0.0 https://github.com/apache/druid/releases#27.0.0-highlights-java-17-support
                 # Did not work in a quick test due to reflection error:
-                # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class 
+                # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class
                 # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
                 "java-base": "11",
                 "jackson_dataformat_xml": "2.12.7", # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
@@ -79,19 +79,12 @@ products = [
         "name": "hadoop",
         "versions": [
             {
-                "product": "3.2.4",
-                "java-base": "11",
-                "async_profiler": "2.9",
-                "jmx_exporter": "0.20.0",
-                "protobuf": "2.5.0",
-                "topology_provider": "0.2.0"
-            },
-            {
                 "product": "3.3.4",
                 "java-base": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
+                "hdfs_utils": "0.1.0",
                 "topology_provider": "0.2.0"
             },
             {
@@ -100,6 +93,7 @@ products = [
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
+                "hdfs_utils": "0.1.0",
                 "topology_provider": "0.2.0"
             },
         ],
@@ -112,18 +106,8 @@ products = [
         # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
         # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
              {
-                 "product": "2.4.12",
-                 "hbase_thirdparty": "3.5.1",
-                 "hbase_operator_tools": "1.2.0",
-                 "java-base": "11",
-                 "async_profiler": "2.9",
-                 "phoenix": "2.4-5.1.2",
-                 "hadoop_m2": "3.3.6",
-                 "jmx_exporter": "0.20.0",
-             },
-             {
                  "product": "2.4.17",
-                 "hbase_thirdparty": "4.1.4",
+                 "hbase_thirdparty": "4.1.5",
                  "hbase_operator_tools": "1.2.0",
                  "java-base": "11",
                  "async_profiler": "2.9",
@@ -221,8 +205,18 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {"product": "1.21.0", "java-base": "11"},
-            {"product": "1.23.2", "java-base": "11"},
+            {
+                "product": "1.21.0",
+                "java-base": "11"
+            },
+            {
+                "product": "1.23.2",
+                "java-base": "11"
+            },
+            {
+                "product": "1.25.0",
+                "java-base": "21"
+            },
         ],
     },
     {
@@ -356,8 +350,8 @@ products = [
             {
                 "product": "414",
                 "java-base": "17",
-                "opa_authorizer": "stackable0.2.0", 
-                "jmx_exporter": "0.20.0", 
+                "opa_authorizer": "stackable0.2.0",
+                "jmx_exporter": "0.20.0",
                 "storage_connector": "414"
             },
             {
@@ -369,10 +363,10 @@ products = [
             },
             {
                 # OPA authorizer included
-                "product": "438",
+                "product": "439",
                 "java-base": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "438"
+                "storage_connector": "439"
             },
         ],
     },
