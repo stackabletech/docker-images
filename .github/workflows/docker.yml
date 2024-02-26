@@ -13,7 +13,7 @@ jobs:
     name: Build and publish both arch
     strategy:
       matrix:
-        runner: ["ubuntu-latest", "buildjet-4vcpu-ubuntu-2204-arm"]
+        runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
