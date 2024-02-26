@@ -1,6 +1,6 @@
 .PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, login
 
-REPO   := docker.stackable.tech/stackable-experimental
+REPO   := docker.stackable.tech/stackable
 TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 
@@ -19,16 +19,6 @@ endef
 
 define manifest_push
 	docker manifest push ${REPO}/${1}:latest
-endef
-
-# Pulling both images after building them, ugly
-# TODO: find a better way
-define pull-arm64
-	@docker pull ${REPO}/${1}:latest-aarch64 
-endef
-
-define pull-amd64
-	@docker pull ${REPO}/${1}:latest-${ARCH} 
 endef
 
 build-ubi8-rust-builder: NAME = ubi8-rust-builder
