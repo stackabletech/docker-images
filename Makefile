@@ -49,7 +49,7 @@ build-manifest-list:
 	$(call manifest,${NAME})
 
 push-manifest-list: NAME = ubi8-rust-builder
-push-manifest-list: login pull-ubi8-rust-builder build-manifest-list 
+push-manifest-list: login build-manifest-list 
 	$(call manifest_push,${NAME})
 
 login:
