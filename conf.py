@@ -345,6 +345,15 @@ products = [
         ],
     },
     {
+        "name": "trino-cli",
+        "versions": [
+            {
+                "product": "439",
+                "java-base": "21",
+            },
+        ]
+    },
+    {
         "name": "trino",
         "versions": [
             {
