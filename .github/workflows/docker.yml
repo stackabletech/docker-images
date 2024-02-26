@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build and publish both arch
+    name: Build and publish a single arch
     strategy:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
