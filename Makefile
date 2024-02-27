@@ -12,7 +12,6 @@ define build
 	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
 endef
 
-# Tag for arm64 is fixed since this will run on gh ubuntu-latest
 define manifest
 	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}:latest-x86_64 ${REPO}/${1}:latest-aarch64
 endef
