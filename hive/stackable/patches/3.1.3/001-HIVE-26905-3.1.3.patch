@@ -1,0 +1,27 @@
+From 5e9b99cdcac99bcce86fc040b066fdfbc319060d Mon Sep 17 00:00:00 2001
+From: Chris Nauroth <cnauroth@apache.org>
+Date: Thu, 5 Jan 2023 05:19:41 +0000
+Subject: [PATCH] HIVE-26905: Backport HIVE-25173 to 3.2.0: Exclude
+ pentaho-aggdesigner-algorithm from upgrade-acid build.
+
+---
+ upgrade-acid/pom.xml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/upgrade-acid/pom.xml b/upgrade-acid/pom.xml
+index 5002fc6f6317..131f86fc1f7d 100644
+--- a/upgrade-acid/pom.xml
++++ b/upgrade-acid/pom.xml
+@@ -80,6 +80,12 @@
+             <artifactId>hive-exec</artifactId>
+             <version>2.3.3</version>
+             <scope>provided</scope>
++            <exclusions>
++              <exclusion>
++                <groupId>org.pentaho</groupId>
++                <artifactId>pentaho-aggdesigner-algorithm</artifactId>
++              </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.hadoop</groupId>
