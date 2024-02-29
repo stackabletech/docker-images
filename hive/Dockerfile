@@ -5,9 +5,11 @@ ARG PRODUCT
 
 RUN microdnf update && \
     microdnf install \
+    # For the apply_patches.sh script
+    git \
+    gzip \
     maven \
     tar \
-    gzip \
     zip && \
     microdnf clean all
 

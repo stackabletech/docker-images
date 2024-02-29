@@ -41,7 +41,7 @@ fi
 # Iterate through sorted patch files
 for patch_file in "${patch_files[@]}"; do
   echo "Applying $patch_file"
-  git apply --directory "hive-${VERSION}-src" "$patch_file" || {
+  git apply --directory "apache-hive-${VERSION}-src" "$patch_file" || {
     echo "Failed to apply $patch_file"
     exit 1
   }

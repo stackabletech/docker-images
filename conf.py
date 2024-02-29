@@ -132,7 +132,7 @@ products = [
             {
                 "product": "3.1.3",
                 "jmx_exporter": "0.20.0",
-                "java-base": "11",
+                "java-base": "1.8.0",
                 "hadoop_libs": "3.3.3",
                 "jackson_dataformat_xml": "2.12.3",
                 "aws_java_sdk_bundle": "1.11.1026",
@@ -144,6 +144,10 @@ products = [
     {
         "name": "java-base",
         "versions": [
+            {
+                "product": "1.8.0",
+                "vector": "0.35.0",
+            },
             {
                 "product": "11",
                 "vector": "0.35.0",
