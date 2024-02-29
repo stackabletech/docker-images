@@ -1,8 +1,11 @@
 # syntax=docker/dockerfile:1
+
+FROM stackable/image/hadoop AS hadoop-builder
+
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
-ARG HADOOP_LIBS
+ARG HADOOP
 ARG JMX_EXPORTER
 ARG JACKSON_DATAFORMAT_XML
 ARG AWS_JAVA_SDK_BUNDLE
@@ -50,20 +53,19 @@ RUN rm /stackable/apache-hive-${PRODUCT}/lib/postgresql-9.4.1208.jre7.jar && \
     curl --fail -L -O https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.7.2.jar
 
 
-# TODO: Depend on our custom build Hadoop version instead
+COPY --link --from=hadoop-builder /stackable/hadoop /stackable/hadoop
 
-# Download aws module for Hadoop (support for s3a://)
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LIBS}.jar -o /stackable/hive/lib/
+# The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
+# This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
-# Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar -o /stackable/hive/lib/
+# Add S3 Support for Hive (support for s3a://)
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hive/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/hive/lib/
 
-# Download azure module for Hadoop (support for abfs://)
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LIBS}.jar -o /stackable/hive/lib/
-
-# Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar -o /stackable/hive/lib/
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar -o /stackable/hive/lib/
+# Add Azure ABFS support (support for abfs://)
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/hive/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive/lib/
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -97,12 +99,11 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/apache-hive-${PRODUCT}
 # ===
 
-
-
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG HADOOP
 ARG RELEASE
 
 LABEL name="Apache Hive" \
@@ -118,22 +119,27 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
 
-# ENV HADOOP_HOME=/stackable/hadoop
-ENV HIVE_HOME=/stackable/hive
-
-
 COPY --link --from=builder /stackable/apache-hive-${PRODUCT} /stackable/apache-hive-${PRODUCT}
 RUN ln -s /stackable/apache-hive-${PRODUCT}/ /stackable/hive
+
+# It is useful to see which version of Hadoop is used at a glance
+# Therefore the use of the full name here
+COPY --link --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+RUN ln -s /stackable/hadoop-${HADOOP}/ /stackable/hadoop
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+ENV HADOOP_HOME=/stackable/hadoop
+ENV HIVE_HOME=/stackable/hive
 
 WORKDIR /stackable/hive
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]
