@@ -9,6 +9,7 @@ RUN microdnf update && \
     maven \
     # Required to unpack Omid tarball
     tar \
+    gzip \
     git \
     # Required by log4shell mitigation script
     zip && \
