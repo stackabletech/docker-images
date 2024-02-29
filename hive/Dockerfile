@@ -11,22 +11,42 @@ RUN microdnf update && \
     zip && \
     microdnf clean all
 
+COPY --chown=stackable:stackable hive/stackable /stackable
+COPY hive/licenses /licenses
+
 USER stackable
 WORKDIR /stackable
 
 SHELL ["bash", "-euo", "pipefail", "-c"]
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/hive-${PRODUCT}-src.tar.gz" | tar -xzC .
-RUN mv hive-${PRODUCT} hive-${PRODUCT}-src
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN chmod +x patches/apply_patches.sh
 RUN patches/apply_patches.sh ${PRODUCT}
-RUN cd /stackable/hive-${PRODUCT}-src/ && \
-    mvn TOOO
+RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
+    mvn clean package -DskipTests -Pdist && \
+    tar -xzf packaging/target/apache-hive-${PRODUCT}-bin.tar.gz -C /stackable
 
-WORKDIR /stackable/hive-${PRODUCT}-src
-# TODO - add proper build commands
-RUN mvn package -Phbase-2 -DskipTests && \
-    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+
+# ===
+# For earlier versions this script removes the .class file that contains the
+# vulnerable code.
+# TODO: This can be restricted to target only versions which do not honor the environment
+#   varible that has been set above but this has not currently been implemented
+COPY shared/log4shell.sh /bin
+RUN /bin/log4shell.sh /stackable/apache-hive-${PRODUCT}
+
+# Ensure no vulnerable files are left over
+# This will currently report vulnerable files being present, as it also alerts on
+# SocketNode.class, which we do not remove with our scripts.
+# Further investigation will be needed whether this should also be removed.
+COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
+COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
+COPY shared/log4shell_scanner /bin/log4shell_scanner
+RUN /bin/log4shell_scanner s /stackable/apache-hive-${PRODUCT}
+# ===
+
+
+
 
 
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
@@ -53,20 +73,13 @@ LABEL name="Apache Hive" \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
-    microdnf install \
-    tar \
-    gzip \
-    zip \
-    which && \
-    microdnf clean all
-
-COPY --chown=stackable:stackable hive/stackable /stackable
-COPY hive/licenses /licenses
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
 
-COPY --from=builder /stackable/hive-${PRODUCT}-src /stackable/hive-${PRODUCT}
+COPY --from=builder /stackable/apache-hive-${PRODUCT}-src /stackable/apache-hive-${PRODUCT}
 
 # Download hive and hadoop
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
@@ -128,28 +141,10 @@ RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive
 
-# ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hive
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hive
-# ===
 
 WORKDIR /stackable/hive
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]

@@ -21,6 +21,7 @@ fi
 
 # Create an array to hold the patches in sorted order
 declare -a patch_files
+patch_files=()
 
 echo "Applying patches from ${PATCH_DIR}" now
 
@@ -30,6 +31,12 @@ while IFS= read -r -d $'\0' file; do
 done < <(find "$PATCH_DIR" -name "*.patch" -print0 | sort -zV)
 
 echo "Found ${#patch_files[@]} patches, applying now"
+
+# Check if any patches were found
+if [ ${#patch_files[@]} -eq 0 ]; then
+  echo "No patches found in $PATCH_DIR, nothing to apply."
+  exit 0
+fi
 
 # Iterate through sorted patch files
 for patch_file in "${patch_files[@]}"; do
