@@ -1,3 +1,34 @@
+# syntax=docker/dockerfile:1
+FROM stackable/image/java-base AS builder
+
+ARG PRODUCT
+
+RUN microdnf update && \
+    microdnf install \
+    maven \
+    tar \
+    gzip \
+    zip && \
+    microdnf clean all
+
+USER stackable
+WORKDIR /stackable
+
+SHELL ["bash", "-euo", "pipefail", "-c"]
+
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/hive-${PRODUCT}-src.tar.gz" | tar -xzC .
+RUN mv hive-${PRODUCT} hive-${PRODUCT}-src
+RUN chmod +x patches/apply_patches.sh
+RUN patches/apply_patches.sh ${PRODUCT}
+RUN cd /stackable/hive-${PRODUCT}-src/ && \
+    mvn TOOO
+
+WORKDIR /stackable/hive-${PRODUCT}-src
+# TODO - add proper build commands
+RUN mvn package -Phbase-2 -DskipTests && \
+    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+
+
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 FROM stackable/image/java-base
 
@@ -34,6 +65,8 @@ COPY hive/licenses /licenses
 
 USER stackable
 WORKDIR /stackable
+
+COPY --from=builder /stackable/hive-${PRODUCT}-src /stackable/hive-${PRODUCT}
 
 # Download hive and hadoop
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
