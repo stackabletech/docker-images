@@ -29,7 +29,7 @@ COPY hive/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-SHELL ["/usr/bin/env", "bash", "-euo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN chmod +x patches/apply_patches.sh
@@ -115,7 +115,7 @@ LABEL name="Apache Hive" \
       description="This image is deployed by the Stackable Operator for Apache Hive."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/usr/bin/env", "bash", "-euo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf clean all && \
