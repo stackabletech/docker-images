@@ -143,6 +143,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive
+ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive/bin
 
 WORKDIR /stackable/hive
 CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]
