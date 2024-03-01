@@ -24,7 +24,6 @@ RUN microdnf update && \
     microdnf clean all
 
 COPY --chown=stackable:stackable hive/stackable /stackable
-COPY hive/licenses /licenses
 
 USER stackable
 WORKDIR /stackable
@@ -134,7 +133,7 @@ COPY --link --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
 RUN ln -s /stackable/hadoop-${HADOOP}/ /stackable/hadoop
 
 COPY --link --from=builder /stackable/jmx /stackable/jmx
-
+COPY hive/licenses /licenses
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
