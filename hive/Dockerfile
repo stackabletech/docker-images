@@ -50,7 +50,7 @@ RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
 # Note: We hardcode the versions here to make sure this replacement will be removed once Hive ships with a more recent driver
 # version as the "rm" statement will fail.
 RUN rm /stackable/apache-hive-${PRODUCT}/lib/postgresql-9.4.1208.jre7.jar && \
-    curl --fail -L -O https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.7.2.jar
+    curl --fail -L -O https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.7.2.jar -o /stackable/hive/lib/
 
 
 COPY --link --from=hadoop-builder /stackable/hadoop /stackable/hadoop
