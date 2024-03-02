@@ -3,8 +3,18 @@ FROM stackable/image/java-base AS builder
 
 ARG KCAT
 
-RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
-    microdnf install -y tar which wget zlib gcc-c++ make cmake && \
+RUN microdnf install -y \
+    cmake \
+    cyrus-sasl-devel \
+    gcc-c++ \
+    libcurl-devel \
+    make \
+    openssl-deve \
+    tar \
+    wget \
+    which \
+    zlib \
+    zlib-devel && \
     microdnf clean all
 
 WORKDIR /stackable
@@ -30,12 +40,13 @@ LABEL name="Apache Kafka" \
       summary="The Stackable image for Apache Kafka." \
       description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip kubectl && \
+    microdnf install \
+    gzip \
+    kubectl \
+    tar \
+    zip && \
     microdnf clean all
 
 USER stackable

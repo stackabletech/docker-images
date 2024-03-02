@@ -13,9 +13,6 @@ ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
 # the mysql provider is currently excluded.

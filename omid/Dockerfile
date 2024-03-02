@@ -17,8 +17,6 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-SHELL ["bash", "-euo", "pipefail", "-c"]
-
 RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
 
 WORKDIR /stackable/phoenix-omid-${PRODUCT}
@@ -61,9 +59,6 @@ LABEL name="Apache Phoenix Omid" \
       release="${RELEASE}" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && microdnf clean all
 

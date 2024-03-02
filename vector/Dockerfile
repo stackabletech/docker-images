@@ -7,9 +7,6 @@ ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
 # As soon as an Init Container is done it'll need to tell the Vector sidecar that it can now also stop
 # This happens by writing a "shutdown file" in a shared volume

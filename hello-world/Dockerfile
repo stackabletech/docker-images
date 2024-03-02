@@ -12,9 +12,6 @@ LABEL name="Hello World" \
       summary="The Stackable image for the Stackable Hello World Operator" \
       description="This image is deployed by the Stackable Hello World Operator."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum

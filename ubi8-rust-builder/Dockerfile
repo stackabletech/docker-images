@@ -3,8 +3,13 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639 AS builder
 LABEL maintainer="Stackable GmbH"
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Sets the default shell to Bash with strict error handling and robust pipeline processing.
+# "-e": Exits immediately if a command exits with a non-zero status
+# "-u": Treats unset variables as an error, preventing unexpected behavior from undefined variables.
+# "-o pipefail": Causes a pipeline to return the exit status of the last command in the pipe that failed, ensuring errors in any part of a pipeline are not ignored.
+# "-c": Allows the execution of commands passed as a string
+# This is automatically inherited in all other Dockerfiles that use this unless it is overwritten
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \

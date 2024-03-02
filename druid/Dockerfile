@@ -18,9 +18,6 @@ LABEL name="Apache Druid" \
       summary="The Stackable image for Apache Druid." \
       description="This image is deployed by the Stackable Operator for Apache Druid."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install findutils tar gzip zip && \
     microdnf clean all

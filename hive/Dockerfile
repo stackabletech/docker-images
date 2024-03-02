@@ -18,9 +18,6 @@ LABEL name="Apache Hive" \
       summary="The Stackable image for Apache Hive." \
       description="This image is deployed by the Stackable Operator for Apache Hive."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install \
     tar \

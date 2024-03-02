@@ -12,9 +12,6 @@ LABEL name="Apache NiFi" \
       summary="The Stackable image for Apache NiFi." \
       description="This image is deployed by the Stackable Operator for Apache NiFi."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install tar gzip zip unzip libxslt-devel libxml2-devel gcc && \
     microdnf install python3-devel python3-pip python3-setuptools && \

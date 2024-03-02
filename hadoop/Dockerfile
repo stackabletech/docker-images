@@ -9,9 +9,6 @@ ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # All others are required for the FUSE build
 RUN microdnf update && \
     microdnf install \
@@ -104,9 +101,6 @@ LABEL name="Apache Hadoop" \
       release="${RELEASE}" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)

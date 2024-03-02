@@ -17,9 +17,6 @@ LABEL name="Trino" \
       summary="The Stackable image for Trino." \
       description="This image is deployed by the Stackable Operator for Trino."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install tar gzip zip python3 httpd-tools && \
     microdnf clean all && \

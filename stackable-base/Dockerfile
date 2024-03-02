@@ -5,6 +5,14 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab38
 # intentionally unused
 ARG PRODUCT
 
+# Sets the default shell to Bash with strict error handling and robust pipeline processing.
+# "-e": Exits immediately if a command exits with a non-zero status
+# "-u": Treats unset variables as an error, preventing unexpected behavior from undefined variables.
+# "-o pipefail": Causes a pipeline to return the exit status of the last command in the pipe that failed, ensuring errors in any part of a pipeline are not ignored.
+# "-c": Allows the execution of commands passed as a string
+# This is automatically inherited in all other Dockerfiles that use this unless it is overwritten
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
 # We configure microdnf to not install weak dependencies in this file
 # Not doing this caused the content of images to become unpredictable because
 # based on which packages get updated by `microdnf update` new weak dependencies
@@ -18,16 +26,16 @@ COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 RUN microdnf update && \
     microdnf --assumeyes install \
       # To make debugging easier, includes things like ping \
-      # 2024:02: We cannot find any vulnerabilities in the past years \
+      # Added 2024-03: We cannot find any vulnerabilities in the past years \
       # https://github.com/iputils/iputils \
       iputils \
       # To make debugging easier \
-      # less has seen three vulnerabilities between 2004 and 2022 which is a risk we're willing to accept for the added convenience \
+      # Added 2024-03: less has seen three vulnerabilities between 2004 and 2022 which is a risk we're willing to accept for the added convenience \
       # https://nvd.nist.gov/vuln/search/results?form_type=Advanced&results_type=overview&search_type=all&isCpeNameSearch=false&cpe_vendor=cpe%3A%2F%3Agnu&cpe_product=cpe%3A%2F%3A%3Aless \
       # cpe:2.3:a:gnu:less:*:*:*:*:*:*:*:*
       less \
       # To make debugging and changing things easier \
-      # We checked and it has not seen any vulnerabilities since 2010 (as of 2024-03) we decided to accept it into our base image \
+      # Added 2023-03: We checked and it has not seen any vulnerabilities since 2010 (as of 2024-03) we decided to accept it into our base image \
       # https://nvd.nist.gov/vuln/search/results?form_type=Advanced&results_type=overview&query=cpe%3A2.3%3Aa%3Agnu%3Anano&search_type=all&isCpeNameSearch=false
       # cpe:2.3:a:gnu:nano:*:*:*:*:*:*:*:*
       nano \
@@ -38,9 +46,8 @@ RUN microdnf update && \
     mkdir /stackable && \
     chown stackable:stackable /stackable && \
     microdnf remove shadow-utils && \
-    microdnf clean all
-
-RUN echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc && \
+    microdnf clean all && \
+    echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc && \
     echo "alias ls='ls --color=auto'" >> /stackable/.bashrc && \
     echo "alias ..='cd ..'" >> /stackable/.bashrc && \
     echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \

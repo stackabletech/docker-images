@@ -14,9 +14,6 @@ LABEL name="Stackable Tools" \
     summary="Stackable Tools for Kubernetes." \
     description="Stackable Tools for Kubernetes."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install iputils tar gzip zip openssl gettext && \
     microdnf clean all

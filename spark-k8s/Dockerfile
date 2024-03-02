@@ -25,9 +25,6 @@ LABEL name="Apache Spark" \
     summary="The Stackable image for Apache Spark with PySpark support." \
     description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install tar gzip zip && \
     # required for spark startup scripts

@@ -14,7 +14,7 @@ LABEL name="Stackable Testing Tools" \
       description="Used by Stackable integration tests."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 # This is needed so that krb5-user installs without prompting for a realm.
 ENV DEBIAN_FRONTEND=noninteractive

@@ -11,9 +11,6 @@ LABEL name="Trino CLI" \
       summary="The Stackable image for the Trino CLI." \
       description="This image can be used to interact with Stackable Trino deployments."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install tar gzip zip && \
     microdnf clean all

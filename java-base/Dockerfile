@@ -12,9 +12,6 @@ LABEL name="Stackable image for OpenJDK" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
     microdnf install \
     # Obviously needed to run Java programs

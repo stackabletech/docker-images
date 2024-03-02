@@ -11,9 +11,6 @@ ARG HADOOP_M2
 ARG TARGETARCH
 ARG TARGETOS
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # zip required for the log4shell stuff
 RUN microdnf update && \
     microdnf install \
@@ -131,9 +128,6 @@ LABEL name="Apache HBase" \
     release="${RELEASE}" \
     summary="The Stackable image for Apache HBase." \
     description="This image is deployed by the Stackable Operator for Apache HBase."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # The tar and python packages are required by the Phoenix command line.
 # We add zip and gzip because tar without compression is seldom useful.
