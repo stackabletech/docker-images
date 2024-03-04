@@ -39,7 +39,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
-          SHA_X86_64="${{ needs.build.outputs.sha_x86_64 }}" \
-          SHA_AARCH64="${{ needs.build.outputs.sha_aarch64 }}" \
+          SHA_X86_64="${{ needs.build.outputs.sha_x86_64 }}"
+          SHA_AARCH64="${{ needs.build.outputs.sha_aarch64 }}"
           echo $SHA_X86_64 && echo $SHA_AARCH64
           make push-manifest-list
