@@ -15,9 +15,14 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
     runs-on: ${{ matrix.runner }}
+    outputs:
+      sha_x86_64: ${{ steps.buildstep.outputs.sha_x86_64 }}
+      sha_aarch64: ${{ steps.buildstep.outputs.sha_aarch64 }}
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - shell: bash
+      - name: checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - name: buildstep
+        shell: bash
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
@@ -32,4 +37,4 @@ jobs:
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: SHA_X86_64="${{needs.build.outputs.sha_x86_64}}" && SHA_AARCH64="${{needs.build.outputs.sha_aarch64}}" && make push-manifest-list
+        run: SHA_X86_64="${{ needs.build.outputs.sha_x86_64 }}" && SHA_AARCH64="${{ needs.build.outputs.sha_aarch64 }}" && make push-manifest-list
