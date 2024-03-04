@@ -4,8 +4,8 @@ REPO   := docker.stackable.tech/stackable-experimental
 TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 NAME   := ubi8-rust-builder
-SHAAMD := $(shell echo $SHA_X86_64)
-SHAARM := $(shell echo $SHA_AARCH64)
+SHAAMD := $SHA_X86_64
+SHAARM := $SHA_AARCH64
 
 define push
 	docker push --all-tags ${REPO}/$(1)

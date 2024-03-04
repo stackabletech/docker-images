@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-    name: Build and publish a single arch
     strategy:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
@@ -29,7 +28,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: make push-ubi8-rust-builder && echo "sha_$ARCH=$(cat imageid)" >> $GITHUB_OUTPUT && echo $(sha_$ARCH) 
   create_manifest:
-    name: Create and publish manifest list
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
