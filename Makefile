@@ -4,19 +4,19 @@ REPO   := docker.stackable.tech/stackable
 TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 NAME   := ubi8-rust-builder
+SHA-x86_64 := $(shell export sha-x86_64)
+SHA-aarch64 := $(shell export sha-aarch64)
 
 define push
 	docker push --all-tags ${REPO}/$(1)
 endef
 
 define build
-	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
+	@docker build --iidfile imageid --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
 endef
 
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}:latest-x86_64 ${REPO}/${1}:latest-aarch64
-	## This is a comment: Nat's wish
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}@{sha-X86_64} ${REPO}/${1}@{sha-aarch64}	
+	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}@{SHA-x86_64} ${REPO}/${1}@{SHA-aarch64}	
 endef
 
 define manifest_push
@@ -36,7 +36,7 @@ pull-ubi8-rust-builder: login
 	$(call pull-arm64,${NAME})
 	$(call pull-amd64,${NAME})
 
-build-manifest-list: NAME = ubi8-rust-builder
+build-manifest-list:
 build-manifest-list:
 	$(call manifest,${NAME})
 
