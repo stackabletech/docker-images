@@ -16,7 +16,7 @@ define build
 endef
 
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}@${SHAAMD} ${REPO}/${1}@${SHAARM}	
+	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}@${SHAAMD}" "${REPO}/${1}@${SHAARM}"
 endef
 
 define manifest_push
