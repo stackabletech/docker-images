@@ -4,8 +4,8 @@ REPO   := docker.stackable.tech/stackable
 TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 NAME   := ubi8-rust-builder
-SHA-x86_64 := $(shell export sha-x86_64)
-SHA-aarch64 := $(shell export sha-aarch64)
+SHA-amd := $(shell export sha-x86_64)
+SHA-arm := $(shell export sha-aarch64)
 
 define push
 	docker push --all-tags ${REPO}/$(1)
@@ -16,7 +16,7 @@ define build
 endef
 
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}@{SHA-x86_64} ${REPO}/${1}@{SHA-aarch64}	
+	@docker manifest create "${REPO}/${1}:latest" ${REPO}/${1}@${SHA-amd} ${REPO}/${1}@${SHA-arm}	
 endef
 
 define manifest_push
