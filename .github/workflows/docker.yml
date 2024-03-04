@@ -21,7 +21,7 @@ jobs:
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-ubi8-rust-builder && echo "sha-$ARCH=$(cat imageid)" >> $GITHUB_OUTPUT
+        run: make push-ubi8-rust-builder && echo "sha_$ARCH=$(cat imageid)" >> $GITHUB_OUTPUT 
   create_manifest:
     name: Create and publish manifest list
     runs-on: ubuntu-latest
