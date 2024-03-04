@@ -32,4 +32,4 @@ jobs:
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-manifest-list
+        run: SHA_X86_64="${{needs.build.outputs.sha_x86_64}}" && SHA_AARCH64="${{needs.build.outputs.sha_aarch64}}" && make push-manifest-list
