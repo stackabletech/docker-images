@@ -56,6 +56,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
   HDFS, HBase, Trino, Spark, Druid ([#572]).
 - hdfs: bump topology-provider to `0.3.0` ([#579]).
+- ubi8-rust-builder: bump rust toolchain to `1.76.0` ([#584]).
+- opa: bump bundle builder to version 1.1.1 ([#585]).
 
 ### Removed
 
@@ -105,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#575]: https://github.com/stackabletech/docker-images/pull/575
 [#576]: https://github.com/stackabletech/docker-images/pull/576
 [#579]: https://github.com/stackabletech/docker-images/pull/579
+[#585]: https://github.com/stackabletech/docker-images/pull/585
 
 ## [23.11.0] - 2023-11-30
 
