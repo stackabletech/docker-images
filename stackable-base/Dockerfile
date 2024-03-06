@@ -35,10 +35,15 @@ RUN microdnf update && \
       # cpe:2.3:a:gnu:less:*:*:*:*:*:*:*:*
       less \
       # To make debugging and changing things easier \
-      # Added 2023-03: We checked and it has not seen any vulnerabilities since 2010 (as of 2024-03) we decided to accept it into our base image \
+      # Added 2024-03: We checked and it has not seen any vulnerabilities since 2010 (as of 2024-03) we decided to accept it into our base image \
       # https://nvd.nist.gov/vuln/search/results?form_type=Advanced&results_type=overview&query=cpe%3A2.3%3Aa%3Agnu%3Anano&search_type=all&isCpeNameSearch=false
       # cpe:2.3:a:gnu:nano:*:*:*:*:*:*:*:*
       nano \
+      # To enable kubectl cp \
+      # Added 2024-03: We checked and it has seen eight vulnerabilities since 2001, mostly minor and it's not in executable path so we decided to accept the risk \
+      # https://nvd.nist.gov/vuln/search/results?adv_search=true&isCpeNameSearch=true&query=cpe%3A2.3%3Aa%3Agnu%3Atar%3A-%3A*%3A*%3A*%3A*%3A*%3A*%3A*
+      # cpe:2.3:a:gnu:tar:-:*:*:*:*:*:*:* \
+      tar \
       # Added only temporarily, removed again below
       shadow-utils && \
     groupadd --gid 1000 --system stackable && \
