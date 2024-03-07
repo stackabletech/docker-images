@@ -15,8 +15,9 @@ jobs:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
     runs-on: ${{ matrix.runner }}
     outputs:
-      sha_x86_64: ${{ steps.buildstep.outputs.sha_x86_64 }}
-      sha_aarch64: ${{ steps.buildstep.outputs.sha_aarch64 }}
+      # Adding runner means to add variables
+      sha_x86_64: ${{ steps.buildstep.outputs.sha_ubuntu-latest }}
+      sha_aarch64: ${{ steps.buildstep.outputs.sha_buildjet-2vcpu-ubuntu-2204-arm }}
     steps:
       - name: checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
@@ -27,7 +28,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: | 
-          make push-ubi8-rust-builder && echo "sha_$ARCH=$(cat imageid)" >> "$GITHUB_OUTPUT"
+          make push-ubi8-rust-builder && echo "sha_${{ matrix.runner }}=$(cat imageid)" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
   create_manifest:
     runs-on: ubuntu-latest
