@@ -10,7 +10,7 @@ define push
 endef
 
 define build
-	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
+	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -f $(1)/Dockerfile .
 endef
 
 define manifest
