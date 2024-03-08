@@ -28,7 +28,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: | 
-          make push-ubi8-rust-builder && echo "sha_${{ matrix.runner }}=$(cat imageid)" >> "$GITHUB_OUTPUT"
+          make push-ubi8-rust-builder && echo "sha_${{ matrix.runner }}=$( docker images --no-trunc --quiet docker.stackable.tech/stackable-experimental/ubi8-rust-builder:latest-$ARCH )" >> "$GITHUB_OUTPUT"
   create_manifest:
     runs-on: ubuntu-latest
     needs: ["build"]

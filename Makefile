@@ -14,7 +14,7 @@ define build
 endef
 
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:${TAG}-aarch64" "${REPO}/${1}:${TAG}-x86_64"
+	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:latest-aarch64@${SHA_AARCH64}" "${REPO}/${1}:latest-x86_64@${SHA_X86_64}"
 endef
 
 define manifest_push
