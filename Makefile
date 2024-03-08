@@ -10,11 +10,11 @@ define push
 endef
 
 define build
-	@docker build --iidfile imageid --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
+	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -t "${REPO}/${1}:latest-${ARCH}" -f $(1)/Dockerfile .
 endef
 
 define manifest
-	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:latest-aarch64@${SHA_AARCH64}" "${REPO}/${1}:latest-x86_64@${SHA_X86_64}"
+	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:${TAG}-aarch64" "${REPO}/${1}:${TAG}-x86_64"
 endef
 
 define manifest_push
@@ -28,11 +28,6 @@ build-ubi8-rust-builder:
 push-ubi8-rust-builder:
 push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
-
-pull-ubi8-rust-builder:
-pull-ubi8-rust-builder: login
-	$(call pull-arm64,${NAME})
-	$(call pull-amd64,${NAME})
 
 build-manifest-list:
 build-manifest-list:

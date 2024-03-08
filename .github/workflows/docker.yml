@@ -14,10 +14,10 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
     runs-on: ${{ matrix.runner }}
-    outputs:
+    # outputs:
       # Adding runner means to add variables
-      sha_x86_64: ${{ steps.buildstep.outputs.sha_ubuntu-latest }}
-      sha_aarch64: ${{ steps.buildstep.outputs.sha_buildjet-2vcpu-ubuntu-2204-arm }}
+      # sha_x86_64: ${{ steps.buildstep.outputs.sha_ubuntu-latest }}
+      # sha_aarch64: ${{ steps.buildstep.outputs.sha_buildjet-2vcpu-ubuntu-2204-arm }}
     steps:
       - name: checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
@@ -28,8 +28,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: | 
-          make push-ubi8-rust-builder && echo "sha_${{ matrix.runner }}=$( docker images --no-trunc --quiet docker.stackable.tech/stackable-experimental/ubi8-rust-builder:latest-$(arch) )" >> "$GITHUB_OUTPUT"
-          echo sha_${{ matrix.runner }}
+          make push-ubi8-rust-builder 
   create_manifest:
     runs-on: ubuntu-latest
     needs: ["build"]
@@ -39,8 +38,6 @@ jobs:
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-          SHA_X86_64: "${{ needs.build.outputs.sha_x86_64 }}"
-          SHA_AARCH64: "${{ needs.build.outputs.sha_aarch64 }}"
-        run: |
-          echo SHA_X86_64 && echo SHA_AARCH64
-          make push-manifest-list
+          # SHA_X86_64: "${{ needs.build.outputs.sha_x86_64 }}"
+          # SHA_AARCH64: "${{ needs.build.outputs.sha_aarch64 }}"
+        run: make push-manifest-list
