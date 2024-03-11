@@ -29,12 +29,12 @@ All notable changes to this project will be documented in this file.
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
-- trino: Add version `440` ([#XXX]).
+- trino: Add version `440` ([#587]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
-- trino-cli: Command line for Trino version 440 ([#XXX])
+- trino-cli: Command line for Trino version 440 ([#587])
 
 ### Changed
 
