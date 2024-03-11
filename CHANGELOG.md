@@ -101,13 +101,13 @@ All notable changes to this project will be documented in this file.
 [#565]: https://github.com/stackabletech/docker-images/pull/565
 [#566]: https://github.com/stackabletech/docker-images/pull/566
 [#567]: https://github.com/stackabletech/docker-images/pull/567
-[#570]: https://github.com/stackabletech/docker-images/pull/570
 [#571]: https://github.com/stackabletech/docker-images/pull/571
 [#572]: https://github.com/stackabletech/docker-images/pull/572
 [#575]: https://github.com/stackabletech/docker-images/pull/575
 [#576]: https://github.com/stackabletech/docker-images/pull/576
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
+[#587]: https://github.com/stackabletech/docker-images/pull/587
 
 ## [23.11.0] - 2023-11-30
 
