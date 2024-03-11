@@ -1,12 +1,7 @@
+# Copied from https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
 [kubernetes]
 name=Kubernetes
-# el7 repo is also used for RHEL 8+
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+baseurl=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-
-# microdnf doesn't like yum-key.gpg (used to sign the repo itself) for some reason, so
-# we'll have to make do with only validating signatures of the package itself
-# repo_gpgcheck=1
-# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+gpgkey=https://pkgs.k8s.io/core:/stable:/v1.29/rpm/repodata/repomd.xml.key

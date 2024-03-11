@@ -35,7 +35,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip kubectl && \
+    microdnf install tar gzip zip \
+    # Can be removed once listener-operator integration is used
+    kubectl && \
     microdnf clean all
 
 USER stackable
