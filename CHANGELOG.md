@@ -29,12 +29,12 @@ All notable changes to this project will be documented in this file.
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
-- trino: Add version `439` ([#570]).
+- trino: Add version `440` ([#587]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.9.1` ([#551]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
-- trino-cli: Command line for Trino version 439 ([#576])
+- trino-cli: Command line for Trino version 440 ([#587])
 
 ### Changed
 
@@ -101,13 +101,12 @@ All notable changes to this project will be documented in this file.
 [#565]: https://github.com/stackabletech/docker-images/pull/565
 [#566]: https://github.com/stackabletech/docker-images/pull/566
 [#567]: https://github.com/stackabletech/docker-images/pull/567
-[#570]: https://github.com/stackabletech/docker-images/pull/570
 [#571]: https://github.com/stackabletech/docker-images/pull/571
 [#572]: https://github.com/stackabletech/docker-images/pull/572
 [#575]: https://github.com/stackabletech/docker-images/pull/575
-[#576]: https://github.com/stackabletech/docker-images/pull/576
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
+[#587]: https://github.com/stackabletech/docker-images/pull/587
 
 ## [23.11.0] - 2023-11-30
 
