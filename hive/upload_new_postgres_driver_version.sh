@@ -55,7 +55,7 @@ if ! (sha1sum -c ${bin_file}.sha1 && sha1sum -c ${src_file}.sha1); then
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://raw.githubusercontent.com/pgjdbc/pgjdbc/master/KEYS) to GPG: https://www.apache.org/info/verification.html'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://raw.githubusercontent.com/pgjdbc/pgjdbc/master/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://raw.githubusercontent.com/pgjdbc/pgjdbc/master/KEYS | gpg --import")'
 
  if ! (gpg --verify "${bin_file}.asc" "${bin_file}" 2> /dev/null && gpg --verify "${src_file}.asc" "${src_file}" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"

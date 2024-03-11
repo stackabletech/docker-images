@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
 - kcat: New image. Command line utility for interacting with Kafka ([#590])
+- spark: Add version `3.5.1` ([#588]).
 
 ### Changed
 
@@ -108,6 +109,7 @@ All notable changes to this project will be documented in this file.
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
 [#587]: https://github.com/stackabletech/docker-images/pull/587
+[#588]: https://github.com/stackabletech/docker-images/pull/588
 [#590]: https://github.com/stackabletech/docker-images/pull/590
 
 ## [23.11.0] - 2023-11-30
