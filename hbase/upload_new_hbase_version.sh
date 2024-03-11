@@ -53,7 +53,7 @@ if ! (gpg --print-md SHA512 "$bin_file" | diff - "$bin_file.sha512" && gpg --pri
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://www.apache.org/dist/druid/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/spark/KEYS | gpg --import")'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://downloads.apache.org/hbase/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://downloads.apache.org/hbase/KEYS | gpg --import")'
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
   exit 1
