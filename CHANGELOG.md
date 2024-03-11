@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 439 ([#576])
-- spark: added version `3.5.1` ([#XXX]).
+- spark: added version `3.5.1` ([#588]).
 
 ### Changed
 
@@ -109,6 +109,7 @@ All notable changes to this project will be documented in this file.
 [#576]: https://github.com/stackabletech/docker-images/pull/576
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
+[#588]: https://github.com/stackabletech/docker-images/pull/588
 
 ## [23.11.0] - 2023-11-30
 
