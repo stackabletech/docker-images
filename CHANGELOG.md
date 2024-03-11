@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - hdfs: bump topology-provider to `0.3.0` ([#579]).
 - ubi8-rust-builder: bump rust toolchain to `1.76.0` ([#584]).
 - opa: bump bundle builder to version 1.1.1 ([#585]).
+- zookeeper: bump to `3.8.4` ([#591]).
 
 ### Removed
 
