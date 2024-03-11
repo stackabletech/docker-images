@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
-- spark: added version `3.5.1` ([#588]).
+- spark: Add version `3.5.1` ([#588]).
 
 ### Changed
 
