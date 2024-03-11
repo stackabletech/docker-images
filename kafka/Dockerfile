@@ -9,7 +9,7 @@ RUN microdnf install -y \
     gcc-c++ \
     libcurl-devel \
     make \
-    openssl-deve \
+    openssl-devel \
     tar \
     wget \
     which \
