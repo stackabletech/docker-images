@@ -26,6 +26,7 @@ jobs:
           - hbase
           - hive
           - kafka
+          - kcat
           - krb5
           - nifi
           - opa

@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
+- kcat: New image. Command line utility for interacting with Kafka ([#590])
 
 ### Changed
 
@@ -107,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
 [#587]: https://github.com/stackabletech/docker-images/pull/587
+[#590]: https://github.com/stackabletech/docker-images/pull/590
 
 ## [23.11.0] - 2023-11-30
 

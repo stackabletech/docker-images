@@ -380,6 +380,14 @@ products = [
         ],
     },
     {
+        "name": "kcat",
+        "versions": [{
+            "product": "1.7.0",
+            "java-base": "11",
+            "stackable-base": "1.0.0",
+        }],
+     },
+     {
         "name": "testing-tools",
         "versions": [{
             "product": "0.2.0",
