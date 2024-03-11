@@ -365,7 +365,7 @@ products = [
         "name": "trino-cli",
         "versions": [
             {
-                "product": "439",
+                "product": "440",
                 "java-base": "21",
             },
         ]
@@ -389,10 +389,10 @@ products = [
             },
             {
                 # OPA authorizer included
-                "product": "439",
+                "product": "440",
                 "java-base": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "439"
+                "storage_connector": "440"
             },
         ],
     },
