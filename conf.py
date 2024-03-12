@@ -33,7 +33,7 @@ products = [
                 "vector": "0.35.0",
             },
             {
-                "product": "2.8.1",
+                "product": "2.8.3",
                 "git_sync": "v4.2.1",
                 "python": "39",
                 "statsd_exporter": "0.26.0",

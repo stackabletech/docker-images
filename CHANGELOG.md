@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
-- airflow: Add `2.7.3`, `2.8.1` ([#562]).
+- airflow: Add `2.7.3`, `2.8.3` ([#562], [#593]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - nifi: Add version `1.25.0` using java 21 ([#552]).
@@ -110,6 +110,7 @@ All notable changes to this project will be documented in this file.
 [#585]: https://github.com/stackabletech/docker-images/pull/585
 [#587]: https://github.com/stackabletech/docker-images/pull/587
 [#588]: https://github.com/stackabletech/docker-images/pull/588
+[#593]: https://github.com/stackabletech/docker-images/pull/593
 
 ## [23.11.0] - 2023-11-30
 
