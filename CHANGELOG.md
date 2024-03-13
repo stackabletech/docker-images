@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
-- airflow: Add `2.7.3`, `2.8.3` ([#562], [#593]).
+- airflow: Add `2.7.3`, `2.8.1`, `2.8.3` ([#562], [#593]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - nifi: Add version `1.25.0` using java 21 ([#552]).
@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `440` ([#587]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.8.4` ([#591]).
-- zookeeper: Add version `3.9.2` ([#551], [#592]).
+- zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
