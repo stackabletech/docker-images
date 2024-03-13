@@ -1,5 +1,21 @@
 # Airflow constraints
 
-The constraints file can be downloaded from <https://raw.githubusercontent.com/apache/airflow/constraints-2.7.2/constraints-3.9.txt> where `2.7.2` is the airflow version and `3.9` is the python version.
+To add a new version of Airflow (or python) you can download the applicable constraints file from upstream.
 
-Due to the build in the docker image, the python version must be specified without the `dot`. E.g. `3.9` must be renamed to `39` in the constraints file name.
+_The script is safe to run from outside of this directory. The file will be downloaded to the same folder that the
+script resides. This example will assume you are running from the repository root directory._
+
+```sh
+# Use default Python version (specified in the script):
+./airflow/download_constraints.sh 2.8.3
+
+# Use a specific Python version:
+./airflow/download_constraints.sh 2.8.3 3.11
+```
+
+Example output:
+
+```output
+Downloading constraints file for Airflow 2.8.3 (Python 3.9)
+Successfully pulled new constraints file: constraints-2.8.3-python39.txt
+```
