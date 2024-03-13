@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `440` ([#587]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.8.4` ([#591]).
-- zookeeper: Add version `3.9.2` ([#551], [#592]).
+- zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
