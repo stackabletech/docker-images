@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `440` ([#587]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.8.4` ([#591]).
-- zookeeper: Add version `3.9.1` ([#551]).
+- zookeeper: Add version `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
 - trino-cli: Command line for Trino version 440 ([#587])
@@ -112,6 +112,8 @@ All notable changes to this project will be documented in this file.
 [#587]: https://github.com/stackabletech/docker-images/pull/587
 [#588]: https://github.com/stackabletech/docker-images/pull/588
 [#590]: https://github.com/stackabletech/docker-images/pull/590
+[#591]: https://github.com/stackabletech/docker-images/pull/591
+[#592]: https://github.com/stackabletech/docker-images/pull/592
 
 ## [23.11.0] - 2023-11-30
 
