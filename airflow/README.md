@@ -1,8 +1,8 @@
 # Airflow constraints
 
-To add a new version of airflow (or python) you can download the 
+To add a new version of Airflow (or python) you can download the applicable constraints file from upstream.
 
-_The script is safe to run from outside of this directory. The file will be downloaded to the same folder that the 
+_The script is safe to run from outside of this directory. The file will be downloaded to the same folder that the
 script resides. This example will assume you are running from the repository root directory._
 
 ```sh
@@ -15,7 +15,7 @@ script resides. This example will assume you are running from the repository roo
 
 Example output:
 
-```
+```output
 Downloading constraints file for Airflow 2.8.3 (Python 3.9)
 Successfully pulled new constraints file: constraints-2.8.3-python39.txt
 ```
