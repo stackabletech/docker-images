@@ -29,13 +29,13 @@ All notable changes to this project will be documented in this file.
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
-- trino: Add version `440` ([#587]).
+- trino: Add version `442` ([#597]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
 - zookeeper: Add version `3.8.4` ([#591]).
 - zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
-- trino-cli: Command line for Trino version 440 ([#587])
+- trino-cli: Command line for Trino version 440 ([#597])
 - kafka-testing-tools (incorporating kcat): New image. Command line utility for interacting with Kafka ([#590])
 - spark: Add version `3.5.1` ([#588]).
 
@@ -109,12 +109,12 @@ All notable changes to this project will be documented in this file.
 [#575]: https://github.com/stackabletech/docker-images/pull/575
 [#579]: https://github.com/stackabletech/docker-images/pull/579
 [#585]: https://github.com/stackabletech/docker-images/pull/585
-[#587]: https://github.com/stackabletech/docker-images/pull/587
 [#588]: https://github.com/stackabletech/docker-images/pull/588
 [#590]: https://github.com/stackabletech/docker-images/pull/590
 [#591]: https://github.com/stackabletech/docker-images/pull/591
 [#592]: https://github.com/stackabletech/docker-images/pull/592
 [#593]: https://github.com/stackabletech/docker-images/pull/593
+[#597]: https://github.com/stackabletech/docker-images/pull/597
 
 ## [23.11.0] - 2023-11-30
 
