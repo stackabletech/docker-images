@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
-- trino-cli: Command line for Trino version 440 ([#597])
+- trino-cli: Command line for Trino version 442 ([#597])
 - kafka-testing-tools (incorporating kcat): New image. Command line utility for interacting with Kafka ([#590])
 - spark: Add version `3.5.1` ([#588]).
 
