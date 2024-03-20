@@ -35,7 +35,7 @@ jobs:
           ARCH=$(arch)
           # Push to oci.stackable.tech as well
           IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
-          TAG_NAME=$(shell git rev-parse --short HEAD)-$ARCH
+          TAG_NAME=$(git rev-parse --short HEAD)-$ARCH
           echo "image: $IMAGE_NAME tag: $TAG_NAME"
           # Retaging the image to provide it to both, harbour and nexus
           docker tag "docker.stackable.tech/stackable/ubi8-rust-builder:$TAG_NAME" "$IMAGE_NAME:$TAG_NAME"
