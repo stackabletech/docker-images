@@ -44,7 +44,7 @@ if ! (sha512sum "${bin_file}" | diff - "${bin_file}.sha512"); then
 fi
 
 echo "Validating signature"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/spark/KEYS) to GPG: https://www.apache.org/info/verification.html'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/spark/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/spark/KEYS | gpg --import")'
 
 if ! (gpg --verify "${bin_file}.asc" "${bin_file}" 2> /dev/null); then
   echo "ERROR: The signature could not be verified"

@@ -44,6 +44,7 @@ COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install \
     gzip \
+    # Can be removed once listener-operator integration is used
     kubectl \
     tar \
     zip && \
