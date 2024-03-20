@@ -40,7 +40,7 @@ jobs:
           TAG_NAME=:latest-$ARCH
           echo "image: $IMAGE_NAME tag: $TAG_NAME"
           # Store the output of `docker image push` into a variable, so we can parse it for the digest
-          PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
+          PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME")
           echo "$PUSH_OUTPUT"
   create_manifest:
     runs-on: ubuntu-latest
