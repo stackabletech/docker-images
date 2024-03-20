@@ -24,6 +24,24 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: make push-ubi8-rust-builder
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}  
+      - name: push-to-harbour
+        shell: bash
+        run: |
+          # TODO: obtain architecture from GH directly rather than from arch
+          ARCH=$(arch)
+          # Push to oci.stackable.tech as well
+          IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          TAG_NAME=:latest-$ARCH
+          echo "image: $IMAGE_NAME"
+          # Store the output of `docker image push` into a variable, so we can parse it for the digest
+          PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
+          echo "$PUSH_OUTPUT"
   create_manifest:
     runs-on: ubuntu-latest
     needs: ["build"]
@@ -34,3 +52,12 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: make push-manifest-list
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}  
+      - name: Build-Harbour-Manifest-List
+        shell: bash
+        run: make push-manifest-list REPO=oci.stackable.tech/sdp 
