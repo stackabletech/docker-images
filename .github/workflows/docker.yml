@@ -39,6 +39,8 @@ jobs:
           IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
           TAG_NAME=latest-$ARCH
           echo "image: $IMAGE_NAME tag: $TAG_NAME"
+          # Retaging the image to provide it to both, harbour and nexus
+          docker tag "docker.stackable.tech/stackable/ubi8-rust-builder:$TAG" "$IMAGE_NAME:$TAG_NAME"
           # Store the output of `docker image push` into a variable, so we can parse it for the digest
           PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME")
           echo "$PUSH_OUTPUT"
