@@ -40,6 +40,14 @@ products = [
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
+            {
+                "product": "2.8.3",
+                "git_sync": "v4.2.1",
+                "python": "39",
+                "statsd_exporter": "0.26.0",
+                "tini": "0.19.0",
+                "vector": "0.35.0",
+            },
         ],
     },
     {
@@ -239,12 +247,12 @@ products = [
             {
                 "product": "0.57.0",
                 "vector": "0.35.0",
-                "bundle_builder_version": "1.1.0",
+                "bundle_builder_version": "1.1.1",
             },
             {
                 "product": "0.61.0",
                 "vector": "0.35.0",
-                "bundle_builder_version": "1.1.0",
+                "bundle_builder_version": "1.1.1",
             },
         ],
     },
@@ -302,6 +310,23 @@ products = [
                 "jmx_exporter": "0.20.0",
                 "tini": "0.19.0",
             },
+            {
+                "product": "3.5.1",
+                "spark": "3.5.1",
+                "java-base": "11",
+                "python": "3.11",
+                "hadoop_short_version": "3",
+                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
+                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.1
+                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "vector": "0.35.0",
+                "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
+            },
         ],
     },
     {
@@ -352,7 +377,7 @@ products = [
         "name": "trino-cli",
         "versions": [
             {
-                "product": "439",
+                "product": "442",
                 "java-base": "21",
             },
         ]
@@ -375,15 +400,23 @@ products = [
                 "storage_connector": "428-jackson"
             },
             {
-                # OPA authorizer included
-                "product": "439",
+                "product": "442",
                 "java-base": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "439"
+                "storage_connector": "442"
             },
         ],
     },
     {
+        "name": "kafka-testing-tools",
+        "versions": [{
+            "product": "1.0.0",
+            "kcat": "1.7.0",
+            "java-base": "11",
+            "stackable-base": "1.0.0",
+        }],
+     },
+     {
         "name": "testing-tools",
         "versions": [{
             "product": "0.2.0",
@@ -399,7 +432,17 @@ products = [
                 "jmx_exporter": "0.20.0"
             },
             {
+                "product": "3.8.4",
+                "java-base": "11",
+                "jmx_exporter": "0.20.0"
+            },
+            {
                 "product": "3.9.1",
+                "java-base": "11",
+                "jmx_exporter": "0.20.0"
+            },
+            {
+                "product": "3.9.2",
                 "java-base": "11",
                 "jmx_exporter": "0.20.0"
             },

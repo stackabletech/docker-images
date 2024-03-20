@@ -51,7 +51,7 @@ if ! (sha256sum "${bin_file}" | diff - "${bin_file}.sha256" && sha256sum "${src_
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://dlcdn.apache.org/hive/KEYS) to GPG: https://www.apache.org/info/verification.html'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://dlcdn.apache.org/hive/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://dlcdn.apache.org/hive/KEYS | gpg --import")'
 
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null &&  gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: Signature could not be verified"
