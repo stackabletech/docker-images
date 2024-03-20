@@ -1,4 +1,4 @@
-.PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, login
+.PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, build-ubi9-rust-builder, push-ubi9bui-rust-builder, login
 
 REPO   := docker.stackable.tech/stackable
 TAG    := $(shell git rev-parse --short HEAD)
@@ -19,6 +19,15 @@ push-ubi8-rust-builder: NAME = ubi8-rust-builder
 push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
 
+build-ubi9-rust-builder: NAME = ubi9-rust-builder
+build-ubi9-rust-builder:
+	$(call build,${NAME})
+
+push-ubi9-rust-builder: NAME = ubi9-rust-builder
+push-ubi9-rust-builder : build-ubi9-rust-builder login
+	$(call push,${NAME})
+
+
 login:
 ifndef DOCKER_PASSWORD
 		$(error DOCKER_PASSWORD is undefined)
@@ -27,4 +36,3 @@ ifndef DOCKER_USER
 		$(error DOCKER_USER is undefined)
 endif
 	echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USER} --password-stdin docker.stackable.tech
-

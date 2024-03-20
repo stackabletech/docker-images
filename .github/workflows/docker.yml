@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-ubi8:
     name: Build and push Docker image
     runs-on: ubuntu-latest
     steps:
@@ -19,3 +19,13 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: make push-ubi8-rust-builder
+  build-ubi9:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - shell: bash
+        env:
+          DOCKER_USER: github
+          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: make push-ubi9-rust-builder

@@ -3,6 +3,7 @@
 This repository contains Dockerfiles and scripts to build base images for use within Stackable.
 
 == ubi8-rust-builder
+TODO: Update for ubi9
 
 This image is meant to be used in multi-stage builds as a base image for projects building Rust projects.
 
@@ -39,7 +40,7 @@ Product images are published to the `docker.stackable.tech` registry under the `
 
 Prerequisites:
 
-* Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools 
+* Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools
 * Docker including the `buildx` plugin: https://github.com/docker/buildx
 
 To build and push product images to the default repository, use the `build_product_images.py` like this:
