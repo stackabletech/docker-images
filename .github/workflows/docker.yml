@@ -60,4 +60,7 @@ jobs:
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}  
       - name: Build-Harbour-Manifest-List
         shell: bash
+        env:
+          DOCKER_USER: github
+          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: make push-manifest-list REPO=oci.stackable.tech/sdp 
