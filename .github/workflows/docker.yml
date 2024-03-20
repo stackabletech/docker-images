@@ -17,22 +17,20 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - name: buildstep
-        id: buildstep
-        shell: bash
-        env:
-          DOCKER_USER: github
-          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-ubi8-rust-builder
       - name: Login to Stackable Harbor
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}  
-      - name: push-to-harbour
+      - name: buildstep
+        id: buildstep
         shell: bash
+        env:
+          DOCKER_USER: github
+          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
+          make push-ubi8-rust-builder
           # TODO: obtain architecture from GH directly rather than from arch
           ARCH=$(arch)
           # Push to oci.stackable.tech as well
