@@ -1,7 +1,7 @@
 # 9.3-1552 as of 2024-03-03
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?architecture=amd64&image=65a828e3cda4984705d45d26&container-tabs=gti
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:582e18f13291d7c686ec4e6e92d20b24c62ae0fc72767c46f30a69b1a6198055 AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:bc552efb4966aaa44b02532be3168ac1ff18e2af299d0fe89502a1d9fabafbc5 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -17,19 +17,19 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 RUN microdnf update --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablerepo=ubi-9-baseos-rpms -y \
   && rm -rf /var/cache/yum \
   && microdnf install -y --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablerepo=ubi-9-baseos-rpms \
+    clang \
+    cmake \
     curl-minimal \
     findutils \
     gcc \
     gcc-c++ \
+    krb5-libs \
+    libkadm5 \
     make \
-    cmake \
     openssl-devel \
     pkg-config \
     systemd-devel \
     unzip \
-    clang \
-    krb5-libs \
-    libkadm5 \
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
