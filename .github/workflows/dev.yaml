@@ -23,6 +23,7 @@ jobs:
           - hbase
           - hive
           - kafka
+          - kafka-testing-tools
           - krb5
           - nifi
           - opa

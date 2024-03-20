@@ -22,19 +22,22 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
-- airflow: Add `2.7.3`, `2.8.1` ([#562]).
+- airflow: Add `2.7.3`, `2.8.1`, `2.8.3` ([#562], [#593]).
 - druid: Add `28.0.1` ([#558]).
 - kafka: Add `3.5.2`, `3.6.1` ([#559]).
 - nifi: Add version `1.25.0` using java 21 ([#552]).
 - opa: Add version `0.61.0` ([#538]).
 - spark: Add version `3.4.2` ([#560]).
 - superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
-- trino: Add version `439` ([#570]).
+- trino: Add version `442` ([#597]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
-- zookeeper: Add version `3.9.1` ([#551]).
+- zookeeper: Add version `3.8.4` ([#591]).
+- zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
 - hadoop: Add hdfs-utils ([#566]).
 - testing-tools: add pytest `8.0.1` ([#575]).
-- trino-cli: Command line for Trino version 439 ([#576])
+- trino-cli: Command line for Trino version 442 ([#597])
+- kafka-testing-tools (incorporating kcat): New image. Command line utility for interacting with Kafka ([#590])
+- spark: Add version `3.5.1` ([#588]).
 
 ### Changed
 
@@ -56,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
   HDFS, HBase, Trino, Spark, Druid ([#572]).
 - hdfs: bump topology-provider to `0.3.0` ([#579]).
+- ubi8-rust-builder: bump rust toolchain to `1.76.0` ([#584]).
+- opa: bump bundle builder to version 1.1.1 ([#585]).
 
 ### Removed
 
@@ -99,12 +104,17 @@ All notable changes to this project will be documented in this file.
 [#565]: https://github.com/stackabletech/docker-images/pull/565
 [#566]: https://github.com/stackabletech/docker-images/pull/566
 [#567]: https://github.com/stackabletech/docker-images/pull/567
-[#570]: https://github.com/stackabletech/docker-images/pull/570
 [#571]: https://github.com/stackabletech/docker-images/pull/571
 [#572]: https://github.com/stackabletech/docker-images/pull/572
 [#575]: https://github.com/stackabletech/docker-images/pull/575
-[#576]: https://github.com/stackabletech/docker-images/pull/576
 [#579]: https://github.com/stackabletech/docker-images/pull/579
+[#585]: https://github.com/stackabletech/docker-images/pull/585
+[#588]: https://github.com/stackabletech/docker-images/pull/588
+[#590]: https://github.com/stackabletech/docker-images/pull/590
+[#591]: https://github.com/stackabletech/docker-images/pull/591
+[#592]: https://github.com/stackabletech/docker-images/pull/592
+[#593]: https://github.com/stackabletech/docker-images/pull/593
+[#597]: https://github.com/stackabletech/docker-images/pull/597
 
 ## [23.11.0] - 2023-11-30
 
