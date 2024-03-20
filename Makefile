@@ -2,22 +2,40 @@
 
 REPO   := docker.stackable.tech/stackable
 TAG    := $(shell git rev-parse --short HEAD)
+ARCH   := $(shell arch)
+NAME   := ubi8-rust-builder
 
 define push
-	docker push --all-tags ${REPO}/$(1)
+	docker push --all-tags "${REPO}/$(1)"
 endef
 
 define build
-	@docker build --force-rm -t "${REPO}/${1}:${TAG}" -t "${REPO}/${1}:latest" -f $(1)/Dockerfile .
+	@docker build --force-rm -t "${REPO}/${1}:${TAG}-${ARCH}" -f $(1)/Dockerfile .
 endef
 
-build-ubi8-rust-builder: NAME = ubi8-rust-builder
+define manifest
+	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:${TAG}-aarch64" "${REPO}/${1}:${TAG}-x86_64"
+endef
+
+define manifest_push
+	docker manifest push "${REPO}/${1}:latest"
+endef
+
+build-ubi8-rust-builder:
 build-ubi8-rust-builder:
 	$(call build,${NAME})
 
-push-ubi8-rust-builder: NAME = ubi8-rust-builder
+push-ubi8-rust-builder:
 push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
+
+build-manifest-list:
+build-manifest-list:
+	$(call manifest,${NAME})
+
+push-manifest-list:
+push-manifest-list: login build-manifest-list 
+	$(call manifest_push,${NAME})
 
 login:
 ifndef DOCKER_PASSWORD
