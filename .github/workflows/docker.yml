@@ -83,7 +83,7 @@ jobs:
         run: |
           make build-manifest-list REPO=oci.stackable.tech/sdp
           MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
-          # docker manifest push returns directly the sha of the manifest list
+          # `docker manifest push` directly returns the digest of the manifest list
           # As it is an experimental feature, this might change in the future
           # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
           DIGEST=$( docker manifest push "$MANIFEST_LIST_NAME:latest")
