@@ -10,6 +10,8 @@ on:
 
 jobs:
   build:
+    permissions:
+      id-token: write
     strategy:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
@@ -67,6 +69,8 @@ jobs:
           # Attest the SBOM to the image
           cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
   create_manifest:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
