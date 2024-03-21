@@ -38,7 +38,7 @@ jobs:
         run: |
           make push-ubi8-rust-builder
 
-          ARCH=$(arch)
+          ARCH=${{ runner.arch }}
 
           # Push to oci.stackable.tech as well
           IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
