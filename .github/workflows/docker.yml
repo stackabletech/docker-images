@@ -22,7 +22,11 @@ jobs:
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
-          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}  
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+      - name: Set up syft
+        uses: anchore/sbom-action/download-syft@24b0d5238516480139aa8bc6f92eeb7b54a9eb0a # tag=v0.15.5
       - name: buildstep
         id: buildstep
         shell: bash
