@@ -58,7 +58,7 @@ jobs:
           cosign sign -y "$IMAGE_NAME@$DIGEST"
 
           # Generate SBOM for the image
-          syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+          syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "ubi8-rust-builder" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
           # Determine the PURL for the image
           PURL="pkg:docker/sdp/$IMAGE_NAME@$DIGEST?repository_url=oci.stackable.tech";
           # Get metadata from the image
