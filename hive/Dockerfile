@@ -1,4 +1,7 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -27,8 +30,6 @@ COPY --chown=stackable:stackable hive/stackable /stackable
 
 USER stackable
 WORKDIR /stackable
-
-SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN chmod +x patches/apply_patches.sh
@@ -112,9 +113,6 @@ LABEL name="Apache Hive" \
       release="${RELEASE}" \
       summary="The Stackable image for Apache Hive." \
       description="This image is deployed by the Stackable Operator for Apache Hive."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf clean all && \
