@@ -86,8 +86,10 @@ jobs:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
-      # Used to retrieve manifest list digest after pushing to oci
+      # Used to retrieve manifest list digests after pushing to oci
       - uses: imjasonh/setup-crane@v0.1
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Build-Harbour-Manifest-List
         shell: bash
         env:
