@@ -1,4 +1,8 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
@@ -8,9 +12,6 @@ ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # All others are required for the FUSE build
 RUN microdnf update && \
@@ -104,9 +105,6 @@ LABEL name="Apache Hadoop" \
       release="${RELEASE}" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)

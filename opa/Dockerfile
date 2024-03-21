@@ -1,10 +1,11 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 FROM stackable/image/vector AS opa-bundle-builder
 
 ARG BUNDLE_BUILDER_VERSION
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
@@ -21,9 +22,6 @@ RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 FROM stackable/image/vector AS multilog-builder
 
 ARG DAEMONTOOLS_VERSION=0.76
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY opa/daemontools /daemontools
 
@@ -60,9 +58,6 @@ LABEL name="Open Policy Agent" \
       release="${RELEASE}" \
       summary="The Stackable image for OPA." \
       description="This image is deployed by the Stackable Operator for OPA."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN microdnf update && \
     microdnf install tar gzip && \
