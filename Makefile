@@ -17,10 +17,6 @@ define manifest
 	@docker manifest create "${REPO}/${1}:latest" "${REPO}/${1}:${TAG}-aarch64" "${REPO}/${1}:${TAG}-x86_64"
 endef
 
-define manifest_push
-	docker manifest push "${REPO}/${1}:latest"
-endef
-
 build-ubi8-rust-builder:
 build-ubi8-rust-builder:
 	$(call build,${NAME})
@@ -32,10 +28,6 @@ push-ubi8-rust-builder : build-ubi8-rust-builder login
 build-manifest-list:
 build-manifest-list:
 	$(call manifest,${NAME})
-
-push-manifest-list:
-push-manifest-list: login build-manifest-list 
-	$(call manifest_push,${NAME})
 
 login:
 ifndef DOCKER_PASSWORD

@@ -10,6 +10,8 @@ on:
 
 jobs:
   build:
+    permissions:
+      id-token: write
     strategy:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
@@ -17,20 +19,68 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: buildstep
         id: buildstep
         shell: bash
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-ubi8-rust-builder
+        run: |
+          make push-ubi8-rust-builder
+
+          ARCH=$(arch)
+
+          # Push to oci.stackable.tech as well
+          IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          TAG_NAME=$(git rev-parse --short HEAD)-$ARCH
+          echo "image: $IMAGE_NAME tag: $TAG_NAME"
+          # Retagging the image to provide it to both, Harbor and Nexus
+          docker tag "docker.stackable.tech/stackable/ubi8-rust-builder:$TAG_NAME" "$IMAGE_NAME:$TAG_NAME"
+          # Store the output of `docker image push` into a variable, so we can parse it for the digest
+          PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME")
+          echo "$PUSH_OUTPUT"
+          # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
+          DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+          # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
+          # This generates a signature and publishes it to the registry, next to the image
+          # Uses the keyless signing flow with Github Actions as identity provider
+          cosign sign -y "$IMAGE_NAME@$DIGEST"
   create_manifest:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - shell: bash
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+      - name: Build Manifest List
+        shell: bash
         env:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: make push-manifest-list
+        run: |
+          make build-manifest-list REPO=oci.stackable.tech/sdp
+          MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          # `docker manifest push` directly returns the digest of the manifest list
+          # As it is an experimental feature, this might change in the future
+          # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
+          DIGEST=$(docker manifest push "$MANIFEST_LIST_NAME:latest")
+          # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
+          # This generates a signature and publishes it to the registry, next to the image
+          # Uses the keyless signing flow with Github Actions as identity provider
+          cosign sign -y "$MANIFEST_LIST_NAME@$DIGEST"
