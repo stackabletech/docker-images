@@ -73,8 +73,6 @@ jobs:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
-      # Used to retrieve manifest list digest after pushing to Harbor
-      - uses: imjasonh/setup-crane@v0.1
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Build Harbor Manifest List
@@ -85,6 +83,9 @@ jobs:
         run: |
           make build-manifest-list REPO=oci.stackable.tech/sdp
           MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          # docker manifest push returns directly the sha of the manifest list
+          # As it is a experimental feature, this might change in the future
+          # More reading on this: https://docs.docker.com/reference/cli/docker/manifest/push/
           DIGEST=$( docker manifest push "$MANIFEST_LIST_NAME:latest")
           # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
           # This generates a signature and publishes it to the registry, next to the image
