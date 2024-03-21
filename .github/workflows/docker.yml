@@ -45,7 +45,7 @@ jobs:
           IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
           TAG_NAME=$(git rev-parse --short HEAD)-$ARCH
           echo "image: $IMAGE_NAME tag: $TAG_NAME"
-          # Retaging the image to provide it to both, harbour and nexus
+          # Retagging the image to provide it to both, Harbor and Nexus
           docker tag "docker.stackable.tech/stackable/ubi8-rust-builder:$TAG_NAME" "$IMAGE_NAME:$TAG_NAME"
           # Store the output of `docker image push` into a variable, so we can parse it for the digest
           PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME")
@@ -86,11 +86,11 @@ jobs:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
-      # Used to retrieve manifest list digests after pushing to oci
+      # Used to retrieve manifest list digest after pushing to Harbor
       - uses: imjasonh/setup-crane@v0.1
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
-      - name: Build-Harbor-Manifest-List
+      - name: Build Harbor Manifest List
         shell: bash
         env:
           DOCKER_USER: github
