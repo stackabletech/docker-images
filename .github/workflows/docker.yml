@@ -38,7 +38,6 @@ jobs:
         run: |
           make push-ubi8-rust-builder
 
-          # TODO: obtain architecture from GH directly rather than from arch
           ARCH=$(arch)
 
           # Push to oci.stackable.tech as well
