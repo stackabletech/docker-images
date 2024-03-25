@@ -30,9 +30,9 @@ WORKDIR /
 
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
-# property in operator-templating/repositories.yaml
+# property in operator-templating/config/rust.yaml
 # hadolint ignore=SC1091
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.76.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.0 \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
