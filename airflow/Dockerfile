@@ -1,8 +1,9 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-ARG GIT_SYNC
-ARG STATSD_EXPORTER
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
+ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
@@ -12,6 +13,9 @@ FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
+ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
@@ -21,6 +25,8 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
+        # Used to extract statsd_exporter
+        tar \
         cyrus-sasl-devel \
         gcc \
         gcc-c++ \
@@ -39,6 +45,11 @@ RUN microdnf update && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs
 
+# Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
+
 
 FROM stackable/image/vector AS airflow-main-image
 
@@ -46,6 +57,8 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG TINI
+ARG TARGETARCH
+ARG TARGETOS
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
@@ -80,22 +93,21 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-RUN mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs
-
-RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$(arch)"
+RUN mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs && \
+    chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
+    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 RUN chmod a+x /entrypoint.sh && \
     chmod a+x /run-airflow.sh && \
     chmod +x /usr/bin/tini
 
-COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
 

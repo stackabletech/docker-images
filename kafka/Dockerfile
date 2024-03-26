@@ -1,15 +1,29 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 FROM stackable/image/java-base AS builder
 
 ARG KCAT
 
-RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
-    microdnf install -y tar which wget zlib gcc-c++ make cmake && \
+RUN microdnf install -y \
+    cmake \
+    cyrus-sasl-devel \
+    gcc-c++ \
+    libcurl-devel \
+    make \
+    openssl-devel \
+    tar \
+    wget \
+    which \
+    zlib \
+    zlib-devel && \
     microdnf clean all
 
 WORKDIR /stackable
-RUN curl --fail -L -O https://github.com/edenhill/kcat/archive/refs/tags/${KCAT}.tar.gz \
-    && tar xvfz ${KCAT}.tar.gz \
+RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${KCAT}.tar.gz \
+    && tar xvfz kcat-${KCAT}.tar.gz \
     && cd kcat-${KCAT} \
     && ./bootstrap.sh
 
@@ -30,12 +44,14 @@ LABEL name="Apache Kafka" \
       summary="The Stackable image for Apache Kafka." \
       description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
-    microdnf install tar gzip zip kubectl && \
+    microdnf install \
+    gzip \
+    # Can be removed once listener-operator integration is used
+    kubectl \
+    tar \
+    zip && \
     microdnf clean all
 
 USER stackable

@@ -1,4 +1,8 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
@@ -8,9 +12,6 @@ ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # All others are required for the FUSE build
 RUN microdnf update && \
@@ -95,6 +96,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG TOPOLOGY_PROVIDER
+ARG HDFS_UTILS
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -104,9 +106,6 @@ LABEL name="Apache Hadoop" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)
 # openssl -> not sure
@@ -114,7 +113,6 @@ RUN microdnf update && \
     microdnf install \
     fuse \
     fuse-libs \
-    krb5-workstation \
     # tar is required for `kubectl cp` which can be used to copy the log files
     # or profiler flamegraph from the Pod
     tar && \
@@ -133,13 +131,17 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
+RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from
 # source code is at: https://github.com/stackabletech/hdfs-topology-provider
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop-${PRODUCT}/share/hadoop/tools/lib/topology-provider-${TOPOLOGY_PROVIDER}.jar
+# N.B. the artifact name changed from 0.2.0 onwards i.e. from topology-provider-0.1.0.jar to hdfs-topology-provider-0.2.0.jar
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
 
-RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+# The Stackable HDFS utils contain an OPA authorizer and group mapper
+RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 ENV HOME=/stackable

@@ -23,6 +23,7 @@ jobs:
           - hbase
           - hive
           - kafka
+          - kafka-testing-tools
           - krb5
           - nifi
           - opa
@@ -38,21 +39,23 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # tag=v3.0.0
-      - uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # tag=v3.0.0
+      - uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20 # tag=v3.2.0
       - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # tag=v5.0.0
         with:
           python-version: '3.x'
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+      - name: Set up syft
+        uses: anchore/sbom-action/download-syft@24b0d5238516480139aa8bc6f92eeb7b54a9eb0a # tag=v0.15.5
       - name: Install image-tools-stackabletech
         run: pip install image-tools-stackabletech==0.0.5
-      - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3.0.0
+      - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Login to Stackable Harbor
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
@@ -84,6 +87,18 @@ jobs:
             # Uses the keyless signing flow with Github Actions as identity provider
             cosign sign -y "$IMAGE_NAME@$DIGEST"
 
+            # Generate SBOM for the image
+            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+            # Determine the PURL for the image
+            PURL="pkg:docker/stackable/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
+            # Get metadata from the image
+            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+            # Merge the SBOM with the metadata for the image
+            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+            # Attest the SBOM to the image
+            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
+
             # Push to oci.stackable.tech as well
             IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
             echo "image: $IMAGE_NAME"
@@ -97,4 +112,16 @@ jobs:
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
             cosign sign -y "$IMAGE_NAME@$DIGEST"
+
+            # Generate SBOM for the image
+            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+            # Determine the PURL for the image
+            PURL="pkg:docker/sdp/${{ matrix.product }}@$DIGEST?repository_url=oci.stackable.tech";
+            # Get metadata from the image
+            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+            # Merge the SBOM with the metadata for the image
+            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+            # Attest the SBOM to the image
+            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
           fi

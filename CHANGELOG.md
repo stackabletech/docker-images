@@ -22,13 +22,29 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add the Python library Beautiful Soup 4 ([#536]).
 - java-base: Add `openjdk-devel` package for tool such as `jps` or `jmap` ([#537]).
 - java-base: Add JDK 21 ([#547]).
+- airflow: Add `2.7.3`, `2.8.1`, `2.8.3` ([#562], [#593]).
+- druid: Add `28.0.1` ([#558]).
+- kafka: Add `3.5.2`, `3.6.1` ([#559]).
+- nifi: Add version `1.25.0` using java 21 ([#552]).
 - opa: Add version `0.61.0` ([#538]).
-- trino: Add version `438` ([#547]).
+- spark: Add version `3.4.2` ([#560]).
+- superset: Add version `2.1.3`,`3.0.3`,`3.1.0` ([#563]).
+- trino: Add version `442` ([#597]).
 - vector: Switch from version `0.33.0` to `0.35.0` ([#547], [#549]).
-- zookeeper: Add version `3.9.1` ([#551]).
+- zookeeper: Add version `3.8.4` ([#591]).
+- zookeeper: Add version `3.9.1`, `3.9.2` ([#551], [#592]).
+- hadoop: Add hdfs-utils ([#566]).
+- testing-tools: add pytest `8.0.1` ([#575]).
+- trino-cli: Command line for Trino version 442 ([#597])
+- kafka-testing-tools (incorporating kcat): New image. Command line utility for interacting with Kafka ([#590])
+- spark: Add version `3.5.1` ([#588]).
 
 ### Changed
 
+- kafka: Pulling kcat from Nexus rather than GitHub ([#534]).
+- Reworking architecture selection mechanism for binaries ([#534]).
+- Fixing base images to multi-architecture lists ([#534]).
+- airflow and superset: Pull statsd-exporter as binary from Nexus instead of extracting out of the official docker image ([#534]).
 - changed microdnf configuration to not install weak dependencies by adding `install_weak_deps=0` ([#533])
 - ubi8-rust-builder: bump ubi8-minimal image to latest 8.9 ([#514]).
 - stackable-base: bump ubi8-minimal image to latest 8.9 ([#514]).
@@ -37,11 +53,24 @@ All notable changes to this project will be documented in this file.
 - hadoop: Build from source ([#526]).
 - superset: Add patch that fixes saved queries export ([#539]).
 - inotify-tools: Download from Nexus instead of using the EPEL 8 repository ([#549]).
+- hadoop: Add patches to fix missing operationType for some operations in authorizer ([#555], [#564]).
+- airflow: bump git-sync to `4.2.1` ([#562]).
+- hdfs: bump topology-provider to `0.2.0` ([#565]).
+- java-base: Add `krb5-workstation` for all Java based products, as it is used by at least Zookeeper (in the future),
+  HDFS, HBase, Trino, Spark, Druid ([#572]).
+- hdfs: bump topology-provider to `0.3.0` ([#579]).
+- ubi8-rust-builder: bump rust toolchain to `1.76.0` ([#584]).
+- opa: bump bundle builder to version 1.1.1 ([#585]).
 
 ### Removed
 
-- hadoop: Remove support for version `3.2.2` ([#540]).
+- airflow: Remove support for `2.6.1` ([#562]).
+- hadoop: Remove support for version `3.2.2` and `3.2.4` (this ends the `3.2` line) ([#540], [#571]).
+- hbase: Remove support for version `2.4.12` ([#567]).
+- kafka: Remove support for version `2.8.2`, `3.4.0`, `3.5.1` ([#559]).
 - opa: Remove support for version `0.51.0` ([#547]).
+- spark: Remove support for version `3.4.0`, `3.4.0-java17` ([#560]).
+- superset: Remove support for version `2.1.0` ([#563]).
 - zookeeper: Remove support for version `3.8.1` ([#551]).
 
 [#493]: https://github.com/stackabletech/docker-images/pull/493
@@ -52,6 +81,8 @@ All notable changes to this project will be documented in this file.
 [#526]: https://github.com/stackabletech/docker-images/pull/526
 [#529]: https://github.com/stackabletech/docker-images/pull/529
 [#531]: https://github.com/stackabletech/docker-images/pull/531
+[#533]: https://github.com/stackabletech/docker-images/pull/533
+[#534]: https://github.com/stackabletech/docker-images/pull/534
 [#536]: https://github.com/stackabletech/docker-images/pull/536
 [#537]: https://github.com/stackabletech/docker-images/pull/537
 [#538]: https://github.com/stackabletech/docker-images/pull/538
@@ -62,7 +93,28 @@ All notable changes to this project will be documented in this file.
 [#547]: https://github.com/stackabletech/docker-images/pull/547
 [#549]: https://github.com/stackabletech/docker-images/pull/549
 [#551]: https://github.com/stackabletech/docker-images/pull/551
-[#533]: https://github.com/stackabletech/docker-images/pull/533
+[#552]: https://github.com/stackabletech/docker-images/pull/552
+[#555]: https://github.com/stackabletech/docker-images/pull/555
+[#558]: https://github.com/stackabletech/docker-images/pull/558
+[#559]: https://github.com/stackabletech/docker-images/pull/559
+[#560]: https://github.com/stackabletech/docker-images/pull/560
+[#562]: https://github.com/stackabletech/docker-images/pull/562
+[#563]: https://github.com/stackabletech/docker-images/pull/563
+[#564]: https://github.com/stackabletech/docker-images/pull/564
+[#565]: https://github.com/stackabletech/docker-images/pull/565
+[#566]: https://github.com/stackabletech/docker-images/pull/566
+[#567]: https://github.com/stackabletech/docker-images/pull/567
+[#571]: https://github.com/stackabletech/docker-images/pull/571
+[#572]: https://github.com/stackabletech/docker-images/pull/572
+[#575]: https://github.com/stackabletech/docker-images/pull/575
+[#579]: https://github.com/stackabletech/docker-images/pull/579
+[#585]: https://github.com/stackabletech/docker-images/pull/585
+[#588]: https://github.com/stackabletech/docker-images/pull/588
+[#590]: https://github.com/stackabletech/docker-images/pull/590
+[#591]: https://github.com/stackabletech/docker-images/pull/591
+[#592]: https://github.com/stackabletech/docker-images/pull/592
+[#593]: https://github.com/stackabletech/docker-images/pull/593
+[#597]: https://github.com/stackabletech/docker-images/pull/597
 
 ## [23.11.0] - 2023-11-30
 

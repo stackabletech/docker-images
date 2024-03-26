@@ -1,21 +1,24 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# Get statsd-exporter
-ARG STATSD_EXPORTER
-FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
 
-# Build stage
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
 ARG PYTHON
 ARG AUTHLIB
+ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
         --assumeyes \
+        # Used to extract statsd_exporter
+        tar \
         cyrus-sasl-devel \
         # Needed to find all patch files, used in `apply_patches.sh`
         findutils \
@@ -62,6 +65,11 @@ RUN microdnf update \
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
 
+   # Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
+
 # Final image
 FROM stackable/image/vector
 
@@ -96,7 +104,7 @@ RUN microdnf update \
     && microdnf clean all
 
 COPY superset/licenses /licenses
-COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
+
 COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
 
 USER stackable

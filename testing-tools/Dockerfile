@@ -1,4 +1,7 @@
-FROM python:3.11-slim-bullseye@sha256:286f2f1d6f2f730a44108656afb04b131504b610a6cb2f3413918e98dabba67e
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
+FROM python:3.11-slim-bullseye@sha256:5120c734a5ba810c47b97a80cdc6e03004bd4ff7ad98e492b9ccdaf70ff2b8d6
 
 ARG PRODUCT
 ARG RELEASE
@@ -13,7 +16,7 @@ LABEL name="Stackable Testing Tools" \
       description="Used by Stackable integration tests."
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 # This is needed so that krb5-user installs without prompting for a realm.
 ENV DEBIAN_FRONTEND=noninteractive
