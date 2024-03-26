@@ -26,7 +26,7 @@ push-ubi8-rust-builder : build-ubi8-rust-builder login
 	$(call push,${NAME})
 
 build-manifest-list:
-build-manifest-list:
+build-manifest-list: login
 	$(call manifest,${NAME})
 
 login:
