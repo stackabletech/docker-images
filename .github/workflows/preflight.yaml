@@ -72,7 +72,7 @@ jobs:
       - run: pip install image-tools-stackabletech
       - name: Install preflight
         run: |
-          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.7.2/preflight-linux-amd64
+          wget https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.9.1/preflight-linux-amd64
           chmod +x preflight-linux-amd64
       - name: Submit preflight checks
         if: ${{ inputs.submit == true }}
