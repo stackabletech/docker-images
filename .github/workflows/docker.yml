@@ -65,8 +65,9 @@ jobs:
       - name: Build Manifest List
         shell: bash 
         run: |
+          COMMIT_ID=$(git rev-parse --short HEAD)
           MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
-          docker manifest create "$MANIFEST_LIST_NAME:latest"
+          docker manifest create "$MANIFEST_LIST_NAME:latest" "$MANIFEST_LIST_NAME:$COMMIT_ID-x86_64" "$MANIFEST_LIST_NAME:$COMMIT_ID-aarch64"
           # `docker manifest push` directly returns the digest of the manifest list
           # As it is an experimental feature, this might change in the future
           # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
