@@ -1,6 +1,6 @@
 .PHONY: build-ubi8-rust-builder, push-ubi8-rust-builder, login
 
-REPO   := docker.stackable.tech/stackable
+REPO   := oci.stackable.tech/sdp
 TAG    := $(shell git rev-parse --short HEAD)
 ARCH   := $(shell arch)
 NAME   := ubi8-rust-builder
