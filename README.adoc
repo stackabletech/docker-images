@@ -12,7 +12,7 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 
 Product images are published to the `docker.stackable.tech` registry under the `stackable` organization by default.
 
-To build and push product images to the default repository, use the `build_product_images.py` like this:
+To build and push product images to the default repository use this command:
 
     bake --product zookeeper --image 0.0.0-dev --push
 
