@@ -69,10 +69,7 @@ jobs:
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Build Manifest List
-        shell: bash
-        env:
-          DOCKER_USER: github
-          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        shell: bash 
         run: |
           make build-manifest-list REPO=oci.stackable.tech/sdp
           MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
