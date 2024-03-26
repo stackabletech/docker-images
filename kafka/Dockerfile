@@ -5,7 +5,11 @@
 
 FROM stackable/image/java-base AS builder
 
+ARG JMX_EXPORTER
 ARG KCAT
+ARG OPA_AUTHORIZER
+ARG PRODUCT
+ARG SCALA
 
 RUN microdnf install -y \
     cmake \
@@ -17,6 +21,8 @@ RUN microdnf install -y \
     tar \
     wget \
     which \
+    # For the Log4shell scanner
+    zip \
     zlib \
     zlib-devel && \
     microdnf clean all
@@ -27,49 +33,18 @@ RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-
     && cd kcat-${KCAT} \
     && ./bootstrap.sh
 
-FROM stackable/image/java-base
-
-ARG PRODUCT
-ARG SCALA
-ARG KCAT
-ARG OPA_AUTHORIZER
-ARG JMX_EXPORTER
-ARG RELEASE
-
-LABEL name="Apache Kafka" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Kafka." \
-      description="This image is deployed by the Stackable Operator for Apache Kafka."
-
-COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
-RUN microdnf update && \
-    microdnf install \
-    gzip \
-    # Can be removed once listener-operator integration is used
-    kubectl \
-    tar \
-    zip && \
-    microdnf clean all
-
-USER stackable
-WORKDIR /stackable
-
-COPY --chown=stackable:stackable kafka/stackable /stackable
-COPY --chown=stackable:stackable kafka/licenses /licenses
-
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 
-RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+COPY --chown=stackable:stackable kafka/stackable /stackable
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
+
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -94,9 +69,45 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-# Store kcat version with binary name and add softlink
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
-RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
+
+FROM stackable/image/java-base
+
+ARG KCAT
+ARG PRODUCT
+ARG RELEASE
+ARG SCALA
+
+LABEL name="Apache Kafka" \
+      maintainer="info@stackable.tech" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Kafka." \
+      description="This image is deployed by the Stackable Operator for Apache Kafka."
+
+# This is needed for kubectl
+COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+RUN microdnf update && \
+    microdnf install \
+    # Can be removed once listener-operator integration is used
+    kubectl && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+
+USER stackable
+WORKDIR /stackable
+
+
+COPY --chown=stackable:stackable kafka/licenses /licenses
+
+COPY --link --chown=stackable:stackable --from=builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
+COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --link --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+
+RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat && \
+    ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+
+ENV PATH="${PATH}":/stackable/bin:/stackable/kafka/bin
 
 WORKDIR /stackable/kafka
 CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
