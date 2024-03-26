@@ -30,7 +30,7 @@ jobs:
       - name: Determine Architecture
         id: Determine_Architecture
         run: |
-          echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> $GITHUB_ENV
+          echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
       -
         name: Build and push
         id: build-and-push
