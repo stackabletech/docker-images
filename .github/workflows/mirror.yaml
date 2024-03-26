@@ -20,7 +20,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
+      - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
           registry: ${{ env.DST_REGISTRY }}
           username: "robot$sdp+github-action-build"
