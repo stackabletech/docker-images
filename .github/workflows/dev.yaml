@@ -10,12 +10,13 @@ jobs:
     name: ${{ matrix.product }} 0.0.0-dev
     permissions:
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       # fail-fast: true
       # This setting can be changed to throttle the build load
       # max-parallel: 1
       matrix:
+        runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
         product:
           - airflow
           - druid
@@ -66,7 +67,8 @@ jobs:
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
-          --image-version 0.0.0-dev \
+          # Tagging images with the architecture they were build on
+          --image-version 0.0.0-dev-$(arch) \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
@@ -125,3 +127,47 @@ jobs:
             # Attest the SBOM to the image
             cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
           fi
+  create_manifest:
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: ["development"]
+    strategy:
+      matrix:
+        product:
+        - airflow
+        - druid
+        - hadoop
+        - hbase
+        - hive
+        - kafka
+        - kafka-testing-tools
+        - krb5
+        - nifi
+        - opa
+        - spark-k8s
+        - superset
+        - testing-tools
+        - trino
+        - tools
+        - zookeeper
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        with:
+          registry: oci.stackable.tech
+          username: robot$sdp+github-action-build
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+      - name: Build Manifest List
+        shell: bash
+        env:
+          DOCKER_USER: github
+          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: |
+          MANIFEST_NAME="docker.stackable.tech/stackable/${{ matrix.product }}:0.0.0-dev"
+          # Create and push to Stackable Nexus
+          docker manifest create "$MANIFEST_NAME" "$MANIFEST_NAME-x86_64" "$MANIFEST_NAME-aarch64"
+          DIGEST=$(docker manifest push $MANIFEST_NAME)
