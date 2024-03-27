@@ -57,7 +57,7 @@ RUN microdnf update && \
     echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc && \
     echo "alias ls='ls --color=auto'" >> /stackable/.bashrc && \
     echo "alias ..='cd ..'" >> /stackable/.bashrc && \
-    echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \
+    echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \
     echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile && \
     chown stackable:stackable /stackable/.bashrc && \
     chown stackable:stackable /stackable/.profile \
