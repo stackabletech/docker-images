@@ -24,9 +24,9 @@
 The image can be built and uploaded to the kind cluster with the following commands:
 
 ```shell
-./build_product_images.py --product <product> --image_version <stackable-image-version>
+bake --product <product> --image-version <stackable-image-version>
 kind load docker-image <image-tagged-with-the-major-version> --name=<name-of-your-test-cluster>
 ```
 
-See the output of `build_product_images.py` to retrieve the image tag for `<image-tagged-with-the-major-version>`.
+See the output of `bake` to retrieve the image tag for `<image-tagged-with-the-major-version>`.
 </details>
