@@ -68,7 +68,7 @@ jobs:
         run: |
           # install python manually
           sudo apt-get update
-          sudo apt-get install python=3.12
+          sudo apt-get install python
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
