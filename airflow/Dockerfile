@@ -37,8 +37,9 @@ RUN microdnf update && \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
         unixODBC-devel && \
-    microdnf clean all && \
-    python3 -m venv --system-site-packages /stackable/app && \
+    microdnf clean all
+
+RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
