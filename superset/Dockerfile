@@ -32,8 +32,9 @@ RUN microdnf update \
         python${PYTHON//./}-pip \
         python${PYTHON//./}-wheel \
         libpq-devel \
-    && microdnf clean all \
-    && python3 -m venv /stackable/app \
+    && microdnf clean all
+
+RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
         --no-cache-dir \
