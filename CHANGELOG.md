@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
+- Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
+
+[#611]: https://github.com/stackabletech/docker-images/pull/611
+[#612]: https://github.com/stackabletech/docker-images/pull/612
+
+## [24.3.0] - 2024-03-20
+
 ### Added
 
 - omid: init at 1.1.0 ([#493]).
