@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#XXX]).
+- Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
+
+[#612]: https://github.com/stackabletech/docker-images/pull/612
 
 ## [24.3.0] - 2024-03-20
 
