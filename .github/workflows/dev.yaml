@@ -21,21 +21,21 @@ jobs:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
         product:
           - airflow
-          - druid
-          - hadoop
-          - hbase
-          - hive
-          - kafka
-          - kafka-testing-tools
-          - krb5
-          - nifi
-          - opa
-          - spark-k8s
-          - superset
-          - testing-tools
-          - trino
-          - tools
-          - zookeeper
+          # - druid
+          # - hadoop
+          # - hbase
+          # - hive
+          # - kafka
+          # - kafka-testing-tools
+          # - krb5
+          # - nifi
+          # - opa
+          # - spark-k8s
+          # - superset
+          # - testing-tools
+          # - trino
+          # - tools
+          # - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
@@ -144,21 +144,21 @@ jobs:
       matrix:
         product:
         - airflow
-        - druid
-        - hadoop
-        - hbase
-        - hive
-        - kafka
-        - kafka-testing-tools
-        - krb5
-        - nifi
-        - opa
-        - spark-k8s
-        - superset
-        - testing-tools
-        - trino
-        - tools
-        - zookeeper
+        # - druid
+        # - hadoop
+        # - hbase
+        # - hive
+        # - kafka
+        # - kafka-testing-tools
+        # - krb5
+        # - nifi
+        # - opa
+        # - spark-k8s
+        # - superset
+        # - testing-tools
+        # - trino
+        # - tools
+        # - zookeeper
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - name: Login to Stackable Harbor
