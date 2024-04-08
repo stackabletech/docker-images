@@ -20,39 +20,31 @@ jobs:
       - name: checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - name: Login to Stackable Harbor
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
-      - name: buildstep
-        id: buildstep
-        shell: bash
-        env:
-          DOCKER_USER: github
-          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Determine Architecture
         run: |
-          make push-ubi8-rust-builder
-
-          ARCH=$(arch)
-
-          # Push to oci.stackable.tech as well
-          IMAGE_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
-          TAG_NAME=$(git rev-parse --short HEAD)-$ARCH
-          echo "image: $IMAGE_NAME tag: $TAG_NAME"
-          # Retagging the image to provide it to both, Harbor and Nexus
-          docker tag "docker.stackable.tech/stackable/ubi8-rust-builder:$TAG_NAME" "$IMAGE_NAME:$TAG_NAME"
-          # Store the output of `docker image push` into a variable, so we can parse it for the digest
-          PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME")
-          echo "$PUSH_OUTPUT"
-          # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
-          DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+          echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
+      - name: Build and push
+        id: build-and-push
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        with:
+          context: .
+          file: ./ubi8-rust-builder/Dockerfile
+          push: true
+          tags: oci.stackable.tech/sdp/ubi8-rust-builder:${{ env.TAG }}
+      - name: Sign the published builder image
+        shell: bash
+        run: |
           # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "$IMAGE_NAME@$DIGEST"
+          cosign sign -y "oci.stackable.tech/sdp/ubi8-rust-builder@${{ steps.build-and-push.outputs.digest }}"
   create_manifest:
     permissions:
       id-token: write
@@ -61,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
       - name: Login to Stackable Harbor
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
@@ -70,12 +62,10 @@ jobs:
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Build Manifest List
         shell: bash
-        env:
-          DOCKER_USER: github
-          DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
-          make build-manifest-list REPO=oci.stackable.tech/sdp
+          COMMIT_ID=$(git rev-parse --short HEAD)
           MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          docker manifest create "$MANIFEST_LIST_NAME:latest" "$MANIFEST_LIST_NAME:$COMMIT_ID-x86_64" "$MANIFEST_LIST_NAME:$COMMIT_ID-aarch64"
           # `docker manifest push` directly returns the digest of the manifest list
           # As it is an experimental feature, this might change in the future
           # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/

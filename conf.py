@@ -399,7 +399,9 @@ products = [
                 "product": "442",
                 "java-base": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "442"
+                "storage_connector": "442",
+                "opa_authorizer": "",
+
             },
         ],
     },

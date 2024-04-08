@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# 8.9-1029 as of 2023-12-01
+# 8.9-1137 as of 2024-03-25
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639 AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:8bedbe742f140108897fb3532068e8316900d9814f399d676ac78b46e740e34e AS builder
 LABEL maintainer="Stackable GmbH"
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -30,9 +30,9 @@ WORKDIR /
 
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
-# property in operator-templating/repositories.yaml
+# property in operator-templating/config/rust.yaml
 # hadolint ignore=SC1091
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.76.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.0 \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
