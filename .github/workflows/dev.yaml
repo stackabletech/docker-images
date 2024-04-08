@@ -53,7 +53,7 @@ jobs:
       - name: setup-python
         run: |
           sudo apt update
-          sudo apt install python
+          sudo apt install --assume-yes python3
       - name: Set up Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
       - name: Set up syft
