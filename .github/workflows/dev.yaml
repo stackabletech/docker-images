@@ -66,9 +66,9 @@ jobs:
       - name: Publish dev images
         id: publish_images
         run: |
-          # install python manually
-          sudo apt-get update
-          sudo apt-get install python
+          # Install python manually
+          # sudo apt-get update
+          # sudo apt-get install python
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           bake --product "${{ matrix.product }}" \
