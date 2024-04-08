@@ -81,7 +81,7 @@ jobs:
           --image-version 0.0.0-dev-$(arch) \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
-          --export-tags-file bake-target-tags
+          --export-tags-file bake-target-tags \
           -o stackable-experimental
           # Push images to image repository
           if [ -f bake-target-tags ]; then
