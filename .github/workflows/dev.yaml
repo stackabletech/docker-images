@@ -169,7 +169,7 @@ jobs:
             echo "Generating manifest list for $PRODUCT in version $VERSION"
 
             # TODO: Move back to stackable after testing
-            MANIFEST_NAME="docker.stackable.tech/stackable-experimental/${PRODUCT}:${VERSION}-0.0.0-dev"
+            MANIFEST_NAME="docker.stackable.tech/stackable-experimental/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
             # Create and push to Stackable Nexus
             # `docker manifest push` directly returns the digest of the manifest list
             # As it is an experimental feature, this might change in the future
