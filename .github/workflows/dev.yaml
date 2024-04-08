@@ -20,23 +20,23 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
         product:
-          # - airflow
-          # - druid
-          # - hadoop
-          # - hbase
-          # - hive
-          # - kafka
-          # - kafka-testing-tools
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - kafka-testing-tools
           - krb5
-          # - nifi
-          # - opa
-          # - spark-k8s
-          # - superset
-          # - testing-tools
-          # - trino
-          # - trino-cli
-          # - tools
-          # - zookeeper
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - trino-cli
+          - tools
+          - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
