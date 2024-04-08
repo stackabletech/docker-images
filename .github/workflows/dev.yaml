@@ -76,8 +76,8 @@ jobs:
         run: |
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
-          bake --product "${{ matrix.product }}" \
           # Tagging images with the architecture they were build on
+          bake --product "${{ matrix.product }}" \
           --image-version 0.0.0-dev-$(arch) \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
