@@ -10,7 +10,7 @@ PRODUCTS = [
     # "kafka-testing-tools",
     "krb5",
     # "nifi",
-    "opa",
+    # "opa",
     # "spark-k8s",
     # "superset",
     # "testing-tools",
