@@ -82,7 +82,6 @@ jobs:
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
-          # TODO: Remove this after testing
           -o stackable-experimental
           # Push images to image repository
           if [ -f bake-target-tags ]; then
@@ -104,7 +103,6 @@ jobs:
             # Generate SBOM for the image
             syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
             # Determine the PURL for the image
-            # TODO: remove after development
             PURL="pkg:docker/stackable-experimental/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
             # Get metadata from the image
             IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
