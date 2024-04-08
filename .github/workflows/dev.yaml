@@ -141,7 +141,7 @@ jobs:
             # # Attest the SBOM to the image
             # cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
           fi
-  create_manifest:
+  create_manifests:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
