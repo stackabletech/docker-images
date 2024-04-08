@@ -9,7 +9,7 @@ on:
 
 jobs:
   development:
-    name: ${{ matrix.product }} 0.0.0-dev
+    name: ${{ matrix.product }} 0.0.0-dev ${{ matrix.runner }}
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner }}
@@ -20,7 +20,7 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
         product:
-          - airflow
+          # - airflow
           # - druid
           # - hadoop
           # - hbase
@@ -29,7 +29,7 @@ jobs:
           # - kafka-testing-tools
           # - krb5
           # - nifi
-          # - opa
+          - opa
           # - spark-k8s
           # - superset
           # - testing-tools
@@ -148,7 +148,7 @@ jobs:
     strategy:
       matrix:
         product:
-        - airflow
+        # - airflow
         # - druid
         # - hadoop
         # - hbase
@@ -157,7 +157,7 @@ jobs:
         # - kafka-testing-tools
         # - krb5
         # - nifi
-        # - opa
+        - opa
         # - spark-k8s
         # - superset
         # - testing-tools
