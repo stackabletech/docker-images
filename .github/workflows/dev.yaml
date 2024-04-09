@@ -20,23 +20,23 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
         product:
-          # - airflow
-          # - druid
-          # - hadoop
-          # - hbase
-          # - hive
-          # - kafka
-          # - kafka-testing-tools
+          - airflow
+          - druid
+          - hadoop
+          - hbase
+          - hive
+          - kafka
+          - kafka-testing-tools
           - krb5
-          # - nifi
-          # - opa
-          # - spark-k8s
-          # - superset
-          # - testing-tools
-          # - trino
-          # - trino-cli
-          # - tools
-          # - zookeeper
+          - nifi
+          - opa
+          - spark-k8s
+          - superset
+          - testing-tools
+          - trino
+          - trino-cli
+          - tools
+          - zookeeper
         shard_count:
           - 5
         shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
@@ -83,8 +83,8 @@ jobs:
           --architecture "linux/${ARCH_FOR_DOCKER}" \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
-          --export-tags-file bake-target-tags \
-          -o stackable-experimental
+          --export-tags-file bake-target-tags
+
           # Push images to image repository
           if [ -f bake-target-tags ]; then
             echo "bake-target-tags: "$(< bake-target-tags)
@@ -105,7 +105,7 @@ jobs:
             # Generate SBOM for the image
             syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
             # Determine the PURL for the image
-            PURL="pkg:docker/stackable-experimental/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
+            PURL="pkg:docker/stackable/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
             # Get metadata from the image
             IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
             IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
@@ -172,8 +172,7 @@ jobs:
 
             echo "Generating manifest list for $PRODUCT in version $VERSION"
 
-            # TODO: Move back to stackable after testing
-            MANIFEST_NAME="docker.stackable.tech/stackable-experimental/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
+            MANIFEST_NAME="docker.stackable.tech/stackable/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
             # Create and push to Stackable Nexus
             # `docker manifest push` directly returns the digest of the manifest list
             # As it is an experimental feature, this might change in the future
