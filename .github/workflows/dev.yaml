@@ -79,7 +79,7 @@ jobs:
           # Tagging images with the architecture they were build on
           ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#linux/amd64#' | sed -e 's#aarch64#linux/arm64#')"
           bake --product "${{ matrix.product }}" \
-          --image-version 0.0.0-dev-$(arch) \
+          --image-version "0.0.0-dev-${ARCH_FOR_DOCKER}" \
           --architecture "$ARCH_FOR_DOCKER" \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
@@ -179,7 +179,7 @@ jobs:
             # As it is an experimental feature, this might change in the future
             # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
             # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
-            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-x86_64" --amend "${MANIFEST_NAME}-aarch64"
+            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-ard64"
             DIGEST=$(docker manifest push $MANIFEST_NAME)
 
             # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
@@ -189,7 +189,7 @@ jobs:
 
             # Push to oci.stackable.tech as well
             MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
-            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-x86_64" --amend "${MANIFEST_NAME}-aarch64"
+            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-ard64"
             DIGEST=$(docker manifest push $MANIFEST_NAME)
             cosign sign -y "$MANIFEST_NAME@$DIGEST"
           done
