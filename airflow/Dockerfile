@@ -28,6 +28,10 @@ RUN microdnf update && \
         # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
+        # Needed by ./configure to build gevent, see snippet [1] at the end of file
+        diffutils \
+        # Needed to build gevent, see snippet [1] at the end of file
+        make \
         gcc \
         gcc-c++ \
         libpq-devel \
@@ -37,8 +41,9 @@ RUN microdnf update && \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
         unixODBC-devel && \
-    microdnf clean all && \
-    python3 -m venv --system-site-packages /stackable/app && \
+    microdnf clean all
+
+RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
@@ -116,3 +121,14 @@ WORKDIR /stackable
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
+
+# SNIPPET 1
+# 137.0       Running '(cd  "/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev"  && sh ./configure -C > configure-output.txt )' in /tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 8279: diff: command not found
+# 137.0       config.status: error: in `/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev':
+# 137.0       config.status: error: Something went wrong bootstrapping makefile fragments
+# 137.0           for automatic dependency tracking.  Try re-running configure with the
+# 137.0           '--disable-dependency-tracking' option to at least be able to build
+# 137.0           the package (albeit without support for automatic dependency tracking).
