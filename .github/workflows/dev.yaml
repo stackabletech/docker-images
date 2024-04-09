@@ -179,7 +179,7 @@ jobs:
             # As it is an experimental feature, this might change in the future
             # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
             # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
-            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-ard64"
+            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
             DIGEST=$(docker manifest push $MANIFEST_NAME)
 
             # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
@@ -189,7 +189,7 @@ jobs:
 
             # Push to oci.stackable.tech as well
             MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
-            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-ard64"
+            docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
             DIGEST=$(docker manifest push $MANIFEST_NAME)
             cosign sign -y "$MANIFEST_NAME@$DIGEST"
           done
