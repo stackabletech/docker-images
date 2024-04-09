@@ -77,10 +77,10 @@ jobs:
           # Bake images and load them to local docker repo for signing
           # TODO: buildx cannot --load and --push at the same time
           # Tagging images with the architecture they were build on
-          ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#linux/amd64#' | sed -e 's#aarch64#linux/arm64#')"
+          ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           bake --product "${{ matrix.product }}" \
           --image-version "0.0.0-dev-${ARCH_FOR_DOCKER}" \
-          --architecture "$ARCH_FOR_DOCKER" \
+          --architecture "linux/${ARCH_FOR_DOCKER}" \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags \
