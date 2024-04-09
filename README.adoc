@@ -22,7 +22,7 @@ You can select a specific version of a product to build using the syntax `produc
 
     bake --product hive=3.1.3 -i 0.0.0-dev
 
-NOTE: `-i` is the shorthand for `--image`
+NOTE: `-i` is the shorthand for `--image` (i.e. the resulting image tag)
 
 The GitHub action called `Product images` can be triggered manually to do the same but not on the local machine.
 
