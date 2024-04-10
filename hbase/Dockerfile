@@ -50,15 +50,17 @@ RUN cd /stackable/hbase-${PRODUCT}-src/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
 
 # Build the hbase-operator-tools
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
-    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
+RUN git clone https://github.com/apache/hbase-operator-tools && cd hbase-operator-tools && \
+    # 428623538a8b486762b83b098328510a53db54fe = master branch at 2024-04-09
+    git checkout 428623538a8b486762b83b098328510a53db54fe && cd .. && \
+    mv hbase-operator-tools hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
     mvn \
         -Dhbase.version=${PRODUCT} \
         -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
         -DskipTests \
         -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
-        package assembly:single && \
-    tar -xz \
+        package assembly:single
+RUN tar -xz \
         -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
         -C /stackable/ && \
     rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -83,8 +85,22 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+
+# 1803883d3dfd04253f863d70e10d19c3e7c57860 = 5.1 branch
+RUN git clone https://github.com/apache/phoenix && cd phoenix && git checkout 1803883d3dfd04253f863d70e10d19c3e7c57860 && cd ..
+
+# maven-build-helper-plugin version 3.5.0 requires Maven 3.6.3 or higher
+RUN curl -LO https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz && \
+    tar -xzf apache-maven-3.9.6-bin.tar.gz && \
+    export M2_HOME=/stackable/apache-maven-3.9.6 && \
+    export M2=${M2_HOME}/bin && \
+    export PATH=${M2}:${PATH}
+
+RUN mv phoenix phoenix-hbase-${PHOENIX}-src && \
+    /stackable/apache-maven-3.9.6/bin/mvn -f phoenix-hbase-${PHOENIX}-src clean package -DskipTests
+RUN tar -xzf phoenix-hbase-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${PHOENIX}-bin.tar.gz -C /stackable/ && \
+    mv phoenix-hbase-${PHOENIX}-bin phoenix && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
