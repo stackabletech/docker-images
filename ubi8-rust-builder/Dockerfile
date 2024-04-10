@@ -19,6 +19,8 @@ RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablere
   && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip clang krb5-libs libkadm5 -y \
   && rm -rf /var/cache/yum
 
+# Container Storage Interface is defined using GRPC/Protobuf, our operators that use it (secret-operator/listener-operator) require
+# protoc via Prost (https://github.com/tokio-rs/prost).
 WORKDIR /opt/protoc
 RUN PROTOC_VERSION=21.5 \
   ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
