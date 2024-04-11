@@ -7,14 +7,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
-  Also SBOMs are generated and everything is signed ([#614]).
+  Also SBOMs are generated and everything is signed ([#614], [#616]).
 
 ### Fixed
 
 - Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
 - Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
 - python:3.11 manifest list fixed. Added proper hash ([#613]).
-- trino-cli: Include the trino-cli in the CI build process ([#614], [#616]).
+- trino-cli: Include the trino-cli in the CI build process ([#614]).
 
 [#611]: https://github.com/stackabletech/docker-images/pull/611
 [#612]: https://github.com/stackabletech/docker-images/pull/612
