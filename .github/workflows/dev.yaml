@@ -12,6 +12,8 @@ jobs:
       id-token: write
     runs-on: ${{ matrix.runner }}
     strategy:
+      # There is value to see which builds are working and which are actually broken
+      # The images will be pushed, but the (effective) manifest-list is only updated when *all* builds succeed.
       fail-fast: false
       # This setting can be changed to throttle the build load
       # max-parallel: 1
