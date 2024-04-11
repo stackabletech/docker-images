@@ -52,8 +52,7 @@ RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
 RUN rm /stackable/apache-hive-${PRODUCT}/lib/postgresql-9.4.1208.jre7.jar && \
     curl --fail -L https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.7.2.jar -o /stackable/hive/lib/postgresql-42.7.2.jar
 
-
-COPY --link --from=hadoop-builder /stackable/hadoop /stackable/hadoop
+COPY --chown=stackable:stackable --from=hadoop-builder /stackable/hadoop /stackable/hadoop
 
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
@@ -122,15 +121,15 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --link --from=builder /stackable/apache-hive-${PRODUCT} /stackable/apache-hive-${PRODUCT}
+COPY --chown=stackable:stackable --from=builder /stackable/apache-hive-${PRODUCT} /stackable/apache-hive-${PRODUCT}
 RUN ln -s /stackable/apache-hive-${PRODUCT}/ /stackable/hive
 
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
-COPY --link --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
 RUN ln -s /stackable/hadoop-${HADOOP}/ /stackable/hadoop
 
-COPY --link --from=builder /stackable/jmx /stackable/jmx
+COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx
 COPY hive/licenses /licenses
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
