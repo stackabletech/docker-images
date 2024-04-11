@@ -11,15 +11,17 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
-- Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
+- superset: Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
+- airflow: Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
 - python:3.11 manifest list fixed. Added proper hash ([#613]).
 - trino-cli: Include the trino-cli in the CI build process ([#614]).
+- hive: Fix compilation on ARM by back-porting [HIVE-21939](https://issues.apache.org/jira/browse/HIVE-21939) from [this](https://github.com/apache/hive/commit/2baf21bb55fcf33d8522444c78a8d8cab60e7415) commit ([#617]).
 
 [#611]: https://github.com/stackabletech/docker-images/pull/611
 [#612]: https://github.com/stackabletech/docker-images/pull/612
 [#613]: https://github.com/stackabletech/docker-images/pull/613
 [#614]: https://github.com/stackabletech/docker-images/pull/614
+[#617]: https://github.com/stackabletech/docker-images/pull/617
 
 ## [24.3.0] - 2024-03-20
 
