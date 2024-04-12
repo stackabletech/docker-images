@@ -143,7 +143,7 @@ products = [
                 "java-base": "1.8.0",
                 "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
-                # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this so old it does only support
+                # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
                 # MD5 based authentication. Because of this, it does not work against more recent PostgresQL versions.
                 # See https://github.com/stackabletech/hive-operator/issues/170 for details.
                 "postgres_driver": "42.7.2",
