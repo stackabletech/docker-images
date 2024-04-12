@@ -31,17 +31,15 @@ COPY --chown=stackable:stackable hive/stackable /stackable
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
-RUN chmod +x patches/apply_patches.sh
-RUN patches/apply_patches.sh ${PRODUCT}
-RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
-    mvn clean package -DskipTests -Pdist
-RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+    patches/apply_patches.sh ${PRODUCT} && \
+    cd /stackable/apache-hive-${PRODUCT}-src/ && \
+    mvn clean package -DskipTests -Pdist && \
     tar -xzf packaging/target/apache-hive-${PRODUCT}-bin.tar.gz -C /stackable && \
     mv /stackable/apache-hive-${PRODUCT}-bin /stackable/apache-hive-${PRODUCT} && \
     ln -s /stackable/apache-hive-${PRODUCT}/ /stackable/hive && \
-    cp /stackable/bin/start-metastore /stackable/hive/bin
-
+    cp /stackable/bin/start-metastore /stackable/hive/bin && \
+    rm -rf /stackable/apache-hive-${PRODUCT}-src
 
 # TODO: Remove hardcoded _new_ version
 # Replace the old (postgresql-9.4.1208.jre7.jar) postgresql JDBC driver with a newer one, as the old one does only support MD5 based authentication.
@@ -53,7 +51,7 @@ RUN rm /stackable/apache-hive-${PRODUCT}/lib/postgresql-9.4.1208.jre7.jar && \
     curl --fail -L https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.7.2.jar -o /stackable/hive/lib/postgresql-42.7.2.jar
 
 
-COPY --link --from=hadoop-builder /stackable/hadoop /stackable/hadoop
+COPY --from=hadoop-builder /stackable/hadoop /stackable/hadoop
 
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
@@ -122,15 +120,15 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --link --from=builder /stackable/apache-hive-${PRODUCT} /stackable/apache-hive-${PRODUCT}
+COPY --from=builder /stackable/apache-hive-${PRODUCT} /stackable/apache-hive-${PRODUCT}
 RUN ln -s /stackable/apache-hive-${PRODUCT}/ /stackable/hive
 
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
-COPY --link --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+COPY --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
 RUN ln -s /stackable/hadoop-${HADOOP}/ /stackable/hadoop
 
-COPY --link --from=builder /stackable/jmx /stackable/jmx
+COPY --from=builder /stackable/jmx /stackable/jmx
 COPY hive/licenses /licenses
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
