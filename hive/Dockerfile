@@ -32,17 +32,15 @@ COPY --chown=stackable:stackable hive/stackable /stackable
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
-RUN chmod +x patches/apply_patches.sh
-RUN patches/apply_patches.sh ${PRODUCT}
-RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
-    mvn clean package -DskipTests --projects standalone-metastore
-
-RUN cd /stackable/apache-hive-${PRODUCT}-src/ && \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+    patches/apply_patches.sh ${PRODUCT} && \
+    cd /stackable/apache-hive-${PRODUCT}-src/ && \
+    mvn clean package -DskipTests --projects standalone-metastore && \
     mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable && \
     ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore && \
     cp /stackable/hive-metastore/bin/start-metastore /stackable/hive-metastore/bin/start-metastore.bak && \
-    cp /stackable/bin/start-metastore /stackable/hive-metastore/bin
+    cp /stackable/bin/start-metastore /stackable/hive-metastore/bin && \
+    rm -rf /stackable/apache-hive-${PRODUCT}-src
 
 COPY --chown=stackable:stackable --from=hadoop-builder /stackable/hadoop /stackable/hadoop
 
