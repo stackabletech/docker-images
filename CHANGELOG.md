@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614]).
 
+### Changed
+
+- hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of old dependencies ([#619]).
+
 ### Fixed
 
 - superset: Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
@@ -16,12 +20,15 @@ All notable changes to this project will be documented in this file.
 - python:3.11 manifest list fixed. Added proper hash ([#613]).
 - trino-cli: Include the trino-cli in the CI build process ([#614]).
 - hive: Fix compilation on ARM by back-porting [HIVE-21939](https://issues.apache.org/jira/browse/HIVE-21939) from [this](https://github.com/apache/hive/commit/2baf21bb55fcf33d8522444c78a8d8cab60e7415) commit ([#617]).
+- hive: Fix compilation on ARM in CI as well ([#619]).
+- hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
 
 [#611]: https://github.com/stackabletech/docker-images/pull/611
 [#612]: https://github.com/stackabletech/docker-images/pull/612
 [#613]: https://github.com/stackabletech/docker-images/pull/613
 [#614]: https://github.com/stackabletech/docker-images/pull/614
 [#617]: https://github.com/stackabletech/docker-images/pull/617
+[#619]: https://github.com/stackabletech/docker-images/pull/619
 
 ## [24.3.0] - 2024-03-20
 
