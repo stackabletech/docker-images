@@ -33,7 +33,6 @@ RUN microdnf update && \
     zip && \
     microdnf clean all
 
-COPY --chown=stackable:stackable hbase/stackable /stackable
 COPY hbase/licenses /licenses
 
 USER stackable
@@ -43,6 +42,7 @@ WORKDIR /stackable
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN mv hbase-${PRODUCT} hbase-${PRODUCT}-src
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
 RUN chmod +x patches/apply_patches.sh
 RUN patches/apply_patches.sh ${PRODUCT}
 RUN cd /stackable/hbase-${PRODUCT}-src/ && \
@@ -50,6 +50,27 @@ RUN cd /stackable/hbase-${PRODUCT}-src/ && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
+
+# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
+# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
+# This is a TEMPORARY fix which means that we can keep the hardcoded path in HBase operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
+# At the same time a new HBase Operator will still work with older images which do not have the symlink to the versionless jar.
+# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
+# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
+COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
+RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
+    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+    -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
+    ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
+    ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
+
+RUN ARCH="${TARGETARCH/amd64/x64}" && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
+    ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # Build the hbase-operator-tools
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
@@ -69,6 +90,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operat
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
+COPY --chown=stackable:stackable hbase/stackable/bin/hbck2.env /stackable/bin/
 RUN envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
     chmod +x bin/hbck2 && \
     rm bin/hbck2.env
@@ -77,6 +99,7 @@ COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/
+COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 # Resolve paths in bin/export-snapshot-to-s3
 RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//') && \
     # The variable names are intentionally passed to envsubst in single-quotes,
@@ -85,26 +108,6 @@ RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:
     envsubst '${PRODUCT}:${LIBS}' < bin/export-snapshot-to-s3.env > bin/export-snapshot-to-s3 && \
     chmod +x bin/export-snapshot-to-s3 && \
     rm bin/export-snapshot-to-s3.env
-
-# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
-# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
-# This is a TEMPORARY fix which means that we can keep the hardcoded path in HBase operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
-# At the same time a new HBase Operator will still work with older images which do not have the symlink to the versionless jar.
-# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
-# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
-RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-    -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
-    ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
-    ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
-
-RUN ARCH="${TARGETARCH/amd64/x64}" && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
-    ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
