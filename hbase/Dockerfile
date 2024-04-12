@@ -3,6 +3,8 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL4006
 
+FROM stackable/image/hadoop AS hadoop-builder
+
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
@@ -11,7 +13,7 @@ ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
 ARG JMX_EXPORTER
-ARG HADOOP_M2
+ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -44,8 +46,8 @@ RUN mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 RUN chmod +x patches/apply_patches.sh
 RUN patches/apply_patches.sh ${PRODUCT}
 RUN cd /stackable/hbase-${PRODUCT}-src/ && \
-    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} clean install -DskipTests && \
-    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP_M2} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
+    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
+    mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
 
@@ -64,13 +66,25 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operat
     rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # Resolve paths in bin/hbck2
-RUN mv bin/hbck2 bin/hbck2.env && \
+# The variable names are intentionally passed to envsubst in single-quotes,
+# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+# does not work, so please ignore the according warning (SC2016).
+RUN envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
+    chmod +x bin/hbck2 && \
+    rm bin/hbck2.env
+
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/
+# Resolve paths in bin/export-snapshot-to-s3
+RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//') && \
     # The variable names are intentionally passed to envsubst in single-quotes,
     # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
     # does not work, so please ignore the according warning (SC2016).
-    envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 && \
-    chmod +x bin/hbck2 && \
-    rm bin/hbck2.env
+    envsubst '${PRODUCT}:${LIBS}' < bin/export-snapshot-to-s3.env > bin/export-snapshot-to-s3 && \
+    chmod +x bin/export-snapshot-to-s3 && \
+    rm bin/export-snapshot-to-s3.env
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -118,6 +132,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG HADOOP
 ARG HBASE_OPERATOR_TOOLS
 
 LABEL name="Apache HBase" \
@@ -148,6 +163,7 @@ COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
+COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
 RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
     ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools

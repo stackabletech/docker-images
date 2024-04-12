@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614]).
+- hbase: Enable snapshot exports to S3; The HBase image depends now on
+  the Hadoop image. The required AWS JARs are copied from the Hadoop
+  image to the HBase image. The script `export-snapshot-to-s3` makes
+  exporting easier ([#621]).
 
 ### Fixed
 
@@ -22,6 +26,7 @@ All notable changes to this project will be documented in this file.
 [#613]: https://github.com/stackabletech/docker-images/pull/613
 [#614]: https://github.com/stackabletech/docker-images/pull/614
 [#617]: https://github.com/stackabletech/docker-images/pull/617
+[#621]: https://github.com/stackabletech/docker-images/pull/621
 
 ## [24.3.0] - 2024-03-20
 
