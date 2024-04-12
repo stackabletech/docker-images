@@ -79,7 +79,7 @@ RUN rm /stackable/hive-metastore/lib/log4j-slf4j-impl* && \
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/apache-hive-${PRODUCT}
+RUN /bin/log4shell.sh /stackable/apache-hive-metastore-${PRODUCT}-bin/
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -88,7 +88,8 @@ RUN /bin/log4shell.sh /stackable/apache-hive-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/apache-hive-${PRODUCT}
+# log4shell_scanner does not work on symlinks!
+RUN /bin/log4shell_scanner s /stackable/apache-hive-metastore-${PRODUCT}-bin/
 # ===
 
 # syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
@@ -98,12 +99,12 @@ ARG PRODUCT
 ARG HADOOP
 ARG RELEASE
 
-LABEL name="Apache Hive" \
+LABEL name="Apache Hive metastore" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
-      summary="The Stackable image for Apache Hive." \
+      summary="The Stackable image for Apache Hive metastore." \
       description="This image is deployed by the Stackable Operator for Apache Hive."
 
 RUN microdnf update && \
