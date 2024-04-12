@@ -136,4 +136,4 @@ ENV HIVE_HOME=/stackable/hive-metastore
 ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
 
 WORKDIR /stackable/hive-metastore
-# Start command is set by oeprator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"
+# Start command is set by operator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"
