@@ -115,6 +115,7 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
+# TODO: Try to use --link here, as it should be faster
 COPY --chown=stackable:stackable --from=builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
 RUN ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore
 
