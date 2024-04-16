@@ -51,19 +51,12 @@ RUN cd /stackable/hbase-${PRODUCT}-src/ && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
     rm -rf /stackable/hbase-${PRODUCT}-src
 
-# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
-# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
-# This is a TEMPORARY fix which means that we can keep the hardcoded path in HBase operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
-# At the same time a new HBase Operator will still work with older images which do not have the symlink to the versionless jar.
-# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
-# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
 COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
