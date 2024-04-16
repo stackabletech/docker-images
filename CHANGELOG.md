@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
-  Also SBOMs are generated and everything is signed ([#614]).
+  Also SBOMs are generated and everything is signed ([#614], [#616]).
 
 ### Changed
 
@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 [#612]: https://github.com/stackabletech/docker-images/pull/612
 [#613]: https://github.com/stackabletech/docker-images/pull/613
 [#614]: https://github.com/stackabletech/docker-images/pull/614
+[#616]: https://github.com/stackabletech/docker-images/pull/616
 [#617]: https://github.com/stackabletech/docker-images/pull/617
 [#619]: https://github.com/stackabletech/docker-images/pull/619
 [#622]: https://github.com/stackabletech/docker-images/pull/622
