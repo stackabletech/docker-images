@@ -138,7 +138,7 @@ products = [
             {
                 "product": "3.1.3",
                 "jmx_exporter": "0.20.0",
-                "java-base": "1.8.0",
+                "java-base": "11",
                 "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
                 # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
