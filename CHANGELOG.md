@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619]).
+- hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
 
 ### Fixed
 
@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 [#614]: https://github.com/stackabletech/docker-images/pull/614
 [#617]: https://github.com/stackabletech/docker-images/pull/617
 [#619]: https://github.com/stackabletech/docker-images/pull/619
+[#622]: https://github.com/stackabletech/docker-images/pull/622
 
 ## [24.3.0] - 2024-03-20
 
