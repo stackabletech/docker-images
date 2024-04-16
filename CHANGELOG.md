@@ -8,9 +8,15 @@ All notable changes to this project will be documented in this file.
 
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
+- hbase: Enable snapshot exports to S3; The HBase image depends now on
+  the Hadoop image. The required AWS JARs are copied from the Hadoop
+  image to the HBase image. The script `export-snapshot-to-s3` makes
+  exporting easier ([#621]).
 
 ### Changed
 
+- hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
+  which is unused since SDP 23.11 ([#621]).
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
 
 ### Fixed
@@ -30,6 +36,7 @@ All notable changes to this project will be documented in this file.
 [#616]: https://github.com/stackabletech/docker-images/pull/616
 [#617]: https://github.com/stackabletech/docker-images/pull/617
 [#619]: https://github.com/stackabletech/docker-images/pull/619
+[#621]: https://github.com/stackabletech/docker-images/pull/621
 [#622]: https://github.com/stackabletech/docker-images/pull/622
 
 ## [24.3.0] - 2024-03-20

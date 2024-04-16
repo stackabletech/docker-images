@@ -109,8 +109,6 @@ products = [
     {
         "name": "hbase",
         "versions": [
-        # Note: Do NOT rename "hadoop-m2" below because if it's renamed to "hadoop"
-        # our image tool magic will think HBase has a dependency on the Hadoop Docker image and build that!
         # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
         # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
              {
@@ -120,7 +118,7 @@ products = [
                  "java-base": "11",
                  "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.3",
-                 "hadoop_m2": "3.3.6",
+                 "hadoop": "3.3.6",
                  "jmx_exporter": "0.20.0",
              },
         ],
