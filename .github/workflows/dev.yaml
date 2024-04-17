@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   BUILDKIT_STEP_LOG_MAX_SIZE: 50000000
