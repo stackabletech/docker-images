@@ -19,7 +19,7 @@ jobs:
       # max-parallel: 1
       # If we want more parallelism we can schedule a dedicated task for every tuple (product, product version)
       matrix:
-        runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
+        runner: ["ubuntu-latest", "buildjet-4vcpu-ubuntu-2204-arm"]
         product:
           - airflow
           - druid
