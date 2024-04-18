@@ -18,7 +18,7 @@ jobs:
       # This setting can be changed to throttle the build load
       # max-parallel: 1
       matrix:
-        runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
+        runner: ["ubuntu-latest", "buildjet-4vcpu-ubuntu-2204-arm"]
         product:
           - airflow
           - druid
