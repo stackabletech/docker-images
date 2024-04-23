@@ -1,0 +1,62 @@
+From d0fc55929e2fb00dbd84fb092771bf558dd20f16 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
+Date: Thu, 11 Apr 2024 15:41:05 +0200
+Subject: [PATCH] HIVE-21939: protoc:2.5.0 dependence has broken building on
+ aarch64
+
+Cherry-picked from 2baf21bb55fcf33d8522444c78a8d8cab60e7415
+
+Co-authored-by: Chinna Rao L <chinnaraol@apache.org>
+---
+ standalone-metastore/pom.xml | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
+index e36f1e64f0..6007b7961b 100644
+--- a/standalone-metastore/pom.xml
++++ b/standalone-metastore/pom.xml
+@@ -81,7 +81,10 @@
+     <log4j2.version>2.17.1</log4j2.version>
+     <mockito-all.version>1.10.19</mockito-all.version>
+     <orc.version>1.5.1</orc.version>
+-    <protobuf.version>2.5.0</protobuf.version>
++    <!-- com.google repo will be used except on Aarch64 platform. -->
++    <protobuf.group>com.google.protobuf</protobuf.group>
++    <protobuf.version>2.6.1</protobuf.version>
++    <protobuf-exc.version>2.6.1</protobuf-exc.version>
+     <sqlline.version>1.3.0</sqlline.version>
+     <storage-api.version>2.7.0</storage-api.version>
+
+@@ -443,6 +446,20 @@
+         </plugins>
+       </build>
+     </profile>
++    <!-- use com.github.os72 on aarch64 platform -->
++    <profile>
++      <id>aarch64</id>
++      <properties>
++        <protobuf.group>com.github.os72</protobuf.group>
++        <protobuf-exc.version>2.6.1-build3</protobuf-exc.version>
++      </properties>
++      <activation>
++        <os>
++          <family>linux</family>
++          <arch>aarch64</arch>
++        </os>
++      </activation>
++      </profile>
+       <!--
+     <profile>
+       <id>checkin</id>
+@@ -604,7 +621,7 @@
+               <goal>run</goal>
+             </goals>
+             <configuration>
+-              <protocArtifact>com.google.protobuf:protoc:2.5.0</protocArtifact>
++              <protocArtifact>${protobuf.group}:protoc:${protobuf-exc.version}</protocArtifact>
+               <addSources>none</addSources>
+               <inputDirectories>
+                 <include>${basedir}/src/main/protobuf/org/apache/hadoop/hive/metastore</include>
+--
+2.43.0
+
