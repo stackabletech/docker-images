@@ -86,8 +86,10 @@ jobs:
       - name: Run preflight checks (no submit)
         if: ${{ inputs.submit == false }}
         run: |
+          ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           check-container --product "${{ matrix.product }}" \
             --image-version "${{inputs.tag }}" \
             --registry "${{ inputs.registry }}" \
+            --architecture "linux/${ARCH_FOR_DOCKER}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
