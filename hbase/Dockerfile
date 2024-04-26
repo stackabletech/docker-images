@@ -18,8 +18,8 @@ ARG TARGETARCH
 ARG TARGETOS
 
 # zip required for the log4shell stuff
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     # The GNU gettext utilities contain the envsubst program which
     # substitutes the values of environment variables.
     gettext \
@@ -31,7 +31,7 @@ RUN microdnf update && \
     maven \
     tar \
     zip && \
-    microdnf clean all
+    microdnf --assumeyes clean all
 
 COPY hbase/licenses /licenses
 
@@ -56,10 +56,7 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
-    ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
-    ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
@@ -90,21 +87,8 @@ RUN envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2 &&
     chmod +x bin/hbck2 && \
     rm bin/hbck2.env
 
-# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HBase Operators (up until and including 23.7) used to hardcode
-# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
-# This is a TEMPORARY fix which means that we can keep the hardcoded path in HBase operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
-# At the same time a new HBase Operator will still work with older images which do not have the symlink to the versionless jar.
-# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
-# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
-RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-    -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
-
-# 1803883d3dfd04253f863d70e10d19c3e7c57860 = 5.1 branch
-RUN git clone https://github.com/apache/phoenix && cd phoenix && git checkout 1803883d3dfd04253f863d70e10d19c3e7c57860 && cd ..
+# 781016f5cdffd466ce8655d8b6ab511c5a60af7a = 5.2 branch at 2024-04-26
+RUN git clone https://github.com/apache/phoenix && cd phoenix && git checkout 781016f5cdffd466ce8655d8b6ab511c5a60af7a && cd ..
 
 # maven-build-helper-plugin version 3.5.0 requires Maven 3.6.3 or higher
 RUN curl -LO https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz && \
@@ -114,7 +98,7 @@ RUN curl -LO https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-
     export PATH=${M2}:${PATH}
 
 RUN mv phoenix phoenix-hbase-${PHOENIX}-src && \
-    /stackable/apache-maven-3.9.6/bin/mvn -f phoenix-hbase-${PHOENIX}-src clean package -DskipTests
+    /stackable/apache-maven-3.9.6/bin/mvn -f phoenix-hbase-${PHOENIX}-src clean package -DskipTests -Dhbase.profile=2.4 -Dhbase.version=${PRODUCT}
 RUN tar -xzf phoenix-hbase-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${PHOENIX}-bin.tar.gz -C /stackable/ && \
     mv phoenix-hbase-${PHOENIX}-bin phoenix && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
@@ -123,6 +107,20 @@ RUN tar -xzf phoenix-hbase-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
+
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/
+COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
+# Resolve paths in bin/export-snapshot-to-s3
+RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//') && \
+    # The variable names are intentionally passed to envsubst in single-quotes,
+    # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+    # does not work, so please ignore the according warning (SC2016).
+    envsubst '${PRODUCT}:${LIBS}' < bin/export-snapshot-to-s3.env > bin/export-snapshot-to-s3 && \
+    chmod +x bin/export-snapshot-to-s3 && \
+    rm bin/export-snapshot-to-s3.env
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
@@ -163,18 +161,15 @@ LABEL name="Apache HBase" \
 
 # The tar and python packages are required by the Phoenix command line.
 # We add zip and gzip because tar without compression is seldom useful.
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     tar \
     gzip \
     zip \
     python3 \
     python3-pip && \
-    microdnf clean all && \
+    microdnf --assumeyes clean all && \
     rm -rf /var/cache/yum
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
