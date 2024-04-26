@@ -2,7 +2,7 @@
 
 # 8.9-1029 as of 2023-12-01
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3-1612@sha256:bc552efb4966aaa44b02532be3168ac1ff18e2af299d0fe89502a1d9fabafbc5
 
 # intentionally unused
 ARG PRODUCT
@@ -25,7 +25,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
-RUN microdnf update && \
+RUN microdnf --assumeyes update && \
     microdnf --assumeyes install \
       # To make debugging easier, includes things like ping \
       # Added 2024-03: We cannot find any vulnerabilities in the past years \
@@ -52,8 +52,8 @@ RUN microdnf update && \
     useradd --gid stackable --uid 1000 --system stackable -d /stackable && \
     mkdir /stackable && \
     chown stackable:stackable /stackable && \
-    microdnf remove shadow-utils && \
-    microdnf clean all && \
+    microdnf --assumeyes remove shadow-utils && \
+    microdnf --assumeyes clean all && \
     echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc && \
     echo "alias ls='ls --color=auto'" >> /stackable/.bashrc && \
     echo "alias ..='cd ..'" >> /stackable/.bashrc && \

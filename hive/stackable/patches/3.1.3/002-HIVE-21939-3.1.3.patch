@@ -16,16 +16,16 @@ index e36f1e64f0..6007b7961b 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -81,7 +81,10 @@
-     <log4j2.version>2.17.1</log4j2.version>
+     <log4j2.version>2.17.2</log4j2.version>
      <mockito-all.version>1.10.19</mockito-all.version>
-     <orc.version>1.5.1</orc.version>
+     <orc.version>1.5.13</orc.version>
 -    <protobuf.version>2.5.0</protobuf.version>
 +    <!-- com.google repo will be used except on Aarch64 platform. -->
 +    <protobuf.group>com.google.protobuf</protobuf.group>
 +    <protobuf.version>2.6.1</protobuf.version>
 +    <protobuf-exc.version>2.6.1</protobuf-exc.version>
      <sqlline.version>1.3.0</sqlline.version>
-     <storage-api.version>2.7.0</storage-api.version>
+     <storage-api.version>2.7.3</storage-api.version>
 
 @@ -443,6 +446,20 @@
          </plugins>

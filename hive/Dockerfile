@@ -12,10 +12,10 @@ FROM stackable/image/java-base AS builder
 # As we got weird TLS errors (https://stackable-workspace.slack.com/archives/C031A5BEFS7/p1713185172557459) with a
 # Java 8 runtime we bumped the Runtime to Java 11 again. As we can only select a single version from the java-base
 # image, we pick 11 (which is used in the final image), and install Java 8 here.
-RUN microdnf update && \
-    microdnf remove java-11-openjdk-headless java-11-openjdk-devel java-11-openjdk && \
-    microdnf install java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel --nodocs && \
-    microdnf clean all
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes remove java-11-openjdk-headless java-11-openjdk-devel java-11-openjdk && \
+    microdnf --assumeyes install java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel --nodocs && \
+    microdnf --assumeyes clean all
 ENV JAVA_HOME=/usr/lib/jvm/jre-1.8.0
 
 ARG PRODUCT
@@ -28,23 +28,24 @@ ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
 
 
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     # For the apply_patches.sh script
     git \
     gzip \
     maven \
     tar \
     zip && \
-    microdnf clean all
+    microdnf --assumeyes clean all
 
 COPY --chown=stackable:stackable hive/stackable /stackable
+COPY --chown=stackable:stackable hive_src/apache-hive-3.1.3-src /stackable/apache-hive-3.1.3-src
 
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    patches/apply_patches.sh ${PRODUCT} && \
+
+RUN patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/apache-hive-${PRODUCT}-src/ && \
     mvn clean package -DskipTests --projects standalone-metastore && \
     mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable && \
@@ -118,8 +119,8 @@ LABEL name="Apache Hive metastore" \
       summary="The Stackable image for Apache Hive metastore." \
       description="This image is deployed by the Stackable Operator for Apache Hive."
 
-RUN microdnf update && \
-    microdnf clean all && \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes clean all && \
     rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 

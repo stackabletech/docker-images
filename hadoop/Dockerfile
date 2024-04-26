@@ -14,8 +14,8 @@ ARG TARGETARCH
 ARG TARGETOS
 
 # All others are required for the FUSE build
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     # Required for Hadoop build
     cmake \
     cyrus-sasl-devel \
@@ -27,9 +27,10 @@ RUN microdnf update && \
     openssl-devel \
     tar \
     xz \
+    zlib zlib-devel \
     # Required for log4shell.sh
     unzip zip && \
-    microdnf clean all
+    microdnf --assumeyes clean all
 
 WORKDIR /stackable
 
@@ -67,10 +68,11 @@ ENV PATH "${PATH}:/opt/protobuf/bin"
 
 WORKDIR /stackable
 
+
+COPY --chown=stackable:stackable hadoop_src/hadoop-3.3.6-src /stackable/hadoop-3.3.6-src
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    patches/apply_patches.sh ${PRODUCT} && \
+RUN patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
     mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
@@ -120,14 +122,14 @@ LABEL name="Apache Hadoop" \
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)
 # openssl -> not sure
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     fuse \
     fuse-libs \
     # tar is required for `kubectl cp` which can be used to copy the log files
     # or profiler flamegraph from the Pod
     tar && \
-    microdnf clean all && \
+    microdnf --assumeyes clean all && \
     rm -rf /var/cache/yum
 
 COPY hadoop/licenses /licenses

@@ -16,8 +16,8 @@ LABEL name="Stackable image for OpenJDK" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
 
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf --assumeyes update && \
+    microdnf --assumeyes install \
     # Obviously needed to run Java programs
     java-${PRODUCT}-openjdk-headless \
     # Includes tools such as jps or jmap (which is e.g. needed by the Spark UI, see https://github.com/stackabletech/spark-k8s-operator/discussions/340)
@@ -29,7 +29,7 @@ RUN microdnf update && \
     # Most of the Java tools needs at least "klist" and "kinit" for Kerberos integration
     krb5-workstation \
     --nodocs && \
-    microdnf clean all
+    microdnf --assumeyes clean all
 
 COPY java-base/licenses /licenses
 

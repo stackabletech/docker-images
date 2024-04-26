@@ -9,5 +9,5 @@ index f1ac43ed5b38..73d0c7580338 100644
 -    <nodejs.version>v12.22.1</nodejs.version>
 +    <nodejs.version>v14.0.0</nodejs.version>
      <yarnpkg.version>v1.22.5</yarnpkg.version>
-     <apache-ant.version>1.10.13</apache-ant.version>
+     <apache-ant.version>1.10.14</apache-ant.version>
      <jmh.version>1.20</jmh.version>
