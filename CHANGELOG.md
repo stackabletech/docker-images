@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- all: Switched all product builds from UBI8 to UBI9.4
+- all: Switched all product builds from UBI8 to UBI9.4 ([#629])
 - hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
   which is unused since SDP 23.11 ([#621]).
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
