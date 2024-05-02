@@ -15,10 +15,10 @@ jobs:
     strategy:
       matrix:
         runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
+        ubi-version: ["ubi8", "ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
-      - name: checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # tag=v4.1.4
       - name: Login to Stackable Harbor
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
@@ -35,23 +35,26 @@ jobs:
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           context: .
-          file: ./ubi8-rust-builder/Dockerfile
+          file: ./${{ matrix.ubi-version }}-rust-builder/Dockerfile
           push: true
-          tags: oci.stackable.tech/sdp/ubi8-rust-builder:${{ env.TAG }}
+          tags: oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder:${{ env.TAG }}
       - name: Sign the published builder image
         shell: bash
         run: |
           # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "oci.stackable.tech/sdp/ubi8-rust-builder@${{ steps.build-and-push.outputs.digest }}"
+          cosign sign -y "oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder@${{ steps.build-and-push.outputs.digest }}"
   create_manifest:
     permissions:
       id-token: write
+    strategy:
+      matrix:
+        ubi-version: ["ubi8", "ubi9"]
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # tag=v4.1.4
       - name: Login to Stackable Harbor
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
         with:
@@ -64,7 +67,7 @@ jobs:
         shell: bash
         run: |
           COMMIT_ID=$(git rev-parse --short HEAD)
-          MANIFEST_LIST_NAME=oci.stackable.tech/sdp/ubi8-rust-builder
+          MANIFEST_LIST_NAME=oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder
           docker manifest create "$MANIFEST_LIST_NAME:latest" "$MANIFEST_LIST_NAME:$COMMIT_ID-x86_64" "$MANIFEST_LIST_NAME:$COMMIT_ID-aarch64"
           # `docker manifest push` directly returns the digest of the manifest list
           # As it is an experimental feature, this might change in the future
