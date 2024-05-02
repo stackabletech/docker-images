@@ -6,7 +6,6 @@
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
-ARG PYTHON
 ARG AUTHLIB
 ARG STATSD_EXPORTER
 ARG TARGETARCH
@@ -35,9 +34,9 @@ RUN microdnf update \
         openldap-devel \
         openssl-devel \
         patch \
-        python${PYTHON//./}-devel \
-        python${PYTHON//./}-pip \
-        python${PYTHON//./}-wheel \
+        python-devel \
+        python-pip \
+        python-wheel \
         libpq-devel \
     && microdnf clean all
 
@@ -82,7 +81,6 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_expor
 FROM stackable/image/vector
 
 ARG PRODUCT
-ARG PYTHON
 ARG RELEASE
 
 LABEL name="Apache Superset" \
@@ -108,7 +106,7 @@ RUN microdnf update \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
-        python${PYTHON//./} \
+        python \
     && microdnf clean all
 
 COPY superset/licenses /licenses

@@ -27,6 +27,7 @@ RUN microdnf update && \
     openssl-devel \
     tar \
     xz \
+    zlib-devel \
     # Required for log4shell.sh
     unzip zip && \
     microdnf clean all
