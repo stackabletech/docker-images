@@ -19,7 +19,13 @@ LABEL name="Stackable Tools" \
     description="Stackable Tools for Kubernetes."
 
 RUN microdnf update && \
-    microdnf install iputils tar gzip zip openssl gettext && \
+    microdnf install \
+    gettext \
+    gzip \
+    iputils \
+    openssl \
+    tar \
+    zip && \
     microdnf clean all
 
 COPY tools/licenses /licenses

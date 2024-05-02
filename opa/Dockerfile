@@ -8,9 +8,20 @@ FROM stackable/image/vector AS opa-bundle-builder
 ARG BUNDLE_BUILDER_VERSION
 
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
+RUN microdnf update \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ git make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install \
+    cmake \
+    curl \
+    findutils \
+    gcc \
+    gcc-c++ \
+    git \
+    make \
+    openssl-devel \
+    pkg-config \
+    systemd-devel \
+    unzip \
   && rm -rf /var/cache/yum
 
 WORKDIR /
@@ -25,10 +36,14 @@ ARG DAEMONTOOLS_VERSION=0.76
 
 COPY opa/daemontools /daemontools
 
-RUN microdnf update -y && \
-    microdnf install tar gzip yum make gcc -y && \
-    yum install patch -y && \
-    yum clean all -y && \
+RUN microdnf update && \
+    microdnf install \
+    gcc \
+    gzip \
+    make \
+    patch \
+    tar \
+    yum && \
     microdnf clean all
 
 WORKDIR /daemontools
