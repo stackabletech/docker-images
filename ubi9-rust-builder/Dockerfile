@@ -34,7 +34,7 @@ RUN microdnf update --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablere
   && rm -rf /var/cache/yum
 
 WORKDIR /opt/protoc
-RUN PROTOC_VERSION=21.5 \
+RUN PROTOC_VERSION=26.1 \
   ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
   && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
@@ -46,7 +46,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/repositories.yaml
 # hadolint ignore=SC1091
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.75.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.2 \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.1
 
 # Build artifacts will be available in /app.
