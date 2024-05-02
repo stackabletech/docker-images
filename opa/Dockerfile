@@ -10,7 +10,18 @@ ARG BUNDLE_BUILDER_VERSION
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
   && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ git make cmake openssl-devel pkg-config systemd-devel unzip -y \
+  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
+  curl \
+  findutils \
+  gcc \
+  gcc-c++ \
+  git \
+  make \
+  cmake \
+  openssl-devel \
+  pkg-config \
+  systemd-devel \
+  unzip \
   && rm -rf /var/cache/yum
 
 WORKDIR /
@@ -60,8 +71,12 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
-    microdnf install tar gzip && \
-    microdnf clean all
+    microdnf install \
+    tar \
+    gzip \
+    # Required for filtering logs
+    jq \
+    && microdnf clean all
 
 COPY opa/licenses /licenses
 
@@ -76,4 +91,8 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${TA
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
-CMD ["./opa", "run", "-s"]
+COPY --chown=stackable:stackable opa/stackable/bin /stackable/opa/bin
+
+ENV PATH="${PATH}":/stackable/opa:/stackable/opa/bin
+
+CMD ["opa", "run", "-s"]
