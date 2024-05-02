@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
 - hbase: Enable snapshot exports to S3; The HBase image depends now on
@@ -31,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation on ARM in CI as well ([#619]).
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
 
+[#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
 [#612]: https://github.com/stackabletech/docker-images/pull/612
 [#613]: https://github.com/stackabletech/docker-images/pull/613
