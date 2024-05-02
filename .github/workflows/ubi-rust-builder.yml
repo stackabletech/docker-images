@@ -1,4 +1,4 @@
-name: Docker
+name: UBI Builder rebuild
 
 on:
   push:
