@@ -6,6 +6,47 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
+  Also SBOMs are generated and everything is signed ([#614], [#616]).
+- hbase: Enable snapshot exports to S3; The HBase image depends now on
+  the Hadoop image. The required AWS JARs are copied from the Hadoop
+  image to the HBase image. The script `export-snapshot-to-s3` makes
+  exporting easier ([#621]).
+
+### Changed
+
+- hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
+  which is unused since SDP 23.11 ([#621]).
+- hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
+- ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
+- pass platform argument to preflight check ([#626]).
+
+### Fixed
+
+- superset: Let Superset 3.1.0 build on ARM by adding `make` and `diffutils` ([#611]).
+- airflow: Let Airflow 2.8.x and 2.9.x build on ARM by adding `make` and `diffutils` ([#612]).
+- python:3.11 manifest list fixed. Added proper hash ([#613]).
+- trino-cli: Include the trino-cli in the CI build process ([#614]).
+- hive: Fix compilation on ARM by back-porting [HIVE-21939](https://issues.apache.org/jira/browse/HIVE-21939) from [this](https://github.com/apache/hive/commit/2baf21bb55fcf33d8522444c78a8d8cab60e7415) commit ([#617]).
+- hive: Fix compilation on ARM in CI as well ([#619]).
+- hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
+
+[#611]: https://github.com/stackabletech/docker-images/pull/611
+[#612]: https://github.com/stackabletech/docker-images/pull/612
+[#613]: https://github.com/stackabletech/docker-images/pull/613
+[#614]: https://github.com/stackabletech/docker-images/pull/614
+[#616]: https://github.com/stackabletech/docker-images/pull/616
+[#617]: https://github.com/stackabletech/docker-images/pull/617
+[#619]: https://github.com/stackabletech/docker-images/pull/619
+[#621]: https://github.com/stackabletech/docker-images/pull/621
+[#622]: https://github.com/stackabletech/docker-images/pull/622
+[#624]: https://github.com/stackabletech/docker-images/pull/624
+[#626]: https://github.com/stackabletech/docker-images/pull/626
+
+## [24.3.0] - 2024-03-20
+
+### Added
+
 - omid: init at 1.1.0 ([#493]).
 - hadoop: Allow datanodes to override their registration addresses ([#506], [#544]).
 - hadoop: Add async-profiler and backport HADOOP-18055 and HADOOP-18077

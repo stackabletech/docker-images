@@ -1,4 +1,8 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
@@ -9,14 +13,20 @@ ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # All others are required for the FUSE build
 RUN microdnf update && \
     microdnf install \
     # Required for Hadoop build
-    cmake cyrus-sasl-devel fuse-devel gcc gcc-c++ maven openssl-devel tar xz git \
+    cmake \
+    cyrus-sasl-devel \
+    fuse-devel \
+    gcc \
+    gcc-c++ \
+    git \
+    maven \
+    openssl-devel \
+    tar \
+    xz \
     # Required for log4shell.sh
     unzip zip && \
     microdnf clean all
@@ -25,8 +35,6 @@ WORKDIR /stackable
 
 COPY hadoop/stackable /stackable
 
-# Build from source to enable FUSE module, and to apply custom patches.
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -51,20 +59,24 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
     tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner && \
     ./configure --prefix=/opt/protobuf && \
     make "-j$(nproc)" && \
-    make install
+    make install && \
+    rm -rf /opt/protobuf-src
 
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
 WORKDIR /stackable
-RUN patches/apply_patches.sh ${PRODUCT}
 
-WORKDIR /stackable/hadoop-${PRODUCT}-src
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
-RUN mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+# Build from source to enable FUSE module, and to apply custom patches.
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+    patches/apply_patches.sh ${PRODUCT} && \
+    cd hadoop-${PRODUCT}-src && \
+    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
-    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin
+    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
+    rm -rf /stackable/hadoop-${PRODUCT}-src
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -104,9 +116,6 @@ LABEL name="Apache Hadoop" \
       release="${RELEASE}" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)

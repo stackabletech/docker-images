@@ -1,4 +1,8 @@
-#syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL4006
+
 ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
@@ -13,9 +17,6 @@ ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
 # the mysql provider is currently excluded.
@@ -27,6 +28,10 @@ RUN microdnf update && \
         # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
+        # Needed by ./configure to build gevent, see snippet [1] at the end of file
+        diffutils \
+        # Needed to build gevent, see snippet [1] at the end of file
+        make \
         gcc \
         gcc-c++ \
         libpq-devel \
@@ -36,8 +41,9 @@ RUN microdnf update && \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
         unixODBC-devel && \
-    microdnf clean all && \
-    python3 -m venv --system-site-packages /stackable/app && \
+    microdnf clean all
+
+RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
@@ -115,3 +121,14 @@ WORKDIR /stackable
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
+
+# SNIPPET 1
+# 137.0       Running '(cd  "/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev"  && sh ./configure -C > configure-output.txt )' in /tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 8279: diff: command not found
+# 137.0       config.status: error: in `/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev':
+# 137.0       config.status: error: Something went wrong bootstrapping makefile fragments
+# 137.0           for automatic dependency tracking.  Try re-running configure with the
+# 137.0           '--disable-dependency-tracking' option to at least be able to build
+# 137.0           the package (albeit without support for automatic dependency tracking).
