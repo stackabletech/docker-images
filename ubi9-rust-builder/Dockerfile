@@ -14,10 +14,19 @@ LABEL maintainer="Stackable GmbH"
 # This is automatically inherited in all other Dockerfiles that use this unless it is overwritten
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
+# We configure microdnf to not install weak dependencies in this file
+# Not doing this caused the content of images to become unpredictable because
+# based on which packages get updated by `microdnf update` new weak dependencies
+# might be installed that were not present earlier (the ubi8 base image doesn't
+# seem to install weak dependencies)
+# This also affects the packages that are installed in our Dockerfiles (java as prime
+# example).
+# https://github.com/stackabletech/docker-images/pull/533
+COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
+
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablerepo=ubi-9-baseos-rpms -y \
-  && rm -rf /var/cache/yum \
-  && microdnf install -y --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablerepo=ubi-9-baseos-rpms \
+RUN microdnf update \
+  && microdnf install \
     clang \
     cmake \
     curl-minimal \
@@ -31,9 +40,14 @@ RUN microdnf update --disablerepo=* --enablerepo=ubi-9-appstream-rpms --enablere
     pkg-config \
     systemd-devel \
     unzip \
+  && microdnf clean all \
   && rm -rf /var/cache/yum
 
+# Container Storage Interface is defined using GRPC/Protobuf, our operators that use it (secret-operator/listener-operator) require
+# protoc via Prost (https://github.com/tokio-rs/prost).
 WORKDIR /opt/protoc
+# Prost does not document which version of protoc it expects (https://docs.rs/prost-build/0.12.4/prost_build/), so this should be the latest upstream version
+# (within reason).
 RUN PROTOC_VERSION=26.1 \
   ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
   && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
