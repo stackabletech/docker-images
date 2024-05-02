@@ -27,7 +27,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
-RUN microdnf update && \
+RUN microdnf update --assumeyes && \
     microdnf --assumeyes install \
       # To make debugging easier, includes things like ping \
       # Added 2024-03: We cannot find any vulnerabilities in the past years \

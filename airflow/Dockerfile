@@ -12,12 +12,11 @@ FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
-ARG PYTHON
 ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
-COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
+COPY airflow/constraints-${PRODUCT}-python39.txt /tmp/constraints.txt
 
 # the mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
@@ -37,9 +36,9 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python${PYTHON}-devel \
-        python${PYTHON}-pip \
-        python${PYTHON}-wheel \
+        python-devel \
+        python-pip \
+        python-wheel \
         unixODBC-devel && \
     microdnf clean all
 
@@ -59,7 +58,6 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_expor
 FROM stackable/image/vector AS airflow-main-image
 
 ARG PRODUCT
-ARG PYTHON
 ARG RELEASE
 ARG TINI
 ARG TARGETARCH
@@ -87,7 +85,7 @@ RUN microdnf update && \
     openssh-clients \
     openssl-libs \
     openssl-pkcs11 \
-    python${PYTHON} \
+    python \
     socat \
     unixODBC && \
     microdnf clean all && \
