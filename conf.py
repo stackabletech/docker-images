@@ -200,7 +200,7 @@ products = [
     },
     {
         "name": "krb5",
-        "versions": [{"product": "1.18.2"}],
+        "versions": [{"product": "1.21.1"}],
     },
     {
         "name": "vector",

@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 ARG GIT_SYNC
 
@@ -40,9 +41,10 @@ RUN microdnf update && \
         python-pip \
         python-wheel \
         unixODBC-devel && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
-RUN python3 -m venv --system-site-packages /stackable/app && \
+RUN python -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
