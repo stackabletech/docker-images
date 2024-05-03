@@ -16,7 +16,6 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
         # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
@@ -35,13 +34,15 @@ RUN microdnf update \
         openldap-devel \
         openssl-devel \
         patch \
+        python \
         python-devel \
         python-pip \
         python-wheel \
         libpq-devel \
-    && microdnf clean all
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
 
-RUN python3 -m venv /stackable/app \
+RUN python -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
         --no-cache-dir \
@@ -101,14 +102,14 @@ ENV PATH="${HOME}/app/bin:${PATH}" \
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
         cyrus-sasl \
         openldap \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
         python \
-    && microdnf clean all
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY superset/licenses /licenses
 

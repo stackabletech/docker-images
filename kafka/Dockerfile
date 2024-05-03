@@ -21,7 +21,8 @@ RUN microdnf install -y \
     which \
     zlib \
     zlib-devel && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 WORKDIR /stackable
 RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${KCAT}.tar.gz \
@@ -54,7 +55,8 @@ RUN microdnf update && \
     kubectl \
     tar \
     zip && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
