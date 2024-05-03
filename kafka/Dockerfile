@@ -12,6 +12,7 @@ RUN microdnf install -y \
     cmake \
     cyrus-sasl-devel \
     gcc-c++ \
+    krb5-devel \
     libcurl-devel \
     make \
     openssl-devel \
