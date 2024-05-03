@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/vector AS opa-bundle-builder
 
@@ -9,10 +10,8 @@ ARG BUNDLE_BUILDER_VERSION
 
 # Update image and install everything needed for Rustup & Rust
 RUN microdnf update \
-  && rm -rf /var/cache/yum \
   && microdnf install \
     cmake \
-    curl \
     findutils \
     gcc \
     gcc-c++ \
@@ -42,9 +41,9 @@ RUN microdnf update && \
     gzip \
     make \
     patch \
-    tar \
-    yum && \
-    microdnf clean all
+    tar && \
+    microdnf clean all \
+    && rm -rf /var/cache/yum
 
 WORKDIR /daemontools
 
@@ -75,8 +74,11 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
-    microdnf install tar gzip && \
-    microdnf clean all
+    microdnf install \
+    gzip \
+    tar && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY opa/licenses /licenses
 
