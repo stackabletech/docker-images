@@ -146,13 +146,10 @@ RUN microdnf update && \
     tar \
     gzip \
     zip \
-    python3 \
-    python3-pip && \
+    python \
+    python-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
