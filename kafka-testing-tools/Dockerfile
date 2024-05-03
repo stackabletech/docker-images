@@ -8,9 +8,19 @@ FROM stackable/image/java-base AS builder
 
 ARG KCAT
 
- # diff and cmp are needed for the kafka integration tests
-RUN microdnf install -y zlib-devel openssl-devel cyrus-sasl-devel libcurl-devel && \
-    microdnf install -y tar which wget zlib gcc-c++ make cmake && \
+RUN microdnf install \
+    cmake \
+    cyrus-sasl-devel \
+    gcc-c++ \
+    krb5-devel \
+    libcurl-devel \
+    make \
+    openssl-devel \
+    tar \
+    wget \
+    which \
+    zlib \
+    zlib-devel && \
     microdnf clean all
 
 WORKDIR /stackable
