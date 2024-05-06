@@ -58,7 +58,7 @@ WORKDIR /
 
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
-# property in operator-templating/repositories.yaml
+# property in operator-templating/config/rust.yaml
 # hadolint ignore=SC1091
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.2 \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.2
@@ -66,7 +66,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 # Build artifacts will be available in /app.
 RUN mkdir /app
 
-COPY ubi9-rust-builder/copy_artifacts.sh /
+COPY shared/copy_artifacts.sh /
 
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src

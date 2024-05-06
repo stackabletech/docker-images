@@ -42,7 +42,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 # Build artifacts will be available in /app.
 RUN mkdir /app
 
-COPY ubi8-rust-builder/copy_artifacts.sh /
+COPY shared/copy_artifacts.sh /
 
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
