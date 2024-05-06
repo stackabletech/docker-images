@@ -43,10 +43,10 @@ To verify if Apache Zookeeper validate against OpenShift preflight, run:
 
     check-container --product zookeeper --image 0.0.0-dev
 
-== ubi8-rust-builder
+== ubi8-rust-builder / ubi9-rust-builder
 
-This image is meant to be used in multi-stage builds as a base image for projects building Rust projects.
-It is automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
+These images are meant to be used in multi-stage builds as a base image for projects building Rust projects.
+They are automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
 
 The image will run `cargo build --release` in the current context and copy all binaries to an `/app` directory.
 
@@ -55,15 +55,15 @@ This will bake in the current stable Rust version at the time this image was bui
 .Example usage
 [source,dockerfile]
 ----
-FROM docker.stackable.tech/ubi8-rust-builder AS builder
+FROM docker.stackable.tech/ubi9-rust-builder AS builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS operator
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
 LABEL maintainer="Stackable GmbH"
 
 # Update image
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-baseos-rpms --enablerepo=ubi-8-baseos-rpms -y \
-  && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms shadow-utils -y \
+RUN microdnf update \
+  && microdnf install \
+    shadow-utils \
   && rm -rf /var/cache/yum
 
 COPY --from=builder /app/stackable-zookeeper-operator /
