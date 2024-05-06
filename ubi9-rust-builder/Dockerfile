@@ -37,6 +37,8 @@ RUN microdnf update \
     findutils \
     gcc \
     gcc-c++ \
+    # krb5 needed for secret-operator
+    krb5-devel \
     krb5-libs \
     libkadm5 \
     make \
