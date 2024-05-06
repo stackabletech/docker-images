@@ -1,6 +1,7 @@
 ---
-name: Publish 0.0.0-dev images
+name: Build (and optionally publish) 0.0.0-dev images
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -55,9 +56,9 @@ jobs:
           sudo apt update
           sudo apt install --assume-yes python3
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # tag=v3.3.0
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # tag=v3.5.0
       - name: Set up syft
-        uses: anchore/sbom-action/download-syft@24b0d5238516480139aa8bc6f92eeb7b54a9eb0a # tag=v0.15.5
+        uses: anchore/sbom-action/download-syft@7ccf588e3cf3cc2611714c2eeae48550fbc17552 # tag=v0.15.11
       - name: Install image-tools-stackabletech
         run: pip install image-tools-stackabletech==0.0.5
       - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
@@ -85,60 +86,63 @@ jobs:
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
 
-          # Push images to image repository
-          if [ -f bake-target-tags ]; then
-            echo "bake-target-tags: "$(< bake-target-tags)
-            IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
-            TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
-            echo "image: $IMAGE_NAME"
-            echo "tag: $TAG_NAME"
-            # Store the output of `docker image push` into a variable, so we can parse it for the digest
-            PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1)
-            echo "$PUSH_OUTPUT"
-            # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
-            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
-            # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
-            # This generates a signature and publishes it to the registry, next to the image
-            # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$IMAGE_NAME@$DIGEST"
+          # Conditionally push images if not triggered by workflow_dispatch
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            # Push images to image repository
+            if [ -f bake-target-tags ]; then
+              echo "bake-target-tags: "$(< bake-target-tags)
+              IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+              TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
+              echo "image: $IMAGE_NAME"
+              echo "tag: $TAG_NAME"
+              # Store the output of `docker image push` into a variable, so we can parse it for the digest
+              PUSH_OUTPUT=$(docker image push "$(< bake-target-tags)" 2>&1)
+              echo "$PUSH_OUTPUT"
+              # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
+              DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+              # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
+              # This generates a signature and publishes it to the registry, next to the image
+              # Uses the keyless signing flow with Github Actions as identity provider
+              cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-            # Generate SBOM for the image
-            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
-            # Determine the PURL for the image
-            PURL="pkg:docker/stackable/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
-            # Get metadata from the image
-            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
-            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
-            # Merge the SBOM with the metadata for the image
-            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
-            # Attest the SBOM to the image
-            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
+              # Generate SBOM for the image
+              syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+              # Determine the PURL for the image
+              PURL="pkg:docker/stackable/${{ matrix.product }}@$DIGEST?repository_url=docker.stackable.tech";
+              # Get metadata from the image
+              IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+              IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+              # Merge the SBOM with the metadata for the image
+              jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+              # Attest the SBOM to the image
+              cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
 
-            # Push to oci.stackable.tech as well
-            IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
-            echo "image: $IMAGE_NAME"
-            docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
-            # Store the output of `docker image push` into a variable, so we can parse it for the digest
-            PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
-            echo "$PUSH_OUTPUT"
-            # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
-            DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
-            # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
-            # This generates a signature and publishes it to the registry, next to the image
-            # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$IMAGE_NAME@$DIGEST"
+              # Push to oci.stackable.tech as well
+              IMAGE_NAME=oci.stackable.tech/sdp/${{ matrix.product }}
+              echo "image: $IMAGE_NAME"
+              docker tag "$(< bake-target-tags)" "$IMAGE_NAME:$TAG_NAME"
+              # Store the output of `docker image push` into a variable, so we can parse it for the digest
+              PUSH_OUTPUT=$(docker image push "$IMAGE_NAME:$TAG_NAME" 2>&1)
+              echo "$PUSH_OUTPUT"
+              # Obtain the digest of the pushed image from the output of `docker image push`, because signing by tag is deprecated and will be removed from cosign in the future
+              DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+              # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
+              # This generates a signature and publishes it to the registry, next to the image
+              # Uses the keyless signing flow with Github Actions as identity provider
+              cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-            # Generate SBOM for the image
-            syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
-            # Determine the PURL for the image
-            PURL="pkg:docker/sdp/${{ matrix.product }}@$DIGEST?repository_url=oci.stackable.tech";
-            # Get metadata from the image
-            IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
-            IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
-            # Merge the SBOM with the metadata for the image
-            jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
-            # Attest the SBOM to the image
-            cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
+              # Generate SBOM for the image
+              syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ matrix.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
+              # Determine the PURL for the image
+              PURL="pkg:docker/sdp/${{ matrix.product }}@$DIGEST?repository_url=oci.stackable.tech";
+              # Get metadata from the image
+              IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "$IMAGE_NAME@$DIGEST");
+              IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "$IMAGE_NAME@$DIGEST");
+              # Merge the SBOM with the metadata for the image
+              jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+              # Attest the SBOM to the image
+              cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
+            fi
           fi
   create_manifests:
     permissions:
