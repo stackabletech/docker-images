@@ -109,8 +109,6 @@ products = [
     {
         "name": "hbase",
         "versions": [
-        # Note: Do NOT rename "hadoop-m2" below because if it's renamed to "hadoop"
-        # our image tool magic will think HBase has a dependency on the Hadoop Docker image and build that!
         # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
         # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
              {
@@ -120,7 +118,7 @@ products = [
                  "java-base": "11",
                  "async_profiler": "2.9",
                  "phoenix": "2.4-5.1.3",
-                 "hadoop_m2": "3.3.6",
+                 "hadoop": "3.3.6",
                  "jmx_exporter": "0.20.0",
              },
         ],
@@ -141,9 +139,13 @@ products = [
                 "product": "3.1.3",
                 "jmx_exporter": "0.20.0",
                 "java-base": "11",
-                "hadoop_libs": "3.3.3",
+                "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
-                "aws_java_sdk_bundle": "1.11.1026",
+                # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
+                # MD5 based authentication. Because of this, it does not work against more recent PostgresQL versions.
+                # See https://github.com/stackabletech/hive-operator/issues/170 for details.
+                "postgres_driver": "42.7.2",
+                "aws_java_sdk_bundle": "1.12.262",
                 "azure_storage": "7.0.1",
                 "azure_keyvault_core": "1.0.0",
             },
@@ -152,6 +154,10 @@ products = [
     {
         "name": "java-base",
         "versions": [
+            {
+                "product": "1.8.0",
+                "vector": "0.35.0",
+            },
             {
                 "product": "11",
                 "vector": "0.35.0",

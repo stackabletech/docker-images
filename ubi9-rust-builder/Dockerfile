@@ -1,8 +1,13 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# 8.9-1137 as of 2024-03-25
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf
+# hadolint global ignore=DL3038
+
+# 9.4-949 as of 2024-05-02
+# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6627f8683d10f9c54d395968&architecture=amd64
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:8bedbe742f140108897fb3532068e8316900d9814f399d676ac78b46e740e34e AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:b6ec3ea97ba321c7529b81ae45c407ba8039d52fea3f7b6853734d7f8863344b AS builder
+
 LABEL maintainer="Stackable GmbH"
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -13,10 +18,35 @@ LABEL maintainer="Stackable GmbH"
 # This is automatically inherited in all other Dockerfiles that use this unless it is overwritten
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
+# We configure microdnf to not install weak dependencies in this file
+# Not doing this caused the content of images to become unpredictable because
+# based on which packages get updated by `microdnf update` new weak dependencies
+# might be installed that were not present earlier (the ubi8 base image doesn't
+# seem to install weak dependencies)
+# This also affects the packages that are installed in our Dockerfiles (java as prime
+# example).
+# https://github.com/stackabletech/docker-images/pull/533
+COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
+
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
-  && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ make cmake openssl-devel pkg-config systemd-devel unzip clang krb5-libs libkadm5 -y \
+RUN microdnf update \
+  && microdnf install \
+    clang \
+    cmake \
+    curl-minimal \
+    findutils \
+    gcc \
+    gcc-c++ \
+    # krb5 needed for secret-operator
+    krb5-devel \
+    krb5-libs \
+    libkadm5 \
+    make \
+    openssl-devel \
+    pkg-config \
+    systemd-devel \
+    unzip \
+  && microdnf clean all \
   && rm -rf /var/cache/yum
 
 # Container Storage Interface is defined using GRPC/Protobuf, our operators that use it (secret-operator/listener-operator) require
@@ -36,7 +66,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 # hadolint ignore=SC1091
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.0 \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.2 \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.2
 
 # Build artifacts will be available in /app.
