@@ -1,0 +1,36 @@
+Subject: [PATCH] Skip signing of artifacts
+---
+Index: pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml	(revision e454e8c7283100c7caec6dcae2bc82aaecb63023)
++++ b/pom.xml	(date 1715075965809)
+@@ -1019,25 +1019,6 @@
+           <excludePackageNames>*.recipes.*</excludePackageNames>
+         </configuration>
+       </plugin>
+-      <plugin>
+-        <!-- Maven's deploy plugin only creates checksums during the deployment of the jar artifacts to repo. -->
+-        <!-- We also want to sign tarballs. Nicoulaj's plugin is the recommended solution by the community.   -->
+-        <groupId>net.nicoulaj.maven.plugins</groupId>
+-        <artifactId>checksum-maven-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <goals>
+-              <goal>artifacts</goal>
+-            </goals>
+-          </execution>
+-        </executions>
+-        <configuration>
+-          <algorithms>
+-            <algorithm>SHA-512</algorithm>
+-          </algorithms>
+-          <appendFilename>true</appendFilename>
+-        </configuration>
+-      </plugin>
+
+       <plugin>
+         <groupId>com.github.spotbugs</groupId>
