@@ -94,6 +94,7 @@ LABEL name="Apache ZooKeeper" \
 
 RUN microdnf update && \
     microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
 COPY zookeeper/licenses /licenses
@@ -105,9 +106,8 @@ WORKDIR /stackable
 COPY --link --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
 COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 
-# Add link pointing from /stackable/zookeeper to
-# /stackable/apache-zookeeper-${PRODUCT}-bin/ to preserve folder name
-# with version.
+# Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
+# to preserve the folder name with the version.
 RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
