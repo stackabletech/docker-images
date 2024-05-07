@@ -110,6 +110,9 @@ COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable
 # with version.
 RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
 
+ENV ZOOKEEPER_HOME=/stackable/zookeeper
+ENV PATH="${PATH}":/stackable/zookeeper/bin
+
 WORKDIR /stackable/zookeeper
 CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg"]
 
