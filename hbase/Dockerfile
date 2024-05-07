@@ -57,7 +57,7 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin-from-source.tar.gz" | tar -xzC . && \
     ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
     ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
 
@@ -65,19 +65,8 @@ RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
-# Build the hbase-operator-tools
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
-    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
-    mvn \
-        -Dhbase.version=${PRODUCT} \
-        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-        -DskipTests \
-        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
-        package assembly:single && \
-    tar -xz \
-        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
-        -C /stackable/ && \
-    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+# Pull in hbase-operator-tools
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz" | tar -xzC /stackable/
 
 # Resolve paths in bin/hbck2
 # The variable names are intentionally passed to envsubst in single-quotes,
