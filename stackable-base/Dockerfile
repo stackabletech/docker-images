@@ -2,7 +2,7 @@
 
 # 8.9-1029 as of 2023-12-01
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:87bcbfedfd70e67aab3875fff103bade460aeff510033ebb36b7efa009ab6639
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9@sha256:f30dbf77b075215f6c827c269c073b5e0973e5cea8dacdf7ecb6a19c868f37f2
 
 # intentionally unused
 ARG PRODUCT
