@@ -101,7 +101,6 @@ LABEL name="Apache ZooKeeper" \
       description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 RUN microdnf update && \
-    microdnf install tar gzip zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
