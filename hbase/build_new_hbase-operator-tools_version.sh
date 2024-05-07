@@ -5,10 +5,10 @@ set -e
 VERSION=${1:?"Missing version number argument (arg 1)"}
 HBASE_VERSION=${2:?"Missing hbase version number argument (arg 2)"}
 HBASE_THIRDPARTY_VERSION=${3:?"Missing hbase thirdparty version (arg 3)"}
-# NEXUS_USER=${4:?"Missing Nexus username argument (arg 4)"}
+NEXUS_USER=${4:?"Missing Nexus username argument (arg 4)"}
 
-# read -r -s -p "Nexus Password: " NEXUS_PASSWORD
-# echo ""
+read -r -s -p "Nexus Password: " NEXUS_PASSWORD
+echo ""
 
 # https://stackoverflow.com/questions/4632028/how-to-create-a-temporary-directory
 # Find the directory name of the script
@@ -57,17 +57,18 @@ if ! (gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
 fi
 
 tar xfvz "$src_file"
+echo "Building hbase-operator-tools-${VERSION}"
 mvn -Dhbase.version=${HBASE_VERSION} -Dhbase-thirdparty.version=${HBASE_THIRDPARTY_VERSION} -DskipTests -f hbase-operator-tools-${VERSION} package assembly:single
 
-# echo "Uploading everything to Nexus"
-# EXIT_STATUS=0
-# curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
+echo "Uploading built artifact to Nexus"
+EXIT_STATUS=0
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "hbase-operator-tools-${VERSION}/hbase-operator-tools-assembly/target/hbase-operator-tools-${VERSION}-bin.tar.gz" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
 
 
-# if [ $EXIT_STATUS -ne 0 ]; then
-#   echo "ERROR: Upload failed"
-#   exit 1
-# fi
+if [ $EXIT_STATUS -ne 0 ]; then
+  echo "ERROR: Upload failed"
+  exit 1
+fi
 
-# echo "Successfully uploaded version $VERSION of phoenix to Nexus"
-# echo "https://repo.stackable.tech/service/rest/repository/browse/packages/phoenix/"
+echo "Successfully uploaded version $VERSION of hbase-operator-tools to Nexus"
+echo "https://repo.stackable.tech/service/rest/repository/browse/packages/hbase-operator-tools/"
