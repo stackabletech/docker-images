@@ -43,8 +43,8 @@ RUN microdnf update && \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+RUN ln -s /usr/bin/python-${PYTHON} /usr/bin/python && \
+    ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 
 ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
