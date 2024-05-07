@@ -105,8 +105,10 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable kafka/licenses /licenses
 
+# TODO: We tried link in another image and it failed (maybe multi-arch)? so we may have to move it
 COPY --link --chown=stackable:stackable --from=builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+# TODO: I would like to move this to a subdirectory so we can add that to the PATH - not sure if we use kcat anywhere in our code?
 COPY --link --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
 
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat && \
