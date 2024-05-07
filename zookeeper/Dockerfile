@@ -6,8 +6,7 @@
 # ==============================================================================
 # START ZOOKEEPER BUILDER
 
-# FROM stackable/image/java-base AS builder
-FROM stackable/image/java-base
+FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
 ARG JMX_EXPORTER
