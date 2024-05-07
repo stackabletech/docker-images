@@ -37,7 +37,7 @@ RUN microdnf update && \
     # required for spark startup scripts
     procps \
     python${PYTHON} \
-    python${PYTHON}-pip && \
+    python${PYTHON}-pip \
     tar \
     zip \
     microdnf clean all \
