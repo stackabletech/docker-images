@@ -25,8 +25,7 @@ fi
 
 # deletes the temp directory
 function cleanup {
-#   rm -rf "$WORK_DIR"
-    echo "debug: not cleaning up $WORK_DIR"
+  rm -rf "$WORK_DIR"
 }
 
 # register the cleanup function to be called on the EXIT signal
