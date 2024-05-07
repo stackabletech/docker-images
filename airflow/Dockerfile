@@ -13,13 +13,14 @@ FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
+ARG PYTHON
 ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
-COPY airflow/constraints-${PRODUCT}-python39.txt /tmp/constraints.txt
+COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
-# the mysql provider is currently excluded.
+# The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
 
@@ -37,14 +38,15 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python-devel \
-        python-pip \
-        python-wheel \
-        unixODBC-devel && \
+        python${PYTHON}-devel \
+        python${PYTHON}-pip \
+        python${PYTHON}-wheel \
+        # the unixODBC-devel package is not available for ubi9
+        unixODBC && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-RUN python -m venv --system-site-packages /stackable/app && \
+RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
@@ -60,6 +62,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_expor
 FROM stackable/image/vector AS airflow-main-image
 
 ARG PRODUCT
+ARG PYTHON
 ARG RELEASE
 ARG TINI
 ARG TARGETARCH
@@ -87,7 +90,7 @@ RUN microdnf update && \
     openssh-clients \
     openssl-libs \
     openssl-pkcs11 \
-    python \
+    python${PYTHON} \
     socat \
     unixODBC && \
     microdnf clean all && \
