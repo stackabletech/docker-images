@@ -1,7 +1,7 @@
 # Beautiful Soup pulls data out of HTML.
 beautifulsoup4==4.12.3
 requests==2.31.0
-charset-normalizer==3.1.0 #
+charset-normalizer==3.3.2 #
 hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 nipyapi==0.19.1
