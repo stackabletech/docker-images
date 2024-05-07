@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/java-base AS builder
 
@@ -16,7 +17,8 @@ RUN microdnf update && \
     gzip \
     # Required by log4shell mitigation script
     zip && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
@@ -64,7 +66,9 @@ LABEL name="Apache Phoenix Omid" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
-RUN microdnf update && microdnf clean all
+RUN microdnf update && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 ENV HOME=/stackable
 

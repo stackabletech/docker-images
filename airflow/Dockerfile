@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 ARG GIT_SYNC
 
@@ -19,7 +20,7 @@ ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
-# the mysql provider is currently excluded.
+# The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
 
@@ -40,8 +41,10 @@ RUN microdnf update && \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
-        unixODBC-devel && \
-    microdnf clean all
+        # the unixODBC-devel package is not available for ubi9
+        unixODBC && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
