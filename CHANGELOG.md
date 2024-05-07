@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
   the Hadoop image. The required AWS JARs are copied from the Hadoop
   image to the HBase image. The script `export-snapshot-to-s3` makes
   exporting easier ([#621]).
-- omid: Include omit in all workflows such as building and releasing images ([#XXX]).
+- omid: Include omit in all workflows such as building and releasing images ([#635]).
 
 ### Changed
 
@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 [#622]: https://github.com/stackabletech/docker-images/pull/622
 [#624]: https://github.com/stackabletech/docker-images/pull/624
 [#626]: https://github.com/stackabletech/docker-images/pull/626
+[#635]: https://github.com/stackabletech/docker-images/pull/635
 
 ## [24.3.0] - 2024-03-20
 
