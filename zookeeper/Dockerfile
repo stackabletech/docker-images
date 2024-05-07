@@ -105,7 +105,6 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-# COPY --chown=stackable:stackable zookeeper/stackable /stackable
 COPY zookeeper/licenses /licenses
 
 USER stackable
