@@ -33,6 +33,10 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation on ARM in CI as well ([#619]).
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
 
+### Removed
+
+- zookeeper: Remove unsupported version 3.9.1 ([#628]).
+
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
 [#612]: https://github.com/stackabletech/docker-images/pull/612

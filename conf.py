@@ -433,11 +433,6 @@ products = [
                 "jmx_exporter": "0.20.0"
             },
             {
-                "product": "3.9.1",
-                "java-base": "11",
-                "jmx_exporter": "0.20.0"
-            },
-            {
                 "product": "3.9.2",
                 "java-base": "11",
                 "jmx_exporter": "0.20.0"
