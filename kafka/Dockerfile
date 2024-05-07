@@ -92,6 +92,7 @@ RUN microdnf update && \
     # Can be removed once listener-operator integration is used
     kubectl && \
     microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
 USER stackable
