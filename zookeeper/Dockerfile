@@ -51,11 +51,6 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/ap
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -97,18 +92,22 @@ RUN microdnf update && \
     rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
-COPY zookeeper/licenses /licenses
-
 USER stackable
 WORKDIR /stackable
 
 # Copy over the ZooKeeper binary folder
 COPY --link --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
 COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY zookeeper/licenses /licenses
 
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
 # to preserve the folder name with the version.
 RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+
+# Mitigation for CVE-2021-44228 (Log4Shell)
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
 ENV PATH="${PATH}":/stackable/zookeeper/bin
