@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
   the Hadoop image. The required AWS JARs are copied from the Hadoop
   image to the HBase image. The script `export-snapshot-to-s3` makes
   exporting easier ([#621]).
+- omid: Include omit in all workflows such as building and releasing images ([#XXX]).
 
 ### Changed
 
