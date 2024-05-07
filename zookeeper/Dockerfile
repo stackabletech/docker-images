@@ -13,7 +13,7 @@ ARG JMX_EXPORTER
 
 RUN microdnf update && \
     microdnf install \
-    # For the apply_patches.sh script
+    # git for the apply_patches.sh script
     git \
     gzip \
     maven \
@@ -34,6 +34,8 @@ WORKDIR /stackable
 
 # Download Zookeeper sources from our own repo
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC .
+
+# Apply any required patches
 RUN patches/apply_patches.sh ${PRODUCT}
 
 WORKDIR /stackable/apache-zookeeper-${PRODUCT}/
