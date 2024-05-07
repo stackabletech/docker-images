@@ -3,6 +3,8 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL4006
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-base AS builder
 
 ARG JMX_EXPORTER
@@ -70,7 +72,9 @@ RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
 
-FROM stackable/image/java-base
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/java-base AS final
 
 ARG KCAT
 ARG PRODUCT
