@@ -5,10 +5,10 @@ set -e
 VERSION=${1:?"Missing version number argument (arg 1)"}
 HBASE_VERSION=${2:?"Missing hbase version number argument (arg 2)"}
 HBASE_PROFILE=${3:?"Missing hbase profile (arg 3)"}
-# NEXUS_USER=${4:?"Missing Nexus username argument (arg 4)"}
+NEXUS_USER=${4:?"Missing Nexus username argument (arg 4)"}
 
-# read -r -s -p "Nexus Password: " NEXUS_PASSWORD
-# echo ""
+read -r -s -p "Nexus Password: " NEXUS_PASSWORD
+echo ""
 
 # https://stackoverflow.com/questions/4632028/how-to-create-a-temporary-directory
 # Find the directory name of the script
@@ -59,15 +59,16 @@ fi
 tar xfvz "$src_file"
 mvn -f phoenix-$VERSION clean package -DskipTests -Dhbase.profile=${HBASE_PROFILE} -Dhbase.version=${HBASE_VERSION}
 
-# echo "Uploading everything to Nexus"
-# EXIT_STATUS=0
-# curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
+echo "Uploading built artifact to Nexus"
+EXIT_STATUS=0
+mv phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin.tar.gz phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin-from-source.tar.gz
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin-from-source.tar.gz" 'https://repo.stackable.tech/repository/packages/phoenix/' || EXIT_STATUS=$?
 
 
-# if [ $EXIT_STATUS -ne 0 ]; then
-#   echo "ERROR: Upload failed"
-#   exit 1
-# fi
+if [ $EXIT_STATUS -ne 0 ]; then
+  echo "ERROR: Upload failed"
+  exit 1
+fi
 
-# echo "Successfully uploaded version $VERSION of phoenix to Nexus"
-# echo "https://repo.stackable.tech/service/rest/repository/browse/packages/phoenix/"
+echo "Successfully uploaded version $VERSION of phoenix to Nexus"
+echo "https://repo.stackable.tech/service/rest/repository/browse/packages/phoenix/"
