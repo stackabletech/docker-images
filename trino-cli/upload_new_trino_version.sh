@@ -16,13 +16,13 @@ WORK_DIR=$(mktemp -d -p "$DIR")
 
 # check if tmp dir was created
 if [[ ! "$WORK_DIR" || ! -d "$WORK_DIR" ]]; then
-	echo "Could not create temp dir"
-	exit 1
+  echo "Could not create temp dir"
+  exit 1
 fi
 
 # deletes the temp directory
 function cleanup {
-	rm -rf "$WORK_DIR"
+  rm -rf "$WORK_DIR"
 }
 
 # register the cleanup function to be called on the EXIT signal
@@ -40,8 +40,8 @@ curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/$
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA1 Checksum"
 if ! (sha1sum "${bin_file}" | cut -d " " -f 1 | diff -Z - "${bin_file}.sha1"); then
-	echo "ERROR: The SHA1 sum does not match"
-	exit 1
+  echo "ERROR: The SHA1 sum does not match"
+  exit 1
 fi
 
 # echo "Adding pinned public key for signature"
@@ -93,8 +93,8 @@ curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'ht
 curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
-	echo "ERROR: Upload failed"
-	exit 1
+  echo "ERROR: Upload failed"
+  exit 1
 fi
 
 echo "Successfully uploaded version ${VERSION} of Trino CLI to Nexus"
