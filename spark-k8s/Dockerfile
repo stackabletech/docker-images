@@ -40,7 +40,7 @@ RUN microdnf update && \
     python${PYTHON}-pip \
     tar \
     zip \
-    microdnf clean all \
+    && microdnf clean all \
     && rm -rf /var/cache/yum
 
 RUN ln -s /usr/bin/python3 /usr/bin/python && \
