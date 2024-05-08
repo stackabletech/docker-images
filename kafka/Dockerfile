@@ -13,7 +13,8 @@ ARG SCALA
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 
-RUN microdnf install -y \
+RUN microdnf update && \
+    microdnf install \
     # Required by log4shell mitigation script
     zip && \
     microdnf clean all && \
@@ -70,7 +71,8 @@ FROM stackable/image/java-base AS kcat-builder
 
 ARG KCAT
 
-RUN microdnf install -y \
+RUN microdnf update && \
+    microdnf install \
     cmake \
     cyrus-sasl-devel \
     gcc-c++ \
