@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# 8.9-1029 as of 2023-12-01
+# 9.4-949 as of 2024-05-02
+# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6627f8683d10f9c54d395968&architecture=amd64
+
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:b6ec3ea97ba321c7529b81ae45c407ba8039d52fea3f7b6853734d7f8863344b
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:b6ec3ea97ba321c7529b81ae45c407ba8039d52fea3f7b6853734d7f8863344b AS builder
 
 # intentionally unused
 ARG PRODUCT
@@ -25,7 +27,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
-RUN microdnf update && \
+RUN microdnf update --assumeyes && \
     microdnf --assumeyes install \
       # To make debugging easier, includes things like ping \
       # Added 2024-03: We cannot find any vulnerabilities in the past years \
@@ -57,7 +59,7 @@ RUN microdnf update && \
     echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc && \
     echo "alias ls='ls --color=auto'" >> /stackable/.bashrc && \
     echo "alias ..='cd ..'" >> /stackable/.bashrc && \
-    echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \
+    echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \
     echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile && \
     chown stackable:stackable /stackable/.bashrc && \
     chown stackable:stackable /stackable/.profile \

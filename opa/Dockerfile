@@ -1,16 +1,26 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/vector AS opa-bundle-builder
 
 ARG BUNDLE_BUILDER_VERSION
 
 # Update image and install everything needed for Rustup & Rust
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms -y \
-  && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms curl findutils gcc gcc-c++ git make cmake openssl-devel pkg-config systemd-devel unzip -y \
+RUN microdnf update \
+  && microdnf install \
+    cmake \
+    findutils \
+    gcc \
+    gcc-c++ \
+    git \
+    make \
+    openssl-devel \
+    pkg-config \
+    systemd-devel \
+    unzip \
   && rm -rf /var/cache/yum
 
 WORKDIR /
@@ -25,11 +35,15 @@ ARG DAEMONTOOLS_VERSION=0.76
 
 COPY opa/daemontools /daemontools
 
-RUN microdnf update -y && \
-    microdnf install tar gzip yum make gcc -y && \
-    yum install patch -y && \
-    yum clean all -y && \
-    microdnf clean all
+RUN microdnf update && \
+    microdnf install \
+    gcc \
+    gzip \
+    make \
+    patch \
+    tar && \
+    microdnf clean all \
+    && rm -rf /var/cache/yum
 
 WORKDIR /daemontools
 
@@ -60,8 +74,11 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
-    microdnf install tar gzip && \
-    microdnf clean all
+    microdnf install \
+    gzip \
+    tar && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY opa/licenses /licenses
 

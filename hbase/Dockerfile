@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -31,7 +32,8 @@ RUN microdnf update && \
     maven \
     tar \
     zip && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY hbase/licenses /licenses
 
@@ -146,13 +148,10 @@ RUN microdnf update && \
     tar \
     gzip \
     zip \
-    python3 \
-    python3-pip && \
+    python \
+    python-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
