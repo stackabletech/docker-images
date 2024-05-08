@@ -30,6 +30,7 @@ jobs:
           - kafka-testing-tools
           - krb5
           - nifi
+          - omid
           - opa
           - spark-k8s
           - superset
