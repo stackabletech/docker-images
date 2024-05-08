@@ -20,7 +20,8 @@ if [ ! -d "$PATCH_DIR" ]; then
 fi
 
 # Create an array to hold the patches in sorted order
-declare -a patch_files=()
+declare -a patch_files
+patch_files=()
 
 echo "Applying patches from ${PATCH_DIR}" now
 
@@ -31,21 +32,16 @@ done < <(find "$PATCH_DIR" -name "*.patch" -print0 | sort -zV)
 
 echo "Found ${#patch_files[@]} patches, applying now"
 
-# Dynamically find the site-packages directory under the /stackable/app/lib/ directory
-SITE_PACKAGES_DIR=$(find /stackable/app/lib -type d -name "site-packages" | head -n 1)
-
-if [ -z "$SITE_PACKAGES_DIR" ]; then
-  echo "site-packages directory could not be found."
-  exit 1
+# Check if any patches were found
+if [ ${#patch_files[@]} -eq 0 ]; then
+  echo "No patches found in $PATCH_DIR, nothing to apply."
+  exit 0
 fi
-
-echo "Using site-packages directory: $SITE_PACKAGES_DIR"
 
 # Iterate through sorted patch files
 for patch_file in "${patch_files[@]}"; do
   echo "Applying $patch_file"
-  # We can not use Git here, as we are not within a Git repo
-  cat "$patch_file" | patch --directory "$SITE_PACKAGES_DIR" --strip=1 || {
+  git apply --directory "apache-zookeeper-${VERSION}" "$patch_file" || {
     echo "Failed to apply $patch_file"
     exit 1
   }
