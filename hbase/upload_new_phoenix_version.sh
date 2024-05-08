@@ -3,9 +3,7 @@
 set -e
 
 VERSION=${1:?"Missing version number argument (arg 1)"}
-HBASE_VERSION=${2:?"Missing hbase version number argument (arg 2)"}
-HBASE_PROFILE=${3:?"Missing hbase profile (arg 3)"}
-NEXUS_USER=${4:?"Missing Nexus username argument (arg 4)"}
+NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
 read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
@@ -55,13 +53,13 @@ if ! (gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   exit 1
 fi
 
-tar xfvz "$src_file"
-mvn -f phoenix-$VERSION clean package -DskipTests -Dhbase.profile=${HBASE_PROFILE} -Dhbase.version=${HBASE_VERSION}
 
-echo "Uploading built artifact to Nexus"
+
+echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-mv phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin.tar.gz phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin-from-source.tar.gz
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "phoenix-${VERSION}/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${VERSION}-bin-from-source.tar.gz" 'https://repo.stackable.tech/repository/packages/phoenix/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/phoenix/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/phoenix/' || EXIT_STATUS=$?
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" 'https://repo.stackable.tech/repository/packages/phoenix/' || EXIT_STATUS=$?
 
 
 if [ $EXIT_STATUS -ne 0 ]; then
