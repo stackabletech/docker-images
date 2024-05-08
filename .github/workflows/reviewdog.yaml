@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-      - uses: reviewdog/action-hadolint@f7d29ec6dd89022747bd18b5a151b62ac2f1555e # v1.36.0
+      - uses: reviewdog/action-hadolint@13c293e6679cd4c90fa41dd5155fb067a28c0a5f # v1.41.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
