@@ -10,6 +10,8 @@ FROM stackable/image/java-base as kafka-builder
 
 ARG PRODUCT
 ARG SCALA
+ARG OPA_AUTHORIZER
+ARG JMX_EXPORTER
 
 RUN microdnf install -y \
     # Required by log4shell mitigation script
@@ -28,6 +30,15 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
     ./gradlew clean releaseTarGz && \
     tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable && \
     rm -rf /stackable/kafka-${PRODUCT}-src
+
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+    -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
+
+RUN mkdir -p /stackable/jmx/ && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -89,8 +100,6 @@ ARG RELEASE
 ARG PRODUCT
 ARG SCALA
 ARG KCAT
-ARG OPA_AUTHORIZER
-ARG JMX_EXPORTER
 
 LABEL name="Apache Kafka" \
       maintainer="info@stackable.tech" \
@@ -115,7 +124,10 @@ WORKDIR /stackable
 
 COPY --chown=stackable:stackable kafka/licenses /licenses
 
+# We copy opa-authorizer.jar and jmx-exporter through the builder image to have an absolutely minimal final image
+# (e.g. we don't even need curl in it).
 COPY --chown=stackable:stackable --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
+COPY --chown=stackable:stackable --from=kafka-builder /stackable/jmx/ /stackable/jmx/
 COPY --chown=stackable:stackable --from=kcat-builder /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
 
 RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
