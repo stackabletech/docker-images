@@ -96,8 +96,8 @@ USER stackable
 WORKDIR /stackable
 
 # Copy over the ZooKeeper binary folder
-COPY --link --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
-COPY --link --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
