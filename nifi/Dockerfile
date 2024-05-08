@@ -35,16 +35,22 @@ RUN microdnf update && \
 
 RUN pip install --no-cache-dir nipyapi==0.19.1
 
-USER stackable
-WORKDIR /stackable
-
 # The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
 # The source code is available at https://github.com/stackabletech/stackable-utils/tree/main/stackable-bcrypt
 # The binaries are published to Nexus with: mvn clean deploy
-RUN curl --fail -L https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar -o /bin/stackable-bcrypt.jar
+# This jar used to be COPYed into the image from a local binary but it's not possible to do so anymore
+# because /bin is owned by root and curl cannot write there unless it runs as root.
+# This should be fixed by moving the jar to location under /stackable and updating the Nifi operator accordingly.
+RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' -o /bin/stackable-bcrypt.jar \
+    && chown stackable:stackable /bin/stackable-bcrypt.jar
+
+USER stackable
+WORKDIR /stackable
+
 COPY --chown=stackable:stackable nifi/stackable /stackable
 COPY --chown=stackable:stackable nifi/licenses /licenses
 COPY --chown=stackable:stackable nifi/python /stackable/python
+
 
 # zip is different than tar and cannot be just piped, therefore the intermediate save and remove step to unzip
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.zip -o /stackable/nifi-${PRODUCT}-bin.zip && \
