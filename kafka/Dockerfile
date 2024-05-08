@@ -29,6 +29,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
     # it's a good idea to run the tests in this case.
     ./gradlew clean releaseTarGz && \
     tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable && \
+    rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/ && \
     rm -rf /stackable/kafka-${PRODUCT}-src
 
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
@@ -132,15 +133,6 @@ COPY --chown=stackable:stackable --from=kcat-builder /stackable/kcat-${KCAT}/kca
 
 RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
-
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
-    -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
-
-RUN mkdir -p /stackable/jmx/ && \
-    curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 ENV PATH="${PATH}:/stackable/bin:/stackable/kafka/bin"
 
