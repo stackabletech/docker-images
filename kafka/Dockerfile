@@ -24,7 +24,7 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
     cd kafka-${PRODUCT}-src && \
-    # TODO: Try to install gradle via packet manager (if possible) instead of fetching it from the internet
+    # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
     # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
     # it's a good idea to run the tests in this case.
     ./gradlew clean releaseTarGz && \
