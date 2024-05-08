@@ -10,40 +10,40 @@ products = [
         "versions": [
             {
                 "product": "2.6.3",
+                "python": "3.9",
                 "git_sync": "v4.2.1",
-                "python": "39",
                 "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
             {
                 "product": "2.7.2",
+                "python": "3.9",
                 "git_sync": "v4.2.1",
-                "python": "39",
                 "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
             {
                 "product": "2.7.3",
+                "python": "3.9",
                 "git_sync": "v4.2.1",
-                "python": "39",
                 "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
             {
                 "product": "2.8.1",
+                "python": "3.9",
                 "git_sync": "v4.2.1",
-                "python": "39",
                 "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
             {
                 "product": "2.8.3",
+                "python": "3.9",
                 "git_sync": "v4.2.1",
-                "python": "39",
                 "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
@@ -203,7 +203,7 @@ products = [
     },
     {
         "name": "krb5",
-        "versions": [{"product": "1.18.2"}],
+        "versions": [{"product": "1.21.1"}],
     },
     {
         "name": "vector",
@@ -437,11 +437,6 @@ products = [
             },
             {
                 "product": "3.8.4",
-                "java-base": "11",
-                "jmx_exporter": "0.20.0"
-            },
-            {
-                "product": "3.9.1",
                 "java-base": "11",
                 "jmx_exporter": "0.20.0"
             },

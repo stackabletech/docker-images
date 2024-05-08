@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/vector AS builder
 
@@ -16,7 +17,6 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
         # Used to extract statsd_exporter
         tar \
         cyrus-sasl-devel \
@@ -35,11 +35,13 @@ RUN microdnf update \
         openldap-devel \
         openssl-devel \
         patch \
-        python${PYTHON//./}-devel \
-        python${PYTHON//./}-pip \
-        python${PYTHON//./}-wheel \
+        python${PYTHON} \
+        python${PYTHON}-devel \
+        python${PYTHON}-pip \
+        python${PYTHON}-wheel \
         libpq-devel \
-    && microdnf clean all
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
 
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
@@ -102,14 +104,14 @@ ENV PATH="${HOME}/app/bin:${PATH}" \
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
         cyrus-sasl \
         openldap \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
-        python${PYTHON//./} \
-    && microdnf clean all
+        python${PYTHON} \
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY superset/licenses /licenses
 

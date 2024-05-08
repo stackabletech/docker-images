@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/java-base
 
@@ -17,11 +18,22 @@ LABEL name="Apache NiFi" \
       description="This image is deployed by the Stackable Operator for Apache NiFi."
 
 RUN microdnf update && \
-    microdnf install tar gzip zip unzip libxslt-devel libxml2-devel gcc && \
-    microdnf install python3-devel python3-pip python3-setuptools && \
-    microdnf clean all
+    microdnf install \
+    gcc \
+    gzip \
+    libxml2-devel \
+    libxslt-devel \
+    tar \
+    unzip \
+    zip && \
+    microdnf install \
+    python-devel \
+    python-pip \
+    python-setuptools && \
+    microdnf clean all \
+    && rm -rf /var/cache/yum
 
-RUN pip3 install --no-cache-dir nipyapi==0.19.1
+RUN pip install --no-cache-dir nipyapi==0.19.1
 
 USER stackable
 WORKDIR /stackable
