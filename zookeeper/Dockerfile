@@ -22,7 +22,8 @@ RUN microdnf update && \
     zip \
     # hostname is needed by the maven ant run plugin for the "set-hostname-property" step
     hostname && \
-    microdnf clean all
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 # Copy patches and JMX config into the builder
 COPY --chown=stackable:stackable zookeeper/stackable /stackable
