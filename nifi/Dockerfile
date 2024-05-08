@@ -39,7 +39,10 @@ USER stackable
 WORKDIR /stackable
 
 # The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-COPY --chown=stackable:stackable nifi/bin/stackable-bcrypt-1.0-SNAPSHOT-jar-with-dependencies.jar /bin/stackable-bcrypt.jar
+# The source code is available at https://github.com/stackabletech/stackable-utils/tree/main/stackable-bcrypt
+# The binaries are published to Nexus with: mvn clean deploy
+RUN curl --fail -L https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar \
+-o /bin/stackable-bcrypt.jar
 COPY --chown=stackable:stackable nifi/stackable /stackable
 COPY --chown=stackable:stackable nifi/licenses /licenses
 COPY --chown=stackable:stackable nifi/python /stackable/python
