@@ -30,7 +30,8 @@ RUN microdnf update && \
     python-devel \
     python-pip \
     python-setuptools && \
-    microdnf clean all
+    microdnf clean all \
+    && rm -rf /var/cache/yum
 
 RUN pip install --no-cache-dir nipyapi==0.19.1
 
