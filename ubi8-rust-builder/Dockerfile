@@ -2,7 +2,7 @@
 
 # 8.9-1137 as of 2024-03-25
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:8bedbe742f140108897fb3532068e8316900d9814f399d676ac78b46e740e34e AS builder
+FROM registry.access.redhat.com/ubi8/ubi-minimal@sha256:2fa47fa9df7b98e2776f447855699c01d06c3271b2d7259b8b314084580cf591 AS builder
 LABEL maintainer="Stackable GmbH"
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
