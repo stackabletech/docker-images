@@ -6,6 +6,9 @@
 
 # Normally we would use stackable/image/stackable-base here, *but* we fail to link kcat at the end with error messages
 # shown in Snippet 1, which we were not able to solve.
+
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
