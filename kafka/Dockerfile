@@ -107,6 +107,7 @@ COPY --chown=stackable:stackable kafka/licenses /licenses
 COPY --chown=stackable:stackable --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=stackable:stackable --from=kafka-builder /stackable/jmx/ /stackable/jmx/
 COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
+COPY --chown=stackable:stackable --from=kcat /licenses /licenses
 
 RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka

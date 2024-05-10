@@ -33,3 +33,5 @@ RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-
     && tar xvfz kcat-${PRODUCT}.tar.gz \
     && cd kcat-${PRODUCT} \
     && ./bootstrap.sh
+
+COPY --chown=stackable:stackable kcat/licenses /licenses

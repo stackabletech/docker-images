@@ -33,7 +33,7 @@ RUN microdnf install  \
 # Store kcat version with binary name and add softlink
 COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
-COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/LICENSE /licenses/KCAT_LICENSE
+COPY --chown=stackable:stackable --from=kcat /licenses /licenses
 
 
 COPY --chown=stackable:stackable kafka-testing-tools/licenses /licenses
