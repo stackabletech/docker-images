@@ -21,9 +21,6 @@ RUN microdnf update && \
     microdnf install \
     # Obviously needed to run Java programs
     java-${PRODUCT}-openjdk-headless \
-    # Includes tools such as jps or jmap (which is e.g. needed by the Spark UI, see https://github.com/stackabletech/spark-k8s-operator/discussions/340)
-    # We consider them useful enough to justify putting them in all Java images
-    java-${PRODUCT}-openjdk-devel \
     # Needed, because otherwise e.g. Zookeeper fails with
     # Caused by: java.io.FileNotFoundException: /usr/lib/jvm/java-11-openjdk-11.0.20.0.8-2.el8.x86_64/lib/tzdb.dat (No such file or directory)
     tzdata-java \
