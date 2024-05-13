@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
 - hadoop: use java-devel as base layer for the builder stage ([#665])
 - hive: use java-devel as base layer for the builder stage ([#665])
 - zookeeper: use java-devel as base layer for the builder stage ([#665])
+- hbase: use java-devel as base layer for the builder stage ([#665])
+- omid: use java-devel as base layer for the builder stage ([#665])
 
 ### Fixed
 
