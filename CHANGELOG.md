@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
   the Hadoop image. The required AWS JARs are copied from the Hadoop
   image to the HBase image. The script `export-snapshot-to-s3` makes
   exporting easier ([#621]).
+- kafka: Build from source ([#659], [#661]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 
 ### Changed
@@ -53,6 +54,8 @@ All notable changes to this project will be documented in this file.
 [#626]: https://github.com/stackabletech/docker-images/pull/626
 [#628]: https://github.com/stackabletech/docker-images/pull/628
 [#635]: https://github.com/stackabletech/docker-images/pull/635
+[#659]: https://github.com/stackabletech/docker-images/pull/659
+[#661]: https://github.com/stackabletech/docker-images/pull/661
 [#663]: https://github.com/stackabletech/docker-images/pull/663
 
 ## [24.3.0] - 2024-03-20
