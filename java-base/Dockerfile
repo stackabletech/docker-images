@@ -36,9 +36,9 @@ COPY java-base/licenses /licenses
 ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 
 # This image doesn't include the development packages for Java.
-# For images that build products from source, these can be installed in the
-# builder stages with:
+# For images that need the devel package (ex. Spark) use this env variable to
+# install the proper javac version.
 #
 # microdnf install java-${JAVA_VERSION}-openjdk-devel
 #
-#ENV JAVA_VERSION=$PRODUCT
+ENV JAVA_VERSION=$PRODUCT

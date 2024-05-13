@@ -4,22 +4,9 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
-FROM stackable/image/java-base AS builder
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-
-RUN microdnf update && \
-    microdnf install \
-    # Required to build Omid \
-    maven \
-    # Required to unpack Omid tarball
-    tar \
-    gzip \
-    java-"${JAVA_VERSION}"-openjdk-devel \
-    # Required by log4shell mitigation script
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
