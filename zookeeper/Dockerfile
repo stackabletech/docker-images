@@ -7,24 +7,10 @@
 # ==============================================================================
 # START ZOOKEEPER BUILDER
 
-FROM stackable/image/java-base AS builder
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG JMX_EXPORTER
-
-RUN microdnf update && \
-    microdnf install \
-    # git for the apply_patches.sh script
-    git \
-    gzip \
-    java-"${JAVA_VERSION}"-openjdk-devel \
-    maven \
-    tar \
-    zip \
-    # hostname is needed by the maven ant run plugin for the "set-hostname-property" step
-    hostname && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 # Copy patches and JMX config into the builder
 COPY --chown=stackable:stackable zookeeper/stackable /stackable

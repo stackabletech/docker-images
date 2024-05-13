@@ -76,7 +76,7 @@ products = [
                 # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class
                 # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
                 "java-base": "11",
-                "jackson_dataformat_xml": "2.12.7", # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
+                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
                 "stax2_api": "4.2.2",
                 "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
@@ -89,39 +89,42 @@ products = [
             {
                 "product": "3.3.4",
                 "java-base": "11",
+                "java-devel": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
                 "hdfs_utils": "0.2.1",
-                "topology_provider": "0.3.0"
+                "topology_provider": "0.3.0",
             },
             {
                 "product": "3.3.6",
                 "java-base": "11",
+                "java-devel": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
                 "hdfs_utils": "0.2.1",
-                "topology_provider": "0.3.0"
+                "topology_provider": "0.3.0",
             },
         ],
     },
     {
         "name": "hbase",
         "versions": [
-        # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
-        # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
-             {
-                 "product": "2.4.17",
-                 "hbase_thirdparty": "4.1.5",
-                 "hbase_operator_tools": "1.2.0",
-                 "java-base": "11",
-                 "async_profiler": "2.9",
-                 "phoenix": "5.1.3",
-                 "hbase_profile": "2.4",
-                 "hadoop": "3.3.6",
-                 "jmx_exporter": "0.20.0",
-             },
+            # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
+            # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
+            {
+                "product": "2.4.17",
+                "hbase_thirdparty": "4.1.5",
+                "hbase_operator_tools": "1.2.0",
+                "java-base": "11",
+                "java-devel": "11",
+                "async_profiler": "2.9",
+                "phoenix": "5.1.3",
+                "hbase_profile": "2.4",
+                "hadoop": "3.3.6",
+                "jmx_exporter": "0.20.0",
+            },
         ],
     },
     {
@@ -139,7 +142,9 @@ products = [
             {
                 "product": "3.1.3",
                 "jmx_exporter": "0.20.0",
+                # Hive must be bult with Java 8 but will run on Java 11
                 "java-base": "11",
+                "java-devel": "1.8.0",
                 "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
                 # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
@@ -170,6 +175,17 @@ products = [
             {
                 "product": "21",
                 "vector": "0.35.0",
+            },
+        ],
+    },
+    {
+        "name": "java-devel",
+        "versions": [
+            {
+                "product": "1.8.0",
+            },
+            {
+                "product": "11",
             },
         ],
     },
@@ -220,18 +236,9 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {
-                "product": "1.21.0",
-                "java-base": "11"
-            },
-            {
-                "product": "1.23.2",
-                "java-base": "11"
-            },
-            {
-                "product": "1.25.0",
-                "java-base": "21"
-            },
+            {"product": "1.21.0", "java-base": "11"},
+            {"product": "1.23.2", "java-base": "11"},
+            {"product": "1.25.0", "java-base": "21"},
         ],
     },
     {
@@ -240,6 +247,7 @@ products = [
             {
                 "product": "1.1.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jmx_exporter": "0.20.0",
             },
         ],
@@ -344,35 +352,35 @@ products = [
                 "python": "3.9",
                 "vector": "0.35.0",
                 "statsd_exporter": "0.26.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "2.1.3",
                 "python": "3.9",
                 "vector": "0.35.0",
                 "statsd_exporter": "0.26.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "3.0.1",
                 "python": "3.9",
                 "vector": "0.35.0",
                 "statsd_exporter": "0.26.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.7/requirements-extra.txt#L7
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.7/requirements-extra.txt#L7
             },
             {
                 "product": "3.0.3",
                 "python": "3.9",
                 "vector": "0.35.0",
                 "statsd_exporter": "0.26.0",
-                "authlib": "1.2.1"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
+                "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
             },
             {
                 "product": "3.1.0",
                 "python": "3.9",
                 "vector": "0.35.0",
                 "statsd_exporter": "0.26.0",
-                "authlib": "1.2.1"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
+                "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
             },
         ],
     },
@@ -383,7 +391,7 @@ products = [
                 "product": "442",
                 "java-base": "21",
             },
-        ]
+        ],
     },
     {
         "name": "trino",
@@ -393,14 +401,14 @@ products = [
                 "java-base": "17",
                 "opa_authorizer": "stackable0.2.0",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "414"
+                "storage_connector": "414",
             },
             {
                 "product": "428",
                 "java-base": "17",
                 "opa_authorizer": "stackable0.3.0",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "428-jackson"
+                "storage_connector": "428-jackson",
             },
             {
                 "product": "442",
@@ -408,25 +416,28 @@ products = [
                 "jmx_exporter": "0.20.0",
                 "storage_connector": "442",
                 "opa_authorizer": "",
-
             },
         ],
     },
     {
         "name": "kafka-testing-tools",
-        "versions": [{
-            "product": "1.0.0",
-            "kcat": "1.7.0",
-            "java-base": "11",
-            "stackable-base": "1.0.0",
-        }],
-     },
-     {
+        "versions": [
+            {
+                "product": "1.0.0",
+                "kcat": "1.7.0",
+                "java-base": "11",
+                "stackable-base": "1.0.0",
+            }
+        ],
+    },
+    {
         "name": "testing-tools",
-        "versions": [{
-            "product": "0.2.0",
-            "keycloak_version": "23.0.0",
-        }],
+        "versions": [
+            {
+                "product": "0.2.0",
+                "keycloak_version": "23.0.0",
+            }
+        ],
     },
     {
         "name": "zookeeper",
@@ -434,17 +445,20 @@ products = [
             {
                 "product": "3.8.3",
                 "java-base": "11",
-                "jmx_exporter": "0.20.0"
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
             },
             {
                 "product": "3.8.4",
                 "java-base": "11",
-                "jmx_exporter": "0.20.0"
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
             },
             {
                 "product": "3.9.2",
                 "java-base": "11",
-                "jmx_exporter": "0.20.0"
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
             },
         ],
     },

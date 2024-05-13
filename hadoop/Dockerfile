@@ -4,7 +4,7 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
-FROM stackable/image/java-base AS builder
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG ASYNC_PROFILER
@@ -13,27 +13,6 @@ ARG PROTOBUF
 ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
-
-# All others are required for the FUSE build
-RUN microdnf update && \
-    microdnf install \
-    # Required for Hadoop build
-    cmake \
-    cyrus-sasl-devel \
-    fuse-devel \
-    gcc \
-    gcc-c++ \
-    git \
-    java-"${JAVA_VERSION}"-openjdk-devel \
-    maven \
-    openssl-devel \
-    tar \
-    xz \
-    zlib-devel \
-    # Required for log4shell.sh
-    unzip zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 WORKDIR /stackable
 

@@ -41,4 +41,4 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 #
 # microdnf install java-${JAVA_VERSION}-openjdk-devel
 #
-ENV JAVA_VERSION=$PRODUCT
+#ENV JAVA_VERSION=$PRODUCT
