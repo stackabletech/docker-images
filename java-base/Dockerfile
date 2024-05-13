@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-
+#
+# Provides the common Java Runtime for SDP products
+#
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
@@ -32,3 +34,11 @@ RUN microdnf update && \
 COPY java-base/licenses /licenses
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
+
+# This image doesn't include the development packages for Java.
+# For images that build products from source, these can be installed in the
+# builder stages with:
+#
+# microdnf install java-${JAVA_VERSION}-openjdk-devel
+#
+ENV JAVA_VERSION=$PRODUCT

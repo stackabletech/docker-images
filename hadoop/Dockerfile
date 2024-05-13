@@ -24,6 +24,7 @@ RUN microdnf update && \
     gcc \
     gcc-c++ \
     git \
+    java-"${JAVA_VERSION}"-openjdk-devel \
     maven \
     openssl-devel \
     tar \

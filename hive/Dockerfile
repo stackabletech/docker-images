@@ -34,6 +34,7 @@ RUN microdnf update && \
     # For the apply_patches.sh script
     git \
     gzip \
+    java-"${JAVA_VERSION}"-openjdk-devel \
     maven \
     tar \
     zip && \

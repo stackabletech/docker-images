@@ -15,6 +15,7 @@ RUN microdnf update && \
     # Required to unpack Omid tarball
     tar \
     gzip \
+    java-"${JAVA_VERSION}"-openjdk-devel \
     # Required by log4shell mitigation script
     zip && \
     microdnf clean all && \

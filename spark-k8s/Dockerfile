@@ -34,6 +34,8 @@ RUN microdnf update && \
     microdnf install \
     gzip \
     hostname \
+    # required for jmap and jps commands which are used by spark UI to show java processes
+    java-"${JAVA_VERSION}"-openjdk-devel \
     # required for spark startup scripts
     procps \
     python${PYTHON} \
