@@ -24,19 +24,6 @@ ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
 
-
-RUN microdnf update && \
-    microdnf install \
-    # For the apply_patches.sh script
-    git \
-    gzip \
-    java-"${JAVA_VERSION}"-openjdk-devel \
-    maven \
-    tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
-
 COPY --chown=stackable:stackable hive/stackable /stackable
 
 USER stackable
