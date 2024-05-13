@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
   image to the HBase image. The script `export-snapshot-to-s3` makes
   exporting easier ([#621]).
 - kafka: Build from source ([#659], [#661]).
+- omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 
 ### Changed
 
@@ -23,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
 - ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
+- nifi: provision stackable-bcrypt from Maven ([#663])
 
 ### Fixed
 
@@ -51,8 +53,10 @@ All notable changes to this project will be documented in this file.
 [#624]: https://github.com/stackabletech/docker-images/pull/624
 [#626]: https://github.com/stackabletech/docker-images/pull/626
 [#628]: https://github.com/stackabletech/docker-images/pull/628
+[#635]: https://github.com/stackabletech/docker-images/pull/635
 [#659]: https://github.com/stackabletech/docker-images/pull/659
 [#661]: https://github.com/stackabletech/docker-images/pull/661
+[#663]: https://github.com/stackabletech/docker-images/pull/663
 
 ## [24.3.0] - 2024-03-20
 
