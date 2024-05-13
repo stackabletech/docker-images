@@ -6,7 +6,7 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-FROM stackable/image/java-base AS builder
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG HBASE_THIRDPARTY
@@ -18,24 +18,6 @@ ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
-
-# zip required for the log4shell stuff
-RUN microdnf update && \
-    microdnf install \
-    # The GNU gettext utilities contain the envsubst program which
-    # substitutes the values of environment variables.
-    gettext \
-    git \
-    gzip \
-    java-"${JAVA_VERSION}"-openjdk-devel \
-    # diff is required by maven during the build of hbase \
-    # Cannot run program "diff" (in directory "/stackable/hbase-2.4.12-src/hbase-shaded/hbase-shaded-check-invariants"
-    diffutils \
-    maven \
-    tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 COPY hbase/licenses /licenses
 
