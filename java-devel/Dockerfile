@@ -1,8 +1,9 @@
 #
 # Base imaege for builder stages
 #
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3
+
+# hadolint ignore=DL3006
+FROM stackable/image/stackable-base
 
 ARG PRODUCT
 
