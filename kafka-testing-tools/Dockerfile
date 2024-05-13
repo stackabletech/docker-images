@@ -4,33 +4,13 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
-FROM stackable/image/java-base AS builder
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/kcat AS kcat
 
-ARG KCAT
-
-RUN microdnf install \
-    cmake \
-    cyrus-sasl-devel \
-    gcc-c++ \
-    krb5-devel \
-    libcurl-devel \
-    make \
-    openssl-devel \
-    tar \
-    wget \
-    which \
-    zlib \
-    zlib-devel && \
-    microdnf clean all
-
-WORKDIR /stackable
-
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${KCAT}.tar.gz \
-    && tar xvfz kcat-${KCAT}.tar.gz \
-    && cd kcat-${KCAT} \
-    && ./bootstrap.sh
-
-FROM stackable/image/stackable-base
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/stackable-base AS final
 
 ARG PRODUCT
 ARG KCAT
@@ -44,13 +24,20 @@ LABEL name="Kafka Testing Tools" \
       description="Used for integration testing"
 
  # diffutils (diff) and binutils (cmp) are needed for the kafka integration tests
-RUN microdnf install -y zlib openssl cyrus-sasl libcurl diffutils binutils && \
-    microdnf clean all
+RUN microdnf install  \
+    binutils \
+    cyrus-sasl \
+    diffutils \
+    libcurl-minimal \
+    openssl \
+    zlib \
+    && microdnf clean all \
+    && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/LICENSE /licenses/KCAT_LICENSE
+COPY --chown=stackable:stackable --from=kcat /licenses /licenses
 
 
 COPY --chown=stackable:stackable kafka-testing-tools/licenses /licenses
