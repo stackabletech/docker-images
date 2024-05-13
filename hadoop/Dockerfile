@@ -164,11 +164,11 @@ ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
-# These are required for common scripts even if the respective libraries are never used.
+# The following 2 env-vars are required for common scripts even if the respective libraries are never used.
 # HADOOP_HOME is often used internally if HADOOP_YARN_HOME/HADOOP_MAPRED_HOME are not set, although
-# a subdirectory is required in (at least)
+# a subdirectory is also required in (at least)
 #   hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh
-# so we set it here.
+# if HADOOP_YARN_HOME does not exist at all, so we set it here to a sensible default.
 ENV HADOOP_YARN_HOME=/stackable/hadoop
 ENV HADOOP_MAPRED_HOME=/stackable/hadoop
 
