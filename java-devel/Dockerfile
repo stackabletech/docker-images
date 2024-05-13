@@ -6,8 +6,9 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a
 
 ARG PRODUCT
 
+# hadolint ignore=DL3041
 RUN microdnf update && \
-    microdnf install \
+    microdnf install -y \
     cmake \
     cyrus-sasl-devel \
     # diff is required by maven during the build of hbase \

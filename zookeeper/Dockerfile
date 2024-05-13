@@ -7,6 +7,7 @@
 # ==============================================================================
 # START ZOOKEEPER BUILDER
 
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT

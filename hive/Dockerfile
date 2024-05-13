@@ -7,6 +7,7 @@
 FROM stackable/image/hadoop AS hadoop-builder
 
 # This layer has Java 8 installed.
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS builder
 
 # Apache Hive up t0 4.x(!) officially requires Java 8 (there is no distincion between building and running). As of
