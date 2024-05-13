@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_and_push:
-    name: ${{ matrix.product }} 0.0.0-dev ${{ matrix.runner }}
+    name: ${{ matrix.product }} 0.0.0-dev ${{ matrix.runner }} (Shard ${{ matrix.shard_index }} / ${{ matrix.shard_count }})
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner }}
