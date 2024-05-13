@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: use java-devel as base layer for the builder stage ([#665])
 - hbase: use java-devel as base layer for the builder stage ([#665])
 - omid: use java-devel as base layer for the builder stage ([#665])
+- kafka: use java-devel as base layer for the builder stage ([#665])
 
 ### Fixed
 

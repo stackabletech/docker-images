@@ -10,19 +10,12 @@ FROM stackable/image/kcat AS kcat
 
 # Not tagging base image because it is built as part of the same process
 # hadolint ignore=DL3006
-FROM stackable/image/java-base as kafka-builder
+FROM stackable/image/java-devel as kafka-builder
 
 ARG PRODUCT
 ARG SCALA
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
-
-RUN microdnf update && \
-    microdnf install \
-    # Required by log4shell mitigation script
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 USER stackable
 WORKDIR /stackable
