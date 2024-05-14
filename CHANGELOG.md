@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   exporting easier ([#621]).
 - kafka: Build from source ([#659], [#661]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
+- hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 
 ### Changed
 
@@ -59,6 +60,7 @@ All notable changes to this project will be documented in this file.
 [#661]: https://github.com/stackabletech/docker-images/pull/661
 [#663]: https://github.com/stackabletech/docker-images/pull/663
 [#666]: https://github.com/stackabletech/docker-images/pull/666
+[#667]: https://github.com/stackabletech/docker-images/pull/667
 
 ## [24.3.0] - 2024-03-20
 
