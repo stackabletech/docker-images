@@ -40,7 +40,7 @@ function sign_images() {
 main() {
     docker_login
     pull_retag_and_push_images
-    sign_images
+    #sign_images
     create_and_push_manifest_list
 }
 
