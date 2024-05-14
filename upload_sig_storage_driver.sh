@@ -6,10 +6,6 @@ PRODUCT=${3:?"Missing product argument (arg 3)"}
 REGISTRY="registry.k8s.io/sig-storage"
 STACKABLE_REGISTRY="docker.stackable.tech/k8s/sig-storage"
 
-PRODUCTS=(
-    csi-node-driver-registrar
-    csi-provisioner
-)
 ARCHITECTURES=(
     amd64
     arm64
