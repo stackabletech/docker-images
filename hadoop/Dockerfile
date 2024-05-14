@@ -56,7 +56,7 @@ WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
-    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
@@ -145,6 +145,13 @@ ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
+# The following 2 env-vars are required for common scripts even if the respective libraries are never used.
+# HADOOP_HOME is often used internally if HADOOP_YARN_HOME/HADOOP_MAPRED_HOME are not set, although
+# a subdirectory is also required in (at least)
+#   hadoop-common-project/hadoop-common/src/main/bin/hadoop-functions.sh
+# if HADOOP_YARN_HOME does not exist at all, so we set it here to a sensible default.
+ENV HADOOP_YARN_HOME=/stackable/hadoop
+ENV HADOOP_MAPRED_HOME=/stackable/hadoop
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]

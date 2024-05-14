@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Build from source ([#659], [#661]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - java-devel: New image to serve as base layer for builder stages ([#665]).
+- hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 
 ### Changed
 
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - hbase: use java-devel as base layer for the builder stage ([#665])
 - omid: use java-devel as base layer for the builder stage ([#665])
 - kafka: use java-devel as base layer for the builder stage ([#665])
+- opa-bundle-builder: Bump image to 1.1.2 ([#666])
 
 ### Fixed
 
@@ -66,6 +68,8 @@ All notable changes to this project will be documented in this file.
 [#661]: https://github.com/stackabletech/docker-images/pull/661
 [#663]: https://github.com/stackabletech/docker-images/pull/663
 [#665]: https://github.com/stackabletech/docker-images/pull/665
+[#666]: https://github.com/stackabletech/docker-images/pull/666
+[#667]: https://github.com/stackabletech/docker-images/pull/667
 
 ## [24.3.0] - 2024-03-20
 
