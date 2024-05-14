@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
+- opa-bundle-builder: Bump image to 1.1.2 ([#666])
 
 ### Fixed
 
@@ -58,6 +59,7 @@ All notable changes to this project will be documented in this file.
 [#659]: https://github.com/stackabletech/docker-images/pull/659
 [#661]: https://github.com/stackabletech/docker-images/pull/661
 [#663]: https://github.com/stackabletech/docker-images/pull/663
+[#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
 
 ## [24.3.0] - 2024-03-20
