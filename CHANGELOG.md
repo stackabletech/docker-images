@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
   image to the HBase image. The script `export-snapshot-to-s3` makes
   exporting easier ([#621]).
 - kafka: Build from source ([#659], [#661]).
+- nifi: Build from source ([#668]).
+- nifi: Move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatiblity ([#668]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - java-devel: New image to serve as base layer for builder stages ([#665]).
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
@@ -70,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#665]: https://github.com/stackabletech/docker-images/pull/665
 [#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
+[#668]: https://github.com/stackabletech/docker-images/pull/678
 
 ## [24.3.0] - 2024-03-20
 
