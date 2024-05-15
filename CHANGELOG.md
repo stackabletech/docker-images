@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-
+cl
 - ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
@@ -15,7 +15,6 @@ All notable changes to this project will be documented in this file.
   exporting easier ([#621]).
 - kafka: Build from source ([#659], [#661]).
 - nifi: Build from source ([#678]).
-- nifi: Move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatiblity ([#678]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - java-devel: New image to serve as base layer for builder stages ([#665]).
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
@@ -29,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
+- nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
 - hadoop: use java-devel as base layer for the builder stage ([#665])
 - hive: use java-devel as base layer for the builder stage ([#665])
 - zookeeper: use java-devel as base layer for the builder stage ([#665])
