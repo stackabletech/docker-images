@@ -9,11 +9,8 @@ FROM stackable/image/java-devel AS builder
 ARG PRODUCT
 
 RUN microdnf update && \
-    microdnf install \
-    libxml2-devel \
-    libxslt-devel && \
-    microdnf clean all \
-    && rm -rf /var/cache/yum
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY nifi/licenses /licenses
 
@@ -81,6 +78,8 @@ LABEL name="Apache NiFi" \
 
 RUN microdnf update && \
     microdnf install \
+    libxml2-devel \
+    libxslt-devel \
     python-devel \
     python-pip \
     python-setuptools && \
