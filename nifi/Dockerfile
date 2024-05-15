@@ -17,19 +17,12 @@ RUN microdnf update && \
 
 COPY nifi/licenses /licenses
 
-# The bcrypt tool is needed by NiFi to locally encrypt the admin password that is mounted as a secret in cleartext
-# The source code is available at https://github.com/stackabletech/stackable-utils/tree/main/stackable-bcrypt
-# The binaries are published to Nexus with: mvn clean deploy
-# This jar used to be COPYed into the image from a local binary but it's not possible to do so anymore
-# because /bin is owned by root and curl cannot write there unless it runs as root.
-# This should be fixed by moving the jar to location under /stackable and updating the Nifi operator accordingly.
-RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
-    # This used to be located in /bin/stackable-bcrypt.jar we create a softlink in the main container for backwards compatibility
-    -o /stackable/stackable-bcrypt.jar && \
-    chown stackable:stackable /stackable/stackable-bcrypt.jar
-
 USER stackable
 WORKDIR /stackable
+
+RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
+    # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
+    -o /stackable/stackable-bcrypt.jar
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
     unzip "nifi-${PRODUCT}-source-release.zip" && \
