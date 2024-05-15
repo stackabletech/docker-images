@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   exporting easier ([#621]).
 - kafka: Build from source ([#659], [#661]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
+- java-devel: New image to serve as base layer for builder stages ([#665]).
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 
 ### Changed
@@ -26,6 +27,12 @@ All notable changes to this project will be documented in this file.
 - ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
+- hadoop: use java-devel as base layer for the builder stage ([#665])
+- hive: use java-devel as base layer for the builder stage ([#665])
+- zookeeper: use java-devel as base layer for the builder stage ([#665])
+- hbase: use java-devel as base layer for the builder stage ([#665])
+- omid: use java-devel as base layer for the builder stage ([#665])
+- kafka: use java-devel as base layer for the builder stage ([#665])
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 
 ### Fixed
@@ -41,6 +48,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - zookeeper: Remove unsupported version 3.9.1 ([#628]).
+- java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -59,6 +67,7 @@ All notable changes to this project will be documented in this file.
 [#659]: https://github.com/stackabletech/docker-images/pull/659
 [#661]: https://github.com/stackabletech/docker-images/pull/661
 [#663]: https://github.com/stackabletech/docker-images/pull/663
+[#665]: https://github.com/stackabletech/docker-images/pull/665
 [#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
 

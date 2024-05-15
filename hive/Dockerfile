@@ -6,18 +6,15 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-FROM stackable/image/java-base AS builder
+# This layer has Java 8 installed.
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS builder
 
 # Apache Hive up t0 4.x(!) officially requires Java 8 (there is no distincion between building and running). As of
 # 2024-04-15 we for sure need Java 8 for building, but we used a Java 11 runtime for months now without any problems.
 # As we got weird TLS errors (https://stackable-workspace.slack.com/archives/C031A5BEFS7/p1713185172557459) with a
 # Java 8 runtime we bumped the Runtime to Java 11 again. As we can only select a single version from the java-base
 # image, we pick 11 (which is used in the final image), and install Java 8 here.
-RUN microdnf update && \
-    microdnf remove java-11-openjdk-headless java-11-openjdk-devel java-11-openjdk && \
-    microdnf install java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel --nodocs && \
-    microdnf clean all
-ENV JAVA_HOME=/usr/lib/jvm/jre-1.8.0
 
 ARG PRODUCT
 ARG HADOOP
@@ -27,18 +24,6 @@ ARG POSTGRES_DRIVER
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-
-
-RUN microdnf update && \
-    microdnf install \
-    # For the apply_patches.sh script
-    git \
-    gzip \
-    maven \
-    tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 COPY --chown=stackable:stackable hive/stackable /stackable
 
