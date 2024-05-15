@@ -330,6 +330,7 @@ products = [
                 "product": "3.5.1",
                 "spark": "3.5.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
                 "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
