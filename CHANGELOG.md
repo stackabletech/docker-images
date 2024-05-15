@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - omid: use java-devel as base layer for the builder stage ([#665])
 - kafka: use java-devel as base layer for the builder stage ([#665])
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
+- opa: Build from source ([#676])
 
 ### Fixed
 
@@ -70,6 +71,7 @@ All notable changes to this project will be documented in this file.
 [#665]: https://github.com/stackabletech/docker-images/pull/665
 [#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
+[#676]: https://github.com/stackabletech/docker-images/pull/676
 
 ## [24.3.0] - 2024-03-20
 
