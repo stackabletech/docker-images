@@ -90,7 +90,7 @@ RUN microdnf update && \
 
 RUN pip install --no-cache-dir nipyapi==0.19.1
 
-# For backwards compatibity we create a softlink in /bin where the jar used to be as long as we are root
+# For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
 RUN ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 
