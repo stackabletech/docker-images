@@ -26,11 +26,17 @@ RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nif
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
     unzip "nifi-${PRODUCT}-source-release.zip" && \
+    # Clean up downloaded source after unzipping
     rm -rf "nifi-${PRODUCT}-source-release.zip" && \
+    # The NiFi "binary" ends up in a folder named "nifi-${PRODUCT}" which should be copied to /stackable 
+    # from /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} (see later steps)
+    # Therefore we add the suffix "-src" to be able to copy the binary and remove the unzipped sources afterwards.
     mv nifi-${PRODUCT} nifi-${PRODUCT}-src && \
     cd /stackable/nifi-${PRODUCT}-src/ && \
     mvn clean install -DskipTests && \
+    # Copy the binaries to the /stackable folder
     mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
+    # Remove the unzipped sources
     rm -rf /stackable/nifi-${PRODUCT}-src 
 
 # Add Iceberg extensions as they are not included by default and are important enough
