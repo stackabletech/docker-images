@@ -58,12 +58,31 @@ WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
 
 RUN package/install
 
-FROM stackable/image/vector
+FROM stackable/image/vector as opa-builder
 
 ARG PRODUCT
 ARG RELEASE
 ARG TARGETARCH
 ARG TARGETOS
+
+ENV GOARCH=$TARGETARCH
+ENV GOOS=$TARGETOS
+
+RUN microdnf update && \
+    microdnf install git go gzip tar
+
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
+    tar -zxvf opa.tar.gz && \
+    mv opa-${PRODUCT} opa
+
+WORKDIR /opa
+
+RUN go build -o opa -buildmode=exe
+
+FROM stackable/image/vector
+
+ARG PRODUCT
+ARG RELEASE
 
 LABEL name="Open Policy Agent" \
       maintainer="info@stackable.tech" \
@@ -74,9 +93,6 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
-    microdnf install \
-    gzip \
-    tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -85,11 +101,7 @@ COPY opa/licenses /licenses
 USER stackable
 WORKDIR /stackable/opa
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT}" \
-     -o opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} && \
-    chmod +x opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} && \
-    ln -s opa_${TARGETOS}_${TARGETARCH}_static_${PRODUCT} opa
-
+COPY --from=opa-builder /opa/opa /stackable/opa/opa
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
