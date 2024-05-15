@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Build from source ([#659], [#661]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
+- stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 
 ### Changed
 
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#663]: https://github.com/stackabletech/docker-images/pull/663
 [#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
+[#673]: https://github.com/stackabletech/docker-images/pull/673
 
 ## [24.3.0] - 2024-03-20
 
