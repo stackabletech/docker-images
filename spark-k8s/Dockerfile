@@ -2,10 +2,10 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# Ignoring DL3003 globally because we avoid unnecessary WORKDIR usages
-# Ignoring DL3006 globally because we don't want to pin java-* images
-# hadolint global ignore=DL3003,DL3006,DL3038,DL4006
+# hadolint global ignore=DL3038,DL4006
 
+# Ignoring DL3006 because we don't want to pin java-* images
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel as builder
 
 ARG PRODUCT
@@ -17,6 +17,8 @@ ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG JMX_EXPORTER
+ARG TARGETARCH
+ARG TINI
 
 WORKDIR /stackable
 
@@ -27,6 +29,7 @@ WORKDIR /stackable
 #
 # This will download it's own version of maven because the UBI version is too old:
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
+# hadolint ignore=DL3003
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz | tar -xzf - \
     && cd spark-${PRODUCT} \
     && export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
@@ -37,10 +40,14 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-$
       -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 # <<< Build spark
 
+# Get the correct `tini` binary for our architecture.
+RUN curl --fail -L -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
+    && chmod +x /usr/bin/tini
+
 # We download these under dist so that log4shell checks them
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
-# Download aws module for Hadoop (support for s3a://)
+# Download various modules for Hadoop (e.g. support for s3a:// and abfs://)
 RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
@@ -61,10 +68,7 @@ RUN curl --fail -L -O "https://repo.stackable.tech/repository/packages/jmx-expor
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
+#
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -82,13 +86,13 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
 # ===
 
-FROM stackable/image/java-base
+# Ignoring DL3006 because we don't want to pin java-* images
+# hadolint ignore=DL3006
+FROM stackable/image/java-base as final
 
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
-ARG TARGETARCH
-ARG TINI
 ARG JMX_EXPORTER
 
 
@@ -108,8 +112,6 @@ RUN microdnf update && \
     procps \
     python${PYTHON} \
     python${PYTHON}-pip \
-    # tar is required for `kubectl cp` which can be used to copy the log files or profiler flamegraph from the Pod
-    tar \
     zip \
     # This is needed by the Spark UI to display process information using jps and jmap
     # Copying the binaries from the builder stage failed.
@@ -126,18 +128,19 @@ ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
 
 
 COPY --chown=stackable:stackable --from=builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx
+COPY --from=builder /usr/bin/tini /usr/bin/tini
 
 RUN ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar \
     # Symlink example jar, so that we can easily use it in tests
     && ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
-
-# Get the correct `tini` binary for our architecture.
-RUN curl --fail -L -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
-    && chmod +x /usr/bin/tini
 
 USER stackable
 WORKDIR /stackable
