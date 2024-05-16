@@ -62,4 +62,25 @@ RUN microdnf update --assumeyes && \
     echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc && \
     echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile && \
     chown stackable:stackable /stackable/.bashrc && \
-    chown stackable:stackable /stackable/.profile \
+    chown stackable:stackable /stackable/.profile
+
+# CVE-2023-37920: Remove "e-Tugra" root certificates
+# e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
+# The package ca-certificates 2023.07.22 fixes the problem, until ubi9-minimal updates to it, we should remove them
+# manually.
+
+RUN if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2023.2.60_v7.0.306-90.1.el9_2.noarch" ]; then \
+    echo "The ca-certificates package was updated. Please check if the e-Tugra root certificates are present. \
+When they have been removed, manually blacklisting them should be removed" && \
+    echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'" && \
+    trust list --filter=ca-anchors | grep 'E-Tugra' && \
+    exit 1; \
+  fi
+
+COPY stackable-base/stackable/ca-cert-blocklist/ /etc/pki/ca-trust/source/blocklist/
+
+RUN update-ca-trust && \
+  if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then \
+    echo "Still found E-Tugra root certificates, this should not happen!" && \
+    exit 1; \
+  fi
