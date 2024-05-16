@@ -24,8 +24,9 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean package -DskipTests -Dmaven.javadoc.skip=true && \
-    cp -r apache-druid-${PRODUCT}-src/target /stackable/druid && \
+    mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
+    mkdir druid && \
+    tar -xzf /stackable/apache-druid-${PRODUCT}-src/disribution/target/pache-druid-${PRODUCT}-bin.tar.gz -C /stackable/druid && \
     rm -rf /stackable/apache-druid-${PRODUCT}-src
 
     #Removed flags -Drequire.fuse=true -Pdist,native
@@ -92,7 +93,7 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --from=builder /stackable/druid /stackable/druid
+COPY --from=druid-builder /stackable/druid /stackable/druid
 COPY --chown=stackable:stackable druid/stackable /stackable
 COPY --chown=stackable:stackable druid/licenses /licenses
 
