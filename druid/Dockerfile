@@ -18,29 +18,37 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 
+RUN microdnf update && \
+    microdnf install \
+    # Required to install nipyapi
+    python-pip && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum && \
+    # The nipyapi is required for the ReportingTaskJob
+    pip install --no-cache-dir pyyaml==6.0.1
+
 USER stackable
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean package -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
-    mkdir druid && \
-    tar -xzf /stackable/apache-druid-${PRODUCT}-src/disribution/target/pache-druid-${PRODUCT}-bin.tar.gz -C /stackable/druid && \
-    rm -rf /stackable/apache-druid-${PRODUCT}-src
+    mvn clean install -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
+    tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
+    mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
+    rm -rf /stackable/apache-druid-${PRODUCT}-src \
+    /stackable/apache-druid-${PRODUCT}/quickstart
 
-    #Removed flags -Drequire.fuse=true -Pdist,native
-
-# Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies. 
-RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/druid/extensions && \
+    # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
+RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
     # Install OPA authorizer extension.
-    curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/druid/extensions && \
+    curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
     # Install jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging, and remove stax-ex.
-    rm /stackable/druid/lib/stax-ex-*.jar && \
-    curl --fail -L -o /stackable/druid/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    rm /stackable/apache-druid-${PRODUCT}/lib/stax-ex-*.jar && \
+    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
         "https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar" && \
-    curl --fail -L -o /stackable/druid/lib/stax2-api-${STAX2_API}.jar \
+    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/stax2-api-${STAX2_API}.jar \
         "https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar" && \
-    curl --fail -L -o /stackable/druid/lib/woodstox-core-${WOODSTOX_CORE}.jar \
+    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTOX_CORE}.jar \
         "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
 
 # ===
@@ -54,7 +62,7 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
+RUN /bin/log4shell.sh "/stackable/apache-druid-${PRODUCT}"
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -63,7 +71,7 @@ RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
+RUN /bin/log4shell_scanner s "/stackable/apache-druid-${PRODUCT}"
 # ===
 
 ## Final Image
@@ -92,9 +100,13 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --from=druid-builder /stackable/druid /stackable/druid
+COPY --from=druid-builder /stackable /stackable
 COPY --chown=stackable:stackable druid/stackable /stackable
 COPY --chown=stackable:stackable druid/licenses /licenses
+
+RUN ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
+    # Force to overwrite the existing 'run-druid'
+    ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
 
 WORKDIR /stackable/druid
 CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
