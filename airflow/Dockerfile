@@ -41,8 +41,7 @@ RUN microdnf update && \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
-        # the unixODBC-devel package is not available for ubi9
-        unixODBC && \
+        unixODBC-devel && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
