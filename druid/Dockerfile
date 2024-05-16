@@ -23,7 +23,7 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean package -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn clean package -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir druid && \
     tar -xzf /stackable/apache-druid-${PRODUCT}-src/disribution/target/pache-druid-${PRODUCT}-bin.tar.gz -C /stackable/druid && \
     rm -rf /stackable/apache-druid-${PRODUCT}-src
