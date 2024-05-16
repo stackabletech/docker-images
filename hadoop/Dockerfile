@@ -53,10 +53,13 @@ WORKDIR /stackable
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
+# Also skip building the yarn, mapreduce and minicluster modules: this will result in the modules being excluded but not all
+# jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
+# will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
-    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
@@ -152,6 +155,21 @@ ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 # if HADOOP_YARN_HOME does not exist at all, so we set it here to a sensible default.
 ENV HADOOP_YARN_HOME=/stackable/hadoop
 ENV HADOOP_MAPRED_HOME=/stackable/hadoop
+
+# Remove unneeded binaries:
+#  - code sources
+#  - mapreduce/yarn binaries that were built as cross-project dependencies
+#  - minicluster (only used for testing) and test .jars
+#  - json-io: this is a transitive dependency pulled in by cedarsoft/java-utils/json-io and is excluded in 3.4.0. See CVE-2023-34610.
+RUN rm -rf /stackable/hadoop/share/hadoop/common/sources/ && \
+  rm -rf /stackable/hadoop/share/hadoop/hdfs/sources/ && \
+  rm -rf /stackable/hadoop/share/hadoop/tools/sources/ && \
+  rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar && \
+  rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar && \
+  rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar && \
+  find . -name 'hadoop-minicluster-*.jar' -type f -delete && \
+  find . -name 'hadoop-client-minicluster-*.jar' -type f -delete && \
+  find . -name 'hadoop-*tests.jar' -type f -delete
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
