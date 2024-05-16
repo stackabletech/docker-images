@@ -19,9 +19,9 @@ WORKDIR /stackable
 
 RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
     # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
-    -o /stackable/stackable-bcrypt.jar
-
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
+    -o /stackable/stackable-bcrypt.jar && \
+    # Get the source release from nexus
+    curl --fail -L "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
     unzip "nifi-${PRODUCT}-source-release.zip" && \
     # Clean up downloaded source after unzipping
     rm -rf "nifi-${PRODUCT}-source-release.zip" && \
@@ -78,19 +78,21 @@ LABEL name="Apache NiFi" \
 
 RUN microdnf update && \
     microdnf install \
+    # Why are these here -> needs investigation
     libxml2-devel \
     libxslt-devel \
+    # While we will need python for NiFi 2.0, not sure it makes sense to include it here
+    # just for the reporting task job?
     python-devel \
     python-pip \
     python-setuptools && \
-    microdnf clean all \
-    && rm -rf /var/cache/yum
-
-RUN pip install --no-cache-dir nipyapi==0.19.1
-
-# For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
-# This can be removed once older versions / operators using this are no longer supported
-RUN ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
+    microdnf clean all && \
+    rm -rf /var/cache/yum && \
+    # The Nipyapi is required for the ReportingTaskJob
+    pip install --no-cache-dir nipyapi==0.19.1 && \
+    # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
+    # This can be removed once older versions / operators using this are no longer supported
+    ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 
 USER stackable
 
