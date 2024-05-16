@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - kafka: use java-devel as base layer for the builder stage ([#665])
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 - opa: Build from source ([#676])
+- spark: Build from source ([#679])
 
 ### Fixed
 
@@ -75,6 +76,7 @@ All notable changes to this project will be documented in this file.
 [#667]: https://github.com/stackabletech/docker-images/pull/667
 [#673]: https://github.com/stackabletech/docker-images/pull/673
 [#676]: https://github.com/stackabletech/docker-images/pull/676
+[#679]: https://github.com/stackabletech/docker-images/pull/679
 [#682]: https://github.com/stackabletech/docker-images/pull/682
 
 ## [24.3.0] - 2024-03-20
