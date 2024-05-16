@@ -241,9 +241,21 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {"product": "1.21.0", "java-base": "11"},
-            {"product": "1.23.2", "java-base": "11"},
-            {"product": "1.25.0", "java-base": "21"},
+            {
+                "product": "1.21.0",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.23.2",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.25.0",
+                "java-base": "21",
+                "java-devel": "11"
+            },
         ],
     },
     {
@@ -279,10 +291,9 @@ products = [
         "versions": [
             {
                 "product": "3.4.1",
-                "spark": "3.4.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -296,10 +307,9 @@ products = [
             },
             {
                 "product": "3.4.2",
-                "spark": "3.4.2",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -313,10 +323,9 @@ products = [
             },
             {
                 "product": "3.5.0",
-                "spark": "3.5.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -332,8 +341,8 @@ products = [
                 "product": "3.5.1",
                 "spark": "3.5.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
