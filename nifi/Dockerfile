@@ -14,8 +14,6 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-COPY nifi/licenses /licenses
-
 USER stackable
 WORKDIR /stackable
 
