@@ -4,7 +4,9 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
-FROM stackable/image/vector AS opa-bundle-builder
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/stackable-base AS opa-bundle-builder
 
 ARG BUNDLE_BUILDER_VERSION
 
@@ -29,7 +31,9 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
 RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo build --release
 
-FROM stackable/image/vector AS multilog-builder
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/stackable-base AS multilog-builder
 
 ARG DAEMONTOOLS_VERSION=0.76
 
@@ -58,7 +62,9 @@ WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
 
 RUN package/install
 
-FROM stackable/image/vector as opa-builder
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/stackable-base as opa-builder
 
 ARG PRODUCT
 ARG RELEASE
@@ -68,8 +74,13 @@ ARG TARGETOS
 ENV GOARCH=$TARGETARCH
 ENV GOOS=$TARGETOS
 
+# go - used to build OPA
+# gzip, tar - used to unpack the OPA source
 RUN microdnf update && \
-    microdnf install git go gzip tar
+    microdnf install \
+    go \
+    gzip \
+    tar
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
     tar -zxvf opa.tar.gz && \
@@ -79,6 +90,8 @@ WORKDIR /opa
 
 RUN go build -o opa -buildmode=exe
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/vector
 
 ARG PRODUCT
