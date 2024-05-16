@@ -10,6 +10,7 @@
 # - maven clean install (java-devel image I guess)
 # - copy bin
 # - test stuff
+
 FROM stackable/image/java-devel as druid-builder
 
 ARG PRODUCT
@@ -21,13 +22,13 @@ ARG AUTHORIZER
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tgz" | tar -xzC . && \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean package -Pdist,native -DskipTests -Dmaven.javadoc.skip=true && \
-    # cp -r apache-druid-${PRODUCT}-src/target /stackable/druid && \
-    # rm -rf /stackable/apache-druid-${PRODUCT}-src
+    mvn clean package -DskipTests -Dmaven.javadoc.skip=true && \
+    cp -r apache-druid-${PRODUCT}-src/target /stackable/druid && \
+    rm -rf /stackable/apache-druid-${PRODUCT}-src
 
-    #Removed flags -Drequire.fuse=true
+    #Removed flags -Drequire.fuse=true -Pdist,native
 
 # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies. 
 RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/druid/extensions && \
@@ -80,19 +81,20 @@ LABEL name="Apache Druid" \
       description="This image is deployed by the Stackable Operator for Apache Druid."
 
 RUN microdnf update && \
-    microdnf install \
-    findutils \
-    gzip \
-    tar \
-    zip && \
+    # microdnf install \
+    # findutils \
+    # gzip \
+    # tar \
+    # zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-# USER stackable
-# WORKDIR /stackable
+USER stackable
+WORKDIR /stackable
 
-# COPY --chown=stackable:stackable druid/stackable /stackable
-# COPY --chown=stackable:stackable druid/licenses /licenses
+COPY --from=builder /stackable/druid /stackable/druid
+COPY --chown=stackable:stackable druid/stackable /stackable
+COPY --chown=stackable:stackable druid/licenses /licenses
 
-# WORKDIR /stackable/druid
-# CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
+WORKDIR /stackable/druid
+CMD ["bin/run-druid", "coordinator", "conf/druid/cluster/master/coordinator-overlord/"]
