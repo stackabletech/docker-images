@@ -62,8 +62,9 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
 # ===
 
-# Final image
-FROM stackable/image/java-base
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
