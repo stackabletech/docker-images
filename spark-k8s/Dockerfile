@@ -35,7 +35,8 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-$
       -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 # <<< Build spark
 
-WORKDIR /stackable/jars
+# We download these under dist so that log4shell checks them
+WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Download aws module for Hadoop (support for s3a://)
 RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
@@ -45,7 +46,7 @@ RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
-WORKDIR /stackable/extra-jars
+WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
 RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
@@ -108,6 +109,9 @@ RUN microdnf update && \
     # tar is required for `kubectl cp` which can be used to copy the log files or profiler flamegraph from the Pod
     tar \
     zip \
+    # This is needed by the Spark UI to display process information using jps and jmap
+    # Copying the binaries from the builder stage failed.
+    java-${JAVA_VERSION}-openjdk-devel \
     && microdnf clean all \
     && rm -rf /var/cache/yum
 
@@ -123,8 +127,6 @@ ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 
 COPY --chown=stackable:stackable --from=builder /stackable/spark-${PRODUCT}/dist /stackable/spark
-COPY --chown=stackable:stackable --from=builder /stackable/jars /stackable/spark/jars
-COPY --chown=stackable:stackable --from=builder /stackable/extra-jars/ /stackable/spark/extra-jars
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx
 
 RUN ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar \
