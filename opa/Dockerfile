@@ -76,11 +76,14 @@ ENV GOOS=$TARGETOS
 
 # go - used to build OPA
 # gzip, tar - used to unpack the OPA source
+# We don't pin versions
+# hadolint ignore=DL3041
 RUN microdnf update && \
     microdnf install \
     go \
     gzip \
-    tar
+    tar && \
+    microdnf clean all
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
     tar -zxvf opa.tar.gz && \
