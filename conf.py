@@ -60,6 +60,7 @@ products = [
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
                 "authorizer": "0.5.0",
+                "java-devel": "11",
             },
             {
                 "product": "27.0.0",
@@ -68,6 +69,7 @@ products = [
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
                 "authorizer": "0.5.0",
+                "java-devel": "11",
             },
             {
                 "product": "28.0.1",
@@ -80,6 +82,7 @@ products = [
                 "stax2_api": "4.2.2",
                 "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
+                "java-devel": "11",
             },
         ],
     },
