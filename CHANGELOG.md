@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-cl
+
 - ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
