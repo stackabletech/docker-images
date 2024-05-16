@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - java-devel: New image to serve as base layer for builder stages ([#665]).
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
+- hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
 
 ### Changed
 
@@ -72,8 +73,9 @@ All notable changes to this project will be documented in this file.
 [#665]: https://github.com/stackabletech/docker-images/pull/665
 [#666]: https://github.com/stackabletech/docker-images/pull/666
 [#667]: https://github.com/stackabletech/docker-images/pull/667
-[#676]: https://github.com/stackabletech/docker-images/pull/676
 [#673]: https://github.com/stackabletech/docker-images/pull/673
+[#676]: https://github.com/stackabletech/docker-images/pull/676
+[#682]: https://github.com/stackabletech/docker-images/pull/682
 
 ## [24.3.0] - 2024-03-20
 
