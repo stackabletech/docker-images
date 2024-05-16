@@ -78,17 +78,11 @@ LABEL name="Apache NiFi" \
 
 RUN microdnf update && \
     microdnf install \
-    # Why are these here -> needs investigation
-    libxml2-devel \
-    libxslt-devel \
-    # While we will need python for NiFi 2.0, not sure it makes sense to include it here
-    # just for the reporting task job?
-    python-devel \
-    python-pip \
-    python-setuptools && \
+    # Required to install nipyapi
+    python-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum && \
-    # The Nipyapi is required for the ReportingTaskJob
+    # The nipyapi is required for the ReportingTaskJob
     pip install --no-cache-dir nipyapi==0.19.1 && \
     # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
     # This can be removed once older versions / operators using this are no longer supported
