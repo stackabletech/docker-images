@@ -2,7 +2,9 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
+# Ignoring DL3003 globally because we avoid unnecessary WORKDIR usages
+# Ignoring DL3006 globally because we don't want to pin java-* images
+# hadolint global ignore=DL3003,DL3006,DL3038,DL4006
 
 FROM stackable/image/java-devel as builder
 
