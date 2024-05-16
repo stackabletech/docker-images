@@ -6,7 +6,6 @@
 
 ####### ToDo's ########
 # Build-step 
-# - git clone
 # - maven clean install (java-devel image I guess)
 # - copy bin
 # - test stuff
