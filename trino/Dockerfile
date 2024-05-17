@@ -7,12 +7,11 @@
 FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
-ARG STORAGE_CONNECTOR_GIT_REPO=https://github.com/snowlift/trino-storage
 ARG STORAGE_CONNECTOR_GIT_REV
 
 WORKDIR /stackable
 
-RUN git clone ${STORAGE_CONNECTOR_GIT_REPO} --branch=v${STORAGE_CONNECTOR} --depth=1 && \
+RUN git clone https://github.com/snowlift/trino-storage --branch=v${STORAGE_CONNECTOR} --depth=1 && \
     cd trino-storage && git checkout ${STORAGE_CONNECTOR_GIT_REV}
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
