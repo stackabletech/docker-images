@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
 - nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
+- nifi: patch nifi-assembly pom file to not zip binaries after the build to save disk space ([#685]).
 - hadoop: use java-devel as base layer for the builder stage ([#665])
 - hive: use java-devel as base layer for the builder stage ([#665])
 - zookeeper: use java-devel as base layer for the builder stage ([#665])
@@ -81,6 +82,7 @@ All notable changes to this project will be documented in this file.
 [#678]: https://github.com/stackabletech/docker-images/pull/678
 [#679]: https://github.com/stackabletech/docker-images/pull/679
 [#682]: https://github.com/stackabletech/docker-images/pull/682
+[#685]: https://github.com/stackabletech/docker-images/pull/685
 
 ## [24.3.0] - 2024-03-20
 
