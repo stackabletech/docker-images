@@ -9,7 +9,7 @@
 # - maven clean install (java-devel image I guess)
 # - copy bin
 # - test stuff
-
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel as druid-builder
 
 ARG PRODUCT
@@ -75,6 +75,7 @@ RUN /bin/log4shell_scanner s "/stackable/apache-druid-${PRODUCT}"
 # ===
 
 ## Final Image
+# hadolint ignore=DL3006
 FROM stackable/image/java-base
 
 ARG PRODUCT
