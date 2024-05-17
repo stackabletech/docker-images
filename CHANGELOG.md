@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
+- superset: Updating Flask-AppBuilder and gevent, remove greenlet from 3.1.0-constrains.txt to mitigate CVE-2024-25128 and CVE-2023-41419 ([#686])
 
 ### Changed
 
@@ -81,6 +82,7 @@ All notable changes to this project will be documented in this file.
 [#678]: https://github.com/stackabletech/docker-images/pull/678
 [#679]: https://github.com/stackabletech/docker-images/pull/679
 [#682]: https://github.com/stackabletech/docker-images/pull/682
+[#686]: https://github.com/stackabletech/docker-images/pull/686
 
 ## [24.3.0] - 2024-03-20
 
