@@ -46,8 +46,6 @@ ARG PRODUCT_GIT_REV
 # External OPA authorizer only required for 414 and 428, included in 438
 # The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
 ARG OPA_AUTHORIZER
-ARG JMX_EXPORTER
-ARG RELEASE
 ARG STORAGE_CONNECTOR
 
 WORKDIR /stackable
@@ -101,12 +99,8 @@ RUN --mount=type=cache,target=/root/.m2/repository cd jmx_exporter && \
 FROM stackable/image/java-base
 
 ARG PRODUCT
-# External OPA authorizer only required for 414 and 428, included in 438
-# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
-ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG RELEASE
-ARG STORAGE_CONNECTOR
 
 LABEL name="Trino" \
       maintainer="info@stackable.tech" \
