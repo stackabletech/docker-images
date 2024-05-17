@@ -190,6 +190,10 @@ products = [
                 "stackable-base": "1.0.0",
             },
             {
+                "product": "17",
+                "stackable-base": "1.0.0",
+            },
+            {
                 "product": "21",
                 "stackable-base": "1.0.0",
             },
@@ -416,10 +420,16 @@ products = [
             },
             {
                 "product": "428",
+                "product_git_rev": "8c67edf69e1052911f4981f5b8e0b702ec3286b5",
                 "java-base": "17",
+                "java-devel": "17",
                 "opa_authorizer": "stackable0.3.0",
+                "opa_authorizer_git_rev": "f166eafb72d33fa6fbf39585da4c816f8e4a2229",
                 "jmx_exporter": "0.20.0",
+                "jmx_exporter_git_rev": "bf4222d3b57ea8b1e4533fc39cbe1c167f5a24a0",
                 "storage_connector": "428-jackson",
+                "storage_connector_git_repo": "https://github.com/stackabletech/trino-storage",
+                "storage_connector_git_rev": "340b2c2bfcb1e633979776f7a9053f959f3e2533",
             },
             {
                 "product": "442",
@@ -431,6 +441,7 @@ products = [
                 "storage_connector": "442",
                 "storage_connector_git_rev": "58c0d14b81c8d010e3c577ada8948a4e0487cbbb",
                 "opa_authorizer": "",
+                "opa_authorizer_git_rev": "",
             },
         ],
     },

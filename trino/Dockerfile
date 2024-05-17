@@ -7,14 +7,35 @@
 FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
+ARG STORAGE_CONNECTOR_GIT_REPO=https://github.com/snowlift/trino-storage
 ARG STORAGE_CONNECTOR_GIT_REV
 
 WORKDIR /stackable
 
-RUN git clone https://github.com/snowlift/trino-storage --branch=v${STORAGE_CONNECTOR} --depth=1 && \
+RUN git clone ${STORAGE_CONNECTOR_GIT_REPO} --branch=v${STORAGE_CONNECTOR} --depth=1 && \
     cd trino-storage && git checkout ${STORAGE_CONNECTOR_GIT_REV}
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage && \
+    # Upstream builds are marked as -SNAPSHOT, even for release builds
+    mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
     mvn package -DskipTests
+
+# # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG OPA_AUTHORIZER
+ARG OPA_AUTHORIZER_GIT_REV
+
+WORKDIR /stackable
+
+RUN if [[ -n "${OPA_AUTHORIZER}" ]]; then \
+        # Need to use deep clone because trino-opa-authorizer doesn't publish tags
+        git clone https://github.com/stackabletech/trino-opa-authorizer && \
+        cd trino-opa-authorizer && git checkout ${OPA_AUTHORIZER_GIT_REV}; \
+    fi
+RUN --mount=type=cache,target=/root/.m2/repository if [[ -n "${OPA_AUTHORIZER}" ]]; then \
+        cd trino-opa-authorizer && \
+        mvn package -DskipTests; \
+    fi
 
 FROM stackable/image/java-devel AS builder
 
@@ -36,7 +57,32 @@ RUN --mount=type=cache,target=/root/.m2/repository cd trino && \
 RUN tar -xzf /stackable/trino/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT}
 
-COPY --from=storage-connector-builder /stackable/trino-storage/target/trino-storage-${STORAGE_CONNECTOR}-SNAPSHOT /stackable/trino-server-${PRODUCT}/plugin
+COPY --from=storage-connector-builder /stackable/trino-storage/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin
+# # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
+COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer/target/out /stackable/trino-server/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
+
+# ===
+# Mitigation for CVE-2021-44228 (Log4Shell)
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+# For earlier versions this script removes the .class file that contains the
+# vulnerable code.
+# TODO: This can be restricted to target only versions which do not honor the environment
+#   varible that has been set above but this has not currently been implemented
+COPY shared/log4shell.sh /bin
+RUN /bin/log4shell.sh /stackable/trino-server-${PRODUCT}
+
+# Ensure no vulnerable files are left over
+# This will currently report vulnerable files being present, as it also alerts on
+# SocketNode.class, which we do not remove with our scripts.
+# Further investigation will be needed whether this should also be removed.
+COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
+COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
+COPY shared/log4shell_scanner /bin/log4shell_scanner
+RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
+# ===
 
 FROM stackable/image/java-devel AS jmx-exporter-builder
 
@@ -89,34 +135,6 @@ RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
 COPY --from=jmx-exporter-builder /stackable/jmx_exporter/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 RUN ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
-
-# TODO: remove the following RUN statement once Trino versions 414 and 428 are removed
-RUN if [[ -n ${OPA_AUTHORIZER} ]] ; then \
-        curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin ; \
-    fi
-
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/trino-server-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
-# ===
 
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]
