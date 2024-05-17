@@ -98,7 +98,8 @@ flask==2.2.5
     #   flask-session
     #   flask-sqlalchemy
     #   flask-wtf
-flask-appbuilder==4.3.10
+# Bumping to 4.3.11 to get rid of CVE-2024-25128
+flask-appbuilder==4.3.11
     # via apache-superset
 flask-babel==1.0.0
     # via flask-appbuilder
@@ -134,7 +135,9 @@ geographiclib==1.52
     # via geopy
 geopy==2.2.0
     # via apache-superset
-greenlet==2.0.2
+# Letting python decide which greenlet version to compile at
+# since we diverge from the vendor to fix CVE's
+# greenlet==3.0.0
     # via
     #   shillelagh
     #   sqlalchemy
@@ -383,7 +386,9 @@ zipp==3.15.0
     #   importlib-metadata
     #   importlib-resources
 # from https://github.com/apache/superset/blob/3.1.0/requirements/docker.txt
-gevent==22.10.2
+# Bumped to latest version to get rid of
+# CVE-2023-41419
+gevent==24.2.1
     # via -r requirements/docker.in
 psycopg2-binary==2.9.6
     # via apache-superset
