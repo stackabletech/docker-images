@@ -189,6 +189,10 @@ products = [
                 "product": "11",
                 "stackable-base": "1.0.0",
             },
+            {
+                "product": "21",
+                "stackable-base": "1.0.0",
+            },
         ],
     },
     {
@@ -419,7 +423,9 @@ products = [
             },
             {
                 "product": "442",
+                "product_git_rev": "8e259a7e93c180200e1fa4ce843877a34d5317fb",
                 "java-base": "21",
+                "java-devel": "21",
                 "jmx_exporter": "0.20.0",
                 "storage_connector": "442",
                 "opa_authorizer": "",

@@ -4,6 +4,26 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
+FROM stackable/image/java-devel AS builder
+
+ARG PRODUCT
+ARG PRODUCT_GIT_REV
+# External OPA authorizer only required for 414 and 428, included in 438
+# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
+ARG OPA_AUTHORIZER
+ARG JMX_EXPORTER
+ARG RELEASE
+ARG STORAGE_CONNECTOR
+
+WORKDIR /stackable
+
+RUN git clone https://github.com/trinodb/trino trino --branch=${PRODUCT} --depth=1 && \
+    cd trino && git checkout ${PRODUCT_GIT_REV}
+RUN --mount=type=cache,target=/root/.m2/repository cd trino && \
+    mvn package -DskipTests --projects="!docs"
+RUN tar -xzf /stackable/trino/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
+    chown --recursive stackable /stackable/trino-server-${PRODUCT}
+
 FROM stackable/image/java-base
 
 ARG PRODUCT
@@ -38,8 +58,8 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable trino/stackable /stackable
 COPY --chown=stackable:stackable trino/licenses /licenses
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}.tar.gz | tar -xzC . && \
-    ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
+COPY --from=builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
+RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
 RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
