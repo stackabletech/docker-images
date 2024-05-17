@@ -4,11 +4,6 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
-####### ToDo's ########
-# Build-step 
-# - maven clean install (java-devel image I guess)
-# - copy bin
-# - test stuff
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel as druid-builder
 
