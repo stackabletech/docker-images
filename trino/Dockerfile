@@ -4,6 +4,18 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
+FROM stackable/image/java-devel AS storage-connector-builder
+
+ARG STORAGE_CONNECTOR
+ARG STORAGE_CONNECTOR_GIT_REV
+
+WORKDIR /stackable
+
+RUN git clone https://github.com/snowlift/trino-storage --branch=v${STORAGE_CONNECTOR} --depth=1 && \
+    cd trino-storage && git checkout ${STORAGE_CONNECTOR_GIT_REV}
+RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage && \
+    mvn package -DskipTests
+
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
@@ -17,12 +29,26 @@ ARG STORAGE_CONNECTOR
 
 WORKDIR /stackable
 
-RUN git clone https://github.com/trinodb/trino trino --branch=${PRODUCT} --depth=1 && \
+RUN git clone https://github.com/trinodb/trino --branch=${PRODUCT} --depth=1 && \
     cd trino && git checkout ${PRODUCT_GIT_REV}
 RUN --mount=type=cache,target=/root/.m2/repository cd trino && \
     mvn package -DskipTests --projects="!docs"
 RUN tar -xzf /stackable/trino/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT}
+
+COPY --from=storage-connector-builder /stackable/trino-storage/target/trino-storage-${STORAGE_CONNECTOR}-SNAPSHOT /stackable/trino-server-${PRODUCT}/plugin
+
+FROM stackable/image/java-devel AS jmx-exporter-builder
+
+ARG JMX_EXPORTER
+ARG JMX_EXPORTER_GIT_REV
+
+WORKDIR /stackable
+
+RUN git clone https://github.com/prometheus/jmx_exporter --branch=${JMX_EXPORTER} --depth=1 && \
+    cd jmx_exporter && git checkout ${JMX_EXPORTER_GIT_REV}
+RUN --mount=type=cache,target=/root/.m2/repository cd jmx_exporter && \
+    mvn package
 
 FROM stackable/image/java-base
 
@@ -61,19 +87,13 @@ COPY --chown=stackable:stackable trino/licenses /licenses
 COPY --from=builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
 RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
-RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+COPY --from=jmx-exporter-builder /stackable/jmx_exporter/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+RUN ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # TODO: remove the following RUN statement once Trino versions 414 and 428 are removed
 RUN if [[ -n ${OPA_AUTHORIZER} ]] ; then \
         curl --fail -L https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}.tar.gz | tar -xzC /stackable/trino-server/plugin ; \
     fi
-
-RUN curl --fail https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}.zip -o /tmp/trino-storage-${STORAGE_CONNECTOR}.zip && \
-    unzip /tmp/trino-storage-${STORAGE_CONNECTOR}.zip -d /stackable/trino-server/plugin && \
-    rm -f /tmp/trino-storage-${STORAGE_CONNECTOR}.zip
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
