@@ -20,11 +20,11 @@ ARG AUTHORIZER
 
 RUN microdnf update && \
     microdnf install \
-    # Required to install nipyapi
+    # Required to install pyyaml
     python-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum && \
-    # The nipyapi is required for the ReportingTaskJob
+    # pyyaml is required for the compile Druid
     pip install --no-cache-dir pyyaml==6.0.1
 
 USER stackable
@@ -89,11 +89,6 @@ LABEL name="Apache Druid" \
       description="This image is deployed by the Stackable Operator for Apache Druid."
 
 RUN microdnf update && \
-    # microdnf install \
-    # findutils \
-    # gzip \
-    # tar \
-    # zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
