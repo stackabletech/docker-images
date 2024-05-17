@@ -37,6 +37,9 @@ RUN --mount=type=cache,target=/root/.m2/repository if [[ -n "${OPA_AUTHORIZER}" 
         mvn package -DskipTests; \
     fi
 
+# Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
+RUN mkdir -p trino-opa-authorizer/target/out
+
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
