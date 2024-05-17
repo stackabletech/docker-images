@@ -17,6 +17,8 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
+COPY --chown=stackable:stackable nifi/stackable/patches /stackable/patches
+
 RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
     # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
     -o /stackable/stackable-bcrypt.jar && \
@@ -29,12 +31,18 @@ RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nif
     # from /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} (see later steps)
     # Therefore we add the suffix "-src" to be able to copy the binary and remove the unzipped sources afterwards.
     mv nifi-${PRODUCT} nifi-${PRODUCT}-src && \
+    # Apply patches
+    chmod +x patches/apply_patches.sh && \
+    patches/apply_patches.sh ${PRODUCT} && \
+    # Build NiFi
     cd /stackable/nifi-${PRODUCT}-src/ && \
     mvn clean install -DskipTests && \
     # Copy the binaries to the /stackable folder
     mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
     # Remove the unzipped sources
-    rm -rf /stackable/nifi-${PRODUCT}-src 
+    rm -rf /stackable/nifi-${PRODUCT}-src && \
+    # Remove generated docs in binary
+    rm -rf /stackable/nifi-${PRODUCT}/docs
 
 # Add Iceberg extensions as they are not included by default and are important enough
 # They need to be build from source, as https://mvnrepository.com/artifact/org.apache.nifi/nifi-iceberg-processors-nar does not ship the org.apache.hadoop.fs.s3a.S3AFileSystem (see https://github.com/apache/nifi/pull/6368#issuecomment-1502175258)
