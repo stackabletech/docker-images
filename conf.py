@@ -413,10 +413,15 @@ products = [
         "versions": [
             {
                 "product": "414",
+                "product_git_rev": "e2ddafec49f7ce73897ee8cfeb144681a184115b",
                 "java-base": "17",
+                "java-devel": "17",
                 "opa_authorizer": "stackable0.2.0",
+                "opa_authorizer_git_rev": "f166eafb72d33fa6fbf39585da4c816f8e4a2229",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "414",
+                "jmx_exporter_git_rev": "bf4222d3b57ea8b1e4533fc39cbe1c167f5a24a0",
+                "storage_connector": "413",
+                "storage_connector_git_rev": "785fe26c5a4644b2ed4276aedf243a8720cbab8c",
             },
             {
                 "product": "428",
