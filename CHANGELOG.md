@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation on ARM by back-porting [HIVE-21939](https://issues.apache.org/jira/browse/HIVE-21939) from [this](https://github.com/apache/hive/commit/2baf21bb55fcf33d8522444c78a8d8cab60e7415) commit ([#617]).
 - hive: Fix compilation on ARM in CI as well ([#619]).
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
+- hive: Provide logging dependency previously bundled with the hadoop yarn client ([#688]).
 
 ### Removed
 
@@ -83,6 +84,7 @@ All notable changes to this project will be documented in this file.
 [#679]: https://github.com/stackabletech/docker-images/pull/679
 [#682]: https://github.com/stackabletech/docker-images/pull/682
 [#685]: https://github.com/stackabletech/docker-images/pull/685
+[#688]: https://github.com/stackabletech/docker-images/pull/688
 
 ## [24.3.0] - 2024-03-20
 
