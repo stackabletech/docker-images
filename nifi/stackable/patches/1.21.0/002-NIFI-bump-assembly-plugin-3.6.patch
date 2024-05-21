@@ -1,0 +1,13 @@
+diff --git a/pom.xml b/pom.xml
+index 1f739a27b7..1018651563 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -783,7 +783,7 @@
+                 <plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-assembly-plugin</artifactId>
+-                    <version>3.5.0</version>
++                    <version>3.6.0</version>
+                     <configuration>
+                         <tarLongFileMode>gnu</tarLongFileMode>
+                     </configuration>
