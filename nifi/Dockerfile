@@ -36,7 +36,7 @@ RUN curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nif
     patches/apply_patches.sh ${PRODUCT} && \
     # Build NiFi
     cd /stackable/nifi-${PRODUCT}-src/ && \
-    mvn clean install -DskipTests && \
+    mvn clean install -Dmaven.javadoc.skip=true -DskipTests && \
     # Copy the binaries to the /stackable folder
     mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
     # Remove the unzipped sources
