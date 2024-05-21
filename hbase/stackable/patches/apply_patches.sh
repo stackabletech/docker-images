@@ -4,21 +4,14 @@
 set -eu
 set -o pipefail
 
-# Check if $1 (PRODUCT) is provided
+# Check if $1 (VERSION) is provided
 if [ -z "${1-}" ]; then
-  echo "Please provide a value for PRODUCT as the first argument."
-  exit 1
-fi
-
-# Check if $2 (VERSION) is provided
-if [ -z "${2-}" ]; then
   echo "Please provide a value for VERSION as the second argument."
   exit 1
 fi
 
-PRODUCT="$1"
-VERSION="$2"
-PATCH_DIR="patches/$PRODUCT/$VERSION"
+VERSION="$1"
+PATCH_DIR="patches/$VERSION"
 
 # Check if version-specific patches directory exists
 if [ ! -d "$PATCH_DIR" ]; then
@@ -41,7 +34,7 @@ echo "Found ${#patch_files[@]} patches, applying now"
 # Iterate through sorted patch files
 for patch_file in "${patch_files[@]}"; do
   echo "Applying $patch_file"
-  git apply --directory "${PRODUCT}-${VERSION}-src" "$patch_file" || {
+  git apply --directory "hbase-${VERSION}-src" "$patch_file" || {
     echo "Failed to apply $patch_file"
     exit 1
   }

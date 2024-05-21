@@ -25,15 +25,13 @@ COPY hbase/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-## copy patches
-COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
-
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    mv hbase-${PRODUCT} hbase-${PRODUCT}-src && \
-    chmod +x patches/apply_patches.sh && \
-    patches/apply_patches.sh hbase ${PRODUCT} && \
+    mv hbase-${PRODUCT} hbase-${PRODUCT}-src
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
+RUN chmod +x patches/apply_patches.sh && \
+    patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/hbase-${PRODUCT}-src/ && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
@@ -50,7 +48,6 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
 # Build phoenix
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
     mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
-    patches/apply_patches.sh phoenix ${PHOENIX} && \
     mvn \
         -Dhbase.version=${PRODUCT} \
         -Dhbase.profile=${HBASE_PROFILE} \
