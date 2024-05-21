@@ -6,7 +6,7 @@ set -o pipefail
 
 # Check if $1 (VERSION) is provided
 if [ -z "${1-}" ]; then
-  echo "Please provide a value for VERSION as the second argument."
+  echo "Please provide a value for VERSION as the first argument."
   exit 1
 fi
 
