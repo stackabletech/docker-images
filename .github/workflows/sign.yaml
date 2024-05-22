@@ -30,4 +30,19 @@ jobs:
         run: |
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/git-sync@sha256:9385e8e2d8d63c14032cc4cdae7f9b9c127b80644efd0c4d5a2eb614e9317316"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:99ece520b28f7097d867fea003a139c272212518f39fffed550e32e17d06c2a9"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:9cbbb67374b5c085e02b1377f16d9031b7b0907e04394b530a9ed37b5a55e839"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:26388ce0f27d8eb2511ba89b5763bb1e93bc354aab0ba9ba50d83aacf98022dc"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:4bb8a33803ae301ea9d3afe5510d46bbc7a932cb372de2439e5ecb1726d90316"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:1677385bd53e1d87379c7f96b7c88c5e47e3daf7e0f6833afd033fb1dbe0d7ed"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:7de2c30f90aa30931e508a179561d4ec6a533d08da4bee9b019bf189c8f30732"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-provisioner@sha256:9cbbb67374b5c085e02b1377f16d9031b7b0907e04394b530a9ed37b5a55e839"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:84a4f33dfe93bf7719272ee645b4fc96d40926d4017b1795e12e7a3b6b1c1306"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:33baccfec47e410517dc9ad8aacbfc9b89ec3d891f046f4d4ca48fe5b4e388e8"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:fd3af885aee57b6d0ee64db646e5edcba0e3bed8839aaf3584cce037b0f16c66"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:03b6da349c13c425e287c1a12947eee1e2087474868f03dfd432db5d500fd389"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:22778e932fc39bff9ef9a8eb6b3c33e16aae64783b158f171e7d49a4a378325b"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:f96685b4aed83ae435b98d4e12ebd4277854951aabeea549fe18c8b45d56a3a7"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:cb4453ceb2166f29d0a4299b58035f0d553b3d35a6b40f1ac767d249a2be2217"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:7aecaebde9e35fee6f40b80db5be9f78d1385baab42b6b50a52a4275fc1728f9"
+          cosign sign -y "$DST_REGISTRY/$DST_PROJECT/csi-node-driver-registrar@sha256:7aeded29b7a8d26b6f7712ad05a4ad782dd47502431a52e76b04fb62869a8d16"
