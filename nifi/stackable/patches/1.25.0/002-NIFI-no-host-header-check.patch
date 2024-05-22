@@ -1,0 +1,19 @@
+Subject: [PATCH] Remove http header check for hostname.
+---
+Index: nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+--- a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java	(revision 6ecc398d3f92425447e43242af4992757e25b3c5)
++++ b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java	(date 1716404179432)
+@@ -205,7 +205,7 @@
+     }
+
+     boolean hostHeaderIsValid(String hostHeader) {
+-        return validHosts.contains(hostHeader.toLowerCase().trim());
++        return true;
+     }
+
+     @Override
