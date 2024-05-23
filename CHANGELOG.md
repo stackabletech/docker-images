@@ -20,7 +20,8 @@ All notable changes to this project will be documented in this file.
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
-- superset: Updating Flask-AppBuilder and gevent, remove greenlet from 3.1.0-constrains.txt to mitigate CVE-2024-25128 and CVE-2023-41419 ([#686])
+- druid: Build from source ([#684]).
+- superset: Updating Flask-AppBuilder and gevent, remove greenlet from 3.1.0-constrains.txt to mitigate CVE-2024-25128 and CVE-2023-41419 ([#686]).
 
 ### Changed
 
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
 - nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
+- nifi: patch nifi-assembly pom file to not zip binaries after the build to save disk space ([#685]).
 - hadoop: use java-devel as base layer for the builder stage ([#665])
 - hive: use java-devel as base layer for the builder stage ([#665])
 - zookeeper: use java-devel as base layer for the builder stage ([#665])
@@ -51,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation on ARM by back-porting [HIVE-21939](https://issues.apache.org/jira/browse/HIVE-21939) from [this](https://github.com/apache/hive/commit/2baf21bb55fcf33d8522444c78a8d8cab60e7415) commit ([#617]).
 - hive: Fix compilation on ARM in CI as well ([#619]).
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
+- hive: Provide logging dependency previously bundled with the hadoop yarn client ([#688]).
 
 ### Removed
 
@@ -82,7 +85,10 @@ All notable changes to this project will be documented in this file.
 [#678]: https://github.com/stackabletech/docker-images/pull/678
 [#679]: https://github.com/stackabletech/docker-images/pull/679
 [#682]: https://github.com/stackabletech/docker-images/pull/682
+[#684]: https://github.com/stackabletech/docker-images/pull/684
+[#685]: https://github.com/stackabletech/docker-images/pull/685
 [#686]: https://github.com/stackabletech/docker-images/pull/686
+[#688]: https://github.com/stackabletech/docker-images/pull/688
 
 ## [24.3.0] - 2024-03-20
 

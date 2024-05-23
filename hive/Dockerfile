@@ -20,6 +20,7 @@ ARG PRODUCT
 ARG HADOOP
 ARG JMX_EXPORTER
 ARG JACKSON_DATAFORMAT_XML
+ARG JACKSON_JAXB_ANNOTATIONS
 ARG POSTGRES_DRIVER
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
@@ -67,9 +68,11 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-# Logging
+# Logging.
+# jackson-module-jaxb-annotations: this is no longer bundled with the hadoop-yarn/mapreduce libraries (excluded from the hadoop build).
 RUN rm /stackable/hive-metastore/lib/log4j-slf4j-impl* && \
-    curl --fail -L https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar -o /stackable/hive-metastore/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+    curl --fail -L https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar -o /stackable/hive-metastore/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/jackson-module-jaxb-annotations/jackson-module-jaxb-annotations-${JACKSON_JAXB_ANNOTATIONS}.jar -o /stackable/hive-metastore/lib/jackson-module-jaxb-annotations-${JACKSON_JAXB_ANNOTATIONS}.jar
 
 # ===
 # For earlier versions this script removes the .class file that contains the
@@ -133,6 +136,11 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive-metastore
 ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
+
+# The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.
+# We set them here to a sensible default.
+ENV HADOOP_YARN_HOME=/stackable/hadoop
+ENV HADOOP_MAPRED_HOME=/stackable/hadoop
 
 WORKDIR /stackable/hive-metastore
 # Start command is set by operator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"
