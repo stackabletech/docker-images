@@ -43,7 +43,7 @@ function docker_login() {
     read -r -s -p "Nexus Password: " NEXUS_PASSWORD
     echo
     echo "Logging in to Docker registry"
-    docker login -u $NEXUS_USER -p $NEXUS_PASSWORD docker.stackable.tech
+    docker login -u "$NEXUS_USER" -p "$NEXUS_PASSWORD" docker.stackable.tech
 }
 
 function sign_images() {
