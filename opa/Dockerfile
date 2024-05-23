@@ -109,6 +109,9 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
+    microdnf install \
+    # Required for filtering logs
+    jq && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
