@@ -63,9 +63,8 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/apache-druid-${PRODUCT}"
 # ===
 
-## Final Image
 # hadolint ignore=DL3006
-FROM stackable/image/java-base
+FROM stackable/image/java-base as final
 
 ARG PRODUCT
 ARG RELEASE
