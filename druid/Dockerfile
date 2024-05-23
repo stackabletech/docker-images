@@ -46,12 +46,6 @@ RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-pro
     curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTOX_CORE}.jar \
         "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
 
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -75,6 +69,12 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+
+# ===
+# Mitigation for CVE-2021-44228 (Log4Shell)
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 LABEL name="Apache Druid" \
       maintainer="info@stackable.tech" \
