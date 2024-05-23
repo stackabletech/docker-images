@@ -8,23 +8,14 @@
 #   --file-log-level <log-level>
 #   --decision-log-level <log-level>
 #   --server-log-level <log-level>
-#   --help
+#   --opa-rolling-log-file-size-bytes <maximum-file-size>
+#   --opa-rolling-log-files <number-of-log-files>
+#   --stackable-log-dir <path-to-log-dir>
+#   --container-name <container-name>
 #
 # Processes incoming log messages. Log messages are filtered by the set log levels
 # and forwarded to the output destinations console and/or file.
 #
-
-# inputs
-CONSOLE_LEVEL="info"
-FILE_LEVEL="info"
-SERVER_LEVEL="info"
-DECISION_LEVEL="info"
-
-# inputs forwarded to /stackable/multilog script
-OPA_ROLLING_LOG_FILE_SIZE_BYTES=5000000
-OPA_ROLLING_LOG_FILES=2
-STACKABLE_LOG_DIR=/stackable/log
-CONTAINER_NAME=opa
 
 parse_args() {
   while true; do
@@ -67,6 +58,46 @@ parse_args() {
     esac
     shift
   done
+
+  if [ -z "${CONSOLE_LEVEL}" ]; then
+    echo "ERROR: parameter --console-log-level cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${FILE_LEVEL}" ]; then
+    echo "ERROR: parameter --file-log-level cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${DECISION_LEVEL}" ]; then
+    echo "ERROR: parameter --decision-log-level cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${SERVER_LEVEL}" ]; then
+    echo "ERROR: parameter --server-log-level cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${OPA_ROLLING_LOG_FILE_SIZE_BYTES}" ]; then
+    echo "ERROR: parameter --opa-rolling-log-file-size-bytes cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${OPA_ROLLING_LOG_FILES}" ]; then
+    echo "ERROR: parameter --opa-rolling-log-files cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${STACKABLE_LOG_DIR}" ]; then
+    echo "ERROR: parameter --stackable-log-dir cannot be empty"
+    exit 1
+  fi
+
+  if [ -z "${CONTAINER_NAME}" ]; then
+    echo "ERROR: parameter --container-name cannot be empty"
+    exit 1
+  fi
 }
 
 get_levels() {

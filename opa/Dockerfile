@@ -93,6 +93,6 @@ COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daem
 
 COPY --chown=stackable:stackable opa/stackable/bin /stackable/opa/bin
 
-ENV PATH="${PATH}":/stackable/opa:/stackable/opa/bin
+ENV PATH="${PATH}:/stackable/opa:/stackable/opa/bin"
 
 CMD ["opa", "run", "-s"]
