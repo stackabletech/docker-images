@@ -22,7 +22,12 @@ function pull_retag_and_push_images() {
         docker tag "${REGISTRY}/${PRODUCT}:v${VERSION}" "${STACKABLE_REGISTRY}/${PRODUCT}:v${VERSION}-${arch}"
 
         echo "Pushing retagged image for ${arch}"
-        docker push "${STACKABLE_REGISTRY}/${PRODUCT}:v${VERSION}-${arch}"
+        PUSH_OUTPUT=$(docker push "${STACKABLE_REGISTRY}/${PRODUCT}:v${VERSION}-${arch}")
+        echo "$PUSH_OUTPUT"
+        DIGEST=$(echo "$PUSH_OUTPUT" | awk "/: digest: sha256:[a-f0-9]{64} size: [0-9]+$/ { print \$3 }")
+
+        echo "Sigining image ${DIGEST} for ${arch}"
+        cosign sign -y "${STACKABLE_REGISTRY}/${PRODUCT}@${DIGEST}"
     done
 }
 
