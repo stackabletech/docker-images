@@ -6,7 +6,8 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-FROM stackable/image/java-base AS builder
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG HBASE_THIRDPARTY
@@ -18,23 +19,6 @@ ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
-
-# zip required for the log4shell stuff
-RUN microdnf update && \
-    microdnf install \
-    # The GNU gettext utilities contain the envsubst program which
-    # substitutes the values of environment variables.
-    gettext \
-    git \
-    gzip \
-    # diff is required by maven during the build of hbase \
-    # Cannot run program "diff" (in directory "/stackable/hbase-2.4.12-src/hbase-shaded/hbase-shaded-check-invariants"
-    diffutils \
-    maven \
-    tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 COPY hbase/licenses /licenses
 
@@ -126,7 +110,7 @@ ENV HBASE_CONF_DIR=/stackable/hbase/conf
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell.sh /stackable
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -135,7 +119,7 @@ RUN /bin/log4shell.sh /stackable/hbase-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable
 # ===
 
 
