@@ -51,17 +51,9 @@ function docker_login() {
     docker login -u "$NEXUS_USER" -p "$NEXUS_PASSWORD" docker.stackable.tech
 }
 
-function sign_images() {
-    for arch in "${ARCHITECTURES[@]}"; do
-        IMAGE_DIGEST=$(docker images --no-trunc --quiet "${STACKABLE_REGISTRY}/${PRODUCT}:v${VERSION}-${arch}")
-        cosign sign -y "${STACKABLE_REGISTRY}/${PRODUCT}@${IMAGE_DIGEST}"
-    done
-}
-
 function main() {
     docker_login
     pull_retag_and_push_images
-    #sign_images
     create_and_push_manifest_list
 }
 
