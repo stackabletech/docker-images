@@ -1,81 +1,43 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
-FROM stackable/image/java-base AS builder
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/kcat AS kcat
 
-ARG KCAT
-
-RUN microdnf install -y \
-    cmake \
-    cyrus-sasl-devel \
-    gcc-c++ \
-    libcurl-devel \
-    make \
-    openssl-devel \
-    tar \
-    wget \
-    which \
-    zlib \
-    zlib-devel && \
-    microdnf clean all
-
-WORKDIR /stackable
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${KCAT}.tar.gz \
-    && tar xvfz kcat-${KCAT}.tar.gz \
-    && cd kcat-${KCAT} \
-    && ./bootstrap.sh
-
-FROM stackable/image/java-base
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel as kafka-builder
 
 ARG PRODUCT
 ARG SCALA
-ARG KCAT
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
-ARG RELEASE
-
-LABEL name="Apache Kafka" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Kafka." \
-      description="This image is deployed by the Stackable Operator for Apache Kafka."
-
-COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
-RUN microdnf update && \
-    microdnf install \
-    gzip \
-    # Can be removed once listener-operator integration is used
-    kubectl \
-    tar \
-    zip && \
-    microdnf clean all
 
 USER stackable
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable kafka/stackable /stackable
-COPY --chown=stackable:stackable kafka/licenses /licenses
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
+    cd kafka-${PRODUCT}-src && \
+    # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
+    # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
+    # it's a good idea to run the tests in this case.
+    ./gradlew clean releaseTarGz && \
+    tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable && \
+    rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/ && \
+    rm -rf /stackable/kafka-${PRODUCT}-src
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka/kafka_${SCALA}-${PRODUCT}.tgz | tar -xzC . && \
-    ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+    -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
-RUN curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+RUN mkdir -p /stackable/jmx/ && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
-
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
-    -o /stackable/kafka/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
-
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
@@ -94,9 +56,56 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-# Store kcat version with binary name and add softlink
-COPY --chown=stackable:stackable --from=builder /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
-RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
+
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/java-base AS final
+
+ARG RELEASE
+ARG PRODUCT
+ARG SCALA
+ARG KCAT
+
+LABEL name="Apache Kafka" \
+      maintainer="info@stackable.tech" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Kafka." \
+      description="This image is deployed by the Stackable Operator for Apache Kafka."
+
+# This is needed for kubectl
+COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
+RUN microdnf update && \
+    microdnf install \
+    # Can be removed once listener-operator integration is used
+    kubectl && \
+    microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
+    rm -rf /var/cache/yum
+
+USER stackable
+WORKDIR /stackable
+
+COPY --chown=stackable:stackable kafka/licenses /licenses
+
+# We copy opa-authorizer.jar and jmx-exporter through the builder image to have an absolutely minimal final image
+# (e.g. we don't even need curl in it).
+COPY --chown=stackable:stackable --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
+COPY --chown=stackable:stackable --from=kafka-builder /stackable/jmx/ /stackable/jmx/
+COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
+COPY --chown=stackable:stackable --from=kcat /licenses /licenses
+
+RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
+    ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+
+# ===
+# Mitigation for CVE-2021-44228 (Log4Shell)
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+ENV PATH="${PATH}:/stackable/bin:/stackable/kafka/bin"
 
 WORKDIR /stackable/kafka
-CMD ["bin/kafka-server-start.sh", "/stackable/kafka/config/server.properties"]
+CMD ["kafka-server-start.sh", "/stackable/kafka/config/server.properties"]

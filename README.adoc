@@ -12,6 +12,8 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 
 Product images are published to the `docker.stackable.tech` registry under the `stackable` organization by default.
 
+=== Build single products locally
+
 To build and push product images to the default repository use this command:
 
     bake --product zookeeper --image 0.0.0-dev --push
@@ -24,7 +26,16 @@ You can select a specific version of a product to build using the syntax `produc
 
 NOTE: `-i` is the shorthand for `--image` (i.e. the resulting image tag)
 
-The GitHub action called `Product images` can be triggered manually to do the same but not on the local machine.
+=== Build all products locally
+
+To build all products in all versions locally you can use this command
+
+    bake --image-version 0.0.0-dev
+
+=== Build everything in GitHub
+
+The GitHub action called `Build (and optionally publish) 0.0.0-dev images` can be triggered manually to do build all images in all versions.
+When triggered manually it will _not_ push the images to the registry.
 
 == Verify Product Images
 
@@ -32,9 +43,10 @@ To verify if Apache Zookeeper validate against OpenShift preflight, run:
 
     check-container --product zookeeper --image 0.0.0-dev
 
-== ubi8-rust-builder
+== ubi8-rust-builder / ubi9-rust-builder
 
-This image is meant to be used in multi-stage builds as a base image for projects building Rust projects.
+These images are meant to be used in multi-stage builds as a base image for projects building Rust projects.
+They are automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
 
 The image will run `cargo build --release` in the current context and copy all binaries to an `/app` directory.
 
@@ -43,15 +55,15 @@ This will bake in the current stable Rust version at the time this image was bui
 .Example usage
 [source,dockerfile]
 ----
-FROM docker.stackable.tech/ubi8-rust-builder AS builder
+FROM docker.stackable.tech/ubi9-rust-builder AS builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS operator
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
 LABEL maintainer="Stackable GmbH"
 
 # Update image
-RUN microdnf update --disablerepo=* --enablerepo=ubi-8-baseos-rpms --enablerepo=ubi-8-baseos-rpms -y \
-  && rm -rf /var/cache/yum \
-  && microdnf install --disablerepo=* --enablerepo=ubi-8-appstream-rpms --enablerepo=ubi-8-baseos-rpms shadow-utils -y \
+RUN microdnf update \
+  && microdnf install \
+    shadow-utils \
   && rm -rf /var/cache/yum
 
 COPY --from=builder /app/stackable-zookeeper-operator /

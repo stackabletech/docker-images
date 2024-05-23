@@ -13,47 +13,47 @@ jobs:
   actionlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-actionlint@82693e9e3b239f213108d6e412506f8b54003586 # tag=v1.39.1
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-actionlint@51bfb044ddaed55059d16f14daedbe05a9937dc1 # v1.45.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   detect-secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-detect-secrets@8507d8897b8f9a5d6ce1decbf0a00ac96045f93e # tag=v0.13.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-detect-secrets@8827bf02944e7d1684d490c2361be0bf6c2d6e7d # v0.21.0
         with:
           github_token: ${{ secrets.github_token }}
 
   hadolint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-hadolint@f7d29ec6dd89022747bd18b5a151b62ac2f1555e # v1.36.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-hadolint@13c293e6679cd4c90fa41dd5155fb067a28c0a5f # v1.41.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   markdownlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-markdownlint@6e02140816b5fcc7295ea7ae2a664af18190ff29 # tag=v0.14.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-markdownlint@5bc6ad5ba9e1250878f351bafcc7ac0a11dc050f # v0.18.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-shellcheck@96fa305c16b0f9cc9b093af22dcd09de1c8f1c2d # tag=v1.19.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-shellcheck@72365a51bf6476fe952a117c3ff703eb7775e40a # v1.20.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   yamllint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # tag=v4.1.1
-      - uses: reviewdog/action-yamllint@722e651555c5ca6db0edaada08e049825f74e431 # tag=v1.8.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: reviewdog/action-yamllint@8d79c3d034667db2792e328936811ed44953d691 # v1.14.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

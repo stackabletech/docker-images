@@ -1,37 +1,24 @@
 # syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL4006
+# hadolint global ignore=DL3038,DL4006
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-FROM stackable/image/java-base AS builder
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
+ARG HBASE_PROFILE
 ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
-
-# zip required for the log4shell stuff
-RUN microdnf update && \
-    microdnf install \
-    # The GNU gettext utilities contain the envsubst program which
-    # substitutes the values of environment variables.
-    gettext \
-    git \
-    gzip \
-    # diff is required by maven during the build of hbase \
-    # Cannot run program "diff" (in directory "/stackable/hbase-2.4.12-src/hbase-shaded/hbase-shaded-check-invariants"
-    diffutils \
-    maven \
-    tar \
-    zip && \
-    microdnf clean all
 
 COPY hbase/licenses /licenses
 
@@ -56,10 +43,23 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-hbase-${PHOENIX}-bin.tar.gz" | tar -xzC . && \
-    ln -s "/stackable/phoenix-hbase-${PHOENIX}-bin" /stackable/phoenix && \
-    ln -s "/stackable/phoenix/phoenix-server-hbase-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${PHOENIX}.jar"
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+
+# Build phoenix
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
+    mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
+    mvn \
+        -Dhbase.version=${PRODUCT} \
+        -Dhbase.profile=${HBASE_PROFILE} \
+        -DskipTests \
+        -fphoenix-${PHOENIX}-src \
+        package && \
+    tar -xz \
+        -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz \
+        -C /stackable/ && \
+    rm -rf /stackable/phoenix-${PHOENIX}-src && \
+    ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix && \
+    ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
@@ -110,7 +110,7 @@ ENV HBASE_CONF_DIR=/stackable/hbase/conf
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell.sh /stackable
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -119,7 +119,7 @@ RUN /bin/log4shell.sh /stackable/hbase-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hbase-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable
 # ===
 
 
@@ -146,13 +146,10 @@ RUN microdnf update && \
     tar \
     gzip \
     zip \
-    python3 \
-    python3-pip && \
+    python \
+    python-pip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
-
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
 
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
