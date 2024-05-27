@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
 - druid: Build from source ([#684]).
-- opa: Add log processing script to opa for decision logging ([#695])
+- opa: Add log processing script to opa for decision logging ([#695]).
 
 ### Changed
 
