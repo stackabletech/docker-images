@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
 - druid: Build from source ([#684]).
+- superset: Updating Flask-AppBuilder and gevent, remove greenlet from 3.1.0-constrains.txt to mitigate CVE-2024-25128 and CVE-2023-41419 ([#686]).
 
 ### Changed
 
@@ -86,6 +87,7 @@ All notable changes to this project will be documented in this file.
 [#682]: https://github.com/stackabletech/docker-images/pull/682
 [#684]: https://github.com/stackabletech/docker-images/pull/684
 [#685]: https://github.com/stackabletech/docker-images/pull/685
+[#686]: https://github.com/stackabletech/docker-images/pull/686
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 
 ## [24.3.0] - 2024-03-20
