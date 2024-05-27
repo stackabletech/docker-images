@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file.
 - hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
-- druid: Build from source ([#684]).
+- druid: Build from source ([#684], [#XXX]).
 
 ### Changed
 

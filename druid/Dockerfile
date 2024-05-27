@@ -30,8 +30,9 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache
     mvn clean install -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
     tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
     mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
-    rm -rf /stackable/apache-druid-${PRODUCT}-src \
-    /stackable/apache-druid-${PRODUCT}/quickstart
+    rm -rf /stackable/apache-druid-${PRODUCT}-src
+# Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
+# testdate in kuttl tests and the getting started guide.
 
     # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
 RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
