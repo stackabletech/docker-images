@@ -32,7 +32,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache
     mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
     rm -rf /stackable/apache-druid-${PRODUCT}-src
 # Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
-# testdate in kuttl tests and the getting started guide.
+# testdata in kuttl tests and the getting started guide.
 
     # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
 RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
