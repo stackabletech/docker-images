@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 - opa: Build from source ([#676])
 - spark: Build from source ([#679])
+- spark: Use Java 17 for 3.5.x release line ([#XXX])
 
 ### Fixed
 
