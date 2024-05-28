@@ -42,7 +42,7 @@ All notable changes to this project will be documented in this file.
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 - opa: Build from source ([#676])
 - spark: Build from source ([#679])
-- spark: Use Java 17 for 3.5.x release line ([#XXX])
+- spark: Use Java 17 for 3.5.x release line ([#697])
 
 ### Fixed
 
@@ -89,6 +89,7 @@ All notable changes to this project will be documented in this file.
 [#685]: https://github.com/stackabletech/docker-images/pull/685
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
+[#697]: https://github.com/stackabletech/docker-images/pull/697
 
 ## [24.3.0] - 2024-03-20
 
