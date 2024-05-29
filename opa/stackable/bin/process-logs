@@ -17,10 +17,11 @@
 # and forwarded to the output destinations console and/or file.
 #
 
-set -eo pipefail
+set -euo pipefail
 
 parse_args() {
   while true; do
+    [ $# -eq 0 ] && break
     case $1 in
         --console-log-level)
             shift
@@ -117,7 +118,7 @@ get_levels() {
         trace)
             echo '["trace","debug","info","warn","error","fatal"]' ;;
         *)
-            echo '[""]' ;;
+            echo '[]' ;;
     esac
 }
 
