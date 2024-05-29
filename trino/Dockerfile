@@ -100,6 +100,8 @@ RUN git clone https://github.com/prometheus/jmx_exporter --branch=${JMX_EXPORTER
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_exporter && \
     mvn package
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-base
 
 ARG PRODUCT
