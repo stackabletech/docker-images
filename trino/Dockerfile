@@ -88,6 +88,8 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
 # ===
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS jmx-exporter-builder
 
 ARG JMX_EXPORTER
