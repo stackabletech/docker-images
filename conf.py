@@ -123,7 +123,7 @@ products = [
                 "java-base": "11",
                 "java-devel": "11",
                 "async_profiler": "2.9",
-                "phoenix": "5.1.3",
+                "phoenix": "5.2.0",
                 "hbase_profile": "2.4",
                 "hadoop": "3.3.6",
                 "jmx_exporter": "0.20.0",
