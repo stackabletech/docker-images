@@ -43,6 +43,8 @@ RUN --mount=type=cache,target=/root/.m2/repository if [[ -n "${OPA_AUTHORIZER}" 
 # Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
 RUN mkdir -p trino-opa-authorizer/target/out
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
