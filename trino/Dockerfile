@@ -19,6 +19,8 @@ RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage && \
     mvn package -DskipTests
 
 # # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
 ARG OPA_AUTHORIZER
