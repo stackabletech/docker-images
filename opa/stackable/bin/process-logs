@@ -2,106 +2,51 @@
 #
 # This file was created by the Stackable developers.
 #
-# Usage: process-logs <options>
-# Options:
-#   --console-log-level <log-level>
-#   --file-log-level <log-level>
-#   --decision-log-level <log-level>
-#   --server-log-level <log-level>
-#   --opa-rolling-log-file-size-bytes <maximum-file-size>
-#   --opa-rolling-log-files <number-of-log-files>
-#   --stackable-log-dir <path-to-log-dir>
-#   --container-name <container-name>
-#
 # Processes incoming log messages. Log messages are filtered by the set log levels
 # and forwarded to the output destinations console and/or file.
 #
 
 set -euo pipefail
 
-parse_args() {
-  while true; do
-    [ $# -eq 0 ] && break
-    case $1 in
-        --console-log-level)
-            shift
-            CONSOLE_LEVEL="$1"
-            ;;
-        --file-log-level)
-            shift
-            FILE_LEVEL="$1"
-            ;;
-        --decision-log-level)
-            shift
-            DECISION_LEVEL="$1"
-            ;;
-        --server-log-level)
-            shift
-            SERVER_LEVEL="$1"
-            ;;
-        --opa-rolling-log-file-size-bytes)
-            shift
-            OPA_ROLLING_LOG_FILE_SIZE_BYTES="$1"
-            ;;
-        --opa-rolling-log-files)
-            shift
-            OPA_ROLLING_LOG_FILES="$1"
-            ;;
-        --stackable-log-dir)
-            shift
-            STACKABLE_LOG_DIR="$1"
-            ;;
-        --container-name)
-            shift
-            CONTAINER_NAME="$1"
-            ;;
-        *)
-            break
-            ;;
-    esac
-    shift
-  done
+if [ -z "${CONSOLE_LEVEL}" ]; then
+  echo "ERROR: env variable CONSOLE_LEVEL cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${CONSOLE_LEVEL}" ]; then
-    echo "ERROR: parameter --console-log-level cannot be empty"
-    exit 1
-  fi
+if [ -z "${FILE_LEVEL}" ]; then
+  echo "ERROR: env variable FILE_LEVEL cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${FILE_LEVEL}" ]; then
-    echo "ERROR: parameter --file-log-level cannot be empty"
-    exit 1
-  fi
+if [ -z "${DECISION_LEVEL}" ]; then
+  echo "ERROR: env variable DECISION_LEVEL cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${DECISION_LEVEL}" ]; then
-    echo "ERROR: parameter --decision-log-level cannot be empty"
-    exit 1
-  fi
+if [ -z "${SERVER_LEVEL}" ]; then
+  echo "ERROR: env variable SERVER_LEVEL cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${SERVER_LEVEL}" ]; then
-    echo "ERROR: parameter --server-log-level cannot be empty"
-    exit 1
-  fi
+if [ -z "${OPA_ROLLING_LOG_FILE_SIZE_BYTES}" ]; then
+  echo "ERROR: env variable OPA_ROLLING_LOG_FILE_SIZE_BYTES cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${OPA_ROLLING_LOG_FILE_SIZE_BYTES}" ]; then
-    echo "ERROR: parameter --opa-rolling-log-file-size-bytes cannot be empty"
-    exit 1
-  fi
+if [ -z "${OPA_ROLLING_LOG_FILES}" ]; then
+  echo "ERROR: env variable OPA_ROLLING_LOG_FILES cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${OPA_ROLLING_LOG_FILES}" ]; then
-    echo "ERROR: parameter --opa-rolling-log-files cannot be empty"
-    exit 1
-  fi
+if [ -z "${STACKABLE_LOG_DIR}" ]; then
+  echo "ERROR: env variable STACKABLE_LOG_DIR cannot be empty"
+  exit 1
+fi
 
-  if [ -z "${STACKABLE_LOG_DIR}" ]; then
-    echo "ERROR: parameter --stackable-log-dir cannot be empty"
-    exit 1
-  fi
-
-  if [ -z "${CONTAINER_NAME}" ]; then
-    echo "ERROR: parameter --container-name cannot be empty"
-    exit 1
-  fi
-}
+if [ -z "${CONTAINER_NAME}" ]; then
+  echo "ERROR: env variable CONTAINER_NAME cannot be empty"
+  exit 1
+fi
 
 get_levels() {
     case $1 in
@@ -123,8 +68,6 @@ get_levels() {
 }
 
 main() {
-    parse_args "$@"
-
     local DECISION_LEVELS
     DECISION_LEVELS=$(get_levels "$DECISION_LEVEL")
     local SERVER_LEVELS
@@ -140,7 +83,6 @@ main() {
     tee >(jq -c --unbuffered --arg file_levels "$FILE_LEVELS" 'select(.level | inside($file_levels))' \
         > >(/stackable/multilog s"$OPA_ROLLING_LOG_FILE_SIZE_BYTES" n"$OPA_ROLLING_LOG_FILES" "$STACKABLE_LOG_DIR"/"$CONTAINER_NAME")) |
     jq -c --unbuffered --arg console_levels "$CONSOLE_LEVELS" 'select(.level | inside($console_levels))'
-
 }
 
-main "$@"
+main
