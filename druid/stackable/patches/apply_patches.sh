@@ -35,7 +35,7 @@ echo "Found ${#patch_files[@]} patches, applying now"
 for patch_file in "${patch_files[@]}"; do
   echo "Applying $patch_file"
   # We can not use Git here, as we are not within a Git repo
-  cat "$patch_file" | patch --directory "." --strip=1 || {
+  patch --directory "." --strip=1 < "$patch_file" || {
     echo "Failed to apply $patch_file"
     exit 1
   }
