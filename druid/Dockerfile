@@ -23,10 +23,12 @@ RUN microdnf update && \
     rm -rf /var/cache/yum && \
     # pyyaml is required for the compile Druid
     pip install --no-cache-dir pyyaml==6.0.1
+
+USER stackable
 WORKDIR /stackable
 
-COPY druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
-COPY druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=stackable:stackable druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
