@@ -16,18 +16,22 @@ ARG AUTHORIZER
 RUN microdnf update && \
     microdnf install \
     # Required to install pyyaml
-    python-pip && \
+    python-pip \
+    # Required to patch druid
+    patch && \
     microdnf clean all && \
     rm -rf /var/cache/yum && \
     # pyyaml is required for the compile Druid
     pip install --no-cache-dir pyyaml==6.0.1
-
-USER stackable
 WORKDIR /stackable
+
+COPY druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
+COPY druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean install -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
+    ./patches/apply_patches.sh ${PRODUCT} && \
+    mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
     tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
     mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
     rm -rf /stackable/apache-druid-${PRODUCT}-src
