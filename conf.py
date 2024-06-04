@@ -128,6 +128,18 @@ products = [
                 "hadoop": "3.3.6",
                 "jmx_exporter": "0.20.0",
             },
+            {
+                "product": "2.6.0",
+                "hbase_thirdparty": "4.1.5",
+                "hbase_operator_tools": "1.2.0",
+                "java-base": "11",
+                "java-devel": "11",
+                "async_profiler": "2.9",
+                "phoenix": "5.2.0",
+                "hbase_profile": "2.4",
+                "hadoop": "3.3.6",
+                "jmx_exporter": "0.20.0",
+            },
         ],
     },
     {
@@ -246,21 +258,9 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {
-                "product": "1.21.0",
-                "java-base": "11",
-                "java-devel": "11"
-            },
-            {
-                "product": "1.23.2",
-                "java-base": "11",
-                "java-devel": "11"
-            },
-            {
-                "product": "1.25.0",
-                "java-base": "21",
-                "java-devel": "11"
-            },
+            {"product": "1.21.0", "java-base": "11", "java-devel": "11"},
+            {"product": "1.23.2", "java-base": "11", "java-devel": "11"},
+            {"product": "1.25.0", "java-base": "21", "java-devel": "11"},
         ],
     },
     {

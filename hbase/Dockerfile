@@ -45,39 +45,41 @@ RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
+# Doesn't build with HBase 2.6
 # Build phoenix
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
-    mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
-    mvn \
-        -Dhbase.version=${PRODUCT} \
-        -Dhbase.profile=${HBASE_PROFILE} \
-        -DskipTests \
-        -fphoenix-${PHOENIX}-src \
-        package && \
-    tar -xz \
-        -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz \
-        -C /stackable/ && \
-    rm -rf /stackable/phoenix-${PHOENIX}-src && \
-    ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix && \
-    ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
+#RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
+#    mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
+#    mvn \
+#        -Dhbase.version=${PRODUCT} \
+#        -Dhbase.profile=${HBASE_PROFILE} \
+#        -DskipTests \
+#        -fphoenix-${PHOENIX}-src \
+#        package && \
+#    tar -xz \
+#        -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz \
+#        -C /stackable/ && \
+#    rm -rf /stackable/phoenix-${PHOENIX}-src && \
+#    ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix && \
+#    ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
+# Doesn't build with HBase 2.6
 # Build the hbase-operator-tools
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
-    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
-    mvn \
-        -Dhbase.version=${PRODUCT} \
-        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-        -DskipTests \
-        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
-        package assembly:single && \
-    tar -xz \
-        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
-        -C /stackable/ && \
-    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+#RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
+#    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
+#    mvn \
+#        -Dhbase.version=${PRODUCT} \
+#        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
+#        -DskipTests \
+#        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
+#        package assembly:single && \
+#    tar -xz \
+#        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
+#        -C /stackable/ && \
+#    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # Resolve paths in bin/hbck2
 # The variable names are intentionally passed to envsubst in single-quotes,
@@ -151,15 +153,16 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
+# Doesn't build with HBase 2.6
+#COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
+#COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
-COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
-COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
-RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
-    ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
+RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
+#ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
