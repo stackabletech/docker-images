@@ -97,6 +97,8 @@ COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stack
 COPY --chown=stackable:stackable --from=kcat /licenses /licenses
 
 RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
+    # kcat was located in /stackable/kcat - legacy
+    ln -s /stackable/bin/kcat /stackable/kcat && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
 
 # ===
