@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Remove unsupported version 3.9.1 ([#628]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
+- trino: Remove unsupported version 428 ([#687]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
