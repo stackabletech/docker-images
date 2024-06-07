@@ -28,10 +28,10 @@ ARG OPA_AUTHORIZER
 
 WORKDIR /stackable
 
-RUN if [[ -n "${OPA_AUTHORIZER}" ]]; then \
+RUN if [ -n "${OPA_AUTHORIZER}" ]; then \
         curl --fail -L "https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src.tar.gz" | tar -xzC .; \
     fi
-RUN --mount=type=cache,target=/root/.m2/repository if [[ -n "${OPA_AUTHORIZER}" ]]; then \
+RUN --mount=type=cache,target=/root/.m2/repository if [ -n "${OPA_AUTHORIZER}" ]; then \
         cd trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src && \
         mvn package -DskipTests; \
     fi
