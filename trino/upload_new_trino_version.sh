@@ -35,7 +35,9 @@ src_file=trino-server-$VERSION-src.tar.gz
 echo "Downloading Trino"
 # Trino provides no offficial source tarballs, download from Git
 git clone https://github.com/trinodb/trino "trino-${VERSION}" "--branch=${VERSION}" --depth=1
-git -C "trino-${VERSION}" archive "${VERSION}" --format=tar.gz > "${src_file}"
+
+echo "Archiving Trino"
+git -C "trino-${VERSION}" archive "${VERSION}" --format=tar.gz --prefix="trino-server-${VERSION}-src/" > "${src_file}"
 sha256sum "${src_file}" | cut --delimiter=' ' --field=1 > "${src_file}.sha256"
 
 echo "Uploading everything to Nexus"
