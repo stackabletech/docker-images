@@ -129,10 +129,9 @@ COPY --chown=stackable:stackable trino/stackable /stackable
 COPY --chown=stackable:stackable trino/licenses /licenses
 
 COPY --from=builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
-RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
-
 COPY --from=jmx-exporter-builder /stackable/jmx_prometheus-${JMX_EXPORTER}-src/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-RUN ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server && \
+    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]
