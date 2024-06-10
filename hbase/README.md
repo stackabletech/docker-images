@@ -8,7 +8,7 @@ At the time of this writing (June 10, 2024) there is no Phoenix release that sup
 There is however a [pull request](https://github.com/apache/phoenix/pull/1793) that is currently in progress and this is
 the source of phoenix-5.3.0-SNAPSHOT.tar.gz.
 
-```bash
+```
 # clone the Phoenix repo
 git clone git@github.com:apache/phoenix.git
 cd phoenix
