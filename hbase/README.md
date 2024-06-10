@@ -25,6 +25,7 @@ echo e46dbdba9 > git-commit
 cd ..
 tar -c phoenix-5.3.0-SNAPSHOT | gzip > phoenix-5.3.0-SNAPSHOT-src.tar.gz
 ```
+
 ## HBase operator tools
 
 Repository: https://github.com/apache/hbase-operator-tools
