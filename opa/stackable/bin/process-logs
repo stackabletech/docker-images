@@ -50,17 +50,17 @@ fi
 
 get_levels() {
     case $1 in
-        fatal)
+        FATAL)
             echo '["fatal"]' ;;
-        error)
+        ERROR)
             echo '["error","fatal"]' ;;
-        warn)
+        WARN)
             echo '["warn","error","fatal"]' ;;
-        info)
+        INFO)
             echo '["info","warn","error","fatal"]' ;;
-        debug)
+        DEBUG)
             echo '["debug","info","warn","error","fatal"]' ;;
-        trace)
+        TRACE)
             echo '["trace","debug","info","warn","error","fatal"]' ;;
         *)
             echo '[]' ;;
