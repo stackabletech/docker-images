@@ -28,7 +28,7 @@ tar -c phoenix-5.3.0-SNAPSHOT | gzip > phoenix-5.3.0-SNAPSHOT-src.tar.gz
 
 ## HBase operator tools
 
-Repository: https://github.com/apache/hbase-operator-tools
+Repository: [hbase-operator-tools](https://github.com/apache/hbase-operator-tools)
 
 Built from git hash [4286235](https://github.com/apache/hbase-operator-tools/commit/428623538a8b486762b83b098328510a53db54fe) (main)
 since no release supporting HBase 2.6 available yet.
