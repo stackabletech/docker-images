@@ -65,20 +65,19 @@ RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
-# Doesn't build with HBase 2.6
 # Build the hbase-operator-tools
-#RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
-#    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
-#    mvn \
-#        -Dhbase.version=${PRODUCT} \
-#        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-#        -DskipTests \
-#        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
-#        package assembly:single && \
-#    tar -xz \
-#        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
-#        -C /stackable/ && \
-#    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
+    mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
+    mvn \
+        -Dhbase.version=${PRODUCT} \
+        -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
+        -DskipTests \
+        -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
+        package assembly:single && \
+    tar -xz \
+        -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
+        -C /stackable/ && \
+    rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 # Resolve paths in bin/hbck2
 # The variable names are intentionally passed to envsubst in single-quotes,
@@ -153,7 +152,7 @@ RUN microdnf update && \
     rm -rf /var/cache/yum
 
 # Doesn't build with HBase 2.6
-#COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
+COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/

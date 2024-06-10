@@ -130,8 +130,8 @@ products = [
             },
             {
                 "product": "2.6.0",
-                "hbase_thirdparty": "4.1.5",
-                "hbase_operator_tools": "1.2.0",
+                "hbase_thirdparty": "4.1.7",
+                "hbase_operator_tools": "1.3.0-SNAPSHOT",
                 "java-base": "11",
                 "java-devel": "11",
                 "async_profiler": "2.9",

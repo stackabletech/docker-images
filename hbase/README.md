@@ -8,7 +8,7 @@ At the time of this writing (June 10, 2024) there is no Phoenix release that sup
 There is however a [pull request](https://github.com/apache/phoenix/pull/1793) that is currently in progress and this is
 the source of phoenix-5.3.0-SNAPSHOT.tar.gz.
 
-```
+```bash
 # clone the Phoenix repo
 git clone git@github.com:apache/phoenix.git
 cd phoenix
@@ -25,4 +25,19 @@ echo e46dbdba9 > git-commit
 cd ..
 tar -c phoenix-5.3.0-SNAPSHOT | gzip > phoenix-5.3.0-SNAPSHOT-src.tar.gz
 ```
+## HBase operator tools
 
+Repository: https://github.com/apache/hbase-operator-tools
+
+Built from git hash [4286235](https://github.com/apache/hbase-operator-tools/commit/428623538a8b486762b83b098328510a53db54fe) (main)
+since no release supporting HBase 2.6 available yet.
+
+```bash
+mkdir ../hbase-operator-tools-1.3.0-SNAPSHOT
+git archive --format=tar --output ../hbase-operator-tools-1.3.0-SNAPSHOT/hot.tar 4286235
+cd ../hbase-operator-tools-1.3.0-SNAPSHOT
+tar xf hot.tar
+echo 4286235 > git-commit
+cd ..
+tar c hbase-operator-tools-1.3.0-SNAPSHOT|gzip > hbase-operator-tools-1.3.0-SNAPSHOT-src.tar.gz
+```
