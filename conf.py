@@ -139,6 +139,7 @@ products = [
                 "hbase_profile": "2.6",
                 "hadoop": "3.3.6",
                 "jmx_exporter": "0.20.0",
+                "jackson_dataformat_xml": "2.17.0",
             },
         ],
     },

@@ -19,6 +19,7 @@ ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
+ARG JACKSON_DATAFORMAT_XML
 
 COPY hbase/licenses /licenses
 
@@ -104,6 +105,13 @@ RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
+# HBase 2.6 needs these dependencies to configure log4j2 with XMLMapper as output format
+# Previous versions do not need this and the argument is not set in conf.py
+RUN if [[ ! -z "$JACKSON_DATAFORMAT_XML" ]]; then \
+    curl -L --fail -o /stackable/hbase-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar; \
+    fi
+
 # ===
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
@@ -159,8 +167,8 @@ COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
-RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
-#ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
+RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
+  ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
