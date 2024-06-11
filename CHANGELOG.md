@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
+- stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#XXX]).
 
 ### Changed
 

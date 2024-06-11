@@ -4,7 +4,24 @@
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6633b5136d81a5634a616c41&architecture=amd64
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3 AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3 AS product-utils-builder
+
+ARG CONFIG_UTILS_VERSION=main
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+RUN microdnf update --assumeyes && \
+    microdnf --assumeyes install \
+    # Needed to fetch source
+    git \
+    # Needed for compilation
+    gcc
+
+RUN git clone --depth 1 --branch ${CONFIG_UTILS_VERSION} https://github.com/stackabletech/config-utils
+RUN cd ./config-utils && . $HOME/.cargo/env && cargo build --release
+
+# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3 AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -84,3 +101,6 @@ RUN update-ca-trust && \
     echo "Still found E-Tugra root certificates, this should not happen!" && \
     exit 1; \
   fi
+
+COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
+ENV PATH "${PATH}:/stackable"
