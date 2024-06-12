@@ -109,6 +109,9 @@ LABEL name="Open Policy Agent" \
       description="This image is deployed by the Stackable Operator for OPA."
 
 RUN microdnf update && \
+    microdnf install \
+    # Required for filtering logs
+    jq && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -121,4 +124,8 @@ COPY --from=opa-builder /opa/opa /stackable/opa/opa
 COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
-CMD ["./opa", "run", "-s"]
+COPY --chown=stackable:stackable opa/stackable/bin /stackable/opa/bin
+
+ENV PATH="${PATH}:/stackable/opa:/stackable/opa/bin"
+
+CMD ["opa", "run", "-s"]

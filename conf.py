@@ -56,6 +56,7 @@ products = [
             {
                 "product": "26.0.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jackson_dataformat_xml": "2.10.5",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
@@ -64,6 +65,7 @@ products = [
             {
                 "product": "27.0.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jackson_dataformat_xml": "2.10.5",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
@@ -76,6 +78,7 @@ products = [
                 # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class
                 # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
                 "java-base": "11",
+                "java-devel": "11",
                 "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
                 "stax2_api": "4.2.2",
                 "woodstox_core": "6.6.0",
@@ -120,7 +123,7 @@ products = [
                 "java-base": "11",
                 "java-devel": "11",
                 "async_profiler": "2.9",
-                "phoenix": "5.1.3",
+                "phoenix": "5.2.0",
                 "hbase_profile": "2.4",
                 "hadoop": "3.3.6",
                 "jmx_exporter": "0.20.0",
@@ -147,6 +150,8 @@ products = [
                 "java-devel": "1.8.0",
                 "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
+                # No longer bundled with the hadoop-yarn/mapreduce libraries (2.12.7 corresponds to the hadoop build for 3.3.4).
+                "jackson_jaxb_annotations": "2.12.7",
                 # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
                 # MD5 based authentication. Because of this, it does not work against more recent PostgresQL versions.
                 # See https://github.com/stackabletech/hive-operator/issues/170 for details.
@@ -249,9 +254,21 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {"product": "1.21.0", "java-base": "11"},
-            {"product": "1.23.2", "java-base": "11"},
-            {"product": "1.25.0", "java-base": "21"},
+            {
+                "product": "1.21.0",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.23.2",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.25.0",
+                "java-base": "21",
+                "java-devel": "11"
+            },
         ],
     },
     {
@@ -287,10 +304,9 @@ products = [
         "versions": [
             {
                 "product": "3.4.1",
-                "spark": "3.4.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -304,10 +320,9 @@ products = [
             },
             {
                 "product": "3.4.2",
-                "spark": "3.4.2",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -321,10 +336,9 @@ products = [
             },
             {
                 "product": "3.5.0",
-                "spark": "3.5.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -340,8 +354,8 @@ products = [
                 "product": "3.5.1",
                 "spark": "3.5.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
