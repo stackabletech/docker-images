@@ -2,7 +2,7 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
+# hadolint global ignore=DL3038,DL4006,SC3010
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -117,8 +117,7 @@ RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
 # OPA Authorizer
 RUN if [[ -n "$OPA_AUTHORIZER" ]]; then \
   git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
-  cd hbase-opa-authorizer && \
-  mvn -DskipTests package && \
+  mvn -DskipTests package -fhbase-opa-authorizer  && \
   cp target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib; \
   fi
 
