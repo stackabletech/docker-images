@@ -20,6 +20,7 @@ ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
 ARG JACKSON_DATAFORMAT_XML
+ARG OPA_AUTHORIZER
 
 COPY hbase/licenses /licenses
 
@@ -107,10 +108,19 @@ ENV HBASE_CONF_DIR=/stackable/hbase/conf
 
 # HBase 2.6 needs these dependencies to configure log4j2 with XMLMapper as output format
 # Previous versions do not need this and the argument is not set in conf.py
-RUN if [[ ! -z "$JACKSON_DATAFORMAT_XML" ]]; then \
+RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
     curl -L --fail -o /stackable/hbase-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
     https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar; \
     fi
+
+# ===
+# OPA Authorizer
+RUN if [[ -n "$OPA_AUTHORIZER" ]]; then \
+  git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
+  cd hbase-opa-authorizer && \
+  mvn -DskipTests package && \
+  cp target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib; \
+  fi
 
 # ===
 # For earlier versions this script removes the .class file that contains the
