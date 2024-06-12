@@ -17,8 +17,13 @@ RUN microdnf update --assumeyes && \
     # Needed for compilation
     gcc
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.78.0 && \
+    . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.2
+
 RUN git clone --depth 1 --branch ${CONFIG_UTILS_VERSION} https://github.com/stackabletech/config-utils
-RUN cd ./config-utils && . $HOME/.cargo/env && cargo build --release
+RUN cd ./config-utils && \
+    . $HOME/.cargo/env && \
+    cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a72ae26c0c2521d4b61a28354b3e2e5369fa335a3 AS final
@@ -103,4 +108,5 @@ RUN update-ca-trust && \
   fi
 
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH "${PATH}:/stackable"
