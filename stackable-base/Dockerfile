@@ -8,8 +8,6 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:2636170dc55a0931d013014a
 
 ARG CONFIG_UTILS_VERSION=main
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
 RUN microdnf update --assumeyes && \
     microdnf --assumeyes install \
     # Needed to fetch source
