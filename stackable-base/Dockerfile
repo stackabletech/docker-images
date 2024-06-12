@@ -13,7 +13,8 @@ RUN microdnf update --assumeyes && \
     # Needed to fetch source
     git \
     # Needed for compilation
-    gcc
+    gcc && \
+    microdnf clean all
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.78.0 && \
     . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.2
