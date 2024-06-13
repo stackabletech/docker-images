@@ -45,7 +45,7 @@ jobs:
     env:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
       # As of 2024-04-08 this throws
       # Error: The version '3.x' with architecture 'arm64' was not found for Ubuntu 22.04.
@@ -61,16 +61,16 @@ jobs:
       - name: Set up Cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
       - name: Set up syft
-        uses: anchore/sbom-action/download-syft@7ccf588e3cf3cc2611714c2eeae48550fbc17552 # v0.15.11
+        uses: anchore/sbom-action/download-syft@e8d2a6937ecead383dfe75190d104edd1f9c5751 # v0.16.0
       - name: Install image-tools-stackabletech
         run: pip install image-tools-stackabletech==0.0.5
-      - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
+      - uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Login to Stackable Harbor
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
@@ -152,14 +152,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["build_and_push"]
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-      - uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # tag=v3.1.0
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
           registry: docker.stackable.tech
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
       - name: Login to Stackable Harbor
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # tag=v3
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build

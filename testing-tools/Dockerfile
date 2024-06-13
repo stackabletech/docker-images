@@ -2,7 +2,7 @@
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 # https://hub.docker.com/_/python/tags
-FROM python:3.12-slim-bullseye@sha256:4cfeb1de1e0c1e55def8091b5efa9c058c0787c607e720431725b078e5512a48
+FROM python:3.12-slim-bullseye@sha256:67e8ad75ec52d64ebc233a46e8c3b15522dddb42ac78958d14ba82010d7ec78b
 
 ARG PRODUCT
 ARG RELEASE
