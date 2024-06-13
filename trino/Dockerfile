@@ -57,9 +57,12 @@ RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-s
 RUN tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT}
 
-COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin
+COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
 # # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
-COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out /stackable/trino-server/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
+COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
+# We have no way to copy a folder conditionally, so delete the opa authorizer folder if no version is selected
+# Otherwise Trino will crash since empty plugin folders are not allowed
+RUN [ -n "${OPA_AUTHORIZER}" ] || rmdir /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
