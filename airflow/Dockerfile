@@ -41,7 +41,7 @@ RUN microdnf update && \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
-        # the unixODBC-devel package is not available for ubi9
+        # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC && \
     microdnf clean all && \
     rm -rf /var/cache/yum

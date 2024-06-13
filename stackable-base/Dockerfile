@@ -20,7 +20,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # We configure microdnf to not install weak dependencies in this file
 # Not doing this caused the content of images to become unpredictable because
 # based on which packages get updated by `microdnf update` new weak dependencies
-# might be installed that were not present earlier (the ubi8 base image doesn't
+# might be installed that were not present earlier (the ubi base image doesn't
 # seem to install weak dependencies)
 # This also affects the packages that are installed in our Dockerfiles (java as prime
 # example).

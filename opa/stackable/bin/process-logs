@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#
+# This file was created by the Stackable developers.
+#
+# Processes incoming log messages. Log messages are filtered by the set log levels
+# and forwarded to the output destinations console and/or file.
+#
+
+set -euo pipefail
+
+if [ -z "${CONSOLE_LEVEL}" ]; then
+  echo "ERROR: env variable CONSOLE_LEVEL cannot be empty"
+  exit 1
+fi
+
+if [ -z "${FILE_LEVEL}" ]; then
+  echo "ERROR: env variable FILE_LEVEL cannot be empty"
+  exit 1
+fi
+
+if [ -z "${DECISION_LEVEL}" ]; then
+  echo "ERROR: env variable DECISION_LEVEL cannot be empty"
+  exit 1
+fi
+
+if [ -z "${SERVER_LEVEL}" ]; then
+  echo "ERROR: env variable SERVER_LEVEL cannot be empty"
+  exit 1
+fi
+
+if [ -z "${OPA_ROLLING_LOG_FILE_SIZE_BYTES}" ]; then
+  echo "ERROR: env variable OPA_ROLLING_LOG_FILE_SIZE_BYTES cannot be empty"
+  exit 1
+fi
+
+if [ -z "${OPA_ROLLING_LOG_FILES}" ]; then
+  echo "ERROR: env variable OPA_ROLLING_LOG_FILES cannot be empty"
+  exit 1
+fi
+
+if [ -z "${STACKABLE_LOG_DIR}" ]; then
+  echo "ERROR: env variable STACKABLE_LOG_DIR cannot be empty"
+  exit 1
+fi
+
+if [ -z "${CONTAINER_NAME}" ]; then
+  echo "ERROR: env variable CONTAINER_NAME cannot be empty"
+  exit 1
+fi
+
+get_levels() {
+    case $1 in
+        FATAL)
+            echo '["fatal"]' ;;
+        ERROR)
+            echo '["error","fatal"]' ;;
+        WARN)
+            echo '["warn","error","fatal"]' ;;
+        INFO)
+            echo '["info","warn","error","fatal"]' ;;
+        DEBUG)
+            echo '["debug","info","warn","error","fatal"]' ;;
+        TRACE)
+            echo '["trace","debug","info","warn","error","fatal"]' ;;
+        *)
+            echo '[]' ;;
+    esac
+}
+
+main() {
+    local DECISION_LEVELS
+    DECISION_LEVELS=$(get_levels "$DECISION_LEVEL")
+    local SERVER_LEVELS
+    SERVER_LEVELS=$(get_levels "$SERVER_LEVEL")
+    local CONSOLE_LEVELS
+    CONSOLE_LEVELS=$(get_levels "$CONSOLE_LEVEL")
+    local FILE_LEVELS
+    FILE_LEVELS=$(get_levels "$FILE_LEVEL")
+
+    jq -R -c --unbuffered --arg decision_levels "$DECISION_LEVELS" --arg server_levels "$SERVER_LEVELS" \
+    'try (fromjson | if .decision_id then .logger = "decision" else .logger = "server" end | select(((.logger == "decision") and (.level | inside($decision_levels))) or 
+        ((.logger == "server") and (.level | inside($server_levels))))) catch {"time":(now | todate),"level":"info","msg":"Could not process log message","error":true}' |
+    tee >(jq -c --unbuffered --arg file_levels "$FILE_LEVELS" 'select(.level | inside($file_levels))' \
+        > >(/stackable/multilog s"$OPA_ROLLING_LOG_FILE_SIZE_BYTES" n"$OPA_ROLLING_LOG_FILES" "$STACKABLE_LOG_DIR"/"$CONTAINER_NAME")) |
+    jq -c --unbuffered --arg console_levels "$CONSOLE_LEVELS" 'select(.level | inside($console_levels))'
+}
+
+main
