@@ -116,10 +116,10 @@ RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
 # ===
 # OPA Authorizer
 RUN if [[ -n "$OPA_AUTHORIZER" ]]; then \
-  git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
-  mvn -DskipTests package -fhbase-opa-authorizer  && \
-  cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib; \
-  fi
+    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
+    mvn -DskipTests package -fhbase-opa-authorizer  && \
+    cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib; \
+    fi
 
 # ===
 # For earlier versions this script removes the .class file that contains the
