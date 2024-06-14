@@ -118,7 +118,7 @@ RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
 RUN if [[ -n "$OPA_AUTHORIZER" ]]; then \
   git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
   mvn -DskipTests package -fhbase-opa-authorizer  && \
-  cp target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib; \
+  cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib; \
   fi
 
 # ===
