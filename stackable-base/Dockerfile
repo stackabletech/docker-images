@@ -6,7 +6,7 @@
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
-ARG CONFIG_UTILS_VERSION=main
+ARG CONFIG_UTILS_VERSION=0.1.0
 
 RUN microdnf update --assumeyes && \
     microdnf --assumeyes install \
