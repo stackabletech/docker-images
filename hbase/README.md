@@ -2,11 +2,9 @@
 
 ## Phoenix
 
-At the time of this writing (June 10, 2024) there is no Phoenix release that supports HBase 2.6 so the script
-`upload_new_phoenix_version.sh` will not work.
+At the time of this writing (June 10, 2024) there is no Phoenix release that supports HBase 2.6 so the script `upload_new_phoenix_version.sh` will not work.
 
-There is however a [pull request](https://github.com/apache/phoenix/pull/1793) that is currently in progress and this is
-the source of phoenix-5.3.0-SNAPSHOT.tar.gz.
+There is however a [pull request](https://github.com/apache/phoenix/pull/1793) that is currently in progress and this is the source of phoenix-5.3.0-SNAPSHOT.tar.gz.
 
 ```bash
 # clone the Phoenix repo

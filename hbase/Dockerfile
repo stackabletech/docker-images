@@ -168,7 +168,6 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-# Doesn't build with HBase 2.6
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
