@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - kafka: use java-devel as base layer for the builder stage ([#665])
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 - opa: Build from source ([#676])
+- trino: Build from source ([#687]).
 - spark: Build from source ([#679])
 
 ### Fixed
@@ -60,6 +61,7 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Remove unsupported version 3.9.1 ([#628]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
+- trino: Remove unsupported version 428 ([#687]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -88,6 +90,7 @@ All notable changes to this project will be documented in this file.
 [#682]: https://github.com/stackabletech/docker-images/pull/682
 [#684]: https://github.com/stackabletech/docker-images/pull/684
 [#685]: https://github.com/stackabletech/docker-images/pull/685
+[#687]: https://github.com/stackabletech/docker-images/pull/687
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
 [#695]: https://github.com/stackabletech/docker-images/pull/695
