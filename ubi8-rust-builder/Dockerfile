@@ -16,7 +16,7 @@ LABEL maintainer="Stackable GmbH"
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.77.2
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.3
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
-ENV PROTOC_VERSION=26.1
+ENV PROTOC_VERSION=27.1
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
