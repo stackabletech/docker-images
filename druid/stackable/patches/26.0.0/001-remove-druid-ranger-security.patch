@@ -1,0 +1,13 @@
+diff --git a/distribution/pom.xml b/distribution/pom.xml
+index 14013a7a5f..58fd00009e 100644
+--- a/distribution/pom.xml
++++ b/distribution/pom.xml
+@@ -252,8 +252,6 @@
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-pac4j</argument>
+                                         <argument>-c</argument>
+-                                        <argument>org.apache.druid.extensions:druid-ranger-security</argument>
+-                                        <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-catalog</argument>

@@ -16,7 +16,9 @@ ARG AUTHORIZER
 RUN microdnf update && \
     microdnf install \
     # Required to install pyyaml
-    python-pip && \
+    python-pip \
+    # Required to patch druid
+    patch && \
     microdnf clean all && \
     rm -rf /var/cache/yum && \
     # pyyaml is required for the compile Druid
@@ -25,14 +27,18 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
+COPY --chown=stackable:stackable druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
+
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     cd apache-druid-${PRODUCT}-src && \
-    mvn clean install -Pdist -DskipTests -Dmaven.javadoc.skip=true && \
+    ./patches/apply_patches.sh ${PRODUCT} && \
+    mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
     tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
     mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
     rm -rf /stackable/apache-druid-${PRODUCT}-src
-# Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
-# testdata in kuttl tests and the getting started guide.
+    #  Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
+    # testdata in kuttl tests and the getting started guide.
 
     # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
 RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
