@@ -9,6 +9,12 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85a
 
 LABEL maintainer="Stackable GmbH"
 
+# This SHOULD to be kept in sync with operator-templating and other tools to reduce build times
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.77.2
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.3
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+ENV PROTOC_VERSION=26.1
+
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
 # "-u": Treats unset variables as an error, preventing unexpected behavior from undefined variables.
@@ -53,8 +59,7 @@ RUN microdnf update \
 WORKDIR /opt/protoc
 # Prost does not document which version of protoc it expects (https://docs.rs/prost-build/0.12.4/prost_build/), so this should be the latest upstream version
 # (within reason).
-RUN PROTOC_VERSION=26.1 \
-  ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
+RUN ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
   && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
   && rm protoc.zip
@@ -65,8 +70,8 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 # hadolint ignore=SC1091
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.77.2 \
- && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@0.4.0 cargo-auditable@0.6.2
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
+&& . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -77,7 +82,7 @@ ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
 # hadolint ignore=SC1091
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --all --format xml
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
