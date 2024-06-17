@@ -11,7 +11,7 @@ LABEL maintainer="Stackable GmbH"
 
 # This SHOULD to be kept in sync with operator-templating and other tools to reduce build times
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.77.2
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.3
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 ENV PROTOC_VERSION=27.1
 
@@ -82,7 +82,7 @@ ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
 # hadolint ignore=SC1091
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --all --format xml
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
