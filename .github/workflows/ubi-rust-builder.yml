@@ -15,7 +15,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        runner: ["ubuntu-latest", "buildjet-2vcpu-ubuntu-2204-arm"]
+        runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
         ubi-version: ["ubi8", "ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
