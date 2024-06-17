@@ -7,7 +7,7 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
 ENV CONFIG_UTILS_VERSION=0.1.0
-# This SHOULD to be kept in sync with operator-templating and other tools to reduce build times
+# This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.78.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.3
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
