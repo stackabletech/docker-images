@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
+- stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
 
 ### Changed
@@ -97,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#695]: https://github.com/stackabletech/docker-images/pull/695
 [#703]: https://github.com/stackabletech/docker-images/pull/703
 [#704]: https://github.com/stackabletech/docker-images/pull/704
+[#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
 
 ## [24.3.0] - 2024-03-20
