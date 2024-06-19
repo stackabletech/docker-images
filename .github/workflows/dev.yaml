@@ -40,7 +40,7 @@ jobs:
           - zookeeper
         shard_count:
           - 5
-        shard_index: [0, 1, 2, 3, 4]
+        shard_index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
