@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
@@ -33,7 +35,7 @@ cd "$WORK_DIR" || exit
 # kcat does not currently publish signatures or SBOMs
 # renaming binary because original file name has no version
 echo "Downloading kcat"
-curl --fail -Ls -o "kcat-$VERSION.tar.gz" "https://github.com/edenhill/kcat/archive/refs/tags/$VERSION.tar.gz" 
+curl --fail -Ls -o "kcat-$VERSION.tar.gz" "https://github.com/edenhill/kcat/archive/refs/tags/$VERSION.tar.gz"
 
 echo "Uploading to Nexus"
 curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "kcat-$VERSION.tar.gz" 'https://repo.stackable.tech/repository/packages/kcat/'

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -euo pipefail
 
 VERSION=${1:?"Missing version number argument (arg 1)"}
