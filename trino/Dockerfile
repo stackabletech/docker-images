@@ -54,10 +54,10 @@ WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
     mvn package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
-    # Delete intermediate build products to free some space
-    rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz && \
     mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT} && \
-    chown --recursive stackable /stackable/trino-server-${PRODUCT}
+    chown --recursive stackable /stackable/trino-server-${PRODUCT} && \
+    # Delete intermediate build products to free some space
+    rm -r /stackable/trino-server-${PRODUCT}-src
 
 COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
 # # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
