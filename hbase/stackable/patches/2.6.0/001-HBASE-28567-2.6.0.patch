@@ -1,0 +1,26 @@
+From 8ba1a41bd393bff67fb1c22b9bd83a43801181d9 Mon Sep 17 00:00:00 2001
+From: Vincent Poon <vincent.poon@salesforce.com>
+Date: Sun, 5 May 2024 17:59:30 -0700
+Subject: [PATCH] HBASE-28567 Race condition causes MetaRegionLocationCache to
+ never set watcher to populate meta location
+
+---
+ .../java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java    | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java b/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
+index 3879cb7ba911..5af7de5678c0 100644
+--- a/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
++++ b/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
+@@ -460,6 +460,11 @@ public List<String> getMetaReplicaNodes() throws KeeperException {
+   public List<String> getMetaReplicaNodesAndWatchChildren() throws KeeperException {
+     List<String> childrenOfBaseNode =
+       ZKUtil.listChildrenAndWatchForNewChildren(this, znodePaths.baseZNode);
++    // Need to throw here instead of returning an empty list if the base znode hasn't been created
++    // Caller should retry in that case, versus thinking the base znode has a watcher set
++    if (childrenOfBaseNode == null) {
++      keeperException(new KeeperException.NoNodeException(znodePaths.baseZNode));
++    }
+     return filterMetaReplicaNodes(childrenOfBaseNode);
+   }
+ 
