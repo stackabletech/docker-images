@@ -94,11 +94,6 @@ COPY zookeeper/licenses /licenses
 # to preserve the folder name with the version.
 RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
 
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
 ENV PATH="${PATH}":/stackable/zookeeper/bin
 
