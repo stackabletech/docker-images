@@ -42,3 +42,8 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 # microdnf install java-${JAVA_VERSION}-openjdk-devel
 #
 ENV JAVA_VERSION=$PRODUCT
+
+# Mitigation for CVE-2021-44228 (Log4Shell)
+# This variable is supported as of Log4j version 2.10 and
+# disables the vulnerable feature
+ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true

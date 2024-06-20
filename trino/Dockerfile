@@ -136,11 +136,5 @@ COPY --from=jmx-exporter-builder /stackable/jmx_prometheus-${JMX_EXPORTER}-src/j
 RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]

@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - opa: Build from source ([#676])
 - trino: Build from source ([#687]).
 - spark: Build from source ([#679])
+- all: Moved the LOG4J_FORMAT_MSG_NO_LOOKUPS env variable from the individual Dockerfiles to `java-base` and `java-devel` ([#727])
 
 ### Fixed
 
@@ -100,6 +101,7 @@ All notable changes to this project will be documented in this file.
 [#704]: https://github.com/stackabletech/docker-images/pull/704
 [#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
+[#727]: https://github.com/stackabletech/docker-images/pull/727
 
 ## [24.3.0] - 2024-03-20
 

@@ -20,10 +20,10 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable nifi/stackable/patches /stackable/patches
 
 # NOTE: NiFi 1.21.0 source build does not work with the current arm64 git runners due to java heap issues:
-#     
-# [ERROR] Failed to execute goal org.apache.maven.plugins:maven-assembly-plugin:3.5.0:single (make shared resource) on project nifi-registry-assembly: 
+#
+# [ERROR] Failed to execute goal org.apache.maven.plugins:maven-assembly-plugin:3.5.0:single (make shared resource) on project nifi-registry-assembly:
 # Failed to create assembly: Error creating assembly archive bin: Problem creating zip: Execution exception: Java heap space
-# 
+#
 # Since this will be deprecated in the release 24.7 and then removed we copy the NiFi 1.21.0 binaries instead
 # of building from source. The if condition can be removed once 1.21.0 is no longer supported and only the
 # else branch is required to build from source.
@@ -47,7 +47,7 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         unzip "nifi-${PRODUCT}-source-release.zip" && \
         # Clean up downloaded source after unzipping
         rm -rf "nifi-${PRODUCT}-source-release.zip" && \
-        # The NiFi "binary" ends up in a folder named "nifi-${PRODUCT}" which should be copied to /stackable 
+        # The NiFi "binary" ends up in a folder named "nifi-${PRODUCT}" which should be copied to /stackable
         # from /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} (see later steps)
         # Therefore we add the suffix "-src" to be able to copy the binary and remove the unzipped sources afterwards.
         mv nifi-${PRODUCT} nifi-${PRODUCT}-src && \
@@ -132,13 +132,6 @@ RUN ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 ENV HOME=/stackable
 ENV NIFI_HOME=/stackable/nifi
 ENV PATH="${PATH}":/stackable/nifi/bin
-
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-# ===
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]
