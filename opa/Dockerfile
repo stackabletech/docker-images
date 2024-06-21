@@ -23,6 +23,10 @@ RUN microdnf update \
     pkg-config \
     systemd-devel \
     unzip \
+    # To add the command logger which allows to enter messages into the system log
+    # cpe:2.3:a:kernel:util-linux:*:*:*:*:*:*:*:*
+    # https://nvd.nist.gov/vuln/search/results?isCpeNameSearch=true&query=cpe%3A2.3%3Aa%3Akernel%3Autil-linux%3A*%3A*%3A*%3A*%3A*%3A*%3A*%3A*
+    util-linux \
   && rm -rf /var/cache/yum
 
 WORKDIR /
