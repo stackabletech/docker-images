@@ -32,23 +32,28 @@ WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
-RUN chmod +x patches/apply_patches.sh && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    chmod +x patches/apply_patches.sh && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/hbase-${PRODUCT}-src/ && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
-    rm -rf /stackable/hbase-${PRODUCT}-src
+    rm -rf /stackable/hbase-${PRODUCT}-src && \
+    ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
-COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
-RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-    -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+
+COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
+RUN if [[ -n "${JMX_EXPORTER}" ]] ; then \
+      curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+      -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+      chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+      ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar ; \
+    fi
 
 # Build phoenix
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
     mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
     mvn \
         -Dhbase.version=${PRODUCT} \
@@ -68,7 +73,8 @@ RUN ARCH="${TARGETARCH/amd64/x64}" && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # Build the hbase-operator-tools
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
     mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
     mvn \
         -Dhbase.version=${PRODUCT} \
@@ -115,7 +121,8 @@ RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
 
 # ===
 # OPA Authorizer
-RUN if [[ -n "$OPA_AUTHORIZER" ]]; then \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    if [[ -n "$OPA_AUTHORIZER" ]]; then \
     git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
     mvn -DskipTests package -fhbase-opa-authorizer  && \
     cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib; \

@@ -138,7 +138,7 @@ products = [
                 "phoenix": "5.3.0-SNAPSHOT",
                 "hbase_profile": "2.6",
                 "hadoop": "3.3.6",
-                "jmx_exporter": "0.20.0",
+                "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
                 "jackson_dataformat_xml": "2.17.0",  # only for HBase 2.6.0
                 "opa_authorizer": "initial-setup",  # only for HBase 2.6.0
             },
