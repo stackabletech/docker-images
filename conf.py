@@ -208,6 +208,14 @@ products = [
                 "product": "11",
                 "stackable-base": "1.0.0",
             },
+            {
+                "product": "17",
+                "stackable-base": "1.0.0",
+            },
+            {
+                "product": "21",
+                "stackable-base": "1.0.0",
+            },
         ],
     },
     {
@@ -422,20 +430,15 @@ products = [
             {
                 "product": "414",
                 "java-base": "17",
+                "java-devel": "17",
                 "opa_authorizer": "stackable0.2.0",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "414",
-            },
-            {
-                "product": "428",
-                "java-base": "17",
-                "opa_authorizer": "stackable0.3.0",
-                "jmx_exporter": "0.20.0",
-                "storage_connector": "428-jackson",
+                "storage_connector": "413",
             },
             {
                 "product": "442",
                 "java-base": "21",
+                "java-devel": "21",
                 "jmx_exporter": "0.20.0",
                 "storage_connector": "442",
                 "opa_authorizer": "",

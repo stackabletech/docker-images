@@ -64,7 +64,7 @@ RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/jackson-da
 
 WORKDIR /stackable/jmx
 
-RUN curl --fail -L -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" 
+RUN curl --fail -L -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)
@@ -128,11 +128,6 @@ ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
-
 
 COPY --chown=stackable:stackable --from=builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx

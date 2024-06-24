@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - hbase: Added new image for 2.6.0 including the new OPA authorizer ([#701]).
+- stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
+- omid: Include Apache Omid Examples to simplify testing ([#721]).
 
 ### Changed
 
@@ -44,7 +46,9 @@ All notable changes to this project will be documented in this file.
 - kafka: use java-devel as base layer for the builder stage ([#665])
 - opa-bundle-builder: Bump image to 1.1.2 ([#666])
 - opa: Build from source ([#676])
+- trino: Build from source ([#687]).
 - spark: Build from source ([#679])
+- all: Moved the LOG4J_FORMAT_MSG_NO_LOOKUPS env variable from the individual Dockerfiles to `java-base` and `java-devel` ([#727])
 
 ### Fixed
 
@@ -61,6 +65,7 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Remove unsupported version 3.9.1 ([#628]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
+- trino: Remove unsupported version 428 ([#687]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -89,12 +94,16 @@ All notable changes to this project will be documented in this file.
 [#682]: https://github.com/stackabletech/docker-images/pull/682
 [#684]: https://github.com/stackabletech/docker-images/pull/684
 [#685]: https://github.com/stackabletech/docker-images/pull/685
+[#687]: https://github.com/stackabletech/docker-images/pull/687
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
 [#695]: https://github.com/stackabletech/docker-images/pull/695
 [#701]: https://github.com/stackabletech/docker-images/pull/701
 [#703]: https://github.com/stackabletech/docker-images/pull/703
 [#704]: https://github.com/stackabletech/docker-images/pull/704
+[#706]: https://github.com/stackabletech/docker-images/pull/706
+[#721]: https://github.com/stackabletech/docker-images/pull/721
+[#727]: https://github.com/stackabletech/docker-images/pull/727
 
 ## [24.3.0] - 2024-03-20
 

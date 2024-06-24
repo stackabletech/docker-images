@@ -33,7 +33,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
-COPY --chown=stackable:stackable kafka/stackable/jmx/ /stackable/jmx/    
+COPY --chown=stackable:stackable kafka/stackable/jmx/ /stackable/jmx/
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
@@ -100,12 +100,6 @@ RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
     # kcat was located in /stackable/kcat - legacy
     ln -s /stackable/bin/kcat /stackable/kcat && \
     ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
-
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
 ENV PATH="${PATH}:/stackable/bin:/stackable/kafka/bin"
 

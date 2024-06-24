@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 

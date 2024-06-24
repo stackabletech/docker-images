@@ -6,15 +6,12 @@ VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
 ARCHITECTURES=(
-    x64
-    arm64
+    aarch_64
+    x86_64
 )
 
 read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
-
-# async-profiler does not currently publish signatures or SBOMs (as of
-# 2024-01-30, latest version at this point v3.0)
 
 # https://stackoverflow.com/questions/4632028/how-to-create-a-temporary-directory
 # Find the directory name of the script
@@ -40,16 +37,25 @@ trap cleanup EXIT
 cd "$WORK_DIR" || exit
 
 for arch in "${ARCHITECTURES[@]}"; do
-    file=async-profiler-$VERSION-linux-$arch.tar.gz
+  # protoc does not currently publish signatures or SBOMs
 
-    echo "Downloading $file from github.com"
-    curl --fail -LOs "https://github.com/async-profiler/async-profiler/releases/download/v$VERSION/$file"
+  DOWNLOAD_URL="https://github.com/protocolbuffers/protobuf/releases/download/v$VERSION/protoc-$VERSION-linux-$arch.zip"
 
-    echo "Uploading $file to Nexus"
-    curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" \
-        --upload-file "$file" \
-        'https://repo.stackable.tech/repository/packages/async-profiler/'
+    echo "Downloading protoc"
+  if ! curl --fail -Ls -O "$DOWNLOAD_URL"; then
+    echo "Failed to download from $DOWNLOAD_URL"
+    exit 1
+  fi
+
+  FILE_NAME=$(basename "$DOWNLOAD_URL")
+
+  echo "Uploading protoc to Nexus"
+  if ! curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$FILE_NAME" 'https://repo.stackable.tech/repository/packages/protoc/'; then
+    echo "Failed to upload protoc to Nexus"
+    exit 1
+  fi
+
 done
 
-echo "Successfully uploaded new version $VERSION to Nexus"
-echo "https://repo.stackable.tech/service/rest/repository/browse/packages/async-profiler/"
+echo "Successfully uploaded new version of protoc ($VERSION) to Nexus"
+echo "https://repo.stackable.tech/service/rest/repository/browse/packages/protoc/"

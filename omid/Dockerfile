@@ -16,14 +16,10 @@ RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-om
 
 WORKDIR /stackable/phoenix-omid-${PRODUCT}
 RUN mvn package -Phbase-2 -DskipTests && \
-    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable && \
+    tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
 
 # ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -67,12 +63,14 @@ COPY omid/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
+COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
+COPY --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+
 RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
+    ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples && \
     curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-
-COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
