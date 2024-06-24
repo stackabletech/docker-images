@@ -1,4 +1,9 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL3038,DL4006
+
 FROM stackable/image/stackable-base
 
 ARG PRODUCT
@@ -14,12 +19,16 @@ LABEL name="Stackable Tools" \
     summary="Stackable Tools for Kubernetes." \
     description="Stackable Tools for Kubernetes."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN microdnf update && \
-    microdnf install iputils tar gzip zip openssl gettext && \
-    microdnf clean all
+    microdnf install \
+    gettext \
+    gzip \
+    iputils \
+    openssl \
+    tar \
+    zip && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY tools/licenses /licenses
 
@@ -34,6 +43,5 @@ RUN	curl -L https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubect
 RUN	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
     -o /stackable/bin/jq && \
     chmod +x /stackable/bin/jq
-
 
 USER stackable

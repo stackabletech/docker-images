@@ -1,18 +1,13 @@
-# syntax=docker/dockerfile:1
-FROM stackable/image/java-base AS builder
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL3038,DL4006
+
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-
-RUN microdnf update && \
-    microdnf install \
-    # Required to build Omid \
-    maven \
-    # Required to unpack Omid tarball
-    tar \
-    gzip \
-    # Required by log4shell mitigation script
-    zip && \
-    microdnf clean all
 
 USER stackable
 WORKDIR /stackable
@@ -23,14 +18,10 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-
 
 WORKDIR /stackable/phoenix-omid-${PRODUCT}
 RUN mvn package -Phbase-2 -DskipTests && \
-    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable && \
+    tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
 
 # ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -62,10 +53,9 @@ LABEL name="Apache Phoenix Omid" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-RUN microdnf update && microdnf clean all
+RUN microdnf update && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 ENV HOME=/stackable
 
@@ -75,12 +65,14 @@ COPY omid/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
+COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
+COPY --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+
 RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
+    ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples && \
     curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-
-COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence

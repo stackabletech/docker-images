@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
@@ -51,7 +53,7 @@ if ! (sha512sum --tag "$bin_file" | diff - "$bin_file.sha512" && sha512sum --tag
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/hadoop/common/KEYS) to GPG: https://www.apache.org/info/verification.html'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/hadoop/common/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/hadoop/common/KEYS | gpg --import")'
 
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"

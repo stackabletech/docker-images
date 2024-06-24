@@ -9,26 +9,42 @@ products = [
         "name": "airflow",
         "versions": [
             {
-                "product": "2.6.1",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
-                "tini": "0.19.0",
-                "vector": "0.35.0",
-            },
-            {
                 "product": "2.6.3",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
+                "python": "3.9",
+                "git_sync": "v4.2.1",
+                "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
             {
                 "product": "2.7.2",
-                "git_sync": "v3.6.8",
-                "python": "39",
-                "statsd_exporter": "v0.24.0",
+                "python": "3.9",
+                "git_sync": "v4.2.1",
+                "statsd_exporter": "0.26.0",
+                "tini": "0.19.0",
+                "vector": "0.35.0",
+            },
+            {
+                "product": "2.7.3",
+                "python": "3.9",
+                "git_sync": "v4.2.1",
+                "statsd_exporter": "0.26.0",
+                "tini": "0.19.0",
+                "vector": "0.35.0",
+            },
+            {
+                "product": "2.8.1",
+                "python": "3.9",
+                "git_sync": "v4.2.1",
+                "statsd_exporter": "0.26.0",
+                "tini": "0.19.0",
+                "vector": "0.35.0",
+            },
+            {
+                "product": "2.8.3",
+                "python": "3.9",
+                "git_sync": "v4.2.1",
+                "statsd_exporter": "0.26.0",
                 "tini": "0.19.0",
                 "vector": "0.35.0",
             },
@@ -40,6 +56,7 @@ products = [
             {
                 "product": "26.0.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jackson_dataformat_xml": "2.10.5",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
@@ -48,9 +65,23 @@ products = [
             {
                 "product": "27.0.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jackson_dataformat_xml": "2.10.5",
                 "stax2_api": "4.2.1",
                 "woodstox_core": "6.2.1",
+                "authorizer": "0.5.0",
+            },
+            {
+                "product": "28.0.1",
+                # Java 17 should be fully supported as of 27.0.0 https://github.com/apache/druid/releases#27.0.0-highlights-java-17-support
+                # Did not work in a quick test due to reflection error:
+                # Caused by: java.lang.reflect.InaccessibleObjectException: Unable to make protected final java.lang.Class
+                # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
+                "java-base": "11",
+                "java-devel": "11",
+                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
+                "stax2_api": "4.2.2",
+                "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
             },
         ],
@@ -59,58 +90,44 @@ products = [
         "name": "hadoop",
         "versions": [
             {
-                "product": "3.2.4",
-                "java-base": "11",
-                "async_profiler": "2.9",
-                "jmx_exporter": "0.20.0",
-                "protobuf": "2.5.0",
-                "topology_provider": "0.1.0"
-            },
-            {
                 "product": "3.3.4",
                 "java-base": "11",
+                "java-devel": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "topology_provider": "0.1.0"
+                "hdfs_utils": "0.2.1",
+                "topology_provider": "0.3.0",
             },
             {
                 "product": "3.3.6",
                 "java-base": "11",
+                "java-devel": "11",
                 "async_profiler": "2.9",
                 "jmx_exporter": "0.20.0",
                 "protobuf": "3.7.1",
-                "topology_provider": "0.1.0"
+                "hdfs_utils": "0.2.1",
+                "topology_provider": "0.3.0",
             },
         ],
     },
     {
         "name": "hbase",
         "versions": [
-        # Note: Do NOT rename "hadoop-m2" below because if it's renamed to "hadoop"
-        # our image tool magic will think HBase has a dependency on the Hadoop Docker image and build that!
-        # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
-        # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
-             {
-                 "product": "2.4.12",
-                 "hbase_thirdparty": "3.5.1",
-                 "hbase_operator_tools": "1.2.0",
-                 "java-base": "11",
-                 "async_profiler": "2.9",
-                 "phoenix": "2.4-5.1.2",
-                 "hadoop_m2": "3.3.6",
-                 "jmx_exporter": "0.20.0",
-             },
-             {
-                 "product": "2.4.17",
-                 "hbase_thirdparty": "4.1.4",
-                 "hbase_operator_tools": "1.2.0",
-                 "java-base": "11",
-                 "async_profiler": "2.9",
-                 "phoenix": "2.4-5.1.3",
-                 "hadoop_m2": "3.3.6",
-                 "jmx_exporter": "0.20.0",
-             },
+            # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
+            # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
+            {
+                "product": "2.4.17",
+                "hbase_thirdparty": "4.1.5",
+                "hbase_operator_tools": "1.2.0",
+                "java-base": "11",
+                "java-devel": "11",
+                "async_profiler": "2.9",
+                "phoenix": "5.2.0",
+                "hbase_profile": "2.4",
+                "hadoop": "3.3.6",
+                "jmx_exporter": "0.20.0",
+            },
         ],
     },
     {
@@ -128,10 +145,18 @@ products = [
             {
                 "product": "3.1.3",
                 "jmx_exporter": "0.20.0",
+                # Hive must be bult with Java 8 but will run on Java 11
                 "java-base": "11",
-                "hadoop_libs": "3.3.3",
+                "java-devel": "1.8.0",
+                "hadoop": "3.3.4",
                 "jackson_dataformat_xml": "2.12.3",
-                "aws_java_sdk_bundle": "1.11.1026",
+                # No longer bundled with the hadoop-yarn/mapreduce libraries (2.12.7 corresponds to the hadoop build for 3.3.4).
+                "jackson_jaxb_annotations": "2.12.7",
+                # Normally Hive 3.1.3 ships with "postgresql-9.4.1208.jre7.jar", but as this is old enough it does only support
+                # MD5 based authentication. Because of this, it does not work against more recent PostgresQL versions.
+                # See https://github.com/stackabletech/hive-operator/issues/170 for details.
+                "postgres_driver": "42.7.2",
+                "aws_java_sdk_bundle": "1.12.262",
                 "azure_storage": "7.0.1",
                 "azure_keyvault_core": "1.0.0",
             },
@@ -140,6 +165,10 @@ products = [
     {
         "name": "java-base",
         "versions": [
+            {
+                "product": "1.8.0",
+                "vector": "0.35.0",
+            },
             {
                 "product": "11",
                 "vector": "0.35.0",
@@ -155,43 +184,51 @@ products = [
         ],
     },
     {
+        "name": "java-devel",
+        "versions": [
+            {
+                "product": "1.8.0",
+                "stackable-base": "1.0.0",
+            },
+            {
+                "product": "11",
+                "stackable-base": "1.0.0",
+            },
+            {
+                "product": "17",
+                "stackable-base": "1.0.0",
+            },
+            {
+                "product": "21",
+                "stackable-base": "1.0.0",
+            },
+        ],
+    },
+    {
         "name": "kafka",
         "versions": [
             {
-                "product": "2.8.1",
-                "java-base": "11",
-                "scala": "2.13",
-                "kcat": "1.7.0",
-                "opa_authorizer": "1.4.0",
-                "jmx_exporter": "0.20.0",
-            },
-            {
-                "product": "2.8.2",
-                "java-base": "11",
-                "scala": "2.13",
-                "kcat": "1.7.0",
-                "opa_authorizer": "1.4.0",
-                "jmx_exporter": "0.20.0",
-            },
-            {
-                "product": "3.4.0",
-                "java-base": "11",
-                "scala": "2.13",
-                "kcat": "1.7.0",
-                "opa_authorizer": "1.5.1",
-                "jmx_exporter": "0.20.0",
-            },
-            {
                 "product": "3.4.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "scala": "2.13",
                 "kcat": "1.7.0",
                 "opa_authorizer": "1.5.1",
                 "jmx_exporter": "0.20.0",
             },
             {
-                "product": "3.5.1",
+                "product": "3.5.2",
                 "java-base": "11",
+                "java-devel": "11",
+                "scala": "2.13",
+                "kcat": "1.7.0",
+                "opa_authorizer": "1.5.1",
+                "jmx_exporter": "0.20.0",
+            },
+            {
+                "product": "3.6.1",
+                "java-base": "11",
+                "java-devel": "11",
                 "scala": "2.13",
                 "kcat": "1.7.0",
                 "opa_authorizer": "1.5.1",
@@ -201,7 +238,7 @@ products = [
     },
     {
         "name": "krb5",
-        "versions": [{"product": "1.18.2"}],
+        "versions": [{"product": "1.21.1"}],
     },
     {
         "name": "vector",
@@ -217,8 +254,21 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {"product": "1.21.0", "java-base": "11"},
-            {"product": "1.23.2", "java-base": "11"},
+            {
+                "product": "1.21.0",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.23.2",
+                "java-base": "11",
+                "java-devel": "11"
+            },
+            {
+                "product": "1.25.0",
+                "java-base": "21",
+                "java-devel": "11"
+            },
         ],
     },
     {
@@ -227,6 +277,7 @@ products = [
             {
                 "product": "1.1.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "jmx_exporter": "0.20.0",
             },
             {
@@ -242,12 +293,14 @@ products = [
             {
                 "product": "0.57.0",
                 "vector": "0.35.0",
-                "bundle_builder_version": "1.1.0",
+                "bundle_builder_version": "1.1.2",
+                "stackable-base": "1.0.0",
             },
             {
                 "product": "0.61.0",
                 "vector": "0.35.0",
-                "bundle_builder_version": "1.1.0",
+                "bundle_builder_version": "1.1.2",
+                "stackable-base": "1.0.0",
             },
         ],
     },
@@ -255,60 +308,42 @@ products = [
         "name": "spark-k8s",
         "versions": [
             {
-                "product": "3.4.0",
-                "spark": "3.4.0",
-                "java-base": "11",
-                "python": "3.11",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.4",
-                "aws_java_sdk_bundle": "1.12.262",
-                "azure_storage": "7.0.1",
-                "azure_keyvault_core": "1.0.0",
-                "jackson_dataformat_xml": "2.14.2",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.5.0",
-                "vector": "0.35.0",
-                "jmx_exporter": "0.20.0",
-            },
-            # required for a customer
-            {
-                "product": "3.4.0-java17",
-                "spark": "3.4.0",
-                "java-base": "17",
-                "python": "3.11",
-                "hadoop_short_version": "3",
-                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
-                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
-                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
-                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
-                "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
-                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-                "vector": "0.35.0",
-                "jmx_exporter": "0.20.0",
-            },
-            {
                 "product": "3.4.1",
-                "spark": "3.4.1",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
                 "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
-                "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.0
+                "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.1
                 "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
                 "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
+            },
+            {
+                "product": "3.4.2",
+                "java-base": "11",
+                "java-devel": "11",
+                "python": "3.11",
+                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/1db2f5c36b120c213432fc658c9fd24fc73cb45e/pom.xml#L122
+                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.2
+                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
+                "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
+                "vector": "0.35.0",
+                "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
             {
                 "product": "3.5.0",
-                "spark": "3.5.0",
                 "java-base": "11",
+                "java-devel": "11",
                 "python": "3.11",
-                "hadoop_short_version": "3",
                 "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
                 "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
                 "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
@@ -318,6 +353,24 @@ products = [
                 "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
                 "vector": "0.35.0",
                 "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
+            },
+            {
+                "product": "3.5.1",
+                "spark": "3.5.1",
+                "java-base": "11",
+                "java-devel": "11",
+                "python": "3.11",
+                "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
+                "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
+                "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
+                "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+                "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.1
+                "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
+                "vector": "0.35.0",
+                "jmx_exporter": "0.20.0",
+                "tini": "0.19.0",
             },
         ],
     },
@@ -329,25 +382,48 @@ products = [
         "name": "superset",
         "versions": [
             {
-                "product": "2.1.0",
-                "python": "3.9",
-                "vector": "0.35.0",
-                "statsd_exporter": "v0.24.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
-            },
-            {
                 "product": "2.1.1",
                 "python": "3.9",
                 "vector": "0.35.0",
-                "statsd_exporter": "v0.24.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
+                "statsd_exporter": "0.26.0",
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
+            },
+            {
+                "product": "2.1.3",
+                "python": "3.9",
+                "vector": "0.35.0",
+                "statsd_exporter": "0.26.0",
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.0/requirements-extra.txt#L10
             },
             {
                 "product": "3.0.1",
                 "python": "3.9",
                 "vector": "0.35.0",
-                "statsd_exporter": "v0.24.0",
-                "authlib": "0.15.4"  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.6/requirements-extra.txt#L7
+                "statsd_exporter": "0.26.0",
+                "authlib": "0.15.4",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.7/requirements-extra.txt#L7
+            },
+            {
+                "product": "3.0.3",
+                "python": "3.9",
+                "vector": "0.35.0",
+                "statsd_exporter": "0.26.0",
+                "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
+            },
+            {
+                "product": "3.1.0",
+                "python": "3.9",
+                "vector": "0.35.0",
+                "statsd_exporter": "0.26.0",
+                "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/v4.3.10/requirements-extra.txt#L7
+            },
+        ],
+    },
+    {
+        "name": "trino-cli",
+        "versions": [
+            {
+                "product": "442",
+                "java-base": "21",
             },
         ],
     },
@@ -357,32 +433,50 @@ products = [
             {
                 "product": "414",
                 "java-base": "17",
-                "opa_authorizer": "stackable0.2.0", 
-                "jmx_exporter": "0.20.0", 
-                "storage_connector": "414"
-            },
-            {
-                "product": "428",
-                "java-base": "17",
-                "opa_authorizer": "stackable0.3.0",
+                "java-devel": "17",
+                "opa_authorizer": "stackable0.2.0",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "428-jackson"
+                "storage_connector": "413",
             },
             {
-                # OPA authorizer included
-                "product": "438",
+                "product": "442",
                 "java-base": "21",
+                "java-devel": "21",
                 "jmx_exporter": "0.20.0",
-                "storage_connector": "438"
+                "storage_connector": "442",
+                "opa_authorizer": "",
             },
         ],
     },
     {
+        "name": "kafka-testing-tools",
+        "versions": [
+            {
+                "product": "1.0.0",
+                "kcat": "1.7.0",
+                "java-base": "11",
+                "stackable-base": "1.0.0",
+            }
+        ],
+    },
+    {
+        "name": "kcat",
+        "versions": [
+            {
+                "product": "1.7.0",
+                "java-base": "11",
+                "stackable-base": "1.0.0",
+            }
+        ],
+    },
+    {
         "name": "testing-tools",
-        "versions": [{
-            "product": "0.2.0",
-            "keycloak_version": "23.0.0",
-        }],
+        "versions": [
+            {
+                "product": "0.2.0",
+                "keycloak_version": "23.0.0",
+            }
+        ],
     },
     {
         "name": "zookeeper",
@@ -390,12 +484,20 @@ products = [
             {
                 "product": "3.8.3",
                 "java-base": "11",
-                "jmx_exporter": "0.20.0"
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
             },
             {
-                "product": "3.9.1",
+                "product": "3.8.4",
                 "java-base": "11",
-                "jmx_exporter": "0.20.0"
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
+            },
+            {
+                "product": "3.9.2",
+                "java-base": "11",
+                "java-devel": "11",
+                "jmx_exporter": "0.20.0",
             },
         ],
     },

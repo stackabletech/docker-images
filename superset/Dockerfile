@@ -1,36 +1,49 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-# Get statsd-exporter
-ARG STATSD_EXPORTER
-FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL3038,DL4006
 
-# Build stage
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
 ARG PYTHON
 ARG AUTHLIB
+ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
+        # Used to extract statsd_exporter
+        tar \
         cyrus-sasl-devel \
         # Needed to find all patch files, used in `apply_patches.sh`
         findutils \
+        # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
+        diffutils \
+        # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
+        # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
+        # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
+        # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
+        make \
         gcc \
         gcc-c++ \
         libffi-devel \
         openldap-devel \
         openssl-devel \
         patch \
-        python${PYTHON//./}-devel \
-        python${PYTHON//./}-pip \
-        python${PYTHON//./}-wheel \
+        python${PYTHON} \
+        python${PYTHON}-devel \
+        python${PYTHON}-pip \
+        python${PYTHON}-wheel \
         libpq-devel \
-    && microdnf clean all \
-    && python3 -m venv /stackable/app \
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
+
+RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
         --no-cache-dir \
@@ -62,6 +75,11 @@ RUN microdnf update \
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
 
+   # Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
+
 # Final image
 FROM stackable/image/vector
 
@@ -86,17 +104,17 @@ ENV PATH="${HOME}/app/bin:${PATH}" \
 
 RUN microdnf update \
     && microdnf install \
-        --assumeyes \
         cyrus-sasl \
         openldap \
         openldap-clients \
         openssl-libs \
         openssl-pkcs11 \
-        python${PYTHON//./} \
-    && microdnf clean all
+        python${PYTHON} \
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY superset/licenses /licenses
-COPY --from=statsd-exporter /bin/statsd_exporter /stackable/statsd_exporter
+
 COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
 
 USER stackable
@@ -111,3 +129,30 @@ CMD ["/bin/sh", "-c", \
     --limit-request-line 0 \
     --limit-request-field_size 0 \
     'superset.app:create_app()'"]
+
+# SNIPPET 1
+# 60.38   × Getting requirements to build wheel did not run successfully.
+# 60.38   │ exit code: 1
+# 60.38   ╰─> [77 lines of output]
+# 60.38       running egg_info
+# 60.38       writing apsw.egg-info/PKG-INFO
+# 60.38       writing dependency_links to apsw.egg-info/dependency_links.txt
+# 60.38       writing top-level names to apsw.egg-info/top_level.txt
+# 60.38         Getting the SQLite amalgamation
+# 60.38           Fetching https://sqlite.org/2023/sqlite-autoconf-3420000.tar.gz
+# 60.38           Length: 3148813  SHA1: 036575929b174c1b829769255491ba2b32bda9ee  MD5: 0c5a92bc51cf07cae45b4a1e94653dea
+# 60.38           Checksums verified
+# 60.38       /usr/lib64/python3.9/tarfile.py:2239: RuntimeWarning: The default behavior of tarfile extraction has been changed to disallow common exploits (including CVE-2007-4559). By default, absolute/parent paths are disallowed and some mode bits are cleared. See https://access.redhat.com/articles/7004769 for more details.
+# 60.38         warnings.warn(
+# 60.38           Running configure to work out SQLite compilation flags
+# 60.38       ./configure: line 8084: cmp: command not found
+# 60.38       ./configure: line 8084: cmp: command not found
+# 60.38       ./configure: line 9847: diff: command not found
+# 60.38       config.status: error: in `/tmp/pip-install-eu6p7tvi/apsw_df5f74a30ca84a5c90de5ea3a0691bec/sqlite3':
+# 60.38       config.status: error: Something went wrong bootstrapping makefile fragments
+# 60.38           for automatic dependency tracking.  If GNU make was not used, consider
+# 60.38           re-running the configure script with MAKE="gmake" (or whatever is
+# 60.38           necessary).  You can also try re-running configure with the
+# 60.38           '--disable-dependency-tracking' option to at least be able to build
+# 60.38           the package (albeit without support for automatic dependency tracking).
+# 60.38       See `config.log' for more details

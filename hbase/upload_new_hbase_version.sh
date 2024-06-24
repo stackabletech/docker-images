@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
@@ -53,7 +53,7 @@ if ! (gpg --print-md SHA512 "$bin_file" | diff - "$bin_file.sha512" && gpg --pri
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://downloads.apache.org/hbase/KEYS) to GPG: https://www.apache.org/info/verification.html'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://downloads.apache.org/hbase/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://downloads.apache.org/hbase/KEYS | gpg --import")'
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
   exit 1

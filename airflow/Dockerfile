@@ -1,8 +1,10 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-ARG GIT_SYNC
-ARG STATSD_EXPORTER
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
 
-FROM oci.stackable.tech/sdp/statsd-exporter:${STATSD_EXPORTER} as statsd-exporter
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL3038,DL4006
+
+ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
@@ -12,16 +14,25 @@ FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
+ARG STATSD_EXPORTER
+ARG TARGETARCH
+ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
-# the mysql provider is currently excluded.
+# The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
 
 RUN microdnf update && \
     microdnf install \
+        # Used to extract statsd_exporter
+        tar \
         cyrus-sasl-devel \
+        # Needed by ./configure to build gevent, see snippet [1] at the end of file
+        diffutils \
+        # Needed to build gevent, see snippet [1] at the end of file
+        make \
         gcc \
         gcc-c++ \
         libpq-devel \
@@ -30,14 +41,22 @@ RUN microdnf update && \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
-        unixODBC-devel && \
+        # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
+        unixODBC && \
     microdnf clean all && \
-    python3 -m venv --system-site-packages /stackable/app && \
+    rm -rf /var/cache/yum
+
+RUN python3 -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs
+
+# Choosing correct binary with respect to architecture
+WORKDIR /stackable
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
+    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
 
 
 FROM stackable/image/vector AS airflow-main-image
@@ -46,6 +65,8 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG TINI
+ARG TARGETARCH
+ARG TARGETOS
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
@@ -80,22 +101,21 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-RUN mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs
-
-RUN chown --recursive stackable:stackable ${AIRFLOW_HOME}
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$(arch)"
+RUN mkdir -pv ${AIRFLOW_HOME} && \
+    mkdir -pv ${AIRFLOW_HOME}/dags && \
+    mkdir -pv ${AIRFLOW_HOME}/logs && \
+    chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
+    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 RUN chmod a+x /entrypoint.sh && \
     chmod a+x /run-airflow.sh && \
     chmod +x /usr/bin/tini
 
-COPY --from=statsd-exporter --chown=stackable:stackable /bin/statsd_exporter /stackable/statsd_exporter
 COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
 
@@ -104,3 +124,14 @@ WORKDIR /stackable
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
+
+# SNIPPET 1
+# 137.0       Running '(cd  "/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev"  && sh ./configure -C > configure-output.txt )' in /tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 6350: cmp: command not found
+# 137.0       ./configure: line 8279: diff: command not found
+# 137.0       config.status: error: in `/tmp/pip-install-cyuymnu6/gevent_0f8b4d282c464210b62acdf399e4a04c/deps/libev':
+# 137.0       config.status: error: Something went wrong bootstrapping makefile fragments
+# 137.0           for automatic dependency tracking.  Try re-running configure with the
+# 137.0           '--disable-dependency-tracking' option to at least be able to build
+# 137.0           the package (albeit without support for automatic dependency tracking).

@@ -1,81 +1,62 @@
-# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-FROM stackable/image/java-base
+# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+
+# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
+# Ignoring DL4006 globally because we inherit the SHELL from our base image
+# hadolint global ignore=DL3038,DL4006
+
+FROM stackable/image/hadoop AS hadoop-builder
+
+# This layer has Java 8 installed.
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS builder
+
+# Apache Hive up t0 4.x(!) officially requires Java 8 (there is no distincion between building and running). As of
+# 2024-04-15 we for sure need Java 8 for building, but we used a Java 11 runtime for months now without any problems.
+# As we got weird TLS errors (https://stackable-workspace.slack.com/archives/C031A5BEFS7/p1713185172557459) with a
+# Java 8 runtime we bumped the Runtime to Java 11 again. As we can only select a single version from the java-base
+# image, we pick 11 (which is used in the final image), and install Java 8 here.
 
 ARG PRODUCT
+ARG HADOOP
 ARG JMX_EXPORTER
-ARG HADOOP_LIBS
 ARG JACKSON_DATAFORMAT_XML
+ARG JACKSON_JAXB_ANNOTATIONS
+ARG POSTGRES_DRIVER
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
-ARG RELEASE
-
-LABEL name="Apache Hive" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Hive." \
-      description="This image is deployed by the Stackable Operator for Apache Hive."
-
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# The krb5-workstation is needed for Kerberos support.
-RUN microdnf update && \
-    microdnf install \
-    krb5-workstation \
-    tar \
-    gzip \
-    zip \
-    which && \
-    microdnf clean all
 
 COPY --chown=stackable:stackable hive/stackable /stackable
-COPY hive/licenses /licenses
 
 USER stackable
 WORKDIR /stackable
 
-# Download hive and hadoop
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-bin.tar.gz | tar -xzC . && \
-    ln -s /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin /stackable/hive && \
-    ln -s /stackable/apache-hive-${PRODUCT}-bin/hadoop-${HADOOP_LIBS} /stackable/hadoop && \
-    # Force to overwrite the existing 'start-metastore'
-    ln -sf /stackable/bin/start-metastore /stackable/hive/bin/start-metastore
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+    patches/apply_patches.sh ${PRODUCT} && \
+    cd /stackable/apache-hive-${PRODUCT}-src/ && \
+    mvn clean package -DskipTests --projects standalone-metastore && \
+    mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable && \
+    ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore && \
+    cp /stackable/hive-metastore/bin/start-metastore /stackable/hive-metastore/bin/start-metastore.bak && \
+    cp /stackable/bin/start-metastore /stackable/hive-metastore/bin && \
+    rm -rf /stackable/apache-hive-${PRODUCT}-src
 
-# Replace the old (postgresql-9.4.1208.jre7.jar) postgresql JDBC driver with a newer one, as the old one does only support
-# MD5 based authentication. Because of this, the contained driver version does not work against more recent PostgresQL versions.
-# See https://github.com/stackabletech/hive-operator/issues/170 for details
-# Note: We hardcode the versions here to make sure this replacement will be removed once Hive ships with a more recent driver
-# version as the "rm" statement will fail.
-RUN rm /stackable/apache-hive-${PRODUCT}-bin/apache-hive-${PRODUCT}-bin/lib/postgresql-9.4.1208.jre7.jar && \
-    curl --fail -L https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-42.6.0.jar \
-    -o /stackable/hive/lib/postgresql-42.6.0.jre7.jar && \
-    chmod -x /stackable/hive/lib/postgresql-42.6.0.jre7.jar
+COPY --chown=stackable:stackable --from=hadoop-builder /stackable/hadoop /stackable/hadoop
 
-# Download aws module for Hadoop (support for s3a://)
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LIBS}.jar \
-    -o /stackable/hive/lib/hadoop-aws-${HADOOP_LIBS}.jar && \
-    chmod -x /stackable/hive/lib/hadoop-aws-${HADOOP_LIBS}.jar
+# Add a PostgreSQL driver, as this is the primary used persistence
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/pgjdbc/postgresql-${POSTGRES_DRIVER}.jar -o /stackable/hive-metastore/lib/postgresql-${POSTGRES_DRIVER}.jar
 
-# Download aws sdk bundle containing all the needed S3 Classes for hadoop-aws. Must match version hadoop-aws was compiled against
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
-    -o /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar && \
-    chmod -x /stackable/hive/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar
+# The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
+# This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
-# Download azure module for Hadoop (support for abfs://)
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LIBS}.jar \
-    -o /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar && \
-    chmod -x /stackable/hive/lib/hadoop-azure-${HADOOP_LIBS}.jar
+# Add S3 Support for Hive (support for s3a://)
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hive-metastore/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/hive-metastore/lib/
 
-# Download azure libs containing all the needed ABFS Classes for hadoop-azure. Must match version hadoop-azure was compiled against
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
-    -o /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar && \
-    chmod -x /stackable/hive/lib/azure-storage-${AZURE_STORAGE}.jar
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
-    -o /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar && \
-    chmod -x /stackable/hive/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
+# Add Azure ABFS support (support for abfs://)
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/hive-metastore/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
+RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -83,32 +64,23 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/azure/azure-k
 # At the same time a new HDFS Operator will still work with older images which do not have the symlink to the versionless jar.
 # After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
 # And then we can also remove the symlink to 0.16.1 from this Dockerfile.
-RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
-# Logging
-RUN rm /stackable/hive/lib/log4j-slf4j-impl* && \
-    curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-    -o /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
-    chmod -x /stackable/hive/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
-
-ENV HADOOP_HOME=/stackable/hadoop
-ENV HIVE_HOME=/stackable/hive
+# Logging.
+# jackson-module-jaxb-annotations: this is no longer bundled with the hadoop-yarn/mapreduce libraries (excluded from the hadoop build).
+RUN rm /stackable/hive-metastore/lib/log4j-slf4j-impl* && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar -o /stackable/hive-metastore/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar && \
+    curl --fail -L https://repo.stackable.tech/repository/packages/jackson-module-jaxb-annotations/jackson-module-jaxb-annotations-${JACKSON_JAXB_ANNOTATIONS}.jar -o /stackable/hive-metastore/lib/jackson-module-jaxb-annotations-${JACKSON_JAXB_ANNOTATIONS}.jar
 
 # ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-# This variable is supported as of Log4j version 2.10 and
-# disables the vulnerable feature
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/hive
+RUN /bin/log4shell.sh /stackable/apache-hive-metastore-${PRODUCT}-bin/
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -117,8 +89,53 @@ RUN /bin/log4shell.sh /stackable/hive
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/hive
+# log4shell_scanner does not work on symlinks!
+RUN /bin/log4shell_scanner s /stackable/apache-hive-metastore-${PRODUCT}-bin/
 # ===
 
-WORKDIR /stackable/hive
-CMD ["./bin/start-metastore", "--config", "conf", "--hive-bin-dir", "bin", "--db-type", "derby"]
+# syntax=docker/dockerfile:1@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+FROM stackable/image/java-base
+
+ARG PRODUCT
+ARG HADOOP
+ARG RELEASE
+
+LABEL name="Apache Hive metastore" \
+      maintainer="info@stackable.tech" \
+      vendor="Stackable GmbH" \
+      version="${PRODUCT}" \
+      release="${RELEASE}" \
+      summary="The Stackable image for Apache Hive metastore." \
+      description="This image is deployed by the Stackable Operator for Apache Hive."
+
+RUN microdnf update && \
+    microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
+    rm -rf /var/cache/yum
+
+USER stackable
+WORKDIR /stackable
+
+# TODO: Try to use --link here, as it should be faster
+COPY --chown=stackable:stackable --from=builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+RUN ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore
+
+# It is useful to see which version of Hadoop is used at a glance
+# Therefore the use of the full name here
+COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+RUN ln -s /stackable/hadoop-${HADOOP}/ /stackable/hadoop
+
+COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx
+COPY hive/licenses /licenses
+
+ENV HADOOP_HOME=/stackable/hadoop
+ENV HIVE_HOME=/stackable/hive-metastore
+ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
+
+# The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.
+# We set them here to a sensible default.
+ENV HADOOP_YARN_HOME=/stackable/hadoop
+ENV HADOOP_MAPRED_HOME=/stackable/hadoop
+
+WORKDIR /stackable/hive-metastore
+# Start command is set by operator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"

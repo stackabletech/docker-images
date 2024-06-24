@@ -1,0 +1,4 @@
+This folder is unused, as NiFi version 1.21.0 is not currently being built from source.
+
+We are keeping the folder in place because it would crash the build process if not present
+and we ever start looking at building from source.
