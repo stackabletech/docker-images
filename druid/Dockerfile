@@ -36,7 +36,11 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache
     mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
     tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
     mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
-    rm -rf /stackable/apache-druid-${PRODUCT}-src
+    rm -rf /stackable/apache-druid-${PRODUCT}-src && \
+    rm -rf /stackable/.m2 && \
+    rm -rf /stackable/.npm && \
+    rm -rf /stackable/.cache
+
     #  Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
     # testdata in kuttl tests and the getting started guide.
 
@@ -91,8 +95,8 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --from=druid-builder /stackable /stackable
-COPY --chown=stackable:stackable druid/stackable /stackable
+COPY --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=stackable:stackable druid/stackable/bin /stackable/bin
 COPY --chown=stackable:stackable druid/licenses /licenses
 
 RUN ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
