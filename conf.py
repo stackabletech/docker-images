@@ -63,15 +63,6 @@ products = [
                 "authorizer": "0.5.0",
             },
             {
-                "product": "27.0.0",
-                "java-base": "11",
-                "java-devel": "11",
-                "jackson_dataformat_xml": "2.10.5",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
-                "authorizer": "0.5.0",
-            },
-            {
                 "product": "28.0.1",
                 # Java 17 should be fully supported as of 27.0.0 https://github.com/apache/druid/releases#27.0.0-highlights-java-17-support
                 # Did not work in a quick test due to reflection error:
