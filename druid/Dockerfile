@@ -13,16 +13,23 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 
-RUN microdnf update && \
-    microdnf install \
-    # Required to install pyyaml
-    python-pip \
-    # Required to patch druid
-    patch && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum && \
-    # pyyaml is required for the compile Druid
-    pip install --no-cache-dir pyyaml==6.0.1
+RUN <<EOF
+microdnf update
+
+# python-pyyaml:
+#   This note was last checked for version 30.0.0
+#   Required for the compilation of Druid.
+#   This requirement is documented in docs/development/build.md and version 5.1 or later is required.
+#   UBI 9 ships with 5.4.x so that should be fine
+#
+# patch: Required for the apply-patches.sh script
+microdnf install \
+python-pyyaml \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
 USER stackable
 WORKDIR /stackable
@@ -30,37 +37,44 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    cd apache-druid-${PRODUCT}-src && \
-    ./patches/apply_patches.sh ${PRODUCT} && \
-    mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true && \
-    tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz && \
-    mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT} && \
-    rm -rf /stackable/apache-druid-${PRODUCT}-src && \
-    rm -rf /stackable/.m2 && \
-    rm -rf /stackable/.npm && \
-    rm -rf /stackable/.cache
+RUN <<EOF
+curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
+cd apache-druid-${PRODUCT}-src || exit
+./patches/apply_patches.sh ${PRODUCT}
 
-    #  Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
-    # testdata in kuttl tests and the getting started guide.
+mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true
+tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz
+mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
 
-    # Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
-RUN curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
-    # Install OPA authorizer extension.
-    curl --fail "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions && \
-    # Install jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging, and remove stax-ex.
-    rm /stackable/apache-druid-${PRODUCT}/lib/stax-ex-*.jar && \
-    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-        "https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar" && \
-    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/stax2-api-${STAX2_API}.jar \
-        "https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar" && \
-    curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTOX_CORE}.jar \
-        "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
+rm -rf /stackable/apache-druid-${PRODUCT}-src
+rm -rf /stackable/.m2
+rm -rf /stackable/.npm
+rm -rf /stackable/.cache
 
-# For earlier versions this script removes the .class file that contains the
+# Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
+# testdata in kuttl tests and the getting started guide.
+
+# Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
+curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+
+# Install OPA authorizer extension.
+curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+
+# Install jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging, and remove stax-ex.
+rm /stackable/apache-druid-${PRODUCT}/lib/stax-ex-*.jar
+curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+  "https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar"
+
+curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/stax2-api-${STAX2_API}.jar \
+  "https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar"
+
+curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTOX_CORE}.jar \
+  "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
+EOF
+
+# For earlier versions of Log4j this script removes the .class file that contains the
 # vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
+# TODO: This can be restricted to target only versions which do not honor the environment varia ble that has been set but this has not currently been implemented
 COPY shared/log4shell.sh /bin
 RUN /bin/log4shell.sh "/stackable/apache-druid-${PRODUCT}"
 
@@ -72,7 +86,6 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/apache-druid-${PRODUCT}"
-# ===
 
 # hadolint ignore=DL3006
 FROM stackable/image/java-base as final
@@ -90,6 +103,7 @@ LABEL name="Apache Druid" \
 
 RUN microdnf update && \
     microdnf clean all && \
+    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
 USER stackable
@@ -99,9 +113,12 @@ COPY --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-d
 COPY --chown=stackable:stackable druid/stackable/bin /stackable/bin
 COPY --chown=stackable:stackable druid/licenses /licenses
 
-RUN ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid && \
-    # Force to overwrite the existing 'run-druid'
-    ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
+RUN <<EOF
+ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid
+
+# Force to overwrite the existing 'run-druid'
+ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
+EOF
 
 ENV PATH="${PATH}":/stackable/druid/bin
 
