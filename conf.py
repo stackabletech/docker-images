@@ -119,6 +119,20 @@ products = [
                 "hadoop": "3.3.6",
                 "jmx_exporter": "0.20.0",
             },
+            {
+                "product": "2.6.0",
+                "hbase_thirdparty": "4.1.7",
+                "hbase_operator_tools": "1.3.0-SNAPSHOT",
+                "java-base": "11",
+                "java-devel": "11",
+                "async_profiler": "2.9",
+                "phoenix": "5.3.0-SNAPSHOT",
+                "hbase_profile": "2.6",
+                "hadoop": "3.3.6",
+                "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
+                "jackson_dataformat_xml": "2.17.0",  # only for HBase 2.6.0
+                "opa_authorizer": "initial-setup",  # only for HBase 2.6.0
+            },
         ],
     },
     {
@@ -245,21 +259,9 @@ products = [
     {
         "name": "nifi",
         "versions": [
-            {
-                "product": "1.21.0",
-                "java-base": "11",
-                "java-devel": "11"
-            },
-            {
-                "product": "1.23.2",
-                "java-base": "11",
-                "java-devel": "11"
-            },
-            {
-                "product": "1.25.0",
-                "java-base": "21",
-                "java-devel": "11"
-            },
+            {"product": "1.21.0", "java-base": "11", "java-devel": "11"},
+            {"product": "1.23.2", "java-base": "11", "java-devel": "11"},
+            {"product": "1.25.0", "java-base": "21", "java-devel": "11"},
         ],
     },
     {

@@ -1,0 +1,31 @@
+Subject: [PATCH] HBASE-27103 & HBASE-27065 Fix license validation warning for leveldbjni-all
+---
+Index: hbase-resource-bundle/src/main/resources/supplemental-models.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hbase-resource-bundle/src/main/resources/supplemental-models.xml b/hbase-resource-bundle/src/main/resources/supplemental-models.xml
+--- a/hbase-resource-bundle/src/main/resources/supplemental-models.xml	(revision 35781955c09db984f87c239c7a0dba900a16eb60)
++++ b/hbase-resource-bundle/src/main/resources/supplemental-models.xml	(date 1702637740114)
+@@ -2316,6 +2316,20 @@
+       </licenses>
+     </project>
+   </supplement>
++  <supplement>
++    <project>
++      <groupId>org.openlabtesting.leveldbjni</groupId>
++      <artifactId>leveldbjni-all</artifactId>
++
++      <licenses>
++        <license>
++          <name>BSD 3-Clause License</name>
++          <url>http://www.opensource.org/licenses/BSD-3-Clause</url>
++          <distribution>repo</distribution>
++        </license>
++      </licenses>
++    </project>
++  </supplement>
+ <!-- Category B licenses that need text in LICENSE and a NOTICE -->
+   <supplement>
+     <project>

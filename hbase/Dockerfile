@@ -2,7 +2,7 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
+# hadolint global ignore=DL3038,DL4006,SC3010
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -19,6 +19,8 @@ ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
+ARG JACKSON_DATAFORMAT_XML
+ARG OPA_AUTHORIZER
 
 COPY hbase/licenses /licenses
 
@@ -30,23 +32,28 @@ WORKDIR /stackable
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
-RUN chmod +x patches/apply_patches.sh && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    chmod +x patches/apply_patches.sh && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/hbase-${PRODUCT}-src/ && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests && \
     mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease && \
     tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/ && \
-    rm -rf /stackable/hbase-${PRODUCT}-src
+    rm -rf /stackable/hbase-${PRODUCT}-src && \
+    ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
-COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
-RUN ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase && \
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-    -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+
+COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
+RUN if [[ -n "${JMX_EXPORTER}" ]] ; then \
+      curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+      -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+      chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+      ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar ; \
+    fi
 
 # Build phoenix
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC . && \
     mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src && \
     mvn \
         -Dhbase.version=${PRODUCT} \
@@ -66,7 +73,8 @@ RUN ARCH="${TARGETARCH/amd64/x64}" && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # Build the hbase-operator-tools
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC . && \
     mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src && \
     mvn \
         -Dhbase.version=${PRODUCT} \
@@ -103,6 +111,22 @@ RUN export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:
     rm bin/export-snapshot-to-s3.env
 
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
+
+# HBase 2.6 needs these dependencies to configure log4j2 with XMLMapper as output format
+# Previous versions do not need this and the argument is not set in conf.py
+RUN if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then \
+    curl -L --fail -o /stackable/hbase-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar; \
+    fi
+
+# ===
+# OPA Authorizer
+RUN --mount=type=cache,target=${HOME}/.m2 \
+    if [[ -n "$OPA_AUTHORIZER" ]]; then \
+    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
+    mvn -DskipTests package -fhbase-opa-authorizer  && \
+    cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib; \
+    fi
 
 # ===
 # For earlier versions this script removes the .class file that contains the
@@ -151,15 +175,15 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
-COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/phoenix /stackable/phoenix/
+COPY --chown=stackable:stackable --from=builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
+COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/bin /stackable/bin/
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
 RUN ln -s /stackable/hbase-${PRODUCT} /stackable/hbase && \
-    ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
+  ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
 
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
