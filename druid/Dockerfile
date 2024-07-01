@@ -42,7 +42,7 @@ curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-dru
 cd apache-druid-${PRODUCT}-src || exit
 ./patches/apply_patches.sh ${PRODUCT}
 
-mvn clean install -Pdist -pl '!extensions-core/druid-ranger-security' -DskipTests -Dmaven.javadoc.skip=true
+mvn clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz
 mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
 
@@ -53,9 +53,6 @@ rm -rf /stackable/.cache
 
 # Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
 # testdata in kuttl tests and the getting started guide.
-
-# Install the Prometheus emitter extension. This bundle contains the emitter and all jar dependencies.
-curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-prometheus-emitter-${PRODUCT}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
 
 # Install OPA authorizer extension.
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
@@ -74,7 +71,7 @@ EOF
 
 # For earlier versions of Log4j this script removes the .class file that contains the
 # vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment varia ble that has been set but this has not currently been implemented
+# TODO: This can be restricted to target only versions which do not honor the environment variable that has been set but this has not currently been implemented
 COPY shared/log4shell.sh /bin
 RUN /bin/log4shell.sh "/stackable/apache-druid-${PRODUCT}"
 
@@ -101,10 +98,12 @@ LABEL name="Apache Druid" \
       summary="The Stackable image for Apache Druid." \
       description="This image is deployed by the Stackable Operator for Apache Druid."
 
-RUN microdnf update && \
-    microdnf clean all && \
-    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
-    rm -rf /var/cache/yum
+RUN <<EOF
+microdnf update
+microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+rm -rf /var/cache/yum
+EOF
 
 USER stackable
 WORKDIR /stackable
