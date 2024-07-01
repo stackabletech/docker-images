@@ -12,7 +12,9 @@ ARG PRODUCT
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
 
 WORKDIR /stackable/phoenix-omid-${PRODUCT}
 RUN mvn package -Phbase-2 -DskipTests && \

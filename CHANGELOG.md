@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- omid: Add version `1.1.1` ([#553])
 - ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
@@ -102,6 +103,7 @@ All notable changes to this project will be documented in this file.
 [#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
 [#727]: https://github.com/stackabletech/docker-images/pull/727
+[#553]: https://github.com/stackabletech/docker-images/pull/553
 
 ## [24.3.0] - 2024-03-20
 
@@ -216,6 +218,7 @@ All notable changes to this project will be documented in this file.
 [#592]: https://github.com/stackabletech/docker-images/pull/592
 [#593]: https://github.com/stackabletech/docker-images/pull/593
 [#597]: https://github.com/stackabletech/docker-images/pull/597
+[#533]: https://github.com/stackabletech/docker-images/pull/533
 
 ## [23.11.0] - 2023-11-30
 
