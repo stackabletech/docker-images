@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
+- druid: Support for 30.0.0 using Java 17 ([#XXX])
 
 ### Changed
 
@@ -65,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove unsupported version 3.9.1 ([#628]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
 - trino: Remove unsupported version 428 ([#687]).
+- druid: Remove support for 27.0.0 ([#XXX])
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -102,6 +104,7 @@ All notable changes to this project will be documented in this file.
 [#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
 [#727]: https://github.com/stackabletech/docker-images/pull/727
+[#XXX]: https://github.com/stackabletech/docker-images/pull/XXX 
 
 ## [24.3.0] - 2024-03-20
 
