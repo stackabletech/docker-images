@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
-- druid: Support for 30.0.0 using Java 17 ([#XXX])
+- druid: Support for 30.0.0 using Java 17 ([#731])
 
 ### Changed
 
