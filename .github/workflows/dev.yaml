@@ -76,7 +76,7 @@ jobs:
       - name: Set up syft
         uses: anchore/sbom-action/download-syft@e8d2a6937ecead383dfe75190d104edd1f9c5751 # v0.16.0
       - name: Install image-tools-stackabletech
-        run: pip install image-tools-stackabletech==0.0.5
+        run: pip install image-tools-stackabletech==0.0.8
       - uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
         with:
           registry: docker.stackable.tech
