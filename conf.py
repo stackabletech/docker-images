@@ -517,6 +517,6 @@ open_shift_projects = {
 }
 cache = [{
     "type": "registry",
-    "ref_prefix": "docker.stackable.tech/sandbox/cache",
+    "ref_prefix": "build-repo.stackable.tech:8083/sandbox/cache",
     "mode": "max"
 }]
