@@ -1,3 +1,4 @@
+---
 name: Publish Product Image
 description: This action publishes a Docker image
 inputs:

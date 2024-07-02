@@ -1,3 +1,4 @@
+---
 name: Build Product Image
 description: This action builds a product Docker image with a specific version
 inputs:
@@ -16,7 +17,7 @@ runs:
       # NOTE (@Techassi): Why do we install python via apt and not the setup-python action?
     - name: Setup Python
       shell: bash
-      run: | 
+      run: |
         sudo apt update
         sudo apt install -y python3
 
