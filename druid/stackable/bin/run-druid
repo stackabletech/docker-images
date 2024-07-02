@@ -1,6 +1,7 @@
 #!/bin/bash -eu
 
 # This is adapted from the original `run-java` program from Druid 30.0.0 which was licensed under the Apache-2.0 license, as is this.
+# Source: https://github.com/apache/druid/blob/druid-30.0.0/examples/bin/run-java
 
 if [ "$#" -ne 2 ]
 then

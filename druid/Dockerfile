@@ -74,21 +74,6 @@ curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTO
   "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
 EOF
 
-# For earlier versions of Log4j this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment variable that has been set but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh "/stackable/apache-druid-${PRODUCT}"
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s "/stackable/apache-druid-${PRODUCT}"
-
 # hadolint ignore=DL3006
 FROM stackable/image/java-base as final
 
