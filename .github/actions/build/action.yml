@@ -1,0 +1,38 @@
+name: Build Product Image
+description: This action builds a product Docker image with a specific version
+inputs:
+  product:
+    description: The name of the product to build via bake (directory name)
+    required: true
+  image-tools-version:
+    description: The Stackable image-tools version
+    default: 0.0.8
+runs:
+  using: composite
+  steps:
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
+
+      # NOTE (@Techassi): Why do we install python via apt and not the setup-python action?
+    - name: Setup Python
+      shell: bash
+      run: | 
+        sudo apt update
+        sudo apt install -y python3
+
+    - name: Building ${{ inputs.product }}
+      shell: bash
+      run: echo ${{ inputs.product }}
+
+    - name: Install image-tools-stackabletech
+      shell: bash
+      run: pip install image-tools-stackabletech==${{ inputs.image-tools-version }}
+
+    - name: Build image using bake
+      shell: bash
+      run: |
+        ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
+        bake --product ${{ inputs.product }} \
+        --image-version "0.0.0-dev-${ARCH_FOR_DOCKER}" \
+        --architecture "linux/${ARCH_FOR_DOCKER}" \
+        --export-tags-file bake-target-tags
