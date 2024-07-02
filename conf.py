@@ -80,7 +80,7 @@ products = [
                 # https://druid.apache.org/docs/30.0.0/operations/java/
                 "java-base": "17",
                 "java-devel": "17",
-                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/09d36ee324747f1407705c27618b6d415c3fa8a9/pom.xml#L104 (the BOM points at 2.12.7 for dataformat.xml)
+                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/09d36ee324747f1407705c27618b6d415c3fa8a9/pom.xml#L104 (the BOM points at 2.12.7 for dataformat-xml, you can find the BOMs here: https://repo1.maven.org/maven2/com/fasterxml/jackson/jackson-bom/ - be aware that we might have a patch that bumps the BOM version!)
                 "stax2_api": "4.2.2",
                 "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
