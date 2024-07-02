@@ -48,7 +48,7 @@ products = [
     },
     {
         "name": "hbase",
-        "versions": hadoop.versions,
+        "versions": hbase.versions,
     },
     {
         "name": "hello-world",
