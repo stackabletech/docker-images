@@ -1,0 +1,65 @@
+Include Prometheus emitter in distribution
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ 0 files changed
+
+diff --git a/distribution/pom.xml b/distribution/pom.xml
+index d7cd645767..eda1ddcfab 100644
+--- a/distribution/pom.xml
++++ b/distribution/pom.xml
+@@ -464,6 +464,52 @@
+                 </plugins>
+             </build>
+         </profile>
++        <profile>
++            <id>stackable-bundle-contrib-exts</id>
++            <activation>
++                <activeByDefault>true</activeByDefault>
++            </activation>
++            <build>
++                <plugins>
++                    <plugin>
++                        <groupId>org.codehaus.mojo</groupId>
++                        <artifactId>exec-maven-plugin</artifactId>
++                        <executions>
++                            <execution>
++                                <id>pull-deps-contrib-exts</id>
++                                <phase>package</phase>
++                                <goals>
++                                    <goal>exec</goal>
++                                </goals>
++                                <configuration>
++                                    <executable>${project.parent.basedir}/examples/bin/run-java</executable>
++                                    <arguments>
++                                        <argument>-classpath</argument>
++                                        <classpath />
++                                        <argument>-Ddruid.extensions.loadList=[]</argument>
++                                        <argument>-Ddruid.extensions.directory=${project.build.directory}/extensions
++                                        </argument>
++                                        <argument>
++                                            -Ddruid.extensions.hadoopDependenciesDir=${project.build.directory}/hadoop-dependencies
++                                        </argument>
++                                        <argument>org.apache.druid.cli.Main</argument>
++                                        <argument>tools</argument>
++                                        <argument>pull-deps</argument>
++                                        <argument>--defaultVersion</argument>
++                                        <argument>${project.parent.version}</argument>
++                                        <argument>-l</argument>
++                                        <argument>${settings.localRepository}</argument>
++                                        <argument>--no-default-hadoop</argument>
++                                        <argument>-c</argument>
++                                        <argument>org.apache.druid.extensions.contrib:prometheus-emitter</argument>
++                                    </arguments>
++                                </configuration>
++                            </execution>
++                        </executions>
++                    </plugin>
++                </plugins>
++            </build>
++        </profile>
+         <profile>
+             <id>integration-test</id>
+             <activation>

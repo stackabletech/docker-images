@@ -1,0 +1,52 @@
+Stop building unused extensions.
+
+From: Lars Francke <git@lars-francke.de>
+
+By default Druid builds all community extensions and then discards them
+while assembling the final distribution. This patch removes unused
+extensions from the build.
+---
+ 0 files changed
+
+diff --git a/pom.xml b/pom.xml
+index 2468145dd0..72db785eea 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -197,35 +197,10 @@
+         <module>extensions-core/google-extensions</module>
+         <module>extensions-core/druid-catalog</module>
+         <module>extensions-core/testing-tools</module>
++
+         <!-- Community extensions -->
+-        <module>extensions-contrib/compressed-bigdecimal</module>
+-        <module>extensions-contrib/influx-extensions</module>
+-        <module>extensions-contrib/cassandra-storage</module>
+-        <module>extensions-contrib/dropwizard-emitter</module>
+-        <module>extensions-contrib/cloudfiles-extensions</module>
+-        <module>extensions-contrib/graphite-emitter</module>
+-        <module>extensions-contrib/distinctcount</module>
+-        <module>extensions-contrib/statsd-emitter</module>
+-        <module>extensions-contrib/time-min-max</module>
+-        <module>extensions-contrib/virtual-columns</module>
+-        <module>extensions-contrib/thrift-extensions</module>
+-        <module>extensions-contrib/ambari-metrics-emitter</module>
+-        <module>extensions-contrib/sqlserver-metadata-storage</module>
+-        <module>extensions-contrib/kafka-emitter</module>
+-        <module>extensions-contrib/redis-cache</module>
+-        <module>extensions-contrib/opentsdb-emitter</module>
+-        <module>extensions-contrib/materialized-view-maintenance</module>
+-        <module>extensions-contrib/materialized-view-selection</module>
+-        <module>extensions-contrib/momentsketch</module>
+-        <module>extensions-contrib/moving-average-query</module>
+-        <module>extensions-contrib/tdigestsketch</module>
+-        <module>extensions-contrib/influxdb-emitter</module>
+-        <module>extensions-contrib/gce-extensions</module>
+-        <module>extensions-contrib/aliyun-oss-extensions</module>
+         <module>extensions-contrib/prometheus-emitter</module>
+-        <module>extensions-contrib/opentelemetry-emitter</module>
+-        <module>extensions-contrib/kubernetes-overlord-extensions</module>
+-        <module>extensions-contrib/druid-iceberg-extensions</module>
++
+         <!-- distribution packaging -->
+         <module>distribution</module>
+         <!-- Revised integration tests -->
