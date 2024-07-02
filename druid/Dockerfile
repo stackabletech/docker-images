@@ -2,7 +2,8 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
+# Ignoring SC2164 globally because we inherit SHELL from the base image which contains "-e" for bash
+# hadolint global ignore=DL3038,DL4006,SC2164
 
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel as druid-builder
@@ -39,13 +40,17 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 
 RUN <<EOF
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
-cd apache-druid-${PRODUCT}-src || exit
+cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
 mvn clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 tar -xzf /stackable/apache-druid-${PRODUCT}-src/distribution/target/apache-druid-${PRODUCT}-bin.tar.gz
 mv /stackable/apache-druid-${PRODUCT}-src/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
 
+# We're removing these to make the intermediate layer smaller
+# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
+# and we are sometimes running into errors because we're out of space.
+# Therefore, we try to clean up all layers as much as possible.
 rm -rf /stackable/apache-druid-${PRODUCT}-src
 rm -rf /stackable/.m2
 rm -rf /stackable/.npm
