@@ -57,9 +57,6 @@ products = [
                 "product": "26.0.0",
                 "java-base": "11",
                 "java-devel": "11",
-                "jackson_dataformat_xml": "2.10.5",
-                "stax2_api": "4.2.1",
-                "woodstox_core": "6.2.1",
                 "authorizer": "0.5.0",
             },
             {
@@ -70,9 +67,6 @@ products = [
                 # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
                 "java-base": "11",
                 "java-devel": "11",
-                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
-                "stax2_api": "4.2.2",
-                "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
             },
             {
@@ -80,9 +74,6 @@ products = [
                 # https://druid.apache.org/docs/30.0.0/operations/java/
                 "java-base": "17",
                 "java-devel": "17",
-                "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/09d36ee324747f1407705c27618b6d415c3fa8a9/pom.xml#L104 (the BOM points at 2.12.7 for dataformat-xml, you can find the BOMs here: https://repo1.maven.org/maven2/com/fasterxml/jackson/jackson-bom/ - be aware that we might have a patch that bumps the BOM version!)
-                "stax2_api": "4.2.2",
-                "woodstox_core": "6.6.0",
                 "authorizer": "0.5.0",
             },
         ],

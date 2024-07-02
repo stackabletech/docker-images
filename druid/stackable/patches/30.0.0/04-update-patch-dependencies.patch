@@ -4,13 +4,7 @@ From: Lars Francke <git@lars-francke.de>
 
 
 ---
- extensions-core/druid-pac4j/pom.xml           |    2 +-
- extensions-core/kubernetes-extensions/pom.xml |    2 +-
- extensions-core/orc-extensions/pom.xml        |    2 +-
- extensions-core/parquet-extensions/pom.xml    |    2 +-
- pom.xml                                       |   26 +++++++++++++------------
- processing/pom.xml                            |    2 +-
- 6 files changed, 18 insertions(+), 18 deletions(-)
+ 0 files changed
 
 diff --git a/extensions-core/druid-pac4j/pom.xml b/extensions-core/druid-pac4j/pom.xml
 index b48171d192..282e0e5b15 100644

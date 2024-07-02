@@ -4,9 +4,7 @@ From: Lars Francke <git@lars-francke.de>
 
 
 ---
- distribution/pom.xml |    2 --
- pom.xml              |    1 -
- 2 files changed, 3 deletions(-)
+ 0 files changed
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
 index ecc00a9155..67ebecc482 100644

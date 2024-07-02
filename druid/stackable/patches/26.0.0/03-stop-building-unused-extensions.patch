@@ -6,8 +6,7 @@ By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused
 extensions from the build.
 ---
- pom.xml |   32 ++++----------------------------
- 1 file changed, 4 insertions(+), 28 deletions(-)
+ 0 files changed
 
 diff --git a/pom.xml b/pom.xml
 index a33c6bd521..f5001910e1 100644

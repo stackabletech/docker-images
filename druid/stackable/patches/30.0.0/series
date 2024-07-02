@@ -3,3 +3,4 @@
 02-prometheus-emitter-from-source.patch
 03-stop-building-unused-extensions.patch
 04-update-patch-dependencies.patch
+05-xmllayout-dependencies.patch

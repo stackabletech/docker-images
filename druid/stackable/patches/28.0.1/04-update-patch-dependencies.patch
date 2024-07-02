@@ -4,13 +4,7 @@ From: Lars Francke <git@lars-francke.de>
 
 
 ---
- extensions-core/avro-extensions/pom.xml     |    2 +-
- extensions-core/orc-extensions/pom.xml      |    2 +-
- extensions-core/parquet-extensions/pom.xml  |    2 +-
- extensions-core/protobuf-extensions/pom.xml |    2 +-
- pom.xml                                     |   28 ++++++++++++++-------------
- processing/pom.xml                          |    2 +-
- 6 files changed, 19 insertions(+), 19 deletions(-)
+ 0 files changed
 
 diff --git a/extensions-core/avro-extensions/pom.xml b/extensions-core/avro-extensions/pom.xml
 index eeb40f0f47..67a5eb80c0 100644

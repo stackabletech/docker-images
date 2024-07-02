@@ -4,8 +4,7 @@ From: Lars Francke <git@lars-francke.de>
 
 
 ---
- distribution/pom.xml |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ 0 files changed
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
 index d7cd645767..eda1ddcfab 100644

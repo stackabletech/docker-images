@@ -4,14 +4,13 @@ From: Lars Francke <git@lars-francke.de>
 
 
 ---
- distribution/pom.xml |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ 0 files changed
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index d2ce1ebd62..f60a62b9a6 100644
+index a6e72cf2c2..3ab13d5d11 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -639,6 +639,52 @@
+@@ -637,6 +637,52 @@
                  </plugins>
              </build>
          </profile>

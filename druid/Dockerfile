@@ -61,17 +61,6 @@ rm -rf /stackable/.cache
 
 # Install OPA authorizer extension.
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
-
-# Install jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging, and remove stax-ex.
-rm /stackable/apache-druid-${PRODUCT}/lib/stax-ex-*.jar
-curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-  "https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar"
-
-curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/stax2-api-${STAX2_API}.jar \
-  "https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar"
-
-curl --fail -L -o /stackable/apache-druid-${PRODUCT}/lib/woodstox-core-${WOODSTOX_CORE}.jar \
-  "https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar"
 EOF
 
 # hadolint ignore=DL3006
