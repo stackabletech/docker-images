@@ -126,7 +126,7 @@ runs:
         cosign sign -y "$MANIFEST_NAME@$DIGEST"
 
         # Push to oci.stackable.tech as well
-        MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
+        MANIFEST_NAME="oci.stackable.tech/sdp/${{ inputs.product }}:$IMAGE_VERSION"
         docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
         DIGEST=$(docker manifest push $MANIFEST_NAME)
         cosign sign -y "$MANIFEST_NAME@$DIGEST"
