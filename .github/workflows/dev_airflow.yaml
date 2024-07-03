@@ -41,21 +41,10 @@ jobs:
     strategy:
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        shard-count:
-          - ${{ needs.generate_matrix.outputs.count }}
+        # shard-count:
+        #   - ${{ needs.generate_matrix.outputs.count }}
         shard-index: ${{ fromJson(needs.generate_matrix.outputs.shards) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Build Product Image
-        uses: ./.github/actions/build
-        with:
-          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
-          shard-count: ${{ matrix.shard-count }}
-          shard-index: ${{ matrix.shard-index }}
-      - name: Publish Product Image
-        uses: ./.github/actions/publish
-        with:
-          product: ${{ env.PRODUCT_NAME }}
-          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
-          harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - run: echo ${{ matrix.shard-index }}
