@@ -88,6 +88,12 @@ jobs:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Login to build cache registry
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          registry: build-repo.stackable.tech:8083
+          username: github
+          password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
       - name: Publish dev images
         id: publish_images
         run: |
@@ -100,7 +106,8 @@ jobs:
           --architecture "linux/${ARCH_FOR_DOCKER}" \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
-          --export-tags-file bake-target-tags
+          --export-tags-file bake-target-tags \
+          --cache
 
           # Conditionally push images if not triggered by workflow_dispatch
           if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
