@@ -17,8 +17,8 @@ ARG TARGETOS
 
 WORKDIR /stackable
 
-COPY hadoop/stackable /stackable
-
+COPY hadoop/stackable/jmx /stackable/jmx
+COPY hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -49,7 +49,18 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
+RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN microdnf update && \
+    microdnf install \
+    pkg-config \
+    # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
+    boost1.78 && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+
 WORKDIR /stackable
+
+COPY hadoop/stackable/patches /stackable/patches
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
