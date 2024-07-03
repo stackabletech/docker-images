@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - nifi/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_nifi.yaml
   pull_request:
     paths:
       - nifi/**

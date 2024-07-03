@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - druid/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_druid.yaml
   pull_request:
     paths:
       - druid/**

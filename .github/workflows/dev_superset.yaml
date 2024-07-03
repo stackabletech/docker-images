@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - superset/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_superset.yaml
   pull_request:
     paths:
       - superset/**

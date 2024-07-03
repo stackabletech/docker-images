@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - zookeeper/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_zookeeper.yaml
   pull_request:
     paths:
       - zookeeper/**

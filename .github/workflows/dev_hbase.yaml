@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - hbase/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_hbase.yaml
   pull_request:
     paths:
       - hbase/**

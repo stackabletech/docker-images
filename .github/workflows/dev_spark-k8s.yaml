@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - spark-k8s/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_spark-k8s.yaml
   pull_request:
     paths:
       - spark-k8s/**

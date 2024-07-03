@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - testing-tools/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_testing-tools.yaml
   pull_request:
     paths:
       - testing-tools/**

@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - kafka/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_kafka.yaml
   pull_request:
     paths:
       - kafka/**

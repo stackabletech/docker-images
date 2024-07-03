@@ -11,7 +11,8 @@ on:
       - main
     paths:
       - krb5/**
-      - .github/**
+      - .github/actions/**
+      - .github/workflows/dev_krb5.yaml
   pull_request:
     paths:
       - krb5/**
