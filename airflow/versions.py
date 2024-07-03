@@ -5,7 +5,7 @@ versions = [
         "git_sync": "v4.2.1",
         "statsd_exporter": "0.26.0",
         "tini": "0.19.0",
-        "vector": "0.35.0",
+        "vector": "0.39.0",
     },
     {
         "product": "2.7.2",
@@ -13,7 +13,7 @@ versions = [
         "git_sync": "v4.2.1",
         "statsd_exporter": "0.26.0",
         "tini": "0.19.0",
-        "vector": "0.35.0",
+        "vector": "0.39.0",
     },
     {
         "product": "2.7.3",
@@ -21,7 +21,7 @@ versions = [
         "git_sync": "v4.2.1",
         "statsd_exporter": "0.26.0",
         "tini": "0.19.0",
-        "vector": "0.35.0",
+        "vector": "0.39.0",
     },
     {
         "product": "2.8.1",
@@ -29,7 +29,7 @@ versions = [
         "git_sync": "v4.2.1",
         "statsd_exporter": "0.26.0",
         "tini": "0.19.0",
-        "vector": "0.35.0",
+        "vector": "0.39.0",
     },
     {
         "product": "2.8.3",
@@ -37,6 +37,6 @@ versions = [
         "git_sync": "v4.2.1",
         "statsd_exporter": "0.26.0",
         "tini": "0.19.0",
-        "vector": "0.35.0",
+        "vector": "0.39.0",
     },
 ]
