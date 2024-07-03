@@ -5,6 +5,12 @@ inputs:
   product:
     description: The name of the product to build via bake (directory name)
     required: true
+  shard-count:
+    description: The number of shards to use in bake
+    required: true
+  shard-index:
+    description: The shard index used by runner
+    required: true
   image-tools-version:
     description: The Stackable image-tools version
     default: 0.0.8
@@ -36,4 +42,6 @@ runs:
         bake --product ${{ inputs.product }} \
         --image-version "0.0.0-dev-${ARCH_FOR_DOCKER}" \
         --architecture "linux/${ARCH_FOR_DOCKER}" \
+        --shard-count "${{ inputs.shard-count }}" \
+        --shard-index "${{ inputs.shard-index }}" \
         --export-tags-file bake-target-tags

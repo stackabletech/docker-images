@@ -21,7 +21,13 @@ jobs:
     name: Build and Publish Docker Image (Dev)
     permissions:
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
+        shard-count:
+          - 5
+        shard-index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,6 +35,8 @@ jobs:
         uses: ./.github/actions/build
         with:
           product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          shard-count: ${{ matrix.shard-count }}
+          shard-index: ${{ matrix.shard-index }}
       - name: Publish Product Image
         uses: ./.github/actions/publish
         with:
