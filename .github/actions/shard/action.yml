@@ -1,6 +1,6 @@
 name: Generate Shards
 description: This action builds list of shard indices for use in Github Actions Matrices
-input:
+inputs:
   product:
     description: The name of the product to build via bake (directory name)
     required: true
