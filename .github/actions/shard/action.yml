@@ -17,7 +17,8 @@ runs:
     - uses: actions/setup-python@v5
       with:
         python-version: '3.12' 
-    - id: generate_shards
+    - name: Generate Shards
+      id: generate_shards
       shell: python
       env:
         PRODUCT_NAME: ${{ inputs.product }}
@@ -36,8 +37,8 @@ runs:
         # enumerate the versions and only keep the index, eg: [0, 1, 2]
         versions = [k for k,v in enumerate(product_conf["versions"])]
         output_count = len(versions)
-        output_count = f"COUNT={output_count}"
-        output_shards = f"SHARDS={versions}"
+        output_count = f"COUNT={output_count}\n"
+        output_shards = f"SHARDS={versions}\n"
 
         github_outputs_file = os.environ['GITHUB_OUTPUT']
         f = open(github_outputs_file, "w")
@@ -46,3 +47,8 @@ runs:
         print(f"Writing to $GITHUB_OUTPUT: {output_shards}")
         f.write(output_shards)
         f.close()
+    - name: Print Shards
+      shell: bash
+      run: |
+        echo shards=${{ steps.generate_shards.outputs.SHARDS }}
+        echo count=${{ steps.generate_shards.outputs.COUNT }}
