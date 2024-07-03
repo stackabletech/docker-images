@@ -1,0 +1,39 @@
+name: Generate Shards
+description: This action builds list of shard indices for use in Github Actions Matrices
+outputs:
+  count:
+    description: The length of the shard list
+    value: ${{ steps.generate_shards.outputs.COUNT }}
+  shards:
+    description: A list of shard indices
+    value: ${{ steps.generate_shards.outputs.SHARDS }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12' 
+    - id: generate_shards
+      shell: python
+      run: |
+        # Need to get the number of versions for the product
+        import sys
+        import os
+        sys.path.append(str(os.getcwd()))
+        import conf
+
+        # get the product config
+        product = list(filter(lambda x: x["name"] == "product2", conf.products))[0]
+        # enumerate the versions and only keep the index, eg: [0, 1, 2]
+        versions = [k for k,v in enumerate(product["versions"])]
+        output_count = len(versions)
+        output_count = f"COUNT={output_count}"
+        output_shards = f"SHARDS={versions}"
+
+        github_outputs_file = os.environ['GITHUB_OUTPUT']
+        f = open(github_outputs_file, "w")
+        print(f"Writing to $GITHUB_OUTPUT: {output_count}")
+        f.write(output_count)
+        print(f"Writing to $GITHUB_OUTPUT: {output_shards}")
+        f.write(output_shards)
+        f.close()
