@@ -22,8 +22,8 @@ jobs:
     strategy:
       matrix:
         architecture:
-          - amd64
-          - arm64
+          - "amd64"
+          - "arm64"
     permissions:
       id-token: write
     steps:
@@ -54,6 +54,7 @@ jobs:
           # Obtain the digest of the pushed image from the output of `docker push`, because signing by tag is deprecated and will be removed from cosign in the future
           REPO_DIGEST_OF_IMAGE_HARBOR=$(echo "$DOCKER_OUTPUT_HARBOR" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }');
           REPO_DIGEST_OF_IMAGE_NEXUS=$(echo "$DOCKER_OUTPUT_NEXUS" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }');
+          # Check both architectures to see if both are available
           if [ -z "$REPO_DIGEST_OF_IMAGE_HARBOR" ]; then
             echo "Could not find repo digest for container image: $DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
             exit 1
@@ -66,3 +67,31 @@ jobs:
           # Uses the keyless signing flow with Github Actions as identity provider
           cosign sign -y "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
           cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_NEXUS"
+  mirror-multi-arch:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Login to Stackable Harbor
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          registry: ${{ env.DST_REGISTRY_HARBOR }}
+          username: "robot$sdp+github-action-build"
+          password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Login to Stackable Nexus
+        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        with:
+          registry: ${{ env.DST_REGISTRY_NEXUS }}
+          username: github
+          password: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Build and push manifest list
+        run: |
+          # Create manifest list for Nexus and Harbor
+          docker manifest create "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}" --amend "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}-arm64" --amend "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}-amd64"
+          docker manifest create "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}" --amend "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-arm64" --amend "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-amd64"
+          # Pushing manifest list to Nexus and Harbor, store manifest DIGEST for signing
+          MANIFEST_SHA_HARBOR=$(docker manifest push "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}")
+          MANIFEST_SHA_NEXUS=$(docker manifest push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}")
+          # Signing manifest lists for Nexus and Harbor
+          cosign sign -y "$DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR/${{ github.event.inputs.dst }}@$MANIFEST_SHA_HARBOR"
+          cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}@$MANIFEST_SHA_NEXUS"
