@@ -54,7 +54,7 @@ RUN microdnf update && \
     microdnf install \
     pkg-config \
     # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-    boost1.78 && \
+    boost1.78-devel && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
