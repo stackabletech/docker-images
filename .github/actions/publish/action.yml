@@ -34,7 +34,7 @@ runs:
         username: robot$sdp+github-action-build
         password: ${{ inputs.harbor-secret }}
 
-    - name: Setup environment variables
+    - name: Setup Environment Variables
       shell: bash
       run: |
         echo "bake-target-tags: "$(< bake-target-tags)
@@ -43,7 +43,7 @@ runs:
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
         echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
-    - name: Push image to repo.stackable.tech and sign via cosign
+    - name: Push Image to repo.stackable.tech and sign via cosign
       shell: bash
       run: |
         # Store the output of `docker image push` into a variable, so we can
@@ -60,7 +60,7 @@ runs:
         # Uses the keyless signing flow with Github Actions as identity provider
         cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-    - name: Generate SBOM for the image
+    - name: Generate SBOM for the Image
       shell: bash
       run: |
         syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ inputs.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
@@ -74,7 +74,7 @@ runs:
         # Attest the SBOM to the image
         cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
 
-    - name: Push image to oci.stackable.tech and sign via cosign
+    - name: Push Image to oci.stackable.tech and sign via cosign
       shell: bash
       run: |
         IMAGE_NAME=oci.stackable.tech/sdp/${{ inputs.product }}
@@ -91,7 +91,7 @@ runs:
         # Uses the keyless signing flow with Github Actions as identity provider
         cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-    - name: Generate SBOM for the image
+    - name: Generate SBOM for the Image
       shell: bash
       run: |
         syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ inputs.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
@@ -105,32 +105,25 @@ runs:
         # Attest the SBOM to the image
         cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
 
-    - name: Create manifests
+    - name: Create Manifest
       shell: bash
       run: |
-        for product_and_version in $(python3 enumerate.py); do
-          PRODUCT="$(echo "$product_and_version" | cut -d '#' -f 1)"
-          VERSION="$(echo "$product_and_version" | cut -d '#' -f 2)"
+        MANIFEST_NAME="docker.stackable.tech/stackable/${{ inputs.product }}:$TAG_NAME-stackable0.0.0-dev"
+        # Create and push to Stackable Nexus
+        # `docker manifest push` directly returns the digest of the manifest list
+        # As it is an experimental feature, this might change in the future
+        # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
+        # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
+        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
+        DIGEST=$(docker manifest push $MANIFEST_NAME)
 
-          echo "Generating manifest list for $PRODUCT in version $VERSION"
+        # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
+        # This generates a signature and publishes it to the registry, next to the image
+        # Uses the keyless signing flow with Github Actions as identity provider
+        cosign sign -y "$MANIFEST_NAME@$DIGEST"
 
-          MANIFEST_NAME="docker.stackable.tech/stackable/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
-          # Create and push to Stackable Nexus
-          # `docker manifest push` directly returns the digest of the manifest list
-          # As it is an experimental feature, this might change in the future
-          # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
-          # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
-          docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-          DIGEST=$(docker manifest push $MANIFEST_NAME)
-
-          # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
-          # This generates a signature and publishes it to the registry, next to the image
-          # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "$MANIFEST_NAME@$DIGEST"
-
-          # Push to oci.stackable.tech as well
-          MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
-          docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-          DIGEST=$(docker manifest push $MANIFEST_NAME)
-          cosign sign -y "$MANIFEST_NAME@$DIGEST"
-        done
+        # Push to oci.stackable.tech as well
+        MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable0.0.0-dev"
+        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
+        DIGEST=$(docker manifest push $MANIFEST_NAME)
+        cosign sign -y "$MANIFEST_NAME@$DIGEST"
