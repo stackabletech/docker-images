@@ -3,17 +3,17 @@
 # Ignoring DL3038 globally because we set `assumeyes=True` in dnf.conf
 # hadolint global ignore=DL3038
 
-# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?architecture=amd64
+# https://catalog.redhat.com/software/containers/ubi9-minimal/615bd9b4075b022acc111bf5?architecture=amd64
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS builder
+FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD to be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.77.2
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
-ENV PROTOC_VERSION=27.1
+ENV PROTOC_VERSION=27.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status

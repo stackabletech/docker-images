@@ -6,17 +6,17 @@
 # Ignoring DL3038 globally because we set `assumeyes=True` in dnf.conf
 # hadolint global ignore=DL3038
 
-# https://catalog.redhat.com/software/containers/ubi8/ubi8-minimal/5c64772edd19c77a158ea216?architecture=amd64
+# https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?architecture=amd64
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi8-minimal@sha256:5f1cd3422d5d46aea35dac80825dbcbd58213eef49c317f42a394345fb4e8ff1 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.77.2
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
-ENV PROTOC_VERSION=27.1
+ENV PROTOC_VERSION=27.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
