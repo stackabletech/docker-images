@@ -147,8 +147,13 @@ open_shift_projects = {
     "trino": {"id": "62557c4a0030f6483318e203"},
     "zookeeper": {"id": "62552b0aadd9d54d56cda11d"},
 }
-cache = [{
-    "type": "registry",
-    "ref_prefix": "build-repo.stackable.tech:8083/sandbox/cache",
-    "mode": "max"
-}]
+cache = [
+    {
+        "type": "registry",
+        "ref_prefix": "build-repo.stackable.tech:8083/sandbox/cache",
+        "mode": "max",
+    },
+    {
+        "type": "inline",
+    },
+]
