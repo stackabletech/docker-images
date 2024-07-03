@@ -9,11 +9,11 @@ on:
     branches:
       - main
     paths:
-      - $PRODUCT_NAME/**
+      - airflow/**
       - .github/**
   pull_request:
     paths:
-      - $PRODUCT_NAME/**
+      - airflow/**
       - .github/**
 
 jobs:
@@ -28,10 +28,10 @@ jobs:
       - name: Build Product Image
         uses: ./.github/actions/build
         with:
-          product: $PRODUCT_NAME # todo: how to handle workflow_dispatch (use product input)
+          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
       - name: Publish Product Image
         uses: ./.github/actions/publish
         with:
-          product: $PRODUCT_NAME
-          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
-          harbor_secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+          product: ${{ env.PRODUCT_NAME }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+          harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
