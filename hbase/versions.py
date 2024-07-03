@@ -11,6 +11,6 @@ versions = [
         "phoenix": "5.2.0",
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
-        "jmx_exporter": "0.20.0",
+        "jmx_exporter": "1.0.1",
     },
 ]
