@@ -147,6 +147,7 @@ open_shift_projects = {
     "trino": {"id": "62557c4a0030f6483318e203"},
     "zookeeper": {"id": "62552b0aadd9d54d56cda11d"},
 }
+
 cache = [
     {
         "type": "registry",
