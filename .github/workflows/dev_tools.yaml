@@ -1,0 +1,46 @@
+---
+name: Build Tools
+
+env:
+  PRODUCT_NAME: tools
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - tools/**
+      - .github/**
+  pull_request:
+    paths:
+      - tools/**
+      - .github/**
+
+jobs:
+  build:
+    name: Build and Publish Docker Image (Dev)
+    permissions:
+      id-token: write
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
+        shard-count:
+          - 5
+        shard-index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build Product Image
+        uses: ./.github/actions/build
+        with:
+          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          shard-count: ${{ matrix.shard-count }}
+          shard-index: ${{ matrix.shard-index }}
+      - name: Publish Product Image
+        uses: ./.github/actions/publish
+        with:
+          product: ${{ env.PRODUCT_NAME }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+          harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
