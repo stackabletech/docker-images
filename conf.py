@@ -153,7 +153,4 @@ cache = [
         "ref_prefix": "build-repo.stackable.tech:8083/sandbox/cache",
         "mode": "max",
     },
-    {
-        "type": "inline",
-    },
 ]
