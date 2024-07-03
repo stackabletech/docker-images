@@ -18,8 +18,20 @@ on:
       - .github/**
 
 jobs:
+  generate_matrix:
+    name: generate_matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: shard
+        uses: ./.github/actions/shard
+    outputs:
+      count: ${{ steps.shard.outputs.count }}
+      shards: ${{ steps.shard.outputs.shards }}
+
   build:
     name: Build and Publish Docker Image (Dev)
+    needs: [generate_matrix]
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner }}
@@ -27,8 +39,8 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
         shard-count:
-          - 5
-        shard-index: [0, 1, 2, 3, 4] # between 0 and shard_count-1
+          - ${{ needs.generate_matrix.outputs.count }}
+        shard-index: ${{ fromJson(needs.generate_matrix.outputs.shards) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
