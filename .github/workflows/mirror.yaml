@@ -69,6 +69,7 @@ jobs:
           cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_NEXUS"
   mirror-multi-arch:
     runs-on: ubuntu-latest
+    needs: mirror-image
     permissions:
       id-token: write
     steps:
