@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: shard
         uses: ./.github/actions/shard
+        with:
+          product: ${{ env.PRODUCT_NAME }}
     outputs:
       count: ${{ steps.shard.outputs.count }}
       shards: ${{ steps.shard.outputs.shards }}
