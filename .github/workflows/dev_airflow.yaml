@@ -1,0 +1,37 @@
+name: Build Airflow
+
+env:
+  PRODUCT_NAME: airflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - $PRODUCT_NAME/**
+      - .github/**
+  pull_request:
+    paths:
+      - $PRODUCT_NAME/**
+      - .github/**
+
+jobs:
+  build:
+    name: Build and Publish Docker Image (Dev)
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build Product Image
+        uses: ./.github/actions/build
+        with:
+          product: $PRODUCT_NAME # todo: how to handle workflow_dispatch (use product input)
+      - name: Publish Product Image
+        uses: ./.github/actions/publish
+        with:
+          product: $PRODUCT_NAME
+          nexus_password: ${{ secrets.NEXUS_PASSWORD }}
+          harbor_secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
