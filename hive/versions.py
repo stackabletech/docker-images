@@ -1,7 +1,7 @@
 versions = [
     {
         "product": "3.1.3",
-        "jmx_exporter": "0.20.0",
+        "jmx_exporter": "1.0.1",
         # Hive must be built with Java 8 but will run on Java 11
         "java-base": "11",
         "java-devel": "1.8.0",

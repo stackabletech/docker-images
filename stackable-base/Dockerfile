@@ -4,11 +4,11 @@
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6633b5136d81a5634a616c41&architecture=amd64
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
+FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
 ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.78.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
@@ -29,7 +29,7 @@ RUN cd ./config-utils && \
     cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
+FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
 
 # intentionally unused
 ARG PRODUCT
