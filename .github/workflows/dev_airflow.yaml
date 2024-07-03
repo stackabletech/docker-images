@@ -41,10 +41,10 @@ jobs:
     strategy:
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        # shard-count:
-        #   - ${{ needs.generate_matrix.outputs.count }}
-        shard-index: ${{ fromJson(needs.generate_matrix.outputs.shards) }}
+        shard-count:
+          - ${{ needs.generate_matrix.outputs.count }}
+        # shard-index: ${{ fromJson(needs.generate_matrix.outputs.shards) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - run: echo ${{ matrix.shard-index }}
+      - run: echo ${{ matrix.shard-count }}
