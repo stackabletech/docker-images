@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
-- kafka: Add versions `3.6.2` and `3.7.1`([#745]).
+- kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
 
 ### Changed
 
