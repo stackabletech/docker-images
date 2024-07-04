@@ -18,9 +18,10 @@ All notable changes to this project will be documented in this file.
 - nifi: Build from source ([#678]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - java-devel: New image to serve as base layer for builder stages ([#665]).
-- hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
-- hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
+- hadoop: Exclude YARN and Mapreduce projects from build ([#667]).
+- hadoop: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
+- hadoop: Add version `3.4.0` ([#743]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
@@ -108,6 +109,7 @@ All notable changes to this project will be documented in this file.
 [#734]: https://github.com/stackabletech/docker-images/pull/734
 [#736]: https://github.com/stackabletech/docker-images/pull/736
 [#737]: https://github.com/stackabletech/docker-images/pull/737
+[#737]: https://github.com/stackabletech/docker-images/pull/743
 
 ## [24.3.0] - 2024-03-20
 
