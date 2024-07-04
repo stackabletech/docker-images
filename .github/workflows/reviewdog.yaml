@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - uses: reviewdog/action-detect-secrets@b5b4970afb90e6f45ca02e215b4ed64ded1c5e5a # v0.22.0
+      - uses: reviewdog/action-detect-secrets@a74b98d5df264c669546e1cb53887ec1bc9dafcd # v0.24.0
         with:
           github_token: ${{ secrets.github_token }}
 
