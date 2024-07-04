@@ -11,9 +11,15 @@ inputs:
   image-version:
     description: This is the container image end tag excluding the architecture information (right of ':')
     required: true
+  nexus-username:
+    description: The username to login to Nexus
+    default: github
   nexus-password:
     description: The password to login to Nexus
     required: true
+  harbor-username:
+    description: The username to login to Harbor
+    default: robot$sdp+github-action-build
   harbor-secret:
     description: The secret to login to Harbor
     required: true
@@ -30,14 +36,14 @@ runs:
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
         registry: docker.stackable.tech
-        username: github
+        username: ${{ inputs.nexus-username }}
         password: ${{ inputs.nexus-password }}
 
     - name: Login to Stackable Harbor
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
         registry: oci.stackable.tech
-        username: robot$sdp+github-action-build
+        username: ${{ inputs.harbor-username }}
         password: ${{ inputs.harbor-secret }}
 
     - name: Setup Environment Variables
