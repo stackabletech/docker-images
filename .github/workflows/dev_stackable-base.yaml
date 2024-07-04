@@ -51,7 +51,7 @@ jobs:
         id: build
         uses: ./.github/actions/build
         with:
-          product-name: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
@@ -77,7 +77,7 @@ jobs:
       - name: Build Product Manifest List
         uses: ./.github/actions/publish-manifest
         with:
-          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          product: ${{ env.PRODUCT_NAME }}
           image-version: ${{ matrix.versions }}-stackable0.0.0-dev
           nexus-password: ${{ secrets.NEXUS_PASSWORD }}
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
