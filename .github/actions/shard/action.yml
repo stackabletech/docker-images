@@ -50,5 +50,6 @@ runs:
     - name: Print Shards
       shell: bash
       run: |
+        set -euo pipefail
         echo shards=${{ steps.generate_shards.outputs.SHARDS }}
         echo count=${{ steps.generate_shards.outputs.COUNT }}

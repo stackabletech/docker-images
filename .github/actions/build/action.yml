@@ -24,6 +24,7 @@ runs:
     - name: Setup Python
       shell: bash
       run: |
+        set -euo pipefail
         sudo apt update
         sudo apt install -y python3
 
@@ -38,6 +39,7 @@ runs:
     - name: Build image using bake
       shell: bash
       run: |
+        set -euo pipefail
         ARCH_FOR_DOCKER="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
         bake --product ${{ inputs.product }} \
         --image-version "0.0.0-dev-${ARCH_FOR_DOCKER}" \
