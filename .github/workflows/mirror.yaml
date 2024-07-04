@@ -89,6 +89,7 @@ jobs:
           registry: ${{ env.DST_REGISTRY_NEXUS }}
           username: github
           password: ${{ secrets.NEXUS_PASSWORD }}
+      - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
       - name: Build and push manifest list
         run: |
           # Create manifest list for Nexus and Harbor
