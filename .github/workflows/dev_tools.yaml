@@ -41,8 +41,8 @@ jobs:
     strategy:
       matrix:
         runner:
-          - { name: "ubuntu-latest", arch: "amd64" }
-          - { name: "ubicloud-standard-8-arm", arch: "arm64" }
+          - {name: "ubuntu-latest", arch: "amd64"}
+          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
