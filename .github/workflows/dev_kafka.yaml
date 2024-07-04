@@ -64,7 +64,7 @@ jobs:
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
 
   publish_manifests:
-    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Manifests
+    name: Build/Publish ${{ matrix.versions }} Manifests
     needs: [generate_matrix, build]
     permissions:
       id-token: write
