@@ -36,7 +36,7 @@ jobs:
     needs: [generate_matrix]
     permissions:
       id-token: write
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner.name }}
     strategy:
       matrix:
         runner:
