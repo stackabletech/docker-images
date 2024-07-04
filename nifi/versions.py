@@ -18,5 +18,5 @@ versions = [
         "product": "2.0.0-M4",
         "java-base": "21",
         "java-devel": "21",
-    },          
+    }          
 ]

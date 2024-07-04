@@ -44,7 +44,7 @@ index 97337d63e2..0f7a272de7 100644
 +        // Check if the setting for allowed hosts has only the wildcard entry and
 +        // if so store this in allowAllHost for later use
 +        List<String> configuredHostNames = niFiProperties.getAllowedHostsAsList();
-+        this.allowAllHosts = configuredHostNames.size() == 1 && configuredHostNames.contains("*"); 
++        this.allowAllHosts = configuredHostNames.size() == 1 && configuredHostNames.contains("*");
 +
          // empty is ok here
          hosts.add("");
