@@ -29,12 +29,10 @@ jobs:
         with:
           product: ${{ env.PRODUCT_NAME }}
     outputs:
-      count: ${{ steps.shard.outputs.count }}
-      shards: ${{ steps.shard.outputs.shards }}
       versions: ${{ steps.shard.outputs.versions }}
 
   build:
-    name: Build and Publish ${{ steps.build.outputs.image-version }} Docker Image
+    name: Build and Publish ${{ matrix.versions }} Docker Image
     needs: [generate_matrix]
     permissions:
       id-token: write
@@ -42,9 +40,7 @@ jobs:
     strategy:
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        shard-count:
-          - ${{ needs.generate_matrix.outputs.count }}
-        shard-index: ${{ fromJson(needs.generate_matrix.outputs.shards) }}
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -52,9 +48,8 @@ jobs:
         id: build
         uses: ./.github/actions/build
         with:
-          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
-          shard-count: ${{ matrix.shard-count }}
-          shard-index: ${{ matrix.shard-index }}
+          product-name: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          product-version: ${{ matrix.versions }}
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
         with:
@@ -65,7 +60,7 @@ jobs:
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
 
   publish_manifests:
-    name: Build and Publish ${{ steps.build.outputs.image-version }} Docker Manifests
+    name: Build and Publish ${{ matrix.versions }} Docker Manifests
     needs: [generate_matrix, build]
     permissions:
       id-token: write

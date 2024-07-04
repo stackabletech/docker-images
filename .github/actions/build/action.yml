@@ -2,14 +2,11 @@
 name: Build Product Image
 description: This action builds a product Docker image with a specific version
 inputs:
-  product:
+  product-name:
     description: The name of the product to build via bake (directory name)
     required: true
-  shard-count:
-    description: The number of shards to use in bake
-    required: true
-  shard-index:
-    description: The shard index used by runner
+  product-version:
+    description: The version of the product to build via bake
     required: true
   image-tools-version:
     description: The Stackable image-tools version
@@ -35,9 +32,9 @@ runs:
         sudo apt update
         sudo apt install -y python3
 
-    - name: Building ${{ inputs.product }}
+    - name: Building ${{ inputs.product-name }}
       shell: bash
-      run: echo ${{ inputs.product }}
+      run: echo ${{ inputs.product-name }}
 
     - name: Install image-tools-stackabletech
       shell: bash
@@ -48,11 +45,10 @@ runs:
       run: |
         set -euo pipefail
         ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
-        bake --product ${{ inputs.product }} \
+        bake \
+        --product ${{ inputs.product-name }}=${{ inputs.product-version }} \
         --image-version "0.0.0-dev-${ARCH}" \
         --architecture "linux/${ARCH}" \
-        --shard-count "${{ inputs.shard-count }}" \
-        --shard-index "${{ inputs.shard-index }}" \
         --export-tags-file bake-target-tags
 
     - name: Setup Environment Variables

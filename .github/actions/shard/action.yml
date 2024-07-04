@@ -5,12 +5,6 @@ inputs:
     description: The name of the product to build via bake (directory name)
     required: true
 outputs:
-  count:
-    description: The length of the shard list
-    value: ${{ steps.generate_shards.outputs.COUNT }}
-  shards:
-    description: A list of shard indices
-    value: ${{ steps.generate_shards.outputs.SHARDS }}
   versions:
     description: A list of product versions
     value: ${{ steps.generate_shards.outputs.VERSIONS }}
@@ -26,31 +20,23 @@ runs:
       env:
         PRODUCT_NAME: ${{ inputs.product }}
       run: |
-        # Need to get the number of versions for the product
+        # Need to get the list of versions for the product
         import sys
         import os
         sys.path.append(str(os.getcwd()))
         import conf
 
         product=os.environ['PRODUCT_NAME']
-        print(f"Generating version shards for {product}")
+        print(f"Generating version list for {product}")
 
         # get the product config
         product_conf = list(filter(lambda x: x["name"] == product, conf.products))[0]
-        # enumerate the versions and only keep the index, eg: [0, 1, 2]
-        version_indices = [k for k,v in enumerate(product_conf["versions"])]
+        # list the versions, eg: [1.0, 1.1, 2.0]
         versions = [v["product"] for k,v in enumerate(product_conf["versions"])]
-        output_count = len(version_indices)
-        output_count = f"COUNT={output_count}\n"
-        output_shards = f"SHARDS={version_indices}\n"
         output_versions = f"VERSIONS={versions}\n"
 
         github_outputs_file = os.environ['GITHUB_OUTPUT']
         f = open(github_outputs_file, "w")
-        print(f"Writing to $GITHUB_OUTPUT: {output_count}")
-        f.write(output_count)
-        print(f"Writing to $GITHUB_OUTPUT: {output_shards}")
-        f.write(output_shards)
         print(f"Writing to $GITHUB_OUTPUT: {output_versions}")
         f.write(output_versions)
         f.close()
@@ -59,5 +45,3 @@ runs:
       run: |
         set -euo pipefail
         echo versions=${{ steps.generate_shards.outputs.VERSIONS }}
-        echo shards=${{ steps.generate_shards.outputs.SHARDS }}
-        echo count=${{ steps.generate_shards.outputs.COUNT }}
