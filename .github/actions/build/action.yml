@@ -14,6 +14,13 @@ inputs:
   image-tools-version:
     description: The Stackable image-tools version
     default: 0.0.8
+outputs:
+  image-name:
+    description: This is the full image name before the tag (left of ':')
+    value: ${{ steps.image_info.outputs.IMAGE_NAME }}
+  image-version:
+    description: This is the container image end tag excluding the architecture information (right of ':')
+    value: ${{ steps.image_info.outputs.IMAGE_VERSION }}
 runs:
   using: composite
   steps:
@@ -47,3 +54,15 @@ runs:
         --shard-count "${{ inputs.shard-count }}" \
         --shard-index "${{ inputs.shard-index }}" \
         --export-tags-file bake-target-tags
+
+    - name: Setup Environment Variables
+      id: image_info
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "bake-target-tags: "$(< bake-target-tags)
+        IMAGE_VERSION=$(cat bake-target-tags | cut -d ":" -f 2 | cut -d "-" -f 1-3)
+        IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+
+        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT

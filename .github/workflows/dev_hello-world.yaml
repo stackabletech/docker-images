@@ -30,6 +30,7 @@ jobs:
     outputs:
       count: ${{ steps.shard.outputs.count }}
       shards: ${{ steps.shard.outputs.shards }}
+      versions: ${{ steps.shard.outputs.versions }}
 
   build:
     name: Build and Publish Docker Image (Dev)
@@ -47,14 +48,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Build Product Image
+        id: build
         uses: ./.github/actions/build
         with:
           product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
           shard-count: ${{ matrix.shard-count }}
           shard-index: ${{ matrix.shard-index }}
       - name: Publish Product Image
-        uses: ./.github/actions/publish
+        uses: ./.github/actions/publish-image
         with:
           product: ${{ env.PRODUCT_NAME }}
+          image-name: ${{ steps.build.outputs.image-name }}
+          image-version: ${{ steps.build.outputs.image-version }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+          harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+
+  publish_manifests:
+    name: Build and Publish Docker Manifests (Dev)
+    needs: [generate_matrix, build]
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Build Product Manifest List
+        uses: ./.github/actions/publish-manifest
+        with:
+          product: ${{ env.PRODUCT_NAME }} # todo: how to handle workflow_dispatch (use product input)
+          image-version: ${{ matrix.versions }}-stackable0.0.0-dev
           nexus-password: ${{ secrets.NEXUS_PASSWORD }}
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}

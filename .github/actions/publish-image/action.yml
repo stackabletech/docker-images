@@ -5,6 +5,12 @@ inputs:
   product:
     description: The name of the product to publish
     required: true
+  image-name:
+    description: This is the full image name before the tag (left of ':')
+    required: true
+  image-version:
+    description: This is the container image end tag excluding the architecture information (right of ':')
+    required: true
   nexus-password:
     description: The password to login to Nexus
     required: true
@@ -38,10 +44,10 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        echo "bake-target-tags: "$(< bake-target-tags)
-        IMAGE_VERSION=$(cat bake-target-tags | cut -d ":" -f 2 | cut -d "-" -f 1-3)
-        IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
-        TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
+        IMAGE_VERSION=${{ inputs.image-version }}
+        IMAGE_NAME=${{ inputs.image-name }}
+        ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
+        TAG_NAME="${IMAGE_VERSION}-${ARCH}"
 
         echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
@@ -112,27 +118,3 @@ runs:
         jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
         # Attest the SBOM to the image
         cosign attest -y --predicate sbom.merged.json --type cyclonedx "$IMAGE_NAME@$DIGEST"
-
-    - name: Create Manifest
-      shell: bash
-      run: |
-        set -euo pipefail
-        MANIFEST_NAME="docker.stackable.tech/stackable/${{ inputs.product }}:$IMAGE_VERSION"
-        # Create and push to Stackable Nexus
-        # `docker manifest push` directly returns the digest of the manifest list
-        # As it is an experimental feature, this might change in the future
-        # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
-        # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
-        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-        DIGEST=$(docker manifest push $MANIFEST_NAME)
-
-        # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
-        # This generates a signature and publishes it to the registry, next to the image
-        # Uses the keyless signing flow with Github Actions as identity provider
-        cosign sign -y "$MANIFEST_NAME@$DIGEST"
-
-        # Push to oci.stackable.tech as well
-        MANIFEST_NAME="oci.stackable.tech/sdp/${{ inputs.product }}:$IMAGE_VERSION"
-        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-        DIGEST=$(docker manifest push $MANIFEST_NAME)
-        cosign sign -y "$MANIFEST_NAME@$DIGEST"

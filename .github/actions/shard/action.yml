@@ -11,6 +11,9 @@ outputs:
   shards:
     description: A list of shard indices
     value: ${{ steps.generate_shards.outputs.SHARDS }}
+  versions:
+    description: A list of product versions
+    value: ${{ steps.generate_shards.outputs.VERSIONS }}
 runs:
   using: composite
   steps:
@@ -35,10 +38,12 @@ runs:
         # get the product config
         product_conf = list(filter(lambda x: x["name"] == product, conf.products))[0]
         # enumerate the versions and only keep the index, eg: [0, 1, 2]
-        versions = [k for k,v in enumerate(product_conf["versions"])]
-        output_count = len(versions)
+        version_indices = [k for k,v in enumerate(product_conf["versions"])]
+        versions = [v["product"] for k,v in enumerate(product_conf["versions"])]
+        output_count = len(version_indices)
         output_count = f"COUNT={output_count}\n"
-        output_shards = f"SHARDS={versions}\n"
+        output_shards = f"SHARDS={version_indices}\n"
+        output_versions = f"VERSIONS={versions}\n"
 
         github_outputs_file = os.environ['GITHUB_OUTPUT']
         f = open(github_outputs_file, "w")
@@ -46,10 +51,13 @@ runs:
         f.write(output_count)
         print(f"Writing to $GITHUB_OUTPUT: {output_shards}")
         f.write(output_shards)
+        print(f"Writing to $GITHUB_OUTPUT: {output_versions}")
+        f.write(output_versions)
         f.close()
     - name: Print Shards
       shell: bash
       run: |
         set -euo pipefail
+        echo versions=${{ steps.generate_shards.outputs.VERSIONS }}
         echo shards=${{ steps.generate_shards.outputs.SHARDS }}
         echo count=${{ steps.generate_shards.outputs.COUNT }}
