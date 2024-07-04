@@ -55,15 +55,22 @@ mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTe
 mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 rm -rf /stackable/hbase-${PRODUCT}-src
-
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
+
+###
+### JMX Prometheus Exporter/Agent
+###
 curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# Build phoenix
+###
+### PHOENIX
+###
+cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
+cd phoenix-${PHOENIX}-src
 
 mvn \
   -Dhbase.version=${PRODUCT} \
@@ -77,13 +84,20 @@ rm -rf /stackable/phoenix-${PHOENIX}-src
 ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 
+###
+### Async Profiler
+###
+cd /stackable
 ARCH="${TARGETARCH/amd64/x64}"
 curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
-# Build the hbase-operator-tools
+###
+### HBase Operator Tools
+###
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+cd hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 mvn \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
@@ -96,9 +110,9 @@ tar -xz \
   -C /stackable/
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
-envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > bin/hbck2
-chmod +x bin/hbck2
-rm bin/hbck2.env
+envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > /stackable/bin/hbck2
+chmod +x /stackable/bin/hbck2
+rm /stackable/bin/hbck2.env
 
 # Resolve paths in bin/export-snapshot-to-s3
 export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//')
@@ -106,9 +120,9 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-envsubst '${PRODUCT}:${LIBS}' < bin/export-snapshot-to-s3.env > bin/export-snapshot-to-s3
-chmod +x bin/export-snapshot-to-s3
-rm bin/export-snapshot-to-s3.env
+envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
+chmod +x /stackable/bin/export-snapshot-to-s3
+rm /stackable/bin/export-snapshot-to-s3.env
 EOF
 
 # Final Image
