@@ -1,5 +1,5 @@
 ---
-name: Build Zookeeper
+name: Build ZooKeeper
 
 env:
   PRODUCT_NAME: zookeeper

@@ -1,5 +1,5 @@
 ---
-name: Build Opa
+name: Build OPA
 
 env:
   PRODUCT_NAME: opa

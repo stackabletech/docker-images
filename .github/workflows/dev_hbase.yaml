@@ -1,5 +1,5 @@
 ---
-name: Build Hbase
+name: Build HBase
 
 env:
   PRODUCT_NAME: hbase

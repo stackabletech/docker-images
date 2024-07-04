@@ -1,5 +1,5 @@
 ---
-name: Build Nifi
+name: Build NiFi
 
 env:
   PRODUCT_NAME: nifi
