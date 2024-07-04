@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
+- hbase: Support for HBase 2.4.18 ([#740])
 
 ### Changed
 
@@ -106,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#727]: https://github.com/stackabletech/docker-images/pull/727
 [#732]: https://github.com/stackabletech/docker-images/pull/732
 [#734]: https://github.com/stackabletech/docker-images/pull/734
+[#734]: https://github.com/stackabletech/docker-images/pull/740
 
 ## [24.3.0] - 2024-03-20
 
