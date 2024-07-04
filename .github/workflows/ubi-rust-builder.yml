@@ -33,7 +33,7 @@ jobs:
           echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
       - name: Build and push
         id: build-and-push
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
         with:
           context: .
           file: ./${{ matrix.ubi-version }}-rust-builder/Dockerfile
