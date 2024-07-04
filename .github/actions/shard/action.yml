@@ -1,3 +1,4 @@
+---
 name: Generate Shards
 description: This action builds list of shard indices for use in Github Actions Matrices
 inputs:
@@ -13,7 +14,7 @@ runs:
   steps:
     - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
       with:
-        python-version: '3.12' 
+        python-version: '3.12'
     - name: Generate Shards
       id: generate_shards
       shell: python
