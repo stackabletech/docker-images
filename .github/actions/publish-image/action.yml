@@ -77,7 +77,7 @@ runs:
         # Uses the keyless signing flow with Github Actions as identity provider
         cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-    - name: Generate SBOM for the Image
+    - name: Generate SBOM for the Nexus Image
       shell: bash
       run: |
         set -euo pipefail
@@ -110,7 +110,7 @@ runs:
         # Uses the keyless signing flow with Github Actions as identity provider
         cosign sign -y "$IMAGE_NAME@$DIGEST"
 
-    - name: Generate SBOM for the Image
+    - name: Generate SBOM for the Harbor Image
       shell: bash
       run: |
         set -euo pipefail
