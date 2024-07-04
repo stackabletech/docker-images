@@ -49,29 +49,6 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
-RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-RUN microdnf update && \
-    microdnf install \
-    # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-    boost1.78-devel && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
-
-WORKDIR /stackable
-
-# The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
-# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
-# labels to build a rackID from.
-# Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
-
-RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
-    cd hdfs-utils-${HDFS_UTILS} && \
-    mvn clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
-    mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
-    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
-    rm -rf /stackable/hdfs-utils-main && \
-    cd -
-
 COPY hadoop/stackable/patches /stackable/patches
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
@@ -104,6 +81,30 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # ===
+
+FROM stackable/image/java-devel as hdfs-utils-builder
+
+RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN microdnf update && \
+    microdnf install \
+    # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
+    boost1.78-devel && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+
+WORKDIR /stackable
+
+# The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
+# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
+# labels to build a rackID from.
+# Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
+
+RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
+    cd hdfs-utils-${HDFS_UTILS} && \
+    mvn clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
+    mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
+    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
+    rm -rf /stackable/hdfs-utils-main && \
 
 FROM stackable/image/java-base as final
 
@@ -143,6 +144,7 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=stackable:stackable --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
 
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
