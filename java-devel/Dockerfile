@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+
 #
 # Base imaege for builder stages
 #
@@ -48,3 +50,5 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+COPY --chown=stackable:stackable shared/maven/settings.xml /stackable/.m2/

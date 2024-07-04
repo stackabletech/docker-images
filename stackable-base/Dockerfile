@@ -9,6 +9,24 @@ ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
+# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+LABEL maintainer="info@stackable.tech"
+LABEL vendor="Stackable GmbH"
+
+# Overwriting/Pinning UBI labels
+# https://github.com/projectatomic/ContainerApplicationGenericLabels
+LABEL vcs-ref=""
+LABEL distribution-scope="public"
+LABEL url="https://stackable.tech"
+
+# https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
+LABEL org.opencontainers.image.authors="info@stackable.tech"
+LABEL org.opencontainers.image.url="https://stackable.tech"
+LABEL org.opencontainers.image.source="https://github.com/stackabletech/docker-images/"
+LABEL org.opencontainers.image.vendor="Stackable GmbH"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+
 RUN microdnf update --assumeyes && \
     microdnf --assumeyes install \
     # Needed to fetch source
@@ -110,3 +128,5 @@ RUN update-ca-trust && \
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH "${PATH}:/stackable"
+
+COPY --chown=stackable:stackable shared/npm/.npmrc /stackable/

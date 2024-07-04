@@ -69,13 +69,27 @@ FROM stackable/image/java-base as final
 ARG PRODUCT
 ARG RELEASE
 
-LABEL name="Apache Druid" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Druid." \
-      description="This image is deployed by the Stackable Operator for Apache Druid."
+ARG NAME="Apache Druid"
+ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache Druid"
+
+LABEL name="${NAME}"
+LABEL version="${PRODUCT}"
+LABEL release="${RELEASE}"
+LABEL summary="The Stackable image for Apache Druid"
+LABEL description="${DESCRIPTION}"
+
+# https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
+LABEL org.opencontainers.image.documentation="https://docs.stackable.tech/home/stable/druid/"
+LABEL org.opencontainers.image.version="${PRODUCT}"
+LABEL org.opencontainers.image.revision="${RELEASE}"
+LABEL org.opencontainers.image.title="${NAME}"
+LABEL org.opencontainers.image.description="${DESCRIPTION}"
+
+# https://docs.openshift.com/container-platform/4.16/openshift_images/create-images.html#defining-image-metadata
+# https://github.com/projectatomic/ContainerApplicationGenericLabels/blob/master/vendor/redhat/labels.md
+LABEL io.openshift.tags="ubi9,stackable,druid,sdp"
+LABEL io.k8s.description="${DESCRIPTION}"
+LABEL io.k8s.display-name="${NAME}"
 
 RUN <<EOF
 microdnf update
