@@ -22,7 +22,7 @@ RUN microdnf update && \
 # [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.9.6,).
 #
 WORKDIR /tmp
-RUN if [[ "${PRODUCT}" == 2.0.0* ]] ; then \
+RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
         curl --fail -L "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
         ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
     fi
