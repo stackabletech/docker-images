@@ -12,11 +12,17 @@ on:
     branches:
       - main
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - superset/**
+      - vector/**
+      - stackable-base/**
       - .github/actions/**
       - .github/workflows/dev_superset.yaml
   pull_request:
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - superset/**
       - .github/**
 

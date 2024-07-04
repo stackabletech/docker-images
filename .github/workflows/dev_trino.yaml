@@ -12,11 +12,19 @@ on:
     branches:
       - main
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - trino/**
+      - vector/**
+      - stackable-base/**
+      - java-base/**
+      - java-devel/**
       - .github/actions/**
       - .github/workflows/dev_trino.yaml
   pull_request:
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - trino/**
       - .github/**
 

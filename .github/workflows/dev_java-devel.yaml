@@ -12,11 +12,15 @@ on:
     branches:
       - main
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - java-devel/**
       - .github/actions/**
       - .github/workflows/dev_java-devel.yaml
   pull_request:
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - java-devel/**
       - .github/**
 

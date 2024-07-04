@@ -12,11 +12,17 @@ on:
     branches:
       - main
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - airflow/**
+      - vector/**
+      - stackable-base/**
       - .github/actions/**
       - .github/workflows/dev_airflow.yaml
   pull_request:
     paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - airflow/**
       - .github/**
 
