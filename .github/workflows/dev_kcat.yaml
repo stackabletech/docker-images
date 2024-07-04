@@ -33,7 +33,7 @@ jobs:
       versions: ${{ steps.shard.outputs.versions }}
 
   build:
-    name: Build and Publish ${{ env.PRODUCT_NAME }}@${{ steps.build.outputs.image-version }} Docker Image
+    name: Build and Publish ${{ steps.build.outputs.image-version }} Docker Image
     needs: [generate_matrix]
     permissions:
       id-token: write
@@ -64,7 +64,7 @@ jobs:
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
 
   publish_manifests:
-    name: Build and Publish ${{ env.PRODUCT_NAME }}@${{ steps.build.outputs.image-version }} Docker Manifests
+    name: Build and Publish ${{ steps.build.outputs.image-version }} Docker Manifests
     needs: [generate_matrix, build]
     permissions:
       id-token: write
