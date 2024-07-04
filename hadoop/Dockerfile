@@ -68,8 +68,8 @@ WORKDIR /stackable
 RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/heads/feat/hadoop-3.4.tar.gz" | tar -xzC . && \
     cd hdfs-utils-feat-hadoop-3.4 && \
     mvn clean package -P hadoop-$PRODUCT -DskipTests -Dmaven.javadoc.skip=true && \
-    mkdir -p /stackable/hadoop/share/hadoop/common/lib && \
-    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-$HDFS_UTILS.jar && \
+    mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
+    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-$HDFS_UTILS.jar && \
     rm -rf /stackable/hdfs-utils-main && \
     cd -
 
