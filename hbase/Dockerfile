@@ -41,6 +41,9 @@ COPY --from=hadoop-builder --chown=stackable:stackable \
 COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
 RUN <<EOF
+###
+### HBase
+###
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 
@@ -51,8 +54,8 @@ cd /stackable/hbase-${PRODUCT}-src/
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 rm -rf /stackable/hbase-${PRODUCT}-src
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
@@ -65,14 +68,16 @@ chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 ###
-### PHOENIX
+### Phoenix
 ###
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
-cd phoenix-${PHOENIX}-src
 
+# Passing "-f" means it'll build in the phoenix source directory without cding into it
 mvn \
+  --batch-mode \
+  --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase.profile=${HBASE_PROFILE} \
   -DskipTests \
@@ -88,7 +93,7 @@ ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" 
 ### Async Profiler
 ###
 cd /stackable
-ARCH="${TARGETARCH/amd64/x64}"
+export ARCH="${TARGETARCH/amd64/x64}"
 curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
@@ -97,8 +102,9 @@ ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackab
 ###
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
-cd hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 mvn \
+  --batch-mode \
+  --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \

@@ -15,7 +15,7 @@ versions = [
     },
     {
         "product": "2.4.18",
-        "hbase_thirdparty": "4.1.7",
+        "hbase_thirdparty": "4.1.5",
         "hbase_operator_tools": "1.2.0",
         "java-base": "11",
         "java-devel": "11",
