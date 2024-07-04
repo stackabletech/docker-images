@@ -111,8 +111,8 @@ All notable changes to this project will be documented in this file.
 [#734]: https://github.com/stackabletech/docker-images/pull/734
 [#736]: https://github.com/stackabletech/docker-images/pull/736
 [#737]: https://github.com/stackabletech/docker-images/pull/737
-[#737]: https://github.com/stackabletech/docker-images/pull/743
-[#737]: https://github.com/stackabletech/docker-images/pull/745
+[#743]: https://github.com/stackabletech/docker-images/pull/743
+[#745]: https://github.com/stackabletech/docker-images/pull/745
 
 ## [24.3.0] - 2024-03-20
 
