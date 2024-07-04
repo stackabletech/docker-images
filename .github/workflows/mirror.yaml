@@ -20,6 +20,7 @@ env:
 
 jobs:
   mirror-image:
+    name: Pull, Retag and Push dependencies for ${{ github.event.inputs.dst }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -70,6 +71,7 @@ jobs:
           cosign sign -y "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
           cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_NEXUS"
   mirror-multi-arch:
+    name: Create and push manifest list for ${{ github.event.inputs.dst }}
     runs-on: ubuntu-latest
     needs: mirror-image
     permissions:
