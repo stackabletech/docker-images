@@ -22,7 +22,7 @@ on:
 
 jobs:
   generate_matrix:
-    name: generate_matrix
+    name: Generate Version List
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
