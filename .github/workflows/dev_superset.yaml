@@ -25,7 +25,7 @@ jobs:
     name: Generate Version List
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: shard
         uses: ./.github/actions/shard
         with:
@@ -47,7 +47,7 @@ jobs:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: Build Product Image
         id: build
         uses: ./.github/actions/build
@@ -74,7 +74,7 @@ jobs:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: Build Product Manifest List
         uses: ./.github/actions/publish-manifest
         with:
