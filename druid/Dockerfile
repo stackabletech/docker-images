@@ -95,7 +95,7 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-COPY --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=stackable:stackable --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
 COPY --chown=stackable:stackable druid/stackable/bin /stackable/bin
 COPY --chown=stackable:stackable druid/licenses /licenses
 
