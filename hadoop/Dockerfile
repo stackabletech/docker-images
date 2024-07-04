@@ -52,7 +52,6 @@ ENV PATH "${PATH}:/opt/protobuf/bin"
 RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN microdnf update && \
     microdnf install \
-    pkg-config \
     # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
     boost1.78-devel && \
     microdnf clean all && \
@@ -63,7 +62,7 @@ WORKDIR /stackable
 # The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from.
-# Starting with version VERSION the topology provider is not a standalone jar anymore and included in hdfs-utils.
+# Starting with version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
 
 RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
