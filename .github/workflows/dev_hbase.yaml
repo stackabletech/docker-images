@@ -13,7 +13,7 @@ on:
       - main
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - hbase/**
       - vector/**
       - hadoop/**
@@ -22,12 +22,6 @@ on:
       - java-devel/**
       - .github/actions/**
       - .github/workflows/dev_hbase.yaml
-  pull_request:
-    paths:
-      # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - hbase/**
-      - .github/**
 
 jobs:
   generate_matrix:

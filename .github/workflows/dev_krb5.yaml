@@ -13,16 +13,10 @@ on:
       - main
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - krb5/**
       - .github/actions/**
       - .github/workflows/dev_krb5.yaml
-  pull_request:
-    paths:
-      # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - krb5/**
-      - .github/**
 
 jobs:
   generate_matrix:

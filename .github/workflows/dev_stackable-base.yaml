@@ -13,17 +13,11 @@ on:
       - main
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - stackable-base/**
       - tools/**
       - .github/actions/**
       - .github/workflows/dev_stackable-base.yaml
-  pull_request:
-    paths:
-      # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product $i -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - stackable-base/**
-      - .github/**
 
 jobs:
   generate_matrix:
