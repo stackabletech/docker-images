@@ -6,7 +6,7 @@ versions = [
         "scala": "2.13",
         "kcat": "1.7.0",
         "opa_authorizer": "1.5.1",
-        "jmx_exporter": "0.20.0",
+        "jmx_exporter": "1.0.1",
     },
     {
         "product": "3.5.2",
@@ -15,7 +15,7 @@ versions = [
         "scala": "2.13",
         "kcat": "1.7.0",
         "opa_authorizer": "1.5.1",
-        "jmx_exporter": "0.20.0",
+        "jmx_exporter": "1.0.1",
     },
     {
         "product": "3.6.1",
@@ -24,6 +24,6 @@ versions = [
         "scala": "2.13",
         "kcat": "1.7.0",
         "opa_authorizer": "1.5.1",
-        "jmx_exporter": "0.20.0",
+        "jmx_exporter": "1.0.1",
     },
 ]
