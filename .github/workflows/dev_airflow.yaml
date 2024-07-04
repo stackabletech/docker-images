@@ -32,14 +32,16 @@ jobs:
       versions: ${{ steps.shard.outputs.versions }}
 
   build:
-    name: Build and Publish ${{ matrix.versions }} Docker Image
+    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Image
     needs: [generate_matrix]
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
+        runner:
+          - { name: "ubuntu-latest", arch: "amd64" }
+          - { name: "ubicloud-standard-8-arm", arch: "arm64" }
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
@@ -60,7 +62,7 @@ jobs:
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
 
   publish_manifests:
-    name: Build and Publish ${{ matrix.versions }} Docker Manifests
+    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Manifests
     needs: [generate_matrix, build]
     permissions:
       id-token: write
