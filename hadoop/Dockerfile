@@ -48,8 +48,6 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
 ENV PROTOBUF_HOME /opt/protobuf
 ENV PATH "${PATH}:/opt/protobuf/bin"
 
-COPY hadoop/stackable/patches /stackable/patches
-
 RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN microdnf update && \
     microdnf install \
@@ -59,6 +57,8 @@ RUN microdnf update && \
     rm -rf /var/cache/yum
 
 WORKDIR /stackable
+
+COPY hadoop/stackable/patches /stackable/patches
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
