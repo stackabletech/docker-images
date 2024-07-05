@@ -1,49 +1,58 @@
-= Stackable Docker Images
+# Stackable Docker Images
 
 This repository contains Dockerfiles and scripts to build base images for use within Stackable.
 
-== Prerequisites
+## Prerequisites
 
 * Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools
 * Docker including the `buildx` plugin: https://github.com/docker/buildx
-* Optional: https://github.com/redhat-openshift-ecosystem/openshift-preflight[OpenShift preflight tool] to verify an image for OpenShift
+* Optional: [OpenShift preflight tool](https://github.com/redhat-openshift-ecosystem/openshift-preflight) to verify an image for OpenShift
 
-== Build Product Images
+## Build Product Images
 
 Product images are published to the `docker.stackable.tech` registry under the `stackable` organization by default.
 
-=== Build single products locally
+### Build single products locally
 
 To build and push product images to the default repository use this command:
 
-    bake --product zookeeper --image 0.0.0-dev --push
+```sh
+bake --product zookeeper --image 0.0.0-dev --push
+```
 
 This will build images for Apache ZooKeeper versions as defined in the `conf.py` file, tag them with the `image-version` 0.0.0-dev and push them to the registry.
 
 You can select a specific version of a product to build using the syntax `product=version` e.g. to build Hive 3.1.3 you can use this command:
 
-    bake --product hive=3.1.3 -i 0.0.0-dev
+```sh
+bake --product hive=3.1.3 -i 0.0.0-dev
+```
 
-NOTE: `-i` is the shorthand for `--image` (i.e. the resulting image tag)
+> [!NOTE]
+> `-i` is the shorthand for `--image` (i.e. the resulting image tag)
 
-=== Build all products locally
+### Build all products locally
 
 To build all products in all versions locally you can use this command
 
-    bake --image-version 0.0.0-dev
+```sh
+bake --image-version 0.0.0-dev
+```
 
-=== Build everything in GitHub
+### Build everything in GitHub
 
 The GitHub action called `Build (and optionally publish) 0.0.0-dev images` can be triggered manually to do build all images in all versions.
 When triggered manually it will _not_ push the images to the registry.
 
-== Verify Product Images
+## Verify Product Images
 
 To verify if Apache Zookeeper validate against OpenShift preflight, run:
 
-    check-container --product zookeeper --image 0.0.0-dev
+```sh
+check-container --product zookeeper --image 0.0.0-dev
+```
 
-== ubi8-rust-builder / ubi9-rust-builder
+## ubi8-rust-builder / ubi9-rust-builder
 
 These images are meant to be used in multi-stage builds as a base image for projects building Rust projects.
 They are automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
@@ -52,9 +61,9 @@ The image will run `cargo build --release` in the current context and copy all b
 
 This will bake in the current stable Rust version at the time this image was built, which means it should be rebuilt (and tagged) for every release of Rust.
 
-.Example usage
-[source,dockerfile]
-----
+## Example usage
+
+```dockerfile
 FROM docker.stackable.tech/ubi9-rust-builder AS builder
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
@@ -73,4 +82,4 @@ RUN groupadd -g 1000 stackable && adduser -u 1000 -g stackable -c 'Stackable Ope
 USER 1000:1000
 
 ENTRYPOINT ["/stackable-zookeeper-operator"]
-----
+```
