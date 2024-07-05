@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
@@ -11,14 +11,13 @@ ARG PRODUCT
 ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
-ARG TOPOLOGY_PROVIDER
 ARG TARGETARCH
 ARG TARGETOS
 
 WORKDIR /stackable
 
-COPY hadoop/stackable /stackable
-
+COPY hadoop/stackable/jmx /stackable/jmx
+COPY hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -46,10 +45,20 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
     make install && \
     rm -rf /opt/protobuf-src
 
-ENV PROTOBUF_HOME /opt/protobuf
-ENV PATH "${PATH}:/opt/protobuf/bin"
+ENV PROTOBUF_HOME=/opt/protobuf
+ENV PATH="${PATH}:/opt/protobuf/bin"
+
+RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN microdnf update && \
+    microdnf install \
+    # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
+    boost1.78-devel && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 WORKDIR /stackable
+
+COPY hadoop/stackable/patches /stackable/patches
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -82,12 +91,29 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # ===
 
-# Final Image
-FROM stackable/image/java-base
+FROM stackable/image/java-devel as hdfs-utils-builder
+
+ARG HDFS_UTILS
+ARG PRODUCT
+
+WORKDIR /stackable
+
+# The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
+# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
+# labels to build a rackID from.
+# Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
+
+RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
+    cd hdfs-utils-${HDFS_UTILS} && \
+    mvn clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
+    mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
+    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
+    rm -rf /stackable/hdfs-utils-main
+
+FROM stackable/image/java-base as final
 
 ARG PRODUCT
 ARG RELEASE
-ARG TOPOLOGY_PROVIDER
 ARG HDFS_UTILS
 
 LABEL name="Apache Hadoop" \
@@ -123,16 +149,8 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=stackable:stackable --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
-
-# The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
-# labels to build a rackID from
-# source code is at: https://github.com/stackabletech/hdfs-topology-provider
-# N.B. the artifact name changed from 0.2.0 onwards i.e. from topology-provider-0.1.0.jar to hdfs-topology-provider-0.2.0.jar
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-topology-provider/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-topology-provider-${TOPOLOGY_PROVIDER}.jar
-
-# The Stackable HDFS utils contain an OPA authorizer and group mapper
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/hdfs-utils/hdfs-utils-${HDFS_UTILS}.jar -o /stackable/hadoop/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 
 COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 

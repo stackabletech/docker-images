@@ -1,0 +1,76 @@
+---
+name: Build Product Image
+description: This action builds a product Docker image with a specific version
+inputs:
+  product-name:
+    description: The name of the product to build via bake (directory name)
+    required: true
+  product-version:
+    description: The version of the product to build via bake
+    required: true
+  image-tools-version:
+    description: The Stackable image-tools version
+    default: 0.0.10
+  build-cache-nexus-password:
+    description: Build cache password for the github user
+outputs:
+  image-name:
+    description: This is the full image name before the tag (left of ':')
+    value: ${{ steps.image_info.outputs.IMAGE_NAME }}
+  image-version:
+    description: This is the container image end tag excluding the architecture information (right of ':')
+    value: ${{ steps.image_info.outputs.IMAGE_VERSION }}
+runs:
+  using: composite
+  steps:
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@4fd812986e6c8c2a69e18311145f9371337f27d4 # v3.4.0
+
+      # NOTE (@Techassi): Why do we install python via apt and not the setup-python action?
+    - name: Setup Python
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt update
+        sudo apt install -y python3
+
+    - name: Building ${{ inputs.product-name }}
+      shell: bash
+      run: echo ${{ inputs.product-name }}
+
+    - name: Install image-tools-stackabletech
+      shell: bash
+      run: pip install image-tools-stackabletech==${{ inputs.image-tools-version }}
+
+      # Needed if you pass the --cache argument to the bake command below
+    - name: Login to the docker build cache registry
+      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      with:
+        registry: build-repo.stackable.tech:8083
+        username: github
+        password: ${{ inputs.build-cache-nexus-password }}
+
+    - name: Build image using bake
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
+        bake \
+        --product ${{ inputs.product-name }}=${{ inputs.product-version }} \
+        --image-version "0.0.0-dev-${ARCH}" \
+        --architecture "linux/${ARCH}" \
+        --export-tags-file bake-target-tags \
+        --cache
+
+    - name: Setup Environment Variables
+      id: image_info
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "bake-target-tags: "$(< bake-target-tags)
+        # Strip the architecture from the version tag
+        IMAGE_VERSION=$(cat bake-target-tags | cut -d ":" -f 2 | sed -E 's/-(amd64|arm64)$//')
+        IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+
+        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
