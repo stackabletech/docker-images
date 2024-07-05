@@ -6,7 +6,7 @@
 # hadolint global ignore=DL3038,DL4006,SC2164
 
 # hadolint ignore=DL3006
-FROM stackable/image/java-devel as druid-builder
+FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
 ARG JACKSON_DATAFORMAT_XML
@@ -63,7 +63,7 @@ curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-
 EOF
 
 # hadolint ignore=DL3006
-FROM stackable/image/java-base as final
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
