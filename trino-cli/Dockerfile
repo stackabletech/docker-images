@@ -7,6 +7,7 @@
 FROM stackable/image/java-base
 
 ARG PRODUCT
+ARG RELEASE
 
 LABEL name="Trino CLI" \
       maintainer="info@stackable.tech" \
