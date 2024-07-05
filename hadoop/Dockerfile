@@ -50,6 +50,16 @@ ENV PATH "${PATH}:/opt/protobuf/bin"
 
 COPY hadoop/stackable/patches /stackable/patches
 
+RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN microdnf update && \
+    microdnf install \
+    # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
+    boost1.78-devel && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+
+WORKDIR /stackable
+
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
 # Also skip building the yarn, mapreduce and minicluster modules: this will result in the modules being excluded but not all
