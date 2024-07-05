@@ -4,3 +4,4 @@
 03-stop-building-unused-extensions.patch
 04-update-patch-dependencies.patch
 05-xmllayout-dependencies.patch
+06-dont-build-targz.patch
