@@ -2,7 +2,8 @@
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
+# Ignoring SC2164 globally because we inherit SHELL from the base image which contains "-e" for bash
+# hadolint global ignore=DL3038,DL4006,SC2164
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -139,13 +140,34 @@ ARG RELEASE
 ARG HADOOP
 ARG HBASE_OPERATOR_TOOLS
 
-LABEL name="Apache HBase" \
-    maintainer="info@stackable.tech" \
-    vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
-    summary="The Stackable image for Apache HBase." \
-    description="This image is deployed by the Stackable Operator for Apache HBase."
+ARG NAME="Apache HBase"
+ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache HBase"
+
+LABEL name="${NAME}"
+LABEL version="${PRODUCT}"
+LABEL release="${RELEASE}"
+LABEL summary="The Stackable image for Apache HBase"
+LABEL description="${DESCRIPTION}"
+
+# https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
+LABEL org.opencontainers.image.documentation="https://docs.stackable.tech/home/stable/hbase/"
+LABEL org.opencontainers.image.version="${PRODUCT}"
+LABEL org.opencontainers.image.revision="${RELEASE}"
+cLABEL org.opencontainers.image.title="${NAME}"
+LABEL org.opencontainers.image.description="${DESCRIPTION}"
+
+# https://docs.openshift.com/container-platform/4.16/openshift_images/create-images.html#defining-image-metadata
+# https://github.com/projectatomic/ContainerApplicationGenericLabels/blob/master/vendor/redhat/labels.md
+LABEL io.openshift.tags="ubi9,stackable,hbase,sdp,nosql"
+LABEL io.k8s.description="${DESCRIPTION}"
+LABEL io.k8s.display-name="${NAME}"
+
+RUN <<EOF
+microdnf update
+microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+rm -rf /var/cache/yum
+EOF
 
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
