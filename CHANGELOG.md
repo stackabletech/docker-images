@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
+- trino & trino-cli: Add version 451 ([#XXX]).
 
 ### Changed
 
