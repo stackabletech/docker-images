@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
 # This builder is kept around and updated until the last SDP release is EOL that uses UBI8 (which is 24.3) so we'll remove this sometime in the summer of 2025
@@ -8,7 +8,7 @@
 
 # https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?architecture=amd64
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8-minimal@sha256:5f1cd3422d5d46aea35dac80825dbcbd58213eef49c317f42a394345fb4e8ff1 AS builder
+FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9694d09f97cd18fda1004de855ed2b4c841ba AS builder
 
 LABEL maintainer="Stackable GmbH"
 
