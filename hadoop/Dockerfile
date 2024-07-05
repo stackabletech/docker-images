@@ -45,10 +45,10 @@ RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobu
     make install && \
     rm -rf /opt/protobuf-src
 
-ENV PROTOBUF_HOME /opt/protobuf
-ENV PATH "${PATH}:/opt/protobuf/bin"
+ENV PROTOBUF_HOME=/opt/protobuf
+ENV PATH="${PATH}:/opt/protobuf/bin"
 
-RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN microdnf update && \
     microdnf install \
     # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code

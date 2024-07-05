@@ -20,7 +20,7 @@ LABEL name="Stackable image for OpenJDK" \
     description="This image is the base image for all Stackable Java product images."
 
 # We need to use EPEL, as openjdk 22 is not shipped with UBI9
-RUN rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 
 RUN microdnf update && \
     microdnf install \
