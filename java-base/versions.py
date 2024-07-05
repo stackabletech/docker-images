@@ -15,4 +15,8 @@ versions = [
         "product": "21",
         "vector": "0.39.0",
     },
+    {
+        "product": "22",
+        "vector": "0.39.0",
+    },
 ]
