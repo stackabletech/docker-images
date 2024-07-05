@@ -153,7 +153,7 @@ LABEL description="${DESCRIPTION}"
 LABEL org.opencontainers.image.documentation="https://docs.stackable.tech/home/stable/hbase/"
 LABEL org.opencontainers.image.version="${PRODUCT}"
 LABEL org.opencontainers.image.revision="${RELEASE}"
-cLABEL org.opencontainers.image.title="${NAME}"
+LABEL org.opencontainers.image.title="${NAME}"
 LABEL org.opencontainers.image.description="${DESCRIPTION}"
 
 # https://docs.openshift.com/container-platform/4.16/openshift_images/create-images.html#defining-image-metadata
