@@ -14,6 +14,10 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 
+# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
+# This can be used to speed up builds when disk space is of no concern.
+ARG DELETE_CACHES="true"
+
 RUN <<EOF
 microdnf update
 
@@ -38,22 +42,29 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
 
-RUN <<EOF
+# Cache mounts are owned by root by default
+# We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm,uid=1000,target=/stackable/.npm \
+    --mount=type=cache,id=cache,uid=1000,target=/stackable/.cache \
+    <<EOF
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
 mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
+rm -rf /stackable/apache-druid-${PRODUCT}-src
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
 # and we are sometimes running into errors because we're out of space.
 # Therefore, we try to clean up all layers as much as possible.
-rm -rf /stackable/apache-druid-${PRODUCT}-src
-rm -rf /stackable/.m2
-rm -rf /stackable/.npm
-rm -rf /stackable/.cache
+if [[ "${DELETE_CACHES}" == "true" ]] ; then
+  rm -rf /stackable/.m2/repository/*
+  rm -rf /stackable/.npm/*
+  rm -rf /stackable/.cache/*
+fi
 
 # Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
 # testdata in kuttl tests and the getting started guide.
