@@ -58,6 +58,7 @@ jobs:
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
+          build-cache-nexus-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
         with:

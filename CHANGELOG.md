@@ -26,7 +26,9 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
+- nifi: Add support for 1.26.0 and 2.0.0-M4 ([#744]).
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
+- trino & trino-cli: Add version 451 ([#XXX]).
 
 ### Changed
 
@@ -69,6 +71,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove unsupported version 3.8.3 and 3.9.1 ([#628], [#736]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
 - trino: Remove unsupported version 428 ([#687]).
+- nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
@@ -112,6 +115,7 @@ All notable changes to this project will be documented in this file.
 [#736]: https://github.com/stackabletech/docker-images/pull/736
 [#737]: https://github.com/stackabletech/docker-images/pull/737
 [#743]: https://github.com/stackabletech/docker-images/pull/743
+[#744]: https://github.com/stackabletech/docker-images/pull/744
 [#745]: https://github.com/stackabletech/docker-images/pull/745
 
 ## [24.3.0] - 2024-03-20

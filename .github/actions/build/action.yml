@@ -10,7 +10,9 @@ inputs:
     required: true
   image-tools-version:
     description: The Stackable image-tools version
-    default: 0.0.8
+    default: 0.0.10
+  build-cache-nexus-password:
+    description: Build cache password for the github user
 outputs:
   image-name:
     description: This is the full image name before the tag (left of ':')
@@ -40,6 +42,14 @@ runs:
       shell: bash
       run: pip install image-tools-stackabletech==${{ inputs.image-tools-version }}
 
+      # Needed if you pass the --cache argument to the bake command below
+    - name: Login to the docker build cache registry
+      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      with:
+        registry: build-repo.stackable.tech:8083
+        username: github
+        password: ${{ inputs.build-cache-nexus-password }}
+
     - name: Build image using bake
       shell: bash
       run: |
@@ -49,7 +59,8 @@ runs:
         --product ${{ inputs.product-name }}=${{ inputs.product-version }} \
         --image-version "0.0.0-dev-${ARCH}" \
         --architecture "linux/${ARCH}" \
-        --export-tags-file bake-target-tags
+        --export-tags-file bake-target-tags \
+        --cache
 
     - name: Setup Environment Variables
       id: image_info

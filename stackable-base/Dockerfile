@@ -112,4 +112,4 @@ RUN update-ca-trust && \
 
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
-ENV PATH "${PATH}:/stackable"
+ENV PATH="${PATH}:/stackable"

@@ -25,34 +25,36 @@ IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
-diff --git a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
---- a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java	(revision 6ecc398d3f92425447e43242af4992757e25b3c5)
-+++ b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java	(date 1716453739677)
-@@ -47,6 +47,7 @@
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+index 97337d63e2..0f7a272de7 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+@@ -47,6 +47,7 @@ public class HostHeaderHandler extends Handler.Abstract {
      private final String serverName;
      private final int serverPort;
      private final List<String> validHosts;
 +    private boolean allowAllHosts = false;
-
+ 
      /**
-      * Instantiates a handler with a given server name and port 0.
-@@ -107,6 +108,10 @@
+      * Instantiates a handler which accepts incoming requests with a host header that is empty or contains one of the
+@@ -68,6 +69,11 @@ public class HostHeaderHandler extends Handler.Abstract {
          // The value(s) from nifi.web.proxy.host
          hosts.addAll(parseCustomHostnames(niFiProperties));
-
+ 
 +        // Check if the setting for allowed hosts has only the wildcard entry and
 +        // if so store this in allowAllHost for later use
 +        List<String> configuredHostNames = niFiProperties.getAllowedHostsAsList();
 +        this.allowAllHosts = configuredHostNames.size() == 1 && configuredHostNames.contains("*");
++
          // empty is ok here
          hosts.add("");
-
-@@ -205,7 +210,7 @@
+ 
+@@ -160,7 +166,7 @@ public class HostHeaderHandler extends Handler.Abstract {
+      * @return Valid status
+      */
+     boolean hostHeaderIsValid(final String hostHeader) {
+-        return hostHeader != null && validHosts.contains(hostHeader.toLowerCase().trim());
++        return this.allowAllHosts || (hostHeader != null && validHosts.contains(hostHeader.toLowerCase().trim()));
      }
-
-     boolean hostHeaderIsValid(String hostHeader) {
--        return validHosts.contains(hostHeader.toLowerCase().trim());
-+        return this.allowAllHosts || validHosts.contains(hostHeader.toLowerCase().trim());
-     }
-
+ 
      @Override
