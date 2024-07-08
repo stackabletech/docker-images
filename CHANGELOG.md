@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
-- nifi: Add support for 1.26.0 and 2.0.0-M4 ([#744]).
+- nifi: Add support for 1.27.0 and 2.0.0-M4 ([#744], [#767]).
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
 - trino & trino-cli: Add version 451 ([#XXX]).
 
@@ -117,6 +117,7 @@ All notable changes to this project will be documented in this file.
 [#743]: https://github.com/stackabletech/docker-images/pull/743
 [#744]: https://github.com/stackabletech/docker-images/pull/744
 [#745]: https://github.com/stackabletech/docker-images/pull/745
+[#767]: https://github.com/stackabletech/docker-images/pull/767
 
 ## [24.3.0] - 2024-03-20
 
