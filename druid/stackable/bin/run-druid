@@ -8,11 +8,13 @@ fi
 
 WHATAMI="$1"
 CONFDIR="$(cd "$2" && pwd)"
+# shellcheck disable=SC1091 # java-util is not available at this scripts source
 JAVA_BIN="$(source ./bin/java-util && get_java_bin_dir)"
 if [ -z "$JAVA_BIN" ]; then
   >&2 echo "Could not find java - please run ./bin/verify-java to confirm it is installed."
   exit 1
 fi
-exec "$JAVA_BIN"/java `cat "$CONFDIR"/jvm.config | xargs` \
+# shellcheck disable=SC2046 # unsure how this `cat | xargs` works, and this script might rely on discouraged behaviour
+exec "$JAVA_BIN"/java $(cat "$CONFDIR"/jvm.config | xargs) \
   -cp "$CONFDIR":"./lib/*" \
   org.apache.druid.cli.Main server "$WHATAMI"

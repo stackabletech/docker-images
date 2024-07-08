@@ -8,8 +8,8 @@ nifi_props_file=/stackable/nifi/conf/nifi.properties
 # 3 - file to perform replacement inline
 prop_replace () {
   target_file=${3:-${nifi_props_file}}
-  echo 'replacing target file ' ${target_file}
-  sed -i -e "s|^$1=.*$|$1=$2|"  ${target_file}
+  echo 'replacing target file ' "$target_file"
+  sed -i -e "s|^$1=.*$|$1=$2|"  "$target_file"
 }
 
 prop_replace nifi.sensitive.props.key "$NIFI_SENSITIVE_PROPS_KEY"
