@@ -172,7 +172,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
-          for product_and_version in $(python3 enumerate-product-versions.py); do
+          for product_and_version in $(python3 .scripts/enumerate-product-versions.py); do
             PRODUCT="$(echo "$product_and_version" | cut -d '#' -f 1)"
             VERSION="$(echo "$product_and_version" | cut -d '#' -f 2)"
 
