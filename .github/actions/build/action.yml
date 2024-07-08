@@ -10,7 +10,7 @@ inputs:
     required: true
   image-tools-version:
     description: The Stackable image-tools version
-    default: 0.0.11
+    default: 0.0.12
   build-cache-nexus-password:
     description: Build cache password for the github user
 outputs:
