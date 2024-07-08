@@ -93,7 +93,7 @@ jobs:
 
           # Push images to image repository
           if [ -f bake-target-tags ]; then
-            echo "bake-target-tags: "$(< bake-target-tags)
+            echo "bake-target-tags: $(< bake-target-tags)"
             IMAGE_NAME=$(cut -d ":" -f 1 < bake-target-tags)
             TAG_NAME=$(cut -d ":" -f 2 < bake-target-tags)
             echo "image: $IMAGE_NAME"
