@@ -28,7 +28,8 @@ All notable changes to this project will be documented in this file.
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
 - nifi: Add support for 1.26.0 and 2.0.0-M4 ([#744]).
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
-- trino & trino-cli: Add version 451 ([#XXX]).
+- trino & trino-cli: Add version 451 ([#758]).
+- airflow: Add version `2.8.4` and `2.9.2` ([#762]).
 
 ### Changed
 
@@ -73,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove unsupported version 428 ([#687]).
 - nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
+- airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -117,6 +119,8 @@ All notable changes to this project will be documented in this file.
 [#743]: https://github.com/stackabletech/docker-images/pull/743
 [#744]: https://github.com/stackabletech/docker-images/pull/744
 [#745]: https://github.com/stackabletech/docker-images/pull/745
+[#758]: https://github.com/stackabletech/docker-images/pull/758
+[#762]: https://github.com/stackabletech/docker-images/pull/762
 
 ## [24.3.0] - 2024-03-20
 
