@@ -1,3 +1,0 @@
-[flake8]
-# E501 line too long: We want inline comments for dependenies in versions.py
-extend-ignore = E501
