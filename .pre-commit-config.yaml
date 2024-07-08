@@ -31,10 +31,16 @@ repos:
       - id: shellcheck
         args: ["--severity=info"]
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+  # WARNING (@NickLarsenNZ): Nix users need to install ruff first.
+  # If you do not, you will need to delete the cached ruff binary shown in the
+  # error message
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.1
     hooks:
-      - id: flake8
+      # Run the linter.
+      - id: ruff
+      # Run the formatter.
+      - id: ruff-format
 
   - repo: local
     hooks:
