@@ -15,8 +15,8 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 
 ## Prerequisites
 
-* Stackable Image Tools (`pip install image-tools-stackabletech`) https://github.com/stackabletech/image-tools
-* Docker including the `buildx` plugin: https://github.com/docker/buildx
+* [Stackable Image Tools](https://github.com/stackabletech/image-tools) (`pip install image-tools-stackabletech`)
+* Docker including the [`buildx` plugin][https://github.com/docker/buildx]
 * Optional: [OpenShift preflight tool](https://github.com/redhat-openshift-ecosystem/openshift-preflight) to verify an image for OpenShift
 
 ## Build Product Images
