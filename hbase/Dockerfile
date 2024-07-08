@@ -21,6 +21,7 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG JACKSON_DATAFORMAT_XML
 ARG OPA_AUTHORIZER
+ARG DELETE_CACHES
 
 COPY hbase/licenses /licenses
 
@@ -42,7 +43,11 @@ COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/
 COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
-RUN <<EOF
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+
+# Enable debug so we can see the last command executed before potential build failure.
+set -x
+
 ###
 ### HBase
 ###
@@ -56,8 +61,8 @@ cd /stackable/hbase-${PRODUCT}-src/
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+mvn --quiet --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
+mvn --quiet --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 rm -rf /stackable/hbase-${PRODUCT}-src
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
@@ -79,14 +84,7 @@ curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 
 # Passing "-f" means it'll build in the phoenix source directory without cding into it
-mvn \
-  --batch-mode \
-  --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
-  -Dhbase.profile=${HBASE_PROFILE} \
-  -DskipTests \
-  -fphoenix-${PHOENIX}-src \
-  package
+mvn --quiet --batch-mode --no-transfer-progress -Dhbase.version=${PRODUCT} -Dhbase.profile=${HBASE_PROFILE} -DskipTests -fphoenix-${PHOENIX}-src package
 
 tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz -C /stackable/
 rm -rf /stackable/phoenix-${PHOENIX}-src
@@ -107,6 +105,7 @@ ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackab
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 mvn \
+  --quiet \
   --batch-mode \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
@@ -143,9 +142,27 @@ fi
 ###
 if [[ -n "$OPA_AUTHORIZER" ]]; then
     git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
-    mvn -DskipTests package -fhbase-opa-authorizer  && \
+    mvn \
+      --quiet \
+      --batch-mode \
+      --no-transfer-progress \
+      package \
+      -DskipTests \
+      -fhbase-opa-authorizer  && \
     cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib;
 fi
+
+# The variable names are intentionally passed to envsubst in single-quotes,
+# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+# does not work, so please ignore the according warning (SC2016).
+envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
+chmod +x /stackable/bin/export-snapshot-to-s3
+rm /stackable/bin/export-snapshot-to-s3.env
+
+if [[ "$DELETE_CACHES" == "true" ]]; then
+  rm -rf "/stackable/.m2/repository"
+fi
+EOF
 
 # ===
 # For earlier versions this script removes the .class file that contains the
@@ -164,14 +181,6 @@ COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch
 COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable
 # ===
-
-# The variable names are intentionally passed to envsubst in single-quotes,
-# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
-# does not work, so please ignore the according warning (SC2016).
-envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
-chmod +x /stackable/bin/export-snapshot-to-s3
-rm /stackable/bin/export-snapshot-to-s3.env
-EOF
 
 # Final Image
 FROM stackable/image/java-base
