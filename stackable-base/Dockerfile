@@ -135,5 +135,3 @@ LABEL org.opencontainers.image.url="https://stackable.tech"
 LABEL org.opencontainers.image.source="https://github.com/stackabletech/docker-images/"
 LABEL org.opencontainers.image.vendor="Stackable GmbH"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
-
-COPY --chown=stackable:stackable shared/npm/.npmrc /stackable/
