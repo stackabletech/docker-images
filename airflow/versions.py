@@ -30,5 +30,5 @@ versions = [
         "statsd_exporter": "0.26.1",
         "tini": "0.19.0",
         "vector": "0.39.0",
-    },    
+    },
 ]
