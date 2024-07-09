@@ -1,3 +1,5 @@
+# shellcheck disable=all
+#
 # Don't do this on your machine, as we need to sign the mirrored image, which should be done by a GitHub CI.
 # Use the action "Mirror container image" in the docker-images repo for that.
 # You can e.g. pull the image from

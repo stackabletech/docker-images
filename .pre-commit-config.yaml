@@ -1,0 +1,52 @@
+---
+# See https://pre-commit.com for more information
+fail_fast: false
+
+exclude: \.patch$
+
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: detect-aws-credentials
+        args: ["--allow-missing-credentials"]
+      - id: detect-private-key
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.26.3
+    hooks:
+      - id: yamllint
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.31.1
+    hooks:
+      - id: markdownlint
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: ["--severity=info"]
+
+  # WARNING (@NickLarsenNZ): Nix users need to install ruff first.
+  # If you do not, you will need to delete the cached ruff binary shown in the
+  # error message
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.1
+    hooks:
+      # Run the linter.
+      - id: ruff
+      # Run the formatter.
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: update-readme-badges
+        name: update-readme-badges
+        language: system
+        entry: .scripts/update_readme_badges.sh
+        stages: [commit, merge-commit, manual]
+        pass_filenames: false

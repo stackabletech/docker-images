@@ -1,3 +1,4 @@
+---
 rules:
   # replicated Zookeeper
   - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+)><>(\\w+)"
