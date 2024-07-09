@@ -93,9 +93,9 @@ jobs:
 
           # Push images to image repository
           if [ -f bake-target-tags ]; then
-            echo "bake-target-tags: "$(< bake-target-tags)
-            IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
-            TAG_NAME=$(cat bake-target-tags | cut -d ":" -f 2)
+            echo "bake-target-tags: $(< bake-target-tags)"
+            IMAGE_NAME=$(cut -d ":" -f 1 < bake-target-tags)
+            TAG_NAME=$(cut -d ":" -f 2 < bake-target-tags)
             echo "image: $IMAGE_NAME"
             echo "tag: $TAG_NAME"
             # Store the output of `docker image push` into a variable, so we can parse it for the digest
@@ -172,7 +172,7 @@ jobs:
           DOCKER_USER: github
           DOCKER_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
-          for product_and_version in $(python3 enumerate-product-versions.py); do
+          for product_and_version in $(python3 .scripts/enumerate-product-versions.py); do
             PRODUCT="$(echo "$product_and_version" | cut -d '#' -f 1)"
             VERSION="$(echo "$product_and_version" | cut -d '#' -f 2)"
 
@@ -185,7 +185,7 @@ jobs:
             # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
             # --amend because the manifest list would be updated since we use the same tag
             docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-            DIGEST=$(docker manifest push $MANIFEST_NAME)
+            DIGEST=$(docker manifest push "$MANIFEST_NAME")
 
             # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
             # This generates a signature and publishes it to the registry, next to the image
@@ -195,6 +195,6 @@ jobs:
             # Push to oci.stackable.tech as well
             MANIFEST_NAME="oci.stackable.tech/sdp/${PRODUCT}:${VERSION}-stackable${GITHUB_REF_NAME}"
             docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-            DIGEST=$(docker manifest push $MANIFEST_NAME)
+            DIGEST=$(docker manifest push "$MANIFEST_NAME")
             cosign sign -y "$MANIFEST_NAME@$DIGEST"
           done

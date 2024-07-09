@@ -71,20 +71,20 @@ function parse_args {
 }
 
 function init_schema {
-  if ! $HIVE_BIN_DIR/base --config $CONF_DIR --service schemaTool -dbType $DB_TYPE -validate ; then
+  if ! "$HIVE_BIN_DIR/base" --config "$CONF_DIR" --service schemaTool -dbType "$DB_TYPE" -validate ; then
     echo "No valid schema found, initializing schema ..."
-    $HIVE_BIN_DIR/base --config $CONF_DIR --service schemaTool -dbType $DB_TYPE -initSchema || exit 1
+    "$HIVE_BIN_DIR/base" --config "$CONF_DIR" --service schemaTool -dbType "$DB_TYPE" -initSchema || exit 1
   fi
 }
 
 function start_metastore {
-  $HIVE_BIN_DIR/base --config $CONF_DIR --service metastore
+  "$HIVE_BIN_DIR/base" --config "$CONF_DIR" --service metastore
 }
 
 function main {
-  parse_args $@
+  parse_args "$@"
   init_schema
   start_metastore
 }
 
-main $@
+main "$@"
