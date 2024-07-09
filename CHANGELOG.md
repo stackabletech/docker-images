@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add support for 1.27.0 and 2.0.0-M4 ([#744], [#767]).
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
 - trino & trino-cli: Add version 451 ([#XXX]).
+- superset: Add version `3.1.3` and `4.0.2` ([#768]).
 
 ### Changed
 
@@ -73,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove unsupported version 428 ([#687]).
 - nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
+- superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -118,6 +120,7 @@ All notable changes to this project will be documented in this file.
 [#744]: https://github.com/stackabletech/docker-images/pull/744
 [#745]: https://github.com/stackabletech/docker-images/pull/745
 [#767]: https://github.com/stackabletech/docker-images/pull/767
+[#768]: https://github.com/stackabletech/docker-images/pull/768
 
 ## [24.3.0] - 2024-03-20
 
