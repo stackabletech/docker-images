@@ -60,7 +60,7 @@ rm -rf /stackable/apache-druid-${PRODUCT}-src
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
 # and we are sometimes running into errors because we're out of space.
 # Therefore, we try to clean up all layers as much as possible.
-if [[ "${DELETE_CACHES}" == "true" ]] ; then
+if [ "${DELETE_CACHES}" == "true" ] ; then
   rm -rf /stackable/.m2/repository/*
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
