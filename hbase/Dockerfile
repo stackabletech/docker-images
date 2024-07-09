@@ -21,6 +21,10 @@ ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
 
+# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
+# This can be used to speed up builds when disk space is of no concern.
+ARG DELETE_CACHES="true"
+
 COPY hbase/licenses /licenses
 
 USER stackable
@@ -41,7 +45,9 @@ COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/
 COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
-RUN <<EOF
+# Cache mounts are owned by root by default
+# We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
 ###
@@ -67,28 +73,6 @@ ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
-
-###
-### Phoenix
-###
-cd /stackable
-curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
-mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
-
-# Passing "-f" means it'll build in the phoenix source directory without cding into it
-mvn \
-  --batch-mode \
-  --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
-  -Dhbase.profile=${HBASE_PROFILE} \
-  -DskipTests \
-  -fphoenix-${PHOENIX}-src \
-  package
-
-tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz -C /stackable/
-rm -rf /stackable/phoenix-${PHOENIX}-src
-ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
-ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 
 ###
 ### Async Profiler
@@ -130,14 +114,80 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
+
+
+# We're removing these to make the intermediate layer smaller
+# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
+# and we are sometimes running into errors because we're out of space.
+# Therefore, we try to clean up all layers as much as possible.
+if [ "${DELETE_CACHES}" == "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
+  rm -rf /stackable/.npm/*
+  rm -rf /stackable/.cache/*
+fi
 EOF
 
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS phoenix-builder
+
+ARG PRODUCT
+ARG ASYNC_PROFILER
+ARG PHOENIX
+ARG HBASE_PROFILE
+ARG HADOOP
+
+# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
+# This can be used to speed up builds when disk space is of no concern.
+ARG DELETE_CACHES="true"
+
+USER stackable
+WORKDIR /stackable
+
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+cd /stackable
+curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
+mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
+
+# Passing "-f" means it'll build in the phoenix source directory without cding into it
+# The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
+# https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  -Dhbase.version=${PRODUCT} \
+  -Dhbase.profile=${HBASE_PROFILE} \
+  -DskipTests \
+  -Dcheckstyle.skip=true \
+  -fphoenix-${PHOENIX}-src \
+  clean \
+  package
+
+tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz -C /stackable/
+rm -rf /stackable/phoenix-${PHOENIX}-src
+ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
+
+
+# We're removing these to make the intermediate layer smaller
+# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
+# and we are sometimes running into errors because we're out of space.
+# Therefore, we try to clean up all layers as much as possible.
+if [ "${DELETE_CACHES}" == "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
+  rm -rf /stackable/.npm/*
+  rm -rf /stackable/.cache/*
+fi
+
+EOF
+
+
 # Final Image
-FROM stackable/image/java-base
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
 ARG HADOOP
+ARG PHOENIX
+ARG HBASE_PROFILE
 ARG HBASE_OPERATOR_TOOLS
 
 ARG NAME="Apache HBase"
@@ -162,17 +212,10 @@ LABEL io.openshift.tags="ubi9,stackable,hbase,sdp,nosql"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
-RUN <<EOF
-microdnf update
-microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-rm -rf /var/cache/yum
-EOF
-
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/jmx /stackable/jmx/
-COPY --chown=stackable:stackable --from=hbase-builder /stackable/phoenix /stackable/phoenix/
+COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/bin /stackable/bin/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
@@ -195,6 +238,7 @@ rm -rf /var/cache/yum
 
 ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
 ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
+ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 EOF
 
 USER stackable
