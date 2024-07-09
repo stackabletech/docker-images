@@ -85,8 +85,8 @@ runs:
         set -euo pipefail
         echo "bake-target-tags: "$(< bake-target-tags)
         # Strip the architecture from the version tag
-        IMAGE_VERSION=$(cat bake-target-tags | cut -d ":" -f 2 | sed -E 's/-(amd64|arm64)$//')
-        IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+        IMAGE_VERSION=$(cut -d ":" -f 2 < bake-target-tags | sed -E 's/-(amd64|arm64)$//')
+        IMAGE_NAME=$(cut -d ":" -f 1 < bake-target-tags)
 
         echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT

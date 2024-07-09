@@ -10,8 +10,8 @@ function delete_jndi_from_jar_files {
   echo "Running on '$targetdir'"
 
   shopt -s globstar
-  for jarfile in $targetdir/**/*.jar; do
-    if grep -q JndiLookup.class $jarfile; then
+  for jarfile in "$targetdir"/**/*.jar; do
+    if grep -q JndiLookup.class "$jarfile"; then
       # Rip out class
       echo "Deleting JndiLookup.class from '$jarfile'"
       zip -q -d "$jarfile" \*/JndiLookup.class
@@ -20,14 +20,14 @@ function delete_jndi_from_jar_files {
 
   echo "Completed removing JNDI from jar files"
 
-  for warfile in $targetdir/**/*.{war,nar}; do
+  for warfile in "$targetdir"/**/*.{war,nar}; do
     doZip=0
 
     rm -r -f /tmp/unzip_target
     mkdir /tmp/unzip_target
-    unzip -qq $warfile -d /tmp/unzip_target
+    unzip -qq "$warfile" -d /tmp/unzip_target
     for jarfile in /tmp/unzip_target/**/*.jar; do
-      if grep -q JndiLookup.class $jarfile; then
+      if grep -q JndiLookup.class "$jarfile"; then
         # Rip out class
         echo "Deleting JndiLookup.class from '$jarfile'"
         zip -q -d "$jarfile" \*/JndiLookup.class
@@ -38,7 +38,7 @@ function delete_jndi_from_jar_files {
     if [ 1 -eq $doZip ]; then
       echo "Updating '$warfile'"
       pushd /tmp/unzip_target
-      zip -r -q $warfile .
+      zip -r -q "$warfile" .
       popd
     fi
 
@@ -72,9 +72,9 @@ function delete_jndi_from_targz_file {
 
   mv "$tempfile" "$tarfile"
 
-  rm -f $tempfile
-  rm -rf $tempdir
-  rm -rf $tempbackupdir
+  rm -f "$tempfile"
+  rm -rf "$tempdir"
+  rm -rf "$tempbackupdir"
 
   echo "Completed removing JNDI from $tarfile"
 }
@@ -110,10 +110,10 @@ done
 for targetdir in ${1}
 do
   echo "Removing JNDI from tar.gz files in $targetdir"
+  # shellcheck disable=SC2044 # the local function is not available when using find with -exec
   for targzfile in $(find "$targetdir" -name '*.tar.gz') ; do
     delete_jndi_from_targz_file "$targzfile"
   done
 done
 
 echo "Run successful"
-

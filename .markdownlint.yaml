@@ -18,3 +18,7 @@ MD013:
 MD024:
   # Only check sibling headings
   siblings_only: true
+
+# MD033/no-inline-html Inline HTML
+MD033:
+  allowed_elements: [details, summary, img]
