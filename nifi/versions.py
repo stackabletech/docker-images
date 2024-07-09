@@ -10,7 +10,7 @@ versions = [
         "java-devel": "11",  # There is an error when trying to use java-devel 21 (for nifi 1.25.0):
     },
     {
-        "product": "1.26.0",
+        "product": "1.27.0",
         "java-base": "11",
         "java-devel": "11",  # There is an error when trying to use java-devel 21 (for nifi 1.26.0):
     },

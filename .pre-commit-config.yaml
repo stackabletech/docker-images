@@ -47,6 +47,6 @@ repos:
       - id: update-readme-badges
         name: update-readme-badges
         language: system
-        entry: ./update_readme_badges.sh
+        entry: .scripts/update_readme_badges.sh
         stages: [commit, merge-commit, manual]
         pass_filenames: false
