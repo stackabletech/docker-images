@@ -26,5 +26,5 @@ versions = [
         "vector": "0.39.0",
         "statsd_exporter": "0.26.1",
         "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.4.1/requirements/extra.txt#L7
-    },    
+    },
 ]
