@@ -30,7 +30,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
 - trino & trino-cli: Add version 451 ([#758]).
 - airflow: Add version `2.8.4` and `2.9.2` ([#762]).
-- hbase: Support for HBase 2.4.18 ([#740])
+- superset: Add version `3.1.3` and `4.0.2` ([#768]).
+- - hbase: Support for HBase 2.4.18 ([#740]).
 
 ### Changed
 
@@ -76,6 +77,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
 - airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
+- superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -124,6 +126,7 @@ All notable changes to this project will be documented in this file.
 [#758]: https://github.com/stackabletech/docker-images/pull/758
 [#762]: https://github.com/stackabletech/docker-images/pull/762
 [#767]: https://github.com/stackabletech/docker-images/pull/767
+[#768]: https://github.com/stackabletech/docker-images/pull/768
 
 ## [24.3.0] - 2024-03-20
 
