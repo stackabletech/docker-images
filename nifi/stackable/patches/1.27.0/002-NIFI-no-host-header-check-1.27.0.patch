@@ -26,7 +26,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 diff --git a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
-index 051e2f19d6..6baac7fda7 100644
+index dd4bbf54c0..ea1b5b2da1 100644
 --- a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
 +++ b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
 @@ -47,6 +47,7 @@ public class HostHeaderHandler extends ScopedHandler {

@@ -23,6 +23,22 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+      with:
+        # This might remove tools that are actually needed, if set to "true" but
+        # frees about 6 GB.
+        tool-cache: false
+
+        # All of these default to true, but feel free to set to "false" if
+        # necessary for your workflow.
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@4fd812986e6c8c2a69e18311145f9371337f27d4 # v3.4.0
 
@@ -69,8 +85,8 @@ runs:
         set -euo pipefail
         echo "bake-target-tags: "$(< bake-target-tags)
         # Strip the architecture from the version tag
-        IMAGE_VERSION=$(cat bake-target-tags | cut -d ":" -f 2 | sed -E 's/-(amd64|arm64)$//')
-        IMAGE_NAME=$(cat bake-target-tags | cut -d ":" -f 1)
+        IMAGE_VERSION=$(cut -d ":" -f 2 < bake-target-tags | sed -E 's/-(amd64|arm64)$//')
+        IMAGE_NAME=$(cut -d ":" -f 1 < bake-target-tags)
 
         echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
