@@ -22,9 +22,9 @@ PRODUCTS = [
 ]
 
 for product in conf.products:
-    product_name = product['name']
+    product_name = product["name"]
     if product_name not in PRODUCTS:
         continue
 
-    for version in product['versions']:
+    for version in product["versions"]:
         print(f"{product_name}#{version['product']}")
