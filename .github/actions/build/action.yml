@@ -13,9 +13,6 @@ inputs:
     default: 0.0.10
   build-cache-nexus-password:
     description: Build cache password for the github user
-  image-orga:
-    description: Image organisation (sandbox, stackable)
-    default: stackable
 outputs:
   image-name:
     description: This is the full image name before the tag (left of ':')
@@ -60,7 +57,6 @@ runs:
         ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
         bake \
         --product ${{ inputs.product-name }}=${{ inputs.product-version }} \
-        --organization ${{ inputs.image-orga }} \
         --image-version "0.0.0-dev-${ARCH}" \
         --architecture "linux/${ARCH}" \
         --export-tags-file bake-target-tags \

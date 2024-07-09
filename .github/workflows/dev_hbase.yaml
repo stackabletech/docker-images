@@ -22,18 +22,7 @@ on:
       - java-devel/**
       - .github/actions/**
       - .github/workflows/dev_hbase.yaml
-  pull_request:
-    paths:
-        # To check dependencies, run this ( you will need to consider transitive dependencies)
-        # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-        - hbase/**
-        - vector/**
-        - hadoop/**
-        - stackable-base/**
-        - java-base/**
-        - java-devel/**
-        - .github/actions/**
-        - .github/workflows/dev_hbase.yaml
+
 jobs:
   generate_matrix:
     name: Generate Version List
@@ -47,25 +36,9 @@ jobs:
     outputs:
       versions: ${{ steps.shard.outputs.versions }}
 
-  select_image_orga:
-    name: Select image organisation (prs -> sandbox, others -> stackable)
-    runs-on: ubuntu-latest
-    outputs:
-      image_orga: ${{ steps.select_image_orga.outputs.image_orga }}
-    steps:
-      - id: select_image_orga
-        env:
-          TRIGGER: ${{ github.event_name }}
-        run: |
-          if [[ $TRIGGER == "pull_request" ]]; then
-            echo "image_orga=sandbox" >> $GITHUB_OUTPUT
-          else
-            echo "image_orga=stackable" >> $GITHUB_OUTPUT
-          fi
-
   build:
     name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Image
-    needs: [generate_matrix, select_image_orga]
+    needs: [generate_matrix]
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner.name }}
@@ -85,7 +58,6 @@ jobs:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-nexus-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
-          image-orga: ${{ needs.select_image_orga.outputs.image_orga }}
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
         with:
