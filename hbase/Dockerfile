@@ -39,12 +39,6 @@ COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=stackable:stackable hbase/stackable/bin/hbck2.env /stackable/bin/
 
-COPY --from=hadoop-builder --chown=stackable:stackable \
-    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/
-COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
-
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
@@ -105,16 +99,6 @@ envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > /stackable/bin/h
 chmod +x /stackable/bin/hbck2
 rm /stackable/bin/hbck2.env
 
-# Resolve paths in bin/export-snapshot-to-s3
-export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//')
-
-# The variable names are intentionally passed to envsubst in single-quotes,
-# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
-# does not work, so please ignore the according warning (SC2016).
-envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
-chmod +x /stackable/bin/export-snapshot-to-s3
-rm /stackable/bin/export-snapshot-to-s3.env
-
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -126,6 +110,30 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.cache/*
 fi
 EOF
+
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS hadoop-s3-builder
+
+ARG PRODUCT
+ARG HADOOP
+
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/
+
+RUN <<EOF
+# Resolve paths in bin/export-snapshot-to-s3
+export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//')
+
+# The variable names are intentionally passed to envsubst in single-quotes,
+# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+# does not work, so please ignore the according warning (SC2016).
+envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
+chmod +x /stackable/bin/export-snapshot-to-s3
+rm /stackable/bin/export-snapshot-to-s3.env
+EOF
+
 
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel AS phoenix-builder
@@ -219,6 +227,8 @@ COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stac
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/bin /stackable/bin/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
+COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
 RUN <<EOF
 microdnf update
