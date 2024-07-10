@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - trino & trino-cli: Add version 451 ([#758]).
 - airflow: Add version `2.8.4` and `2.9.2` ([#762]).
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
-- - hbase: Support for HBase 2.4.18 ([#740]).
+- hbase: Support for HBase 2.4.18 ([#740]).
 
 ### Changed
 
