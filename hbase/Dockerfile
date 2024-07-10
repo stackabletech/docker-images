@@ -33,12 +33,6 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
 COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 
-# Resolve paths in bin/hbck2
-# The variable names are intentionally passed to envsubst in single-quotes,
-# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
-# does not work, so please ignore the according warning (SC2016).
-COPY --chown=stackable:stackable hbase/stackable/bin/hbck2.env /stackable/bin/
-
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
@@ -76,9 +70,42 @@ export ARCH="${TARGETARCH/amd64/x64}"
 curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
-###
-### HBase Operator Tools
-###
+# We're removing these to make the intermediate layer smaller
+# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
+# and we are sometimes running into errors because we're out of space.
+# Therefore, we try to clean up all layers as much as possible.
+if [ "${DELETE_CACHES}" = "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
+  rm -rf /stackable/.npm/*
+  rm -rf /stackable/.cache/*
+fi
+EOF
+
+
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS hbase-operator-tools-builder
+
+ARG HBASE_OPERATOR_TOOLS
+ARG HBASE_THIRDPARTY
+ARG PRODUCT
+
+# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
+# This can be used to speed up builds when disk space is of no concern.
+ARG DELETE_CACHES="true"
+
+# Resolve paths in bin/hbck2
+# The variable names are intentionally passed to envsubst in single-quotes,
+# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
+# does not work, so please ignore the according warning (SC2016).
+COPY --chown=stackable:stackable hbase/stackable/bin/hbck2.env /stackable/bin/
+
+USER stackable
+WORKDIR /stackable
+
+# Cache mounts are owned by root by default
+# We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 mvn \
@@ -95,10 +122,9 @@ tar -xz \
   -C /stackable/
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
-envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < bin/hbck2.env > /stackable/bin/hbck2
+envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
 chmod +x /stackable/bin/hbck2
 rm /stackable/bin/hbck2.env
-
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -111,11 +137,17 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
+
+# Splitting this out into its own builder so that Hadoop & HBase can be built in parallel
+# envsubst is only available in java-devel which is why we don't just do this in the final image
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hadoop-s3-builder
 
 ARG PRODUCT
 ARG HADOOP
+
+USER stackable
+WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
@@ -184,7 +216,6 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
-
 EOF
 
 
@@ -221,12 +252,14 @@ LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
-COPY --chown=stackable:stackable --from=hbase-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
-COPY --chown=stackable:stackable --from=hbase-builder /stackable/jmx /stackable/jmx/
-COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
-COPY --chown=stackable:stackable --from=hbase-builder /stackable/bin /stackable/bin/
-COPY --chown=stackable:stackable --from=hbase-builder /stackable/hadoop /stackable/hadoop/
 COPY --chown=stackable:stackable --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=stackable:stackable --from=hbase-builder /stackable/jmx /stackable/jmx/
+
+COPY --chown=stackable:stackable --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
+COPY --chown=stackable:stackable --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
+
+COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
+
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
