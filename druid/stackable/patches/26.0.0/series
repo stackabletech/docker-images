@@ -1,0 +1,7 @@
+# This series applies on Git commit 7cffb81a8e124d5f218f9af16ad685acf5e9c67c
+01-remove-ranger-security.patch
+02-prometheus-emitter-from-source.patch
+03-stop-building-unused-extensions.patch
+04-update-patch-dependencies.patch
+05-xmllayout-dependencies.patch
+06-dont-build-targz.patch
