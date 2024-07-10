@@ -154,6 +154,8 @@ COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/
 
+COPY --chown=stackable:stackable hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
+
 RUN <<EOF
 # Resolve paths in bin/export-snapshot-to-s3
 export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | sed 's/:$//')
