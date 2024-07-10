@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - trino & trino-cli: Add version 451 ([#758]).
 - airflow: Add version `2.8.4` and `2.9.2` ([#762]).
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
+- druid: Support for 30.0.0 using Java 17 ([#731])
 - hbase: Support for HBase 2.4.18 ([#740]).
 
 ### Changed
@@ -78,6 +79,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove unsupported version `3.5.2` ([#745]).
 - airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
 - superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
+- druid: Remove support for 27.0.0 ([#731])
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -115,6 +117,7 @@ All notable changes to this project will be documented in this file.
 [#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
 [#727]: https://github.com/stackabletech/docker-images/pull/727
+[#731]: https://github.com/stackabletech/docker-images/pull/731
 [#732]: https://github.com/stackabletech/docker-images/pull/732
 [#734]: https://github.com/stackabletech/docker-images/pull/734
 [#736]: https://github.com/stackabletech/docker-images/pull/736

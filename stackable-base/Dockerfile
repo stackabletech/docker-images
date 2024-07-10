@@ -1,8 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# 9.4-949.1714662671 as of 2024-05-08
-# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6633b5136d81a5634a616c41&architecture=amd64
-
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
@@ -113,3 +110,28 @@ RUN update-ca-trust && \
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH="${PATH}:/stackable"
+
+# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+LABEL maintainer="info@stackable.tech"
+LABEL vendor="Stackable GmbH"
+
+# Overwriting/Pinning UBI labels
+# https://github.com/projectatomic/ContainerApplicationGenericLabels
+LABEL vcs-ref=""
+LABEL distribution-scope="public"
+LABEL url="https://stackable.tech"
+ARG TARGETARCH
+LABEL architecture="${TARGETARCH}"
+LABEL com.redhat.component=""
+# It complains about it being an invalid label but RedHat uses it and we want to override it and it works....
+# hadolint ignore=DL3048
+LABEL com.redhat.license_terms=""
+LABEL io.buildah.version=""
+LABEL io.openshift.expose-services=""
+
+# https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
+LABEL org.opencontainers.image.authors="info@stackable.tech"
+LABEL org.opencontainers.image.url="https://stackable.tech"
+LABEL org.opencontainers.image.source="https://github.com/stackabletech/docker-images/"
+LABEL org.opencontainers.image.vendor="Stackable GmbH"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
