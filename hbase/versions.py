@@ -13,6 +13,7 @@ versions = [
         "hadoop": "3.3.6",
         "jmx_exporter": "1.0.1",  # update the stackable/jmx/config<version> folder too
         "jackson_dataformat_xml": "",  # only for HBase 2.6.0
+        "opa_authorizer": "",  # only for HBase 2.6.0
         "delete_caches": "true",
     },
     {
@@ -27,6 +28,7 @@ versions = [
         "hadoop": "3.3.6",
         "jmx_exporter": "1.0.1",  # update the stackable/jmx/config<version> folder too
         "jackson_dataformat_xml": "",  # only for HBase 2.6.0
+        "opa_authorizer": "",  # only for HBase 2.6.0
         "delete_caches": "true",
     },
     {
@@ -41,7 +43,7 @@ versions = [
         "hadoop": "3.3.6",
         "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
         "jackson_dataformat_xml": "2.17.0",  # only for HBase 2.6.0
-        "opa_authorizer": "initial-setup",  # only for HBase 2.6.0
+        "opa_authorizer": "",  # only for HBase 2.6.0
         "delete_caches": "true",
     },
 ]
