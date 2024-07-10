@@ -33,7 +33,7 @@ USER stackable
 WORKDIR /stackable
 
 COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
-COPY --chown=stackable:stackable hbase/stackable/jmx${JMX_EXPORTER} /stackable/jmx
+COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base

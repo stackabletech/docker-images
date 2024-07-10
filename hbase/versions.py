@@ -11,7 +11,7 @@ versions = [
         "phoenix": "5.2.0",
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
-        "jmx_exporter": "1.0.1",
+        "jmx_exporter": "1.0.1",  # update the stackable/jmx/config<version> folder too
         "delete_caches": "true",
     },
     {
@@ -24,7 +24,7 @@ versions = [
         "phoenix": "5.2.0",
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
-        "jmx_exporter": "1.0.1",
+        "jmx_exporter": "1.0.1",  # update the stackable/jmx/config<version> folder too
         "delete_caches": "true",
     },
     {
