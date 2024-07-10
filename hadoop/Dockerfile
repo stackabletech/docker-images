@@ -91,7 +91,7 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
 # ===
 
-FROM stackable/image/java-devel as hdfs-utils-builder
+FROM stackable/image/java-devel AS hdfs-utils-builder
 
 ARG HDFS_UTILS
 ARG PRODUCT
@@ -110,7 +110,7 @@ RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tag
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
     rm -rf /stackable/hdfs-utils-main
 
-FROM stackable/image/java-base as final
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE

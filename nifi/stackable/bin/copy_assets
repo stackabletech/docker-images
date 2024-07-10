@@ -9,4 +9,4 @@ if ! [ $# -eq 1 ]
 fi
 
 dir=$1
-cp $dir/* /stackable/nifi/conf
+cp "$dir"/* /stackable/nifi/conf

@@ -51,7 +51,7 @@ echo "Validating SHA1 Checksums"
 echo " ${bin_file}" >> "${bin_file}.sha1"
 echo " ${src_file}" >> "${src_file}.sha1"
 
-if ! (sha1sum -c ${bin_file}.sha1 && sha1sum -c ${src_file}.sha1); then
+if ! (sha1sum -c "${bin_file}.sha1" && sha1sum -c "${src_file}.sha1"); then
   echo "ERROR: One of the SHA1 sums does not match"
   exit 1
 fi
