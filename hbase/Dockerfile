@@ -36,7 +36,7 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
 ###
@@ -104,7 +104,7 @@ ARG DELETE_CACHES
 USER stackable
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-opa,uid=1000,target=/stackable/.m2/repository <<EOF
 
 ###
 ### OPA Authorizer (only for 2.6 upwards)
@@ -130,7 +130,6 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
-
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hbase-operator-tools-builder
 
@@ -153,7 +152,7 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase-operator-tools,uid=1000,target=/stackable/.m2/repository <<EOF
 
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -234,7 +233,7 @@ ARG DELETE_CACHES="true"
 USER stackable
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repository <<EOF
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
