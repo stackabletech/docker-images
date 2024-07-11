@@ -1,0 +1,1054 @@
+HIVE-27508
+
+From: Lars Francke <git@lars-francke.de>
+
+Backport of HIVE-21584 to branch-3.1
+HIVE-21584: Java 11 preparation: system class loader is not URLClassLoader
+---
+ .../src/java/org/apache/hive/beeline/Commands.java |    2 
+ .../org/apache/hadoop/hive/common/JavaUtils.java   |   57 +-------
+ .../hive/llap/daemon/impl/FunctionLocalizer.java   |   18 ++-
+ .../hadoop/hive/ql/exec/AddToClassPathAction.java  |   87 ++++++++++++
+ .../org/apache/hadoop/hive/ql/exec/Utilities.java  |   98 ++++++--------
+ .../apache/hadoop/hive/ql/exec/mr/ExecDriver.java  |    8 +
+ .../apache/hadoop/hive/ql/exec/mr/ExecMapper.java  |   20 +--
+ .../apache/hadoop/hive/ql/exec/mr/ExecReducer.java |   20 ---
+ .../hive/ql/exec/spark/SparkRecordHandler.java     |   29 ++--
+ .../hadoop/hive/ql/exec/tez/RecordProcessor.java   |   16 --
+ .../hadoop/hive/ql/session/SessionState.java       |   57 ++++----
+ .../hive/ql/exec/TestAddToClassPathAction.java     |  142 ++++++++++++++++++++
+ .../hive/spark/client/SparkClientUtilities.java    |   23 +++
+ .../hive/metastore/utils/MetaStoreUtils.java       |   20 ++-
+ 14 files changed, 386 insertions(+), 211 deletions(-)
+ create mode 100644 ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
+ create mode 100644 ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
+
+diff --git a/beeline/src/java/org/apache/hive/beeline/Commands.java b/beeline/src/java/org/apache/hive/beeline/Commands.java
+index 851042f3f9..f14564a81a 100644
+--- a/beeline/src/java/org/apache/hive/beeline/Commands.java
++++ b/beeline/src/java/org/apache/hive/beeline/Commands.java
+@@ -169,7 +169,7 @@ public boolean addlocaldriverjar(String line) {
+       return false;
+     }
+ 
+-    URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
++    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+     try {
+       beeLine.debug(jarPath + " is added to the local beeline.");
+       URLClassLoader newClassLoader = new URLClassLoader(new URL[]{p.toURL()}, classLoader);
+diff --git a/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java b/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
+index 54d6b65fa1..93f591fe2a 100644
+--- a/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
++++ b/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
+@@ -18,12 +18,8 @@
+ 
+ package org.apache.hadoop.hive.common;
+ 
+-import java.io.ByteArrayOutputStream;
+ import java.io.Closeable;
+ import java.io.IOException;
+-import java.io.PrintStream;
+-import java.lang.reflect.InvocationTargetException;
+-import java.lang.reflect.Method;
+ import java.net.URLClassLoader;
+ import java.util.Arrays;
+ import java.util.List;
+@@ -38,22 +34,6 @@
+  */
+ public final class JavaUtils {
+   private static final Logger LOG = LoggerFactory.getLogger(JavaUtils.class);
+-  private static final Method SUN_MISC_UTIL_RELEASE;
+-
+-  static {
+-    if (Closeable.class.isAssignableFrom(URLClassLoader.class)) {
+-      SUN_MISC_UTIL_RELEASE = null;
+-    } else {
+-      Method release = null;
+-      try {
+-        Class<?> clazz = Class.forName("sun.misc.ClassLoaderUtil");
+-        release = clazz.getMethod("releaseLoader", URLClassLoader.class);
+-      } catch (Exception e) {
+-        // ignore
+-      }
+-      SUN_MISC_UTIL_RELEASE = release;
+-    }
+-  }
+ 
+   /**
+    * Standard way of getting classloader in Hive code (outside of Hadoop).
+@@ -91,8 +71,10 @@ public static boolean closeClassLoadersTo(ClassLoader current, ClassLoader stop)
+       try {
+         closeClassLoader(current);
+       } catch (IOException e) {
+-        LOG.info("Failed to close class loader " + current +
+-            Arrays.toString(((URLClassLoader) current).getURLs()), e);
++        String detailedMessage = current instanceof URLClassLoader ?
++            Arrays.toString(((URLClassLoader) current).getURLs()) :
++            "";
++        LOG.info("Failed to close class loader " + current + " " + detailedMessage, e);
+       }
+     }
+     return true;
+@@ -108,35 +90,12 @@ private static boolean isValidHierarchy(ClassLoader current, ClassLoader stop) {
+     return current == stop;
+   }
+ 
+-  // best effort to close
+-  // see https://issues.apache.org/jira/browse/HIVE-3969 for detail
+   public static void closeClassLoader(ClassLoader loader) throws IOException {
+     if (loader instanceof Closeable) {
+-      ((Closeable)loader).close();
+-    } else if (SUN_MISC_UTIL_RELEASE != null && loader instanceof URLClassLoader) {
+-      PrintStream outputStream = System.out;
+-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+-      PrintStream newOutputStream = new PrintStream(byteArrayOutputStream);
+-      try {
+-        // SUN_MISC_UTIL_RELEASE.invoke prints to System.out
+-        // So we're changing the outputstream for that call,
+-        // and setting it back to original System.out when we're done
+-        System.setOut(newOutputStream);
+-        SUN_MISC_UTIL_RELEASE.invoke(null, loader);
+-        String output = byteArrayOutputStream.toString("UTF8");
+-        LOG.debug(output);
+-      } catch (InvocationTargetException e) {
+-        if (e.getTargetException() instanceof IOException) {
+-          throw (IOException)e.getTargetException();
+-        }
+-        throw new IOException(e.getTargetException());
+-      } catch (Exception e) {
+-        throw new IOException(e);
+-      }
+-      finally {
+-        System.setOut(outputStream);
+-        newOutputStream.close();
+-      }
++      ((Closeable) loader).close();
++    } else {
++      LOG.warn("Ignoring attempt to close class loader ({}) -- not instance of UDFClassLoader.",
++          loader == null ? "mull" : loader.getClass().getSimpleName());
+     }
+   LogFactory.release(loader);
+   }
+diff --git a/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java b/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
+index 2a6ef3a246..136fe2a3b3 100644
+--- a/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
++++ b/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
+@@ -18,8 +18,10 @@
+ import java.io.IOException;
+ import java.net.URI;
+ import java.net.URISyntaxException;
+-import java.net.URLClassLoader;
++import java.security.AccessController;
+ import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collections;
+ import java.util.IdentityHashMap;
+ import java.util.LinkedList;
+ import java.util.List;
+@@ -33,10 +35,10 @@
+ import org.apache.hadoop.hive.metastore.api.Function;
+ import org.apache.hadoop.hive.metastore.api.MetaException;
+ import org.apache.hadoop.hive.metastore.api.ResourceUri;
+-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
++import org.apache.hadoop.hive.ql.exec.AddToClassPathAction;
+ import org.apache.hadoop.hive.ql.exec.FunctionRegistry;
+ import org.apache.hadoop.hive.ql.exec.FunctionTask;
+-import org.apache.hadoop.hive.ql.exec.Utilities;
++import org.apache.hadoop.hive.ql.exec.UDFClassLoader;
+ import org.apache.hadoop.hive.ql.exec.FunctionInfo.FunctionResource;
+ import org.apache.hadoop.hive.ql.metadata.Hive;
+ import org.apache.hadoop.hive.ql.metadata.HiveException;
+@@ -60,7 +62,7 @@ public class FunctionLocalizer implements GenericUDFBridge.UdfWhitelistChecker {
+   private final Thread workThread;
+   private final File localDir;
+   private final Configuration conf;
+-  private final URLClassLoader executorClassloader;
++  private final UDFClassLoader executorClassloader;
+ 
+ 
+   private final IdentityHashMap<Class<?>, Boolean> allowedUdfClasses = new IdentityHashMap<>();
+@@ -70,8 +72,9 @@ public class FunctionLocalizer implements GenericUDFBridge.UdfWhitelistChecker {
+   public FunctionLocalizer(Configuration conf, String localDir) {
+     this.conf = conf;
+     this.localDir = new File(localDir, DIR_NAME);
+-    this.executorClassloader = (URLClassLoader)Utilities.createUDFClassLoader(
+-        (URLClassLoader)Thread.currentThread().getContextClassLoader(), new String[]{});
++    AddToClassPathAction addAction = new AddToClassPathAction(
++        Thread.currentThread().getContextClassLoader(), Collections.emptyList(), true);
++    this.executorClassloader = AccessController.doPrivileged(addAction);
+     this.workThread = new Thread(new Runnable() {
+       @Override
+       public void run() {
+@@ -223,7 +226,8 @@ public void refreshClassloader() throws IOException {
+     recentlyLocalizedJars.clear();
+     ClassLoader updatedCl = null;
+     try {
+-      updatedCl = Utilities.addToClassPath(executorClassloader, jars);
++      AddToClassPathAction addAction = new AddToClassPathAction(executorClassloader, Arrays.asList(jars));
++      updatedCl = AccessController.doPrivileged(addAction);
+       if (LOG.isInfoEnabled()) {
+         LOG.info("Added " + jars.length + " jars to classpath");
+       }
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
+new file mode 100644
+index 0000000000..a2ffbb1f24
+--- /dev/null
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
+@@ -0,0 +1,87 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.hadoop.hive.ql.exec;
++
++import java.net.URL;
++import java.security.PrivilegedAction;
++import java.util.Collection;
++import java.util.Collections;
++import java.util.Objects;
++
++/**
++ * Helper class to create UDFClassLoader when running under a security manager. To create a class loader:
++ * > AddToClassPathAction addAction = new AddToClassPathAction(parentLoader, newPaths, true);
++ * > UDFClassLoader childClassLoader = AccessController.doPrivileged(addAction);
++ * To try to add to the class path of the existing class loader; call the above without forceNewClassLoader=true.
++ * Note that a class loader might be still created as fallback method.
++ * <p>
++ * This is slightly inconvenient, but forces the caller code to make the doPriviliged call, rather than us making the
++ * call on the caller's behalf, in accordance with the security guidelines at:
++ * https://docs.oracle.com/javase/8/docs/technotes/guides/security/doprivileged.html
++ */
++public class AddToClassPathAction implements PrivilegedAction<UDFClassLoader> {
++
++  private final ClassLoader parentLoader;
++  private final Collection<String> newPaths;
++  private final boolean forceNewClassLoader;
++
++  public AddToClassPathAction(ClassLoader parentLoader, Collection<String> newPaths, boolean forceNewClassLoader) {
++    this.parentLoader = parentLoader;
++    this.newPaths = newPaths != null ? newPaths : Collections.emptyList();
++    this.forceNewClassLoader = forceNewClassLoader;
++    if (parentLoader == null) {
++      throw new IllegalArgumentException("UDFClassLoader is not designed to be a bootstrap class loader!");
++    }
++  }
++
++  public AddToClassPathAction(ClassLoader parentLoader, Collection<String> newPaths) {
++    this(parentLoader, newPaths, false);
++  }
++
++  @Override
++  public UDFClassLoader run() {
++    if (useExistingClassLoader()) {
++      final UDFClassLoader udfClassLoader = (UDFClassLoader) parentLoader;
++      for (String path : newPaths) {
++        udfClassLoader.addURL(Utilities.urlFromPathString(path));
++      }
++      return udfClassLoader;
++    } else {
++      return createUDFClassLoader();
++    }
++  }
++
++  private boolean useExistingClassLoader() {
++    if (!forceNewClassLoader && parentLoader instanceof UDFClassLoader) {
++      final UDFClassLoader udfClassLoader = (UDFClassLoader) parentLoader;
++      // The classloader may have been closed, Cannot add to the same instance
++      return !udfClassLoader.isClosed();
++    }
++    // Cannot use the same classloader if it is not an instance of {@code UDFClassLoader}, or new loader was explicily
++    // requested
++    return false;
++  }
++
++  private UDFClassLoader createUDFClassLoader() {
++    return new UDFClassLoader(newPaths.stream()
++        .map(Utilities::urlFromPathString)
++        .filter(Objects::nonNull)
++        .toArray(URL[]::new), parentLoader);
++  }
++}
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
+index 406bea011d..41ac266cc0 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
+@@ -42,6 +42,7 @@
+ import java.net.URL;
+ import java.net.URLClassLoader;
+ import java.net.URLDecoder;
++import java.security.AccessController;
+ import java.sql.Connection;
+ import java.sql.DriverManager;
+ import java.sql.PreparedStatement;
+@@ -418,8 +419,10 @@ private static BaseWork getBaseWork(Configuration conf, String name) {
+         // threads, should be unnecessary while SPARK-5377 is resolved.
+         String addedJars = conf.get(HIVE_ADDED_JARS);
+         if (StringUtils.isNotEmpty(addedJars)) {
+-          ClassLoader loader = Thread.currentThread().getContextClassLoader();
+-          ClassLoader newLoader = addToClassPath(loader, addedJars.split(";"));
++          AddToClassPathAction addAction = new AddToClassPathAction(
++              Thread.currentThread().getContextClassLoader(), Arrays.asList(addedJars.split(";"))
++          );
++          ClassLoader newLoader = AccessController.doPrivileged(addAction);
+           Thread.currentThread().setContextClassLoader(newLoader);
+           kryo.setClassLoader(newLoader);
+         }
+@@ -1544,9 +1547,8 @@ public static void mvFileToFinalPath(Path specPath, Configuration hconf,
+    * Check the existence of buckets according to bucket specification. Create empty buckets if
+    * needed.
+    *
+-   * @param hconf
++   * @param hconf The definition of the FileSink.
+    * @param paths A list of empty buckets to create
+-   * @param conf The definition of the FileSink.
+    * @param reporter The mapreduce reporter object
+    * @throws HiveException
+    * @throws IOException
+@@ -2000,7 +2002,7 @@ public static void restoreSessionSpecifiedClassLoader(ClassLoader prev) {
+    * @param onestr  path string
+    * @return
+    */
+-  private static URL urlFromPathString(String onestr) {
++  static URL urlFromPathString(String onestr) {
+     URL oneurl = null;
+     try {
+       if (StringUtils.indexOf(onestr, "file:/") == 0) {
+@@ -2014,59 +2016,26 @@ private static URL urlFromPathString(String onestr) {
+     return oneurl;
+   }
+ 
+-  private static boolean useExistingClassLoader(ClassLoader cl) {
+-    if (!(cl instanceof UDFClassLoader)) {
+-      // Cannot use the same classloader if it is not an instance of {@code UDFClassLoader}
+-      return false;
+-    }
+-    final UDFClassLoader udfClassLoader = (UDFClassLoader) cl;
+-    if (udfClassLoader.isClosed()) {
+-      // The classloader may have been closed, Cannot add to the same instance
+-      return false;
+-    }
+-    return true;
+-  }
+-
+-  /**
+-   * Add new elements to the classpath.
+-   *
+-   * @param newPaths
+-   *          Array of classpath elements
+-   */
+-  public static ClassLoader addToClassPath(ClassLoader cloader, String[] newPaths) {
+-    final URLClassLoader loader = (URLClassLoader) cloader;
+-    if (useExistingClassLoader(cloader)) {
+-      final UDFClassLoader udfClassLoader = (UDFClassLoader) loader;
+-      for (String path : newPaths) {
+-        udfClassLoader.addURL(urlFromPathString(path));
+-      }
+-      return udfClassLoader;
+-    } else {
+-      return createUDFClassLoader(loader, newPaths);
+-    }
+-  }
+-
+-  public static ClassLoader createUDFClassLoader(URLClassLoader loader, String[] newPaths) {
+-    final Set<URL> curPathsSet = Sets.newHashSet(loader.getURLs());
+-    final List<URL> curPaths = Lists.newArrayList(curPathsSet);
+-    for (String onestr : newPaths) {
+-      final URL oneurl = urlFromPathString(onestr);
+-      if (oneurl != null && !curPathsSet.contains(oneurl)) {
+-        curPaths.add(oneurl);
+-      }
+-    }
+-    return new UDFClassLoader(curPaths.toArray(new URL[0]), loader);
+-  }
+-
+   /**
+-   * remove elements from the classpath.
++   * Remove elements from the classpath, if possible. This will only work if the current thread context class loader is
++   * an UDFClassLoader (i.e. if we have created it).
+    *
+    * @param pathsToRemove
+    *          Array of classpath elements
+    */
+   public static void removeFromClassPath(String[] pathsToRemove) throws IOException {
+     Thread curThread = Thread.currentThread();
+-    URLClassLoader loader = (URLClassLoader) curThread.getContextClassLoader();
++    ClassLoader currentLoader = curThread.getContextClassLoader();
++    // If current class loader is NOT UDFClassLoader, then it is a system class loader, we should not mess with it.
++    if (!(currentLoader instanceof UDFClassLoader)) {
++      LOG.warn("Ignoring attempt to manipulate {}; probably means we have closed more UDF loaders than opened.",
++          currentLoader == null ? "null" : currentLoader.getClass().getSimpleName());
++      return;
++    }
++    // Otherwise -- for UDFClassLoaders -- we close the current one and create a new one, with more limited class path.
++
++    UDFClassLoader loader = (UDFClassLoader) currentLoader;
++
+     Set<URL> newPath = new HashSet<URL>(Arrays.asList(loader.getURLs()));
+ 
+     for (String onestr : pathsToRemove) {
+@@ -2076,9 +2045,9 @@ public static void removeFromClassPath(String[] pathsToRemove) throws IOExceptio
+       }
+     }
+     JavaUtils.closeClassLoader(loader);
+-   // This loader is closed, remove it from cached registry loaders to avoid removing it again.
++    // This loader is closed, remove it from cached registry loaders to avoid removing it again.
+     Registry reg = SessionState.getRegistry();
+-    if(reg != null) {
++    if (reg != null) {
+       reg.removeFromUDFLoaders(loader);
+     }
+ 
+@@ -4515,4 +4484,27 @@ public static int getBucketingVersion(final String versionStr) {
+     }
+     return bucketingVersion;
+   }
++
++
++  /**
++   * Logs the class paths of the job class loader and the thread context class loader to the passed logger.
++   * Checks both loaders if getURLs method is available; if not, prints a message about this (instead of the class path)
++   *
++   * Note: all messages will always be logged with INFO log level.
++   */
++  public static void tryLoggingClassPaths(JobConf job, Logger logger) {
++    if (logger != null && logger.isInfoEnabled()) {
++      tryToLogClassPath("conf", job.getClassLoader(), logger);
++      tryToLogClassPath("thread", Thread.currentThread().getContextClassLoader(), logger);
++    }
++  }
++
++  private static void tryToLogClassPath(String prefix, ClassLoader loader, Logger logger) {
++    if(loader instanceof URLClassLoader) {
++      logger.info("{} class path = {}", prefix, Arrays.asList(((URLClassLoader) loader).getURLs()).toString());
++    } else {
++      logger.info("{} class path = unavailable for {}", prefix,
++              loader == null ? "null" : loader.getClass().getSimpleName());
++    }
++  }
+ }
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
+index 7ff8ddc6a0..c784701983 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
+@@ -24,7 +24,9 @@
+ import java.io.Serializable;
+ import java.lang.management.ManagementFactory;
+ import java.lang.management.MemoryMXBean;
++import java.security.AccessController;
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.Iterator;
+@@ -33,6 +35,7 @@
+ import java.util.Properties;
+ 
+ import org.apache.commons.lang.StringUtils;
++import org.apache.hadoop.hive.ql.exec.AddToClassPathAction;
+ import org.apache.hadoop.hive.ql.exec.SerializationUtilities;
+ import org.apache.hadoop.hive.ql.log.LogDivertAppenderForTest;
+ import org.apache.hadoop.mapreduce.MRJobConfig;
+@@ -752,7 +755,9 @@ public static void main(String[] args) throws IOException, HiveException {
+       // see also - code in CliDriver.java
+       ClassLoader loader = conf.getClassLoader();
+       if (StringUtils.isNotBlank(libjars)) {
+-        loader = Utilities.addToClassPath(loader, StringUtils.split(libjars, ","));
++        AddToClassPathAction addAction = new AddToClassPathAction(
++            loader, Arrays.asList(StringUtils.split(libjars, ",")));
++        loader = AccessController.doPrivileged(addAction);
+       }
+       conf.setClassLoader(loader);
+       // Also set this to the Thread ContextClassLoader, so new threads will
+@@ -894,4 +899,3 @@ private void killJob() {
+     }
+   }
+ }
+-
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
+index 99b33a3aad..d0038cd3d8 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
+@@ -19,13 +19,9 @@
+ package org.apache.hadoop.hive.ql.exec.mr;
+ 
+ import java.io.IOException;
+-import java.net.URLClassLoader;
+-import java.util.Arrays;
+ import java.util.List;
+ import java.util.Map;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.hive.conf.HiveConf;
+ import org.apache.hadoop.hive.ql.CompilationOpContext;
+@@ -39,6 +35,8 @@
+ import org.apache.hadoop.hive.ql.plan.MapWork;
+ import org.apache.hadoop.hive.ql.plan.MapredLocalWork;
+ import org.apache.hadoop.hive.ql.plan.OperatorDesc;
++import org.apache.hadoop.hive.ql.plan.PartitionDesc;
++import org.apache.hadoop.hive.ql.plan.TableDesc;
+ import org.apache.hadoop.io.Writable;
+ import org.apache.hadoop.mapred.JobConf;
+ import org.apache.hadoop.mapred.MapReduceBase;
+@@ -46,6 +44,8 @@
+ import org.apache.hadoop.mapred.OutputCollector;
+ import org.apache.hadoop.mapred.Reporter;
+ import org.apache.hadoop.util.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ /**
+  * ExecMapper is the generic Map class for Hive. Together with ExecReducer it is
+@@ -74,17 +74,7 @@ public class ExecMapper extends MapReduceBase implements Mapper {
+   @Override
+   public void configure(JobConf job) {
+     execContext = new ExecMapperContext(job);
+-    // Allocate the bean at the beginning -
+-      try {
+-      l4j.info("conf classpath = "
+-          + Arrays.asList(((URLClassLoader) job.getClassLoader()).getURLs()));
+-      l4j.info("thread classpath = "
+-          + Arrays.asList(((URLClassLoader) Thread.currentThread()
+-          .getContextClassLoader()).getURLs()));
+-    } catch (Exception e) {
+-      l4j.info("cannot get classpath: " + e.getMessage());
+-    }
+-
++    Utilities.tryLoggingClassPaths(job, l4j);
+     setDone(false);
+ 
+     try {
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
+index 829006d375..7ce1544839 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
+@@ -19,16 +19,10 @@
+ package org.apache.hadoop.hive.ql.exec.mr;
+ 
+ import java.io.IOException;
+-import java.lang.management.ManagementFactory;
+-import java.lang.management.MemoryMXBean;
+-import java.net.URLClassLoader;
+ import java.util.ArrayList;
+-import java.util.Arrays;
+ import java.util.Iterator;
+ import java.util.List;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ import org.apache.hadoop.hive.ql.exec.MapredContext;
+ import org.apache.hadoop.hive.ql.exec.Operator;
+ import org.apache.hadoop.hive.ql.exec.Utilities;
+@@ -49,6 +43,8 @@
+ import org.apache.hadoop.mapred.Reporter;
+ import org.apache.hadoop.util.ReflectionUtils;
+ import org.apache.hadoop.util.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ /**
+  * ExecReducer is the generic Reducer class for Hive. Together with ExecMapper it is
+@@ -94,17 +90,7 @@ public void configure(JobConf job) {
+     ObjectInspector[] valueObjectInspector = new ObjectInspector[Byte.MAX_VALUE];
+     ObjectInspector keyObjectInspector;
+ 
+-    if (LOG.isInfoEnabled()) {
+-      try {
+-        LOG.info("conf classpath = "
+-            + Arrays.asList(((URLClassLoader) job.getClassLoader()).getURLs()));
+-        LOG.info("thread classpath = "
+-            + Arrays.asList(((URLClassLoader) Thread.currentThread()
+-            .getContextClassLoader()).getURLs()));
+-      } catch (Exception e) {
+-        LOG.info("cannot get classpath: " + e.getMessage());
+-      }
+-    }
++    Utilities.tryLoggingClassPaths(job, LOG);
+     jc = job;
+ 
+     ReduceWork gWork = Utilities.getReduceWork(job);
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
+index cb5bd7ada2..c5b33f89f1 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
+@@ -18,21 +18,23 @@
+ 
+ package org.apache.hadoop.hive.ql.exec.spark;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++import java.io.IOException;
++import java.lang.management.ManagementFactory;
++import java.lang.management.MemoryMXBean;
++import java.util.Iterator;
++
+ import org.apache.hadoop.hive.ql.exec.MapredContext;
++import org.apache.hadoop.hive.ql.exec.Utilities;
+ import org.apache.hadoop.hive.ql.log.PerfLogger;
+ import org.apache.hadoop.hive.ql.session.SessionState;
+ import org.apache.hadoop.mapred.JobConf;
+ import org.apache.hadoop.mapred.OutputCollector;
+ import org.apache.hadoop.mapred.Reporter;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ 
+-import java.io.IOException;
+-import java.lang.management.ManagementFactory;
+-import java.lang.management.MemoryMXBean;
+-import java.net.URLClassLoader;
+-import java.util.Arrays;
+-import java.util.Iterator;
+ 
+ public abstract class SparkRecordHandler {
+   protected static final String CLASS_NAME = SparkRecordHandler.class.getName();
+@@ -60,16 +62,7 @@ public <K, V> void init(JobConf job, OutputCollector<K, V> output, Reporter repo
+     rp = reporter;
+ 
+     LOG.info("maximum memory = " + memoryMXBean.getHeapMemoryUsage().getMax());
+-
+-    try {
+-      LOG.info("conf classpath = "
+-        + Arrays.asList(((URLClassLoader) job.getClassLoader()).getURLs()));
+-      LOG.info("thread classpath = "
+-        + Arrays.asList(((URLClassLoader) Thread.currentThread()
+-        .getContextClassLoader()).getURLs()));
+-    } catch (Exception e) {
+-      LOG.info("cannot get classpath: " + e.getMessage());
+-    }
++    Utilities.tryLoggingClassPaths(job, LOG);
+   }
+ 
+   /**
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
+index 0ec7a04ce7..86390963c8 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
+@@ -16,9 +16,7 @@
+  * limitations under the License.
+  */
+ package org.apache.hadoop.hive.ql.exec.tez;
+-import java.net.URLClassLoader;
+ import java.util.ArrayList;
+-import java.util.Arrays;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Map.Entry;
+@@ -80,19 +78,7 @@ void init(MRTaskReporter mrReporter,
+     this.outputs = outputs;
+ 
+     checkAbortCondition();
+-
+-    //log classpaths
+-    try {
+-      if (l4j.isDebugEnabled()) {
+-        l4j.debug("conf classpath = "
+-            + Arrays.asList(((URLClassLoader) jconf.getClassLoader()).getURLs()));
+-        l4j.debug("thread classpath = "
+-            + Arrays.asList(((URLClassLoader) Thread.currentThread()
+-            .getContextClassLoader()).getURLs()));
+-      }
+-    } catch (Exception e) {
+-      l4j.info("cannot get classpath: " + e.getMessage());
+-    }
++    Utilities.tryLoggingClassPaths(jconf, l4j);
+   }
+ 
+   /**
+diff --git a/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java b/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
+index 7a5866cb1c..711d4603db 100644
+--- a/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
++++ b/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
+@@ -27,11 +27,12 @@
+ import java.lang.management.ManagementFactory;
+ import java.net.URI;
+ import java.net.URISyntaxException;
+-import java.net.URLClassLoader;
++import java.security.AccessController;
+ import java.time.Instant;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collection;
++import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.LinkedHashMap;
+@@ -68,6 +69,7 @@
+ import org.apache.hadoop.hive.metastore.cache.CachedStore;
+ import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
+ import org.apache.hadoop.hive.ql.MapRedStats;
++import org.apache.hadoop.hive.ql.exec.AddToClassPathAction;
+ import org.apache.hadoop.hive.ql.exec.FunctionInfo;
+ import org.apache.hadoop.hive.ql.exec.Registry;
+ import org.apache.hadoop.hive.ql.exec.Utilities;
+@@ -410,7 +412,9 @@ public SessionState(HiveConf conf, String userName) {
+     // classloader as parent can pollute the session. See HIVE-11878
+     parentLoader = SessionState.class.getClassLoader();
+     // Make sure that each session has its own UDFClassloader. For details see {@link UDFClassLoader}
+-    final ClassLoader currentLoader = Utilities.createUDFClassLoader((URLClassLoader) parentLoader, new String[]{});
++    AddToClassPathAction addAction = new AddToClassPathAction(
++        parentLoader, Collections.emptyList(), true);
++    final ClassLoader currentLoader = AccessController.doPrivileged(addAction);
+     this.sessionConf.setClassLoader(currentLoader);
+     resourceDownloader = new ResourceDownloader(conf,
+         HiveConf.getVar(conf, ConfVars.DOWNLOADED_RESOURCES_DIR));
+@@ -1301,6 +1305,21 @@ static void validateFiles(List<String> newFiles) throws IllegalArgumentException
+     }
+   }
+ 
++  static void registerJars(List<String> newJars) throws IllegalArgumentException {
++    LogHelper console = getConsole();
++    try {
++      AddToClassPathAction addAction = new AddToClassPathAction(
++          Thread.currentThread().getContextClassLoader(), newJars);
++      final ClassLoader newLoader = AccessController.doPrivileged(addAction);
++      Thread.currentThread().setContextClassLoader(newLoader);
++      SessionState.get().getConf().setClassLoader(newLoader);
++      console.printInfo("Added " + newJars + " to class path");
++    } catch (Exception e) {
++      String message = "Unable to register " + newJars;
++      throw new IllegalArgumentException(message, e);
++    }
++  }
++
+   /**
+    * Load the jars under the path specified in hive.aux.jars.path property. Add
+    * the jars to the classpath so the local task can refer to them.
+@@ -1311,17 +1330,17 @@ public void loadAuxJars() throws IOException {
+     if (ArrayUtils.isEmpty(jarPaths)) {
+       return;
+     }
+-
+-    URLClassLoader currentCLoader =
+-        (URLClassLoader) SessionState.get().getConf().getClassLoader();
+-    currentCLoader =
+-        (URLClassLoader) Utilities.addToClassPath(currentCLoader, jarPaths);
++    AddToClassPathAction addAction = new AddToClassPathAction(
++        SessionState.get().getConf().getClassLoader(), Arrays.asList(jarPaths)
++        );
++    final ClassLoader currentCLoader = AccessController.doPrivileged(addAction);
+     sessionConf.setClassLoader(currentCLoader);
+     Thread.currentThread().setContextClassLoader(currentCLoader);
+   }
+ 
+   /**
+    * Reload the jars under the path specified in hive.reloadable.aux.jars.path property.
++   *
+    * @throws IOException
+    */
+   public void loadReloadableAuxJars() throws IOException {
+@@ -1336,7 +1355,7 @@ public void loadReloadableAuxJars() throws IOException {
+     Set<String> jarPaths = FileUtils.getJarFilesByPath(renewableJarPath, sessionConf);
+ 
+     // load jars under the hive.reloadable.aux.jars.path
+-    if(!jarPaths.isEmpty()){
++    if (!jarPaths.isEmpty()) {
+       reloadedAuxJars.addAll(jarPaths);
+     }
+ 
+@@ -1346,11 +1365,9 @@ public void loadReloadableAuxJars() throws IOException {
+     }
+ 
+     if (reloadedAuxJars != null && !reloadedAuxJars.isEmpty()) {
+-      URLClassLoader currentCLoader =
+-          (URLClassLoader) SessionState.get().getConf().getClassLoader();
+-      currentCLoader =
+-          (URLClassLoader) Utilities.addToClassPath(currentCLoader,
+-              reloadedAuxJars.toArray(new String[0]));
++      AddToClassPathAction addAction = new AddToClassPathAction(
++          SessionState.get().getConf().getClassLoader(), reloadedAuxJars);
++      final ClassLoader currentCLoader = AccessController.doPrivileged(addAction);
+       sessionConf.setClassLoader(currentCLoader);
+       Thread.currentThread().setContextClassLoader(currentCLoader);
+     }
+@@ -1358,20 +1375,6 @@ public void loadReloadableAuxJars() throws IOException {
+     preReloadableAuxJars.addAll(reloadedAuxJars);
+   }
+ 
+-  static void registerJars(List<String> newJars) throws IllegalArgumentException {
+-    LogHelper console = getConsole();
+-    try {
+-      ClassLoader loader = Thread.currentThread().getContextClassLoader();
+-      ClassLoader newLoader = Utilities.addToClassPath(loader, newJars.toArray(new String[0]));
+-      Thread.currentThread().setContextClassLoader(newLoader);
+-      SessionState.get().getConf().setClassLoader(newLoader);
+-      console.printInfo("Added " + newJars + " to class path");
+-    } catch (Exception e) {
+-      String message = "Unable to register " + newJars;
+-      throw new IllegalArgumentException(message, e);
+-    }
+-  }
+-
+   static boolean unregisterJar(List<String> jarsToUnregister) {
+     LogHelper console = getConsole();
+     try {
+diff --git a/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java b/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
+new file mode 100644
+index 0000000000..e524bb5772
+--- /dev/null
++++ b/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
+@@ -0,0 +1,142 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.hadoop.hive.ql.exec;
++
++import org.junit.After;
++import org.junit.Before;
++import org.junit.Test;
++
++import java.io.IOException;
++import java.net.URL;
++import java.security.AccessController;
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.List;
++import java.util.stream.Collectors;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertNotSame;
++import static org.junit.Assert.assertSame;
++import static org.junit.Assert.fail;
++
++/**
++ * Minimal tests for AddToClassPathAction class. Most of the tests don't use
++ * {@link java.security.AccessController#doPrivileged(java.security.PrivilegedAction)},
++ * presumably the tests will not be executed under security manager.
++ */
++public class TestAddToClassPathAction {
++
++  private ClassLoader originalClassLoader;
++
++  private static void assertURLsMatch(String message, List<String> expected, URL[] actual) {
++    List<String> actualStrings = Arrays.stream(actual).map(URL::toExternalForm).collect(Collectors.toList());
++    assertEquals(message, expected, actualStrings);
++  }
++
++  private static void assertURLsMatch(List<String> expected, URL[] actual) {
++    assertURLsMatch("", expected, actual);
++  }
++
++  @Before
++  public void saveClassLoader() {
++    originalClassLoader = Thread.currentThread().getContextClassLoader();
++  }
++
++  @After
++  public void restoreClassLoader() {
++    Thread.currentThread().setContextClassLoader(originalClassLoader);
++  }
++
++  @Test
++  public void testNullClassLoader() {
++    try {
++      new AddToClassPathAction(null, Collections.emptyList());
++      fail("When pafrent class loader is null, IllegalArgumentException is expected!");
++    } catch (IllegalArgumentException e) {
++      // pass
++    }
++  }
++
++  @Test
++  public void testNullPaths() {
++    ClassLoader rootLoader = Thread.currentThread().getContextClassLoader();
++    AddToClassPathAction action = new AddToClassPathAction(rootLoader, null);
++    UDFClassLoader childLoader = action.run();
++    assertURLsMatch(
++        "When newPaths is null, loader shall be created normally with no extra paths.",
++        Collections.emptyList(), childLoader.getURLs());
++  }
++
++  @Test
++  public void testUseExisting() {
++    ClassLoader rootLoader = Thread.currentThread().getContextClassLoader();
++    AddToClassPathAction action1 = new AddToClassPathAction(rootLoader, Arrays.asList("/a/1", "/c/3"));
++    UDFClassLoader parentLoader = action1.run();
++    AddToClassPathAction action2 = new AddToClassPathAction(parentLoader, Arrays.asList("/b/2", "/d/4"));
++    UDFClassLoader childLoader = action2.run();
++    assertSame(
++        "Normally, the existing class loader should be reused (not closed, no force new).",
++        parentLoader, childLoader);
++    assertURLsMatch(
++        "The class path of the class loader should be updated.",
++        Arrays.asList("file:/a/1", "file:/c/3", "file:/b/2", "file:/d/4"), childLoader.getURLs());
++  }
++
++  @Test
++  public void testClosed() throws IOException {
++    ClassLoader rootLoader = Thread.currentThread().getContextClassLoader();
++    AddToClassPathAction action1 = new AddToClassPathAction(rootLoader, Arrays.asList("/a/1", "/c/3"));
++    UDFClassLoader parentLoader = action1.run();
++    parentLoader.close();
++    AddToClassPathAction action2 = new AddToClassPathAction(parentLoader, Arrays.asList("/b/2", "/d/4"));
++    UDFClassLoader childLoader = action2.run();
++    assertNotSame(
++        "When the parent class loader is closed, a new instance must be created.",
++        parentLoader, childLoader);
++    assertURLsMatch(Arrays.asList("file:/b/2", "file:/d/4"), childLoader.getURLs());
++  }
++
++  @Test
++  public void testForceNew() {
++    ClassLoader rootLoader = Thread.currentThread().getContextClassLoader();
++    AddToClassPathAction action1 = new AddToClassPathAction(rootLoader, Arrays.asList("/a/1", "/c/3"));
++    UDFClassLoader parentLoader = action1.run();
++    AddToClassPathAction action2 = new AddToClassPathAction(parentLoader, Arrays.asList("/b/2", "/d/4"), true);
++    UDFClassLoader childLoader = action2.run();
++    assertNotSame(
++        "When forceNewClassLoader is set, a new instance must be created.",
++        parentLoader, childLoader);
++    assertURLsMatch(Arrays.asList("file:/b/2", "file:/d/4"), childLoader.getURLs());
++  }
++
++  @Test
++  public void testLegalPaths() {
++    ClassLoader rootLoader = Thread.currentThread().getContextClassLoader();
++    List<String> newPaths = Arrays.asList("file://a/aa", "c/cc", "/bb/b");
++    String userDir = System.getProperty("user.dir");
++    List<String> expectedURLs = Arrays.asList(
++        "file://a/aa",
++        "file:" + userDir + "/c/cc",
++        "file:/bb/b");
++    AddToClassPathAction action = new AddToClassPathAction(rootLoader, newPaths);
++    UDFClassLoader loader = AccessController.doPrivileged(action);
++    assertURLsMatch(expectedURLs, loader.getURLs());
++  }
++
++}
+diff --git a/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java b/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
+index d3cb3dd7a1..ca861400b4 100644
+--- a/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
++++ b/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
+@@ -27,6 +27,7 @@
+ import java.net.URL;
+ import java.net.URLClassLoader;
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.concurrent.ConcurrentHashMap;
+@@ -52,14 +53,30 @@ public class SparkClientUtilities {
+ 
+   /**
+    * Add new elements to the classpath.
++   * Returns currently known class paths as best effort. For system class loader, this may return empty.
++   * In such cases we will anyway create new child class loader in {@link #addToClassPath(Map, Configuration, File)},
++   * so all new class paths will be added and next time we will have a URLClassLoader to work with.
++   */
++  private static List<URL> getCurrentClassPaths(ClassLoader parentLoader) {
++    if(parentLoader instanceof URLClassLoader) {
++      return Lists.newArrayList(((URLClassLoader) parentLoader).getURLs());
++    } else {
++      return Collections.emptyList();
++    }
++  }
++
++  /**
++   * Add new elements to the classpath by creating a child ClassLoader containing both old and new paths.
++   * This method supports downloading HDFS files to local FS if missing from cache or later timestamp.
++   * However, this method has no tricks working around HIVE-11878, like UDFClassLoader....
+    *
+    * @param newPaths Map of classpath elements and corresponding timestamp
+    * @return locally accessible files corresponding to the newPaths
+    */
+   public static List<String> addToClassPath(Map<String, Long> newPaths, Configuration conf,
+       File localTmpDir) throws Exception {
+-    URLClassLoader loader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+-    List<URL> curPath = Lists.newArrayList(loader.getURLs());
++    ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
++    List<URL> curPath = getCurrentClassPaths(parentLoader);
+     List<String> localNewPaths = new ArrayList<>();
+ 
+     boolean newPathAdded = false;
+@@ -75,7 +92,7 @@ public static List<String> addToClassPath(Map<String, Long> newPaths, Configurat
+ 
+     if (newPathAdded) {
+       URLClassLoader newLoader =
+-          new URLClassLoader(curPath.toArray(new URL[curPath.size()]), loader);
++          new URLClassLoader(curPath.toArray(new URL[curPath.size()]), parentLoader);
+       Thread.currentThread().setContextClassLoader(newLoader);
+     }
+     return localNewPaths;
+diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
+index aa5457d1c4..9904158564 100644
+--- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
++++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
+@@ -84,7 +84,7 @@
+ import java.text.DateFormat;
+ import java.text.SimpleDateFormat;
+ import java.util.ArrayList;
+-import java.util.Arrays;
++import java.util.Collections;
+ import java.util.Collection;
+ import java.util.HashMap;
+ import java.util.Iterator;
+@@ -1096,6 +1096,19 @@ public static Map<String, String> getMetaStoreSaslProperties(Configuration conf,
+     return HadoopThriftAuthBridge.getBridge().getHadoopSaslProperties(conf);
+   }
+ 
++  /**
++   * Returns currently known class paths as best effort. For system class loader, this may return empty.
++   * In such cases we will anyway create new child class loader in {@link #addToClassPath(ClassLoader, String[])},
++   * so all new class paths will be added and next time we will have a URLClassLoader to work with.
++   */
++  private static List<URL> getCurrentClassPaths(ClassLoader parentLoader) {
++    if(parentLoader instanceof URLClassLoader) {
++      return Lists.newArrayList(((URLClassLoader) parentLoader).getURLs());
++    } else {
++      return Collections.emptyList();
++    }
++  }
++
+   /**
+    * Add new elements to the classpath.
+    *
+@@ -1103,8 +1116,7 @@ public static Map<String, String> getMetaStoreSaslProperties(Configuration conf,
+    *          Array of classpath elements
+    */
+   public static ClassLoader addToClassPath(ClassLoader cloader, String[] newPaths) throws Exception {
+-    URLClassLoader loader = (URLClassLoader) cloader;
+-    List<URL> curPath = Arrays.asList(loader.getURLs());
++    List<URL> curPath = getCurrentClassPaths(cloader);
+     ArrayList<URL> newPath = new ArrayList<>(curPath.size());
+ 
+     // get a list with the current classpath components
+@@ -1120,7 +1132,7 @@ public static ClassLoader addToClassPath(ClassLoader cloader, String[] newPaths)
+       }
+     }
+ 
+-    return new URLClassLoader(curPath.toArray(new URL[0]), loader);
++    return new URLClassLoader(curPath.toArray(new URL[0]), cloader);
+   }
+ 
+   /**
