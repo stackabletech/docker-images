@@ -63,8 +63,8 @@ COPY omid/licenses /licenses
 USER stackable
 WORKDIR /stackable
 
-COPY --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
-COPY --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+COPY --chown=stackable:stackable --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
+COPY --chown=stackable:stackable --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
 
 RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
     ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples && \
