@@ -20,7 +20,6 @@ ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
-ARG JACKSON_DATAFORMAT_XML
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -64,17 +63,6 @@ if [[ -n "${JMX_EXPORTER}" ]] ; then
   chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 fi
-
-###
-### Log4j helper libs
-### HBase 2.6 needs these dependencies to configure log4j2 with XMLMapper as output format
-### Previous versions do not need this and the argument is not set in conf.py
-###
-if [[ -n "$JACKSON_DATAFORMAT_XML" ]]; then
-    curl -L --fail -o /stackable/hbase-${PRODUCT}/lib/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-    https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar;
-fi
-
 
 ###
 ### Async Profiler

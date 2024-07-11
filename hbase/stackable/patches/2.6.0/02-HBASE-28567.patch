@@ -1,18 +1,17 @@
-From 8ba1a41bd393bff67fb1c22b9bd83a43801181d9 Mon Sep 17 00:00:00 2001
-From: Vincent Poon <vincent.poon@salesforce.com>
-Date: Sun, 5 May 2024 17:59:30 -0700
-Subject: [PATCH] HBASE-28567 Race condition causes MetaRegionLocationCache to
- never set watcher to populate meta location
+HBASE-28567.
 
+From: Lars Francke <git@lars-francke.de>
+
+Race condition causes MetaRegionLocationCache to never set watcher to populate meta location
 ---
- .../java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java    | 5 +++++
+ .../apache/hadoop/hbase/zookeeper/ZKWatcher.java   |    5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java b/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
-index 3879cb7ba911..5af7de5678c0 100644
+index 3879cb7ba9..5af7de5678 100644
 --- a/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
 +++ b/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
-@@ -460,6 +460,11 @@ public List<String> getMetaReplicaNodes() throws KeeperException {
+@@ -460,6 +460,11 @@ public class ZKWatcher implements Watcher, Abortable, Closeable {
    public List<String> getMetaReplicaNodesAndWatchChildren() throws KeeperException {
      List<String> childrenOfBaseNode =
        ZKUtil.listChildrenAndWatchForNewChildren(this, znodePaths.baseZNode);

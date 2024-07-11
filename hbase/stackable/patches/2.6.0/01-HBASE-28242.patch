@@ -1,10 +1,10 @@
-From f5f9c97c2247cde87a1217b5ac18c2048c2286bc Mon Sep 17 00:00:00 2001
-From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
-Date: Fri, 21 Jun 2024 12:06:38 +0200
-Subject: [PATCH] Update HBASE-28242 for 2.6.0
+HBASE-28242 - Updates async-profiler support
+
+From: Lars Francke <git@lars-francke.de>
+
 
 ---
- .../hadoop/hbase/http/ProfileServlet.java     | 205 +++++++++++-------
+ .../apache/hadoop/hbase/http/ProfileServlet.java   |  205 ++++++++++++--------
  1 file changed, 121 insertions(+), 84 deletions(-)
 
 diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
@@ -382,6 +382,3 @@ index 83087dbed3..6139114717 100644
      }
  
    }
--- 
-2.45.2
-
