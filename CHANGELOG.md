@@ -33,7 +33,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
 - druid: Support for 30.0.0 using Java 17 ([#731]).
 - hbase: Support for HBase 2.4.18 ([#740]).
-- spark-k8s: Support for `4.0.0-preview1` using Java 17 ([#771]).
+- spark-k8s: Support for `3.5.1` using Java 17 ([#771]).
 
 ### Changed
 
