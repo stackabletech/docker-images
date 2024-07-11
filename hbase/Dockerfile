@@ -38,6 +38,7 @@ COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 # And every cache needs its own id, we can't share them between stages because we might delete the caches
 # at the end of a run while other stages are still using it.
 # While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
+# hadolint ignore=SC3060
 RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
