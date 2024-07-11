@@ -47,29 +47,4 @@ versions = [
         "jmx_exporter": "1.0.1",
         "tini": "0.19.0",
     },
-    # This works and builds, but there are missing dependencies and other problems that fail the integration tests:
-    # e.g. "unresolved dependency: org.apache.iceberg#iceberg-spark-runtime-4.0_2.12;1.4.0: not found" (which does not exist yet)
-    # Test failures in
-    # - iceberg
-    # - logging
-    # - spark-history-server
-    # - spark-ny-public-s3
-    # Will not be included in 24.7 release but will keep it here for the version research and future 4.x.x releases.
-    # {
-    #     "product": "4.0.0-preview1",
-    #     "java-base": "17",
-    #     "java-devel": "17",
-    #     "python": "3.11",
-    #     "hadoop_long_version": "3.4.0",  # https://github.com/apache/spark/blob/7a7a8bc4bab591ac8b98b2630b38c57adf619b82/pom.xml#L125
-    #     # NOTE: The "aws_java_sdk_bundle" jar now is only called bundle-x.x.x instead of aws-java-sdk-bundle-x.x.x and was renamed before uploading to nexus
-    #     "aws_java_sdk_bundle": "2.23.19",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.0
-    #     "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.0
-    #     "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
-    #     "jackson_dataformat_xml": "2.17.1",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/4.0.0-preview1
-    #     "stax2_api": "4.2.2",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.17.1
-    #     "woodstox_core": "6.6.2",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.17.1
-    #     "vector": "0.39.0",
-    #     "jmx_exporter": "1.0.1",
-    #     "tini": "0.19.0",
-    # },
 ]
