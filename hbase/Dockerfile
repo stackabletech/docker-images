@@ -35,7 +35,10 @@ COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+# And every cache needs its own id, we can't share them between stages because we might delete the caches
+# at the end of a run while other stages are still using it.
+# While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
+RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
 ###
@@ -104,7 +107,7 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase-operator-tools,uid=1000,target=/stackable/.m2/repository <<EOF
 
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -185,7 +188,7 @@ ARG DELETE_CACHES="true"
 USER stackable
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repository <<EOF
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
