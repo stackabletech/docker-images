@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add version `2.8.4` and `2.9.2` ([#762]).
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
 - druid: Support for 30.0.0 using Java 17 ([#731]).
+- hbase: Support for HBase 2.4.18 ([#740]).
 - spark-k8s: Support for `4.0.0-preview1` using Java 17 ([#771]).
 
 ### Changed
@@ -123,6 +124,7 @@ All notable changes to this project will be documented in this file.
 [#734]: https://github.com/stackabletech/docker-images/pull/734
 [#736]: https://github.com/stackabletech/docker-images/pull/736
 [#737]: https://github.com/stackabletech/docker-images/pull/737
+[#740]: https://github.com/stackabletech/docker-images/pull/740
 [#743]: https://github.com/stackabletech/docker-images/pull/743
 [#744]: https://github.com/stackabletech/docker-images/pull/744
 [#745]: https://github.com/stackabletech/docker-images/pull/745

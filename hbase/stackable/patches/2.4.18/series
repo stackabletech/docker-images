@@ -1,0 +1,6 @@
+# This series applies on Git commit a1767f4d76859c0068720a6c1e5cb78282ebfe1e
+01-HBASE-27103.patch
+02-HBASE-28242.patch
+03-HBASE-28379.patch
+04-HBASE-28511.patch
+05-patch-updates.patch
