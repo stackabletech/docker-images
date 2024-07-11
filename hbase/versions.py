@@ -13,4 +13,16 @@ versions = [
         "hadoop": "3.3.6",
         "jmx_exporter": "1.0.1",
     },
+    {
+        "product": "2.4.18",
+        "hbase_thirdparty": "4.1.5",
+        "hbase_operator_tools": "1.2.0",
+        "java-base": "11",
+        "java-devel": "11",
+        "async_profiler": "2.9",
+        "phoenix": "5.2.0",
+        "hbase_profile": "2.4",
+        "hadoop": "3.3.6",
+        "jmx_exporter": "1.0.1",
+    },
 ]
