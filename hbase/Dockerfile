@@ -21,7 +21,6 @@ ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
 ARG JACKSON_DATAFORMAT_XML
-ARG OPA_AUTHORIZER
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -78,22 +77,6 @@ fi
 
 
 ###
-### OPA Authorizer
-###
-if [[ -n "$OPA_AUTHORIZER" ]]; then
-    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git && \
-    mvn \
-      --quiet \
-      --batch-mode \
-      --no-transfer-progress \
-      package \
-      -DskipTests \
-      -fhbase-opa-authorizer  && \
-    cp hbase-opa-authorizer/target/hbase-opa-authorizer-*.jar /stackable/hbase-${PRODUCT}/lib;
-fi
-
-
-###
 ### Async Profiler
 ###
 cd /stackable
@@ -109,6 +92,41 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
+fi
+EOF
+
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG OPA_AUTHORIZER
+ARG DELETE_CACHES
+
+USER stackable
+WORKDIR /stackable
+
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+
+###
+### OPA Authorizer (only for 2.6 upwards)
+###
+if [[ -n "$OPA_AUTHORIZER" ]]; then
+    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git
+    mvn \
+      --quiet \
+      --batch-mode \
+      --no-transfer-progress \
+      package \
+      -DskipTests \
+      -fhbase-opa-authorizer
+else
+  # Create a dummy jar to avoid errors when copying it the final image
+  mkdir -p hbase-opa-authorizer/target
+  touch hbase-opa-authorizer/target/hbase-opa-authorizer.jar
+fi
+
+
+if [ "${DELETE_CACHES}" = "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
 fi
 EOF
 
@@ -295,6 +313,8 @@ COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stac
 
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
+
+COPY --chown=stackable:stackable --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
 microdnf update
