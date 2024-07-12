@@ -1,7 +1,7 @@
 ---
-name: Pre-Release Product Updates
-about: This template can be used to track the product leading up to the next Stackable release
-title: Release XX.(X)X
+name: Pre-Release Container Image Updates
+about: This template can be used to track the container image updates leading up to the next Stackable release
+title: "chore: Update Container Images for Stackable Release XX.(X)X"
 labels: ['epic']
 assignees: ''
 ---
@@ -11,7 +11,7 @@ assignees: ''
     This was created by an issue template: https://github.com/stackabletech/issues/issues/new/choose.
 -->
 
-## Product Updates for Stackable Release XX.(X)X
+## Container Image Updates for Stackable Release XX.(X)X
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.
