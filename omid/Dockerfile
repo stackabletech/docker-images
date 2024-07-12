@@ -8,7 +8,7 @@
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-ARG DELETE_CACHES="false"
+ARG DELETE_CACHES="true"
 
 USER stackable
 WORKDIR /stackable
