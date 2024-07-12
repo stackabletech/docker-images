@@ -78,11 +78,12 @@ RUN <<EOF
 
   # To support arbitrary user ids on OpenShift, this folder must belong to the root group.
   mkdir /stackable/logs
+  chown -R 1000:0 /stackable/logs
   chgrp -R 0 /stackable/logs
   chmod -R g=u /stackable/logs
 EOF
 
-USER stackable
+USER 1000
 WORKDIR /stackable/omid-tso-server
 
 ENV HOME=/stackable
