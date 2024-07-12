@@ -4,6 +4,8 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
 FROM stackable/image/vector AS builder

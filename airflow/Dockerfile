@@ -9,6 +9,9 @@ ARG GIT_SYNC
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
+
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
 FROM stackable/image/vector AS airflow-build-image
