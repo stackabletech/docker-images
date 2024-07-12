@@ -29,7 +29,7 @@ then
   #  3) pom.xml, jdk.strong.encapsulation.argLine
   #  4) examples/bin/run-java script (here)
   exec "$JAVA_BIN" \
-    `cat "$CONFDIR"/jvm.config | xargs` \
+    "$(xargs < "$CONFDIR"/jvm.config)" \
     -cp "$CONFDIR":"./lib/*" \
     --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED \
     --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED \
@@ -41,7 +41,7 @@ then
     --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED \
     org.apache.druid.cli.Main server "$WHATAMI"
 else
-  exec "$JAVA_BIN" `cat "$CONFDIR"/jvm.config | xargs` \
+  exec "$JAVA_BIN" "$(xargs < "$CONFDIR"/jvm.config)" \
     -cp "$CONFDIR":"./lib/*" \
     org.apache.druid.cli.Main server "$WHATAMI"
 fi
