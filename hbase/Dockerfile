@@ -98,6 +98,8 @@ ARG DELETE_CACHES
 USER stackable
 WORKDIR /stackable
 
+# Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
+# hadolint ignore=SC3060,SC3010
 RUN --mount=type=cache,id=maven-opa,uid=1000,target=/stackable/.m2/repository <<EOF
 
 ###
