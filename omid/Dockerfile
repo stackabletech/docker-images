@@ -8,16 +8,22 @@
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
+ARG DELETE_CACHES="false"
 
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
+  curl --fail -L https://dist.apache.org/repos/dist/release/phoenix/phoenix-omid-${PRODUCT}/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+  cd /stackable/phoenix-omid-${PRODUCT}
+  mvn package -Phbase-2 -DskipTests
+  tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+  tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
 
-WORKDIR /stackable/phoenix-omid-${PRODUCT}
-RUN mvn package -Phbase-2 -DskipTests && \
-    tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable && \
-    tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
+if [ "${DELETE_CACHES}" = "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
+fi
+EOF
 
 # ===
 # For earlier versions this script removes the .class file that contains the
@@ -51,29 +57,35 @@ LABEL name="Apache Phoenix Omid" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
-RUN microdnf update && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+RUN <<EOF
+  microdnf update
+  microdnf clean all
+  rm -rf /var/cache/yum
+EOF
 
-ENV HOME=/stackable
-
-COPY --chown=stackable:stackable omid/stackable /stackable
 COPY omid/licenses /licenses
 
 USER stackable
 WORKDIR /stackable
 
+ENV HOME=/stackable
+ENV HBASE_CONF_DIR=/stackable/hbase/conf
+ENV OMID_OPTS="-Domid.log.dir=/stackable/logs"
+
+COPY --chown=stackable:stackable omid/stackable /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 COPY --chown=stackable:stackable --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
 
-RUN ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server && \
-    ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples && \
-    curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
-    -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
-    chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+RUN <<EOF
+  ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
+  ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
+  curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+  -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+  chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+  # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
+  rm /stackable/omid-tso-server/conf/hbase-site.xml
+  mkdir /stackable/logs
+EOF
 
-ENV HBASE_CONF_DIR=/stackable/hbase/conf
-# omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
-RUN rm /stackable/omid-tso-server/conf/hbase-site.xml
 WORKDIR /stackable/omid-tso-server
 CMD ["./bin/omid.sh", "tso" ]
