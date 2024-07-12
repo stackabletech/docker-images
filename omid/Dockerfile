@@ -57,26 +57,17 @@ LABEL name="Apache Phoenix Omid" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
-RUN <<EOF
-  microdnf update
-  microdnf clean all
-  rm -rf /var/cache/yum
-EOF
-
 COPY omid/licenses /licenses
-
-USER stackable
-WORKDIR /stackable
-
-ENV HOME=/stackable
-ENV HBASE_CONF_DIR=/stackable/hbase/conf
-ENV OMID_OPTS="-Domid.log.dir=/stackable/logs"
 
 COPY --chown=stackable:stackable omid/stackable /stackable
 COPY --chown=stackable:stackable --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 COPY --chown=stackable:stackable --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
 
 RUN <<EOF
+  microdnf update
+  microdnf clean all
+  rm -rf /var/cache/yum
+
   ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
   ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
   curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
@@ -84,8 +75,18 @@ RUN <<EOF
   chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
   # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
   rm /stackable/omid-tso-server/conf/hbase-site.xml
+
+  # To support arbitrary user ids on OpenShift, this folder must belong to the root group.
   mkdir /stackable/logs
+  chgrp -R 0 /stackable/logs
+  chmod -R g=u /stackable/logs
 EOF
 
+USER stackable
 WORKDIR /stackable/omid-tso-server
+
+ENV HOME=/stackable
+ENV HBASE_CONF_DIR=/stackable/hbase/conf
+ENV OMID_OPTS="-Domid.log.dir=/stackable/logs"
+
 CMD ["./bin/omid.sh", "tso" ]
