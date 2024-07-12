@@ -4,6 +4,8 @@
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
 # hadolint global ignore=DL3038,DL4006
 
+FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
@@ -72,9 +74,8 @@ RUN python3 -m venv /stackable/app \
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
 
-   # Choosing correct binary with respect to architecture
 WORKDIR /stackable
-COPY --from=stackable/image/statsd_exporter /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 
 # Final image
 FROM stackable/image/vector
