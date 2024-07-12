@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
 # Ignoring DL4006 globally because we inherit the SHELL from our base image
@@ -6,13 +6,26 @@
 
 # Not tagging base image because it is built as part of the same process
 # hadolint ignore=DL3006
-FROM stackable/image/java-devel AS builder
+FROM stackable/image/java-devel AS nifi-builder
 
 ARG PRODUCT
+ARG MAVEN_VERSION="3.9.8"
 
 RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
+
+# NOTE: From NiFi 2.0.0 upwards Apache Maven 3.9.6+ is required. As of 2024-07-04 the java-devel image
+# ships 3.6.3. This will update maven accordingly depending on the version. The error is due to the maven-enforer-plugin.
+#
+# [ERROR] Rule 2: org.apache.maven.enforcer.rules.version.RequireMavenVersion failed with message:
+# [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.9.6,).
+#
+WORKDIR /tmp
+RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
+        curl --fail -L "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
+        ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
+    fi
 
 USER stackable
 WORKDIR /stackable
@@ -37,7 +50,14 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         unzip /stackable/nifi-${PRODUCT}-bin.zip && \
         rm /stackable/nifi-${PRODUCT}-bin.zip && \
         # Remove generated docs in binary
-        rm -rf /stackable/nifi-${PRODUCT}/docs ; \
+        rm -rf /stackable/nifi-${PRODUCT}/docs && \
+        # Add Iceberg extensions as they are not included by default and are important enough
+        # They need to be build from source, as https://mvnrepository.com/artifact/org.apache.nifi/nifi-iceberg-processors-nar does not ship the org.apache.hadoop.fs.s3a.S3AFileSystem (see https://github.com/apache/nifi/pull/6368#issuecomment-1502175258)
+        # See https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/README.md for details on how to build them
+        cd /stackable/nifi-${PRODUCT}/lib/ && \
+        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-processors-nar-${PRODUCT}-with-aws.nar" && \
+        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-nar-${PRODUCT}-with-aws.nar" && \
+        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-api-nar-${PRODUCT}-with-aws.nar" ; \
     else \
         curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
         # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
@@ -56,7 +76,7 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         patches/apply_patches.sh ${PRODUCT} && \
         # Build NiFi
         cd /stackable/nifi-${PRODUCT}-src/ && \
-        mvn clean install -Dmaven.javadoc.skip=true -DskipTests && \
+        mvn clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws && \
         # Copy the binaries to the /stackable folder
         mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
         # Remove the unzipped sources
@@ -64,14 +84,6 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         # Remove generated docs in binary
         rm -rf /stackable/nifi-${PRODUCT}/docs ; \
     fi
-
-# Add Iceberg extensions as they are not included by default and are important enough
-# They need to be build from source, as https://mvnrepository.com/artifact/org.apache.nifi/nifi-iceberg-processors-nar does not ship the org.apache.hadoop.fs.s3a.S3AFileSystem (see https://github.com/apache/nifi/pull/6368#issuecomment-1502175258)
-# See https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/README.md for details on how to build them
-RUN cd /stackable/nifi-${PRODUCT}/lib/ && \
-    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-processors-nar-${PRODUCT}-with-aws.nar" && \
-    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-nar-${PRODUCT}-with-aws.nar" && \
-    curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-api-nar-${PRODUCT}-with-aws.nar"
 
 # ===
 # For earlier versions this script removes the .class file that contains the
@@ -120,10 +132,10 @@ RUN microdnf update && \
 
 USER stackable
 
-COPY --chown=stackable:stackable --from=builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
-COPY --chown=stackable:stackable --from=builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
+COPY --chown=stackable:stackable --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
+COPY --chown=stackable:stackable --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 
-COPY --chown=stackable:stackable nifi/stackable /stackable
+COPY --chown=stackable:stackable nifi/stackable/bin /stackable/bin
 COPY --chown=stackable:stackable nifi/licenses /licenses
 COPY --chown=stackable:stackable nifi/python /stackable/python
 

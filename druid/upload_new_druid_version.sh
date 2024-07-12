@@ -46,7 +46,7 @@ if ! (sha512sum "${src_file}" | cut -d " " -f 1 | diff -Z - "${src_file}.sha512"
 fi
 
 echo "Validating signature"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://www.apache.org/dist/druid/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/spark/KEYS | gpg --import")'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://www.apache.org/dist/druid/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/druid/KEYS | gpg --import")'
 
 if ! (gpg --verify "${src_file}.asc" "${src_file}" 2> /dev/null); then
   echo "ERROR: The signature could not be verified"

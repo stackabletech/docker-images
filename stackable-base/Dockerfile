@@ -1,14 +1,11 @@
-# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
-
-# 9.4-949.1714662671 as of 2024-05-08
-# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?image=6633b5136d81a5634a616c41&architecture=amd64
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
+FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
-ENV CONFIG_UTILS_VERSION=0.1.0
+ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.78.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
@@ -29,7 +26,7 @@ RUN cd ./config-utils && \
     cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
+FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -112,4 +109,29 @@ RUN update-ca-trust && \
 
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
-ENV PATH "${PATH}:/stackable"
+ENV PATH="${PATH}:/stackable"
+
+# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+LABEL maintainer="info@stackable.tech"
+LABEL vendor="Stackable GmbH"
+
+# Overwriting/Pinning UBI labels
+# https://github.com/projectatomic/ContainerApplicationGenericLabels
+LABEL vcs-ref=""
+LABEL distribution-scope="public"
+LABEL url="https://stackable.tech"
+ARG TARGETARCH
+LABEL architecture="${TARGETARCH}"
+LABEL com.redhat.component=""
+# It complains about it being an invalid label but RedHat uses it and we want to override it and it works....
+# hadolint ignore=DL3048
+LABEL com.redhat.license_terms=""
+LABEL io.buildah.version=""
+LABEL io.openshift.expose-services=""
+
+# https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
+LABEL org.opencontainers.image.authors="info@stackable.tech"
+LABEL org.opencontainers.image.url="https://stackable.tech"
+LABEL org.opencontainers.image.source="https://github.com/stackabletech/docker-images/"
+LABEL org.opencontainers.image.vendor="Stackable GmbH"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
