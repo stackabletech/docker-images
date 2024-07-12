@@ -40,7 +40,7 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 # While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
 
 # Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060
+# hadolint ignore=SC3060,SC3010
 RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
