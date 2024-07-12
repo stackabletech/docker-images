@@ -158,9 +158,13 @@ mvn \
   -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
   package assembly:single
 
+# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
+# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
+mkdir /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}
 tar -xz \
-  -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
-  -C /stackable/
+  -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
+  -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
+  --strip-components=1
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
@@ -245,9 +249,12 @@ mvn \
   clean \
   package
 
-tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz -C /stackable/
+# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
+# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
+mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
+tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
 rm -rf /stackable/phoenix-${PHOENIX}-src
-ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
+ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
 
 # We're removing these to make the intermediate layer smaller
