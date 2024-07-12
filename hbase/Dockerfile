@@ -35,6 +35,7 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
+# And every cache needs its own id, we can't share them between stages because we might delete the caches
 RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
@@ -100,7 +101,6 @@ RUN --mount=type=cache,id=maven-opa,uid=1000,target=/stackable/.m2/repository <<
 if [[ -n "$OPA_AUTHORIZER" ]]; then
     git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git
     mvn \
-      --quiet \
       --batch-mode \
       --no-transfer-progress \
       package \

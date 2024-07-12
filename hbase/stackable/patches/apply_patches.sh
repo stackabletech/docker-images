@@ -16,8 +16,7 @@ PATCH_DIR="patches/$VERSION"
 # Check if version-specific patches directory exists
 if [ ! -d "$PATCH_DIR" ]; then
   echo "Patches directory '$PATCH_DIR' does not exist."
-  # maybe not all versions need patches
-  exit 0
+  exit 1
 fi
 
 # Create an array to hold the patches in sorted order
