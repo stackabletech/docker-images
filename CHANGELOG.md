@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add version `3.4.0` ([#743]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
+- hbase: Added new image for 2.6.0 including the new OPA authorizer ([#701]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
 - nifi: Add support for 1.27.0 and 2.0.0-M4 ([#744], [#767]).
@@ -112,6 +113,7 @@ All notable changes to this project will be documented in this file.
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
 [#695]: https://github.com/stackabletech/docker-images/pull/695
+[#701]: https://github.com/stackabletech/docker-images/pull/701
 [#703]: https://github.com/stackabletech/docker-images/pull/703
 [#704]: https://github.com/stackabletech/docker-images/pull/704
 [#706]: https://github.com/stackabletech/docker-images/pull/706
