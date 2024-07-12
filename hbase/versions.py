@@ -32,11 +32,11 @@ versions = [
     {
         "product": "2.6.0",
         "hbase_thirdparty": "4.1.7",
-        "hbase_operator_tools": "1.3.0-SNAPSHOT",
+        "hbase_operator_tools": "1.3.0-7c738fc",
         "java-base": "11",
         "java-devel": "11",
         "async_profiler": "2.9",
-        "phoenix": "5.3.0-SNAPSHOT",
+        "phoenix": "5.3.0-4afe457",
         "hbase_profile": "2.6",
         "hadoop": "3.3.6",
         "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
