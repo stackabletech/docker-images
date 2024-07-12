@@ -14,7 +14,6 @@ FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
-ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -26,8 +25,6 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
-        # Used to extract statsd_exporter
-        tar \
         cyrus-sasl-devel \
         # Needed by ./configure to build gevent, see snippet [1] at the end of file
         diffutils \
@@ -55,9 +52,7 @@ RUN python3 -m venv --system-site-packages /stackable/app && \
 
 # Choosing correct binary with respect to architecture
 WORKDIR /stackable
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
-
+COPY --from=stackable/image/statsd_exporter /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 
 FROM stackable/image/vector AS airflow-main-image
 

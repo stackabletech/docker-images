@@ -9,7 +9,6 @@ FROM stackable/image/vector AS builder
 ARG PRODUCT
 ARG PYTHON
 ARG AUTHLIB
-ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -17,8 +16,6 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 
 RUN microdnf update \
     && microdnf install \
-        # Used to extract statsd_exporter
-        tar \
         cyrus-sasl-devel \
         # Needed to find all patch files, used in `apply_patches.sh`
         findutils \
@@ -77,8 +74,7 @@ RUN /patches/apply_patches.sh ${PRODUCT}
 
    # Choosing correct binary with respect to architecture
 WORKDIR /stackable
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
+COPY --from=stackable/image/statsd_exporter /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 
 # Final image
 FROM stackable/image/vector
