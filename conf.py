@@ -32,6 +32,7 @@ kcat = importlib.import_module("kcat.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
+statsd_exporter = importlib.import_module("statsd_exporter.versions")
 
 products = [
     {"name": "airflow", "versions": airflow.versions},
@@ -58,6 +59,7 @@ products = [
     {"name": "testing-tools", "versions": testing_tools.versions},
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},
+    {"name": "statsd_exporter", "versions": statsd_exporter.versions},
 ]
 
 open_shift_projects = {

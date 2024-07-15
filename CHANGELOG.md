@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - druid: Support for 30.0.0 using Java 17 ([#731]).
 - hbase: Support for HBase 2.4.18 ([#740]).
 - spark-k8s: Support for `3.5.1` using Java 17 ([#771]).
+- airflow & superset: Build `statsd_exporter` from source ([#777]).
 
 ### Changed
 
@@ -135,6 +136,7 @@ All notable changes to this project will be documented in this file.
 [#767]: https://github.com/stackabletech/docker-images/pull/767
 [#768]: https://github.com/stackabletech/docker-images/pull/768
 [#771]: https://github.com/stackabletech/docker-images/pull/771
+[#777]: https://github.com/stackabletech/docker-images/pull/777
 
 ## [24.3.0] - 2024-03-20
 
