@@ -9,9 +9,11 @@
 FROM stackable/image/stackable-base
 ARG PRODUCT
 
+WORKDIR /statsd_exporter
+
 # We don't pin versions
-# hadolint ignore=DL3041
-RUN <<EOF
+# hadolint ignore=DL3041,DL3003
+RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
 microdnf update
 
 # Tar and gzip are used to unpack the statsd_exporter source
@@ -24,13 +26,6 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-mkdir -p /statsd_exporter
-EOF
-
-WORKDIR /statsd_exporter
-
-# hadolint ignore=DL3003
-RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
 export GOPATH=/go_cache
 curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
 (
