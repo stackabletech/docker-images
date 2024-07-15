@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
 - druid: Support for 30.0.0 using Java 17 ([#731])
 - hbase: Support for HBase 2.4.18 ([#740]).
+- airflow & superset: Build `statsd_exporter` from source ([#777]).
 
 ### Changed
 
@@ -130,6 +131,7 @@ All notable changes to this project will be documented in this file.
 [#762]: https://github.com/stackabletech/docker-images/pull/762
 [#767]: https://github.com/stackabletech/docker-images/pull/767
 [#768]: https://github.com/stackabletech/docker-images/pull/768
+[#777]: https://github.com/stackabletech/docker-images/pull/777
 
 ## [24.3.0] - 2024-03-20
 
