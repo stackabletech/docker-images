@@ -11,16 +11,22 @@ ARG PRODUCT
 
 # We don't pin versions
 # hadolint ignore=DL3041
-RUN microdnf update && \
-    microdnf install \
-        # used to unpack the statsd_exporter source
-        tar \
-        gzip \
-        # used to build statsd_exporter
-        golang && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum && \
-    mkdir -p /statsd_exporter
+RUN <<EOF
+microdnf update
+
+# Tar and gzip are used to unpack the statsd_exporter source
+# Golang is used to build statsd_exporter
+microdnf install \
+  tar \
+  gzip \
+  golang
+
+microdnf clean all
+rm -rf /var/cache/yum
+
+mkdir -p /statsd_exporter
+EOF
+
 WORKDIR /statsd_exporter
 
 # hadolint ignore=DL3003
@@ -28,8 +34,8 @@ RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
 export GOPATH=/go_cache
 curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
 (
-    cd "statsd_exporter-${PRODUCT}" || exit
-    go build -o ../statsd_exporter
+  cd "statsd_exporter-${PRODUCT}" || exit
+  go build -o ../statsd_exporter
 )
 rm -rf "statsd_exporter-${PRODUCT}"
 EOF
