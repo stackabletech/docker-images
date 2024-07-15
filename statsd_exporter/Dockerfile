@@ -24,6 +24,12 @@ RUN microdnf update && \
 WORKDIR /statsd_exporter
 
 # hadolint ignore=DL3003
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | \
-    tar -xzC . && cd "statsd_exporter-${PRODUCT}" && go build -o ../statsd_exporter && cd .. && \
-    rm -rf "statsd_exporter-${PRODUCT}"
+RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
+export GOPATH=/go_cache
+curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
+(
+    cd "statsd_exporter-${PRODUCT}" || exit
+    go build -o ../statsd_exporter
+)
+rm -rf "statsd_exporter-${PRODUCT}"
+EOF
