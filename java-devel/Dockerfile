@@ -53,3 +53,5 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+COPY --chown=stackable:stackable shared/maven/settings.xml /stackable/.m2/
