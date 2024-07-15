@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add version `3.4.0` ([#743]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
+- hbase: Added new image for 2.6.0 including the new OPA authorizer ([#701]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
 - nifi: Add support for 1.27.0 and 2.0.0-M4 ([#744], [#767]).
@@ -33,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
 - druid: Support for 30.0.0 using Java 17 ([#731])
 - hbase: Support for HBase 2.4.18 ([#740]).
+- airflow & superset: Build `statsd_exporter` from source ([#777]).
 
 ### Changed
 
@@ -112,6 +114,7 @@ All notable changes to this project will be documented in this file.
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
 [#695]: https://github.com/stackabletech/docker-images/pull/695
+[#701]: https://github.com/stackabletech/docker-images/pull/701
 [#703]: https://github.com/stackabletech/docker-images/pull/703
 [#704]: https://github.com/stackabletech/docker-images/pull/704
 [#706]: https://github.com/stackabletech/docker-images/pull/706
@@ -130,6 +133,7 @@ All notable changes to this project will be documented in this file.
 [#762]: https://github.com/stackabletech/docker-images/pull/762
 [#767]: https://github.com/stackabletech/docker-images/pull/767
 [#768]: https://github.com/stackabletech/docker-images/pull/768
+[#777]: https://github.com/stackabletech/docker-images/pull/777
 
 ## [24.3.0] - 2024-03-20
 

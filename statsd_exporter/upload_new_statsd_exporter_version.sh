@@ -5,11 +5,6 @@ set -euo pipefail
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
-ARCHITECTURES=(
-    arm64
-    amd64
-)
-
 read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
 
@@ -36,14 +31,11 @@ trap cleanup EXIT
 
 cd "$WORK_DIR" || exit
 
-for arch in "${ARCHITECTURES[@]}"; do
-  # Statsd_exporter does not currently publish signatures or SBOMs
-  echo "Downloading STATSD EXPORTER"
-  curl --fail -LOs "https://github.com/prometheus/statsd_exporter/releases/download/v$VERSION/statsd_exporter-$VERSION.linux-$arch.tar.gz"
+echo "Downloading STATSD EXPORTER source code"
+curl --fail -LOs "https://github.com/prometheus/statsd_exporter/archive/refs/tags/v$VERSION.tar.gz" && mv "v$VERSION.tar.gz" "statsd_exporter-$VERSION.src.tar.gz"
 
-  echo "Uploading to Nexus"
-  curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "statsd_exporter-$VERSION.linux-$arch.tar.gz" 'https://repo.stackable.tech/repository/packages/statsd_exporter/'
-done
+echo "Uploading to Nexus"
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "statsd_exporter-$VERSION.src.tar.gz" 'https://repo.stackable.tech/repository/packages/statsd_exporter/'
 
-echo "Successfully uploaded new version of STATSD-EXPORTER ($VERSION) to Nexus"
+echo "Successfully uploaded new version of STATSD-EXPORTER source code ($VERSION) to Nexus"
 echo "https://repo.stackable.tech/service/rest/repository/browse/packages/statsd_exporter/"
