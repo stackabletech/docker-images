@@ -11,7 +11,8 @@ ARG PRODUCT
 
 WORKDIR /statsd_exporter
 
-# We don't pin versions
+# Ignoring DL3041 because we don't pin versions
+# Ignoring DL3003 because using `WORKDIR` would require us to split the RUN command into multiple layers
 # hadolint ignore=DL3041,DL3003
 RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
 microdnf update
