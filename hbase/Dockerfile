@@ -31,7 +31,7 @@ USER stackable
 WORKDIR /stackable
 
 COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
-COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
+COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
@@ -40,7 +40,7 @@ COPY --chown=stackable:stackable hbase/stackable/jmx /stackable/jmx
 # While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
 
 # Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060
+# hadolint ignore=SC3060,SC3010
 RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
@@ -64,9 +64,11 @@ ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ###
 ### JMX Prometheus Exporter/Agent
 ###
-curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+if [[ -n "${JMX_EXPORTER}" ]] ; then
+  curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+  chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+  ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+fi
 
 ###
 ### Async Profiler
@@ -87,6 +89,41 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
+# hadolint ignore=DL3006
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG OPA_AUTHORIZER
+ARG DELETE_CACHES
+
+USER stackable
+WORKDIR /stackable
+
+# Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
+# hadolint ignore=SC3060,SC3010
+RUN --mount=type=cache,id=maven-opa,uid=1000,target=/stackable/.m2/repository <<EOF
+
+###
+### OPA Authorizer (only for 2.6 upwards)
+###
+if [[ -n "$OPA_AUTHORIZER" ]]; then
+    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git
+    mvn \
+      --batch-mode \
+      --no-transfer-progress \
+      package \
+      -DskipTests \
+      -fhbase-opa-authorizer
+else
+  # Create a dummy jar to avoid errors when copying it the final image
+  mkdir -p hbase-opa-authorizer/target
+  touch hbase-opa-authorizer/target/hbase-opa-authorizer.jar
+fi
+
+
+if [ "${DELETE_CACHES}" = "true" ] ; then
+  rm -rf /stackable/.m2/repository/*
+fi
+EOF
 
 # hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hbase-operator-tools-builder
@@ -123,9 +160,13 @@ mvn \
   -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
   package assembly:single
 
+# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
+# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
+mkdir /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}
 tar -xz \
-  -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-bin.tar.gz \
-  -C /stackable/
+  -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
+  -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
+  --strip-components=1
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
@@ -210,9 +251,12 @@ mvn \
   clean \
   package
 
-tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin.tar.gz -C /stackable/
+# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
+# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
+mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
+tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
 rm -rf /stackable/phoenix-${PHOENIX}-src
-ln -s "/stackable/phoenix-hbase-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
+ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
 
 # We're removing these to make the intermediate layer smaller
@@ -270,6 +314,8 @@ COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stac
 
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
+
+COPY --chown=stackable:stackable --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
 microdnf update
