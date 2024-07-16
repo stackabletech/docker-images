@@ -72,6 +72,7 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
 - hive: Provide logging dependency previously bundled with the hadoop yarn client ([#688]).
 - all: Use correct hbase versions ([#734])
+- airflow: fix missing libstdc++.so.6 error message when running the image ([#778])
 
 ### Removed
 
@@ -137,6 +138,7 @@ All notable changes to this project will be documented in this file.
 [#768]: https://github.com/stackabletech/docker-images/pull/768
 [#771]: https://github.com/stackabletech/docker-images/pull/771
 [#777]: https://github.com/stackabletech/docker-images/pull/777
+[#778]: https://github.com/stackabletech/docker-images/pull/778
 
 ## [24.3.0] - 2024-03-20
 

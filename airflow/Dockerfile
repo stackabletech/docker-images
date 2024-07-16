@@ -78,7 +78,7 @@ COPY airflow/licenses /licenses
 
 # Update image and install python
 RUN microdnf update && \
-    microdnf install  \
+    microdnf install \
     ca-certificates \
     cyrus-sasl \
     git \
