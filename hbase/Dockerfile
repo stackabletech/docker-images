@@ -338,6 +338,15 @@ ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-o
 ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
 EOF
 
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-storage-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/wildfly-openssl-*.Final.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-data-lake-store-sdk-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-datalake-${HADOOP}.jar \
+    /stackable/hbase/lib/
+
 USER stackable
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
 ENV HOME=/stackable
