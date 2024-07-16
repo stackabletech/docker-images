@@ -32,8 +32,9 @@ All notable changes to this project will be documented in this file.
 - trino & trino-cli: Add version 451 ([#758]).
 - airflow: Add version `2.8.4` and `2.9.2` ([#762]).
 - superset: Add version `3.1.3` and `4.0.2` ([#768]).
-- druid: Support for 30.0.0 using Java 17 ([#731])
+- druid: Support for 30.0.0 using Java 17 ([#731]).
 - hbase: Support for HBase 2.4.18 ([#740]).
+- spark-k8s: Support for `3.5.1` using Java 17 ([#771]).
 - airflow & superset: Build `statsd_exporter` from source ([#777]).
 
 ### Changed
@@ -82,6 +83,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
 - superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
 - druid: Remove support for 27.0.0 ([#731])
+- spark-k8s: Remove support for `3.4.1` and `3.5.0` ([#771]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -133,6 +135,7 @@ All notable changes to this project will be documented in this file.
 [#762]: https://github.com/stackabletech/docker-images/pull/762
 [#767]: https://github.com/stackabletech/docker-images/pull/767
 [#768]: https://github.com/stackabletech/docker-images/pull/768
+[#771]: https://github.com/stackabletech/docker-images/pull/771
 [#777]: https://github.com/stackabletech/docker-images/pull/777
 
 ## [24.3.0] - 2024-03-20
