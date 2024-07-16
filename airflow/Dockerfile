@@ -79,7 +79,7 @@ COPY airflow/licenses /licenses
 # Update image and install python
 # g++ is required for libstdc++ that is preloaded in entrypoint.sh
 RUN microdnf update && \
-    microdnf install -y \
+    microdnf install \
     ca-certificates \
     cyrus-sasl \
     git \
