@@ -44,9 +44,18 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository \
-    --mount=type=cache,id=npm,uid=1000,target=/stackable/.npm \
-    --mount=type=cache,id=cache,uid=1000,target=/stackable/.cache \
+# The cache id has to include the product version that we are building because otherwise
+# docker encounters race conditions when building multiple versions in parallel, as all
+# builder containers will share the same cache and the `rm -rf` commands will fail
+# with a "directory not empty" error on the first builder to finish, as other builders
+# are still working in the cache directory.
+
+# Ignoring this lint because we need to use `cd` in order to keep everything in one command
+# (and therefore layer)
+# hadolint ignore=DL3003
+RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
+    --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
     <<EOF
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
