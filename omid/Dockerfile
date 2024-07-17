@@ -14,7 +14,7 @@ USER stackable
 WORKDIR /stackable
 
 # hadolint ignore=DL3003
-RUN --mount=type=cache,id=omid${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
   set -x
   curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
   cd /stackable/phoenix-omid-${PRODUCT} || exit
