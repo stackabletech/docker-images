@@ -46,7 +46,9 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 # are still working in the cache directory.
 
 # Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060,SC3010
+# DL3003 Ignoring the lint about using workdir instead of cd because we need to use `cd` in order
+# to keep everything in one command (and therefore layer)
+# hadolint ignore=SC3060,SC3010,DL3003
 RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase

@@ -49,6 +49,10 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 # builder containers will share the same cache and the `rm -rf` commands will fail
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
+
+# Ignoring this lint because we need to use `cd` in order to keep everything in one command
+# (and therefore layer)
+# hadolint ignore=DL3003
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/repository \
     --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
     --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
