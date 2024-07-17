@@ -39,9 +39,17 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 # at the end of a run while other stages are still using it.
 # While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
 
+# The cache id has to include the product version that we are building because otherwise
+# docker encounters race conditions when building multiple versions in parallel, as all
+# builder containers will share the same cache and the `rm -rf` commands will fail
+# with a "directory not empty" error on the first builder to finish, as other builders
+# are still working in the cache directory.
+
 # Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060,SC3010
-RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
+# DL3003 Ignoring the lint about using workdir instead of cd because we need to use `cd` in order
+# to keep everything in one command (and therefore layer)
+# hadolint ignore=SC3060,SC3010,DL3003
+RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
 ###
