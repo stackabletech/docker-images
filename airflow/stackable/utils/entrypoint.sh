@@ -34,7 +34,9 @@ set -euo pipefail
 # The side effect of this is slightly (in the range of 100s of milliseconds) slower load for any
 # binary started and a little memory used for Heap allocated by initialization of libstdc++
 # This overhead is not happening for binaries that already link dynamically libstdc++
-LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
+# LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
+# Stackable: The path to this file is different on UBI
+LD_PRELOAD=/usr/lib64/libstdc++.so.6
 export LD_PRELOAD
 
 function run_check_with_retries {

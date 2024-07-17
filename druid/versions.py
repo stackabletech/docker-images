@@ -1,5 +1,10 @@
 versions = [
-    {"product": "26.0.0", "java-base": "11", "java-devel": "11", "authorizer": "0.5.0"},
+    {
+        "product": "26.0.0",
+        "java-base": "11",
+        "java-devel": "11",
+        "authorizer": "0.5.0",
+    },
     {
         "product": "28.0.1",
         # Java 17 should be fully supported as of 27.0.0 https://github.com/apache/druid/releases#27.0.0-highlights-java-17-support

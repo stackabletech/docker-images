@@ -52,7 +52,6 @@ RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars

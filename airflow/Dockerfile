@@ -10,11 +10,14 @@ ARG GIT_SYNC
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
 
+# Not tagging base image because it is built as part of the same process
+# hadolint ignore=DL3006
+FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
 ARG PYTHON
-ARG STATSD_EXPORTER
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -26,8 +29,6 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
-        # Used to extract statsd_exporter
-        tar \
         cyrus-sasl-devel \
         # Needed by ./configure to build gevent, see snippet [1] at the end of file
         diffutils \
@@ -53,11 +54,8 @@ RUN python3 -m venv --system-site-packages /stackable/app && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs
 
-# Choosing correct binary with respect to architecture
 WORKDIR /stackable
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}.tar.gz" | \
-    tar -xzC /stackable && ln -s "statsd_exporter-${STATSD_EXPORTER}.${TARGETOS}-${TARGETARCH}/statsd_exporter" statsd_exporter
-
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 
 FROM stackable/image/vector AS airflow-main-image
 
@@ -80,7 +78,7 @@ COPY airflow/licenses /licenses
 
 # Update image and install python
 RUN microdnf update && \
-    microdnf install  \
+    microdnf install \
     ca-certificates \
     cyrus-sasl \
     git \

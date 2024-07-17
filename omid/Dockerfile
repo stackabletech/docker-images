@@ -13,9 +13,10 @@ ARG DELETE_CACHES="true"
 USER stackable
 WORKDIR /stackable
 
+# hadolint ignore=DL3003
 RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository <<EOF
   curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
-  cd /stackable/phoenix-omid-${PRODUCT}
+  cd /stackable/phoenix-omid-${PRODUCT} || exit
   mvn package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
   tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
