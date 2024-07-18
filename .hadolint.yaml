@@ -25,6 +25,11 @@ ignored:
   # Reason: We inherit the SHELL from our base image and that sets it
   - DL4006
 
+  # Not following: File not included in mock.
+  # https://www.shellcheck.net/wiki/SC1091
+  # Reason: I've yet to see this being useful, where this happens we usually have no way to actually provide the file
+  - SC1091
+
   # Use cd ... || exit in case cd fails.
   # https://github.com/koalaman/shellcheck/wiki/SC2164
   # Reason: Ignoring because we inherit SHELL from the base image which contains "-e" for bash
