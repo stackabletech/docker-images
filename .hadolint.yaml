@@ -1,4 +1,4 @@
-failure-threshold: warning
+---
 ignored:
   # Warning: Use WORKDIR to switch to a directory.
   # https://github.com/hadolint/hadolint/wiki/DL3003
