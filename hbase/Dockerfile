@@ -2,7 +2,7 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-FROM stackable/image/java-devel AS hbase-builder-test
+FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
 ARG HBASE_THIRDPARTY
