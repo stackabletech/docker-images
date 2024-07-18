@@ -87,7 +87,9 @@ microdnf install \
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
 groupadd --gid 1000 --system stackable
-useradd --gid stackable --uid 1000 --system stackable -d /stackable
+# The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
+# See https://github.com/moby/moby/issues/5419#issuecomment-41478290 for more context
+useradd --no-log-init --gid stackable --uid 1000 --system stackable -d /stackable
 
 mkdir /stackable
 chown stackable:stackable /stackable
