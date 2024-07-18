@@ -6,7 +6,7 @@ FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339
 ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.4
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
 RUN microdnf update --assumeyes && \
@@ -23,7 +23,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 RUN git clone --depth 1 --branch ${CONFIG_UTILS_VERSION} https://github.com/stackabletech/config-utils
 RUN cd ./config-utils && \
     . $HOME/.cargo/env && \
-    cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
+    cargo auditable build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
@@ -112,6 +112,7 @@ COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/conf
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"
 
