@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
@@ -19,8 +13,6 @@ RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CO
     mvn package -DskipTests -Dmaven.gitcommitid.skip=true
 
 # # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
 ARG PRODUCT
@@ -39,8 +31,6 @@ RUN --mount=type=cache,target=/root/.m2/repository if [ -n "${OPA_AUTHORIZER}" ]
 # Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
 RUN mkdir -p trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out
 
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
@@ -89,8 +79,6 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
 # ===
 
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS jmx-exporter-builder
 
 ARG JMX_EXPORTER
@@ -101,8 +89,6 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
     mvn package
 
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-base
 
 ARG PRODUCT
