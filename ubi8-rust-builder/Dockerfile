@@ -3,10 +3,6 @@
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
 # This builder is kept around and updated until the last SDP release is EOL that uses UBI8 (which is 24.3) so we'll remove this sometime in the summer of 2025
 
-# Ignoring DL3038 globally because we set `assumeyes=True` in dnf.conf
-# hadolint global ignore=DL3038
-
-# https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?architecture=amd64
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9694d09f97cd18fda1004de855ed2b4c841ba AS builder
 
@@ -70,7 +66,6 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
-# hadolint ignore=SC1091
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
  && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
 
@@ -82,7 +77,6 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-# hadolint ignore=SC1091
 ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
