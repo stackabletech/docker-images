@@ -1,10 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT

@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3003 globally because we use WORKDIR where appropriate and `cd` otherwise
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL3041 globally (for now) because while it's good advice we're not set up to pin versions just yet
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3003,DL3038,DL3041,DL4006
-
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
 
