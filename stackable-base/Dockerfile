@@ -20,12 +20,12 @@ microdnf --assumeyes install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION
-. "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
+. "$HOME/.cargo/env" && cargo install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 
-git clone --depth 1 --branch ${CONFIG_UTILS_VERSION} https://github.com/stackabletech/config-utils
+git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
-. $HOME/.cargo/env
+. "$HOME/.cargo/env"
 cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 EOF
 
@@ -53,6 +53,12 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
+
+# echo won't expand escape sequences. Consider printf.
+# https://github.com/koalaman/shellcheck/wiki/SC2028
+# Reason: This is complaining about the complicated PS1 statement.
+# While it seems like black it seems to work as intended so I'm not going to touch it!
+# hadolint ignore=SC2028
 RUN <<EOF
 microdnf update
 
@@ -94,11 +100,15 @@ chown stackable:stackable /stackable
 microdnf remove shadow-utils
 microdnf clean all
 
-echo "alias ll='ls -alF --color=auto'" >> /stackable/.bashrc
-echo "alias ls='ls --color=auto'" >> /stackable/.bashrc
-echo "alias ..='cd ..'" >> /stackable/.bashrc
-echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '" >> /stackable/.bashrc
+{
+  echo "alias ll='ls -alF --color=auto'"
+  echo "alias ls='ls --color=auto'"
+  echo "alias ..='cd ..'"
+  echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '"
+} >> /stackable/.bashrc
+
 echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile
+
 chown stackable:stackable /stackable/.bashrc
 chown stackable:stackable /stackable/.profile
 
