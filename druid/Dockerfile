@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# Ignoring SC2164 globally because we inherit SHELL from the base image which contains "-e" for bash
-# hadolint global ignore=DL3038,DL4006,SC2164
-
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
@@ -50,9 +44,6 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
 
-# Ignoring this lint because we need to use `cd` in order to keep everything in one command
-# (and therefore layer)
-# hadolint ignore=DL3003
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/repository \
     --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
     --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
@@ -82,7 +73,6 @@ fi
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
 EOF
 
-# hadolint ignore=DL3006
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT

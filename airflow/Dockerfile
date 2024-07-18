@@ -1,17 +1,11 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
 ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
 
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
 FROM stackable/image/vector AS airflow-build-image

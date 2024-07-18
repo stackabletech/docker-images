@@ -2,10 +2,6 @@
 #
 # Provides the common Java Runtime for SDP products
 #
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
 FROM stackable/image/vector
 
 ARG PRODUCT

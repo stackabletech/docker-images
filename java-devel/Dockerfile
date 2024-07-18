@@ -4,7 +4,6 @@
 # Base imaege for builder stages
 #
 
-# hadolint ignore=DL3006
 FROM stackable/image/stackable-base
 
 ARG PRODUCT
@@ -12,7 +11,6 @@ ARG PRODUCT
 # We need to use EPEL, as openjdk 22 is not shipped with UBI9
 RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 
-# hadolint ignore=DL3041
 RUN microdnf update && \
     microdnf install -y \
     cmake \
