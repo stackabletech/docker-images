@@ -1,10 +1,5 @@
 ---
 ignored:
-  # Warning: Use WORKDIR to switch to a directory.
-  # https://github.com/hadolint/hadolint/wiki/DL3003
-  # Reason: We use WORKDIR where appropriate and `cd` otherwise to condense RUN blocks, this warning is annoying
-  - DL3003
-
   # Warning: Always tag the version of an image explicitly.
   # https://github.com/hadolint/hadolint/wiki/DL3006
   # Reason: We use buildx which handles the build graph, no explicit image tags necessary
