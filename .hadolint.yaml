@@ -1,0 +1,31 @@
+---
+ignored:
+  # Warning: Use WORKDIR to switch to a directory.
+  # https://github.com/hadolint/hadolint/wiki/DL3003
+  # Reason: We use WORKDIR where appropriate and `cd` otherwise to condense RUN blocks, this warning is annoying
+  - DL3003
+
+  # Warning: Always tag the version of an image explicitly.
+  # https://github.com/hadolint/hadolint/wiki/DL3006
+  # Reason: We use buildx which handles the build graph, no explicit image tags necessary
+  - DL3006
+
+  # Warning: Use the -y switch to avoid manual input dnf install -y <package>
+  # https://github.com/hadolint/hadolint/wiki/DL3038
+  # Reason: We set `assumeyes=True` in dnf.conf in our base image
+  - DL3038
+
+  # Warning: Specify version with dnf install -y <package>-<version>
+  # https://github.com/hadolint/hadolint/wiki/DL3041
+  # Reason: It's good advice, but we're not set up to pin versions just yet
+  - DL3041
+
+  # Warning: Set the SHELL option -o pipefail before RUN with a pipe in it
+  # https://github.com/hadolint/hadolint/wiki/DL4006
+  # Reason: We inherit the SHELL from our base image and that sets it
+  - DL4006
+
+  # Use cd ... || exit in case cd fails.
+  # https://github.com/koalaman/shellcheck/wiki/SC2164
+  # Reason: Ignoring because we inherit SHELL from the base image which contains "-e" for bash
+  - SC2164
