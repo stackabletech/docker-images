@@ -90,18 +90,21 @@ microdnf install \
   nano \
   tar
 
+###
+### Add Stackable user and group
+###
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
 groupadd --gid 1000 --system stackable
 # The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
 # See https://github.com/moby/moby/issues/5419#issuecomment-41478290 for more context
 useradd --no-log-init --gid stackable --uid 1000 --system stackable -d /stackable
-
-mkdir /stackable
-chown stackable:stackable /stackable
 microdnf remove shadow-utils
 microdnf clean all
 
+###
+### Make shell usage in our containers "nicer"
+###
 {
   echo "alias ll='ls -alF --color=auto'"
   echo "alias ls='ls --color=auto'"
