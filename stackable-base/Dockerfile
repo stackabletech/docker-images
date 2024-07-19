@@ -57,7 +57,7 @@ COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 # echo won't expand escape sequences. Consider printf.
 # https://github.com/koalaman/shellcheck/wiki/SC2028
 # Reason: This is complaining about the complicated PS1 statement.
-# While it seems like black it seems to work as intended so I'm not going to touch it!
+# It seems to work as intended so I'm not going to touch it!
 # hadolint ignore=SC2028
 RUN <<EOF
 microdnf update
