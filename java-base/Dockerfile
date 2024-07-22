@@ -1,11 +1,7 @@
-# syntax=docker/dockerfile:1.6.0@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 #
 # Provides the common Java Runtime for SDP products
 #
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
 FROM stackable/image/vector
 
 ARG PRODUCT
@@ -18,6 +14,9 @@ LABEL name="Stackable image for OpenJDK" \
     release="${RELEASE}" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
+
+# We need to use EPEL, as openjdk 22 is not shipped with UBI9
+RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 
 RUN microdnf update && \
     microdnf install \

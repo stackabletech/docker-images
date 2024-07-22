@@ -1,5 +1,5 @@
 versions = [
     {
-        "product": "1.21.1"
-    }
+        "product": "1.21.1",
+    },
 ]
