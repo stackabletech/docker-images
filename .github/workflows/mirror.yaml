@@ -58,11 +58,11 @@
         - name: Push image to destination registry
           id: push
           run: |
-            "DOCKER_OUTPUT_HARBOR"=$(docker push "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}");
-            "DOCKER_OUTPUT_NEXUS"=$(docker push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}");
+            DOCKER_OUTPUT_HARBOR="$(docker push "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}")";
+            DOCKER_OUTPUT_NEXUS="$(docker push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}")";
             # Obtain the digest of the pushed image from the output of `docker push`, because signing by tag is deprecated and will be removed from cosign in the future
-            "REPO_DIGEST_OF_IMAGE_HARBOR"=$(echo "$DOCKER_OUTPUT_HARBOR" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }');
-            "REPO_DIGEST_OF_IMAGE_NEXUS"=$(echo "$DOCKER_OUTPUT_NEXUS" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }');
+            REPO_DIGEST_OF_IMAGE_HARBOR="$(echo "$DOCKER_OUTPUT_HARBOR" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
+            REPO_DIGEST_OF_IMAGE_NEXUS="$(echo "$DOCKER_OUTPUT_NEXUS" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
             # Check both architectures to see if both are available
             if [ -z "$REPO_DIGEST_OF_IMAGE_HARBOR" ]; then
               echo "Could not find repo digest for container image: $DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
