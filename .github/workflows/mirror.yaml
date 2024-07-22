@@ -67,8 +67,13 @@ jobs:
             exit 1
           fi
           # Generating output variables for later manifest list creation
-          echo "REPO_DIGEST_OF_IMAGE_HARBOR_${{ matrix.architecture }}=$REPO_DIGEST_OF_IMAGE_HARBOR" >> $GITHUB_OUTPUT
-          echo "REPO_DIGEST_OF_IMAGE_NEXUS_${{ matrix.architecture }}=$REPO_DIGEST_OF_IMAGE_NEXUS" >> $GITHUB_OUTPUT
+          if [ ${{ matrix.architecture }} == "arm64" ]
+            echo "REPO_DIGEST_OF_IMAGE_HARBOR_arm64=$REPO_DIGEST_OF_IMAGE_HARBOR" >> $GITHUB_OUTPUT
+            echo "REPO_DIGEST_OF_IMAGE_NEXUS_arm64=$REPO_DIGEST_OF_IMAGE_NEXUS" >> $GITHUB_OUTPUT
+          else
+            echo "REPO_DIGEST_OF_IMAGE_HARBOR_amd64=$REPO_DIGEST_OF_IMAGE_HARBOR" >> $GITHUB_OUTPUT
+            echo "REPO_DIGEST_OF_IMAGE_NEXUS_amd64=$REPO_DIGEST_OF_IMAGE_NEXUS" >> $GITHUB_OUTPUT
+          fi
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
           cosign sign -y "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
