@@ -29,6 +29,11 @@ jobs:
           - "arm64"
     permissions:
       id-token: write
+    outputs:
+      REPO_DIGEST_OF_IMAGE_HARBOR_amd64: ${{ steps.push.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_amd64 }}
+      REPO_DIGEST_OF_IMAGE_HARBOR_arm64: ${{ steps.push.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_arm64 }}
+      REPO_DIGEST_OF_IMAGE_NEXUS_amd64: ${{ steps.push.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_amd64 }}
+      REPO_DIGEST_OF_IMAGE_NEXUS_arm64: ${{ steps.push.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_arm64 }}
     steps:
       - name: Login to Stackable Harbor
         uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
@@ -51,6 +56,7 @@ jobs:
           docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
       - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
       - name: Push image to destination registry
+        id: push
         run: |
           DOCKER_OUTPUT_HARBOR=$(docker push "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}");
           DOCKER_OUTPUT_NEXUS=$(docker push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}");
