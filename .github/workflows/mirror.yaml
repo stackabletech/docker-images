@@ -67,7 +67,7 @@ jobs:
             exit 1
           fi
           # Generating output variables for later manifest list creation
-          if [ ${{ matrix.architecture }} == "arm64" ]
+          if [ ${{ matrix.architecture }} == "arm64" ]; then
             echo "REPO_DIGEST_OF_IMAGE_HARBOR_arm64=$REPO_DIGEST_OF_IMAGE_HARBOR" >> $GITHUB_OUTPUT
             echo "REPO_DIGEST_OF_IMAGE_NEXUS_arm64=$REPO_DIGEST_OF_IMAGE_NEXUS" >> $GITHUB_OUTPUT
           else
