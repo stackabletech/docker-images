@@ -3,9 +3,6 @@ versions = [
         "product": "26.0.0",
         "java-base": "11",
         "java-devel": "11",
-        "jackson_dataformat_xml": "2.10.5",
-        "stax2_api": "4.2.1",
-        "woodstox_core": "6.2.1",
         "authorizer": "0.5.0",
     },
     {
@@ -16,9 +13,13 @@ versions = [
         # java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain) throws java.lang.ClassFormatError
         "java-base": "11",
         "java-devel": "11",
-        "jackson_dataformat_xml": "2.12.7",  # from https://github.com/apache/druid/blob/b8201e31aa6b124049a61764309145baaad78db7/pom.xml#L100
-        "stax2_api": "4.2.2",
-        "woodstox_core": "6.6.0",
+        "authorizer": "0.5.0",
+    },
+    {
+        "product": "30.0.0",
+        # https://druid.apache.org/docs/30.0.0/operations/java/
+        "java-base": "17",
+        "java-devel": "17",
         "authorizer": "0.5.0",
     },
 ]

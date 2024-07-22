@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- omid: Add version `1.1.1` & `1.1.2` ([#553])
 - ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
@@ -18,13 +19,24 @@ All notable changes to this project will be documented in this file.
 - nifi: Build from source ([#678]).
 - omid: Include Apache Omid in all workflows such as building and releasing images ([#635]).
 - java-devel: New image to serve as base layer for builder stages ([#665]).
-- hdfs: Exclude YARN and Mapreduce projects from build ([#667]).
 - stackable-base: Mitigate CVE-2023-37920 by removing e-Tugra root certificates ([#673]).
-- hdfs: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
+- hadoop: Exclude YARN and Mapreduce projects from build ([#667]).
+- hadoop: Exclude unused jars and mitigate snappy-java CVEs by bumping dependency ([#682]).
+- hadoop: Add version `3.4.0` ([#743]).
 - druid: Build from source ([#684], [#696]).
 - opa: Add log processing script to opa for decision logging ([#695], [#704]).
+- hbase: Added new image for 2.6.0 including the new OPA authorizer ([#701]).
 - stackable-base: Add [config-utils](https://github.com/stackabletech/config-utils) ([#706]).
 - omid: Include Apache Omid Examples to simplify testing ([#721]).
+- nifi: Add support for 1.27.0 and 2.0.0-M4 ([#744], [#767]).
+- kafka: Add versions `3.6.2` and `3.7.1` ([#745]).
+- trino & trino-cli: Add version 451 ([#758]).
+- airflow: Add version `2.8.4` and `2.9.2` ([#762]).
+- superset: Add version `3.1.3` and `4.0.2` ([#768]).
+- druid: Support for 30.0.0 using Java 17 ([#731]).
+- hbase: Support for HBase 2.4.18 ([#740]).
+- spark-k8s: Support for `3.5.1` using Java 17 ([#771]).
+- airflow & superset: Build `statsd_exporter` from source ([#777]).
 
 ### Changed
 
@@ -61,12 +73,19 @@ All notable changes to this project will be documented in this file.
 - hive: Fix compilation of x86 in CI due to lower disk usage to prevent disk running full ([#619]).
 - hive: Provide logging dependency previously bundled with the hadoop yarn client ([#688]).
 - all: Use correct hbase versions ([#734])
+- airflow: fix missing libstdc++.so.6 error message when running the image ([#778])
 
 ### Removed
 
 - zookeeper: Remove unsupported version 3.8.3 and 3.9.1 ([#628], [#736]).
 - java-base: Remove openjdk-devel rpm package again to reduce the vulnerability surface ([#665])
 - trino: Remove unsupported version 428 ([#687]).
+- nifi: Remove unsupported version 1.23.2 ([#744]).
+- kafka: Remove unsupported version `3.5.2` ([#745]).
+- airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
+- superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
+- druid: Remove support for 27.0.0 ([#731])
+- spark-k8s: Remove support for `3.4.1` and `3.5.0` ([#771]).
 
 [#583]: https://github.com/stackabletech/docker-images/pull/583
 [#611]: https://github.com/stackabletech/docker-images/pull/611
@@ -99,15 +118,29 @@ All notable changes to this project will be documented in this file.
 [#688]: https://github.com/stackabletech/docker-images/pull/688
 [#696]: https://github.com/stackabletech/docker-images/pull/696
 [#695]: https://github.com/stackabletech/docker-images/pull/695
+[#701]: https://github.com/stackabletech/docker-images/pull/701
 [#703]: https://github.com/stackabletech/docker-images/pull/703
 [#704]: https://github.com/stackabletech/docker-images/pull/704
 [#706]: https://github.com/stackabletech/docker-images/pull/706
 [#721]: https://github.com/stackabletech/docker-images/pull/721
 [#727]: https://github.com/stackabletech/docker-images/pull/727
+[#731]: https://github.com/stackabletech/docker-images/pull/731
 [#732]: https://github.com/stackabletech/docker-images/pull/732
 [#734]: https://github.com/stackabletech/docker-images/pull/734
 [#736]: https://github.com/stackabletech/docker-images/pull/736
 [#737]: https://github.com/stackabletech/docker-images/pull/737
+[#740]: https://github.com/stackabletech/docker-images/pull/740
+[#743]: https://github.com/stackabletech/docker-images/pull/743
+[#744]: https://github.com/stackabletech/docker-images/pull/744
+[#745]: https://github.com/stackabletech/docker-images/pull/745
+[#758]: https://github.com/stackabletech/docker-images/pull/758
+[#762]: https://github.com/stackabletech/docker-images/pull/762
+[#767]: https://github.com/stackabletech/docker-images/pull/767
+[#768]: https://github.com/stackabletech/docker-images/pull/768
+[#553]: https://github.com/stackabletech/docker-images/pull/553
+[#771]: https://github.com/stackabletech/docker-images/pull/771
+[#777]: https://github.com/stackabletech/docker-images/pull/777
+[#778]: https://github.com/stackabletech/docker-images/pull/778
 
 ## [24.3.0] - 2024-03-20
 

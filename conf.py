@@ -32,104 +32,34 @@ kcat = importlib.import_module("kcat.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
+statsd_exporter = importlib.import_module("statsd_exporter.versions")
 
 products = [
-    {
-        "name": "airflow",
-        "versions": airflow.versions,
-    },
-    {
-        "name": "druid",
-        "versions": druid.versions,
-    },
-    {
-        "name": "hadoop",
-        "versions": hadoop.versions,
-    },
-    {
-        "name": "hbase",
-        "versions": hbase.versions,
-    },
-    {
-        "name": "hello-world",
-        "versions": hello_world.versions,
-    },
-    {
-        "name": "hive",
-        "versions": hive.versions,
-    },
-    {
-        "name": "java-base",
-        "versions": java_base.versions,
-    },
-    {
-        "name": "java-devel",
-        "versions": java_devel.versions,
-    },
-    {
-        "name": "kafka",
-        "versions": kafka.versions,
-    },
-    {
-        "name": "krb5",
-        "versions": krb5.versions,
-    },
-    {
-        "name": "vector",
-        "versions": vector.versions,
-    },
-    {
-        "name": "nifi",
-        "versions": nifi.versions,
-    },
-    {
-        "name": "omid",
-        "versions": omid.versions,
-    },
-    {
-        "name": "opa",
-        "versions": opa.versions,
-    },
-    {
-        "name": "spark-k8s",
-        "versions": spark_k8s.versions,
-    },
-    {
-        "name": "stackable-base",
-        "versions": stackable_base.versions,
-    },
-    {
-        "name": "superset",
-        "versions": superset.versions,
-    },
-    {
-        "name": "trino-cli",
-        "versions": trino_cli.versions,
-    },
-    {
-        "name": "trino",
-        "versions": trino.versions,
-    },
-    {
-        "name": "kafka-testing-tools",
-        "versions": kafka_testing_tools.versions,
-    },
-    {
-        "name": "kcat",
-        "versions": kcat.versions,
-    },
-    {
-        "name": "testing-tools",
-        "versions": testing_tools.versions,
-    },
-    {
-        "name": "zookeeper",
-        "versions": zookeeper.versions,
-    },
-    {
-        "name": "tools",
-        "versions": tools.versions,
-    },
+    {"name": "airflow", "versions": airflow.versions},
+    {"name": "druid", "versions": druid.versions},
+    {"name": "hadoop", "versions": hadoop.versions},
+    {"name": "hbase", "versions": hbase.versions},
+    {"name": "hello-world", "versions": hello_world.versions},
+    {"name": "hive", "versions": hive.versions},
+    {"name": "java-base", "versions": java_base.versions},
+    {"name": "java-devel", "versions": java_devel.versions},
+    {"name": "kafka", "versions": kafka.versions},
+    {"name": "krb5", "versions": krb5.versions},
+    {"name": "vector", "versions": vector.versions},
+    {"name": "nifi", "versions": nifi.versions},
+    {"name": "omid", "versions": omid.versions},
+    {"name": "opa", "versions": opa.versions},
+    {"name": "spark-k8s", "versions": spark_k8s.versions},
+    {"name": "stackable-base", "versions": stackable_base.versions},
+    {"name": "superset", "versions": superset.versions},
+    {"name": "trino-cli", "versions": trino_cli.versions},
+    {"name": "trino", "versions": trino.versions},
+    {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
+    {"name": "kcat", "versions": kcat.versions},
+    {"name": "testing-tools", "versions": testing_tools.versions},
+    {"name": "zookeeper", "versions": zookeeper.versions},
+    {"name": "tools", "versions": tools.versions},
+    {"name": "statsd_exporter", "versions": statsd_exporter.versions},
 ]
 
 open_shift_projects = {
@@ -148,4 +78,12 @@ open_shift_projects = {
     "zookeeper": {"id": "62552b0aadd9d54d56cda11d"},
 }
 
-cache: list[str] = []
+cache = [
+    {
+        "type": "registry",
+        "ref_prefix": "build-repo.stackable.tech:8083/sandbox/cache",
+        "mode": "max",
+        "compression": "zstd",
+        "ignore-error": "true",
+    },
+]

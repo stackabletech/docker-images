@@ -34,7 +34,9 @@ set -euo pipefail
 # The side effect of this is slightly (in the range of 100s of milliseconds) slower load for any
 # binary started and a little memory used for Heap allocated by initialization of libstdc++
 # This overhead is not happening for binaries that already link dynamically libstdc++
-LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
+# LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
+# Stackable: The path to this file is different on UBI
+LD_PRELOAD=/usr/lib64/libstdc++.so.6
 export LD_PRELOAD
 
 function run_check_with_retries {
@@ -311,7 +313,7 @@ if [[ -n "${_PIP_ADDITIONAL_REQUIREMENTS=}" ]] ; then
     >&2 echo "         the container starts, so it is onlny useful for testing and trying out"
     >&2 echo "         of adding dependencies."
     >&2 echo
-    pip install --root-user-action ignore --no-cache-dir ${_PIP_ADDITIONAL_REQUIREMENTS}
+    pip install --root-user-action ignore --no-cache-dir "${_PIP_ADDITIONAL_REQUIREMENTS}"
 fi
 
 

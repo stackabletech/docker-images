@@ -1,13 +1,16 @@
+# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+
 #
 # Base imaege for builder stages
 #
 
-# hadolint ignore=DL3006
 FROM stackable/image/stackable-base
 
 ARG PRODUCT
 
-# hadolint ignore=DL3041
+# We need to use EPEL, as openjdk 22 is not shipped with UBI9
+RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+
 RUN microdnf update && \
     microdnf install -y \
     cmake \
