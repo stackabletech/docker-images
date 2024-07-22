@@ -9,14 +9,12 @@
         dst:
           description: 'Name and tag of the destination image (example: git-sync:v3.6.4)'
           required: true
-        harbor_proj:
-          description: 'Name of the project in Harbor (defaults to "sdp")'
-          default: 'sdp'
 
   env:
     DST_REGISTRY_HARBOR: oci.stackable.tech
     DST_REGISTRY_NEXUS: docker.stackable.tech
     DST_PROJECT_NEXUS: k8s
+    DST_PROJECT_HARBOR: sdp
 
   jobs:
     mirror-image:
@@ -52,20 +50,20 @@
         - name: Retag image
           run: |
             # Tagging the same image two times to push to Nexus and Harbor
-            docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
+            docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
             docker tag "${{ github.event.inputs.src }}" "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
         - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
         - name: Push image to destination registry
           id: push
           run: |
-            DOCKER_OUTPUT_HARBOR="$(docker push "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}")";
+            DOCKER_OUTPUT_HARBOR="$(docker push "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}")";
             DOCKER_OUTPUT_NEXUS="$(docker push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}")";
             # Obtain the digest of the pushed image from the output of `docker push`, because signing by tag is deprecated and will be removed from cosign in the future
             REPO_DIGEST_OF_IMAGE_HARBOR="$(echo "$DOCKER_OUTPUT_HARBOR" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
             REPO_DIGEST_OF_IMAGE_NEXUS="$(echo "$DOCKER_OUTPUT_NEXUS" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
             # Check both architectures to see if both are available
             if [ -z "$REPO_DIGEST_OF_IMAGE_HARBOR" ]; then
-              echo "Could not find repo digest for container image: $DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
+              echo "Could not find repo digest for container image: $DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}"
               exit 1
             fi
             if [ -z "$REPO_DIGEST_OF_IMAGE_NEXUS" ]; then
@@ -82,7 +80,7 @@
             fi
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
+            cosign sign -y "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
             cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_NEXUS"
     mirror-multi-arch:
       name: Create and push manifest list for ${{ github.event.inputs.dst }}
@@ -107,11 +105,11 @@
         - name: Build and push manifest list
           run: |
             # Create manifest list for Nexus and Harbor using digests from mirror-image step
-            docker manifest create "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}" --amend "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-arm64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_arm64 }}" --amend "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}-amd64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_amd64 }}"
+            docker manifest create "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}" --amend "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-arm64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_arm64 }}" --amend "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}-amd64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_amd64 }}"
             docker manifest create "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}" --amend "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-arm64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_arm64 }}" --amend "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}-amd64@${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_amd64 }}"
             # Pushing manifest list to Nexus and Harbor, store manifest DIGEST for signing
-            MANIFEST_SHA_HARBOR=$(docker manifest push "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}")
+            MANIFEST_SHA_HARBOR=$(docker manifest push "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}")
             MANIFEST_SHA_NEXUS=$(docker manifest push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}")
             # Signing manifest lists for Nexus and Harbor
-            cosign sign -y "$DST_REGISTRY_HARBOR/${{ github.event.inputs.harbor_proj }}/${{ github.event.inputs.dst }}@$MANIFEST_SHA_HARBOR"
+            cosign sign -y "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ github.event.inputs.dst }}@$MANIFEST_SHA_HARBOR"
             cosign sign -y "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ github.event.inputs.dst }}@$MANIFEST_SHA_NEXUS"
