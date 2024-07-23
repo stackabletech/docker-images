@@ -102,7 +102,6 @@ jobs:
           --image-version "${GITHUB_REF_NAME}-${ARCH_FOR_DOCKER}" \
           --architecture "linux/${ARCH_FOR_DOCKER}" \
           --organization stackable \
-          --architecture linux/amd64 \
           --shard-count "${{matrix.shard_count}}" \
           --shard-index "${{matrix.shard_index}}" \
           --export-tags-file bake-target-tags
