@@ -191,7 +191,7 @@ jobs:
             echo "Python script failed"
             exit 1
           fi
-          
+
           for product_and_version in $product_and_versions; do
             PRODUCT="$(echo "$product_and_version" | cut -d '#' -f 1)"
             VERSION="$(echo "$product_and_version" | cut -d '#' -f 2)"
