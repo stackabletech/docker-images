@@ -114,6 +114,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        IMAGE_NAME=oci.stackable.tech/sdp/${{ inputs.product }}
         syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ inputs.product }}" --source-version "$TAG_NAME" "$IMAGE_NAME@$DIGEST";
         # Determine the PURL for the image
         PURL="pkg:docker/sdp/${{ inputs.product }}@$DIGEST?repository_url=oci.stackable.tech";
