@@ -4,6 +4,8 @@ Configuration file for the Stackable image-tools: https://github.com/stackablete
 Application images will be created for products and associated versions configured here.
 """
 
+# NOTE: The .scripts/enumerate-product-versions.py script (used in the release workflow as of 2024-07-23) imports this file and it relies on conf.py being in its parent folder. Should this file be moved or the structure changed in any way remember to update that script as well!
+
 # NOTE (@NickLarsenNZ): Unfortunately, some directories have hyphens, so they need
 # importing in a special way. For consistency, we'll do them all the same way.
 import importlib
