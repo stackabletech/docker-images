@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [24.7.0] - 2024-07-24
+
 ### Added
 
 - omid: Add version `1.1.1` & `1.1.2` ([#553])
