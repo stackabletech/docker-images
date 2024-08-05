@@ -23,7 +23,7 @@ WORKDIR /
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
-RUN cd ./opa-bundle-builder && . $HOME/.cargo/env && cargo --quiet build --release
+RUN cd ./opa-bundle-builder && . "$HOME/.cargo/env" && cargo --quiet build --release
 
 FROM stackable/image/stackable-base AS multilog-builder
 
