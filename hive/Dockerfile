@@ -4,7 +4,7 @@ FROM stackable/image/hadoop AS hadoop-builder
 
 FROM stackable/image/java-devel AS hive-builder
 
-# Apache Hive up t0 4.x(!) officially requires Java 8 (there is no distincion between building and running).
+# Apache Hive up to 4.0.x(!) officially requires Java 8 (there is no distinction between building and running).
 # As of 2024-04-15 we for sure need Java 8 for building, but we used a Java 11 runtime for months now without any problems.
 # As we got weird TLS errors (https://stackable-workspace.slack.com/archives/C031A5BEFS7/p1713185172557459) with a
 # Java 8 runtime we bumped the Runtime to Java 11 again.
