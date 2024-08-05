@@ -21,12 +21,12 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
-cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
+cargo auditable --quiet build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 EOF
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )

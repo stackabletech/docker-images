@@ -66,7 +66,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
-&& . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+&& . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -76,7 +76,7 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable --quiet build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
