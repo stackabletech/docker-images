@@ -9,7 +9,7 @@ FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 ENV PROTOC_VERSION=27.2
