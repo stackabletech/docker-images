@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- opa: Add version 0.67.1 ([#797]).
+
+### Removed
+
+- opa: Remove version 0.61.0 ([#797]).
+
+[#797]: https://github.com/stackabletech/docker-images/pull/797
+
 ## [24.7.0] - 2024-07-24
 
 ### Added
