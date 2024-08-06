@@ -55,6 +55,12 @@ jobs:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-nexus-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+      - name: debug
+        run: |
+          set -x
+          cat bake-target-tags
+          DIGEST=$(docker images --digests "$(< bake-target-tags)" --format '{{.Digest}}')
+          echo "DIGEST=$DIGEST"
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
         with:
