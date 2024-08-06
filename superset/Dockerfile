@@ -65,7 +65,14 @@ RUN python3 -m venv /stackable/app \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi \
+    # Only needed for superset 4.0.2 right now to fix logout issues with OIDC
+    && if [ "$PRODUCT" == "4.0.2" ]; then \
+        pip install \
+        --no-cache-dir \
+        --upgrade \
+        Flask_OIDC \
+        Flask-OpenID; fi
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
