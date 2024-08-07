@@ -55,6 +55,7 @@ cd /stackable/hbase-${PRODUCT}-src/
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
+cp hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
 rm -rf /stackable/hbase-${PRODUCT}-src
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
@@ -134,6 +135,7 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=stackable:stackable hbase/stackable/bin/hbck2.env /stackable/bin/
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
 
 USER stackable
 WORKDIR /stackable
@@ -144,6 +146,9 @@ RUN --mount=type=cache,id=maven-hbase-operator-tools,uid=1000,target=/stackable/
 
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+chmod +x patches/apply_patches.sh
+patches/apply_patches.sh hbase-operator-tools/${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+
 mvn \
   --batch-mode \
   --no-transfer-progress \
@@ -160,6 +165,7 @@ tar -xz \
   -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
   -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
   --strip-components=1
+cp hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
@@ -219,6 +225,7 @@ ARG HADOOP
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
 USER stackable
 WORKDIR /stackable
 
@@ -226,6 +233,9 @@ RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repositor
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
+
+chmod +x patches/apply_patches.sh
+patches/apply_patches.sh phoenix/${PHOENIX} phoenix-${PHOENIX}-src
 
 # Passing "-f" means it'll build in the phoenix source directory without cding into it
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
@@ -235,8 +245,10 @@ mvn \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase.profile=${HBASE_PROFILE} \
+  -Dhadoop.version=${HADOOP} \
   -DskipTests \
   -Dcheckstyle.skip=true \
+  -Prelease \
   -fphoenix-${PHOENIX}-src \
   clean \
   package
@@ -245,6 +257,7 @@ mvn \
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
 mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
 tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
+cp phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
 rm -rf /stackable/phoenix-${PHOENIX}-src
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
