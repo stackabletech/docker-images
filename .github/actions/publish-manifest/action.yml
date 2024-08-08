@@ -52,7 +52,7 @@ runs:
         # Note: `docker manifest push` currently outputs the same hash, but `manifest` is experimental and the
         # STDOUT is more likely to change than the structured output.
         function index_digest {
-          docker buildx imagetools inspect --format '{{json .Manifest}}' "$1" | jq -r '.digest'
+          docker buildx imagetools inspect --format '{{println .Manifest.Digest}}' "$1"
         }
 
         MANIFEST_NAME="docker.stackable.tech/stackable/${{ inputs.product }}:$IMAGE_VERSION"
