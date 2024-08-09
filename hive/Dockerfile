@@ -62,7 +62,7 @@ ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
 
 
-ARG NAME="Apache Hive"
+ARG NAME="Apache Hive metastore"
 ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache Hive."
 
 LABEL name="Apache Hive metastore"
