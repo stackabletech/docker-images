@@ -6,7 +6,7 @@ versions = [
         "java-base": "11",
         "java-devel": "1.8.0",
         "hadoop": "3.3.6",
-        "aws_java_sdk_bundle": "1.12.367",
+        "aws_java_sdk_bundle": "1.12.367", # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
         "azure_storage": "7.0.1",
         "azure_keyvault_core": "1.0.0",
     },
