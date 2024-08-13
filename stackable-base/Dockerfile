@@ -21,12 +21,12 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
-cargo auditable build --release && cargo cyclonedx --output-pattern package --all --output-cdx
+cargo auditable --quiet build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 EOF
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
@@ -90,16 +90,32 @@ microdnf install \
   nano \
   tar
 
+###
+### Add Stackable user and group
+###
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
 groupadd --gid 1000 --system stackable
-useradd --gid stackable --uid 1000 --system stackable -d /stackable
 
-mkdir /stackable
-chown stackable:stackable /stackable
+# The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
+# See https://github.com/moby/moby/issues/5419#issuecomment-41478290 for more context
+# Making this a system user prevents a mail dir from being created, expiry of passwords etc. but it will warn:
+#   useradd warning: stackable's uid 1000 is greater than SYS_UID_MAX 999
+# We can safely ignore this warning, to get rid of the warning we could change /etc/login.defs but that does not seem worth it
+useradd \
+  --no-log-init \
+  --gid stackable \
+  --uid 1000 \
+  --system \
+  --create-home \
+  --home-dir /stackable \
+   stackable
 microdnf remove shadow-utils
 microdnf clean all
 
+###
+### Make shell usage in our containers "nicer"
+###
 {
   echo "alias ll='ls -alF --color=auto'"
   echo "alias ls='ls --color=auto'"

@@ -30,7 +30,7 @@ versions = [
         "vector": "0.39.0",
         "jmx_exporter": "1.0.1",
         "tini": "0.19.0",
-    },    
+    },
     {
         "product": "3.5.1",
         "java-base": "17",

@@ -9,7 +9,7 @@ FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 ENV PROTOC_VERSION=27.2
@@ -67,7 +67,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
- && . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+ && . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -77,7 +77,7 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable --quiet build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \

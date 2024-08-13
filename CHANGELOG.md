@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- opa: Add version 0.67.1 ([#797]).
+
+### Removed
+
+- opa: Remove version 0.61.0 ([#797]).
+
+[#797]: https://github.com/stackabletech/docker-images/pull/797
+
+## [24.7.0] - 2024-07-24
+
+### Added
+
 - omid: Add version `1.1.1` & `1.1.2` ([#553])
 - ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
