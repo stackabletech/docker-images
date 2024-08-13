@@ -11,7 +11,7 @@ versions = [
         "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.2
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
         "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-        "vector": "0.39.0",
+        "vector": "0.40.0",
         "jmx_exporter": "1.0.1",
         "tini": "0.19.0",
     },
@@ -27,7 +27,7 @@ versions = [
         "jackson_dataformat_xml": "2.14.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.4.3
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
         "woodstox_core": "6.5.0",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.14.2
-        "vector": "0.39.0",
+        "vector": "0.40.0",
         "jmx_exporter": "1.0.1",
         "tini": "0.19.0",
     },
@@ -43,7 +43,7 @@ versions = [
         "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.1
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
-        "vector": "0.39.0",
+        "vector": "0.40.0",
         "jmx_exporter": "1.0.1",
         "tini": "0.19.0",
     },
