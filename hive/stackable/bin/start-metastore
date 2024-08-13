@@ -10,7 +10,7 @@
 #   --hive-bin-dir <path>
 #
 # Checks if the metastore database schema is initialized. If so it starts the metastore,
-# otherwise it tries to initialize the schma first.
+# otherwise it tries to initialize the schema first.
 #
 
 #set -x
