@@ -79,10 +79,19 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - name: Build Product Manifest List
+      - name: Build Product Manifest List ( Nexus )
         uses: ./.github/actions/publish-manifest
         with:
           product: ${{ env.PRODUCT_NAME }}
           image-version: ${{ matrix.versions }}-stackable0.0.0-dev
+          registry: docker.stackable.tech/stackable
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+          harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      - name: Build Product Manifest List ( Harbor )
+        uses: ./.github/actions/publish-manifest
+        with:
+          product: ${{ env.PRODUCT_NAME }}
+          image-version: ${{ matrix.versions }}-stackable0.0.0-dev
+          registry: oci.stackable.tech/sdp
           nexus-password: ${{ secrets.NEXUS_PASSWORD }}
           harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
