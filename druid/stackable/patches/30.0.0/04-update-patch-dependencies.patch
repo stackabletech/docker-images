@@ -7,14 +7,17 @@ From: Lars Francke <git@lars-francke.de>
  0 files changed
 
 diff --git a/extensions-core/druid-pac4j/pom.xml b/extensions-core/druid-pac4j/pom.xml
-index 282e0e5b15..1d149399c6 100644
+index 282e0e5b15..523a2ca305 100644
 --- a/extensions-core/druid-pac4j/pom.xml
 +++ b/extensions-core/druid-pac4j/pom.xml
-@@ -38,7 +38,7 @@
+@@ -38,7 +38,10 @@
  
      <!-- Following must be updated along with any updates to pac4j version. One can find the compatible version of nimbus libraries in org.pac4j:pac4j-oidc dependencies-->
      <nimbus.lang.tag.version>1.7</nimbus.lang.tag.version>
 -    <nimbus.jose.jwt.version>9.37.2</nimbus.jose.jwt.version>
++    <!-- A breaking change was introduced in nimbus-jose-jwt 9.0 where net.minidev.json.JSONObject method arguments and return types were replaced, causing errors during OIDC callback:
++         https://github.com/stackabletech/druid-operator/issues/595
++         https://bitbucket.org/connect2id/nimbus-jose-jwt/src/9.0/CHANGELOG.txt -->
 +    <nimbus.jose.jwt.version>8.22.1</nimbus.jose.jwt.version>
      <oauth2.oidc.sdk.version>8.22</oauth2.oidc.sdk.version>
    </properties>
@@ -59,7 +62,7 @@ index 371d2e7673..ad0b874db0 100644
      </profile>
    </profiles>
 diff --git a/pom.xml b/pom.xml
-index 38e0ddc61a..73fb14c1fc 100644
+index 73fb14c1fc..26b24b8c14 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -74,7 +74,7 @@
@@ -71,7 +74,7 @@ index 38e0ddc61a..73fb14c1fc 100644
          <apache.curator.version>5.5.0</apache.curator.version>
          <apache.kafka.version>3.6.1</apache.kafka.version>
          <!-- when updating apache ranger, verify the usage of aws-bundle-sdk vs aws-logs-sdk
-@@ -91,25 +91,25 @@
+@@ -91,25 +91,28 @@
          <calcite.version>1.35.0</calcite.version>
          <confluent.version>6.2.12</confluent.version>
          <datasketches.version>4.2.0</datasketches.version>
@@ -82,6 +85,9 @@ index 38e0ddc61a..73fb14c1fc 100644
 +        <dropwizard.metrics.version>4.2.26</dropwizard.metrics.version>
          <errorprone.version>2.20.0</errorprone.version>
 -        <fastutil.version>8.5.4</fastutil.version>
++        <!-- An additional null check was introduced in fastutils 8.5.7 that breaks data ingestion tasks:
++             https://github.com/stackabletech/druid-operator/issues/595
++             https://github.com/vigna/fastutil/commit/598a4fd064e193be69ea324aa86947477c82ede8 -->
 +        <fastutil.version>8.5.6</fastutil.version>
          <guava.version>32.0.1-jre</guava.version>
          <guice.version>4.1.0</guice.version>
