@@ -4,6 +4,7 @@
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS product-utils-builder
 
+# Find the latest version here: https://github.com/stackabletech/config-utils/tags
 ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
