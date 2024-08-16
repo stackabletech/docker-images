@@ -3,8 +3,9 @@
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
 # This builder is kept around and updated until the last SDP release is EOL that uses UBI8 (which is 24.3) so we'll remove this sometime in the summer of 2025
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9694d09f97cd18fda1004de855ed2b4c841ba AS builder
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi8-minimal@sha256:5c6982aca8a8fdbc3ce304bc46e28c6a30572d6791ebd13968da197e75e4f042 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
