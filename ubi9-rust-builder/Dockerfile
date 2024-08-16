@@ -16,7 +16,7 @@ ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
-ENV PROTOC_VERSION=27.2
+ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
