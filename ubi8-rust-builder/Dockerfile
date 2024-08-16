@@ -10,9 +10,15 @@ FROM registry.access.redhat.com/ubi8-minimal@sha256:5c6982aca8a8fdbc3ce304bc46e2
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
+# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
+# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# Find the latest version here: https://crates.io/crates/cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+# Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
+# Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 ENV PROTOC_VERSION=27.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
