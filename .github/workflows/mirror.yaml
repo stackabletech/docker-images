@@ -3,12 +3,6 @@
   on:
     workflow_dispatch:
       inputs:
-        #src:
-          #description: 'Location of the source image (example: registry.k8s.io/git-sync/git-sync:v3.6.4)'
-          #required: true
-        #dst:
-          #description: 'Name and tag of the destination image (example: git-sync:v3.6.4) ( nested structs are done with e.g. sig-storage/csi-provisioner:2.10.1 )'
-          #required: true
         component:
           type: choice
           description: Components available using this workflow
@@ -74,24 +68,24 @@
         - name: Retag image
           run: |
             # Tagging the same image two times to push to Nexus and Harbor
-            docker tag "${{ github.event.inputs.component }}:${{ github.event.inputs.version}}" "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version}}-${{ matrix.architecture }}"
-            docker tag "${{ github.event.inputs.component }}:${{ github.event.inputs.version}}" "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version}}-${{ matrix.architecture }}"
+            docker tag "${{ github.event.inputs.component }}:${{ github.event.inputs.version}}" "${{ env.DST_REGISTRY_HARBOR }}/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version}}-${{ matrix.architecture }}"
+            docker tag "${{ github.event.inputs.component }}:${{ github.event.inputs.version}}" "${{ env.DST_REGISTRY_NEXUS }}/${{ env.DST_PROJECT_NEXUS }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version}}-${{ matrix.architecture }}"
         - uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
         - name: Push image to destination registry
           id: push
           run: |
-            DOCKER_OUTPUT_HARBOR="$(docker push "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}")";
-            DOCKER_OUTPUT_NEXUS="$(docker push "$DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}")";
+            DOCKER_OUTPUT_HARBOR="$(docker push "${{ env.DST_REGISTRY_HARBOR }}/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}")";
+            DOCKER_OUTPUT_NEXUS="$(docker push "${{ env.DST_REGISTRY_NEXUS }}/${{ env.DST_PROJECT_NEXUS }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}")";
             # Obtain the digest of the pushed image from the output of `docker push`, because signing by tag is deprecated and will be removed from cosign in the future
             REPO_DIGEST_OF_IMAGE_HARBOR="$(echo "$DOCKER_OUTPUT_HARBOR" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
             REPO_DIGEST_OF_IMAGE_NEXUS="$(echo "$DOCKER_OUTPUT_NEXUS" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
             # Check both architectures to see if both are available
             if [ -z "$REPO_DIGEST_OF_IMAGE_HARBOR" ]; then
-              echo "Could not find repo digest for container image: $DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}"
+              echo "Could not find repo digest for container image: ${{ env.DST_REGISTRY_HARBOR }}/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}"
               exit 1
             fi
             if [ -z "$REPO_DIGEST_OF_IMAGE_NEXUS" ]; then
-              echo "Could not find repo digest for container image: $DST_REGISTRY_NEXUS/$DST_PROJECT_NEXUS/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}"
+              echo "Could not find repo digest for container image: ${{ env.DST_REGISTRY_NEXUS }}/${{ env.DST_PROJECT_NEXUS }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}"
               exit 1
             fi
             # Generating output variables for later manifest list creation
@@ -104,7 +98,8 @@
             fi
             # This generates a signature and publishes it to the registry, next to the image
             # Uses the keyless signing flow with Github Actions as identity provider
-            cosign sign -y "$DST_REGISTRY_HARBOR/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
+            cosign sign -y "${{ env.DST_REGISTRY_HARBOR }}/${{ env.DST_PROJECT_HARBOR }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_HARBOR"
+            cosign sign -y "${{ env.DST_REGISTRY_NEXUS }}/${{ env.DST_PROJECT_NEXUS }}/${{ steps.map.outputs.PRODUCT }}:${{ github.event.inputs.version }}-${{ matrix.architecture }}@$REPO_DIGEST_OF_IMAGE_NEXUS"
     publish_manifest:
       name: Build/Publish ${{ github.event.inputs.component }} Manifests
       runs-on: ubuntu-latest
@@ -114,11 +109,6 @@
       steps:
         - name: Checkout Repository
           uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        #- name: Split version and product
-          #id: split
-          #run: | # Cut neccessary since this action inputs and binary destinations are different to products and operators
-            #echo "PRDOUCT_NAME="$(cut -d':' -f1 <<<< '${{ github.event.inputs.dst }}')"" >> "$GITHUB_OUTPUT"
-            #echo "PRODUCT_VERSION="$(cut -d':' -f2 <<<< '${{ github.event.inputs.dst }}')"" >> "$GITHUB_OUTPUT"
         - name: Build Product Manifest List ( Nexus )
           uses: ./.github/actions/publish-manifest
           with:
