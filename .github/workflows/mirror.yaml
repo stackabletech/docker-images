@@ -38,6 +38,8 @@
         REPO_DIGEST_OF_IMAGE_NEXUS_arm64: ${{ steps.push.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_arm64 }}
         PRODUCT: ${{ steps.map.outputs.PRODUCT }}
       steps:
+        - name: Checkout Repository
+          uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         - name: Login to Stackable Harbor
           uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
           with:
