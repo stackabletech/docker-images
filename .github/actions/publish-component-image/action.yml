@@ -1,0 +1,47 @@
+name: Publish Product Image
+description: This action publishes and signs a Docker image
+inputs:
+  product:
+    description: The name of the product to publish
+    required: true
+  version:
+    description: Version of the product to publish
+    required: true
+  architecture:
+    description: The architecture of the product to publish
+    required: true
+  registry:
+    description: Destination registry of the product to publish
+    required: true
+  project:
+    description: Project in destination registry
+    required: true
+outputs:
+  REPO_DIGEST_OF_IMAGE_arm64:
+    description: Repo digest of arm64 image
+    value: ${{ steps.push.REPO_DIGEST_OF_IMAGE_arm64 }}
+  REPO_DIGEST_OF_IMAGE_amd64:
+    description: Repo digest of amd64 image
+    value: ${{ steps.push.REPO_DIGEST_OF_IMAGE_amd64 }}
+runs:
+  using: composite
+  steps:
+    - name: Push and sign ${{ inputs.product }} to ${{ inputs.registry }}
+      id: push
+      shell: bash
+      run: |
+        DOCKER_OUTPUT="$(docker push "${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.product }}:${{ inputs.version }}-${{ inputs.architecture }}")";
+        # Obtain the digest of the pushed image from the output of `docker push`, because signing by tag is deprecated and will be removed from cosign in the future
+        REPO_DIGEST_OF_IMAGE="$(echo "$DOCKER_OUTPUT" | awk '/^\S+: digest: sha256:[0-9a-f]{64} size: [0-9]+$/ { print $3 }')";
+        # Check if image got pushed
+        if [ -z "$REPO_DIGEST_OF_IMAGE" ]; then
+          echo "Could not find repo digest for container image: ${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.product }}:${{ inputs.version }}-${{ inputs.architecture }}"
+          exit 1
+        fi
+        # Generating output variables for later manifest list creation
+        if [ ${{ inputs.architecture }} == "arm64" ]; then
+          echo "REPO_DIGEST_OF_IMAGE_arm64=$REPO_DIGEST_OF_IMAGE" >> "$GITHUB_OUTPUT"
+        else
+          echo "REPO_DIGEST_OF_IMAGE_amd64=$REPO_DIGEST_OF_IMAGE" >> "$GITHUB_OUTPUT"
+        fi
+        cosign sign -y "${{ inputs.registry }}/${{ inputs.project }}/${{ inputs.product }}:${{ inputs.version }}-${{ inputs.architecture }}@$REPO_DIGEST_OF_IMAGE"
