@@ -61,7 +61,7 @@
         - name: Map components onto component names
           id: map
           run: |
-            if [ "${{ github.event.inputs.component }}" == "registry.k8s.io/git-sync/git-sync"]; then
+            if [ "${{ github.event.inputs.component }}" == "registry.k8s.io/git-sync/git-sync" ]; then
               echo "PRODUCT="git-sync"" >> "$GITHUB_OUTPUT"
             elif [ "${{ github.event.inputs.component }}" == "registry.k8s.io/sig-storage/csi-node-driver-registrar" ]; then
               echo "PRODUCT="sig-storage/csi-node-driver-registrar"" >> "$GITHUB_OUTPUT"
