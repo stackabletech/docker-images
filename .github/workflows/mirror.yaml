@@ -57,6 +57,11 @@
           with:
             image: ${{ github.event.inputs.component }}:${{ github.event.inputs.version }}
             architecture: ${{ matrix.architecture }}
+        # Mapping incoming source registry string of a product onto a product name.
+        # This is necessary since customers might have repositories mirrored with the current image names
+        # changing this would imply a 'breaking' change to those customers.
+        # This can be mitigated by managing this change with customers together, wouldn't like to do it without a release.
+        # TODO: With 24.11 check if component names can change.
         - name: Map components onto component names
           id: map
           run: |
