@@ -12,4 +12,5 @@ inputs:
 runs:
   steps:
     - name: Pull images
+      shell: bash
       run: docker pull "${{ inputs.image }}" --platform "${{ inputs.architecture }}"
