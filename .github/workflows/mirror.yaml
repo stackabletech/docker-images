@@ -32,10 +32,10 @@
       permissions:
         id-token: write
       outputs:
-        REPO_DIGEST_OF_IMAGE_HARBOR_amd64: ${{ steps.push_harbor.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_amd64 }}
-        REPO_DIGEST_OF_IMAGE_HARBOR_arm64: ${{ steps.push_harbor.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_arm64 }}
-        REPO_DIGEST_OF_IMAGE_NEXUS_amd64: ${{ steps.push_nexus.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_amd64 }}
-        REPO_DIGEST_OF_IMAGE_NEXUS_arm64: ${{ steps.push_nexus.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_arm64 }}
+        REPO_DIGEST_OF_IMAGE_HARBOR_amd64: ${{ steps.push_harbor.outputs.REPO_DIGEST_OF_IMAGE_amd64 }}
+        REPO_DIGEST_OF_IMAGE_HARBOR_arm64: ${{ steps.push_harbor.outputs.REPO_DIGEST_OF_IMAGE_arm64 }}
+        REPO_DIGEST_OF_IMAGE_NEXUS_amd64: ${{ steps.push_nexus.outputs.REPO_DIGEST_OF_IMAGE_amd64 }}
+        REPO_DIGEST_OF_IMAGE_NEXUS_arm64: ${{ steps.push_nexus.outputs.REPO_DIGEST_OF_IMAGE_arm64 }}
         PRODUCT: ${{ steps.map.outputs.PRODUCT }}
       steps:
         - name: Checkout Repository
