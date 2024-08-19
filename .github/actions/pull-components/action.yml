@@ -1,0 +1,15 @@
+---
+name: Pull 3rd party components
+description: This actions pulls images from e.g. registry.k8s.io
+inputs:
+  image:
+    description: image to be pulled
+    required: true
+  architecture:
+    description: Architecture of image to be pulled
+    required: true
+
+runs:
+  steps:
+    - name: Pull images
+      run: docker pull "${{ inputs.image }}" --platform "${{ inputs.architecture }}"
