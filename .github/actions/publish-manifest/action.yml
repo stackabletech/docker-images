@@ -67,6 +67,7 @@ runs:
         # Manifest name is created from inputs above. Each registry needs its own step.
         MANIFEST_NAME="${{ inputs.registry }}/${{ inputs.product }}:$IMAGE_VERSION" 
         # If and only if both digests are provided, use them to create manifest list. If not, create manifest list only via tag.
+        set -x
         if [[ -n "${{ inputs.digest-arm }}" && -n "${{ inputs.digest-amd }}" ]]; then
           # `docker manifest push` directly returns the digest of the manifest list
           # As it is an experimental feature, this might change in the future
@@ -78,6 +79,7 @@ runs:
           echo "WARNING: Unsafe to create manifest list without digests. Can't ensure correct image."
           docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64}"
         fi
+        set +x
         docker manifest push "$MANIFEST_NAME"
         DIGEST=$(index_digest "$MANIFEST_NAME")
 
