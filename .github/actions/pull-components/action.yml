@@ -10,7 +10,7 @@ inputs:
     required: true
 
 runs:
-  using: docker
+  using: composite
   steps:
     - name: Pull images
       shell: bash
