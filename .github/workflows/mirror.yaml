@@ -57,7 +57,7 @@
             username: github
             password: ${{ secrets.NEXUS_PASSWORD }}
         - name: Pull image from source registry
-          run: docker pull "${{ github.event.inputs.component }}" --platform ${{ matrix.architecture }}
+          run: docker pull "${{ github.event.inputs.component }}:${{github.event.inputs.version}}" --platform ${{ matrix.architecture }}
         - name: Map components onto component names
           id: map
           run: |
