@@ -10,6 +10,7 @@ inputs:
     required: true
 
 runs:
+  using: docker
   steps:
     - name: Pull images
       shell: bash
