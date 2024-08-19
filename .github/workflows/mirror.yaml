@@ -116,6 +116,8 @@
             image-version: ${{ github.event.inputs.version }}
             nexus-password: ${{ secrets.NEXUS_PASSWORD }}
             harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+            digest-arm: ${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_arm64}}
+            digest-amd: ${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_NEXUS_amd64}}
         - name: Build Product Manifest List ( Harbor )
           uses: ./.github/actions/publish-manifest
           with:
@@ -124,3 +126,5 @@
             registry: $DST_REGISTRY_HARBOR/$DST_PROJECT_HARBOR
             nexus-password: ${{ secrets.NEXUS_PASSWORD }}
             harbor-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+            digest-arm: ${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_arm64}}
+            digest-amd: ${{ needs.mirror-image.outputs.REPO_DIGEST_OF_IMAGE_HARBOR_amd64}}
