@@ -325,7 +325,7 @@ rm -rf /var/cache/yum
 
 ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
 ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
-ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
+ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 EOF
 
 USER stackable

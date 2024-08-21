@@ -12,7 +12,12 @@ All notable changes to this project will be documented in this file.
 
 - opa: Remove version 0.61.0 ([#797]).
 
+### Fixed
+
+- hbase: link to phoenix server jar. ([#811])
+
 [#797]: https://github.com/stackabletech/docker-images/pull/797
+[#811]: https://github.com/stackabletech/docker-images/pull/811
 
 ## [24.7.0] - 2024-07-24
 
