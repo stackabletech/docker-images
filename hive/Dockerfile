@@ -32,6 +32,7 @@ patches/apply_patches.sh ${PRODUCT}
 cd /stackable/apache-hive-${PRODUCT}-src/
 mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
 mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable
+mv standalone-metastore/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
 
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore
 cp /stackable/bin/start-metastore /stackable/hive-metastore/bin
