@@ -6,6 +6,7 @@ ARG PRODUCT
 ARG KUBECTL_VERSION
 ARG RELEASE
 ARG JQ_VERSION
+ARG TARGETARCH
 
 LABEL name="Stackable Tools" \
     maintainer="info@stackable.tech" \
@@ -33,7 +34,7 @@ WORKDIR /stackable/bin
 ENV PATH=/stackable/bin:$PATH
 
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
-RUN	curl -L https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
+RUN	curl -L https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl \
     -o /stackable/bin/kubectl && chmod +x /stackable/bin/kubectl
 
 RUN	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
