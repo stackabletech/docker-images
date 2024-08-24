@@ -26,7 +26,8 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/ap
     cd /stackable && \
     # Unpack the archive which contains the build artifacts from above. Remove some
     # unused files to shrink the final image size.
-    tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
+    tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz
+RUN mv /stackable/apache-zookeeper-${PRODUCT}/zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
     rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
     rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
     # Download the JMX exporter jar from our own repo

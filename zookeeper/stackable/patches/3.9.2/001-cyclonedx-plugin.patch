@@ -1,0 +1,53 @@
+diff --git a/pom.xml b/pom.xml
+index 743b87f..3873e40 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -925,7 +925,7 @@
+         <plugin>
+           <groupId>org.cyclonedx</groupId>
+           <artifactId>cyclonedx-maven-plugin</artifactId>
+-          <version>2.7.9</version>
++          <version>2.8.0</version>
+        </plugin>
+       </plugins>
+     </pluginManagement>
+@@ -1200,6 +1200,11 @@
+       <plugin>
+         <groupId>org.cyclonedx</groupId>
+         <artifactId>cyclonedx-maven-plugin</artifactId>
++        <configuration>
++            <projectType>application</projectType>
++            <schemaVersion>1.5</schemaVersion>
++            <skipNotDeployed>false</skipNotDeployed>
++        </configuration>
+         <executions>
+           <execution>
+             <goals>
+diff --git a/zookeeper-assembly/pom.xml b/zookeeper-assembly/pom.xml
+index c10804a..aa8a611 100755
+--- a/zookeeper-assembly/pom.xml
++++ b/zookeeper-assembly/pom.xml
+@@ -115,6 +115,23 @@
+ 
+   <build>
+     <plugins>
++      <plugin>
++        <groupId>org.cyclonedx</groupId>
++        <artifactId>cyclonedx-maven-plugin</artifactId>
++        <version>2.8.0</version>
++        <configuration>
++            <projectType>application</projectType>
++            <schemaVersion>1.5</schemaVersion>
++        </configuration>
++        <executions>
++          <execution>
++            <goals>
++              <goal>makeAggregateBom</goal>
++            </goals>
++            <phase>package</phase>
++          </execution>
++        </executions>
++      </plugin>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-assembly-plugin</artifactId>
