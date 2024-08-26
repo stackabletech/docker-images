@@ -1,12 +1,18 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS product-utils-builder
 
+# Find the latest version here: https://github.com/stackabletech/config-utils/tags
 ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
+# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# Find the latest version here: https://crates.io/crates/cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
 RUN <<EOF
@@ -29,8 +35,9 @@ cd ./config-utils
 cargo auditable --quiet build --release && cargo cyclonedx --output-pattern package --all --output-cdx
 EOF
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -130,9 +137,8 @@ chown stackable:stackable /stackable/.profile
 
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
-# The package ca-certificates 2023.07.22 fixes the problem, until ubi9-minimal updates to it, we should remove them
-# manually.
-if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2023.2.60_v7.0.306-90.1.el9_2.noarch" ]; then
+# Until they are removed by default from ca-certificates, we should remove them manually
+if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch" ]; then
   echo "The ca-certificates package was updated. Please check if the e-Tugra root certificates are present. \
 When they have been removed, manually blacklisting them should be removed"
   echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'"

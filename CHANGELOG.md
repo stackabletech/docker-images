@@ -6,13 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- opa: Add version 0.67.1 ([#797]).
+- opa: Add version `0.67.1` ([#797]).
+- vector: Add version `0.40.0` ([#802]).
+- airflow: Add version `2.9.3` ([#809]).
 
 ### Removed
 
-- opa: Remove version 0.61.0 ([#797]).
+- opa: Remove version `0.61.0` ([#797]).
+- vector: Remove version `0.39.0` ([#802]).
+- airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
+
+### Fixed
+
+- hbase: link to phoenix server jar. ([#811])
 
 [#797]: https://github.com/stackabletech/docker-images/pull/797
+[#802]: https://github.com/stackabletech/docker-images/pull/802
+[#809]: https://github.com/stackabletech/docker-images/pull/809
+[#811]: https://github.com/stackabletech/docker-images/pull/811
 
 ## [24.7.0] - 2024-07-24
 
