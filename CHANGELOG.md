@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 
 - opa: Remove version `0.61.0` ([#797]).
 - vector: Remove version `0.39.0` ([#802]).
-- airflow: Add version `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
+- airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
 
 ### Fixed
 
