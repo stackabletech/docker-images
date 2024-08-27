@@ -29,9 +29,9 @@ RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/r
   ./patches/apply_patches.sh ${PRODUCT}
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
-  cp tso-server/target/bom.json -C /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
+  mv tso-server/target/bom.json -C /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
   tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
-  cp examples/target/bom.json -C /stackable/omid-examples-${PRODUCT}/omid-examples-${PRODUCT}.cdx.json
+  mv examples/target/bom.json -C /stackable/omid-examples-${PRODUCT}/omid-examples-${PRODUCT}.cdx.json
 
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*

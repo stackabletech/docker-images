@@ -81,7 +81,7 @@ RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-s
     # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
     # while the raw output folder does not
     tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
-    cp /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json && \
+    mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT} && \
     # Delete all intermediate build products to free some more space
     rm -r /stackable/trino-server-${PRODUCT}-src

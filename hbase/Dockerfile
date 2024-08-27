@@ -55,7 +55,7 @@ cd /stackable/hbase-${PRODUCT}-src/
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
-cp hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
+mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
 rm -rf /stackable/hbase-${PRODUCT}-src
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
@@ -165,7 +165,7 @@ tar -xz \
   -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
   -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
   --strip-components=1
-cp hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
+mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
 rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
@@ -257,7 +257,7 @@ mvn \
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
 mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
 tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
-cp phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
+mv phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
 rm -rf /stackable/phoenix-${PHOENIX}-src
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 

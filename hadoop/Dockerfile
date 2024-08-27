@@ -65,7 +65,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoo
     cd hadoop-${PRODUCT}-src && \
     mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
-    cp hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
+    mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
     rm -rf /stackable/hadoop-${PRODUCT}-src
