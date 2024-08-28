@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: Build Product Image
         id: build
-        uses: ./.github/actions/build
+        uses: ./.github/actions/build-product-image
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
@@ -79,7 +79,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: Build Product Manifest List
-        uses: ./.github/actions/publish-manifest
+        uses: ./.github/actions/publish-index-manifest
         with:
           product: ${{ env.PRODUCT_NAME }}
           image-version: ${{ matrix.versions }}-stackable0.0.0-dev
