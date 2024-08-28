@@ -1,78 +1,101 @@
 ---
-name: Publish Product Image Manifest
-description: This action publishes a Docker image
+name: Publish and Sign Image Index Manifest
+description: |
+  This action publishes and signs a container image index manifest for
+  multi-arch images
 inputs:
-  product:
-    description: The name of the product to publish
+  image-registry-uri:
+    description: The URI of the container image registry
     required: true
-  image-version:
-    description: This is the container image end tag excluding the architecture information (right of ':')
+  image-registry-username:
+    description: The username used to login to the container image registry
     required: true
-  nexus-password:
-    description: The password to login to Nexus
+  image-registry-password:
+    description: The password used to login to the container image registry
     required: true
-  harbor-secret:
-    description: The secret to login to Harbor
+  image-repository:
+    description: |
+      Last segment of the path, for example `stackable/kafka` or
+      `k8s/sig-storage/csi-provisioner`
     required: true
+  image-index-manifest-tag:
+    description: |
+      Human-readable tag (usually the version) without architecture information,
+      for example: `3.4.1-stackable0.0.0-dev`
+  image-architectures:
+    description: |
+      A JSON array of architectures to add to the image index manifest, like
+      ["amd64", "arm64", "riscv"]
+    default: |
+      ["amd64", "arm64"]
 runs:
   using: composite
   steps:
     - name: Set up Cosign
       uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
 
-    - name: Login to Stackable Nexus
+    - name: Login to Container Registry (${{ inputs.image-registry-uri }})
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
-        registry: docker.stackable.tech
-        username: github
-        password: ${{ inputs.nexus-password }}
+        registry: ${{ inputs.image-registry-uri }}
+        username: ${{ inputs.image-registry-username }}
+        password: ${{ inputs.image-registry-password }}
 
-    - name: Login to Stackable Harbor
-      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-      with:
-        registry: oci.stackable.tech
-        username: robot$sdp+github-action-build
-        password: ${{ inputs.harbor-secret }}
-
-    - name: Setup Environment Variables
+    - name: Create Image Index Manifest
       shell: bash
-      run: |
-        set -euo pipefail
-        IMAGE_VERSION=${{ inputs.image-version }}
-        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
-
-    - name: Create Manifest
-      shell: bash
+      env:
+        IMAGE_INDEX_MANIFEST_TAG: ${{ inputs.image-index-manifest-tag }}
+        IMAGE_ARCHITECTURES: ${{ inputs.image-architectures }}
+        IMAGE_REPOSITORY: ${{ inputs.image-repository }}
+        REGISTRY_URI: ${{ inputs.image-registry-uri }}
       run: |
         set -euo pipefail
 
-        # Get the image index digest
-        # Eg: index_digest docker.stackable.tech/stackable/hello-world:0.0.1-SNAPSHOT-stackable0.0.0-dev
-        #
-        # Note: `docker manifest push` currently outputs the same hash, but `manifest` is experimental and the
-        # STDOUT is more likely to change than the structured output.
-        function index_digest {
-          docker buildx imagetools inspect --format '{{println .Manifest.Digest}}' "$1"
-        }
+        # Construct the image index uri, which for example contains:
+        # docker.stackable.tech/stackable/kafka:3.4.1-stackable0.0.0-dev
+        IMAGE_INDEX_URI="$REGISTRY_URI/$IMAGE_REPOSITORY:$IMAGE_INDEX_MANIFEST_TAG"
+        echo "IMAGE_INDEX_URI=$IMAGE_INDEX_URI" >> $GITHUB_ENV
 
-        MANIFEST_NAME="docker.stackable.tech/stackable/${{ inputs.product }}:$IMAGE_VERSION"
-        # Create and push to Stackable Nexus
+        AMEND_OPTIONS=$(
+          jq \
+          --raw-output \
+          --null-input \
+          --arg image_index_uri "$IMAGE_INDEX_URI" \
+          --arg arch_list "$IMAGE_ARCHITECTURES" \
+          '
+            $arch_list
+            | fromjson
+            | [
+                .[] as $arch | "--amend \($image_index_uri)-\($arch)"
+              ]
+            | join(" ")'
+        )
+
         # `docker manifest push` directly returns the digest of the manifest list
-        # As it is an experimental feature, this might change in the future
+        # As it is an experimental feature, this might change in the future.
+        # We use --amend because the manifest list would be updated since we use
+        # the same tag: 0.0.0-dev
+        #
         # Further reading: https://docs.docker.com/reference/cli/docker/manifest/push/
-        # --amend because the manifest list would be updated since we use the same tag: 0.0.0-dev
-        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-        docker manifest push "$MANIFEST_NAME"
-        DIGEST=$(index_digest "$MANIFEST_NAME")
+        docker manifest create "$IMAGE_INDEX_URI" ${AMEND_OPTIONS[@]}
+        docker manifest push "$IMAGE_INDEX_URI"
 
-        # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
-        # This generates a signature and publishes it to the registry, next to the image
-        # Uses the keyless signing flow with Github Actions as identity provider
-        cosign sign -y "$MANIFEST_NAME@$DIGEST"
+    - name: Sign Image Index Manifest
+      shell: bash
+      env:
+        IMAGE_REPOSITORY: ${{ inputs.image-repository }}
+        REGISTRY_URI: ${{ inputs.image-registry-uri }}
+      run: |
+        set -euo pipefail
 
-        # Push to oci.stackable.tech as well
-        MANIFEST_NAME="oci.stackable.tech/sdp/${{ inputs.product }}:$IMAGE_VERSION"
-        docker manifest create "$MANIFEST_NAME" --amend "${MANIFEST_NAME}-amd64" --amend "${MANIFEST_NAME}-arm64"
-        docker manifest push $MANIFEST_NAME
-        DIGEST=$(index_digest "$MANIFEST_NAME")
-        cosign sign -y "$MANIFEST_NAME@$DIGEST"
+        # Get the image index manifest digest
+        DIGEST=$(.scripts/get_manifest_digest.sh "$IMAGE_INDEX_URI")
+
+        # Construct the image repo digest, which for example contains:
+        # docker.stackable.tech/stackable/kafka@sha256:91...
+        IMAGE_REPO_DIGEST="$REGISTRY_URI/$IMAGE_REPOSITORY@$DIGEST"
+
+        # This generates a signature and publishes it to the registry, next to
+        # the image. This step uses the keyless signing flow with Github Actions
+        # as the identity provider.
+        cosign sign --yes "$IMAGE_REPO_DIGEST"
