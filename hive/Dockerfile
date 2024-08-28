@@ -42,6 +42,11 @@ else
   # We only seem to get a .tar.gz archive, so let's extract that to the correct location
   cd /stackable
   tar --extract -f /stackable/apache-hive-${PRODUCT}-src/standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
+
+  # TODO: Raise PR upstream for fix
+
+  # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
+  sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/ext/schemaTool.sh
 fi
 
 cp /stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
