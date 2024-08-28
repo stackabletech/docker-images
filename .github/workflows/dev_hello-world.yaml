@@ -46,13 +46,15 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - name: Build Product Image
         id: build
         uses: ./.github/actions/build-product-image
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
-          build-cache-nexus-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+          build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+
       - name: Publish Product Image
         uses: ./.github/actions/publish-image
         with:
