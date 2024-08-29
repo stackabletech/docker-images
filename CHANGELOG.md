@@ -6,10 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
 - vector: Add version `0.40.1` ([#802], [#815]).
 - airflow: Add version `2.9.3` ([#809]).
 - kafka: Add version `3.8.0` ([#813]).
+
+### Changed
+
+- ci: Rename local actions, adjust action inputs and outputs, add definition
+  README file ([#819]).
 
 ### Removed
 
@@ -20,7 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- hbase: link to phoenix server jar. ([#811])
+- hbase: link to phoenix server jar ([#811]).
 
 [#797]: https://github.com/stackabletech/docker-images/pull/797
 [#802]: https://github.com/stackabletech/docker-images/pull/802
@@ -28,13 +34,14 @@ All notable changes to this project will be documented in this file.
 [#811]: https://github.com/stackabletech/docker-images/pull/811
 [#813]: https://github.com/stackabletech/docker-images/pull/813
 [#815]: https://github.com/stackabletech/docker-images/pull/815
+[#819]: https://github.com/stackabletech/docker-images/pull/819
 
 ## [24.7.0] - 2024-07-24
 
 ### Added
 
-- omid: Add version `1.1.1` & `1.1.2` ([#553])
-- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
+- omid: Add version `1.1.1` & `1.1.2` ([#553]).
+- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583]).
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
 - hbase: Enable snapshot exports to S3; The HBase image depends now on
