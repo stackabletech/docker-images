@@ -31,7 +31,7 @@ jobs:
       - id: shard
         uses: ./.github/actions/shard
         with:
-          product: ${{ env.PRODUCT_NAME }}
+          product-name: ${{ env.PRODUCT_NAME }}
     outputs:
       versions: ${{ steps.shard.outputs.versions }}
 
