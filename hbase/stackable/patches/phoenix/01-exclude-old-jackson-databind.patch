@@ -1,0 +1,51 @@
+diff --git a/phoenix-core-client/pom.xml b/phoenix-core-client/pom.xml
+index ad65b74f39..90632e2c10 100644
+--- a/phoenix-core-client/pom.xml
++++ b/phoenix-core-client/pom.xml
+@@ -381,6 +381,12 @@
+     <dependency>
+       <groupId>org.apache.htrace</groupId>
+       <artifactId>htrace-core</artifactId>
++      <exclusions>
++        <exclusion>
++          <groupId>com.fasterxml.jackson.core</groupId>
++          <artifactId>jackson-databind</artifactId>
++        </exclusion>
++      </exclusions>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+diff --git a/phoenix-core-server/pom.xml b/phoenix-core-server/pom.xml
+index bb55875b46..2551227a1d 100644
+--- a/phoenix-core-server/pom.xml
++++ b/phoenix-core-server/pom.xml
+@@ -131,6 +131,12 @@
+         <dependency>
+             <groupId>org.apache.htrace</groupId>
+             <artifactId>htrace-core</artifactId>
++            <exclusions>
++                <exclusion>
++                    <groupId>com.fasterxml.jackson.core</groupId>
++                    <artifactId>jackson-databind</artifactId>
++                </exclusion>
++            </exclusions>
+         </dependency>
+         <dependency>
+             <groupId>com.google.protobuf</groupId>
+diff --git a/pom.xml b/pom.xml
+index c3b72ad4e1..623c825fe1 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1671,6 +1671,12 @@
+         <groupId>org.apache.htrace</groupId>
+         <artifactId>htrace-core</artifactId>
+         <version>${htrace.version}</version>
++        <exclusions>
++          <exclusion>
++            <groupId>com.fasterxml.jackson.core</groupId>
++            <artifactId>jackson-databind</artifactId>
++          </exclusion>
++        </exclusions>
+       </dependency>
+       <dependency>
+         <groupId>commons-codec</groupId>

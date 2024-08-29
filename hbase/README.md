@@ -4,7 +4,7 @@ As of SDP 24.7 we do include HBase 2.6 support in an experimental state.
 
 ## Phoenix
 
-At the time of this writing (July 12, 2024) there is no Phoenix release that supports HBase 2.6 so the script `upload_new_phoenix_version.sh` will not work.
+At the time of this writing (August 29, 2024) there is no Phoenix release that supports HBase 2.6 so the script `upload_new_phoenix_version.sh` will not work.
 
 HBase 2.6 support [was added](https://github.com/apache/phoenix/pull/1793) with [PHOENIX-7172](https://issues.apache.org/jira/browse/PHOENIX-7172).
 SDP 24.7 includes Phoenix built from the master branch from commit [4afe457](https://github.com/apache/phoenix/tree/4afe4579bb3ab01725e4939746d0b7b807b438ac).
@@ -13,17 +13,22 @@ SDP 24.7 includes Phoenix built from the master branch from commit [4afe457](htt
 # clone the Phoenix repo
 git clone git@github.com:apache/phoenix.git
 cd phoenix
-git checkout 4afe457
+git checkout 81d6cb2203
+git apply ~/repo/stackable/docker-images/hbase/stackable/patches/phoenix/01-exclude-old-jackson-databind.patch
+git commit -a -m "Exclude old jackson-databind"
+
+# Save the commit ID of the patched Phoenix version for later
+COMMIT_ID=$(git rev-parse --short HEAD)
 
 # create a tarball
-mkdir ../phoenix-5.3.0-4afe457
-git archive --format=tar --output ../phoenix-5.3.0-4afe457/phoenix.tar 4afe457
-cd ../phoenix-5.3.0-4afe457
+mkdir "../phoenix-5.3.0-$COMMIT_ID"
+git archive --format=tar --output "../phoenix-5.3.0-$COMMIT_ID/phoenix.tar" "$COMMIT_ID"
+cd "../phoenix-5.3.0-$COMMIT_ID"
 tar xf phoenix.tar
 rm phoenix.tar
-echo 4afe457 > git-commit
+echo "$COMMIT_ID" > git-commit
 cd ..
-tar -c phoenix-5.3.0-4afe457 | gzip > phoenix-5.3.0-4afe457-src.tar.gz
+tar -c "phoenix-5.3.0-$COMMIT_ID" | gzip > "phoenix-5.3.0-$COMMIT_ID-src.tar.gz"
 ```
 
 ## HBase operator tools
