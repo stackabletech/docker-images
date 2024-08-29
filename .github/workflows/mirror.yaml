@@ -47,7 +47,7 @@ jobs:
         env:
           IMAGE_REPOSITORY_URI: ${{ inputs.image-repository-uri }}
         run: |
-          echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a $GITHUB_ENV
+          echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on docker.stackable.tech
         uses: ./.github/actions/publish-image
@@ -82,7 +82,7 @@ jobs:
         env:
           IMAGE_REPOSITORY_URI: ${{ inputs.image-repository-uri }}
         run: |
-          echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a $GITHUB_ENV
+          echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
         uses: ./.github/actions/publish-index-manifest
