@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - opa: Add version `0.67.1` ([#797]).
-- vector: Add version `0.40.0` ([#802]).
+- vector: Add version `0.40.1` ([#802], [#815]).
 - airflow: Add version `2.9.3` ([#809]).
 - kafka: Add version `3.8.0` ([#813]).
 
@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 [#809]: https://github.com/stackabletech/docker-images/pull/809
 [#811]: https://github.com/stackabletech/docker-images/pull/811
 [#813]: https://github.com/stackabletech/docker-images/pull/813
+[#815]: https://github.com/stackabletech/docker-images/pull/815
 
 ## [24.7.0] - 2024-07-24
 
