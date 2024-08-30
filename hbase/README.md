@@ -9,16 +9,15 @@ At the time of this writing (August 29, 2024) there is no Phoenix release that s
 HBase 2.6 support [was added](https://github.com/apache/phoenix/pull/1793) with [PHOENIX-7172](https://issues.apache.org/jira/browse/PHOENIX-7172).
 SDP 24.7 includes Phoenix built from the master branch from commit [4afe457](https://github.com/apache/phoenix/tree/4afe4579bb3ab01725e4939746d0b7b807b438ac).
 
+Prepare the Phoenix source tarball:
+
 ```bash
 # clone the Phoenix repo
 git clone git@github.com:apache/phoenix.git
 cd phoenix
-git checkout 81d6cb2203
-git apply ~/repo/stackable/docker-images/hbase/stackable/patches/phoenix/01-exclude-old-jackson-databind.patch
-git commit -a -m "Exclude old jackson-databind"
-
+git checkout master
 # Save the commit ID of the patched Phoenix version for later
-COMMIT_ID=$(git rev-parse --short HEAD)
+COMMIT_ID=$(git rev-parse --short HEAD) # ca21a87dd6
 
 # create a tarball
 mkdir "../phoenix-5.3.0-$COMMIT_ID"
@@ -30,6 +29,8 @@ echo "$COMMIT_ID" > git-commit
 cd ..
 tar -c "phoenix-5.3.0-$COMMIT_ID" | gzip > "phoenix-5.3.0-$COMMIT_ID-src.tar.gz"
 ```
+
+Upload it to the packages/phoenix folder in Nexus.
 
 ## HBase operator tools
 
