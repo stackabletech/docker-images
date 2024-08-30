@@ -219,12 +219,14 @@ ARG DELETE_CACHES="true"
 USER stackable
 WORKDIR /stackable
 
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
+
 RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repository <<EOF
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 cd /stackable/phoenix-${PHOENIX}-src/
-/stackable/patches/apply_patches.sh /stackable/patches/phoenix/${PRODUCT}
+/stackable/patches/apply_patches.sh /stackable/patches/phoenix/${PHOENIX}
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
