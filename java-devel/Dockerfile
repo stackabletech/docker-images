@@ -54,4 +54,4 @@ ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
-COPY --chown=stackable:stackable shared/maven/settings.xml /stackable/.m2/
+# COPY --chown=stackable:stackable shared/maven/settings.xml /stackable/.m2/
