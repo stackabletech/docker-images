@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
-# Ignoring DL3006 because we don't want to pin java-* images
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel as builder
 
 ARG PRODUCT
@@ -29,7 +23,6 @@ WORKDIR /stackable
 #
 # This will download it's own version of maven because the UBI version is too old:
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-# hadolint ignore=DL3003
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz | tar -xzf - \
     && cd spark-${PRODUCT} \
     && export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
@@ -51,7 +44,6 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
     && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
@@ -86,8 +78,6 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
 # ===
 
-# Ignoring DL3006 because we don't want to pin java-* images
-# hadolint ignore=DL3006
 FROM stackable/image/java-base as final
 
 ARG PRODUCT

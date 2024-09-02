@@ -1,13 +1,7 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# Ignoring SC2164 globally because we inherit SHELL from the base image which contains "-e" for bash
-# hadolint global ignore=DL3038,DL4006,SC2164
-
 FROM stackable/image/hadoop AS hadoop-builder
 
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
@@ -39,9 +33,12 @@ COPY --chown=stackable:stackable hbase/stackable/jmx/config${JMX_EXPORTER} /stac
 # at the end of a run while other stages are still using it.
 # While this might work in theory it didn't in practice (FileNotFound exceptions etc.)
 
-# Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060,SC3010
-RUN --mount=type=cache,id=maven-hbase,uid=1000,target=/stackable/.m2/repository <<EOF
+# The cache id has to include the product version that we are building because otherwise
+# docker encounters race conditions when building multiple versions in parallel, as all
+# builder containers will share the same cache and the `rm -rf` commands will fail
+# with a "directory not empty" error on the first builder to finish, as other builders
+# are still working in the cache directory.
+RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
 ###
 ### HBase
 ###
@@ -89,7 +86,6 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
 ARG OPA_AUTHORIZER
@@ -98,8 +94,6 @@ ARG DELETE_CACHES
 USER stackable
 WORKDIR /stackable
 
-# Ignoring this because we set the shell to bash in our base image and hadolint/shellcheck doesn't know about it
-# hadolint ignore=SC3060,SC3010
 RUN --mount=type=cache,id=maven-opa,uid=1000,target=/stackable/.m2/repository <<EOF
 
 ###
@@ -125,7 +119,6 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hbase-operator-tools-builder
 
 ARG HBASE_OPERATOR_TOOLS
@@ -187,7 +180,6 @@ EOF
 
 # Splitting this out into its own builder so that Hadoop & HBase can be built in parallel
 # envsubst is only available in java-devel which is why we don't just do this in the final image
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS hadoop-s3-builder
 
 ARG PRODUCT
@@ -215,8 +207,6 @@ chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
 EOF
 
-
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS phoenix-builder
 
 ARG PRODUCT
@@ -333,9 +323,9 @@ microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln -s /stackable/hbase-${PRODUCT} /stackable/hbase
-ln -s /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools
-ln -s "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}-${PHOENIX}.jar"
+ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
+ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
+ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 EOF
 
 USER stackable

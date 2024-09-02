@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# Ignoring SC2164 globally because we inherit SHELL from the base image which contains "-e" for bash
-# hadolint global ignore=DL3038,DL4006,SC2164
-
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
@@ -44,9 +38,15 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven,uid=1000,target=/stackable/.m2/repository \
-    --mount=type=cache,id=npm,uid=1000,target=/stackable/.npm \
-    --mount=type=cache,id=cache,uid=1000,target=/stackable/.cache \
+# The cache id has to include the product version that we are building because otherwise
+# docker encounters race conditions when building multiple versions in parallel, as all
+# builder containers will share the same cache and the `rm -rf` commands will fail
+# with a "directory not empty" error on the first builder to finish, as other builders
+# are still working in the cache directory.
+
+RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
+    --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
     <<EOF
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
@@ -73,7 +73,6 @@ fi
 curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
 EOF
 
-# hadolint ignore=DL3006
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT

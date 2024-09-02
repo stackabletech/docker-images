@@ -1,15 +1,7 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because set `assumeyes=True` in dnf.conf in our base image
-# Ignoring DL4006 globally because we inherit the SHELL from our base image
-# hadolint global ignore=DL3038,DL4006
-
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/kcat AS kcat
 
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-devel as kafka-builder
 
 ARG PRODUCT
@@ -30,6 +22,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
     rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/ && \
     rm -rf /stackable/kafka-${PRODUCT}-src
 
+# TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
@@ -56,9 +49,6 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
 # ===
 
-
-# Not tagging base image because it is built as part of the same process
-# hadolint ignore=DL3006
 FROM stackable/image/java-base AS final
 
 ARG RELEASE

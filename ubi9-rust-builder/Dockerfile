@@ -1,19 +1,22 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Ignoring DL3038 globally because we set `assumeyes=True` in dnf.conf
-# hadolint global ignore=DL3038
-
-# https://catalog.redhat.com/software/containers/ubi9-minimal/615bd9b4075b022acc111bf5?architecture=amd64
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS builder
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
-# This SHOULD to be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+# This SHOULD be kept in sync with operator-templating and other tools to reduce build times
+# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
+# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# Find the latest version here: https://crates.io/crates/cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
-ENV PROTOC_VERSION=27.2
+# Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
+# Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
+ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -69,9 +72,8 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
-# hadolint ignore=SC1091
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
-&& . "$HOME/.cargo/env" && cargo install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+&& . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -81,8 +83,7 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-# hadolint ignore=SC1091
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable --quiet build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
 
 # Copy the "interesting" files into /app.
 ONBUILD RUN find /src/target/release \
