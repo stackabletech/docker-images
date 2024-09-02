@@ -226,9 +226,7 @@ cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 cd /stackable/phoenix-${PHOENIX}-src/
-if [ -d /stackable/patches/phoenix/${PHOENIX} ]; then
-  /stackable/patches/apply_patches.sh /stackable/patches/phoenix/${PHOENIX}
-fi
+/stackable/patches/apply_patches.sh /stackable/patches/phoenix/${PHOENIX}
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
