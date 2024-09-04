@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - vector: Add version `0.40.0` ([#802]).
 - airflow: Add version `2.9.3` ([#809]).
 - kafka: Add version `3.8.0` ([#813]).
+- trino: Add version `455` ([#]).
 
 ### Removed
 
@@ -17,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - vector: Remove version `0.39.0` ([#802]).
 - airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
+- trino: Remove versions `414`, `442` ([#]).
 
 ### Fixed
 
