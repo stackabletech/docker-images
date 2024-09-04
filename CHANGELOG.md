@@ -96,7 +96,7 @@ All notable changes to this project will be documented in this file.
 - spark: Build from source ([#679])
 - all: Moved the LOG4J_FORMAT_MSG_NO_LOOKUPS env variable from the individual Dockerfiles to `java-base` and `java-devel` ([#727])
 - all: Move product versions into product directory in preparation for individual product build workflows ([#732])
-- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#737])
+- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#624], [#737])
 
 ### Fixed
 
@@ -370,7 +370,6 @@ All notable changes to this project will be documented in this file.
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#425]: https://github.com/stackabletech/docker-images/pull/425
-[#429]: https://github.com/stackabletech/docker-images/pull/429
 [#429]: https://github.com/stackabletech/docker-images/pull/429
 [#431]: https://github.com/stackabletech/docker-images/pull/431
 [#433]: https://github.com/stackabletech/docker-images/pull/433
