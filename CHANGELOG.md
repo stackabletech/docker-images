@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - vector: Add version `0.40.1` ([#802], [#815]).
 - airflow: Add version `2.9.3` ([#809]).
 - kafka: Add version `3.8.0` ([#813]).
+- hive: Add version `4.0.0` ([#818]).
 
 ### Changed
 
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file.
 [#811]: https://github.com/stackabletech/docker-images/pull/811
 [#813]: https://github.com/stackabletech/docker-images/pull/813
 [#815]: https://github.com/stackabletech/docker-images/pull/815
+[#818]: https://github.com/stackabletech/docker-images/pull/818
 [#819]: https://github.com/stackabletech/docker-images/pull/819
 
 ## [24.7.0] - 2024-07-24
