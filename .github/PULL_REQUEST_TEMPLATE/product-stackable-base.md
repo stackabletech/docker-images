@@ -9,3 +9,43 @@ labels: []
 projects: ['stackabletech/10']
 assignees: ''
 ---
+
+Part of #xxx.
+
+> [!TIP]
+> Please add the `scheduled-for/20XX-XX` label.
+
+```[tasklist]
+### Update tasks
+- [ ] Update UBI version hash in the Dockerfile (`FROM`)
+- [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
+- [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
+- [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
+- [ ] Update `PROTOC_VERSION`
+- [ ] Update `CONFIG_UTILS_VERSION`
+```
+
+```[tasklist]
+### Related Pull Requests
+```
+
+```[tasklist]
+### Acceptance
+- [ ] Can build the image locally
+- [ ] Can build the vector image
+```
+
+<details>
+<summary>Testing instructions</summary>
+
+```shell
+# See the latest version at https://pypi.org/project/image-tools-stackabletech/
+pip install image-tools-stackabletech==0.0.12
+
+bake --product vector=x.y.z # where x.y.z is a valid version
+```
+
+</details>
+
+_Please consider updating this template if these instructions are wrong, or
+could be made clearer._
