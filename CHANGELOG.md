@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add version `3.8.0` ([#813]).
 - hive: Add version `4.0.0` ([#818]).
 - trino: Add version `455` ([#822]).
+- trino-cli: Add version `455` ([#822]).
 
 ### Removed
 
@@ -20,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
 - trino: Remove versions `414`, `442` ([#822]).
+- trino-cli: Remove version `451` ([#822]).
 
 ### Fixed
 
