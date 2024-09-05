@@ -27,6 +27,7 @@ Part of #xxx.
 
 ```[tasklist]
 ### Related Pull Requests
+- [ ] _Link to the docker-images PR (product update)_
 - [ ] _Link to [hdfs-utils](https://github.com/stackabletech/hdfs-utils/) PR (if applicable)_
 - [ ] _Link to the operator PR (getting_started / kuttl)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_

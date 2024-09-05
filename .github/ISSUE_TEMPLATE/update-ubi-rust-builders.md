@@ -32,6 +32,7 @@ Part of #xxx.
 
 ```[tasklist]
 ### Related Pull Requests
+- [ ] _Link to the docker-images PR (product update)_
 - [ ] _Bump rust toolchain in operator-rs_
 - [ ] _Bump rust toolchain in operator-templating_
 ```

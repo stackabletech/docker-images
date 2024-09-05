@@ -27,6 +27,7 @@ Part of #xxx.
 
 ```[tasklist]
 ### Related Pull Requests
+- [ ] _Link to the docker-images PR (product update)_
 ```
 
 ```[tasklist]

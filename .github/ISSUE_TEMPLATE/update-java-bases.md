@@ -37,6 +37,7 @@ we should also make new versions of Java available for use.
 
 ```[tasklist]
 ### Related Pull Requests
+- [ ] _Link to the docker-images PR (product update)_
 ```
 
 <!--
