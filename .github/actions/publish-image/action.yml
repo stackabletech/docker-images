@@ -1,27 +1,46 @@
 ---
-name: Publish Product Image
-description: This action publishes a Docker image
+name: Publish Container Image
+description: This action publishes a container image
 inputs:
-  product:
-    description: The name of the product to publish
+  image-registry-uri:
+    description: The URI of the container image registry
     required: true
-  image-name:
-    description: This is the full image name before the tag (left of ':')
+  image-registry-username:
+    description: The username used to login to the container image registry
     required: true
-  image-version:
-    description: This is the container image end tag excluding the architecture information (right of ':')
+  image-registry-password:
+    description: The password used to login to the container image registry
     required: true
-  nexus-username:
-    description: The username to login to Nexus
-    default: github
-  nexus-password:
-    description: The password to login to Nexus
+  image-repository:
+    description: |
+      Last segment of the path, for example `stackable/kafka` or
+      `k8s/sig-storage/csi-provisioner`
     required: true
-  harbor-username:
-    description: The username to login to Harbor
-    default: robot$sdp+github-action-build
-  harbor-secret:
-    description: The secret to login to Harbor
+  image-manifest-tag:
+    description: |
+      Human-readable tag (usually the version) with architecture information,
+      for example: `3.4.1-stackable0.0.0-dev-amd64`
+    required: true
+  # NOTE (@Techassi): This ideally shouldn't be needed because we should be able
+  # to construct the source image uri from the other inputs as well, but there
+  # is some weird stuff happening with bake and how docker tags work. Part of
+  # the issue is that the hostname where the image is pushed to, is part of the
+  # tag itself. This shouldn't be the case and OCI should fix it in their spec
+  # as well.
+  #
+  # Another part of the issue is the difference in the namespace/repository
+  # path.
+  # On Nexus, we use:
+  # - stackable/kafka
+  # - k8s/sig-storage/csi-provisioner
+  #
+  # On Harbor we use:
+  # - sdp/kafka
+  # - sdp/sig-storage/csi-provisioner
+  source-image-uri:
+    description: |
+      The source image uri, which gets re-tagged by this action to be pushed to
+      the appropriate registry.
     required: true
 runs:
   using: composite
@@ -32,151 +51,96 @@ runs:
     - name: Set up syft
       uses: anchore/sbom-action/download-syft@e8d2a6937ecead383dfe75190d104edd1f9c5751 # v0.16.0
 
-    - name: Login to Stackable Nexus
+    - name: Login to Container Registry (${{ inputs.image-registry-uri }})
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
-        registry: docker.stackable.tech
-        username: ${{ inputs.nexus-username }}
-        password: ${{ inputs.nexus-password }}
+        registry: ${{ inputs.image-registry-uri }}
+        username: ${{ inputs.image-registry-username }}
+        password: ${{ inputs.image-registry-password }}
 
-    - name: Login to Stackable Harbor
-      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
-      with:
-        registry: oci.stackable.tech
-        username: ${{ inputs.harbor-username }}
-        password: ${{ inputs.harbor-secret }}
+    - name: Re-tag container image
+      shell: bash
+      env:
+        TARGET_IMAGE_URI: ${{ inputs.image-registry-uri }}/${{ inputs.image-repository }}:${{ inputs.image-manifest-tag }}
+        SOURCE_IMAGE_URI: ${{ inputs.source-image-uri }}
+      run: |
+        set -euo pipefail
+        docker tag "$SOURCE_IMAGE_URI" "$TARGET_IMAGE_URI"
 
-    - name: Setup Environment Variables
+        # Output for the next step
+        echo "IMAGE_MANIFEST_URI=$TARGET_IMAGE_URI" >> $GITHUB_ENV
+
+    - name: Push the container image to ${{ inputs.image-registry-uri }}
       shell: bash
       run: |
         set -euo pipefail
-        IMAGE_VERSION=${{ inputs.image-version }}
-        IMAGE_NAME=${{ inputs.image-name }}
-        ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
-        TAG_NAME="${IMAGE_VERSION}-${ARCH}"
+        docker image push "$IMAGE_MANIFEST_URI"
 
-        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
-        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+        # Output for the next step
+        echo "IMAGE_REPO_DIGEST=$(.scripts/get_repo_digest.sh $IMAGE_MANIFEST_URI)" >> $GITHUB_ENV
 
-    # TODO (@NickLarsenNZ): Make this a reusable action in .github/actions/push-and-sign/action.yml
-    - name: Push Image to repo.stackable.tech and sign via cosign
+    - name: Sign the container image (${{ env.IMAGE_REPO_DIGEST }})
       shell: bash
       run: |
         set -euo pipefail
-        TARGET_TAG="$(< bake-target-tags)"
-        docker image push "$TARGET_TAG"
-        # Obtain the digest of the image, because signing by tag is deprecated and will be removed from cosign in the future
-        # This must be done after a push, otherwise the repo digest is empty.
-        # Find the digest for the image. Notice the architecture at the end of TAG
-        # IMAGE_VERSION does not contain the architecture (otherwise we could have used ${IMAGE_NAME}:${IMAGE_VERSION})
-        # Given:
-        # IMAGE_NAME: docker.stackable.tech/stackable/hello-world
-        # TARGET_TAG: docker.stackable.tech/stackable/hello-world:0.0.1-SNAPSHOT-stackable0.0.0-dev-arm64
-        # Expect:
-        # STDOUT:     docker.stackable.tech/stackable/hello-world@sha256:917f800259ef4915f976e93987b752fd64debf347568610d7f685d20220fc88a
-        REPO_DIGEST=$(
-          docker inspect "$TARGET_TAG" --format json | \
-          jq -r \
-          --arg IMAGE_NAME "$IMAGE_NAME" \
-          --arg TARGET_TAG "$TARGET_TAG" \
-          '
-              map(select(.RepoTags[] | contains($TARGET_TAG)))[0]
-              | .RepoDigests[]
-              | select(. | startswith($IMAGE_NAME))
-          '
-        )
-        # Ensure REPO_DIGEST is not empty
-        if [[ -z "$REPO_DIGEST" ]]; then
-            >&2 echo "Repo Digest is empty, but is required for signing"
-            exit 1
-        fi
 
-        # Needed by future steps
-        echo "REPO_DIGEST=$REPO_DIGEST" | tee -a $GITHUB_ENV
+        # This generates a signature and publishes it to the registry, next to
+        # the image. This step uses the keyless signing flow with Github Actions
+        # as the identity provider.
+        cosign sign --yes "${IMAGE_REPO_DIGEST}"
 
-        # Refer to image via its digest (docker.stackable.tech/stackable/airflow@sha256:0a1b2c...)
-        # This generates a signature and publishes it to the registry, next to the image
-        # Uses the keyless signing flow with Github Actions as identity provider
-        cosign sign -y "${REPO_DIGEST}"
-
-    - name: Generate SBOM for the Nexus Image
+    - name: Generate SBOM for the container image (${{ env.IMAGE_REPO_DIGEST }})
       shell: bash
+      env:
+        IMAGE_MANIFEST_TAG: ${{ inputs.image-manifest-tag }}
+        IMAGE_REPOSITORY: ${{ inputs.image-repository }}
+        REGISTRY_URI: ${{ inputs.image-registry-uri }}
       run: |
         set -euo pipefail
-        syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ inputs.product }}" --source-version "$TAG_NAME" "${REPO_DIGEST}";
-        # The DIGEST is the right side of `REPO_DIGEST` (split by '@')
-        DIGEST=${REPO_DIGEST#*@}
-        # Determine the PURL for the image
-        PURL="pkg:docker/stackable/${{ inputs.product }}@$DIGEST?repository_url=docker.stackable.tech";
+
+        # Extract the digest from the image repo digest (right side of '@')
+        DIGEST=${IMAGE_REPO_DIGEST#*@}
+
+        # Construct the package url (purl)
+        # TODO (@Techassi): Can we use 'oci' instead of 'docker' as the type?
+        PURL="pkg:docker/$IMAGE_REPOSITORY@$DIGEST?repository_url=$REGISTRY_URI"
+
         # Get metadata from the image
-        IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "${REPO_DIGEST}");
-        IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "${REPO_DIGEST}");
-        # Merge the SBOM with the metadata for the image
-        jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
+        # NOTE (@Techassi): Maybe we should run this command only once
+        IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "${IMAGE_REPO_DIGEST}")
+        IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "${IMAGE_REPO_DIGEST}")
+
+        # Generate the SBOM
+        syft scan \
+          --output cyclonedx-json=sbom.json \
+          --select-catalogers "-cargo-auditable-binary-cataloger" \
+          --scope all-layers \
+          --source-name "$IMAGE_REPOSITORY" \
+          --source-version "$IMAGE_MANIFEST_TAG" "${IMAGE_REPO_DIGEST}"
+
+        # TODO (@Techassi): Replace author with manufacturer, because it is
+        # automated, see https://cyclonedx.org/docs/1.6/json/#metadata_component_manufacturer
+        jq -s \
+          --arg description "$IMAGE_METADATA_DESCRIPTION" \
+          --arg name "$IMAGE_METADATA_NAME" \
+          --arg purl "$PURL" \
+          '{
+              "metadata": {
+                  "component": {
+                      "description": "$name. $description",
+                      "supplier": {
+                          "name": "Stackable GmbH",
+                          "url": ["https://stackable.tech/"]
+                      },
+                      "author": "Stackable GmbH",
+                      "purl": "$purl",
+                      "publisher": "Stackable GmbH"
+                  }
+              }
+          } * .[0]' sbom.json > sbom.merged.json
+
         # Attest the SBOM to the image
-        cosign attest -y --predicate sbom.merged.json --type cyclonedx "${REPO_DIGEST}"
-
-    # TODO (@NickLarsenNZ): Make this a reusable action in .github/actions/push-and-sign/action.yml
-    - name: Push Image to oci.stackable.tech and sign via cosign
-      shell: bash
-      run: |
-        set -euo pipefail
-        # Update the registry
-        IMAGE_NAME=oci.stackable.tech/sdp/${{ inputs.product }}
-        # IMAGE_NAME is needed by future steps
-        echo "IMAGE_NAME=$IMAGE_NAME" | tee -a $GITHUB_ENV
-        OLD_TARGET_TAG="$(< bake-target-tags)"
-        TARGET_TAG="$IMAGE_NAME:$TAG_NAME"
-        docker tag "$OLD_TARGET_TAG" "$TARGET_TAG"
-        docker image push "$TARGET_TAG"
-        # Obtain the digest of the image, because signing by tag is deprecated and will be removed from cosign in the future
-        # This must be done after a push, otherwise the repo digest is empty.
-        # Find the digest for the image. Notice the architecture at the end of TAG
-        # IMAGE_VERSION does not contain the architecture (otherwise we could have used ${IMAGE_NAME}:${IMAGE_VERSION})
-        # Given:
-        # IMAGE_NAME: oci.stackable.tech/sdp/hello-world
-        # TARGET_TAG: oci.stackable.tech/sdp/hello-world:0.0.1-SNAPSHOT-stackable0.0.0-dev-arm64
-        # Expect:
-        # STDOUT:     oci.stackable.tech/sdp/hello-world@sha256:917f800259ef4915f976e93987b752fd64debf347568610d7f685d20220fc88a
-        REPO_DIGEST=$(
-          docker inspect "$TARGET_TAG" --format json | \
-          jq -r \
-          --arg IMAGE_NAME "$IMAGE_NAME" \
-          --arg TARGET_TAG "$TARGET_TAG" \
-          '
-              map(select(.RepoTags[] | contains($TARGET_TAG)))[0]
-              | .RepoDigests[]
-              | select(. | startswith($IMAGE_NAME))
-          '
-        )
-        # Ensure REPO_DIGEST is not empty
-        if [[ -z "$REPO_DIGEST" ]]; then
-            >&2 echo "Repo Digest is empty, but is required for signing"
-            exit 1
-        fi
-
-        # REPO_DIGEST is needed by future steps
-        echo "REPO_DIGEST=$REPO_DIGEST" | tee -a $GITHUB_ENV
-
-        # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
-        # This generates a signature and publishes it to the registry, next to the image
-        # Uses the keyless signing flow with Github Actions as identity provider
-        cosign sign -y "${REPO_DIGEST}"
-
-    - name: Generate SBOM for the Harbor Image
-      shell: bash
-      run: |
-        set -euo pipefail
-        syft scan --output cyclonedx-json=sbom.json --select-catalogers "-cargo-auditable-binary-cataloger" --scope all-layers --source-name "${{ inputs.product }}" --source-version "$TAG_NAME" "${REPO_DIGEST}";
-        # The DIGEST is the right side of `REPO_DIGEST` (split by '@')
-        DIGEST=${REPO_DIGEST#*@}
-        # Determine the PURL for the image
-        PURL="pkg:docker/sdp/${{ inputs.product }}@$DIGEST?repository_url=oci.stackable.tech";
-        # Get metadata from the image
-        IMAGE_METADATA_DESCRIPTION=$(docker inspect --format='{{.Config.Labels.description}}' "${REPO_DIGEST}");
-        IMAGE_METADATA_NAME=$(docker inspect --format='{{.Config.Labels.name}}' "${REPO_DIGEST}");
-        # Merge the SBOM with the metadata for the image
-        jq -s '{"metadata":{"component":{"description":"'"$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION"'","supplier":{"name":"Stackable GmbH","url":["https://stackable.tech/"]},"author":"Stackable GmbH","purl":"'"$PURL"'","publisher":"Stackable GmbH"}}} * .[0]' sbom.json > sbom.merged.json;
-        # Attest the SBOM to the image
-        cosign attest -y --predicate sbom.merged.json --type cyclonedx "${REPO_DIGEST}"
+        cosign attest \
+          --yes \
+          --predicate sbom.merged.json \
+          --type cyclonedx "${IMAGE_REPO_DIGEST}"
