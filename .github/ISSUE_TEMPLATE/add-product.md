@@ -19,6 +19,9 @@ assignees: ''
 - [ ] Add a `versions.py` file to the folder. Add all required key-value pairs.
 - [ ] Add a new "Update Product" issue template in `.github/ISSUE_TEMPLATE/`
       folder. See existing ones as a guide of reference.
+- [ ] Add a new `dev_<PRODUCT>.yml` GitHub Action workflow in the
+      `.github/workflows` folder. Use existing local action whenever possible
+      or consider creating a new one when there is no fitting action available.
 ```
 
 _Please consider updating this template if these instructions are wrong, or
