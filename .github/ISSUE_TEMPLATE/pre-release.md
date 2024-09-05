@@ -57,5 +57,6 @@ Replace the items in the task lists below with the subsequent tracking issue.
 - [ ] hello-world
 - [ ] krb5
 - [ ] tools
+- [ ] testing-tools
 - [ ] statsd_exporter
 ```
