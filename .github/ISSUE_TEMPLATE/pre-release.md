@@ -11,6 +11,9 @@ assignees: ''
     This was created by an issue template: https://github.com/stackabletech/issues/issues/new/choose.
 -->
 
+<!-- Update this with the parent tracking issue for the release -->
+Part of stackabletech/issues#xxx.
+
 ## Container Image Updates for Stackable Release XX.(X)X
 
 > [!NOTE]
@@ -18,59 +21,41 @@ assignees: ''
 
 [^1]: Currently this is a private spreadsheet
 
-Replace the items in the task lists below with the applicable Pull Requests
+Replace the items in the task lists below with the subsequent tracking issue.
 
 <!--
-    Find any other image directories not covered by the list above:
+    Find templates for bases/products:
 
-    find . -name "versions.py" \
-    | cut -d/ -f2 \
+    find .github/ISSUE_TEMPLATE/update-*.md -printf "%f\n" \
     | sort \
-    | xargs -I {} echo "- [ ] https://github.com/stackabletech/docker-images/tree/main/{}/versions.py"
+    | xargs -I {} echo "- [ ] https://github.com/stackabletech/docker-images/issues/new?template={}"
 -->
 
+<!-- todo: consider removing the ubi*-rust-builder from the release process. -->
 ```[tasklist]
 ### Product Container Images
-- [ ] https://github.com/stackabletech/docker-images/tree/main/airflow/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/druid/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/hadoop/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/hbase/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/hello-world/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/hive/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/java-base/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/java-devel/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/kafka/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/kafka-testing-tools/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/kcat/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/krb5/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/nifi/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/omid/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/opa/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/spark-k8s/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/stackable-base/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/superset/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/testing-tools/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/tools/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/trino/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/trino-cli/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/vector/versions.py
-- [ ] https://github.com/stackabletech/docker-images/tree/main/zookeeper/versions.py
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-base-java.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-base-stackable.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-base-ubi-rust-builders.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-base-vector.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-airflow.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-druid.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-hbase-phoenix-omid.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-hdfs.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-hive.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-kafka.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-nifi.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-opa.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-spark.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-superset.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-trino.md
+- [ ] https://github.com/stackabletech/docker-images/issues/new?template=update-product-zookeeper.md
 ```
 
-> [!NOTE]
-> Generally you will only need to update the rust-toolchain version (`RUST_DEFAULT_TOOLCHAIN_VERSION`).
-
-<!--
-    Find any other image directories not covered by the list above
-
-    comm -3 \
-    <(find . -name "Dockerfile" | cut -d/ -f2 | sort) \
-    <(find . -name "versions.py" | cut -d/ -f2 | sort) \
-    | xargs -I {} echo "- [ ] https://github.com/stackabletech/docker-images/tree/main/{}/Dockerfile"
--->
-
 ```[tasklist]
-### Other Container Images
-- [ ] https://github.com/stackabletech/docker-images/tree/main/ubi8-rust-builder/Dockerfile
-- [ ] https://github.com/stackabletech/docker-images/tree/main/ubi9-rust-builder/Dockerfile
+### Additional items which don't have a tracking issue
+- [ ] hello-world
+- [ ] krb5
+- [ ] tools
+- [ ] statsd_exporter
 ```
