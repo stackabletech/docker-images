@@ -59,7 +59,7 @@ kind load docker-image docker.stackable.tech/stackable/zookeeper:x.y.z-stackable
 
 # Change directory into the zookeeper-operator repository and update the
 # product version in tests/test-definition.yaml
-./scripts/run-tests --test-suite smoke-latest
+./scripts/run-tests --test-suite smoke-latest # or similar
 ```
 
 </details>

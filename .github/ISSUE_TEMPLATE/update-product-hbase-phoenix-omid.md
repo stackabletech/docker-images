@@ -67,7 +67,7 @@ kind load docker-image docker.stackable.tech/stackable/omid:x.y.z-stackable0.0.0
 
 # Change directory into the hbase-operator repository and update the
 # product version in tests/test-definition.yaml
-./scripts/run-tests --test-suite smoke-latest
+./scripts/run-tests --test-suite smoke-latest # or similar
 ./scripts/run-tests --test omid
 ```
 

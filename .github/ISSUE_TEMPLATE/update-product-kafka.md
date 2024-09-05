@@ -71,7 +71,7 @@ kind load docker-image docker.stackable.tech/stackable/kafka-testing-tools:1.0.0
 
 # Change directory into the kafka-operator repository and update the
 # product version in tests/test-definition.yaml
-./scripts/run-tests --test-suite smoke-latest
+./scripts/run-tests --test-suite smoke-latest # or similar
 ```
 
 </details>

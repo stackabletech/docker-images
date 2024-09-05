@@ -57,7 +57,7 @@ kind load docker-image docker.stackable.tech/stackable/airflow:x.y.z-stackable0.
 
 # Change directory into the airflow-operator repository and update the
 # product version in tests/test-definition.yaml
-./scripts/run-tests --test-suite smoke-latest
+./scripts/run-tests --test-suite smoke-latest # or similar
 ```
 
 </details>
