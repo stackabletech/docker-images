@@ -7,43 +7,22 @@ ARG STORAGE_CONNECTOR
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
+RUN "--mount=type=cache,target=/root/.m2/repository" cd trino-storage-${STORAGE_CONNECTOR}-src && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
     mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
-    mvn package -DskipTests -Dmaven.gitcommitid.skip=true
-
-# # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
-FROM stackable/image/java-devel AS opa-authorizer-builder
-
-ARG PRODUCT
-ARG OPA_AUTHORIZER
-
-WORKDIR /stackable
-
-RUN if [ -n "${OPA_AUTHORIZER}" ]; then \
-        curl --fail -L "https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src.tar.gz" | tar -xzC .; \
-    fi
-RUN --mount=type=cache,target=/root/.m2/repository if [ -n "${OPA_AUTHORIZER}" ]; then \
-        cd trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src && \
-        mvn package -DskipTests; \
-    fi
-
-# Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
-RUN mkdir -p trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out
+    # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
+    ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
 
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-# External OPA authorizer only required for 414 and 428, included in 438
-# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
-ARG OPA_AUTHORIZER
 ARG STORAGE_CONNECTOR
 
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
-RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
+RUN "--mount=type=cache,target=/root/.m2/repository" cd "trino-server-${PRODUCT}-src" && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
     ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
     # Delete the worst intermediate build products to free some space
@@ -56,11 +35,6 @@ RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-s
     rm -r /stackable/trino-server-${PRODUCT}-src
 
 COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
-# # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
-COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
-# We have no way to copy a folder conditionally, so delete the opa authorizer folder if no version is selected
-# Otherwise Trino will crash since empty plugin folders are not allowed
-RUN [ -n "${OPA_AUTHORIZER}" ] || rmdir /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
@@ -86,7 +60,7 @@ ARG JMX_EXPORTER
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
+RUN "--mount=type=cache,target=/root/.m2/repository" cd jmx_prometheus-${JMX_EXPORTER}-src && \
     mvn package
 
 FROM stackable/image/java-base

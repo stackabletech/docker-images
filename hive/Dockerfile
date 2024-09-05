@@ -30,11 +30,25 @@ curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive
 patches/apply_patches.sh ${PRODUCT}
 
 cd /stackable/apache-hive-${PRODUCT}-src/
-mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
-mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable
 
-ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin/ /stackable/hive-metastore
-cp /stackable/bin/start-metastore /stackable/hive-metastore/bin
+if [[ "${PRODUCT}" == "3.1.3" ]] ; then
+  mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
+  mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable
+else
+  # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
+  cd standalone-metastore
+  mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects metastore-server
+
+  # We only seem to get a .tar.gz archive, so let's extract that to the correct location
+  cd /stackable
+  tar --extract -f /stackable/apache-hive-${PRODUCT}-src/standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
+
+  # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
+  # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
+  sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/ext/schemaTool.sh
+fi
+
+cp /stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
 rm -rf /stackable/apache-hive-${PRODUCT}-src
 
 curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"

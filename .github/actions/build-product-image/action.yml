@@ -11,15 +11,18 @@ inputs:
   image-tools-version:
     description: The Stackable image-tools version
     default: 0.0.12
-  build-cache-nexus-password:
-    description: Build cache password for the github user
+  build-cache-username:
+    description: Build cache username
+    default: github
+  build-cache-password:
+    description: Build cache password
+    required: true
 outputs:
-  image-name:
-    description: This is the full image name before the tag (left of ':')
-    value: ${{ steps.image_info.outputs.IMAGE_NAME }}
-  image-version:
-    description: This is the container image end tag excluding the architecture information (right of ':')
-    value: ${{ steps.image_info.outputs.IMAGE_VERSION }}
+  image-manifest-tag:
+    description: |
+      Human-readable tag (usually the version) with architecture information,
+      for example: `3.4.1-stackable0.0.0-dev-amd64`
+    value: ${{ steps.image_info.outputs.IMAGE_MANIFEST_TAG }}
 runs:
   using: composite
   steps:
@@ -63,30 +66,51 @@ runs:
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
       with:
         registry: build-repo.stackable.tech:8083
-        username: github
-        password: ${{ inputs.build-cache-nexus-password }}
+        username: ${{ inputs.build-cache-username }}
+        password: ${{ inputs.build-cache-password }}
 
     - name: Build image using bake
+      env:
+        IMAGE_REPOSITORY: ${{ inputs.product-name }}
+        BAKE_PRODUCT_VERSION: ${{ inputs.product-version }}
       shell: bash
       run: |
         set -euo pipefail
-        ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
+        IMAGE_ARCH="$(uname -m | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
+
         bake \
-        --product ${{ inputs.product-name }}=${{ inputs.product-version }} \
-        --image-version "0.0.0-dev-${ARCH}" \
-        --architecture "linux/${ARCH}" \
+        --product $IMAGE_REPOSITORY=$BAKE_PRODUCT_VERSION \
+        --image-version "0.0.0-dev-${IMAGE_ARCH}" \
+        --architecture "linux/${IMAGE_ARCH}" \
         --export-tags-file bake-target-tags \
         --cache
 
-    - name: Setup Environment Variables
+    - name: Re-tag Image (Temporary)
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Extract the image uri and replace 'docker.stackable.tech/stackable'
+        # with 'localhost' until bake does the right thing
+        OLD_IMAGE_URI="$(< bake-target-tags)"
+
+        # Replace the image uri in the bake file
+        sed -i -e 's/docker\.stackable\.tech\/stackable/localhost/' bake-target-tags
+
+        # Finally, re-tag image
+        docker tag "$OLD_IMAGE_URI" "$(< bake-target-tags)"
+
+    - name: Extract Environment Variables
       id: image_info
       shell: bash
       run: |
         set -euo pipefail
         echo "bake-target-tags: "$(< bake-target-tags)
-        # Strip the architecture from the version tag
-        IMAGE_VERSION=$(cut -d ":" -f 2 < bake-target-tags | sed -E 's/-(amd64|arm64)$//')
-        IMAGE_NAME=$(cut -d ":" -f 1 < bake-target-tags)
 
-        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_OUTPUT
-        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
+        # Extract the image manifest tag from the bake-target-tags file
+        IMAGE_MANIFEST_TAG=$(cut -d : -f 2 < bake-target-tags)
+        [[ -n "$IMAGE_MANIFEST_TAG" ]]
+
+        # Add the contents of the env variables to the GitHub output, so that it
+        # can be used as action outputs
+        echo "IMAGE_MANIFEST_TAG=$IMAGE_MANIFEST_TAG" >> $GITHUB_OUTPUT
