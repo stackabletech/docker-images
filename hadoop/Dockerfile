@@ -63,7 +63,7 @@ COPY hadoop/stackable/patches /stackable/patches
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
-    mvn clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
@@ -101,7 +101,7 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
-    mvn clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
     rm -rf /stackable/hdfs-utils-main
