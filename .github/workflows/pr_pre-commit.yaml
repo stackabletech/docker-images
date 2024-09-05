@@ -20,7 +20,7 @@ jobs:
       - name: Setup Hadolint
         shell: bash
         run: |
-          set -xeuo pipefail
+          set -euo pipefail
 
           LOCATION_DIR="$HOME/.local/bin"
           LOCATION_BIN="$LOCATION_DIR/hadolint"
