@@ -7,6 +7,7 @@ ARG STORAGE_CONNECTOR
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
@@ -23,6 +24,7 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
@@ -62,6 +64,7 @@ ARG JMX_EXPORTER
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
     mvn package
