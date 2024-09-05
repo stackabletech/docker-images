@@ -61,7 +61,7 @@ description?
 pip install image-tools-stackabletech==0.0.12
 
 # Test a product image can build, eg: ZooKeeper
-bake --product zookeeper=x.y.z # where x.y.z is a valid product vesion using the newly added Java version
+bake --product zookeeper=x.y.z # where x.y.z is a valid product version using the newly added Java version
 
 kind load docker-image docker.stackable.tech/stackable/zookeeper:x.y.z-stackable0.0.0-dev
 
