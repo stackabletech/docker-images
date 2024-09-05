@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
-
 FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
@@ -7,8 +6,8 @@ ARG STORAGE_CONNECTOR
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository \
-    cd trino-storage-${STORAGE_CONNECTOR}-src && \
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
     mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
@@ -23,8 +22,8 @@ WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
-RUN --mount=type=cache,target=/root/.m2/repository \
-    cd "trino-server-${PRODUCT}-src" && \
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
     ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
     # Delete the worst intermediate build products to free some space
@@ -62,8 +61,8 @@ ARG JMX_EXPORTER
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository \
-    cd jmx_prometheus-${JMX_EXPORTER}-src && \
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
     mvn package
 
 FROM stackable/image/java-base
