@@ -75,6 +75,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
   which is unused since SDP 23.11 ([#621]).
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
+- ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
 - nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
@@ -365,7 +366,6 @@ All notable changes to this project will be documented in this file.
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#425]: https://github.com/stackabletech/docker-images/pull/425
-[#429]: https://github.com/stackabletech/docker-images/pull/429
 [#429]: https://github.com/stackabletech/docker-images/pull/429
 [#431]: https://github.com/stackabletech/docker-images/pull/431
 [#433]: https://github.com/stackabletech/docker-images/pull/433
