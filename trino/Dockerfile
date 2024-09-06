@@ -21,7 +21,9 @@ COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stack
 COPY --chown=stackable:stackable trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-RUN "--mount=type=cache,target=/root/.m2/repository" cd trino-storage-${STORAGE_CONNECTOR}-src && \
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
     ./patches/apply_patches.sh ${STORAGE_CONNECTOR} && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
     mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
@@ -51,7 +53,9 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server
 COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
 
-RUN "--mount=type=cache,target=/root/.m2/repository" cd "trino-server-${PRODUCT}-src" && \
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
     ./patches/apply_patches.sh ${PRODUCT} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
     ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
@@ -105,7 +109,9 @@ COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stack
 COPY --chown=stackable:stackable trino/stackable/patches/jmx-exporter/${JMX_EXPORTER} /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/${JMX_EXPORTER}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
-RUN "--mount=type=cache,target=/root/.m2/repository" cd jmx_prometheus-${JMX_EXPORTER}-src && \
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
+RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
     ./patches/apply_patches.sh ${JMX_EXPORTER} && \
     mvn package
 
