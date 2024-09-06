@@ -4,12 +4,27 @@ FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
+    ./patches/apply_patches.sh ${STORAGE_CONNECTOR} && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
     mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
@@ -20,13 +35,28 @@ FROM stackable/image/java-devel AS builder
 ARG PRODUCT
 ARG STORAGE_CONNECTOR
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
+
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
+    ./patches/apply_patches.sh ${PRODUCT} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
     ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
     # Delete the worst intermediate build products to free some space
@@ -34,6 +64,7 @@ RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-s
     # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
     # while the raw output folder does not
     tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
+    mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT} && \
     # Delete all intermediate build products to free some more space
     rm -r /stackable/trino-server-${PRODUCT}-src
@@ -61,12 +92,27 @@ FROM stackable/image/java-devel AS jmx-exporter-builder
 
 ARG JMX_EXPORTER
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/jmx-exporter/${JMX_EXPORTER} /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/${JMX_EXPORTER}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
+    ./patches/apply_patches.sh ${JMX_EXPORTER} && \
     mvn package
 
 FROM stackable/image/java-base

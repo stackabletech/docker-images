@@ -54,6 +54,7 @@ cd apache-druid-${PRODUCT}-src
 
 mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
+mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-druid-${PRODUCT}-src
 
 # We're removing these to make the intermediate layer smaller
