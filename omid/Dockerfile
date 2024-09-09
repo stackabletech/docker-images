@@ -5,16 +5,33 @@ FROM stackable/image/java-devel AS builder
 ARG PRODUCT
 ARG DELETE_CACHES="true"
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 USER stackable
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
+COPY --chown=stackable:stackable omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
   set -x
   curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
   cd /stackable/phoenix-omid-${PRODUCT} || exit
+  ./patches/apply_patches.sh ${PRODUCT}
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+  mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
   tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
+  mv examples/target/bom.json /stackable/omid-examples-${PRODUCT}/omid-examples-${PRODUCT}.cdx.json
 
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*

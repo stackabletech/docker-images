@@ -73,6 +73,8 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         mvn clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws && \
         # Copy the binaries to the /stackable folder
         mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
+        # Copy the SBOM as well
+        mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json && \
         # Remove the unzipped sources
         rm -rf /stackable/nifi-${PRODUCT}-src && \
         # Remove generated docs in binary
