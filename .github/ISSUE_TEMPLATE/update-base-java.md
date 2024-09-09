@@ -31,8 +31,8 @@ we should also make new versions of Java available for use.
 
 ```[tasklist]
 ### Update tasks
-- Add any new versions of java to both `java-base/versions.py` and `java-devel/versions.py`
-- Remove versions when there are no long any references (eg: `grep java- **/versions.py | grep "1.8.0"`)
+- [ ] Add any new versions of java to both `java-base/versions.py` and `java-devel/versions.py`
+- [ ] Remove versions when there are no long any references (eg: `grep java- **/versions.py | grep "1.8.0"`)
 ```
 
 ```[tasklist]
