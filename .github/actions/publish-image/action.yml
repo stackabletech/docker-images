@@ -49,7 +49,7 @@ runs:
       uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
 
     - name: Set up syft
-      uses: anchore/sbom-action/download-syft@e8d2a6937ecead383dfe75190d104edd1f9c5751 # v0.16.0
+      uses: anchore/sbom-action/download-syft@61119d458adab75f756bc0b9e4bde25725f86a7a # v0.17.2
 
     - name: Login to Container Registry (${{ inputs.image-registry-uri }})
       uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
@@ -112,11 +112,19 @@ runs:
 
         # Generate the SBOM
         syft scan \
-          --output cyclonedx-json=sbom.json \
-          --select-catalogers "-cargo-auditable-binary-cataloger" \
+          --output cyclonedx-json@1.5=sbom_raw.json \
+          --select-catalogers "-cargo-auditable-binary-cataloger,+sbom-cataloger" \
           --scope all-layers \
           --source-name "$IMAGE_REPOSITORY" \
           --source-version "$IMAGE_MANIFEST_TAG" "${IMAGE_REPO_DIGEST}"
+
+        # Merge SBOM components using https://github.com/stackabletech/mergebom
+        curl --fail -L -o mergebom https://repo.stackable.tech/repository/packages/mergebom/stable-$(uname -m)
+        curl --fail -L -o mergebom_signature.bundle https://repo.stackable.tech/repository/packages/mergebom/stable-$(arch)_signature.bundle
+        # Verify signature
+        cosign verify-blob --certificate-identity 'https://github.com/stackabletech/mergebom/.github/workflows/build_container_image.yaml@refs/heads/main' --certificate-oidc-issuer https://token.actions.githubusercontent.com --bundle mergebom_signature.bundle mergebom
+        chmod +x ./mergebom
+        ./mergebom sbom_raw.json sbom.json
 
         # TODO (@Techassi): Replace author with manufacturer, because it is
         # automated, see https://cyclonedx.org/docs/1.6/json/#metadata_component_manufacturer
