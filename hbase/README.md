@@ -30,7 +30,12 @@ cd ..
 tar -c "phoenix-5.3.0-$COMMIT_ID" | gzip > "phoenix-5.3.0-$COMMIT_ID-src.tar.gz"
 ```
 
-Upload it to the packages/phoenix folder in Nexus.
+Upload the tar.gz file to the packages/phoenix folder in Nexus via `curl`:
+
+```sh
+curl --fail -u "$NEXUS_USER" --upload-file "phoenix-5.3.0-$COMMIT_ID-src.tar.gz" 'https://repo.stackable.tech/repository/packages/phoenix/'
+# you will be prompted for the password
+```
 
 ## HBase operator tools
 
