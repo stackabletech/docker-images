@@ -44,11 +44,8 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=1000,target=/stackable/.m2/
 ###
 curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 mv hbase-${PRODUCT} hbase-${PRODUCT}-src
-
-chmod +x patches/apply_patches.sh
-patches/apply_patches.sh ${PRODUCT}
-
 cd /stackable/hbase-${PRODUCT}-src/
+/stackable/patches/apply_patches.sh /stackable/patches/hbase/${PRODUCT}
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
@@ -229,15 +226,15 @@ COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
 USER stackable
 WORKDIR /stackable
 
+COPY --chown=stackable:stackable hbase/stackable/patches /stackable/patches
+
 RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repository <<EOF
 cd /stackable
 curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
+cd /stackable/phoenix-${PHOENIX}-src/
+/stackable/patches/apply_patches.sh /stackable/patches/phoenix/${PHOENIX}
 
-chmod +x patches/apply_patches.sh
-patches/apply_patches.sh phoenix/${PHOENIX} phoenix-${PHOENIX}-src
-
-# Passing "-f" means it'll build in the phoenix source directory without cding into it
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \
@@ -249,16 +246,14 @@ mvn \
   -DskipTests \
   -Dcheckstyle.skip=true \
   -Prelease \
-  -fphoenix-${PHOENIX}-src \
   clean \
   package
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
 mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
-tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
-mv phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
-rm -rf /stackable/phoenix-${PHOENIX}-src
+tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
+mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
 
