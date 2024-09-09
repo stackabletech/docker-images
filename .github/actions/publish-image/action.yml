@@ -119,7 +119,7 @@ runs:
           --source-version "$IMAGE_MANIFEST_TAG" "${IMAGE_REPO_DIGEST}"
 
         # Merge SBOM components using https://github.com/stackabletech/mergebom
-        curl -L -o mergebom https://repo.stackable.tech/repository/packages/mergebom/stable-$(arch)
+        curl --fail -L -o mergebom https://repo.stackable.tech/repository/packages/mergebom/stable-$(uname -m)
         curl -L -o mergebom_signature.bundle https://repo.stackable.tech/repository/packages/mergebom/stable-$(arch)_signature.bundle
         # Verify signature
         cosign verify-blob --certificate-identity 'https://github.com/stackabletech/mergebom/.github/workflows/build_container_image.yaml@refs/heads/main' --certificate-oidc-issuer https://token.actions.githubusercontent.com --bundle mergebom_signature.bundle mergebom
