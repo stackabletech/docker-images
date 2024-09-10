@@ -248,7 +248,6 @@ mvn \
   -Dhadoop.version=${HADOOP} \
   -DskipTests \
   -Dcheckstyle.skip=true \
-  -Prelease \
   -fphoenix-${PHOENIX}-src \
   clean \
   package
