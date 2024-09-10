@@ -89,3 +89,9 @@ cache = [
         "ignore-error": "true",
     },
 ]
+
+args = {
+    "STACKABLE_USER_NAME": "stackable",
+    "STACKABLE_USER_UID": "1000",
+    "STACKABLE_USER_GID": "1000"
+}

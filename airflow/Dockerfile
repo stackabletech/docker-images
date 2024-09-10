@@ -4,7 +4,7 @@ ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
+FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
@@ -60,9 +60,10 @@ ARG RELEASE
 ARG TINI
 ARG TARGETARCH
 ARG TARGETOS
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
-      maintainer="info@stackable.tech" \
+      maintainer="info@stackastatsd_exporble.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
@@ -71,49 +72,55 @@ LABEL name="Apache Airflow" \
 
 COPY airflow/licenses /licenses
 
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+
 # Update image and install python
-RUN microdnf update && \
-    microdnf install \
-    ca-certificates \
-    cyrus-sasl \
-    git \
-    libpq \
-    openldap \
-    openldap-clients \
-    openssh-clients \
-    openssl-libs \
-    openssl-pkcs11 \
-    python${PYTHON} \
-    socat \
-    unixODBC && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+RUN <<EOF
+microdnf update
+microdnf install
+  ca-certificates
+  cyrus-sasl
+  git
+  libpq
+  openldap
+  openldap-clients
+  openssh-clients
+  openssl-libs
+  openssl-pkcs11
+  python${PYTHON}
+  socat
+  unixODBC
+microdnf clean all
+rm -rf /var/cache/yum
+
+# Get the correct `tini` binary for our architecture.
+# It is used as an init alternative in the entrypoint
+curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+chmod a+x /entrypoint.sh
+chmod a+x /run-airflow.sh
+chmod +x /usr/bin/tini
+EOF
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-
-# Get the correct `tini` binary for our architecture.
-# It is used as an init alternative in the entrypoint
-RUN mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs && \
-    chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
-    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
-
-COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
-COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
-RUN chmod a+x /entrypoint.sh && \
-    chmod a+x /run-airflow.sh && \
-    chmod +x /usr/bin/tini
-
-COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
-COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
-
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
+
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
+
+RUN <<EOF
+mkdir -pv ${AIRFLOW_HOME}
+mkdir -pv ${AIRFLOW_HOME}/dags
+mkdir -pv ${AIRFLOW_HOME}/logs
+
+chgrp -R 0 /stackable
+chmod -R g=u /stackable
+EOF
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
