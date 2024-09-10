@@ -1,28 +1,28 @@
 diff --git a/pom.xml b/pom.xml
-index bce2398..92d92f1 100644
+index bce2398..4abcb5a 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1744,6 +1744,23 @@
-       <id>release</id>
-       <build>
-         <plugins>
-+          <plugin>
-+            <groupId>org.cyclonedx</groupId>
-+            <artifactId>cyclonedx-maven-plugin</artifactId>
-+            <version>2.8.0</version>
-+            <configuration>
-+              <projectType>application</projectType>
-+              <schemaVersion>1.5</schemaVersion>
-+            </configuration>
-+            <executions>
-+              <execution>
-+              <goals>
-+                <goal>makeBom</goal>
-+              </goals>
-+              <phase>package</phase>
-+              </execution>
-+            </executions>
-+          </plugin>
-           <plugin>
-             <groupId>org.apache.rat</groupId>
-             <artifactId>apache-rat-plugin</artifactId>
+@@ -680,6 +680,23 @@
+         <extensions>true</extensions>
+         <inherited>true</inherited>
+       </plugin>
++      <plugin>
++        <groupId>org.cyclonedx</groupId>
++        <artifactId>cyclonedx-maven-plugin</artifactId>
++        <version>2.8.0</version>
++        <configuration>
++          <projectType>application</projectType>
++          <schemaVersion>1.5</schemaVersion>
++        </configuration>
++        <executions>
++          <execution>
++          <goals>
++            <goal>makeBom</goal>
++          </goals>
++          <phase>package</phase>
++          </execution>
++        </executions>
++      </plugin>
+     </plugins>
+   </build>
+ 
