@@ -12,7 +12,7 @@ LABEL maintainer="Stackable GmbH"
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.4
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
