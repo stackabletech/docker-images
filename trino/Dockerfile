@@ -4,46 +4,59 @@ FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG STORAGE_CONNECTOR
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
+    ./patches/apply_patches.sh ${STORAGE_CONNECTOR} && \
     # Upstream builds are marked as -SNAPSHOT, even for release builds
     mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
-    mvn package -DskipTests -Dmaven.gitcommitid.skip=true
-
-# # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
-FROM stackable/image/java-devel AS opa-authorizer-builder
-
-ARG PRODUCT
-ARG OPA_AUTHORIZER
-
-WORKDIR /stackable
-
-RUN if [ -n "${OPA_AUTHORIZER}" ]; then \
-        curl --fail -L "https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src.tar.gz" | tar -xzC .; \
-    fi
-RUN --mount=type=cache,target=/root/.m2/repository if [ -n "${OPA_AUTHORIZER}" ]; then \
-        cd trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src && \
-        mvn package -DskipTests; \
-    fi
-
-# Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
-RUN mkdir -p trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out
+    # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
+    ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
 
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-# External OPA authorizer only required for 414 and 428, included in 438
-# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
-ARG OPA_AUTHORIZER
 ARG STORAGE_CONNECTOR
+
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
 WORKDIR /stackable
 
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
+
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
+    ./patches/apply_patches.sh ${PRODUCT} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
     ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
     # Delete the worst intermediate build products to free some space
@@ -51,16 +64,12 @@ RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-s
     # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
     # while the raw output folder does not
     tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
+    mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json && \
     chown --recursive stackable /stackable/trino-server-${PRODUCT} && \
     # Delete all intermediate build products to free some more space
     rm -r /stackable/trino-server-${PRODUCT}-src
 
 COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
-# # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
-COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
-# We have no way to copy a folder conditionally, so delete the opa authorizer folder if no version is selected
-# Otherwise Trino will crash since empty plugin folders are not allowed
-RUN [ -n "${OPA_AUTHORIZER}" ] || rmdir /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
@@ -83,10 +92,27 @@ FROM stackable/image/java-devel AS jmx-exporter-builder
 
 ARG JMX_EXPORTER
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
 
+COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/apply_patches.sh
+COPY --chown=stackable:stackable trino/stackable/patches/jmx-exporter/${JMX_EXPORTER} /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/${JMX_EXPORTER}
+
 RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
+# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
+# hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
+    ./patches/apply_patches.sh ${JMX_EXPORTER} && \
     mvn package
 
 FROM stackable/image/java-base

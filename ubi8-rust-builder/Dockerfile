@@ -3,20 +3,26 @@
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
 # This builder is kept around and updated until the last SDP release is EOL that uses UBI8 (which is 24.3) so we'll remove this sometime in the summer of 2025
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi8-minimal@sha256:de2a0a20c1c3b39c3de829196de9694d09f97cd18fda1004de855ed2b4c841ba AS builder
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi8-minimal@sha256:5c6982aca8a8fdbc3ce304bc46e28c6a30572d6791ebd13968da197e75e4f042 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
+# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.4
+# Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+# Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
+# Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=27.2
+ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -73,7 +79,7 @@ WORKDIR /
 RUN <<EOF
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env"
-cargo install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
+cargo --quiet install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
 
 # Build artifacts will be available in /app.
@@ -86,7 +92,7 @@ ONBUILD COPY . /src
 
 ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
-cargo auditable build --release --workspace
+cargo auditable --quiet build --release --workspace
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
 # -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.

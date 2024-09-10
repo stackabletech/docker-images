@@ -22,6 +22,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
     rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/ && \
     rm -rf /stackable/kafka-${PRODUCT}-src
 
+# TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 

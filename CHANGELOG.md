@@ -6,8 +6,49 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- omid: Add version `1.1.1` & `1.1.2` ([#553])
-- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
+- ci: Add mirror workflow, add new helper scripts ([#819]).
+- opa: Add version `0.67.1` ([#797]).
+- vector: Add version `0.40.1` ([#802], [#815]).
+- airflow: Add version `2.9.3` ([#809]).
+- kafka: Add version `3.8.0` ([#813]).
+- hive: Add version `4.0.0` ([#818]).
+- trino: Add version `455` ([#822]).
+- trino-cli: Add version `455` ([#822]).
+
+### Changed
+
+- ci: Rename local actions, adjust action inputs and outputs, add definition
+  README file ([#819]).
+
+### Removed
+
+- opa: Remove version `0.61.0` ([#797]).
+- vector: Remove version `0.39.0` ([#802]).
+- airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
+- kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
+- trino: Remove versions `414`, `442` ([#822]).
+- trino-cli: Remove version `451` ([#822]).
+
+### Fixed
+
+- hbase: link to phoenix server jar ([#811]).
+
+[#797]: https://github.com/stackabletech/docker-images/pull/797
+[#802]: https://github.com/stackabletech/docker-images/pull/802
+[#809]: https://github.com/stackabletech/docker-images/pull/809
+[#811]: https://github.com/stackabletech/docker-images/pull/811
+[#813]: https://github.com/stackabletech/docker-images/pull/813
+[#815]: https://github.com/stackabletech/docker-images/pull/815
+[#818]: https://github.com/stackabletech/docker-images/pull/818
+[#819]: https://github.com/stackabletech/docker-images/pull/819
+[#822]: https://github.com/stackabletech/docker-images/pull/822
+
+## [24.7.0] - 2024-07-24
+
+### Added
+
+- omid: Add version `1.1.1` & `1.1.2` ([#553]).
+- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583]).
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
 - hbase: Enable snapshot exports to S3; The HBase image depends now on
@@ -44,6 +85,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
   which is unused since SDP 23.11 ([#621]).
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
+- ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
 - nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
@@ -60,7 +102,7 @@ All notable changes to this project will be documented in this file.
 - spark: Build from source ([#679])
 - all: Moved the LOG4J_FORMAT_MSG_NO_LOOKUPS env variable from the individual Dockerfiles to `java-base` and `java-devel` ([#727])
 - all: Move product versions into product directory in preparation for individual product build workflows ([#732])
-- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#737])
+- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#624], [#737])
 
 ### Fixed
 
@@ -334,7 +376,6 @@ All notable changes to this project will be documented in this file.
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#425]: https://github.com/stackabletech/docker-images/pull/425
-[#429]: https://github.com/stackabletech/docker-images/pull/429
 [#429]: https://github.com/stackabletech/docker-images/pull/429
 [#431]: https://github.com/stackabletech/docker-images/pull/431
 [#433]: https://github.com/stackabletech/docker-images/pull/433

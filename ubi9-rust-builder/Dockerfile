@@ -1,19 +1,25 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS builder
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
+# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.4
+# Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+# Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
+# Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=27.2
+ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -72,7 +78,7 @@ WORKDIR /
 RUN <<EOF
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env"
-cargo install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
+cargo install --quiet "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
 
 # Build artifacts will be available in /app.
@@ -85,7 +91,7 @@ ONBUILD COPY . /src
 
 ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
-cargo auditable build --release --workspace
+cargo auditable --quiet build --release --workspace
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
 # -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
