@@ -28,6 +28,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
 - trino: Remove versions `414`, `442` ([#822]).
 - trino-cli: Remove version `451` ([#822]).
+- hbase: Remove 2.4.17 ([#845]).
+- omid: Remove 1.1.0 and 1.1.1 ([#845]).
 
 ### Fixed
 
@@ -42,6 +44,7 @@ All notable changes to this project will be documented in this file.
 [#818]: https://github.com/stackabletech/docker-images/pull/818
 [#819]: https://github.com/stackabletech/docker-images/pull/819
 [#822]: https://github.com/stackabletech/docker-images/pull/822
+[#845]: https://github.com/stackabletech/docker-images/pull/845
 
 ## [24.7.0] - 2024-07-24
 
