@@ -59,8 +59,8 @@ RUN python3 -m venv /stackable/app \
         # Enables OIDC with superset. Since https://github.com/stackabletech/superset-operator/pull/530
         # user can inject arbitrary python code into superset_conf.py. Thus OIDC configs can be changed
         # and we want to offer necessary libraries
-        Flask_OIDC \
-        Flask-OpenID \
+        Flask_OIDC==2.2.0 \
+        Flask-OpenID==1.3.1\
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
         # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
@@ -72,13 +72,6 @@ RUN python3 -m venv /stackable/app \
         python-json-logger \
         cyclonedx-bom \
     && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi \
-    # Only needed for superset 4.0.2 right now to fix logout issues with OIDC
-    && if [ "$PRODUCT" == "4.0.2" ]; then \
-        pip install \
-        --no-cache-dir \
-        --upgrade \
-        Flask_OIDC \
-        Flask-OpenID; fi
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
