@@ -117,10 +117,15 @@ RUN <<EOF
 mkdir -pv ${AIRFLOW_HOME}
 mkdir -pv ${AIRFLOW_HOME}/dags
 mkdir -pv ${AIRFLOW_HOME}/logs
+EOF
 
+USER 0
+RUN <<EOF
 chgrp -R 0 /stackable
 chmod -R g=u /stackable
 EOF
+
+USER ${STACKABLE_USER_UID}
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
