@@ -71,7 +71,7 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         python-json-logger \
         cyclonedx-bom \
-    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi \
+    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
