@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "451",
+        "product": "455",
         "java-base": "22",
     },
 ]
