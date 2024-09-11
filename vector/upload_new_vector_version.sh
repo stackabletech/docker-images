@@ -16,6 +16,7 @@ echo ""
 
 # Vector does not currently publish signatures or SBOMs (as of
 # 2023-10-11, latest version at this point 0.33.0)
+# But there are SHA256 sums in Github Releases. Maybe we should download from there?
 
 for arch in "${ARCHITECTURES[@]}"; do
     file="vector-$VERSION-$RELEASE.$arch.rpm"

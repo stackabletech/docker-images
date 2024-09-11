@@ -2,7 +2,7 @@
 name: Generate Shards
 description: This action builds list of shard indices for use in Github Actions Matrices
 inputs:
-  product:
+  product-name:
     description: The name of the product to build via bake (directory name)
     required: true
 outputs:
@@ -19,7 +19,7 @@ runs:
       id: generate_shards
       shell: python
       env:
-        PRODUCT_NAME: ${{ inputs.product }}
+        PRODUCT_NAME: ${{ inputs.product-name }}
       run: |
         # Need to get the list of versions for the product
         import sys

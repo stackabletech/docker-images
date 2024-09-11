@@ -3,3 +3,4 @@
 02-HBASE-28567.patch
 03-patch-updates.patch
 04-include-dataformat-xml.patch
+05-patch-cyclonedx-plugin.patch

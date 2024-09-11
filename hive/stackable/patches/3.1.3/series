@@ -1,0 +1,12 @@
+# This series applies on Git commit 4df4d75bf1e16fe0af75aad0b4179c34c07fc975
+01-HIVE-26905.patch
+02-HIVE-21939.patch
+03-HIVE-26522.patch
+04-HIVE-26743.patch
+05-HIVE-26882.patch
+06-HIVE-27508.patch
+07-patch-updates.patch
+08-logging-dependencies.patch
+09-maven-warning.patch
+10-postgres-driver.patch
+11-cyclonedx-plugin.patch

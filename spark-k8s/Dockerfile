@@ -14,7 +14,21 @@ ARG JMX_EXPORTER
 ARG TARGETARCH
 ARG TINI
 
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 WORKDIR /stackable
+
+COPY --chown=stackable:stackable spark-k8s/stackable/patches/apply_patches.sh /stackable/spark-${PRODUCT}/patches/apply_patches.sh
+COPY --chown=stackable:stackable spark-k8s/stackable/patches/${PRODUCT} /stackable/spark-${PRODUCT}/patches/${PRODUCT}
 
 # >>> Build spark
 # Compiling the tests takes a lot of time, so we skip them
@@ -25,6 +39,7 @@ WORKDIR /stackable
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
 RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz | tar -xzf - \
     && cd spark-${PRODUCT} \
+    && ./patches/apply_patches.sh ${PRODUCT} \
     && export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     && ./dev/make-distribution.sh \
       -Dhadoop.version="$HADOOP_LONG_VERSION" \
@@ -120,6 +135,7 @@ ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
 
 COPY --chown=stackable:stackable --from=builder /stackable/spark-${PRODUCT}/dist /stackable/spark
+COPY --chown=stackable:stackable --from=builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx
 COPY --from=builder /usr/bin/tini /usr/bin/tini
 
