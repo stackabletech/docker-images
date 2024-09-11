@@ -13,7 +13,6 @@ FROM stackable/image/vector AS airflow-build-image
 ARG PRODUCT
 ARG PYTHON
 ARG TARGETARCH
-ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
@@ -59,11 +58,10 @@ ARG PYTHON
 ARG RELEASE
 ARG TINI
 ARG TARGETARCH
-ARG TARGETOS
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
-      maintainer="info@stackastatsd_exporble.tech" \
+      maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
@@ -71,25 +69,29 @@ LABEL name="Apache Airflow" \
       description="This image is deployed by the Stackable Operator for Apache Airflow."
 
 COPY airflow/licenses /licenses
-
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+
+ENV HOME=/stackable
+ENV AIRFLOW_USER_HOME_DIR=/stackable
+ENV PATH=$PATH:/bin:$HOME/app/bin
+ENV AIRFLOW_HOME=$HOME/airflow
 
 # Update image and install python
 RUN <<EOF
 microdnf update
-microdnf install
-  ca-certificates
-  cyrus-sasl
-  git
-  libpq
-  openldap
-  openldap-clients
-  openssh-clients
-  openssl-libs
-  openssl-pkcs11
-  python${PYTHON}
-  socat
+microdnf install \
+  ca-certificates \
+  cyrus-sasl \
+  git \
+  libpq \
+  openldap \
+  openldap-clients \
+  openssh-clients \
+  openssl-libs \
+  openssl-pkcs11 \
+  python${PYTHON} \
+  socat \
   unixODBC
 microdnf clean all
 rm -rf /var/cache/yum
@@ -100,32 +102,22 @@ curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/ti
 chmod a+x /entrypoint.sh
 chmod a+x /run-airflow.sh
 chmod +x /usr/bin/tini
-EOF
 
-ENV HOME=/stackable
-ENV AIRFLOW_USER_HOME_DIR=/stackable
-ENV PATH=$PATH:/bin:$HOME/app/bin
-ENV AIRFLOW_HOME=$HOME/airflow
+mkdir -pv ${AIRFLOW_HOME}
+mkdir -pv ${AIRFLOW_HOME}/dags
+mkdir -pv ${AIRFLOW_HOME}/logs
+
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all users will belong to group `0`
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
-
-RUN <<EOF
-mkdir -pv ${AIRFLOW_HOME}
-mkdir -pv ${AIRFLOW_HOME}/dags
-mkdir -pv ${AIRFLOW_HOME}/logs
-EOF
-
-USER 0
-RUN <<EOF
-chgrp -R 0 /stackable
-chmod -R g=u /stackable
-EOF
-
-USER ${STACKABLE_USER_UID}
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
