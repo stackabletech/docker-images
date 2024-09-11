@@ -160,7 +160,7 @@ fi
 EOF
 
 COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
