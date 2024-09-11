@@ -129,19 +129,18 @@ runs:
         # TODO (@Techassi): Replace author with manufacturer, because it is
         # automated, see https://cyclonedx.org/docs/1.6/json/#metadata_component_manufacturer
         jq -s \
-          --arg description "$IMAGE_METADATA_DESCRIPTION" \
-          --arg name "$IMAGE_METADATA_NAME" \
+          --arg description "$IMAGE_METADATA_NAME. $IMAGE_METADATA_DESCRIPTION" \
           --arg purl "$PURL" \
           '{
               "metadata": {
                   "component": {
-                      "description": "$name. $description",
+                      "description": $description,
                       "supplier": {
                           "name": "Stackable GmbH",
                           "url": ["https://stackable.tech/"]
                       },
                       "author": "Stackable GmbH",
-                      "purl": "$purl",
+                      "purl": $purl,
                       "publisher": "Stackable GmbH"
                   }
               }
