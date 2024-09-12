@@ -112,6 +112,7 @@ groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
 # Making this a system user prevents a mail dir from being created, expiry of passwords etc. but it will warn:
 #   useradd warning: stackable's uid 1000 is greater than SYS_UID_MAX 999
 # We can safely ignore this warning, to get rid of the warning we could change /etc/login.defs but that does not seem worth it
+# We'll leave the home directory hardcoded to /stackable because I don't want to deal with which chars might be valid and which might not in user name vs. directory
 useradd \
   --no-log-init \
   --gid ${STACKABLE_USER_GID} \
