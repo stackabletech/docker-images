@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
+- hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 
 ### Changed
 
@@ -48,6 +49,7 @@ All notable changes to this project will be documented in this file.
 [#822]: https://github.com/stackabletech/docker-images/pull/822
 [#846]: https://github.com/stackabletech/docker-images/pull/846
 [#848]: https://github.com/stackabletech/docker-images/pull/848
+[#852]: https://github.com/stackabletech/docker-images/pull/852
 
 ## [24.7.0] - 2024-07-24
 
