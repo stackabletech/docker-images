@@ -9,6 +9,7 @@ ARG PROTOBUF
 ARG TARGETARCH
 ARG TARGETOS
 
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY hadoop/stackable/jmx /stackable/jmx
@@ -92,6 +93,7 @@ FROM stackable/image/java-devel AS hdfs-utils-builder
 ARG HDFS_UTILS
 ARG PRODUCT
 
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
@@ -120,35 +122,58 @@ LABEL name="Apache Hadoop" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
+
+
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)
 # openssl -> not sure
-RUN microdnf update && \
-    microdnf install \
-    fuse \
-    fuse-libs \
-    # tar is required for `kubectl cp` which can be used to copy the log files
-    # or profiler flamegraph from the Pod
-    tar && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+RUN <<EOF
+microdnf update
+microdnf install \
+  fuse \
+  fuse-libs \
+  # tar is required for `kubectl cp` which can be used to copy the log files
+  # or profiler flamegraph from the Pod
+  # It is already installed in the base image but leaving here for documentation purposes
+  tar
+microdnf clean all
+rm -rf /var/cache/yum
 
-COPY hadoop/licenses /licenses
+ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+
+# Remove unneeded binaries:
+#  - code sources
+#  - mapreduce/yarn binaries that were built as cross-project dependencies
+#  - minicluster (only used for testing) and test .jars
+#  - json-io: this is a transitive dependency pulled in by cedarsoft/java-utils/json-io and is excluded in 3.4.0. See CVE-2023-34610.
+rm -rf /stackable/hadoop/share/hadoop/common/sources/
+rm -rf /stackable/hadoop/share/hadoop/hdfs/sources/
+rm -rf /stackable/hadoop/share/hadoop/tools/sources/
+rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar
+rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar
+rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar
+find . -name 'hadoop-minicluster-*.jar' -type f -delete
+find . -name 'hadoop-client-minicluster-*.jar' -type f -delete
+find . -name 'hadoop-*tests.jar' -type f -delete
 
 # Without this fuse_dfs does not work
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
-RUN echo "user_allow_other" > /etc/fuse.conf
+echo "user_allow_other" > /etc/fuse.conf
+
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all container users will belong to the root group (0)
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+COPY hadoop/licenses /licenses
 
 USER stackable
-WORKDIR /stackable
-
-COPY --chown=stackable:stackable --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
-COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
-COPY --chown=stackable:stackable --from=builder /stackable/async-profiler /stackable/async-profiler/
-COPY --chown=stackable:stackable --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
-RUN ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
-
-COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 ENV HOME=/stackable
 ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
@@ -163,21 +188,6 @@ ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 # if HADOOP_YARN_HOME does not exist at all, so we set it here to a sensible default.
 ENV HADOOP_YARN_HOME=/stackable/hadoop
 ENV HADOOP_MAPRED_HOME=/stackable/hadoop
-
-# Remove unneeded binaries:
-#  - code sources
-#  - mapreduce/yarn binaries that were built as cross-project dependencies
-#  - minicluster (only used for testing) and test .jars
-#  - json-io: this is a transitive dependency pulled in by cedarsoft/java-utils/json-io and is excluded in 3.4.0. See CVE-2023-34610.
-RUN rm -rf /stackable/hadoop/share/hadoop/common/sources/ && \
-  rm -rf /stackable/hadoop/share/hadoop/hdfs/sources/ && \
-  rm -rf /stackable/hadoop/share/hadoop/tools/sources/ && \
-  rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar && \
-  rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar && \
-  rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar && \
-  find . -name 'hadoop-minicluster-*.jar' -type f -delete && \
-  find . -name 'hadoop-client-minicluster-*.jar' -type f -delete && \
-  find . -name 'hadoop-*tests.jar' -type f -delete
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
