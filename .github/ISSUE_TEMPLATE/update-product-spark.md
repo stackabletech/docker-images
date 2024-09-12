@@ -29,6 +29,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `spark/upload_new_spark_version.sh`).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
+- [ ] Ensure that the transitive dependencies in `versions.py` are compatible with the Spark version(s).
 - [ ] Update other dependencies if applicable (eg: python, jmx_exporter, aws_java_sdk_bundle, etc).
 - [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
