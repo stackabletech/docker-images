@@ -12,8 +12,17 @@ assignees: ''
 
 Part of #xxx.
 
+<!--
+This gives hints to the person doing the work.
+Add/Change/Remove anything that isn't applicable anymore
+-->
+- Add: `x.x.x`
+- Remove: `y.y.y`
+
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label.
+> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+>
+> [1]: https://github.com/orgs/stackabletech/projects/10
 
 <!-- markdownlint-disable-next-line MD028 -->
 > [!IMPORTANT]
@@ -24,6 +33,7 @@ Part of #xxx.
 ```[tasklist]
 ### Update tasks
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update all `versions.py` files which reference vector.
 - [ ] Upload new version (see `vector/upload_new_vector_version.sh`).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
