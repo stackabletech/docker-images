@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - hive: Add version `4.0.0` ([#818]).
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
+- spark: Add version `3.5.2` ([#848]).
 
 ### Changed
 
@@ -28,6 +29,9 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
 - trino: Remove versions `414`, `442` ([#822]).
 - trino-cli: Remove version `451` ([#822]).
+- hbase: Remove 2.4.17 ([#846]).
+- omid: Remove 1.1.0 and 1.1.1 ([#846]).
+- spark: Remove 3.4.2 and 3.4.3 ([#848]).
 
 ### Fixed
 
@@ -42,6 +46,8 @@ All notable changes to this project will be documented in this file.
 [#818]: https://github.com/stackabletech/docker-images/pull/818
 [#819]: https://github.com/stackabletech/docker-images/pull/819
 [#822]: https://github.com/stackabletech/docker-images/pull/822
+[#846]: https://github.com/stackabletech/docker-images/pull/846
+[#848]: https://github.com/stackabletech/docker-images/pull/848
 
 ## [24.7.0] - 2024-07-24
 
