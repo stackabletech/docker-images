@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
+- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
 
 ### Removed
 
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 - hbase: link to phoenix server jar ([#811]).
 
+[#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
 [#802]: https://github.com/stackabletech/docker-images/pull/802
 [#809]: https://github.com/stackabletech/docker-images/pull/809

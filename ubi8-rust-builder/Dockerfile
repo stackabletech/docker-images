@@ -11,14 +11,17 @@ LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+# renovate: datasource=github-releases packageName=rust-lang/rust
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
-# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# renovate: datasource=crate packageName=cargo-cyclonedx
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
 # Find the latest version here: https://crates.io/crates/cargo-auditable
+# renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
+# renovate: datasource=github-releases packageName=protocolbuffers/protobuf
 ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -73,8 +76,11 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
- && . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+RUN <<EOF
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
+. "$HOME/.cargo/env"
+cargo --quiet install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
+EOF
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -84,20 +90,21 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable --quiet build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN <<EOF
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release --workspace
+cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
-# Copy the "interesting" files into /app.
-ONBUILD RUN find /src/target/release \
-                -regextype egrep \
-                # The interesting binaries are all directly in ${BUILD_DIR}.
-                -maxdepth 1 \
-                # Well, binaries are executable.
-                -executable \
-                # Well, binaries are files.
-                -type f \
-                # Filter out tests.
-                ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
-                # Copy the matching files into /app.
-                -exec /copy_artifacts.sh {} \;
+# -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
+# -regex filters out tests
+# - exec copies matching files to /app
+find /src/target/release \
+  -regextype egrep \
+  -maxdepth 1 \
+  -executable \
+  -type f \
+  ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
+  -exec /copy_artifacts.sh {} \;
 
-ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
+echo "The following files will be copied to the runtime image: $(ls /app)"
+EOF
