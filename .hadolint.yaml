@@ -34,3 +34,15 @@ ignored:
   # https://github.com/koalaman/shellcheck/wiki/SC2164
   # Reason: Ignoring because we inherit SHELL from the base image which contains "-e" for bash
   - SC2164
+
+  # In POSIX sh, [[ ]] is undefined.
+  # https://github.com/koalaman/shellcheck/wiki/SC3010
+  # Reason: Ignoring because we inherit SHELL from the base image which
+  # sets the default shell to Bash where [[ ]] is defined.
+  - SC3010
+
+  # In POSIX sh, string replacement is undefined.
+  # https://github.com/koalaman/shellcheck/wiki/SC3060
+  # Reason: Ignoring because we inherit SHELL from the base image which
+  # sets the default shell to Bash where string replacement is supported.
+  - SC3060
