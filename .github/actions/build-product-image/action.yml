@@ -10,7 +10,7 @@ inputs:
     required: true
   image-tools-version:
     description: The Stackable image-tools version
-    default: 0.0.12
+    default: 0.0.13
   build-cache-username:
     description: Build cache username
     default: github

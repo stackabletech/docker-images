@@ -50,7 +50,7 @@ description?
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.12
+pip install image-tools-stackabletech==0.0.13
 
 bake --product nifi=x.y.z # where x.y.z is the new version added in this PR
 

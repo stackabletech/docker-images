@@ -41,7 +41,7 @@ Part of #xxx.
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.12
+pip install image-tools-stackabletech==0.0.13
 
 bake --product vector=x.y.z # where x.y.z is a valid version
 ```
