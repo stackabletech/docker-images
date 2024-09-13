@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1b6d711648229a1c987f39cfdfccaebe2bd92d0b5d8caa5dbaa5234a9278a0b2 AS product-utils-builder
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
