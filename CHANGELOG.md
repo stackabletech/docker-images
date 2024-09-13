@@ -14,11 +14,14 @@ All notable changes to this project will be documented in this file.
 - hive: Add version `4.0.0` ([#818]).
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
+- spark: Add version `3.5.2` ([#848]).
+- hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 
 ### Changed
 
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
+- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
 
 ### Removed
 
@@ -28,11 +31,15 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
 - trino: Remove versions `414`, `442` ([#822]).
 - trino-cli: Remove version `451` ([#822]).
+- hbase: Remove 2.4.17 ([#846]).
+- omid: Remove 1.1.0 and 1.1.1 ([#846]).
+- spark: Remove 3.4.2 and 3.4.3 ([#848]).
 
 ### Fixed
 
 - hbase: link to phoenix server jar ([#811]).
 
+[#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
 [#802]: https://github.com/stackabletech/docker-images/pull/802
 [#809]: https://github.com/stackabletech/docker-images/pull/809
@@ -42,6 +49,9 @@ All notable changes to this project will be documented in this file.
 [#818]: https://github.com/stackabletech/docker-images/pull/818
 [#819]: https://github.com/stackabletech/docker-images/pull/819
 [#822]: https://github.com/stackabletech/docker-images/pull/822
+[#846]: https://github.com/stackabletech/docker-images/pull/846
+[#848]: https://github.com/stackabletech/docker-images/pull/848
+[#852]: https://github.com/stackabletech/docker-images/pull/852
 
 ## [24.7.0] - 2024-07-24
 

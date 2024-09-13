@@ -1,18 +1,22 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS product-utils-builder
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1b6d711648229a1c987f39cfdfccaebe2bd92d0b5d8caa5dbaa5234a9278a0b2 AS product-utils-builder
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
+# renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+# renovate: datasource=github-releases packageName=rust-lang/rust
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
-# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# renovate: datasource=crate packageName=cargo-cyclonedx
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
 # Find the latest version here: https://crates.io/crates/cargo-auditable
+# renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
 RUN <<EOF
@@ -32,12 +36,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --defaul
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
-cargo auditable --quiet build --release && cargo cyclonedx --output-pattern package --all --output-cdx
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:104cf11d890aeb7dd5728b7d7732e175a0e4018f1bb00d2faebcc8f6bf29bd52 AS final
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1b6d711648229a1c987f39cfdfccaebe2bd92d0b5d8caa5dbaa5234a9278a0b2 AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -161,10 +166,11 @@ fi
 EOF
 
 COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"
 
