@@ -15,11 +15,13 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
+- hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 
 ### Changed
 
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
+- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
 
 ### Removed
 
@@ -38,6 +40,7 @@ All notable changes to this project will be documented in this file.
 
 - hbase: link to phoenix server jar ([#811]).
 
+[#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
 [#802]: https://github.com/stackabletech/docker-images/pull/802
 [#809]: https://github.com/stackabletech/docker-images/pull/809
@@ -50,6 +53,7 @@ All notable changes to this project will be documented in this file.
 [#846]: https://github.com/stackabletech/docker-images/pull/846
 [#848]: https://github.com/stackabletech/docker-images/pull/848
 [#851]: https://github.com/stackabletech/docker-images/pull/851
+[#852]: https://github.com/stackabletech/docker-images/pull/852
 
 ## [24.7.0] - 2024-07-24
 
