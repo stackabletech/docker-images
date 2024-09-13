@@ -30,19 +30,26 @@ ignored:
   # Reason: I've yet to see this being useful, where this happens we usually have no way to actually provide the file
   - SC1091
 
+  # Expressions don't expand in single quotes, use double quotes for that.
+  # https://www.shellcheck.net/wiki/SC2016
+  # Reason: Ignoring because envsubst requires environment variable names
+  # as parameter. These environment variables must not be expanded, e.g.:
+  # envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env
+  - SC2016
+
   # Use cd ... || exit in case cd fails.
   # https://github.com/koalaman/shellcheck/wiki/SC2164
   # Reason: Ignoring because we inherit SHELL from the base image which contains "-e" for bash
   - SC2164
 
   # In POSIX sh, [[ ]] is undefined.
-  # https://github.com/koalaman/shellcheck/wiki/SC3010
+  # https://www.shellcheck.net/wiki/SC3010
   # Reason: Ignoring because we inherit SHELL from the base image which
   # sets the default shell to Bash where [[ ]] is defined.
   - SC3010
 
   # In POSIX sh, string replacement is undefined.
-  # https://github.com/koalaman/shellcheck/wiki/SC3060
+  # https://www.shellcheck.net/wiki/SC3060
   # Reason: Ignoring because we inherit SHELL from the base image which
   # sets the default shell to Bash where string replacement is supported.
   - SC3060
