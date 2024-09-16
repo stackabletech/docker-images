@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove 2.4.17 ([#846]).
 - omid: Remove 1.1.0 and 1.1.1 ([#846]).
 - spark: Remove 3.4.2 and 3.4.3 ([#848]).
+- superset: Remove 2.1.3, 3.1.0 and 3.1.3 ([#866]).
 - zookeeper: Remove 3.8.4 ([#851]).
 
 ### Fixed
@@ -54,6 +55,7 @@ All notable changes to this project will be documented in this file.
 [#848]: https://github.com/stackabletech/docker-images/pull/848
 [#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
+[#866]: https://github.com/stackabletech/docker-images/pull/866
 
 ## [24.7.0] - 2024-07-24
 
