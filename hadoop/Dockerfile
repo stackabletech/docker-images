@@ -10,11 +10,10 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
 
-USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY hadoop/stackable/jmx /stackable/jmx
-COPY hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -55,7 +54,7 @@ RUN microdnf update && \
 
 WORKDIR /stackable
 
-COPY hadoop/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches /stackable/patches
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -129,7 +128,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/hadoop-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
-COPY hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 
 # fuse is required for fusermount (called by fuse_dfs)
