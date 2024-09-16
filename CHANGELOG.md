@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
+- hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
+  the Azure Data Lake Storage ([#853]).
 
 ### Changed
 
@@ -34,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove 2.4.17 ([#846]).
 - omid: Remove 1.1.0 and 1.1.1 ([#846]).
 - spark: Remove 3.4.2 and 3.4.3 ([#848]).
+- zookeeper: Remove 3.8.4 ([#851]).
 
 ### Fixed
 
@@ -51,7 +54,9 @@ All notable changes to this project will be documented in this file.
 [#822]: https://github.com/stackabletech/docker-images/pull/822
 [#846]: https://github.com/stackabletech/docker-images/pull/846
 [#848]: https://github.com/stackabletech/docker-images/pull/848
+[#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
+[#853]: https://github.com/stackabletech/docker-images/pull/853
 
 ## [24.7.0] - 2024-07-24
 
