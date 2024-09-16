@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
-- vector: Add version `0.40.1` ([#802], [#815]).
+- vector: Add version `0.41.1` ([#802], [#815], [#867]).
 - airflow: Add version `2.9.3` ([#809]).
 - kafka: Add version `3.8.0` ([#813]).
 - hive: Add version `4.0.0` ([#818]).
@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#848]: https://github.com/stackabletech/docker-images/pull/848
 [#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
+[#867]: https://github.com/stackabletech/docker-images/pull/867
 
 ## [24.7.0] - 2024-07-24
 

@@ -5,7 +5,7 @@ versions = [
         "git_sync": "v4.2.4",
         "statsd_exporter": "0.26.1",
         "tini": "0.19.0",
-        "vector": "0.40.1",
+        "vector": "0.41.1",
     },
     {
         "product": "2.9.3",
@@ -13,6 +13,6 @@ versions = [
         "git_sync": "v4.2.4",
         "statsd_exporter": "0.26.1",
         "tini": "0.19.0",
-        "vector": "0.40.1",
+        "vector": "0.41.1",
     },
 ]
