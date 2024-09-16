@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - omid: Remove 1.1.0 and 1.1.1 ([#846]).
 - spark: Remove 3.4.2 and 3.4.3 ([#848]).
 - zookeeper: Remove 3.8.4 ([#851]).
+- nifi: Remove 1.21.0 and 1.25.0 ([#868]).
 
 ### Fixed
 
@@ -54,6 +55,7 @@ All notable changes to this project will be documented in this file.
 [#848]: https://github.com/stackabletech/docker-images/pull/848
 [#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
+[#868]: https://github.com/stackabletech/docker-images/pull/868
 
 ## [24.7.0] - 2024-07-24
 
