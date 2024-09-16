@@ -317,6 +317,14 @@ COPY --chown=stackable:stackable --from=phoenix-builder /stackable/phoenix /stac
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=stackable:stackable --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
+# Copy the dependencies from Hadoop which are required for the Azure Data Lake
+# Storage (ADLS) to /stackable/hbase-${PRODUCT}/lib which is on the classpath.
+# hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
+# by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
+COPY --chown=stackable:stackable --from=hadoop-builder \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+    /stackable/hbase-${PRODUCT}/lib/
+
 COPY --chown=stackable:stackable --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
