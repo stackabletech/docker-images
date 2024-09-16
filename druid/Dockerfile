@@ -7,6 +7,7 @@ ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
+ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.

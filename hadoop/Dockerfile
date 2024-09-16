@@ -8,6 +8,7 @@ ARG JMX_EXPORTER
 ARG PROTOBUF
 ARG TARGETARCH
 ARG TARGETOS
+ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -92,6 +93,7 @@ FROM stackable/image/java-devel AS hdfs-utils-builder
 
 ARG HDFS_UTILS
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -113,6 +115,7 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG HDFS_UTILS
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Hadoop" \
       maintainer="info@stackable.tech" \
@@ -173,7 +176,7 @@ EOF
 
 COPY hadoop/licenses /licenses
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 
 ENV HOME=/stackable
 ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
