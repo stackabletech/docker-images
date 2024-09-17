@@ -37,7 +37,7 @@ ENV PATH=/stackable/bin:$PATH
 RUN curl https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl \
     -o /stackable/bin/kubectl && chmod +x /stackable/bin/kubectl
 
-RUN	curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
+RUN curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
     -o /stackable/bin/jq && \
     chmod +x /stackable/bin/jq
 
