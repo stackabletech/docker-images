@@ -66,7 +66,7 @@ WORKDIR /opt/protoc
 # Prost does not document which version of protoc it expects (https://docs.rs/prost-build/0.12.4/prost_build/), so this should be the latest upstream version
 # (within reason).
 RUN ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
-  && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
+  && curl --fail --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
   && rm protoc.zip
 ENV PROTOC=/opt/protoc/bin/protoc

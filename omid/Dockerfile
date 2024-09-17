@@ -24,7 +24,7 @@ COPY --chown=stackable:stackable omid/stackable/patches/${PRODUCT} /stackable/ph
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
   set -x
-  curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+  curl https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
   cd /stackable/phoenix-omid-${PRODUCT} || exit
   ./patches/apply_patches.sh ${PRODUCT}
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests

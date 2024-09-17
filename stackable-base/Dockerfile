@@ -65,6 +65,8 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
+# Default curl configuration to avoid forgetting settings and to declutter the Dockerfiles
+COPY stackable-base/stackable/curlrc /root/.curlrc
 
 # echo won't expand escape sequences. Consider printf.
 # https://github.com/koalaman/shellcheck/wiki/SC2028
@@ -139,6 +141,9 @@ echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profi
 
 chown stackable:stackable /stackable/.bashrc
 chown stackable:stackable /stackable/.profile
+
+cp /root/.curlrc /stackable/.curlrc
+chown stackable:0 /stackable/.curlrc
 
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems

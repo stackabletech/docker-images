@@ -42,7 +42,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=1000,target=/stackable/.m2/
 ###
 ### HBase
 ###
-curl --fail -L "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 
 chmod +x patches/apply_patches.sh
@@ -63,7 +63,7 @@ ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ### JMX Prometheus Exporter/Agent
 ###
 if [[ -n "${JMX_EXPORTER}" ]] ; then
-  curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+  curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 fi
@@ -73,7 +73,7 @@ fi
 ###
 cd /stackable
 export ARCH="${TARGETARCH/amd64/x64}"
-curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # We're removing these to make the intermediate layer smaller
@@ -144,7 +144,7 @@ WORKDIR /stackable
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 RUN --mount=type=cache,id=maven-hbase-operator-tools,uid=1000,target=/stackable/.m2/repository <<EOF
 
-curl --fail -L "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 chmod +x patches/apply_patches.sh
 patches/apply_patches.sh hbase-operator-tools/${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -231,7 +231,7 @@ WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix,uid=1000,target=/stackable/.m2/repository <<EOF
 cd /stackable
-curl --fail -L "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 
 chmod +x patches/apply_patches.sh
