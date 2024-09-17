@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - spark: Add version `3.5.2` ([#848]).
 - statsd-exporter: Add version 0.27.0 ([#866]).
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
+- hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
+  the Azure Data Lake Storage ([#853]).
 
 ### Changed
 
@@ -57,7 +59,9 @@ All notable changes to this project will be documented in this file.
 [#848]: https://github.com/stackabletech/docker-images/pull/848
 [#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
+[#853]: https://github.com/stackabletech/docker-images/pull/853
 [#866]: https://github.com/stackabletech/docker-images/pull/866
+
 
 ## [24.7.0] - 2024-07-24
 
