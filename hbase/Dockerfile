@@ -287,6 +287,7 @@ ARG HADOOP
 ARG PHOENIX
 ARG HBASE_PROFILE
 ARG HBASE_OPERATOR_TOOLS
+ARG STACKABLE_USER_UID
 
 ARG NAME="Apache HBase"
 ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache HBase"
