@@ -128,7 +128,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/hadoop-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/hadoop/bin
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
 
 
 # fuse is required for fusermount (called by fuse_dfs)
@@ -136,17 +136,18 @@ COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackabl
 # openssl -> not sure
 RUN <<EOF
 microdnf update
+# tar is required for `kubectl cp` which can be used to copy the log files
+# or profiler flamegraph from the Pod
+# It is already installed in the base image but leaving here for documentation purposes
 microdnf install \
   fuse \
   fuse-libs \
-  # tar is required for `kubectl cp` which can be used to copy the log files
-  # or profiler flamegraph from the Pod
-  # It is already installed in the base image but leaving here for documentation purposes
   tar
 microdnf clean all
 rm -rf /var/cache/yum
 
 ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+mv /stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 # Remove unneeded binaries:
 #  - code sources
