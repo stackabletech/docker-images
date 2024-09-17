@@ -34,7 +34,7 @@ WORKDIR /stackable/bin
 ENV PATH=/stackable/bin:$PATH
 
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
-RUN	curl https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl \
+RUN curl https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl \
     -o /stackable/bin/kubectl && chmod +x /stackable/bin/kubectl
 
 RUN	curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
