@@ -12,7 +12,7 @@ ARG JMX_EXPORTER
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
+RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
     cd kafka-${PRODUCT}-src && \
     # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
     # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
@@ -23,11 +23,11 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-
     rm -rf /stackable/kafka-${PRODUCT}-src
 
 # TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+RUN curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
 COPY --chown=stackable:stackable kafka/stackable/jmx/ /stackable/jmx/
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar

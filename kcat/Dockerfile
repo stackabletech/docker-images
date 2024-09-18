@@ -26,7 +26,7 @@ RUN microdnf update \
 
 WORKDIR /stackable
 
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz \
+RUN curl -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz \
     && tar xvfz kcat-${PRODUCT}.tar.gz \
     && cd kcat-${PRODUCT} \
     && ./bootstrap.sh
