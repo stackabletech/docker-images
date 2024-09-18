@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# check=error=true
 
 FROM stackable/image/hadoop AS hadoop-builder
 
@@ -24,7 +25,7 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven-hive,uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
 curl "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 patches/apply_patches.sh ${PRODUCT}
