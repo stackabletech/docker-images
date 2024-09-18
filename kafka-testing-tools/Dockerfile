@@ -7,6 +7,7 @@ FROM stackable/image/stackable-base AS final
 
 ARG PRODUCT
 ARG KCAT
+ARG RELEASE
 
 LABEL name="Kafka Testing Tools" \
       maintainer="info@stackable.tech" \

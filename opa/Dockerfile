@@ -55,7 +55,7 @@ WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
 
 RUN package/install
 
-FROM stackable/image/stackable-base as opa-builder
+FROM stackable/image/stackable-base AS opa-builder
 
 ARG PRODUCT
 ARG RELEASE
