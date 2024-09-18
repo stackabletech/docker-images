@@ -28,7 +28,7 @@ COPY --chown=stackable:stackable trino-cli/licenses /licenses
 
 WORKDIR /stackable/trino-cli
 
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar \
+RUN curl -O https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar \
     && ln -s trino-cli-${PRODUCT}-executable.jar trino-cli-executable.jar
 
 ENTRYPOINT ["java", "-jar", "/stackable/trino-cli/trino-cli-executable.jar"]

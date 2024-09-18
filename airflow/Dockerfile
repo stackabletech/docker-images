@@ -101,7 +101,7 @@ RUN mkdir -pv ${AIRFLOW_HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs && \
     chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
-    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+    curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh

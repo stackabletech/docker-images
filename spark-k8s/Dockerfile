@@ -37,7 +37,7 @@ COPY --chown=stackable:stackable spark-k8s/stackable/patches/${PRODUCT} /stackab
 #
 # This will download it's own version of maven because the UBI version is too old:
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz | tar -xzf - \
+RUN curl https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz | tar -xzf - \
     && cd spark-${PRODUCT} \
     && ./patches/apply_patches.sh ${PRODUCT} \
     && export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
@@ -49,29 +49,29 @@ RUN curl --fail -L https://repo.stackable.tech/repository/packages/spark/spark-$
 # <<< Build spark
 
 # Get the correct `tini` binary for our architecture.
-RUN curl --fail -L -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
+RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
     && chmod +x /usr/bin/tini
 
 # We download these under dist so that log4shell checks them
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Download various modules for Hadoop (e.g. support for s3a:// and abfs://)
-RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
+RUN curl -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-RUN curl -L --fail -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
-    && curl -L --fail -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+RUN curl -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
+    && curl -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
 WORKDIR /stackable/jmx
 
-RUN curl --fail -L -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+RUN curl -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 
 # ===
 # Mitigation for CVE-2021-44228 (Log4Shell)

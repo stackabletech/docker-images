@@ -47,6 +47,8 @@ RUN microdnf update && \
 
 ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
 
+COPY --chown=stackable:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
+
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature

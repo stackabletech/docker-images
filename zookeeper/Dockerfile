@@ -15,7 +15,7 @@ USER stackable
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC . && \
+RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC . && \
     # Apply any required patches
     patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/apache-zookeeper-${PRODUCT}/ && \
@@ -31,7 +31,7 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/ap
     rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
     rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
     # Download the JMX exporter jar from our own repo
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+    curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
