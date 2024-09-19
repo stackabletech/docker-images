@@ -47,6 +47,8 @@ Part of #xxx.
 > Delete any items that do not apply so that all applicable items can be checked.
 > For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
 
+This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+
 ```[tasklist]
 ### Acceptance
 - [ ] Can build image locally
