@@ -30,16 +30,18 @@ Part of #xxx.
 - [ ] _Link to the operator PR (getting_started / kuttl)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
 - [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
 
-<!--
-Make this a regular list so it isn't easily editable from the rendered
-description?
--->
+> [!TIP]
+> Delete any items that do not apply so that all applicable items can be checked.
+> For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
+
 ```[tasklist]
 ### Acceptance
 - [ ] Can build image locally
 - [ ] Kuttl smoke tests passes locally
+- [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
 ```
