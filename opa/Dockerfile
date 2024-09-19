@@ -73,7 +73,7 @@ RUN microdnf update && \
     tar && \
     microdnf clean all
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
+RUN curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
     tar -zxvf opa.tar.gz && \
     mv opa-${PRODUCT} opa
 

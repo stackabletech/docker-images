@@ -48,7 +48,7 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/reposi
     --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
     --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
     <<EOF
-curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
@@ -71,7 +71,7 @@ fi
 # testdata in kuttl tests and the getting started guide.
 
 # Install OPA authorizer extension.
-curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+curl "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
 EOF
 
 FROM stackable/image/java-base AS final
