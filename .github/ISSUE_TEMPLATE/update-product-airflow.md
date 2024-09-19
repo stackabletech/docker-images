@@ -41,8 +41,8 @@ This list should be completed by the assignee(s), once respective PRs have been 
 
 ```[tasklist]
 ### Acceptance
-- [ ] Can build image locally
-- [ ] Kuttl smoke tests passes locally
+- [ ] Can build image (either locally, or in CI)
+- [ ] Kuttl smoke tests passes (either locally, or in CI)
 - [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
