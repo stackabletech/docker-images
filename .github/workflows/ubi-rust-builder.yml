@@ -27,7 +27,7 @@ jobs:
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
       - name: Determine Architecture
         run: |
           echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
@@ -63,7 +63,7 @@ jobs:
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
       - name: Build Manifest List
         shell: bash
         run: |
