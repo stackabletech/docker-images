@@ -52,7 +52,7 @@ runs:
       uses: anchore/sbom-action/download-syft@61119d458adab75f756bc0b9e4bde25725f86a7a # v0.17.2
 
     - name: Login to Container Registry (${{ inputs.image-registry-uri }})
-      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
       with:
         registry: ${{ inputs.image-registry-uri }}
         username: ${{ inputs.image-registry-username }}
