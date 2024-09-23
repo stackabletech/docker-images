@@ -46,13 +46,13 @@ runs:
   using: composite
   steps:
     - name: Set up Cosign
-      uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+      uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
 
     - name: Set up syft
       uses: anchore/sbom-action/download-syft@61119d458adab75f756bc0b9e4bde25725f86a7a # v0.17.2
 
     - name: Login to Container Registry (${{ inputs.image-registry-uri }})
-      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
       with:
         registry: ${{ inputs.image-registry-uri }}
         username: ${{ inputs.image-registry-username }}

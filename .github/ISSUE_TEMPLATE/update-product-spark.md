@@ -41,16 +41,20 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] _Link to the operator PR (getting_started / kuttl)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
 - [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
 
-<!--
-Make this a regular list so it isn't easily editable from the rendered
-description?
--->
+> [!TIP]
+> Delete any items that do not apply so that all applicable items can be checked.
+> For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
+
+This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+
 ```[tasklist]
 ### Acceptance
-- [ ] Can build image locally
-- [ ] Kuttl smoke tests passes locally
+- [ ] Can build image (either locally, or in CI)
+- [ ] Kuttl smoke tests passes (either locally, or in CI)
+- [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
 ```

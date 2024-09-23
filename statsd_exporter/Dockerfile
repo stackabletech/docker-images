@@ -19,7 +19,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 export GOPATH=/go_cache
-curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
 (
   cd "statsd_exporter-${PRODUCT}" || exit
   go build -o ../statsd_exporter
