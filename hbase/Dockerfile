@@ -332,7 +332,11 @@ microdnf update
 
 # The tar and python packages are required by the Phoenix command line.
 # We add zip and gzip because tar without compression is seldom useful.
+# TODO: maybe hostname is useful enough to have in stackable-base ?
+# hostname is required by the hbase/bin/graceful_stop.sh to identify the actual name
+# of the region server that is being shut down.
 microdnf install \
+  hostname \
   gzip \
   python \
   python-pip \
