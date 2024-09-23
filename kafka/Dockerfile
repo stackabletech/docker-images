@@ -68,6 +68,8 @@ LABEL name="Apache Kafka" \
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install \
+    # needed by kcat for kerberos
+    cyrus-sasl-gssapi \
     # Can be removed once listener-operator integration is used
     kubectl && \
     microdnf clean all && \
