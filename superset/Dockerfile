@@ -61,6 +61,8 @@ RUN python3 -m venv /stackable/app \
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
         # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
         tzdata \
+        Flask_OIDC==2.2.0 \
+        Flask-OpenID==1.3.1\
     && pip install \
         --no-cache-dir \
         --upgrade \
