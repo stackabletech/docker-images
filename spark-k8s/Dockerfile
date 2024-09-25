@@ -1,5 +1,11 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
 
+# hadoop-builder: Provides Hadoop libraries
+FROM stackable/image/hadoop AS hadoop-builder
+
+# hbase-builder: Provides HBase libraries
+FROM stackable/image/hbase AS hbase-builder
+
 # spark-source-builder: Download the Spark source code into
 # /stackable/spark and apply the patches
 FROM stackable/image/java-devel as spark-source-builder
@@ -38,12 +44,12 @@ RUN patches/apply_patches.sh ${PRODUCT}
 
 
 # hbase-connectors-builder: Build the Spark HBase connector and required
-# JARs into /stackable/spark/extra-jars
+# JARs into /stackable/spark/jars
 FROM stackable/image/java-devel as hbase-connectors-builder
 
 ARG PRODUCT
-ARG HADOOP_LONG_VERSION
-ARG HBASE_LONG_VERSION
+ARG HADOOP
+ARG HBASE
 ARG HBASE_CONNECTOR
 
 WORKDIR /stackable
@@ -101,13 +107,13 @@ mvn \
     --define spark.version="${PRODUCT}" \
     --define scala.version="${SCALA_VERSION}" \
     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
-    --define hadoop-three.version="${HADOOP_LONG_VERSION}" \
-    --define hbase.version="${HBASE_LONG_VERSION}" \
+    --define hadoop-three.version="${HADOOP}" \
+    --define hbase.version="${HBASE}" \
     --define skipTests \
     clean package
 EOF
 
-WORKDIR /stackable/spark/extra-jars
+WORKDIR /stackable/spark/jars
 
 RUN <<EOF
 ln -s /stackable/hbase-connectors/spark/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar
@@ -129,7 +135,8 @@ EOF
 FROM stackable/image/java-devel as spark-builder
 
 ARG PRODUCT
-ARG HADOOP_LONG_VERSION
+ARG HADOOP
+ARG HBASE
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
@@ -155,7 +162,7 @@ COPY --chown=stackable:stackable --from=spark-source-builder \
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
 RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     && ./dev/make-distribution.sh \
-      -Dhadoop.version="$HADOOP_LONG_VERSION" \
+      -Dhadoop.version="$HADOOP" \
       -Dmaven.test.skip=true \
       -DskipTests \
       -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
@@ -168,12 +175,40 @@ RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/
 # We download these under dist so that log4shell checks them
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
-# Download various modules for Hadoop (e.g. support for s3a:// and abfs://)
-RUN curl -O https://repo.stackable.tech/repository/packages/aws/hadoop-aws-${HADOOP_LONG_VERSION}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/azure/hadoop-azure-${HADOOP_LONG_VERSION}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/azure/azure-storage-${AZURE_STORAGE}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/azure/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar
+# Copy modules required for s3a://
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+    .
+
+# Copy modules required for abfs://
+COPY --from=hadoop-builder --chown=stackable:stackable \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
+    .
+
+# Copy the HBase connector including required modules
+COPY --from=hbase-connectors-builder --chown=stackable:stackable \
+    /stackable/spark/jars/* \
+    .
+
+# Copy modules required to access HBase
+COPY --from=hbase-builder --chown=stackable:stackable \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}.jar \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}.jar \
+    .
+# Copy modules required to access HBase if $HBASE == 2.4.x
+COPY --from=hbase-builder --chown=stackable:stackable \
+    /stackable/hbase/lib/client-facing-thirdparty/htrace-core4-*-incubating.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/slf4j-reload4j-*.jar \
+    .
+# Copy modules required to access HBase if $HBASE == 2.6.x
+COPY --from=hbase-builder --chown=stackable:stackable \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
+    .
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
@@ -181,10 +216,6 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 RUN curl -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
     && curl -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
     && curl -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
-
-COPY --chown=stackable:stackable --from=hbase-connectors-builder \
-    /stackable/spark/extra-jars/* \
-    .
 
 WORKDIR /stackable/jmx
 

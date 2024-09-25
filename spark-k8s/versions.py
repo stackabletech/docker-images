@@ -4,8 +4,8 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
-        "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
-        "hbase_long_version": "2.4.18",  # current Stackable LTS version
+        "hadoop": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
+        "hbase": "2.4.18",  # current Stackable LTS version
         "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
         "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
         "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
@@ -22,8 +22,8 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
-        "hadoop_long_version": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
-        "hbase_long_version": "2.4.18",  # current Stackable LTS version
+        "hadoop": "3.3.4",  # https://github.com/apache/spark/blob/6a5747d66e53ed0d934cdd9ca5c9bd9fde6868e6/pom.xml#L125
+        "hbase": "2.4.18",  # current Stackable LTS version
         "aws_java_sdk_bundle": "1.12.262",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.4
         "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.4
         "azure_keyvault_core": "1.0.0",  # https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
