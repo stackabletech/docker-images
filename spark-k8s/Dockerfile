@@ -43,8 +43,8 @@ COPY --chown=stackable:stackable \
 RUN patches/apply_patches.sh ${PRODUCT}
 
 
-# hbase-connectors-builder: Build the Spark HBase connector and required
-# JARs into /stackable/spark/jars
+# hbase-connectors-builder: Build the Spark HBase connector and copy
+# required JARs into /stackable/spark/jars
 FROM stackable/image/java-devel as hbase-connectors-builder
 
 ARG PRODUCT
@@ -151,7 +151,7 @@ WORKDIR /stackable/spark-${PRODUCT}
 
 COPY --chown=stackable:stackable --from=spark-source-builder \
     /stackable/spark/ \
-    .
+    ./
 
 # >>> Build spark
 # Compiling the tests takes a lot of time, so we skip them
@@ -179,36 +179,36 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-    .
+    ./
 
 # Copy modules required for abfs://
 COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
-    .
+    ./
 
 # Copy the HBase connector including required modules
 COPY --from=hbase-connectors-builder --chown=stackable:stackable \
     /stackable/spark/jars/* \
-    .
+    ./
 
 # Copy modules required to access HBase
 COPY --from=hbase-builder --chown=stackable:stackable \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}.jar \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}.jar \
-    .
+    ./
 # Copy modules required to access HBase if $HBASE == 2.4.x
 COPY --from=hbase-builder --chown=stackable:stackable \
     /stackable/hbase/lib/client-facing-thirdparty/htrace-core4-*-incubating.jar \
     /stackable/hbase/lib/client-facing-thirdparty/slf4j-reload4j-*.jar \
-    .
+    ./
 # Copy modules required to access HBase if $HBASE == 2.6.x
 COPY --from=hbase-builder --chown=stackable:stackable \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
-    .
+    ./
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
