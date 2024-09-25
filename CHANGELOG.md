@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
+- spark: Add HBase connector ([#878]).
 
 ### Changed
 
@@ -62,6 +63,7 @@ All notable changes to this project will be documented in this file.
 [#853]: https://github.com/stackabletech/docker-images/pull/853
 [#866]: https://github.com/stackabletech/docker-images/pull/866
 [#867]: https://github.com/stackabletech/docker-images/pull/867
+[#878]: https://github.com/stackabletech/docker-images/pull/878
 
 ## [24.7.0] - 2024-07-24
 
