@@ -178,7 +178,7 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 # Copy modules required for s3a://
 COPY --from=hadoop-builder --chown=stackable:stackable \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
