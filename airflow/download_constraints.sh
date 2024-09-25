@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 AIRFLOW_VERSION=${1:?"Missing version number argument (arg 1)"}
 PYTHON_VERSION=${2:-"3.9"}
 
@@ -11,7 +13,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${DIR}" > /dev/null || exit 1
 
 echo "Downloading constraints file for Airflow ${AIRFLOW_VERSION} (Python ${PYTHON_VERSION})"
-curl --fail -Ls "${URL}" -o "${FILENAME}"
+curl --fail -LSs "${URL}" -o "${FILENAME}"
 
 echo "Successfully pulled new constraints file: ${FILENAME}"
 popd > /dev/null || exit 1
