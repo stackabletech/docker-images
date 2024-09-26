@@ -10,6 +10,11 @@ ignored:
   # Reason: We use buildx which handles the build graph, no explicit image tags necessary
   - DL3006
 
+  # Warning: Pin versions in pip.
+  # https://github.com/hadolint/hadolint/wiki/DL3006
+  # Reason: So far we haven't pinned versions. If we decide to, we should do that as a separate piece of work.
+  - DL3013
+
   # Warning: Use the -y switch to avoid manual input dnf install -y <package>
   # https://github.com/hadolint/hadolint/wiki/DL3038
   # Reason: We set `assumeyes=True` in dnf.conf in our base image
