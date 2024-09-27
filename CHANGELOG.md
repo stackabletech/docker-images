@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
-- statsd-exporter: Add version 0.27.0 ([#866]).
+- statsd-exporter: Bump version to 0.27.1 ([#866], [#879]).
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
@@ -68,6 +68,7 @@ All notable changes to this project will be documented in this file.
 [#868]: https://github.com/stackabletech/docker-images/pull/868
 [#874]: https://github.com/stackabletech/docker-images/pull/874
 [#877]: https://github.com/stackabletech/docker-images/pull/877
+[#879]: https://github.com/stackabletech/docker-images/pull/879
 
 ## [24.7.0] - 2024-07-24
 
