@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - superset: Remove 2.1.3, 3.1.0 and 3.1.3 ([#866]).
 - zookeeper: Remove 3.8.4 ([#851]).
 - nifi: Remove 1.21.0 and 1.25.0 ([#868]).
+- druid: Remove `28.0.1` ([#880]).
 
 ### Fixed
 
@@ -69,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#874]: https://github.com/stackabletech/docker-images/pull/874
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#879]: https://github.com/stackabletech/docker-images/pull/879
+[#880]: https://github.com/stackabletech/docker-images/pull/880
 
 ## [24.7.0] - 2024-07-24
 
