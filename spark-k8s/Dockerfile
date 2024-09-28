@@ -104,6 +104,8 @@ SCALA_BINARY_VERSION=$( \
 #     at org.apache.hadoop.hbase.LocalHBaseCluster.startup(LocalHBaseCluster.java:407)
 #     at org.apache.hadoop.hbase.MiniHBaseCluster.init(MiniHBaseCluster.java:250)
 mvn \
+    --batch-mode \
+    --no-transfer-progress \
     --define spark.version="${PRODUCT}" \
     --define scala.version="${SCALA_VERSION}" \
     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
