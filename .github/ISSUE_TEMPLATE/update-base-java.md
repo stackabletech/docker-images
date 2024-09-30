@@ -6,6 +6,7 @@ about: >-
 title: >-
   chore(java-bases): Update container images ahead of Stackable Release XX.(X)X
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
