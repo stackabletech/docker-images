@@ -5,20 +5,23 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi8-minimal@sha256:5c6982aca8a8fdbc3ce304bc46e28c6a30572d6791ebd13968da197e75e4f042 AS builder
+FROM registry.access.redhat.com/ubi8-minimal@sha256:a47c89f02b39a98290f88204ed3d162845db0a0c464b319c2596cfd1e94b444e AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+# renovate: datasource=github-releases packageName=rust-lang/rust
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
-# IMPORTANT: Do not update until https://github.com/stackabletech/docker-images/pull/783 is merged
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
+# renovate: datasource=crate packageName=cargo-cyclonedx
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
 # Find the latest version here: https://crates.io/crates/cargo-auditable
+# renovate: datasource=crate packageName=cargo-auditable
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
+# renovate: datasource=github-releases packageName=protocolbuffers/protobuf
 ENV PROTOC_VERSION=27.3
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -64,7 +67,7 @@ WORKDIR /opt/protoc
 # Prost does not document which version of protoc it expects (https://docs.rs/prost-build/0.12.4/prost_build/), so this should be the latest upstream version
 # (within reason).
 RUN ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
-  && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
+  && curl --fail --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
   && rm protoc.zip
 ENV PROTOC=/opt/protoc/bin/protoc
@@ -73,8 +76,11 @@ WORKDIR /
 # IMPORTANT
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain $RUST_DEFAULT_TOOLCHAIN_VERSION \
- && . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION
+RUN <<EOF
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
+. "$HOME/.cargo/env"
+cargo --quiet install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
+EOF
 
 # Build artifacts will be available in /app.
 RUN mkdir /app
@@ -84,20 +90,21 @@ COPY shared/copy_artifacts.sh /
 ONBUILD WORKDIR /src
 ONBUILD COPY . /src
 
-ONBUILD RUN . "$HOME/.cargo/env" && cargo auditable --quiet build --release --workspace && cargo cyclonedx --output-pattern package --all --output-cdx
+ONBUILD RUN <<EOF
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release --workspace
+cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
-# Copy the "interesting" files into /app.
-ONBUILD RUN find /src/target/release \
-                -regextype egrep \
-                # The interesting binaries are all directly in ${BUILD_DIR}.
-                -maxdepth 1 \
-                # Well, binaries are executable.
-                -executable \
-                # Well, binaries are files.
-                -type f \
-                # Filter out tests.
-                ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
-                # Copy the matching files into /app.
-                -exec /copy_artifacts.sh {} \;
+# -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
+# -regex filters out tests
+# - exec copies matching files to /app
+find /src/target/release \
+  -regextype egrep \
+  -maxdepth 1 \
+  -executable \
+  -type f \
+  ! -regex ".*\-[a-fA-F0-9]{16,16}$" \
+  -exec /copy_artifacts.sh {} \;
 
-ONBUILD RUN echo "The following files will be copied to the runtime image: $(ls /app)"
+echo "The following files will be copied to the runtime image: $(ls /app)"
+EOF

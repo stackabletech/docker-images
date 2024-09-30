@@ -4,7 +4,7 @@ ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
+FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
@@ -33,6 +33,7 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
+        python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
@@ -41,7 +42,7 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-RUN python3 -m venv --system-site-packages /stackable/app && \
+RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
@@ -101,7 +102,7 @@ RUN mkdir -pv ${AIRFLOW_HOME} && \
     mkdir -pv ${AIRFLOW_HOME}/dags && \
     mkdir -pv ${AIRFLOW_HOME}/logs && \
     chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
-    curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+    curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
 
 COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh

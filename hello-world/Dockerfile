@@ -20,6 +20,6 @@ RUN microdnf update && \
 USER stackable
 WORKDIR /stackable
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar -o hello-world.jar
+RUN curl "https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar" -o hello-world.jar
 
 CMD ["java", "-jar", "hello-world.jar"]

@@ -37,6 +37,8 @@ Part of #xxx.
 - [ ] _Bump rust toolchain in operator-templating_
 ```
 
+This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+
 ```[tasklist]
 ### Acceptance
 - Done for [ubi8-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi8-rust-builder/Dockerfile)

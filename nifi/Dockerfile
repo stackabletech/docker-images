@@ -17,7 +17,7 @@ RUN microdnf update && \
 #
 WORKDIR /tmp
 RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
-        curl --fail -L "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
+        curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
         ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
     fi
 
@@ -36,11 +36,11 @@ COPY --chown=stackable:stackable nifi/stackable/patches /stackable/patches
 # else branch is required to build from source.
 #
 RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
-        curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
+        curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
         # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
         -o /stackable/stackable-bcrypt.jar && \
         # zip is different than tar and cannot be just piped, therefore the intermediate save and remove step to unzip
-        curl --fail -L https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.zip -o /stackable/nifi-${PRODUCT}-bin.zip && \
+        curl https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-bin.zip -o /stackable/nifi-${PRODUCT}-bin.zip && \
         unzip /stackable/nifi-${PRODUCT}-bin.zip && \
         rm /stackable/nifi-${PRODUCT}-bin.zip && \
         # Remove generated docs in binary
@@ -49,15 +49,15 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         # They need to be build from source, as https://mvnrepository.com/artifact/org.apache.nifi/nifi-iceberg-processors-nar does not ship the org.apache.hadoop.fs.s3a.S3AFileSystem (see https://github.com/apache/nifi/pull/6368#issuecomment-1502175258)
         # See https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/README.md for details on how to build them
         cd /stackable/nifi-${PRODUCT}/lib/ && \
-        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-processors-nar-${PRODUCT}-with-aws.nar" && \
-        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-nar-${PRODUCT}-with-aws.nar" && \
-        curl --fail -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-api-nar-${PRODUCT}-with-aws.nar" ; \
+        curl -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-processors-nar-${PRODUCT}-with-aws.nar" && \
+        curl -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-nar-${PRODUCT}-with-aws.nar" && \
+        curl -O "https://repo.stackable.tech/repository/packages/nifi/iceberg-nars/nifi-iceberg-services-api-nar-${PRODUCT}-with-aws.nar" ; \
     else \
-        curl --fail -L 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
+        curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
         # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
         -o /stackable/stackable-bcrypt.jar && \
         # Get the source release from nexus
-        curl --fail -L "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
+        curl "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
         unzip "nifi-${PRODUCT}-source-release.zip" && \
         # Clean up downloaded source after unzipping
         rm -rf "nifi-${PRODUCT}-source-release.zip" && \

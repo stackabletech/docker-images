@@ -20,20 +20,20 @@ COPY hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
 # At the same time a new HDFS Operator will still work with older images which do not have the symlink to the versionless jar.
 # After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
 # And then we can also remove the symlink to 0.16.1 from this Dockerfile.
-RUN curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
+RUN curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
 
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
-    curl --fail -L "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
+    curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
     ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
 WORKDIR /opt/protobuf-src
-RUN curl --fail -L -s -S https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
+RUN curl https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz && \
     tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner && \
     ./configure --prefix=/opt/protobuf && \
     make "-j$(nproc)" && \
@@ -60,7 +60,7 @@ COPY hadoop/stackable/patches /stackable/patches
 # Also skip building the yarn, mapreduce and minicluster modules: this will result in the modules being excluded but not all
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
+RUN curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
     mvn --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
@@ -99,7 +99,7 @@ WORKDIR /stackable
 # labels to build a rackID from.
 # Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
 
-RUN curl --fail -L "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
+RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
     mvn --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \

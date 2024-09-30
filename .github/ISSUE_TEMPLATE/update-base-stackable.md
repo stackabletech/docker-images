@@ -30,6 +30,8 @@ Part of #xxx.
 - [ ] _Link to the docker-images PR (product update)_
 ```
 
+This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+
 ```[tasklist]
 ### Acceptance
 - [ ] Can build the image locally

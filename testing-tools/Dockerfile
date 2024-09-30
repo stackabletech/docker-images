@@ -55,7 +55,7 @@ COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
 ENV PATH=/stackable/keycloak/bin:$PATH
-RUN curl --fail https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
     ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
 RUN pip install --no-cache-dir --upgrade pip && \
