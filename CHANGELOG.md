@@ -48,7 +48,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - hbase: link to phoenix server jar ([#811]).
-- trino: Correctly report Trino version ([#XXX]).
+- trino: Correctly report Trino version ([#881]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -72,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
 [#879]: https://github.com/stackabletech/docker-images/pull/879
+[#881]: https://github.com/stackabletech/docker-images/pull/881
 
 ## [24.7.0] - 2024-07-24
 
