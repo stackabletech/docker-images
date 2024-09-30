@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
 - kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
-- spark: Add HBase connector ([#878]).
+- spark: Add HBase connector ([#878, #882]).
 
 ### Changed
 
@@ -73,6 +73,7 @@ All notable changes to this project will be documented in this file.
 [#878]: https://github.com/stackabletech/docker-images/pull/878
 [#879]: https://github.com/stackabletech/docker-images/pull/879
 [#881]: https://github.com/stackabletech/docker-images/pull/881
+[#882]: https://github.com/stackabletech/docker-images/pull/882
 
 ## [24.7.0] - 2024-07-24
 
