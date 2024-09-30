@@ -56,9 +56,9 @@ RUN python3 -m venv /stackable/app \
         pydruid \
         python-ldap \
         trino[sqlalchemy] \
-        # Enables OIDC with superset. Since https://github.com/stackabletech/superset-operator/pull/530
-        # user can inject arbitrary python code into superset_conf.py. Thus OIDC configs can be changed
-        # and we want to offer necessary libraries
+        # Add optional dependencies for use in custom Superset configurations.
+        # Since https://github.com/stackabletech/superset-operator/pull/530
+        # admins can add custom configuration to superset_conf.py.
         Flask_OIDC==2.2.0 \
         Flask-OpenID==1.3.1\
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
