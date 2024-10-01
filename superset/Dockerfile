@@ -38,7 +38,7 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
-# hadolint ignore=DL3042
+# hadolint ignore=DL3042,SC2102
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
