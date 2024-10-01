@@ -10,15 +10,18 @@ All notable changes to this project will be documented in this file.
 - opa: Add version `0.67.1` ([#797]).
 - vector: Add version `0.41.1` ([#802], [#815], [#867]).
 - airflow: Add version `2.9.3` ([#809]).
+- airflow: Add version `2.10.2` ([#877]).
 - kafka: Add version `3.8.0` ([#813]).
 - hive: Add version `4.0.0` ([#818]).
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
-- statsd-exporter: Add version 0.27.0 ([#866]).
+- statsd-exporter: Bump version to 0.27.1 ([#866], [#879]).
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
+- kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
+- spark: Add HBase connector ([#878]).
 
 ### Changed
 
@@ -40,10 +43,12 @@ All notable changes to this project will be documented in this file.
 - statsd-exporter: Remove 0.26.1 ([#866]).
 - superset: Remove 2.1.3, 3.1.0 and 3.1.3 ([#866]).
 - zookeeper: Remove 3.8.4 ([#851]).
+- nifi: Remove 1.21.0 and 1.25.0 ([#868]).
 
 ### Fixed
 
 - hbase: link to phoenix server jar ([#811]).
+- trino: Correctly report Trino version ([#881]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -62,6 +67,12 @@ All notable changes to this project will be documented in this file.
 [#853]: https://github.com/stackabletech/docker-images/pull/853
 [#866]: https://github.com/stackabletech/docker-images/pull/866
 [#867]: https://github.com/stackabletech/docker-images/pull/867
+[#868]: https://github.com/stackabletech/docker-images/pull/868
+[#874]: https://github.com/stackabletech/docker-images/pull/874
+[#877]: https://github.com/stackabletech/docker-images/pull/877
+[#878]: https://github.com/stackabletech/docker-images/pull/878
+[#879]: https://github.com/stackabletech/docker-images/pull/879
+[#881]: https://github.com/stackabletech/docker-images/pull/881
 
 ## [24.7.0] - 2024-07-24
 

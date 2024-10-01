@@ -34,6 +34,7 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
+        python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
@@ -42,7 +43,7 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-RUN python3 -m venv --system-site-packages /stackable/app && \
+RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
