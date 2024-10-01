@@ -38,6 +38,7 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+# hadolint igonore=DL3042
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
@@ -71,7 +72,7 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         python-json-logger \
         cyclonedx-bom \
-    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
