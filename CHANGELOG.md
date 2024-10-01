@@ -69,7 +69,7 @@ All notable changes to this project will be documented in this file.
 [#866]: https://github.com/stackabletech/docker-images/pull/866
 [#867]: https://github.com/stackabletech/docker-images/pull/867
 [#868]: https://github.com/stackabletech/docker-images/pull/868
-[#872]: https://github.com/stackabletech/docker-images/pull/872 
+[#872]: https://github.com/stackabletech/docker-images/pull/872
 [#874]: https://github.com/stackabletech/docker-images/pull/874
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
