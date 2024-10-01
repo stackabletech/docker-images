@@ -38,6 +38,9 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+# DL3042 false-positive, --no-chache-dir is specified a few lines below.
+#        See https://github.com/hadolint/hadolint/issues/1042.
+# hadolint ignore=DL3042
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
@@ -55,7 +58,12 @@ RUN python3 -m venv /stackable/app \
         statsd \
         pydruid \
         python-ldap \
-        trino[sqlalchemy] \
+        'trino[sqlalchemy]' \
+        # Add optional dependencies for use in custom Superset configurations.
+        # Since https://github.com/stackabletech/superset-operator/pull/530
+        # admins can add custom configuration to superset_conf.py.
+        Flask_OIDC==2.2.0 \
+        Flask-OpenID==1.3.1\
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
         # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
@@ -66,7 +74,7 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         python-json-logger \
         cyclonedx-bom \
-    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
