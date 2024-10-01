@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
 - Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
+- Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872])
 
 ### Removed
 
@@ -68,6 +69,7 @@ All notable changes to this project will be documented in this file.
 [#866]: https://github.com/stackabletech/docker-images/pull/866
 [#867]: https://github.com/stackabletech/docker-images/pull/867
 [#868]: https://github.com/stackabletech/docker-images/pull/868
+[#872]: https://github.com/stackabletech/docker-images/pull/872
 [#874]: https://github.com/stackabletech/docker-images/pull/874
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
