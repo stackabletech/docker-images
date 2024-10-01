@@ -19,7 +19,7 @@ microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
 
-curl --fail -L https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar -o /stackable/hello-world.jar
+curl "https://repo.stackable.tech/repository/packages/hello-world/hello-world-${PRODUCT}.jar" -o /stackable/hello-world.jar
 
 # All files and folders owned by root to support running as arbitrary users
 # This is best practice as all container users will belong to the root group (0)

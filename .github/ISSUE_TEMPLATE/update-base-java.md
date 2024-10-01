@@ -40,17 +40,13 @@ we should also make new versions of Java available for use.
 - [ ] _Link to the docker-images PR (product update)_
 ```
 
-<!--
-Make this a regular list so it isn't easily editable from the rendered
-description?
--->
+This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+
 ```[tasklist]
 ### Acceptance
 - [ ] Can build a product image that uses the new version(s)
 - [ ] Both `java-base` and `java-devel` have the same Java versions in `versions.py`
 - [ ] Kuttl smoke test passes locally for a product using the new Java version
-- [ ] Release notes written in a comment below
-- [ ] Applicable `release-note` label added to this issue
 ```
 
 <details>

@@ -5,7 +5,7 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi8-minimal@sha256:5c6982aca8a8fdbc3ce304bc46e28c6a30572d6791ebd13968da197e75e4f042 AS builder
+FROM registry.access.redhat.com/ubi8-minimal@sha256:a47c89f02b39a98290f88204ed3d162845db0a0c464b319c2596cfd1e94b444e AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -67,7 +67,7 @@ WORKDIR /opt/protoc
 # Prost does not document which version of protoc it expects (https://docs.rs/prost-build/0.12.4/prost_build/), so this should be the latest upstream version
 # (within reason).
 RUN ARCH=$(arch | sed 's/^aarch64$/aarch_64/') \
-  && curl --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
+  && curl --fail --location --output protoc.zip "https://repo.stackable.tech/repository/packages/protoc/protoc-${PROTOC_VERSION}-linux-${ARCH}.zip" \
   && unzip protoc.zip \
   && rm protoc.zip
 ENV PROTOC=/opt/protoc/bin/protoc

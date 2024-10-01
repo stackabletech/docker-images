@@ -26,7 +26,7 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-curl --fail -L "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 patches/apply_patches.sh ${PRODUCT}
 
@@ -54,7 +54,7 @@ fi
 cp /stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
 rm -rf /stackable/apache-hive-${PRODUCT}-src
 
-curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # We're removing these to make the intermediate layer smaller

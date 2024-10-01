@@ -20,7 +20,7 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
+RUN curl "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
@@ -48,7 +48,7 @@ EOF
 
 WORKDIR /stackable
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
+RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
@@ -57,8 +57,19 @@ COPY --chown=stackable:stackable trino/stackable/patches/${PRODUCT} /stackable/t
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
     ./patches/apply_patches.sh ${PRODUCT} && \
+    # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
+    # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
+    # why someone would do that over just picking the version from the pom.xml, but they propably
+    # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
+    # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
+    # smoke test checks that "select version()" is working.
+    git init && \
+    git config user.email "fake.commiter@stackable.tech" && \
+    git config user.name "Fake commiter" && \
+    git commit --allow-empty --message "Fake commit, so that we can create a tag" && \
+    git tag ${PRODUCT} && \
     # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-    ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
+    ./mvnw package -DskipTests --projects="!docs,!core/trino-server-rpm" && \
     # Delete the worst intermediate build products to free some space
     rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT} && \
     # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
@@ -108,7 +119,7 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable trino/stackable/patches/apply_patches.sh /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable trino/stackable/patches/jmx-exporter/${JMX_EXPORTER} /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/${JMX_EXPORTER}
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
+RUN curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \

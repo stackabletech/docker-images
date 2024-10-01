@@ -32,6 +32,7 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
+        python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
@@ -40,7 +41,7 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-RUN python3 -m venv --system-site-packages /stackable/app && \
+RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
     source /stackable/app/bin/activate && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
@@ -98,7 +99,7 @@ rm -rf /var/cache/yum
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-curl --fail -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
 chmod a+x /entrypoint.sh
 chmod a+x /run-airflow.sh
 chmod +x /usr/bin/tini
