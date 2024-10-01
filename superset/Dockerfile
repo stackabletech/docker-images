@@ -58,7 +58,7 @@ RUN python3 -m venv /stackable/app \
         statsd \
         pydruid \
         python-ldap \
-        trino[sqlalchemy] \
+        'trino[sqlalchemy]' \
         # Add optional dependencies for use in custom Superset configurations.
         # Since https://github.com/stackabletech/superset-operator/pull/530
         # admins can add custom configuration to superset_conf.py.
