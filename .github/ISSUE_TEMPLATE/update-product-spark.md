@@ -6,20 +6,31 @@ about: >-
 title: >-
   chore(spark): Update container images ahead of Stackable Release XX.(X)X
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
 Part of #xxx.
 
+<!--
+This gives hints to the person doing the work.
+Add/Change/Remove anything that isn't applicable anymore
+-->
+- Add: `x.x.x`
+- Remove: `y.y.y`
+
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label.
+> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+>
+> [1]: https://github.com/orgs/stackabletech/projects/10
 
 ```[tasklist]
 ### Update tasks
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `spark/upload_new_spark_version.sh`).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
+- [ ] Ensure that the transitive dependencies in `versions.py` are compatible with the Spark version(s).
 - [ ] Update other dependencies if applicable (eg: python, jmx_exporter, aws_java_sdk_bundle, etc).
 - [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
