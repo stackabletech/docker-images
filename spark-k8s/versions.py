@@ -4,7 +4,7 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
-        "hadoop": "3.3.6",  # Hadoop version defined in ../hbase/versions.py
+        "hadoop": "3.3.6",  # Hadoop version defined in ../hbase/versions.py to reduce build time and disk requirements
         "hbase": "2.4.18",  # current Stackable LTS version
         "aws_java_sdk_bundle": "1.12.367",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
         "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.6
