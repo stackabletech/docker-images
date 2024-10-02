@@ -156,7 +156,7 @@ EOF
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT}/dist,
 # download additional JARs and perform checks, like log4shell check.
-FROM stackable/image/java-devel as spark-builder
+FROM stackable/image/java-devel AS spark-builder
 
 ARG PRODUCT
 ARG HADOOP
