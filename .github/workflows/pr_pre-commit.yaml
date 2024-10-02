@@ -6,6 +6,7 @@ on:
 
 env:
   HADOLINT_VERSION: "v2.12.0"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   pre-commit:
@@ -14,25 +15,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+      - uses: stackabletech/actions/run-pre-commit@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
         with:
-          python-version: '3.12'
-      - name: Setup Hadolint
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          LOCATION_DIR="$HOME/.local/bin"
-          LOCATION_BIN="$LOCATION_DIR/hadolint"
-
-          SYSTEM=$(uname -s)
-          ARCH=$(uname -m)
-
-          mkdir -p "$LOCATION_DIR"
-          curl -sL -o "${LOCATION_BIN}" "https://github.com/hadolint/hadolint/releases/download/${{ env.HADOLINT_VERSION }}/hadolint-$SYSTEM-$ARCH"
-          chmod 700 "${LOCATION_BIN}"
-
-          echo "$LOCATION_DIR" >> "$GITHUB_PATH"
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-        with:
-          extra_args: "--from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}"
+          python-version: ${{ env.PYTHON_VERSION }}
+          hadolint: ${{ env.HADOLINT_VERSION }}
