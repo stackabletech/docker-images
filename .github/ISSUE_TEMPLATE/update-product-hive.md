@@ -6,14 +6,24 @@ about: >-
 title: >-
   chore(hive): Update container images ahead of Stackable Release XX.(X)X
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
 Part of #xxx.
 
+<!--
+This gives hints to the person doing the work.
+Add/Change/Remove anything that isn't applicable anymore
+-->
+- Add: `x.x.x`
+- Remove: `y.y.y`
+
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label.
+> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+>
+> [1]: https://github.com/orgs/stackabletech/projects/10
 
 ```[tasklist]
 ### Update tasks
