@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - superset: Remove 2.1.3, 3.1.0 and 3.1.3 ([#866]).
 - zookeeper: Remove 3.8.4 ([#851]).
 - nifi: Remove 1.21.0 and 1.25.0 ([#868]).
+- kafka: Remove `kubectl`, as we are now using listener-op ([#XXX]).
 
 ### Fixed
 

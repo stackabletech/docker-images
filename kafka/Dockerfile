@@ -65,14 +65,10 @@ LABEL name="Apache Kafka" \
       summary="The Stackable image for Apache Kafka." \
       description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-# This is needed for kubectl
-COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 RUN microdnf update && \
     microdnf install \
     # needed by kcat for kerberos
     cyrus-sasl-gssapi \
-    # Can be removed once listener-operator integration is used
-    kubectl && \
     microdnf clean all && \
     rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
