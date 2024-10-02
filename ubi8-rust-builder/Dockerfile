@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# check=error=true
 
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
 # This builder is kept around and updated until the last SDP release is EOL that uses UBI8 (which is 24.3) so we'll remove this sometime in the summer of 2025

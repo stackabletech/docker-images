@@ -1,0 +1,49 @@
+diff --git a/pom.xml b/pom.xml
+index e849cd1..f514e14 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -157,7 +157,10 @@
+     <extra.enforcer.version>1.5.1</extra.enforcer.version>
+     <restrict-imports.enforcer.version>0.14.0</restrict-imports.enforcer.version>
+     <!--Internally we use a different version of protobuf. See hbase-protocol-shaded-->
+-    <external.protobuf.version>2.5.0</external.protobuf.version>
++    <!-- com.google repo will be used except on Aarch64 platform. -->
++    <external.protobuf.groupId>com.google.protobuf</external.protobuf.groupId>
++    <external.protobuf.version>2.6.1</external.protobuf.version>
++    <external.protobuf.exe.version>${external.protobuf.version}</external.protobuf.exe.version>
+     <protobuf.plugin.version>0.5.0</protobuf.plugin.version>
+     <commons-io.version>2.11.0</commons-io.version>
+     <avro.version>1.7.7</avro.version>
+@@ -933,5 +936,19 @@
+         </plugins>
+       </build>
+     </profile>
++    <!-- use com.github.os72 on aarch64 platform -->
++    <profile>
++      <id>aarch64</id>
++      <properties>
++        <external.protobuf.groupId>com.github.os72</external.protobuf.groupId>
++        <external.protobuf.exe.version>2.6.1-build3</external.protobuf.exe.version>
++      </properties>
++      <activation>
++        <os>
++          <family>linux</family>
++          <arch>aarch64</arch>
++        </os>
++      </activation>
++    </profile>
+   </profiles>
+ </project>
+diff --git a/spark/pom.xml b/spark/pom.xml
+index 3f1eb21..fcdc73e 100644
+--- a/spark/pom.xml
++++ b/spark/pom.xml
+@@ -84,7 +84,7 @@
+           <artifactId>protobuf-maven-plugin</artifactId>
+           <version>${protobuf.plugin.version}</version>
+           <configuration>
+-            <protocArtifact>com.google.protobuf:protoc:${external.protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
++            <protocArtifact>${external.protobuf.groupId}:protoc:${external.protobuf.exe.version}:exe:${os.detected.classifier}</protocArtifact>
+             <protoSourceRoot>${basedir}/src/main/protobuf/</protoSourceRoot>
+             <clearOutputDirectory>false</clearOutputDirectory>
+             <checkStaleness>true</checkStaleness>

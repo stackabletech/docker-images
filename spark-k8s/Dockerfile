@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# check=error=true
 
 # hadoop-builder: Provides Hadoop libraries
 FROM stackable/image/hadoop AS hadoop-builder
@@ -8,7 +9,7 @@ FROM stackable/image/hbase AS hbase-builder
 
 # spark-source-builder: Download the Spark source code into
 # /stackable/spark and apply the patches
-FROM stackable/image/java-devel as spark-source-builder
+FROM stackable/image/java-devel AS spark-source-builder
 
 ARG PRODUCT
 
@@ -45,21 +46,25 @@ RUN patches/apply_patches.sh ${PRODUCT}
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
 # required JARs into /stackable/spark/jars
-FROM stackable/image/java-devel as hbase-connectors-builder
+FROM stackable/image/java-devel AS hbase-connectors-builder
 
 ARG PRODUCT
 ARG HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
 
-WORKDIR /stackable
-
-# Download the hbase-connectors source code
 RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
-    | tar xz
-ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
 EOF
+
+WORKDIR /stackable
 
 # Copy the pom.xml file from the patched Spark source code to read the
 # versions used by Spark. The pom.xml defines child modules which are
@@ -68,6 +73,23 @@ EOF
 COPY --chown=stackable:stackable --from=spark-source-builder \
     /stackable/spark/pom.xml \
     spark/
+
+# Download the hbase-connectors source code
+RUN <<EOF
+curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
+    | tar xz
+ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
+EOF
+
+# Patch the hbase-connectors source code
+WORKDIR /stackable/hbase-connectors
+COPY --chown=stackable:stackable \
+    spark-k8s/stackable/hbase-connectors-patches/apply_patches.sh \
+    patches/apply_patches.sh
+COPY --chown=stackable:stackable \
+    spark-k8s/stackable/hbase-connectors-patches/${HBASE_CONNECTOR} \
+    patches/${HBASE_CONNECTOR}
+RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
 
 WORKDIR /stackable/hbase-connectors/spark
 
@@ -134,7 +156,7 @@ EOF
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT}/dist,
 # download additional JARs and perform checks, like log4shell check.
-FROM stackable/image/java-devel as spark-builder
+FROM stackable/image/java-devel AS spark-builder
 
 ARG PRODUCT
 ARG HADOOP
@@ -243,8 +265,7 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
 # ===
 
-
-FROM stackable/image/java-base as final
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG PYTHON
@@ -283,7 +304,7 @@ ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
 ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
 ENV PYSPARK_PYTHON=/usr/bin/python
-ENV PYTHONPATH=$SPARK_HOME/python:$PYTHONPATH
+ENV PYTHONPATH=$SPARK_HOME/python
 
 COPY --chown=stackable:stackable --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=stackable:stackable --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json

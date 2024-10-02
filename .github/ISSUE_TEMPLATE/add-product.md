@@ -5,6 +5,7 @@ about: >-
 title: >-
   tracking: Add new product <PRODUCT>
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---

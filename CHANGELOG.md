@@ -21,13 +21,14 @@ All notable changes to this project will be documented in this file.
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
 - kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
-- spark: Add HBase connector ([#878]).
+- spark: Add HBase connector ([#878], [#882]).
 
 ### Changed
 
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
 - Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
+- Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872])
 
 ### Removed
 
@@ -68,11 +69,13 @@ All notable changes to this project will be documented in this file.
 [#866]: https://github.com/stackabletech/docker-images/pull/866
 [#867]: https://github.com/stackabletech/docker-images/pull/867
 [#868]: https://github.com/stackabletech/docker-images/pull/868
+[#872]: https://github.com/stackabletech/docker-images/pull/872
 [#874]: https://github.com/stackabletech/docker-images/pull/874
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
 [#879]: https://github.com/stackabletech/docker-images/pull/879
 [#881]: https://github.com/stackabletech/docker-images/pull/881
+[#882]: https://github.com/stackabletech/docker-images/pull/882
 
 ## [24.7.0] - 2024-07-24
 
