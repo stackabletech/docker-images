@@ -7,7 +7,7 @@ index 0ed96d087bc..9ebb6af4567 100644
      <woodstox.version>5.4.0</woodstox.version>
      <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
 -    <nodejs.version>v12.22.1</nodejs.version>
-+    <nodejs.version>v14.0.0</nodejs.version>
++    <nodejs.version>v14.17.0</nodejs.version>
      <yarnpkg.version>v1.22.5</yarnpkg.version>
      <apache-ant.version>1.10.13</apache-ant.version>
      <jmh.version>1.20</jmh.version>

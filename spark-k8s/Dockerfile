@@ -53,14 +53,18 @@ ARG HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
 
-WORKDIR /stackable
-
-# Download the hbase-connectors source code
 RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
-    | tar xz
-ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
 EOF
+
+WORKDIR /stackable
 
 # Copy the pom.xml file from the patched Spark source code to read the
 # versions used by Spark. The pom.xml defines child modules which are
@@ -69,6 +73,23 @@ EOF
 COPY --chown=stackable:stackable --from=spark-source-builder \
     /stackable/spark/pom.xml \
     spark/
+
+# Download the hbase-connectors source code
+RUN <<EOF
+curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
+    | tar xz
+ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
+EOF
+
+# Patch the hbase-connectors source code
+WORKDIR /stackable/hbase-connectors
+COPY --chown=stackable:stackable \
+    spark-k8s/stackable/hbase-connectors-patches/apply_patches.sh \
+    patches/apply_patches.sh
+COPY --chown=stackable:stackable \
+    spark-k8s/stackable/hbase-connectors-patches/${HBASE_CONNECTOR} \
+    patches/${HBASE_CONNECTOR}
+RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
 
 WORKDIR /stackable/hbase-connectors/spark
 
