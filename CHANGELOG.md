@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
+- hbase: Add hostname as required by the graceful-stop.sh script ([#876]).
 - kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
 - spark: Add HBase connector ([#878], [#882]).
 
@@ -71,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#868]: https://github.com/stackabletech/docker-images/pull/868
 [#872]: https://github.com/stackabletech/docker-images/pull/872
 [#874]: https://github.com/stackabletech/docker-images/pull/874
+[#876]: https://github.com/stackabletech/docker-images/pull/876
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
 [#879]: https://github.com/stackabletech/docker-images/pull/879
