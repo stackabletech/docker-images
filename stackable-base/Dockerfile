@@ -47,6 +47,9 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b
 
 # intentionally unused
 ARG PRODUCT
+ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_NAME
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -110,21 +113,22 @@ microdnf install \
 ###
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
-groupadd --gid 1000 --system stackable
+groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
 
 # The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
 # See https://github.com/moby/moby/issues/5419#issuecomment-41478290 for more context
 # Making this a system user prevents a mail dir from being created, expiry of passwords etc. but it will warn:
 #   useradd warning: stackable's uid 1000 is greater than SYS_UID_MAX 999
 # We can safely ignore this warning, to get rid of the warning we could change /etc/login.defs but that does not seem worth it
+# We'll leave the home directory hardcoded to /stackable because I don't want to deal with which chars might be valid and which might not in user name vs. directory
 useradd \
   --no-log-init \
-  --gid stackable \
-  --uid 1000 \
+  --gid ${STACKABLE_USER_GID} \
+  --uid ${STACKABLE_USER_UID} \
   --system \
   --create-home \
   --home-dir /stackable \
-   stackable
+   ${STACKABLE_USER_NAME}
 microdnf remove shadow-utils
 microdnf clean all
 
@@ -140,8 +144,8 @@ microdnf clean all
 
 echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile
 
-chown stackable:stackable /stackable/.bashrc
-chown stackable:stackable /stackable/.profile
+chown ${STACKABLE_USER_UID}:0 /stackable/.bashrc
+chown ${STACKABLE_USER_UID}:0 /stackable/.profile
 
 cp /root/.curlrc /stackable/.curlrc
 chown stackable:0 /stackable/.curlrc
@@ -167,8 +171,8 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
-COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them

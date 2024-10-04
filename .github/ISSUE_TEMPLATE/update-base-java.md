@@ -64,7 +64,7 @@ This list should be completed by the assignee(s), once respective PRs have been 
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.12
+pip install image-tools-stackabletech==0.0.13
 
 # Test a product image can build, eg: ZooKeeper
 bake --product zookeeper=x.y.z # where x.y.z is a valid product version using the newly added Java version

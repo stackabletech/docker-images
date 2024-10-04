@@ -63,7 +63,7 @@ This list should be completed by the assignee(s), once respective PRs have been 
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.12
+pip install image-tools-stackabletech==0.0.13
 
 bake --product opa=x.y.z # where x.y.z is the new version added in this PR
 

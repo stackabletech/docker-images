@@ -13,19 +13,20 @@ FROM stackable/image/java-devel AS hive-builder
 ARG PRODUCT
 ARG HADOOP
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=stackable:stackable hive/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable /stackable
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Cache mounts are owned by root by default
-# We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
-RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
+# We need to explicitly give the uid to use
+RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 curl "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
 
 patches/apply_patches.sh ${PRODUCT}
@@ -77,6 +78,7 @@ ARG RELEASE
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
+ARG STACKABLE_USER_UID
 
 
 ARG NAME="Apache Hive metastore"
@@ -108,16 +110,16 @@ rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manif
 rm -rf /var/cache/yum
 EOF
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
 RUN ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
 
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
-COPY --chown=stackable:stackable --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}
 RUN ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
@@ -132,7 +134,7 @@ RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stac
 RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
 RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
 
-COPY --chown=stackable:stackable --from=hive-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY hive/licenses /licenses
 
 ENV HADOOP_HOME=/stackable/hadoop
