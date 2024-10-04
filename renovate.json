@@ -3,5 +3,8 @@
   "extends": [
     "github>stackabletech/.github:renovate-config",
     "docker:pinDigests"
-  ]
+  ],
+  "github-actions": {
+    "fileMatch": ["(^\\.github\\/actions)\\/[^/]+\\.ya?ml?$"]
+  }
 }
