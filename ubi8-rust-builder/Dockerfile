@@ -6,7 +6,7 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi8-minimal@sha256:a47c89f02b39a98290f88204ed3d162845db0a0c464b319c2596cfd1e94b444e AS builder
+FROM registry.access.redhat.com/ubi8-minimal@sha256:7583ca0ea52001562bd81a961da3f75222209e6192e4e413ee226cff97dbd48c AS builder
 
 LABEL maintainer="Stackable GmbH"
 
