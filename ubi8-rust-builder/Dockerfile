@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
 # Deprecation notice: Stackable has moved to UBI9 as of its 24.7 release
@@ -6,7 +6,7 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi8-minimal/5c64772edd19c77a158ea216?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi8-minimal@sha256:a47c89f02b39a98290f88204ed3d162845db0a0c464b319c2596cfd1e94b444e AS builder
+FROM registry.access.redhat.com/ubi8-minimal@sha256:7583ca0ea52001562bd81a961da3f75222209e6192e4e413ee226cff97dbd48c AS builder
 
 LABEL maintainer="Stackable GmbH"
 

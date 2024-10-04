@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: shard
-        uses: stackabletech/actions/shard@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/shard@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           product-name: ${{ env.PRODUCT_NAME }}
     outputs:
@@ -50,14 +50,14 @@ jobs:
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/build-product-image@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/publish-image@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -67,7 +67,7 @@ jobs:
           source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/publish-image@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -90,7 +90,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/publish-index-manifest@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -99,7 +99,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable0.0.0-dev
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@93b2a5a023487ef9509f24600c12374553478f1d # 0.0.1
+        uses: stackabletech/actions/publish-index-manifest@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
