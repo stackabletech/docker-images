@@ -8,6 +8,7 @@ FROM stackable/image/stackable-base AS final
 ARG PRODUCT
 ARG KCAT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Kafka Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -29,11 +30,11 @@ RUN microdnf install  \
     && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
-COPY --chown=stackable:stackable --from=kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 
-COPY --chown=stackable:stackable kafka-testing-tools/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 kafka-testing-tools/licenses /licenses
 
 ENTRYPOINT ["/stackable/kcat"]

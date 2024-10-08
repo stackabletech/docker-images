@@ -103,39 +103,46 @@ LABEL io.openshift.tags="ubi9,stackable,hive,sdp"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
-RUN <<EOF
-microdnf update
-microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-rm -rf /var/cache/yum
-EOF
-
-USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
-RUN ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
 
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}
-RUN ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
+
+RUN <<EOF
+microdnf update
+microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+rm -rf /var/cache/yum
+
+ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
+ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
 # Add S3 Support for Hive (support for s3a://)
-RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hive-metastore/lib/
-RUN cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/hive-metastore/lib/
+cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hive-metastore/lib/
+cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/hive-metastore/lib/
 
 # Add Azure ABFS support (support for abfs://)
-RUN cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/hive-metastore/lib/
-RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
-RUN cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
+cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/hive-metastore/lib/
+cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
+cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
+
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all container users will belong to the root group (0)
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY hive/licenses /licenses
+
+USER ${STACKABLE_USER_UID}
 
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive-metastore
