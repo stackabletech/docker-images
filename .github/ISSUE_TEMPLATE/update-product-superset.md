@@ -6,20 +6,31 @@ about: >-
 title: >-
   chore(superset): Update container images ahead of Stackable Release XX.(X)X
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
 Part of #xxx.
 
+<!--
+This gives hints to the person doing the work.
+Add/Change/Remove anything that isn't applicable anymore
+-->
+- Add: `x.x.x`
+- Remove: `y.y.y`
+
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label.
+> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+>
+> [1]: https://github.com/orgs/stackabletech/projects/10
 
 ```[tasklist]
 ### Update tasks
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Create a new constraints file (see `superset/README.md`).
 - [ ] Create a file: `superset/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
+- [ ] Delete old constraint files and patch directories.
 - [ ] Update other dependencies if applicable (eg: python, auth_lib, etc).
 - [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
@@ -54,7 +65,7 @@ This list should be completed by the assignee(s), once respective PRs have been 
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.12
+pip install image-tools-stackabletech==0.0.13
 
 bake --product superset=x.y.z # where x.y.z is the new version added in this PR
 

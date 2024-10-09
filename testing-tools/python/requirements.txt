@@ -5,7 +5,7 @@ charset-normalizer==3.3.2 #
 hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 nipyapi==0.20.0
-pandas==2.2.2
+pandas==2.2.3
 trino==0.329.0
 # gssapi/kerberos/pure-sasl are needed for using the python metastore client with kerberos.
 gssapi==1.8.3
