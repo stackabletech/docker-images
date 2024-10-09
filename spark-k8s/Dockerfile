@@ -12,6 +12,7 @@ FROM stackable/image/hbase AS hbase-builder
 FROM stackable/image/java-devel AS spark-source-builder
 
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
 RUN <<EOF
 microdnf update
@@ -34,10 +35,10 @@ EOF
 
 WORKDIR /stackable/spark
 
-COPY --chown=stackable:stackable \
+COPY --chown=${STACKABLE_USER_UID}:0 \
     spark-k8s/stackable/patches/apply_patches.sh \
     patches/apply_patches.sh
-COPY --chown=stackable:stackable \
+COPY --chown=${STACKABLE_USER_UID}:0 \
     spark-k8s/stackable/patches/${PRODUCT} \
     patches/${PRODUCT}
 
@@ -52,6 +53,7 @@ ARG PRODUCT
 ARG HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
+ARG STACKABLE_USER_UID
 
 RUN <<EOF
 microdnf update
@@ -70,7 +72,7 @@ WORKDIR /stackable
 # versions used by Spark. The pom.xml defines child modules which are
 # not required and not copied, therefore mvn must be called with the
 # parameter --non-recursive.
-COPY --chown=stackable:stackable --from=spark-source-builder \
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/spark/pom.xml \
     spark/
 
@@ -83,10 +85,10 @@ EOF
 
 # Patch the hbase-connectors source code
 WORKDIR /stackable/hbase-connectors
-COPY --chown=stackable:stackable \
+COPY --chown=${STACKABLE_USER_UID}:0 \
     spark-k8s/stackable/hbase-connectors-patches/apply_patches.sh \
     patches/apply_patches.sh
-COPY --chown=stackable:stackable \
+COPY --chown=${STACKABLE_USER_UID}:0 \
     spark-k8s/stackable/hbase-connectors-patches/${HBASE_CONNECTOR} \
     patches/${HBASE_CONNECTOR}
 RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
@@ -173,7 +175,7 @@ ARG TINI
 
 WORKDIR /stackable/spark-${PRODUCT}
 
-COPY --chown=stackable:stackable --from=spark-source-builder \
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/spark/ \
     ./
 
@@ -200,35 +202,35 @@ RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Copy modules required for s3a://
-COPY --from=hadoop-builder --chown=stackable:stackable \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
-COPY --from=hadoop-builder --chown=stackable:stackable \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
     ./
 
 # Copy the HBase connector including required modules
-COPY --from=hbase-connectors-builder --chown=stackable:stackable \
+COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/spark/jars/* \
     ./
 
 # Copy modules required to access HBase
-COPY --from=hbase-builder --chown=stackable:stackable \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}.jar \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}.jar \
     ./
 # Copy modules required to access HBase if $HBASE == 2.4.x
-COPY --from=hbase-builder --chown=stackable:stackable \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/client-facing-thirdparty/htrace-core4-*-incubating.jar \
     /stackable/hbase/lib/client-facing-thirdparty/slf4j-reload4j-*.jar \
     ./
 # Copy modules required to access HBase if $HBASE == 2.6.x
-COPY --from=hbase-builder --chown=stackable:stackable \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
@@ -271,7 +273,7 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG JMX_EXPORTER
-
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Spark" \
     maintainer="info@stackable.tech" \
@@ -306,21 +308,20 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
-COPY --chown=stackable:stackable --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
-COPY --chown=stackable:stackable --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
-COPY --chown=stackable:stackable --from=spark-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
 RUN ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar \
     # Symlink example jar, so that we can easily use it in tests
     && ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY spark-k8s/stackable /stackable
 COPY spark-k8s/licenses /licenses
-
 
 WORKDIR /stackable/spark
 ENTRYPOINT [ "/stackable/run-spark.sh" ]

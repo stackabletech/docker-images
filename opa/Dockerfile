@@ -86,32 +86,41 @@ FROM stackable/image/vector
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Open Policy Agent" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
-      summary="The Stackable image for OPA." \
+      summary="The Stackable image for Open Policy Agent (OPA)." \
       description="This image is deployed by the Stackable Operator for OPA."
-
-RUN microdnf update && \
-    microdnf install \
-    # Required for filtering logs
-    jq && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 COPY opa/licenses /licenses
 
-USER stackable
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa /stackable/opa/opa
+COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
+
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
+
+RUN <<EOF
+microdnf update
+
+# jq: Required for filtering logs
+microdnf install \
+  jq
+microdnf clean all
+rm -rf /var/cache/yum
+
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all container users will belong to the root group (0)
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/opa
-
-COPY --from=opa-builder /opa/opa /stackable/opa/opa
-COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
-COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
-
-COPY --chown=stackable:stackable opa/stackable/bin /stackable/opa/bin
 
 ENV PATH="${PATH}:/stackable/opa:/stackable/opa/bin"
 
