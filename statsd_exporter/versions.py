@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "0.27.0",
+        "product": "0.27.1",
         "stackable-base": "1.0.0",
     }
 ]
