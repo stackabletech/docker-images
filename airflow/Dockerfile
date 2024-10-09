@@ -4,7 +4,7 @@ ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} as gitsync-image
+FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
@@ -48,7 +48,10 @@ RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
     pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs cyclonedx-bom && \
-    cyclonedx-py environment --schema-version 1.5 --outfile /stackable/airflow-${PRODUCT}.cdx.json
+    cyclonedx-py environment --schema-version 1.5 --outfile /stackable/airflow-${PRODUCT}.cdx.json && \
+    # Needed for OIDC
+    pip install --no-cache-dir --upgrade Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
 
 WORKDIR /stackable
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
