@@ -172,6 +172,7 @@ ARG WOODSTOX_CORE
 ARG JMX_EXPORTER
 ARG TARGETARCH
 ARG TINI
+ARG STACKABLE_USER_UID
 
 WORKDIR /stackable/spark-${PRODUCT}
 
@@ -283,24 +284,6 @@ LABEL name="Apache Spark" \
     summary="The Stackable image for Apache Spark with PySpark support." \
     description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
 
-RUN microdnf update && \
-    microdnf install \
-    gzip \
-    hostname \
-    # required for spark startup scripts
-    procps \
-    "python${PYTHON}" \
-    "python${PYTHON}-pip" \
-    zip \
-    # This is needed by the Spark UI to display process information using jps and jmap
-    # Copying the binaries from the builder stage failed.
-    "java-${JAVA_VERSION}-openjdk-devel" \
-    && microdnf clean all \
-    && rm -rf /var/cache/yum
-
-RUN ln -s /usr/bin/python${PYTHON} /usr/bin/python \
-    && ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
-
 
 ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
@@ -308,20 +291,44 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
+COPY spark-k8s/stackable /stackable
+COPY spark-k8s/licenses /licenses
+
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
-RUN ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar \
-    # Symlink example jar, so that we can easily use it in tests
-    && ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+RUN <<EOF
+microdnf update
+# procps: required for spark startup scripts
+# java-*-openjdk-devel: This is needed by the Spark UI to display process information using jps and jmap
+#                       Copying just the binaries from the builder stage failed.
+microdnf install \
+  gzip \
+  hostname \
+  procps \
+  "python${PYTHON}" \
+  "python${PYTHON}-pip" \
+  zip \
+  "java-${JAVA_VERSION}-openjdk-devel"
+microdnf clean all
+rm -rf /var/cache/yum
+
+ln -s /usr/bin/python${PYTHON} /usr/bin/python
+ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
+
+ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+# Symlink example jar, so that we can easily use it in tests
+ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all container users will belong to the root group (0)
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
 
 USER ${STACKABLE_USER_UID}
-WORKDIR /stackable
-
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/licenses /licenses
 
 WORKDIR /stackable/spark
 ENTRYPOINT [ "/stackable/run-spark.sh" ]

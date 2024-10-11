@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
   README file ([#819]).
 - Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
 - Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872])
+- Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890])
 
 ### Removed
 
@@ -63,6 +64,7 @@ All notable changes to this project will be documented in this file.
 [#822]: https://github.com/stackabletech/docker-images/pull/822
 [#846]: https://github.com/stackabletech/docker-images/pull/846
 [#848]: https://github.com/stackabletech/docker-images/pull/848
+[#849]: https://github.com/stackabletech/docker-images/pull/849
 [#851]: https://github.com/stackabletech/docker-images/pull/851
 [#852]: https://github.com/stackabletech/docker-images/pull/852
 [#853]: https://github.com/stackabletech/docker-images/pull/853
@@ -76,6 +78,7 @@ All notable changes to this project will be documented in this file.
 [#879]: https://github.com/stackabletech/docker-images/pull/879
 [#881]: https://github.com/stackabletech/docker-images/pull/881
 [#882]: https://github.com/stackabletech/docker-images/pull/882
+[#890]: https://github.com/stackabletech/docker-images/pull/890
 
 ## [24.7.0] - 2024-07-24
 

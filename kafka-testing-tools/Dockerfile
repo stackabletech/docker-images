@@ -34,7 +34,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /s
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
-
 COPY --chown=${STACKABLE_USER_UID}:0 kafka-testing-tools/licenses /licenses
 
 ENTRYPOINT ["/stackable/kcat"]
