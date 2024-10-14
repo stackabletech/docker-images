@@ -50,7 +50,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: ./.github/actions/publish-image
+        uses: stackabletech/actions/publish-image@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -60,7 +60,7 @@ jobs:
           source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: ./.github/actions/publish-image
+        uses: stackabletech/actions/publish-image@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -85,7 +85,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: ./.github/actions/publish-index-manifest
+        uses: stackabletech/actions/publish-index-manifest@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -94,7 +94,7 @@ jobs:
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: ./.github/actions/publish-index-manifest
+        uses: stackabletech/actions/publish-index-manifest@e8781161bc1eb037198098334cec6061fe24b6c3 # 0.0.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build

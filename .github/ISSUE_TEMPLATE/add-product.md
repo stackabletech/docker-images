@@ -5,6 +5,7 @@ about: >-
 title: >-
   tracking: Add new product <PRODUCT>
 labels: []
+# Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
@@ -22,6 +23,7 @@ assignees: ''
 - [ ] Add a new `dev_<PRODUCT>.yml` GitHub Action workflow in the
       `.github/workflows` folder. Use existing local action whenever possible
       or consider creating a new one when there is no fitting action available.
+- [ ] Run `.scripts/update_readme_badges.sh` to generate the new status badge.
 ```
 
 _Please consider updating this template if these instructions are wrong, or

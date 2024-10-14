@@ -1,5 +1,5 @@
 ---
-name: Pre-Release Container Image Updates
+name: Early Pre-Release Container Image Updates
 about: This template can be used to track the container image updates leading up to the next Stackable release
 title: "chore: Update Container Images for Stackable Release XX.(X)X"
 labels: ['epic']
@@ -8,7 +8,7 @@ assignees: ''
 
 <!--
     DO NOT REMOVE THIS COMMENT. It is intended for people who might copy/paste from the previous release issue.
-    This was created by an issue template: https://github.com/stackabletech/issues/issues/new/choose.
+    This was created by an issue template: https://github.com/stackabletech/docker-images/issues/new/choose.
 -->
 
 <!-- Update this with the parent tracking issue for the release -->

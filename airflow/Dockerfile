@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true;skip=InvalidDefaultArgInFrom
 
 ARG GIT_SYNC
 
@@ -13,7 +14,6 @@ FROM stackable/image/vector AS airflow-build-image
 ARG PRODUCT
 ARG PYTHON
 ARG TARGETARCH
-ARG TARGETOS
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 
@@ -60,7 +60,7 @@ ARG PYTHON
 ARG RELEASE
 ARG TINI
 ARG TARGETARCH
-ARG TARGETOS
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
@@ -71,50 +71,55 @@ LABEL name="Apache Airflow" \
       description="This image is deployed by the Stackable Operator for Apache Airflow."
 
 COPY airflow/licenses /licenses
-
-# Update image and install python
-RUN microdnf update && \
-    microdnf install \
-    ca-certificates \
-    cyrus-sasl \
-    git \
-    libpq \
-    openldap \
-    openldap-clients \
-    openssh-clients \
-    openssl-libs \
-    openssl-pkcs11 \
-    python${PYTHON} \
-    socat \
-    unixODBC && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
+# Update image and install python
+RUN <<EOF
+microdnf update
+microdnf install \
+  ca-certificates \
+  cyrus-sasl \
+  git \
+  libpq \
+  openldap \
+  openldap-clients \
+  openssh-clients \
+  openssl-libs \
+  openssl-pkcs11 \
+  python${PYTHON} \
+  socat \
+  unixODBC
+microdnf clean all
+rm -rf /var/cache/yum
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-RUN mkdir -pv ${AIRFLOW_HOME} && \
-    mkdir -pv ${AIRFLOW_HOME}/dags && \
-    mkdir -pv ${AIRFLOW_HOME}/logs && \
-    chown --recursive stackable:stackable ${AIRFLOW_HOME} && \
-    curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+chmod a+x /entrypoint.sh
+chmod a+x /run-airflow.sh
+chmod +x /usr/bin/tini
 
-COPY airflow/stackable/utils/entrypoint.sh /entrypoint.sh
-COPY airflow/stackable/utils/run-airflow.sh /run-airflow.sh
-RUN chmod a+x /entrypoint.sh && \
-    chmod a+x /run-airflow.sh && \
-    chmod +x /usr/bin/tini
+mkdir -pv ${AIRFLOW_HOME}
+mkdir -pv ${AIRFLOW_HOME}/dags
+mkdir -pv ${AIRFLOW_HOME}/logs
 
-COPY --from=airflow-build-image --chown=stackable:stackable /stackable/ ${HOME}/
-COPY --from=gitsync-image --chown=stackable:stackable /git-sync /stackable/git-sync
+# All files and folders owned by root to support running as arbitrary users
+# This is best practice as all container users will belong to the root group (0)
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
+
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
