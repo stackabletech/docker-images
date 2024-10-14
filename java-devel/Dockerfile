@@ -9,6 +9,7 @@ FROM stackable/image/stackable-base
 
 ARG PRODUCT
 
+# See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
 name=Adoptium
