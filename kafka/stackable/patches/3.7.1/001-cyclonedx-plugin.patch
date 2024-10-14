@@ -1,8 +1,8 @@
 diff --git a/build.gradle b/build.gradle
-index 32e6e8f..7bfe6c2 100644
+index 32e6e8f..d496382 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,22 @@ plugins {
+@@ -48,6 +48,45 @@ plugins {
    // artifacts - see https://github.com/johnrengelman/shadow/issues/901
    id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
    id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
@@ -20,8 +20,31 @@ index 32e6e8f..7bfe6c2 100644
 +    outputName = "bom"
 +    // The file format generated, can be xml, json or all for generating both. Defaults to 'all'
 +    outputFormat = "json"
-+	// Fixes: https://github.com/gradle/gradle/issues/6854
-+	skipConfigs = ["incrementalScalaAnalysisFortest", "incrementalScalaAnalysisFormain", "compileClasspath", "testCompileClasspath"]
++    includeConfigs = ["runtimeClasspath"]
++    skipProjects = [
++      'upgrade-system-tests-0100',
++      'upgrade-system-tests-0101',
++      'upgrade-system-tests-0102',
++      'upgrade-system-tests-0110',
++      'upgrade-system-tests-10',
++      'upgrade-system-tests-11',
++      'upgrade-system-tests-20',
++      'upgrade-system-tests-21',
++      'upgrade-system-tests-22',
++      'upgrade-system-tests-23',
++      'upgrade-system-tests-24',
++      'upgrade-system-tests-25',
++      'upgrade-system-tests-26',
++      'upgrade-system-tests-27',
++      'upgrade-system-tests-28',
++      'upgrade-system-tests-30',
++      'upgrade-system-tests-31',
++      'upgrade-system-tests-32',
++      'upgrade-system-tests-33',
++      'upgrade-system-tests-34',
++      'upgrade-system-tests-35',
++      'upgrade-system-tests-36'
++    ]
  }
  
  ext {
