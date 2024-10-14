@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "1.8.0",
+        "product": "8",
         "vector": "0.41.1",
     },
     {
