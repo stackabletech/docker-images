@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add version `455` ([#822]).
 - trino-cli: Add version `455` ([#822]).
 - spark: Add version `3.5.2` ([#848]).
-- statsd-exporter: Bump version to 0.27.1 ([#866], [#879]).
+- statsd-exporter: Bump version to `0.27.1` ([#866], [#879]).
 - hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
 - hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
   the Azure Data Lake Storage ([#853]).
@@ -38,13 +38,14 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
 - trino: Remove versions `414`, `442` ([#822]).
 - trino-cli: Remove version `451` ([#822]).
-- hbase: Remove 2.4.17 ([#846]).
-- omid: Remove 1.1.0 and 1.1.1 ([#846]).
-- spark: Remove 3.4.2 and 3.4.3 ([#848]).
-- statsd-exporter: Remove 0.26.1 ([#866]).
-- superset: Remove 2.1.3, 3.1.0 and 3.1.3 ([#866]).
-- zookeeper: Remove 3.8.4 ([#851]).
-- nifi: Remove 1.21.0 and 1.25.0 ([#868]).
+- hbase: Remove `2.4.17` ([#846]).
+- omid: Remove `1.1.0` and `1.1.1` ([#846]).
+- spark: Remove `3.4.2` and `3.4.3` ([#848]).
+- statsd-exporter: Remove `0.26.1` ([#866]).
+- superset: Remove `2.1.3`, `3.1.0` and `3.1.3` ([#866]).
+- zookeeper: Remove `3.8.4` ([#851]).
+- nifi: Remove `1.21.0` and `1.25.0` ([#868]).
+- druid: Remove `28.0.1` ([#880]).
 
 ### Fixed
 
@@ -74,6 +75,7 @@ All notable changes to this project will be documented in this file.
 [#877]: https://github.com/stackabletech/docker-images/pull/877
 [#878]: https://github.com/stackabletech/docker-images/pull/878
 [#879]: https://github.com/stackabletech/docker-images/pull/879
+[#880]: https://github.com/stackabletech/docker-images/pull/880
 [#881]: https://github.com/stackabletech/docker-images/pull/881
 [#882]: https://github.com/stackabletech/docker-images/pull/882
 
