@@ -17,6 +17,7 @@ LABEL name="Stackable image for OpenJDK" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
 
+# See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
 name=Adoptium
