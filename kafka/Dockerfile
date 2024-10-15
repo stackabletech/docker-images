@@ -3,7 +3,7 @@
 
 FROM stackable/image/kcat AS kcat
 
-FROM stackable/image/java-devel as kafka-builder
+FROM stackable/image/java-devel AS kafka-builder
 
 ARG PRODUCT
 ARG SCALA
