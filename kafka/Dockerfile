@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/kcat AS kcat
 
@@ -28,7 +29,7 @@ WORKDIR /stackable
 COPY --chown=stackable:stackable kafka/stackable/patches/apply_patches.sh /stackable/kafka-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=stackable:stackable kafka/stackable/patches/${PRODUCT} /stackable/kafka-${PRODUCT}-src/patches/${PRODUCT}
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC .
+RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC .
 RUN cd kafka-${PRODUCT}-src && \
     ./patches/apply_patches.sh ${PRODUCT} && \
     # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
@@ -41,7 +42,8 @@ RUN cd kafka-${PRODUCT}-src && \
     rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/ && \
     rm -rf /stackable/kafka-${PRODUCT}-src
 
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
+# TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
+RUN curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
