@@ -16,8 +16,6 @@ COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 RUN microdnf update \
     && microdnf install \
         cyrus-sasl-devel \
-        # Needed to find all patch files, used in `apply_patches.sh`
-        findutils \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
         diffutils \
         # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python

@@ -27,8 +27,9 @@ All notable changes to this project will be documented in this file.
 
 - ci: Rename local actions, adjust action inputs and outputs, add definition
   README file ([#819]).
-- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783])
-- Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872])
+- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783]).
+- Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872]).
+- java: migrate to temurin jdk/jre ([#894]).
 
 ### Removed
 
@@ -78,6 +79,7 @@ All notable changes to this project will be documented in this file.
 [#880]: https://github.com/stackabletech/docker-images/pull/880
 [#881]: https://github.com/stackabletech/docker-images/pull/881
 [#882]: https://github.com/stackabletech/docker-images/pull/882
+[#894]: https://github.com/stackabletech/docker-images/pull/894
 
 ## [24.7.0] - 2024-07-24
 
