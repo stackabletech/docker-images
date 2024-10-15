@@ -3,10 +3,11 @@
 
 FROM stackable/image/stackable-base
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
 WORKDIR /statsd_exporter
 
-RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
+RUN --mount=type=cache,id=go-statsd-exporter,uid=${STACKABLE_USER_UID},target=/go_cache <<EOF
 microdnf update
 
 # Tar and gzip are used to unpack the statsd_exporter source
