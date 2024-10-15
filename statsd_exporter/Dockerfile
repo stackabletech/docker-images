@@ -24,9 +24,7 @@ rm -rf /var/cache/yum
 export GOPATH=/go_cache
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
-EOF
 
-RUN --mount=type=cache,id=go-statsd-exporter,uid=1000,target=/go_cache <<EOF
 curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
 (
   cd "statsd_exporter-${PRODUCT}" || exit
