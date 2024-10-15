@@ -67,7 +67,6 @@ else
 end)' /tmp/sbom.json > /stackable/airflow-${PRODUCT}.cdx.json
 
 rm /tmp/sbom.json
-microdnf remove jq
 EOF
 
 WORKDIR /stackable
