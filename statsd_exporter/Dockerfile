@@ -41,4 +41,5 @@ curl --fail -L "https://repo.stackable.tech/repository/packages/statsd_exporter/
   go build -o ../statsd_exporter
   /go_cache/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT}.cdx.json -packages -files
 )
+rm -rf "statsd_exporter-${PRODUCT}"
 EOF
