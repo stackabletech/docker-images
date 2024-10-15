@@ -68,12 +68,12 @@ ENV GOOS=$TARGETOS
 # git - needed by the cyclonedx-gomod tool to determine the version of OPA
 # golang - used to build OPA
 RUN microdnf update && \
-microdnf install \
-gzip \
-git \
-golang \
-tar && \
-microdnf clean all
+    microdnf install \
+    git \
+    golang \
+    gzip \
+    tar && \
+    microdnf clean all
 
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 RUN go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
