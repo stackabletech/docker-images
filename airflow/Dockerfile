@@ -64,7 +64,7 @@ jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow==${PRODUCT}"))
 else
     .
-end)' /tmp/sbom.json > /stackable/airflow-${PRODUCT}.cdx.json
+end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
 
 rm /tmp/sbom.json
 EOF
