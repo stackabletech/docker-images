@@ -22,6 +22,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 export GOPATH=/go_cache
+# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
 EOF
 
