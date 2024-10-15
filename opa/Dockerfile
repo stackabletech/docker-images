@@ -9,7 +9,6 @@ ARG BUNDLE_BUILDER_VERSION
 RUN microdnf update \
   && microdnf install \
     cmake \
-    findutils \
     gcc \
     gcc-c++ \
     git \
