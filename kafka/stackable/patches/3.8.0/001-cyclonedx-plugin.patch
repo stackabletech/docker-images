@@ -1,12 +1,12 @@
 diff --git a/build.gradle b/build.gradle
-index 92082fe..033eb91 100644
+index 92082fe..bd7f6e2 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,6 +48,46 @@ plugins {
    // artifacts - see https://github.com/johnrengelman/shadow/issues/901
    id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
    id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
-+  id 'org.cyclonedx.bom' version '1.9.0'
++  id 'org.cyclonedx.bom' version '1.10.0'
 +}
 +
 +cyclonedxBom {
