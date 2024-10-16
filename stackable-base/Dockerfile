@@ -80,6 +80,12 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 RUN <<EOF
 microdnf update
 
+# **findutils**
+# Needed to find all patch files, used in `apply_patches.sh`, and helpful for debugging
+# Added 2024-10: Last vulnerability in 2007, only two vulnerabilities in total, a risk we accept
+# https://nvd.nist.gov/vuln/search/results?form_type=Advanced&results_type=overview&search_type=all&isCpeNameSearch=false&cpe_vendor=cpe%3A%2F%3Agnu&cpe_product=cpe%3A%2F%3Agnu%3Afindutils
+# cpe:2.3:a:gnu:findutils:*:*:*:*:*:*:*:*
+#
 # **iputils**
 # To make debugging easier, includes things like ping
 # Added 2024-03: We cannot find any vulnerabilities in the past years
@@ -103,6 +109,7 @@ microdnf update
 # https://nvd.nist.gov/vuln/search/results?adv_search=true&isCpeNameSearch=true&query=cpe%3A2.3%3Aa%3Agnu%3Atar%3A-%3A*%3A*%3A*%3A*%3A*%3A*%3A*
 # cpe:2.3:a:gnu:tar:-:*:*:*:*:*:*:*
 microdnf install \
+  findutils \
   iputils \
   less \
   nano \

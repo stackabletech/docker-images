@@ -123,8 +123,8 @@ pip install --no-cache-dir nipyapi==0.19.1 && \
 # This can be removed once older versions / operators using this are no longer supported
 ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF

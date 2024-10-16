@@ -95,8 +95,8 @@ rm /stackable/omid-tso-server/conf/hbase-site.xml
 # To support arbitrary user ids on OpenShift, this folder must belong to the root group.
 mkdir /stackable/logs
 
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
