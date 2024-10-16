@@ -5,8 +5,11 @@
 set -x
 set -euo pipefail
 
+# master, regionserver, rest
 HBASE_ROLE_NAME="$1"
+# k8s service name for this role+group combo
 HBASE_ROLE_SERVICE_NAME="$2"
+# 16010 for master, 16020 for regionservers etc.
 HBASE_ROLE_SERVICE_PORT="$3"
 
 # TODO: remove hard coded svc.cluster.local
