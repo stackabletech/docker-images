@@ -27,7 +27,10 @@ handle_term_signal() {
   if [ "${term_child_pid}" ]; then
     if [ "regionserver" == "${HBASE_ROLE_NAME}" ]; then
       echo "Running pre-shutdown command: /stackable/hbase/bin/hbase org.apache.hadoop.hbase.util.RegionMover ${REGION_MOVER_OPTS}"
-      /stackable/hbase/bin/hbase org.apache.hadoop.hbase.util.RegionMover "${REGION_MOVER_OPTS}"
+      # REGION_MOVER_OPTS is a string that contains multiple arguments and needs to be spliced here
+      # therefore disable shellcheck for this line
+      # shellcheck disable=SC2086
+      /stackable/hbase/bin/hbase org.apache.hadoop.hbase.util.RegionMover ${REGION_MOVER_OPTS}
       echo "Done pre-shutdown command"
     fi
     kill -TERM "${term_child_pid}" 2>/dev/null
@@ -55,7 +58,7 @@ mkdir -p /stackable/conf
 cp /stackable/tmp/hdfs/hdfs-site.xml /stackable/conf
 cp /stackable/tmp/hdfs/core-site.xml /stackable/conf
 cp /stackable/tmp/hbase/* /stackable/conf
-cp /stackable/tmp/log_config/log4j.properties /stackable/conf
+cp /stackable/tmp/log_config/log4j* /stackable/conf
 
 rm -f /stackable/log/_vector/shutdown
 prepare_signal_handlers
