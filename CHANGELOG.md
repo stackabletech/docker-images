@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872]).
 - java: migrate to temurin jdk/jre ([#894]).
 - tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
-- Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890]).
+- Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
 
 ### Removed
 
@@ -85,6 +85,7 @@ All notable changes to this project will be documented in this file.
 [#890]: https://github.com/stackabletech/docker-images/pull/890
 [#894]: https://github.com/stackabletech/docker-images/pull/894
 [#896]: https://github.com/stackabletech/docker-images/pull/896
+[#897]: https://github.com/stackabletech/docker-images/pull/897
 
 ## [24.7.0] - 2024-07-24
 
