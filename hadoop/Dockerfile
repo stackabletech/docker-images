@@ -169,8 +169,8 @@ find . -name 'hadoop-*tests.jar' -type f -delete
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
 
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF

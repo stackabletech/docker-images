@@ -133,8 +133,8 @@ cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackabl
 cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
 cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
 
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
