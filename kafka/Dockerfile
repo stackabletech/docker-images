@@ -11,7 +11,6 @@ ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-USER ${STACKABLE_USER_UID}
 RUN <<EOF
 microdnf update
 
@@ -23,14 +22,14 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable kafka/stackable/patches/apply_patches.sh /stackable/kafka-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=stackable:stackable kafka/stackable/patches/${PRODUCT} /stackable/kafka-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/apply_patches.sh /stackable/kafka-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/kafka-${PRODUCT}-src/patches/${PRODUCT}
 
-RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC .
-RUN cd kafka-${PRODUCT}-src && \
+RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
+    cd kafka-${PRODUCT}-src && \
     ./patches/apply_patches.sh ${PRODUCT} && \
     # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
     # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
@@ -73,7 +72,7 @@ LABEL name="Apache Kafka" \
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses

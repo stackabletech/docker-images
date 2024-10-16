@@ -65,8 +65,6 @@ jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
-
-rm /tmp/sbom.json
 EOF
 
 WORKDIR /stackable
