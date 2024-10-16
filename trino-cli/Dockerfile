@@ -5,6 +5,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Trino CLI" \
       maintainer="info@stackable.tech" \
@@ -22,14 +23,20 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-USER stackable
-WORKDIR /stackable
 
-COPY --chown=stackable:stackable trino-cli/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 trino-cli/licenses /licenses
 
 WORKDIR /stackable/trino-cli
 
-RUN curl -O https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar \
-    && ln -s trino-cli-${PRODUCT}-executable.jar trino-cli-executable.jar
+RUN <<EOF
+curl -O https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar
+ln -s trino-cli-${PRODUCT}-executable.jar trino-cli-executable.jar
 
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+USER ${STACKABLE_USER_UID}
 ENTRYPOINT ["java", "-jar", "/stackable/trino-cli/trino-cli-executable.jar"]
