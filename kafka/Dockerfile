@@ -9,8 +9,9 @@ ARG PRODUCT
 ARG SCALA
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
@@ -27,28 +28,12 @@ RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}
 RUN curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
     -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
-COPY --chown=stackable:stackable kafka/stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
 RUN curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
     -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/kafka_${SCALA}-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/kafka_${SCALA}-${PRODUCT}
-# ===
 
 FROM stackable/image/java-base AS final
 
@@ -56,6 +41,7 @@ ARG RELEASE
 ARG PRODUCT
 ARG SCALA
 ARG KCAT
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Kafka" \
       maintainer="info@stackable.tech" \
@@ -67,32 +53,38 @@ LABEL name="Apache Kafka" \
 
 # This is needed for kubectl
 COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
-RUN microdnf update && \
-    microdnf install \
-    # needed by kcat for kerberos
-    cyrus-sasl-gssapi \
-    # Can be removed once listener-operator integration is used
-    kubectl && \
-    microdnf clean all && \
-    rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
-    rm -rf /var/cache/yum
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
-USER stackable
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable kafka/licenses /licenses
+RUN <<EOF
+microdnf update
+# cyrus-sasl-gssapi: needed by kcat for kerberos
+# kubectl: Can be removed once listener-operator integration is used
+microdnf install \
+  cyrus-sasl-gssapi \
+  kubectl
 
-# We copy opa-authorizer.jar and jmx-exporter through the builder image to have an absolutely minimal final image
-# (e.g. we don't even need curl in it).
-COPY --chown=stackable:stackable --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
-COPY --chown=stackable:stackable --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
-COPY --chown=stackable:stackable --from=kcat /licenses /licenses
+microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+rm -rf /var/cache/yum
 
-RUN ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat && \
-    # kcat was located in /stackable/kcat - legacy
-    ln -s /stackable/bin/kcat /stackable/kcat && \
-    ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat
+# kcat was located in /stackable/kcat - legacy
+ln -s /stackable/bin/kcat /stackable/kcat
+ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+USER ${STACKABLE_USER_UID}
 
 ENV PATH="${PATH}:/stackable/bin:/stackable/kafka/bin"
 
