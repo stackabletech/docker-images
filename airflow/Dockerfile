@@ -61,7 +61,7 @@ cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
 
 # Break circular dependencies by removing the apache-airflow dependency from the providers
 jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
-    .dependsOn |= map(select(. != "apache-airflow==${PRODUCT}"))
+    .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT}'"))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
