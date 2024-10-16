@@ -318,6 +318,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stacka
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
 
@@ -367,4 +368,4 @@ ENV PATH="${PATH}:/stackable/bin:/stackable/hbase/bin"
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
 WORKDIR /stackable/hbase
-CMD ["./bin/hbase", "master", "start" ]
+CMD ["./bin/hbase-entrypoint", "master", "localhost", "16010" ]
