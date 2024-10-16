@@ -37,7 +37,7 @@ curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exp
   git commit -m "dummy"
   git tag "${PRODUCT}"
   go build -o ../statsd_exporter
-  /go_cache/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT}.cdx.json -packages -files
+  $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT}.cdx.json -packages -files
 )
 rm -rf "statsd_exporter-${PRODUCT}"
 EOF
