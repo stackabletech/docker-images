@@ -5,6 +5,7 @@ FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG DELETE_CACHES="true"
+ARG STACKABLE_USER_UID
 
 RUN <<EOF
 microdnf update
@@ -17,13 +18,13 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
-COPY --chown=stackable:stackable omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
 
-RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
   curl https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
   cd /stackable/phoenix-omid-${PRODUCT} || exit
@@ -62,6 +63,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
@@ -73,31 +75,33 @@ LABEL name="Apache Phoenix Omid" \
 
 COPY omid/licenses /licenses
 
-COPY --chown=stackable:stackable omid/stackable /stackable
-COPY --chown=stackable:stackable --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
-COPY --chown=stackable:stackable --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
 
 RUN <<EOF
-  microdnf update
-  microdnf clean all
-  rm -rf /var/cache/yum
+microdnf update
+microdnf clean all
+rm -rf /var/cache/yum
 
-  ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
-  ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
-  curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
-  -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-  chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-  # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
-  rm /stackable/omid-tso-server/conf/hbase-site.xml
+ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
+ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+-o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+# omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
+rm /stackable/omid-tso-server/conf/hbase-site.xml
 
-  # To support arbitrary user ids on OpenShift, this folder must belong to the root group.
-  mkdir /stackable/logs
-  chown -R 1000:0 /stackable/logs
-  chgrp -R 0 /stackable/logs
-  chmod -R g=u /stackable/logs
+# To support arbitrary user ids on OpenShift, this folder must belong to the root group.
+mkdir /stackable/logs
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
 EOF
 
-USER 1000
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/omid-tso-server
 
 ENV HOME=/stackable
