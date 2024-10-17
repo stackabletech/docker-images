@@ -22,7 +22,7 @@ HBASE_ROLE_SERVICE_HOST="${HOSTNAME}.${HBASE_ROLE_SERVICE_NAME}"
 REGION_MOVER_OPTS="--regionserverhost ${HBASE_ROLE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
 
 if [ -f /stackable/kerberos/krb5.conf ]; then
-  KERBEROS_REALM=$(grep -oP 'default_realm = \\K.*' /stackable/kerberos/krb5.conf)
+  KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
   export KERBEROS_REALM
 fi
 
