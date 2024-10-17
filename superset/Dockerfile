@@ -129,6 +129,13 @@ COPY superset/licenses /licenses
 
 COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
 USER ${STACKABLE_USER_UID}
 WORKDIR ${HOME}
 
