@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
   the Azure Data Lake Storage ([#853]).
 - kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
 - spark: Add HBase connector ([#878], [#882]).
+- hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#899]).
 
 ### Changed
 
@@ -85,6 +86,7 @@ All notable changes to this project will be documented in this file.
 [#890]: https://github.com/stackabletech/docker-images/pull/890
 [#894]: https://github.com/stackabletech/docker-images/pull/894
 [#896]: https://github.com/stackabletech/docker-images/pull/896
+[#899]: https://github.com/stackabletech/docker-images/pull/899
 
 ## [24.7.0] - 2024-07-24
 
