@@ -155,7 +155,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.bashrc
 chown ${STACKABLE_USER_UID}:0 /stackable/.profile
 
 cp /root/.curlrc /stackable/.curlrc
-chown stackable:0 /stackable/.curlrc
+chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
