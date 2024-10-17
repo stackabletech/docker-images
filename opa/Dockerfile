@@ -64,22 +64,36 @@ ARG TARGETOS
 ENV GOARCH=$TARGETARCH
 ENV GOOS=$TARGETOS
 
-# go - used to build OPA
 # gzip, tar - used to unpack the OPA source
+# git - needed by the cyclonedx-gomod tool to determine the version of OPA
+# golang - used to build OPA
 RUN microdnf update && \
     microdnf install \
-    go \
+    git \
+    golang \
     gzip \
     tar && \
     microdnf clean all
 
+# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
+RUN go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
 RUN curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
     tar -zxvf opa.tar.gz && \
-    mv opa-${PRODUCT} opa
+    mv "opa-${PRODUCT}" opa
 
 WORKDIR /opa
 
-RUN go build -o opa -buildmode=exe
+RUN <<EOF
+# Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of OPA
+git init
+git add go.mod
+git config --global user.email "dummy@stackable.tech"
+git config --global user.name "dummy"
+git commit -m "dummy"
+git tag "${PRODUCT}"
+go build -o opa -buildmode=exe
+~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output "opa_${PRODUCT}.cdx.json" -packages -files
+EOF
 
 FROM stackable/image/vector
 
@@ -98,6 +112,7 @@ LABEL name="Open Policy Agent" \
 COPY opa/licenses /licenses
 
 COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa /stackable/opa/opa
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa_${PRODUCT}.cdx.json /stackable/opa/
 COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
