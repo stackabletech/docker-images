@@ -2,6 +2,10 @@
 #
 # Entrypoint for HBase that ensures services are shutdown gracefuly
 #
+# Expects the following env vars:
+# - RUN_REGION_MOVER: if set to true, the region mover will be run before region server shutdown
+# - REGION_MOVER_OPTS: additional options for the region mover
+#
 set -x
 set -euo pipefail
 
@@ -30,7 +34,7 @@ prepare_signal_handlers() {
 
 handle_term_signal() {
   if [ "${term_child_pid}" ]; then
-    if [ "regionserver" == "${HBASE_ROLE_NAME}" ]; then
+    if [ "regionserver" == "${HBASE_ROLE_NAME}" ] && [ "true" == "${RUN_REGION_MOVER}" ]; then
       echo "Start pre-shutdown"
       # REGION_MOVER_OPTS is a string that contains multiple arguments and needs to be spliced here
       # therefore disable shellcheck for this line
