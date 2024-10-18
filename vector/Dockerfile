@@ -7,6 +7,7 @@ ARG PRODUCT
 ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
+ARG STACKABLE_USER_UID
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
 # As soon as an Init Container is done it'll need to tell the Vector sidecar that it can now also stop
@@ -25,4 +26,4 @@ RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" && \
     # Vector state, such as on-disk buffers, file checkpoints, and more.
     # Vector needs write permissions.
     mkdir --parents /stackable/vector/var && \
-    chown --recursive stackable:stackable /stackable/
+    chown --recursive ${STACKABLE_USER_UID}:0 /stackable/

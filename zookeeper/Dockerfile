@@ -8,11 +8,12 @@ FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
 # Copy patches and JMX config into the builder
-COPY --chown=stackable:stackable zookeeper/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable /stackable
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
@@ -65,6 +66,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache ZooKeeper" \
       maintainer="info@stackable.tech" \
@@ -79,21 +81,35 @@ RUN microdnf update && \
     rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
-USER stackable
 WORKDIR /stackable
 
 # Copy over the ZooKeeper binary folder
-COPY --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
-COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
 # to preserve the folder name with the version.
-RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+RUN <<EOF
+ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
 ENV PATH="${PATH}":/stackable/zookeeper/bin
 
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/zookeeper
 CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg"]
 
