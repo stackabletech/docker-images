@@ -12,8 +12,11 @@ ARG PRODUCT
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
+[Adoptium]
 name=Adoptium
-baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+# The adoptium mirror times-out often, so we have created a pull-through cache
+# baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+baseurl=https://build-repo.stackable.tech/repository/Adoptium/\$releasever/\$basearch
 enabled=1
 gpgcheck=1
 gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
