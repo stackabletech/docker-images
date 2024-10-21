@@ -49,7 +49,7 @@ RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
     # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
     pip install --no-cache-dir s3fs cyclonedx-bom && \
     # Needed for OIDC
-    pip install --no-cache-dir --upgrade Flask_OIDC==2.2.0 Flask-OpenID==1.3.1 && \
+    pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1 && \
     cyclonedx-py environment --schema-version 1.5 --outfile /stackable/airflow-${PRODUCT}.cdx.json
 
 WORKDIR /stackable
