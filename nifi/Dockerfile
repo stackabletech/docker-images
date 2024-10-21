@@ -5,6 +5,7 @@ FROM stackable/image/java-devel AS nifi-builder
 
 ARG PRODUCT
 ARG MAVEN_VERSION="3.9.8"
+ARG STACKABLE_USER_UID
 
 RUN microdnf update && \
     microdnf clean all && \
@@ -22,10 +23,10 @@ RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
         ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
     fi
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable nifi/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches /stackable/patches
 
 # NOTE: NiFi 1.21.0 source build does not work with the current arm64 git runners due to java heap issues:
 #
@@ -82,28 +83,11 @@ RUN if [[ "${PRODUCT}" == "1.21.0" ]] ; then \
         rm -rf /stackable/nifi-${PRODUCT}/docs ; \
     fi
 
-# ===
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/nifi-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/nifi-${PRODUCT}
-# ===
-
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache NiFi" \
       maintainer="info@stackable.tech" \
@@ -113,28 +97,39 @@ LABEL name="Apache NiFi" \
       summary="The Stackable image for Apache NiFi." \
       description="This image is deployed by the Stackable Operator for Apache NiFi."
 
-RUN microdnf update && \
-    microdnf install \
-    # Required to install nipyapi
-    python-pip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum && \
-    # The nipyapi is required for the ReportingTaskJob
-    pip install --no-cache-dir nipyapi==0.19.1 && \
-    # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
-    # This can be removed once older versions / operators using this are no longer supported
-    ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 
-USER stackable
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
 
-COPY --chown=stackable:stackable --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
-COPY --chown=stackable:stackable --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
+RUN <<EOF
+ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
-COPY --chown=stackable:stackable nifi/stackable/bin /stackable/bin
-COPY --chown=stackable:stackable nifi/licenses /licenses
-COPY --chown=stackable:stackable nifi/python /stackable/python
+microdnf update
 
-RUN ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
+# python-pip: Required to install nipyapi
+microdnf install \
+  python-pip
+
+microdnf clean all
+rm -rf /var/cache/yum
+
+# The nipyapi is required for the ReportingTaskJob
+pip install --no-cache-dir nipyapi==0.19.1 && \
+
+# For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
+# This can be removed once older versions / operators using this are no longer supported
+ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+USER ${STACKABLE_USER_UID}
 
 ENV HOME=/stackable
 ENV NIFI_HOME=/stackable/nifi

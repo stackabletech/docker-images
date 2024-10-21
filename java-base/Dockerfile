@@ -17,13 +17,22 @@ LABEL name="Stackable image for OpenJDK" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
 
-# We need to use EPEL, as openjdk 22 is not shipped with UBI9
-RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+# See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
+RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+# The adoptium mirror times-out often, so we have created a pull-through cache
+# baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+baseurl=https://build-repo.stackable.tech/repository/Adoptium/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
 
 RUN microdnf update && \
     microdnf install \
-    # Obviously needed to run Java programs
-    java-${PRODUCT}-openjdk-headless \
+    # Needed to run Java programs
+    "temurin-${PRODUCT}-jre" \
     # Needed, because otherwise e.g. Zookeeper fails with
     # Caused by: java.io.FileNotFoundException: /usr/lib/jvm/java-11-openjdk-11.0.20.0.8-2.el8.x86_64/lib/tzdb.dat (No such file or directory)
     tzdata-java \
@@ -34,7 +43,7 @@ RUN microdnf update && \
 
 COPY java-base/licenses /licenses
 
-ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jre"
 
 # This image doesn't include the development packages for Java.
 # For images that need the devel package (ex. Spark) use this env variable to
