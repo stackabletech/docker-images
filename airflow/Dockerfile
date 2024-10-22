@@ -54,6 +54,8 @@ pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
+# Needed for OIDC
+pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
