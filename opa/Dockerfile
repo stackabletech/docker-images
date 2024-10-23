@@ -85,10 +85,10 @@ WORKDIR /opa
 
 RUN <<EOF
 # Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of OPA
-git init && \
-git config user.email "fake.commiter@stackable.tech" && \
-git config user.name "Fake commiter" && \
-git commit --allow-empty --message "Fake commit, so that we can create a tag" &&
+git init
+git config user.email "fake.commiter@stackable.tech"
+git config user.name "Fake commiter"
+git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag "v${PRODUCT}"
 go build -o opa -buildmode=exe
 ~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output "opa_${PRODUCT}.cdx.json" -packages -files
