@@ -29,8 +29,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 trino-cli/licenses /licenses
 WORKDIR /stackable/trino-cli
 
 RUN <<EOF
-curl -O https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar
-ln -s trino-cli-${PRODUCT}-executable.jar trino-cli-executable.jar
+curl -O "https://repo.stackable.tech/repository/packages/trino-cli/trino-cli-${PRODUCT}-executable.jar"
+ln -s "trino-cli-${PRODUCT}-executable.jar" trino-cli-executable.jar
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
