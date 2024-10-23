@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
 - ci: Bump `stackabletech/actions` to 0.0.7 ([#901], [#903]).
+- ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
 
 ### Removed
 
@@ -90,6 +91,7 @@ All notable changes to this project will be documented in this file.
 [#897]: https://github.com/stackabletech/docker-images/pull/897
 [#898]: https://github.com/stackabletech/docker-images/pull/898
 [#901]: https://github.com/stackabletech/docker-images/pull/901
+[#902]: https://github.com/stackabletech/docker-images/pull/902
 [#903]: https://github.com/stackabletech/docker-images/pull/903
 
 ## [24.7.0] - 2024-07-24
