@@ -45,7 +45,7 @@ RUN python3 -m venv /stackable/app \
     && pip install \
         --no-cache-dir \
         --upgrade \
-        setuptools==66.1.1 \
+        setuptools==75.2.0 \
         pip \
     && pip install \
         --no-cache-dir \
