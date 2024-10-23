@@ -31,12 +31,11 @@ curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exp
   cd "statsd_exporter-${PRODUCT}" || exit
 
   # Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of statsd_exporter
-  git init
-  git add go.mod
-  git config --global user.email "dummy@stackable.tech"
-  git config --global user.name "dummy"
-  git commit -m "dummy"
-  git tag "${PRODUCT}"
+  git init && \
+  git config user.email "fake.commiter@stackable.tech" && \
+  git config user.name "Fake commiter" && \
+  git commit --allow-empty --message "Fake commit, so that we can create a tag" &&
+  git tag "v${PRODUCT}"
   go build -o ../statsd_exporter
   $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT}.cdx.json -packages -files
 )
