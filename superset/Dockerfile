@@ -121,7 +121,7 @@ rm -rf /var/cache/yum
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
+chown -R "${STACKABLE_USER_UID}:0" /stackable
 chmod -R g=u /stackable
 EOF
 
