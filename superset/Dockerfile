@@ -114,7 +114,7 @@ microdnf install \
   openldap-clients \
   openssl-libs \
   openssl-pkcs11 \
-  python${PYTHON}
+  "python${PYTHON}"
 
 microdnf clean all
 rm -rf /var/cache/yum
