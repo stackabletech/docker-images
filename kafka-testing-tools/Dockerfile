@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/kcat AS kcat
 
@@ -6,6 +7,8 @@ FROM stackable/image/stackable-base AS final
 
 ARG PRODUCT
 ARG KCAT
+ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Kafka Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -27,11 +30,10 @@ RUN microdnf install  \
     && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=stackable:stackable --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
 RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
-COPY --chown=stackable:stackable --from=kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
-
-COPY --chown=stackable:stackable kafka-testing-tools/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 kafka-testing-tools/licenses /licenses
 
 ENTRYPOINT ["/stackable/kcat"]

@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/stackable-base
 
@@ -6,6 +7,7 @@ ARG PRODUCT
 ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
+ARG STACKABLE_USER_UID
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
 # As soon as an Init Container is done it'll need to tell the Vector sidecar that it can now also stop
@@ -24,4 +26,4 @@ RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" && \
     # Vector state, such as on-disk buffers, file checkpoints, and more.
     # Vector needs write permissions.
     mkdir --parents /stackable/vector/var && \
-    chown --recursive stackable:stackable /stackable/
+    chown --recursive ${STACKABLE_USER_UID}:0 /stackable/

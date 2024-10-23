@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 # ==============================================================================
 # START ZOOKEEPER BUILDER
@@ -7,15 +8,16 @@ FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
 # Copy patches and JMX config into the builder
-COPY --chown=stackable:stackable zookeeper/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable /stackable
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC . && \
+RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC . && \
     # Apply any required patches
     patches/apply_patches.sh ${PRODUCT} && \
     cd /stackable/apache-zookeeper-${PRODUCT}/ && \
@@ -27,10 +29,11 @@ RUN curl --fail -L "https://repo.stackable.tech/repository/packages/zookeeper/ap
     # Unpack the archive which contains the build artifacts from above. Remove some
     # unused files to shrink the final image size.
     tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
+    mv /stackable/apache-zookeeper-${PRODUCT}/zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
     rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
     rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
     # Download the JMX exporter jar from our own repo
-    curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+    curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
@@ -63,6 +66,7 @@ FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache ZooKeeper" \
       maintainer="info@stackable.tech" \
@@ -77,21 +81,35 @@ RUN microdnf update && \
     rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt && \
     rm -rf /var/cache/yum
 
-USER stackable
 WORKDIR /stackable
 
 # Copy over the ZooKeeper binary folder
-COPY --chown=stackable:stackable --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
-COPY --chown=stackable:stackable --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
 # to preserve the folder name with the version.
-RUN ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+RUN <<EOF
+ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
 ENV PATH="${PATH}":/stackable/zookeeper/bin
 
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/zookeeper
 CMD ["bin/zkServer.sh", "start-foreground", "conf/zoo_sample.cfg"]
 

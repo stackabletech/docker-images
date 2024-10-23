@@ -1,0 +1,29 @@
+diff --git a/pom.xml b/pom.xml
+index 6af359c..0be2176 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -954,6 +954,24 @@
+                     </excludes>
+                 </configuration>
+             </plugin>
++            <plugin>
++              <groupId>org.cyclonedx</groupId>
++              <artifactId>cyclonedx-maven-plugin</artifactId>
++              <version>2.8.0</version>
++              <configuration>
++                  <projectType>application</projectType>
++                  <schemaVersion>1.5</schemaVersion>
++                  <skipNotDeployed>false</skipNotDeployed>
++              </configuration>
++              <executions>
++                <execution>
++                  <phase>package</phase>
++                  <goals>
++                    <goal>makeBom</goal>
++                  </goals>
++                </execution>
++              </executions>
++            </plugin>
+         </plugins>
+     </build>
+     <profiles>

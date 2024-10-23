@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/java-devel AS druid-builder
 
@@ -7,6 +8,7 @@ ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
+ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -30,11 +32,11 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-USER stackable
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:stackable druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=stackable:0 druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
+COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
@@ -44,16 +46,17 @@ COPY --chown=stackable:stackable druid/stackable/patches/${PRODUCT} /stackable/a
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
 
-RUN --mount=type=cache,id=maven-${PRODUCT},uid=1000,target=/stackable/.m2/repository \
-    --mount=type=cache,id=npm-${PRODUCT},uid=1000,target=/stackable/.npm \
-    --mount=type=cache,id=cache-${PRODUCT},uid=1000,target=/stackable/.cache \
+RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
+    --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
     <<EOF
-curl --fail -L "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
 mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
+mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-druid-${PRODUCT}-src
 
 # We're removing these to make the intermediate layer smaller
@@ -70,13 +73,14 @@ fi
 # testdata in kuttl tests and the getting started guide.
 
 # Install OPA authorizer extension.
-curl --fail -L "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+curl "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
 EOF
 
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 ARG NAME="Apache Druid"
 ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache Druid"
@@ -100,27 +104,36 @@ LABEL io.openshift.tags="ubi9,stackable,druid,sdp"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
+COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
+
 RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 rm -rf /var/cache/yum
-EOF
 
-USER stackable
-WORKDIR /stackable
-
-COPY --chown=stackable:stackable --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
-COPY --chown=stackable:stackable druid/stackable/bin /stackable/bin
-COPY --chown=stackable:stackable druid/licenses /licenses
-
-RUN <<EOF
 ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid
 
 # Force to overwrite the existing 'run-druid'
 ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
 EOF
 
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 ENV PATH="${PATH}":/stackable/druid/bin
 
 WORKDIR /stackable/druid

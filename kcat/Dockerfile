@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 # Normally we would use stackable/image/stackable-base here, *but* we fail to link kcat at the end with error messages
 # shown in Snippet 1, which we were not able to solve.
@@ -6,6 +7,7 @@
 FROM stackable/image/java-base AS builder
 
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
 RUN microdnf update \
     && microdnf install \
@@ -26,12 +28,12 @@ RUN microdnf update \
 
 WORKDIR /stackable
 
-RUN curl --fail -L -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz \
+RUN curl -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz \
     && tar xvfz kcat-${PRODUCT}.tar.gz \
     && cd kcat-${PRODUCT} \
     && ./bootstrap.sh
 
-COPY --chown=stackable:stackable kcat/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 kcat/licenses /licenses
 
 # SNIPPET 1
 # 145.2 gcc  -I/stackable/kcat-1.7.0/tmp-bootstrap/usr/include -I/stackable/kcat-1.7.0/tmp-bootstrap/usr/include -g -O2 -Wall -Wsign-compare -Wfloat-equal -Wpointer-arith -Wcast-align -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -Wl,-rpath-link=/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -Wl,-rpath-link=/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib kcat.o format.o tools.o input.o json.o avro.o -o kcat  -lm -ldl -lpthread -lrt -lpthread -lrt  -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib  /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libavro.a /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libjansson.a -lcurl /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libserdes.a -Wl,-Bstatic -lavro -Wl,-Bdynamic /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libyajl_s.a -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib //stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/librdkafka.a -lm -ldl -lpthread -lrt -lz -lcrypto -lssl -lsasl2   -lm -ldl -lpthread -lrt -lpthread -lrt  -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib  /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libavro.a /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libjansson.a -lcurl

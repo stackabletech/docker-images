@@ -9,3 +9,4 @@
 08-logging-dependencies.patch
 09-maven-warning.patch
 10-postgres-driver.patch
+11-cyclonedx-plugin.patch

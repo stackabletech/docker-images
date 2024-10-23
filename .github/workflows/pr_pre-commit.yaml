@@ -4,6 +4,10 @@ name: pre-commit
 on:
   pull_request:
 
+env:
+  HADOLINT_VERSION: "v2.12.0"
+  PYTHON_VERSION: "3.12"
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
@@ -11,9 +15,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+      - uses: stackabletech/actions/run-pre-commit@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
         with:
-          python-version: '3.12'
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-        with:
-          extra_args: "--from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}"
+          python-version: ${{ env.PYTHON_VERSION }}
+          hadolint: ${{ env.HADOLINT_VERSION }}

@@ -1,20 +1,39 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG DELETE_CACHES="true"
+ARG STACKABLE_USER_UID
 
-USER stackable
+RUN <<EOF
+microdnf update
+
+# patch: Required for the apply-patches.sh script
+microdnf install \
+patch
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=1000,target=/stackable/.m2/repository <<EOF
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
+
+RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
-  curl --fail -L https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
+  curl https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
   cd /stackable/phoenix-omid-${PRODUCT} || exit
+  ./patches/apply_patches.sh ${PRODUCT}
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
+  mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
   tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
+  mv examples/target/bom.json /stackable/omid-examples-${PRODUCT}/omid-examples-${PRODUCT}.cdx.json
 
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
@@ -44,6 +63,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG JMX_EXPORTER
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
@@ -55,31 +75,40 @@ LABEL name="Apache Phoenix Omid" \
 
 COPY omid/licenses /licenses
 
-COPY --chown=stackable:stackable omid/stackable /stackable
-COPY --chown=stackable:stackable --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
-COPY --chown=stackable:stackable --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
 
 RUN <<EOF
-  microdnf update
-  microdnf clean all
-  rm -rf /var/cache/yum
+microdnf update
+microdnf clean all
+rm -rf /var/cache/yum
 
-  ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
-  ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
-  curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
-  -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-  chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-  # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
-  rm /stackable/omid-tso-server/conf/hbase-site.xml
+ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
+ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
+-o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+# omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
+rm /stackable/omid-tso-server/conf/hbase-site.xml
 
-  # To support arbitrary user ids on OpenShift, this folder must belong to the root group.
-  mkdir /stackable/logs
-  chown -R 1000:0 /stackable/logs
-  chgrp -R 0 /stackable/logs
-  chmod -R g=u /stackable/logs
+# To support arbitrary user ids on OpenShift, this folder must belong to the root group.
+mkdir /stackable/logs
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
 EOF
 
-USER 1000
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/omid-tso-server
 
 ENV HOME=/stackable

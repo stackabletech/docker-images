@@ -6,10 +6,34 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
-- vector: Add version `0.40.0` ([#802]).
+- vector: Add version `0.41.1` ([#802], [#815], [#867]).
 - airflow: Add version `2.9.3` ([#809]).
+- airflow: Add version `2.10.2` ([#877]).
 - kafka: Add version `3.8.0` ([#813]).
+- hive: Add version `4.0.0` ([#818]).
+- trino: Add version `455` ([#822]).
+- trino-cli: Add version `455` ([#822]).
+- spark: Add version `3.5.2` ([#848]).
+- statsd-exporter: Bump version to `0.27.1` ([#866], [#879]).
+- hadoop: Add patch "HADOOP-18516: Support Fixed SAS Token for ABFS Authentication" ([#852]).
+- hbase: Add hadoop-azure.jar to the lib directory to support the Azure Blob Filesystem and
+  the Azure Data Lake Storage ([#853]).
+- kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
+- spark: Add HBase connector ([#878], [#882]).
+- hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
+
+### Changed
+
+- ci: Rename local actions, adjust action inputs and outputs, add definition
+  README file ([#819]).
+- Update cargo-cyclonedx to 0.5.5 and build CycloneDX 1.5 files ([#783]).
+- Enable [Docker build checks](https://docs.docker.com/build/checks/) ([#872]).
+- java: migrate to temurin jdk/jre ([#894]).
+- tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
+- Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
+- ci: Bump `stackabletech/actions` to 0.0.7 ([#901], [#903]).
 
 ### Removed
 
@@ -17,23 +41,63 @@ All notable changes to this project will be documented in this file.
 - vector: Remove version `0.39.0` ([#802]).
 - airflow: Remove versions `2.6.3`, `2.8.1`, `2.8.4` ([#809]).
 - kafka: Remove versions `3.4.1`, `3.6.1`, `3.6.2` ([#813]).
+- trino: Remove versions `414`, `442` ([#822]).
+- trino-cli: Remove version `451` ([#822]).
+- hbase: Remove `2.4.17` ([#846]).
+- omid: Remove `1.1.0` and `1.1.1` ([#846]).
+- spark: Remove `3.4.2` and `3.4.3` ([#848]).
+- statsd-exporter: Remove `0.26.1` ([#866]).
+- superset: Remove `2.1.3`, `3.1.0` and `3.1.3` ([#866]).
+- zookeeper: Remove `3.8.4` ([#851]).
+- nifi: Remove `1.21.0` and `1.25.0` ([#868]).
+- druid: Remove `28.0.1` ([#880]).
 
 ### Fixed
 
-- hbase: link to phoenix server jar. ([#811])
+- hbase: link to phoenix server jar ([#811]).
+- trino: Correctly report Trino version ([#881]).
 
+[#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
 [#802]: https://github.com/stackabletech/docker-images/pull/802
 [#809]: https://github.com/stackabletech/docker-images/pull/809
 [#811]: https://github.com/stackabletech/docker-images/pull/811
 [#813]: https://github.com/stackabletech/docker-images/pull/813
+[#815]: https://github.com/stackabletech/docker-images/pull/815
+[#818]: https://github.com/stackabletech/docker-images/pull/818
+[#819]: https://github.com/stackabletech/docker-images/pull/819
+[#822]: https://github.com/stackabletech/docker-images/pull/822
+[#846]: https://github.com/stackabletech/docker-images/pull/846
+[#848]: https://github.com/stackabletech/docker-images/pull/848
+[#849]: https://github.com/stackabletech/docker-images/pull/849
+[#851]: https://github.com/stackabletech/docker-images/pull/851
+[#852]: https://github.com/stackabletech/docker-images/pull/852
+[#853]: https://github.com/stackabletech/docker-images/pull/853
+[#866]: https://github.com/stackabletech/docker-images/pull/866
+[#867]: https://github.com/stackabletech/docker-images/pull/867
+[#868]: https://github.com/stackabletech/docker-images/pull/868
+[#872]: https://github.com/stackabletech/docker-images/pull/872
+[#874]: https://github.com/stackabletech/docker-images/pull/874
+[#877]: https://github.com/stackabletech/docker-images/pull/877
+[#878]: https://github.com/stackabletech/docker-images/pull/878
+[#879]: https://github.com/stackabletech/docker-images/pull/879
+[#880]: https://github.com/stackabletech/docker-images/pull/880
+[#881]: https://github.com/stackabletech/docker-images/pull/881
+[#882]: https://github.com/stackabletech/docker-images/pull/882
+[#890]: https://github.com/stackabletech/docker-images/pull/890
+[#894]: https://github.com/stackabletech/docker-images/pull/894
+[#896]: https://github.com/stackabletech/docker-images/pull/896
+[#897]: https://github.com/stackabletech/docker-images/pull/897
+[#898]: https://github.com/stackabletech/docker-images/pull/898
+[#901]: https://github.com/stackabletech/docker-images/pull/901
+[#903]: https://github.com/stackabletech/docker-images/pull/903
 
 ## [24.7.0] - 2024-07-24
 
 ### Added
 
-- omid: Add version `1.1.1` & `1.1.2` ([#553])
-- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583])
+- omid: Add version `1.1.1` & `1.1.2` ([#553]).
+- ubi9-rust-builder: A builder image using UBI9 instead of the current UBI8 ([#583]).
 - Build all `0.0.0-dev` product images as multi-arch and push them to Nexus and Harbor.
   Also SBOMs are generated and everything is signed ([#614], [#616]).
 - hbase: Enable snapshot exports to S3; The HBase image depends now on
@@ -70,6 +134,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove the symlink `/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar`
   which is unused since SDP 23.11 ([#621]).
 - hive: Only build and ship Hive metastore. This reduces the image size from `2.63GB` to `1.9GB` and should also reduce the number of dependencies ([#619], [#622]).
+- ubi8-rust-builder: Bump `protoc` from `21.5` to `26.1` ([#624]).
 - pass platform argument to preflight check ([#626]).
 - nifi: provision stackable-bcrypt from Maven ([#663])
 - nifi: move /bin/stackable-bcrypt to /stackable/stackable-bcrypt and added softlink for backwards compatibility ([#678]).
@@ -86,7 +151,7 @@ All notable changes to this project will be documented in this file.
 - spark: Build from source ([#679])
 - all: Moved the LOG4J_FORMAT_MSG_NO_LOOKUPS env variable from the individual Dockerfiles to `java-base` and `java-devel` ([#727])
 - all: Move product versions into product directory in preparation for individual product build workflows ([#732])
-- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#737])
+- all: Bump rustc 1.79.0, protoc 27.2, git-sync 4.2.3, statsd-exporter 0.26.1, vector 0.39.0, jmx-exporter 1.0.1, inotify_tools 3.22.1.0-1.el9 ([#624], [#737])
 
 ### Fixed
 
@@ -360,7 +425,6 @@ All notable changes to this project will be documented in this file.
 [#400]: https://github.com/stackabletech/docker-images/pull/400
 [#419]: https://github.com/stackabletech/docker-images/pull/419
 [#425]: https://github.com/stackabletech/docker-images/pull/425
-[#429]: https://github.com/stackabletech/docker-images/pull/429
 [#429]: https://github.com/stackabletech/docker-images/pull/429
 [#431]: https://github.com/stackabletech/docker-images/pull/431
 [#433]: https://github.com/stackabletech/docker-images/pull/433

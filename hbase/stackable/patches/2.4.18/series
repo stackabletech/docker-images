@@ -4,3 +4,4 @@
 03-HBASE-28379.patch
 04-HBASE-28511.patch
 05-patch-updates.patch
+06-patch-cyclonedx-plugin.patch

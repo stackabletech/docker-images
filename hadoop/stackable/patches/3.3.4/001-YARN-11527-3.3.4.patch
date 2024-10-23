@@ -7,7 +7,7 @@ index 0b2f6f17157d..9dc8b653eb93 100644
      <json-smart.version>2.4.7</json-smart.version>
      <nimbus-jose-jwt.version>9.8.1</nimbus-jose-jwt.version>
 -    <nodejs.version>v12.22.1</nodejs.version>
-+    <nodejs.version>v14.0.0</nodejs.version>
++    <nodejs.version>v14.17.0</nodejs.version>
      <yarnpkg.version>v1.22.5</yarnpkg.version>
      <apache-ant.version>1.10.11</apache-ant.version>
    </properties>

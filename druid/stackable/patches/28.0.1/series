@@ -5,3 +5,4 @@
 04-update-patch-dependencies.patch
 05-xmllayout-dependencies.patch
 06-dont-build-targz.patch
+07-cyclonedx-plugin.patch

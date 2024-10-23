@@ -12,6 +12,12 @@ fi
 
 VERSION="$1"
 PATCH_DIR="patches/$VERSION"
+SRC_DIR="hbase-${VERSION}-src"
+
+# if a second argument is provided, use it as the source directory instead of the default
+if [ -n "${2-}" ]; then
+  SRC_DIR="$2"
+fi
 
 # Check if version-specific patches directory exists
 if [ ! -d "$PATCH_DIR" ]; then
@@ -34,7 +40,7 @@ echo "Found ${#patch_files[@]} patches, applying now"
 # Iterate through sorted patch files
 for patch_file in "${patch_files[@]}"; do
   echo "Applying $patch_file"
-  git apply --directory "hbase-${VERSION}-src" "$patch_file" || {
+  git apply --directory "$SRC_DIR" "$patch_file" || {
     echo "Failed to apply $patch_file"
     exit 1
   }

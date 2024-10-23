@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# check=error=true
 
 FROM stackable/image/stackable-base AS opa-bundle-builder
 
@@ -8,7 +9,6 @@ ARG BUNDLE_BUILDER_VERSION
 RUN microdnf update \
   && microdnf install \
     cmake \
-    findutils \
     gcc \
     gcc-c++ \
     git \
@@ -54,7 +54,7 @@ WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
 
 RUN package/install
 
-FROM stackable/image/stackable-base as opa-builder
+FROM stackable/image/stackable-base AS opa-builder
 
 ARG PRODUCT
 ARG RELEASE
@@ -64,53 +64,84 @@ ARG TARGETOS
 ENV GOARCH=$TARGETARCH
 ENV GOOS=$TARGETOS
 
-# go - used to build OPA
 # gzip, tar - used to unpack the OPA source
+# git - needed by the cyclonedx-gomod tool to determine the version of OPA
+# golang - used to build OPA
 RUN microdnf update && \
     microdnf install \
-    go \
+    git \
+    golang \
     gzip \
     tar && \
     microdnf clean all
 
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
+# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
+RUN go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
+RUN curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
     tar -zxvf opa.tar.gz && \
-    mv opa-${PRODUCT} opa
+    mv "opa-${PRODUCT}" opa
 
 WORKDIR /opa
 
-RUN go build -o opa -buildmode=exe
+RUN <<EOF
+# Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of OPA
+git init
+git add go.mod
+git config --global user.email "dummy@stackable.tech"
+git config --global user.name "dummy"
+git commit -m "dummy"
+git tag "${PRODUCT}"
+go build -o opa -buildmode=exe
+~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output "opa_${PRODUCT}.cdx.json" -packages -files
+EOF
 
 FROM stackable/image/vector
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Open Policy Agent" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
       version="${PRODUCT}" \
       release="${RELEASE}" \
-      summary="The Stackable image for OPA." \
+      summary="The Stackable image for Open Policy Agent (OPA)." \
       description="This image is deployed by the Stackable Operator for OPA."
-
-RUN microdnf update && \
-    microdnf install \
-    # Required for filtering logs
-    jq && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 COPY opa/licenses /licenses
 
-USER stackable
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa /stackable/opa/opa
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa_${PRODUCT}.cdx.json /stackable/opa/
+COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
+
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
+
+RUN <<EOF
+microdnf update
+
+# jq: Required for filtering logs
+microdnf install \
+  jq
+microdnf clean all
+rm -rf /var/cache/yum
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/opa
-
-COPY --from=opa-builder /opa/opa /stackable/opa/opa
-COPY --from=opa-bundle-builder --chown=stackable:stackable /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
-COPY --from=multilog-builder --chown=stackable:stackable /daemontools/admin/daemontools/command/multilog /stackable/multilog
-
-COPY --chown=stackable:stackable opa/stackable/bin /stackable/opa/bin
 
 ENV PATH="${PATH}:/stackable/opa:/stackable/opa/bin"
 
