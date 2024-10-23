@@ -89,6 +89,7 @@ FROM stackable/image/vector
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Superset" \
       maintainer="info@stackable.tech" \
@@ -105,22 +106,37 @@ ENV FLASK_APP="superset.app:create_app()" \
 ENV PATH="${HOME}/app/bin:${PATH}" \
     PYTHONPATH="${HOME}/app/pythonpath"
 
-RUN microdnf update \
-    && microdnf install \
-        cyrus-sasl \
-        openldap \
-        openldap-clients \
-        openssl-libs \
-        openssl-pkcs11 \
-        python${PYTHON} \
-    && microdnf clean all && \
-    rm -rf /var/cache/yum
+RUN <<EOF
+microdnf update
+microdnf install \
+  cyrus-sasl \
+  openldap \
+  openldap-clients \
+  openssl-libs \
+  openssl-pkcs11 \
+  "python${PYTHON}"
+
+microdnf clean all
+rm -rf /var/cache/yum
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R "${STACKABLE_USER_UID}:0" /stackable
+chmod -R g=u /stackable
+EOF
 
 COPY superset/licenses /licenses
 
-COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
+COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
-USER stackable
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 WORKDIR ${HOME}
 
 CMD ["/bin/sh", "-c", \
