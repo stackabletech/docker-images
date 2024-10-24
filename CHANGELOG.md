@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
 - ci: Bump `stackabletech/actions` to 0.0.7 ([#901], [#903]).
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
-- nifi: Disable the SNI check in NiFi 2.0, see [the decision](https://github.com/stackabletech/decisions/issues/34) ([#XXX]).
+- nifi: Disable the SNI check in NiFi 2.0, see [the decision](https://github.com/stackabletech/decisions/issues/34) ([#908]).
 
 ### Removed
 
@@ -94,6 +94,7 @@ All notable changes to this project will be documented in this file.
 [#901]: https://github.com/stackabletech/docker-images/pull/901
 [#902]: https://github.com/stackabletech/docker-images/pull/902
 [#903]: https://github.com/stackabletech/docker-images/pull/903
+[#908]: https://github.com/stackabletech/docker-images/pull/908
 
 ## [24.7.0] - 2024-07-24
 
