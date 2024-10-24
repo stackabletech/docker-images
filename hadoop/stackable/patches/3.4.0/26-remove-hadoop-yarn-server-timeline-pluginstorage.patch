@@ -1,0 +1,4196 @@
+Entirely remove hadoop-yarn-server-timeline-pluginstorage
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ hadoop-project/pom.xml                             |   13 
+ .../pom.xml                                        |  173 ---
+ .../yarn/server/timeline/EntityCacheItem.java      |  157 --
+ .../timeline/EntityGroupFSTimelineStore.java       | 1280 --------------------
+ .../EntityGroupFSTimelineStoreMetrics.java         |  160 ---
+ .../server/timeline/LevelDBCacheTimelineStore.java |  328 -----
+ .../hadoop/yarn/server/timeline/LogInfo.java       |  304 -----
+ .../server/timeline/TimelineEntityGroupPlugin.java |   74 -
+ .../hadoop/yarn/server/timeline/package-info.java  |   23 
+ .../server/timeline/EntityGroupPlugInForTest.java  |   59 -
+ .../yarn/server/timeline/PluginStoreTestUtils.java |  256 ----
+ .../timeline/TestEntityGroupFSTimelineStore.java   |  809 -------------
+ .../timeline/TestLevelDBCacheTimelineStore.java    |  108 --
+ .../hadoop/yarn/server/timeline/TestLogInfo.java   |  249 ----
+ .../TestOverrideTimelineStoreYarnClient.java       |   57 -
+ .../hadoop-yarn/hadoop-yarn-server/pom.xml         |    1 
+ 16 files changed, 4051 deletions(-)
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/pom.xml
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityCacheItem.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStoreMetrics.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LevelDBCacheTimelineStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LogInfo.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/TimelineEntityGroupPlugin.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/package-info.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/EntityGroupPlugInForTest.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/PluginStoreTestUtils.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestEntityGroupFSTimelineStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLevelDBCacheTimelineStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLogInfo.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestOverrideTimelineStoreYarnClient.java
+
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 4cb65cf3741..c69e44739ce 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -555,19 +555,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+-        <type>test-jar</type>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/pom.xml
+deleted file mode 100644
+index b7d526a7b9c..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/pom.xml
++++ /dev/null
+@@ -1,173 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <parent>
+-    <artifactId>hadoop-yarn-server</artifactId>
+-    <groupId>org.apache.hadoop</groupId>
+-    <version>3.4.0</version>
+-  </parent>
+-  <modelVersion>4.0.0</modelVersion>
+-  <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+-  <version>3.4.0</version>
+-  <name>Apache Hadoop YARN Timeline Plugin Storage</name>
+-
+-  <properties>
+-    <!-- Needed for generating FindBugs warnings using parent pom -->
+-    <yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>
+-  </properties>
+-
+-  <dependencies>
+-    <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>provided</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>commons-el</groupId>
+-          <artifactId>commons-el</artifactId>
+-        </exclusion>
+-        <exclusion>
+-          <groupId>tomcat</groupId>
+-          <artifactId>jasper-runtime</artifactId>
+-        </exclusion>
+-        <exclusion>
+-          <groupId>tomcat</groupId>
+-          <artifactId>jasper-compiler</artifactId>
+-        </exclusion>
+-        <exclusion>
+-          <groupId>org.eclipse.jetty</groupId>
+-          <artifactId>jsp-2.1-jetty</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-common</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-api</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-client</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-applicationhistoryservice</artifactId>
+-      <version>${project.version}</version>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-applicationhistoryservice</artifactId>
+-      <version>${project.version}</version>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.slf4j</groupId>
+-      <artifactId>slf4j-api</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop.thirdparty</groupId>
+-      <artifactId>hadoop-shaded-guava</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs-client</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.assertj</groupId>
+-      <artifactId>assertj-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.jupiter</groupId>
+-      <artifactId>junit-jupiter-api</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.jupiter</groupId>
+-      <artifactId>junit-jupiter-engine</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.jupiter</groupId>
+-      <artifactId>junit-jupiter-params</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.platform</groupId>
+-      <artifactId>junit-platform-launcher</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>com.fasterxml.jackson.core</groupId>
+-      <artifactId>jackson-databind</artifactId>
+-    </dependency>
+-  </dependencies>
+-
+-  <build>
+-    <plugins>
+-      <plugin>
+-        <artifactId>maven-jar-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <goals>
+-              <goal>test-jar</goal>
+-            </goals>
+-            <phase>test-compile</phase>
+-          </execution>
+-        </executions>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityCacheItem.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityCacheItem.java
+deleted file mode 100644
+index 8df60ab15a5..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityCacheItem.java
++++ /dev/null
+@@ -1,157 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with this
+- * work for additional information regarding copyright ownership.  The ASF
+- * licenses this file to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations under
+- * the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.apache.hadoop.util.Time;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.timeline.security.TimelineACLsManager;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.IOException;
+-
+-/**
+- * Cache item for timeline server v1.5 reader cache. Each cache item has a
+- * TimelineStore that can be filled with data within one entity group.
+- */
+-public class EntityCacheItem {
+-  private static final Logger LOG
+-      = LoggerFactory.getLogger(EntityCacheItem.class);
+-
+-  private TimelineStore store;
+-  private TimelineEntityGroupId groupId;
+-  private EntityGroupFSTimelineStore.AppLogs appLogs;
+-  private long lastRefresh;
+-  private Configuration config;
+-
+-  public EntityCacheItem(TimelineEntityGroupId gId, Configuration config) {
+-    this.groupId = gId;
+-    this.config = config;
+-  }
+-
+-  /**
+-   * @return The application log associated to this cache item, may be null.
+-   */
+-  public synchronized EntityGroupFSTimelineStore.AppLogs getAppLogs() {
+-    return this.appLogs;
+-  }
+-
+-  /**
+-   * Set the application logs to this cache item. The entity group should be
+-   * associated with this application.
+-   *
+-   * @param incomingAppLogs Application logs this cache item mapped to
+-   */
+-  public synchronized void setAppLogs(
+-      EntityGroupFSTimelineStore.AppLogs incomingAppLogs) {
+-    this.appLogs = incomingAppLogs;
+-  }
+-
+-  /**
+-   * @return The timeline store, either loaded or unloaded, of this cache item.
+-   * This method will not hold the storage from being reclaimed.
+-   */
+-  public synchronized TimelineStore getStore() {
+-    return store;
+-  }
+-
+-  /**
+-   * Refresh this cache item if it needs refresh. This will enforce an appLogs
+-   * rescan and then load new data. The refresh process is synchronized with
+-   * other operations on the same cache item.
+-   *
+-   * @param aclManager ACL manager for the timeline storage
+-   * @param metrics Metrics to trace the status of the entity group store
+-   * @return a {@link org.apache.hadoop.yarn.server.timeline.TimelineStore}
+-   *         object filled with all entities in the group.
+-   * @throws IOException
+-   */
+-  public synchronized TimelineStore refreshCache(TimelineACLsManager aclManager,
+-      EntityGroupFSTimelineStoreMetrics metrics) throws IOException {
+-    if (needRefresh()) {
+-      long startTime = Time.monotonicNow();
+-      // If an application is not finished, we only update summary logs (and put
+-      // new entities into summary storage).
+-      // Otherwise, since the application is done, we can update detail logs.
+-      if (!appLogs.isDone()) {
+-        appLogs.parseSummaryLogs();
+-      } else if (appLogs.getDetailLogs().isEmpty()) {
+-        appLogs.scanForLogs();
+-      }
+-      if (!appLogs.getDetailLogs().isEmpty()) {
+-        if (store == null) {
+-          store = ReflectionUtils.newInstance(config.getClass(
+-              YarnConfiguration
+-                  .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_CACHE_STORE,
+-              MemoryTimelineStore.class, TimelineStore.class),
+-              config);
+-          store.init(config);
+-          store.start();
+-        } else {
+-          // Store is not null, the refresh is triggered by stale storage.
+-          metrics.incrCacheStaleRefreshes();
+-        }
+-        try (TimelineDataManager tdm =
+-                new TimelineDataManager(store, aclManager)) {
+-          tdm.init(config);
+-          tdm.start();
+-          // Load data from appLogs to tdm
+-          appLogs.loadDetailLog(tdm, groupId);
+-        }
+-      }
+-      updateRefreshTimeToNow();
+-      metrics.addCacheRefreshTime(Time.monotonicNow() - startTime);
+-    } else {
+-      LOG.debug("Cache new enough, skip refreshing");
+-      metrics.incrNoRefreshCacheRead();
+-    }
+-    return store;
+-  }
+-
+-  /**
+-   * Force releasing the cache item for the given group id, even though there
+-   * may be active references.
+-   */
+-  public synchronized void forceRelease() {
+-    try {
+-      if (store != null) {
+-        store.close();
+-      }
+-    } catch (IOException e) {
+-      LOG.warn("Error closing timeline store", e);
+-    }
+-    store = null;
+-    // reset offsets so next time logs are re-parsed
+-    for (LogInfo log : appLogs.getDetailLogs()) {
+-      if (log.getFilename().contains(groupId.toString())) {
+-        log.setOffset(0);
+-      }
+-    }
+-    LOG.debug("Cache for group {} released. ", groupId);
+-  }
+-
+-  private boolean needRefresh() {
+-    return (Time.monotonicNow() - lastRefresh > 10000);
+-  }
+-
+-  private void updateRefreshTimeToNow() {
+-    this.lastRefresh = Time.monotonicNow();
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStore.java
+deleted file mode 100644
+index 1f4a9f42a9f..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStore.java
++++ /dev/null
+@@ -1,1280 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with this
+- * work for additional information regarding copyright ownership.  The ASF
+- * licenses this file to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations under
+- * the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import com.fasterxml.jackson.core.JsonFactory;
+-import com.fasterxml.jackson.databind.MappingJsonFactory;
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import com.fasterxml.jackson.databind.type.TypeFactory;
+-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.ThreadFactoryBuilder;
+-import org.apache.commons.lang3.mutable.MutableBoolean;
+-import org.apache.commons.lang3.tuple.Pair;
+-import org.apache.commons.lang3.StringUtils;
+-import org.apache.hadoop.classification.InterfaceAudience;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.RemoteIterator;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.io.LongWritable;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.service.CompositeService;
+-import org.apache.hadoop.service.ServiceOperations;
+-import org.apache.hadoop.ipc.CallerContext;
+-import org.apache.hadoop.util.ApplicationClassLoader;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.apache.hadoop.util.Time;
+-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.ApplicationReport;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineDomain;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineDomains;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+-import org.apache.hadoop.yarn.client.api.YarnClient;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.server.timeline.TimelineDataManager.CheckAcl;
+-import org.apache.hadoop.yarn.server.timeline.security.TimelineACLsManager;
+-import org.apache.hadoop.yarn.util.Apps;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.DataInputStream;
+-import java.io.DataOutputStream;
+-import java.io.IOException;
+-import java.lang.reflect.UndeclaredThrowableException;
+-import java.net.MalformedURLException;
+-import java.security.AccessController;
+-import java.security.PrivilegedActionException;
+-import java.security.PrivilegedExceptionAction;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.EnumSet;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.LinkedHashMap;
+-import java.util.LinkedList;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.SortedSet;
+-import java.util.TreeSet;
+-import java.util.concurrent.ConcurrentHashMap;
+-import java.util.concurrent.ConcurrentMap;
+-import java.util.concurrent.ScheduledThreadPoolExecutor;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.atomic.AtomicBoolean;
+-
+-/**
+- * Plugin timeline storage to support timeline server v1.5 API. This storage
+- * uses a file system to store timeline entities in their groups.
+- */
+-public class EntityGroupFSTimelineStore extends CompositeService
+-    implements TimelineStore {
+-
+-  static final String DOMAIN_LOG_PREFIX = "domainlog-";
+-  static final String SUMMARY_LOG_PREFIX = "summarylog-";
+-  static final String ENTITY_LOG_PREFIX = "entitylog-";
+-
+-  static final String ATS_V15_SERVER_DFS_CALLER_CTXT = "yarn_ats_server_v1_5";
+-
+-  private static final Logger LOG = LoggerFactory.getLogger(
+-      EntityGroupFSTimelineStore.class);
+-  private static final FsPermission ACTIVE_DIR_PERMISSION =
+-      new FsPermission((short) 01777);
+-  private static final FsPermission DONE_DIR_PERMISSION =
+-      new FsPermission((short) 0700);
+-
+-  // Active dir: <activeRoot>/appId/attemptId/cacheId.log
+-  // Done dir: <doneRoot>/cluster_ts/hash1/hash2/appId/attemptId/cacheId.log
+-  private static final String APP_DONE_DIR_PREFIX_FORMAT =
+-      "%d" + Path.SEPARATOR     // cluster timestamp
+-          + "%04d" + Path.SEPARATOR // app num / 1,000,000
+-          + "%03d" + Path.SEPARATOR // (app num / 1000) % 1000
+-          + "%s" + Path.SEPARATOR; // full app id
+-  // Indicates when to force release a cache item even if there are active
+-  // readers. Enlarge this factor may increase memory usage for the reader since
+-  // there may be more cache items "hanging" in memory but not in cache.
+-  private static final int CACHE_ITEM_OVERFLOW_FACTOR = 2;
+-
+-  private YarnClient yarnClient;
+-  private TimelineStore summaryStore;
+-  private TimelineACLsManager aclManager;
+-  private TimelineDataManager summaryTdm;
+-  private ConcurrentMap<ApplicationId, AppLogs> appIdLogMap =
+-      new ConcurrentHashMap<ApplicationId, AppLogs>();
+-  private ScheduledThreadPoolExecutor executor;
+-  private AtomicBoolean stopExecutors = new AtomicBoolean(false);
+-  private FileSystem fs;
+-  private ObjectMapper objMapper;
+-  private JsonFactory jsonFactory;
+-  private Path activeRootPath;
+-  private Path doneRootPath;
+-  private long logRetainMillis;
+-  private long unknownActiveMillis;
+-  private int appCacheMaxSize = 0;
+-  private boolean recoveryEnabled;
+-  private Path checkpointFile;
+-  private ConcurrentMap<String, Pair<Long, Long>> recoveredLogs =
+-      new ConcurrentHashMap<String, Pair<Long, Long>>();
+-
+-  private List<TimelineEntityGroupPlugin> cacheIdPlugins;
+-  private Map<TimelineEntityGroupId, EntityCacheItem> cachedLogs;
+-  private boolean aclsEnabled;
+-
+-  @VisibleForTesting
+-  @InterfaceAudience.Private
+-  EntityGroupFSTimelineStoreMetrics metrics;
+-
+-  public EntityGroupFSTimelineStore() {
+-    super(EntityGroupFSTimelineStore.class.getSimpleName());
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    metrics = EntityGroupFSTimelineStoreMetrics.create();
+-    summaryStore = createSummaryStore();
+-    addService(summaryStore);
+-
+-    long logRetainSecs = conf.getLong(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_RETAIN_SECONDS,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_RETAIN_SECONDS_DEFAULT);
+-    logRetainMillis = logRetainSecs * 1000;
+-    LOG.info("Cleaner set to delete logs older than {} seconds", logRetainSecs);
+-    long unknownActiveSecs = conf.getLong(
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_UNKNOWN_ACTIVE_SECONDS,
+-        YarnConfiguration.
+-            TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_UNKNOWN_ACTIVE_SECONDS_DEFAULT
+-    );
+-    unknownActiveMillis = unknownActiveSecs * 1000;
+-    LOG.info("Unknown apps will be treated as complete after {} seconds",
+-        unknownActiveSecs);
+-    appCacheMaxSize = conf.getInt(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_APP_CACHE_SIZE,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_APP_CACHE_SIZE_DEFAULT);
+-    LOG.info("Application cache size is {}", appCacheMaxSize);
+-    cachedLogs = Collections.synchronizedMap(
+-      new LinkedHashMap<TimelineEntityGroupId, EntityCacheItem>(
+-          appCacheMaxSize + 1, 0.75f, true) {
+-          @Override
+-          protected boolean removeEldestEntry(
+-              Map.Entry<TimelineEntityGroupId, EntityCacheItem> eldest) {
+-            if (super.size() > appCacheMaxSize) {
+-              TimelineEntityGroupId groupId = eldest.getKey();
+-              LOG.debug("Evicting {} due to space limitations", groupId);
+-              EntityCacheItem cacheItem = eldest.getValue();
+-              LOG.debug("Force release cache {}.", groupId);
+-              cacheItem.forceRelease();
+-              if (cacheItem.getAppLogs().isDone()) {
+-                appIdLogMap.remove(groupId.getApplicationId());
+-              }
+-              metrics.incrCacheEvicts();
+-              return true;
+-            }
+-            return false;
+-          }
+-      });
+-    cacheIdPlugins = loadPlugIns(conf);
+-    // Initialize yarn client for application status
+-    yarnClient = createAndInitYarnClient(conf);
+-    // if non-null, hook its lifecycle up
+-    addIfService(yarnClient);
+-    activeRootPath = new Path(conf.get(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_ACTIVE_DIR,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_ACTIVE_DIR_DEFAULT));
+-    doneRootPath = new Path(conf.get(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_DONE_DIR,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_DONE_DIR_DEFAULT));
+-    fs = activeRootPath.getFileSystem(conf);
+-    checkpointFile = new Path(fs.getHomeDirectory(), "atscheckpoint");
+-    recoveryEnabled = conf.getBoolean(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_RECOVERY_ENABLED,
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_RECOVERY_ENABLED_DEFAULT);
+-
+-    aclsEnabled = conf.getBoolean(YarnConfiguration.YARN_ACL_ENABLE,
+-    YarnConfiguration.DEFAULT_YARN_ACL_ENABLE);
+-    CallerContext.setCurrent(
+-        new CallerContext.Builder(ATS_V15_SERVER_DFS_CALLER_CTXT).build());
+-    super.serviceInit(conf);
+-  }
+-
+-  private List<TimelineEntityGroupPlugin> loadPlugIns(Configuration conf)
+-      throws RuntimeException {
+-    Collection<String> pluginNames = conf.getTrimmedStringCollection(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_CLASSES);
+-
+-    String pluginClasspath = conf.getTrimmed(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_CLASSPATH);
+-    String[] systemClasses = conf.getTrimmedStrings(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_SYSTEM_CLASSES);
+-
+-    List<TimelineEntityGroupPlugin> pluginList
+-        = new LinkedList<TimelineEntityGroupPlugin>();
+-    ClassLoader customClassLoader = null;
+-    if (pluginClasspath != null && pluginClasspath.length() > 0) {
+-      try {
+-        customClassLoader = createPluginClassLoader(pluginClasspath,
+-            systemClasses);
+-      } catch (IOException ioe) {
+-        LOG.warn("Error loading classloader", ioe);
+-      }
+-    }
+-    for (final String name : pluginNames) {
+-      LOG.debug("Trying to load plugin class {}", name);
+-      TimelineEntityGroupPlugin cacheIdPlugin = null;
+-
+-      try {
+-        if (customClassLoader != null) {
+-          LOG.debug("Load plugin {} with classpath: {}", name, pluginClasspath);
+-          Class<?> clazz = Class.forName(name, true, customClassLoader);
+-          Class<? extends TimelineEntityGroupPlugin> sClass = clazz.asSubclass(
+-              TimelineEntityGroupPlugin.class);
+-          cacheIdPlugin = ReflectionUtils.newInstance(sClass, conf);
+-        } else {
+-          LOG.debug("Load plugin class with system classpath");
+-          Class<?> clazz = conf.getClassByName(name);
+-          cacheIdPlugin =
+-              (TimelineEntityGroupPlugin) ReflectionUtils.newInstance(
+-                  clazz, conf);
+-        }
+-      } catch (Exception e) {
+-        LOG.warn("Error loading plugin " + name, e);
+-        throw new RuntimeException("No class defined for " + name, e);
+-      }
+-
+-      LOG.info("Load plugin class {}", cacheIdPlugin.getClass().getName());
+-      pluginList.add(cacheIdPlugin);
+-    }
+-    return pluginList;
+-  }
+-
+-  private TimelineStore createSummaryStore() {
+-    return ReflectionUtils.newInstance(getConfig().getClass(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SUMMARY_STORE,
+-        LeveldbTimelineStore.class, TimelineStore.class), getConfig());
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-
+-    super.serviceStart();
+-    LOG.info("Starting {}", getName());
+-    summaryStore.start();
+-
+-    Configuration conf = getConfig();
+-    aclManager = new TimelineACLsManager(conf);
+-    aclManager.setTimelineStore(summaryStore);
+-    summaryTdm = new TimelineDataManager(summaryStore, aclManager);
+-    summaryTdm.init(conf);
+-    addService(summaryTdm);
+-    // start child services that aren't already started
+-    super.serviceStart();
+-
+-    if (!fs.exists(activeRootPath)) {
+-      fs.mkdirs(activeRootPath);
+-      fs.setPermission(activeRootPath, ACTIVE_DIR_PERMISSION);
+-    }
+-    if (!fs.exists(doneRootPath)) {
+-      fs.mkdirs(doneRootPath);
+-      fs.setPermission(doneRootPath, DONE_DIR_PERMISSION);
+-    }
+-
+-    // Recover the lastProcessedTime and offset for logfiles
+-    if (recoveryEnabled && fs.exists(checkpointFile)) {
+-      try (FSDataInputStream in = fs.open(checkpointFile)) {
+-        recoveredLogs.putAll(recoverLogFiles(in));
+-      } catch (IOException e) {
+-        LOG.warn("Failed to recover summarylog files from the checkpointfile", e);
+-      }
+-    }
+-
+-    objMapper = new ObjectMapper();
+-    objMapper.setAnnotationIntrospector(
+-        new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+-    jsonFactory = new MappingJsonFactory(objMapper);
+-    final long scanIntervalSecs = conf.getLong(
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SCAN_INTERVAL_SECONDS,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SCAN_INTERVAL_SECONDS_DEFAULT
+-    );
+-    final long cleanerIntervalSecs = conf.getLong(
+-        YarnConfiguration
+-          .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_CLEANER_INTERVAL_SECONDS,
+-        YarnConfiguration
+-          .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_CLEANER_INTERVAL_SECONDS_DEFAULT
+-    );
+-    final int numThreads = conf.getInt(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_THREADS,
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_THREADS_DEFAULT);
+-    LOG.info("Scanning active directory {} every {} seconds", activeRootPath,
+-        scanIntervalSecs);
+-    LOG.info("Cleaning logs every {} seconds", cleanerIntervalSecs);
+-
+-    executor = new ScheduledThreadPoolExecutor(numThreads,
+-        new ThreadFactoryBuilder().setNameFormat("EntityLogPluginWorker #%d")
+-            .build());
+-    executor.scheduleAtFixedRate(new EntityLogScanner(), 0, scanIntervalSecs,
+-        TimeUnit.SECONDS);
+-    executor.scheduleAtFixedRate(new EntityLogCleaner(), cleanerIntervalSecs,
+-        cleanerIntervalSecs, TimeUnit.SECONDS);
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    LOG.info("Stopping {}", getName());
+-    stopExecutors.set(true);
+-    if (executor != null) {
+-      executor.shutdown();
+-      if (executor.isTerminating()) {
+-        LOG.info("Waiting for executor to terminate");
+-        boolean terminated = executor.awaitTermination(10, TimeUnit.SECONDS);
+-        if (terminated) {
+-          LOG.info("Executor terminated");
+-        } else {
+-          LOG.warn("Executor did not terminate");
+-          executor.shutdownNow();
+-        }
+-      }
+-    }
+-    synchronized (cachedLogs) {
+-      for (EntityCacheItem cacheItem : cachedLogs.values()) {
+-        ServiceOperations.stopQuietly(cacheItem.getStore());
+-      }
+-    }
+-    CallerContext.setCurrent(null);
+-    super.serviceStop();
+-  }
+-
+-  /* Returns Map of SummaryLog files. The Value Pair has
+-  lastProcessedTime and offset */
+-  HashMap<String, Pair<Long, Long>> recoverLogFiles(
+-      DataInputStream in) throws IOException {
+-    HashMap<String, Pair<Long, Long>> logFiles = new HashMap<>();
+-    long totalEntries = in.readLong();
+-    for (long i = 0; i < totalEntries; i++) {
+-      Text attemptDirName = new Text();
+-      attemptDirName.readFields(in);
+-      Text fileName = new Text();
+-      fileName.readFields(in);
+-      LongWritable lastProcessedTime = new LongWritable();
+-      lastProcessedTime.readFields(in);
+-      LongWritable offset = new LongWritable();
+-      offset.readFields(in);
+-      Pair<Long, Long> pair = Pair.of(lastProcessedTime.get(), offset.get());
+-      logFiles.put(attemptDirName + Path.SEPARATOR + fileName, pair);
+-    }
+-    LOG.info("Recovered {} summarylog files", totalEntries);
+-    return logFiles;
+-  }
+-
+-  // Stores set of SummaryLog files
+-  void storeLogFiles(Collection<AppLogs> appLogs,
+-      DataOutputStream checkPointStream) throws IOException {
+-    long totalEntries = 0L;
+-    for (AppLogs appLog : appLogs) {
+-      totalEntries += appLog.summaryLogs.size();
+-    }
+-    checkPointStream.writeLong(totalEntries);
+-    for (AppLogs appLog : appLogs) {
+-      for (LogInfo summaryLog : appLog.summaryLogs) {
+-        new Text(summaryLog.getAttemptDirName()).write(checkPointStream);
+-        new Text(summaryLog.getFilename()).write(checkPointStream);
+-        new LongWritable(summaryLog.getLastProcessedTime()).write(checkPointStream);
+-        new LongWritable(summaryLog.getOffset()).write(checkPointStream);
+-      }
+-    }
+-    LOG.info("Stored {} summarylog files into checkPointFile", totalEntries);
+-  }
+-
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  int scanActiveLogs() throws IOException {
+-    long startTime = Time.monotonicNow();
+-    // Store the Last Processed Time and Offset
+-    if (recoveryEnabled && appIdLogMap.size() > 0) {
+-
+-      try (FSDataOutputStream checkPointStream = fs.create(checkpointFile, true)) {
+-
+-        storeLogFiles(appIdLogMap.values(), checkPointStream);
+-
+-      } catch (Exception e) {
+-        LOG.warn("Failed to checkpoint the summarylog files", e);
+-      }
+-    }
+-    int logsToScanCount = scanActiveLogs(activeRootPath);
+-    metrics.addActiveLogDirScanTime(Time.monotonicNow() - startTime);
+-    return logsToScanCount;
+-  }
+-
+-  int scanActiveLogs(Path dir) throws IOException {
+-    RemoteIterator<FileStatus> iter = list(dir);
+-    int logsToScanCount = 0;
+-    while (iter.hasNext()) {
+-      FileStatus stat = iter.next();
+-      String name = stat.getPath().getName();
+-      ApplicationId appId = parseApplicationId(name);
+-      if (appId != null) {
+-        LOG.debug("scan logs for {} in {}", appId, stat.getPath());
+-        logsToScanCount++;
+-        AppLogs logs = getAndSetActiveLog(appId, stat.getPath());
+-        executor.execute(new ActiveLogParser(logs));
+-      } else {
+-        if (stat.isDirectory()) {
+-          logsToScanCount += scanActiveLogs(stat.getPath());
+-        } else {
+-          LOG.warn("Ignoring unexpected file in active directory {}",
+-              stat.getPath());
+-        }
+-      }
+-    }
+-    return logsToScanCount;
+-  }
+-
+-  /**
+-   * List a directory, returning an iterator which will fail fast if this
+-   * service has been stopped
+-   * @param path path to list
+-   * @return an iterator over the contents of the directory
+-   * @throws IOException
+-   */
+-  private RemoteIterator<FileStatus> list(Path path) throws IOException {
+-    return new StoppableRemoteIterator(fs.listStatusIterator(path));
+-  }
+-
+-  private AppLogs createAndPutAppLogsIfAbsent(ApplicationId appId,
+-      Path appDirPath, AppState appState) {
+-    AppLogs appLogs = new AppLogs(appId, appDirPath, appState);
+-    AppLogs oldAppLogs = appIdLogMap.putIfAbsent(appId, appLogs);
+-    if (oldAppLogs != null) {
+-      appLogs = oldAppLogs;
+-    }
+-    return appLogs;
+-  }
+-
+-  private AppLogs getAndSetActiveLog(ApplicationId appId, Path appDirPath) {
+-    AppLogs appLogs = appIdLogMap.get(appId);
+-    if (appLogs == null) {
+-      appLogs = createAndPutAppLogsIfAbsent(appId, appDirPath, AppState.ACTIVE);
+-    }
+-    return appLogs;
+-  }
+-
+-  // searches for the app logs and returns it if found else null
+-  private AppLogs getAndSetAppLogs(ApplicationId applicationId)
+-      throws IOException {
+-    LOG.debug("Looking for app logs mapped for app id {}", applicationId);
+-    AppLogs appLogs = appIdLogMap.get(applicationId);
+-    if (appLogs == null) {
+-      AppState appState = AppState.UNKNOWN;
+-      Path appDirPath = getDoneAppPath(applicationId);
+-      if (fs.exists(appDirPath)) {
+-        appState = AppState.COMPLETED;
+-      } else {
+-        appDirPath = getActiveAppPath(applicationId);
+-        if (fs.exists(appDirPath)) {
+-          appState = AppState.ACTIVE;
+-        } else {
+-          // check for user directory inside active path
+-          RemoteIterator<FileStatus> iter = list(activeRootPath);
+-          while (iter.hasNext()) {
+-            Path child = new Path(iter.next().getPath().getName(),
+-                applicationId.toString());
+-            appDirPath = new Path(activeRootPath, child);
+-            if (fs.exists(appDirPath)) {
+-              appState = AppState.ACTIVE;
+-              break;
+-            }
+-          }
+-        }
+-      }
+-      if (appState != AppState.UNKNOWN) {
+-        LOG.debug("Create and try to add new appLogs to appIdLogMap for {}",
+-            applicationId);
+-        appLogs = createAndPutAppLogsIfAbsent(
+-            applicationId, appDirPath, appState);
+-      }
+-    }
+-    return appLogs;
+-  }
+-
+-  /**
+-   * Main function for entity log cleaner. This method performs depth first
+-   * search from a given dir path for all application log dirs. Once found, it
+-   * will decide if the directory should be cleaned up and then clean them.
+-   *
+-   * @param dirpath the root directory the cleaner should start with. Note that
+-   *                dirpath should be a directory that contains a set of
+-   *                application log directories. The cleaner method will not
+-   *                work if the given dirpath itself is an application log dir.
+-   * @param retainMillis
+-   * @throws IOException
+-   */
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  void cleanLogs(Path dirpath, long retainMillis)
+-      throws IOException {
+-    long now = Time.now();
+-    RemoteIterator<FileStatus> iter = list(dirpath);
+-    while (iter.hasNext()) {
+-      FileStatus stat = iter.next();
+-      if (isValidClusterTimeStampDir(stat)) {
+-        Path clusterTimeStampPath = stat.getPath();
+-        MutableBoolean appLogDirPresent = new MutableBoolean(false);
+-        cleanAppLogDir(clusterTimeStampPath, retainMillis, appLogDirPresent);
+-        if (appLogDirPresent.isFalse() &&
+-            (now - stat.getModificationTime() > retainMillis)) {
+-          deleteDir(clusterTimeStampPath);
+-        }
+-      }
+-    }
+-  }
+-
+-
+-  private void cleanAppLogDir(Path dirpath, long retainMillis,
+-      MutableBoolean appLogDirPresent) throws IOException {
+-    long now = Time.now();
+-    // Depth first search from root directory for all application log dirs
+-    RemoteIterator<FileStatus> iter = list(dirpath);
+-    while (iter.hasNext()) {
+-      FileStatus stat = iter.next();
+-      Path childPath = stat.getPath();
+-      if (stat.isDirectory()) {
+-        // If current is an application log dir, decide if we need to remove it
+-        // and remove if necessary.
+-        // Otherwise, keep iterating into it.
+-        ApplicationId appId = parseApplicationId(childPath.getName());
+-        if (appId != null) { // Application log dir
+-          appLogDirPresent.setTrue();
+-          if (shouldCleanAppLogDir(childPath, now, fs, retainMillis)) {
+-            deleteDir(childPath);
+-          }
+-        } else { // Keep cleaning inside
+-          cleanAppLogDir(childPath, retainMillis, appLogDirPresent);
+-        }
+-      }
+-    }
+-  }
+-
+-  private void deleteDir(Path path) {
+-    try {
+-      LOG.info("Deleting {}", path);
+-      if (fs.delete(path, true)) {
+-        metrics.incrLogsDirsCleaned();
+-      } else {
+-        LOG.error("Unable to remove {}", path);
+-      }
+-    } catch (IOException e) {
+-      LOG.error("Unable to remove {}", path, e);
+-    }
+-  }
+-
+-  private boolean isValidClusterTimeStampDir(FileStatus stat) {
+-    return stat.isDirectory() &&
+-        StringUtils.isNumeric(stat.getPath().getName());
+-  }
+-
+-
+-  private static boolean shouldCleanAppLogDir(Path appLogPath, long now,
+-      FileSystem fs, long logRetainMillis) throws IOException {
+-    RemoteIterator<FileStatus> iter = fs.listStatusIterator(appLogPath);
+-    while (iter.hasNext()) {
+-      FileStatus stat = iter.next();
+-      if (now - stat.getModificationTime() <= logRetainMillis) {
+-        // found a dir entry that is fresh enough to prevent
+-        // cleaning this directory.
+-        LOG.debug("{} not being cleaned due to {}", appLogPath, stat.getPath());
+-        return false;
+-      }
+-      // Otherwise, keep searching files inside for directories.
+-      if (stat.isDirectory()) {
+-        if (!shouldCleanAppLogDir(stat.getPath(), now, fs, logRetainMillis)) {
+-          return false;
+-        }
+-      }
+-    }
+-    return true;
+-  }
+-
+-  // converts the String to an ApplicationId or null if conversion failed
+-  private static ApplicationId parseApplicationId(String appIdStr) {
+-    try {
+-      return ApplicationId.fromString(appIdStr);
+-    } catch (IllegalArgumentException e) {
+-      return null;
+-    }
+-  }
+-
+-  private static ClassLoader createPluginClassLoader(
+-      final String appClasspath, final String[] systemClasses)
+-      throws IOException {
+-    try {
+-      return AccessController.doPrivileged(
+-        new PrivilegedExceptionAction<ClassLoader>() {
+-          @Override
+-          public ClassLoader run() throws MalformedURLException {
+-            return new ApplicationClassLoader(appClasspath,
+-                EntityGroupFSTimelineStore.class.getClassLoader(),
+-                Arrays.asList(systemClasses));
+-          }
+-        }
+-      );
+-    } catch (PrivilegedActionException e) {
+-      Throwable t = e.getCause();
+-      if (t instanceof MalformedURLException) {
+-        throw (MalformedURLException) t;
+-      }
+-      throw new IOException(e);
+-    }
+-  }
+-
+-  private Path getActiveAppPath(ApplicationId appId) {
+-    return new Path(activeRootPath, appId.toString());
+-  }
+-
+-  private Path getDoneAppPath(ApplicationId appId) {
+-    // cut up the app ID into mod(1000) buckets
+-    int appNum = appId.getId();
+-    appNum /= 1000;
+-    int bucket2 = appNum % 1000;
+-    int bucket1 = appNum / 1000;
+-    return new Path(doneRootPath,
+-        String.format(APP_DONE_DIR_PREFIX_FORMAT, appId.getClusterTimestamp(),
+-            bucket1, bucket2, appId.toString()));
+-  }
+-
+-  /**
+-   * Create and initialize the YARN Client. Tests may override/mock this.
+-   * If they return null, then {@link #getAppState(ApplicationId)} MUST
+-   * also be overridden
+-   * @param conf configuration
+-   * @return the yarn client, or null.
+-   *
+-   */
+-  @VisibleForTesting
+-  protected YarnClient createAndInitYarnClient(Configuration conf) {
+-    YarnClient client = YarnClient.createYarnClient();
+-    client.init(conf);
+-    return client;
+-  }
+-
+-  /**
+-   * Get the application state.
+-   * @param appId application ID
+-   * @return the state or {@link AppState#UNKNOWN} if it could not
+-   * be determined
+-   * @throws IOException on IO problems
+-   */
+-  @VisibleForTesting
+-  protected AppState getAppState(ApplicationId appId) throws IOException {
+-    return getAppState(appId, yarnClient);
+-  }
+-
+-  /**
+-   * Get all plugins for tests.
+-   * @return all plugins
+-   */
+-  @VisibleForTesting
+-  List<TimelineEntityGroupPlugin> getPlugins() {
+-    return cacheIdPlugins;
+-  }
+-
+-  /**
+-   * Ask the RM for the state of the application.
+-   * This method has to be synchronized to control traffic to RM
+-   * @param appId application ID
+-   * @param yarnClient
+-   * @return the state or {@link AppState#UNKNOWN} if it could not
+-   * be determined
+-   * @throws IOException
+-   */
+-  private static synchronized AppState getAppState(ApplicationId appId,
+-      YarnClient yarnClient) throws IOException {
+-    AppState appState = AppState.ACTIVE;
+-    try {
+-      ApplicationReport report = yarnClient.getApplicationReport(appId);
+-      if (Apps.isApplicationFinalState(report.getYarnApplicationState())) {
+-        appState = AppState.COMPLETED;
+-      }
+-    } catch (ApplicationNotFoundException e) {
+-      appState = AppState.UNKNOWN;
+-    } catch (YarnException e) {
+-      throw new IOException(e);
+-    }
+-    return appState;
+-  }
+-
+-  /**
+-   * Application states,
+-   */
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  public enum AppState {
+-    ACTIVE,
+-    UNKNOWN,
+-    COMPLETED
+-  }
+-
+-  class AppLogs {
+-    private ApplicationId appId;
+-    private Path appDirPath;
+-    private AppState appState;
+-    private List<LogInfo> summaryLogs = new ArrayList<LogInfo>();
+-    private List<LogInfo> detailLogs = new ArrayList<LogInfo>();
+-
+-    public AppLogs(ApplicationId appId, Path appPath, AppState state) {
+-      this.appId = appId;
+-      appDirPath = appPath;
+-      appState = state;
+-    }
+-
+-    public synchronized boolean isDone() {
+-      return appState == AppState.COMPLETED;
+-    }
+-
+-    public synchronized ApplicationId getAppId() {
+-      return appId;
+-    }
+-
+-    public synchronized Path getAppDirPath() {
+-      return appDirPath;
+-    }
+-
+-    synchronized List<LogInfo> getSummaryLogs() {
+-      return summaryLogs;
+-    }
+-
+-    synchronized List<LogInfo> getDetailLogs() {
+-      return detailLogs;
+-    }
+-
+-    public synchronized void parseSummaryLogs() throws IOException {
+-      parseSummaryLogs(summaryTdm);
+-    }
+-
+-    @InterfaceAudience.Private
+-    @VisibleForTesting
+-    synchronized void parseSummaryLogs(TimelineDataManager tdm)
+-        throws IOException {
+-      long startTime = Time.monotonicNow();
+-      if (!isDone()) {
+-        LOG.debug("Try to parse summary log for log {} in {}",
+-            appId, appDirPath);
+-        appState = getAppState(appId);
+-        long recentLogModTime = scanForLogs();
+-        if (appState == AppState.UNKNOWN) {
+-          if (Time.now() - recentLogModTime > unknownActiveMillis) {
+-            LOG.info(
+-                "{} state is UNKNOWN and logs are stale, assuming COMPLETED",
+-                appId);
+-            appState = AppState.COMPLETED;
+-          }
+-        }
+-      }
+-      List<LogInfo> removeList = new ArrayList<LogInfo>();
+-      for (LogInfo log : summaryLogs) {
+-        if (fs.exists(log.getPath(appDirPath))) {
+-          long summaryEntityParsed
+-              = log.parseForStore(tdm, appDirPath, isDone(), jsonFactory,
+-              objMapper, fs);
+-          metrics.incrEntitiesReadToSummary(summaryEntityParsed);
+-        } else {
+-          // The log may have been removed, remove the log
+-          removeList.add(log);
+-          LOG.info("File {} no longer exists, remove it from log list",
+-              log.getPath(appDirPath));
+-        }
+-      }
+-      summaryLogs.removeAll(removeList);
+-      metrics.addSummaryLogReadTime(Time.monotonicNow() - startTime);
+-    }
+-
+-    // scans for new logs and returns the modification timestamp of the
+-    // most recently modified log
+-    @InterfaceAudience.Private
+-    @VisibleForTesting
+-    long scanForLogs() throws IOException {
+-      LOG.debug("scanForLogs on {}", appDirPath);
+-      long newestModTime = 0;
+-      RemoteIterator<FileStatus> iterAttempt = list(appDirPath);
+-      while (iterAttempt.hasNext()) {
+-        FileStatus statAttempt = iterAttempt.next();
+-        LOG.debug("scanForLogs on {}", statAttempt.getPath().getName());
+-        if (!statAttempt.isDirectory()
+-            || !statAttempt.getPath().getName()
+-            .startsWith(ApplicationAttemptId.appAttemptIdStrPrefix)) {
+-          LOG.debug("Scanner skips for unknown dir/file {}",
+-              statAttempt.getPath());
+-          continue;
+-        }
+-        String attemptDirName = statAttempt.getPath().getName();
+-        RemoteIterator<FileStatus> iterCache = list(statAttempt.getPath());
+-        while (iterCache.hasNext()) {
+-          FileStatus statCache = iterCache.next();
+-          if (!statCache.isFile()) {
+-            continue;
+-          }
+-          String filename = statCache.getPath().getName();
+-          String owner = statCache.getOwner();
+-          //YARN-10884:Owner of File is set to Null on WASB Append Operation.ATS fails to read such
+-          //files as UGI cannot be constructed using Null User.To Fix this,anonymous user is set
+-          //when ACL us Disabled as the UGI is not needed there
+-          if ((owner == null || owner.isEmpty()) && !aclsEnabled) {
+-            LOG.debug("The owner was null when acl disabled, hence making the owner anonymous");
+-            owner = "anonymous";
+-          }
+-          // We should only update time for log files.
+-          boolean shouldSetTime = true;
+-          LOG.debug("scan for log file: {}", filename);
+-          if (filename.startsWith(DOMAIN_LOG_PREFIX)) {
+-            addSummaryLog(attemptDirName, filename, owner, true);
+-          } else if (filename.startsWith(SUMMARY_LOG_PREFIX)) {
+-            addSummaryLog(attemptDirName, filename, owner,
+-                false);
+-          } else if (filename.startsWith(ENTITY_LOG_PREFIX)) {
+-            addDetailLog(attemptDirName, filename, owner);
+-          } else {
+-            shouldSetTime = false;
+-          }
+-          if (shouldSetTime) {
+-            newestModTime
+-              = Math.max(statCache.getModificationTime(), newestModTime);
+-          }
+-        }
+-      }
+-
+-      // if there are no logs in the directory then use the modification
+-      // time of the directory itself
+-      if (newestModTime == 0) {
+-        newestModTime = fs.getFileStatus(appDirPath).getModificationTime();
+-      }
+-
+-      return newestModTime;
+-    }
+-
+-    private void addSummaryLog(String attemptDirName,
+-        String filename, String owner, boolean isDomainLog) {
+-      for (LogInfo log : summaryLogs) {
+-        if (log.getFilename().equals(filename)
+-            && log.getAttemptDirName().equals(attemptDirName)) {
+-          return;
+-        }
+-      }
+-      LOG.debug("Incoming log {} not present in my summaryLogs list, add it",
+-          filename);
+-      LogInfo log;
+-      if (isDomainLog) {
+-        log = new DomainLogInfo(attemptDirName, filename, owner);
+-        summaryLogs.add(0, log);
+-      } else {
+-        log = new EntityLogInfo(attemptDirName, filename, owner);
+-        summaryLogs.add(log);
+-      }
+-      // This is to avoid processing summary files again during Restart of ATS
+-      if (recoveryEnabled) {
+-        Pair<Long, Long> pair = recoveredLogs.remove(log.getAttemptDirName()
+-            + Path.SEPARATOR + log.getFilename());
+-        if (pair != null) {
+-          log.setLastProcessedTime(pair.getKey());
+-          log.setOffset(pair.getValue());
+-        }
+-      }
+-    }
+-
+-    private synchronized void addDetailLog(String attemptDirName,
+-        String filename, String owner) {
+-      for (LogInfo log : detailLogs) {
+-        if (log.getFilename().equals(filename)
+-            && log.getAttemptDirName().equals(attemptDirName)) {
+-          return;
+-        }
+-      }
+-      detailLogs.add(new EntityLogInfo(attemptDirName, filename, owner));
+-    }
+-
+-    synchronized void loadDetailLog(TimelineDataManager tdm,
+-        TimelineEntityGroupId groupId) throws IOException {
+-      List<LogInfo> removeList = new ArrayList<>();
+-      for (LogInfo log : detailLogs) {
+-        LOG.debug("Try refresh logs for {}", log.getFilename());
+-        // Only refresh the log that matches the cache id
+-        if (log.matchesGroupId(groupId)) {
+-          Path dirPath = getAppDirPath();
+-          if (fs.exists(log.getPath(dirPath))) {
+-            LOG.debug("Refresh logs for cache id {}", groupId);
+-            log.parseForStore(tdm, dirPath, isDone(),
+-                jsonFactory, objMapper, fs);
+-          } else {
+-            // The log may have been removed, remove the log
+-            removeList.add(log);
+-            LOG.info(
+-                "File {} no longer exists, removing it from log list",
+-                log.getPath(dirPath));
+-          }
+-        }
+-      }
+-      detailLogs.removeAll(removeList);
+-    }
+-
+-    public synchronized void moveToDone() throws IOException {
+-      Path doneAppPath = getDoneAppPath(appId);
+-      if (!doneAppPath.equals(appDirPath)) {
+-        Path donePathParent = doneAppPath.getParent();
+-        if (!fs.exists(donePathParent)) {
+-          fs.mkdirs(donePathParent);
+-        }
+-        LOG.debug("Application {} is done, trying to move to done dir {}",
+-            appId, doneAppPath);
+-        if (!fs.rename(appDirPath, doneAppPath)) {
+-          throw new IOException("Rename " + appDirPath + " to " + doneAppPath
+-              + " failed");
+-        } else {
+-          LOG.info("Moved {} to {}", appDirPath, doneAppPath);
+-        }
+-        appDirPath = doneAppPath;
+-      }
+-    }
+-  }
+-
+-  /**
+-   * Extract any nested throwable forwarded from IPC operations.
+-   * @param e exception
+-   * @return either the exception passed an an argument, or any nested
+-   * exception which was wrapped inside an {@link UndeclaredThrowableException}
+-   */
+-  private Throwable extract(Exception e) {
+-    Throwable t = e;
+-    if (e instanceof UndeclaredThrowableException && e.getCause() != null) {
+-      t = e.getCause();
+-    }
+-    return t;
+-  }
+-
+-  private class EntityLogScanner implements Runnable {
+-    @Override
+-    public void run() {
+-      LOG.debug("Active scan starting");
+-      try {
+-        int scanned = scanActiveLogs();
+-        LOG.debug("Scanned {} active applications", scanned);
+-      } catch (Exception e) {
+-        Throwable t = extract(e);
+-        if (t instanceof InterruptedException) {
+-          LOG.info("File scanner interrupted");
+-        } else {
+-          LOG.error("Error scanning active files", t);
+-        }
+-      }
+-      LOG.debug("Active scan complete");
+-    }
+-  }
+-
+-  private class ActiveLogParser implements Runnable {
+-    private AppLogs appLogs;
+-
+-    public ActiveLogParser(AppLogs logs) {
+-      appLogs = logs;
+-    }
+-
+-    @Override
+-    public void run() {
+-      try {
+-        LOG.debug("Begin parsing summary logs. ");
+-        appLogs.parseSummaryLogs();
+-        if (appLogs.isDone()) {
+-          appLogs.moveToDone();
+-          appIdLogMap.remove(appLogs.getAppId());
+-        }
+-        LOG.debug("End parsing summary logs. ");
+-      } catch (Exception e) {
+-        Throwable t = extract(e);
+-        if (t instanceof InterruptedException) {
+-          LOG.info("Log parser interrupted");
+-        } else {
+-          LOG.error("Error processing logs for " + appLogs.getAppId(), t);
+-        }
+-      }
+-    }
+-  }
+-
+-  private class EntityLogCleaner implements Runnable {
+-    @Override
+-    public void run() {
+-      LOG.debug("Cleaner starting");
+-      long startTime = Time.monotonicNow();
+-      try {
+-        cleanLogs(doneRootPath, logRetainMillis);
+-      } catch (Exception e) {
+-        Throwable t = extract(e);
+-        if (t instanceof InterruptedException) {
+-          LOG.info("Cleaner interrupted");
+-        } else {
+-          LOG.error("Error cleaning files", e);
+-        }
+-      } finally {
+-        metrics.addLogCleanTime(Time.monotonicNow() - startTime);
+-      }
+-      LOG.debug("Cleaner finished");
+-    }
+-  }
+-
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  void setFs(FileSystem incomingFs) {
+-    this.fs = incomingFs;
+-  }
+-
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  void setCachedLogs(TimelineEntityGroupId groupId, EntityCacheItem cacheItem) {
+-    cachedLogs.put(groupId, cacheItem);
+-  }
+-
+-  private List<TimelineStore> getTimelineStoresFromCacheIds(
+-      Set<TimelineEntityGroupId> groupIds, String entityType,
+-      List<EntityCacheItem> cacheItems)
+-      throws IOException {
+-    List<TimelineStore> stores = new LinkedList<TimelineStore>();
+-    // For now we just handle one store in a context. We return the first
+-    // non-null storage for the group ids.
+-    for (TimelineEntityGroupId groupId : groupIds) {
+-      TimelineStore storeForId = getCachedStore(groupId, cacheItems);
+-      if (storeForId != null) {
+-        LOG.debug("Adding {} as a store for the query", storeForId.getName());
+-        stores.add(storeForId);
+-        metrics.incrGetEntityToDetailOps();
+-      }
+-    }
+-    if (stores.size() == 0) {
+-      LOG.debug("Using summary store for {}", entityType);
+-      stores.add(this.summaryStore);
+-      metrics.incrGetEntityToSummaryOps();
+-    }
+-    return stores;
+-  }
+-
+-  protected List<TimelineStore> getTimelineStoresForRead(String entityId,
+-      String entityType, List<EntityCacheItem> cacheItems)
+-      throws IOException {
+-    Set<TimelineEntityGroupId> groupIds = new HashSet<TimelineEntityGroupId>();
+-    for (TimelineEntityGroupPlugin cacheIdPlugin : cacheIdPlugins) {
+-      LOG.debug("Trying plugin {} for id {} and type {}",
+-          cacheIdPlugin.getClass().getName(), entityId, entityType);
+-      Set<TimelineEntityGroupId> idsFromPlugin
+-          = cacheIdPlugin.getTimelineEntityGroupId(entityId, entityType);
+-      if (idsFromPlugin == null) {
+-        LOG.debug("Plugin returned null " + cacheIdPlugin.getClass().getName());
+-      } else {
+-        LOG.debug("Plugin returned ids: " + idsFromPlugin);
+-      }
+-
+-      if (idsFromPlugin != null) {
+-        groupIds.addAll(idsFromPlugin);
+-        LOG.debug("plugin {} returns a non-null value on query",
+-            cacheIdPlugin.getClass().getName());
+-      }
+-    }
+-    return getTimelineStoresFromCacheIds(groupIds, entityType, cacheItems);
+-  }
+-
+-  private List<TimelineStore> getTimelineStoresForRead(String entityType,
+-      NameValuePair primaryFilter, Collection<NameValuePair> secondaryFilters,
+-      List<EntityCacheItem> cacheItems) throws IOException {
+-    Set<TimelineEntityGroupId> groupIds = new HashSet<TimelineEntityGroupId>();
+-    for (TimelineEntityGroupPlugin cacheIdPlugin : cacheIdPlugins) {
+-      Set<TimelineEntityGroupId> idsFromPlugin =
+-          cacheIdPlugin.getTimelineEntityGroupId(entityType, primaryFilter,
+-              secondaryFilters);
+-      if (idsFromPlugin != null) {
+-        LOG.debug("plugin {} returns a non-null value on query {}",
+-            cacheIdPlugin.getClass().getName(), idsFromPlugin);
+-        groupIds.addAll(idsFromPlugin);
+-      }
+-    }
+-    return getTimelineStoresFromCacheIds(groupIds, entityType, cacheItems);
+-  }
+-
+-  // find a cached timeline store or null if it cannot be located
+-  private TimelineStore getCachedStore(TimelineEntityGroupId groupId,
+-      List<EntityCacheItem> cacheItems) throws IOException {
+-    EntityCacheItem cacheItem;
+-    synchronized (this.cachedLogs) {
+-      // Note that the content in the cache log storage may be stale.
+-      cacheItem = this.cachedLogs.get(groupId);
+-      if (cacheItem == null) {
+-        LOG.debug("Set up new cache item for id {}", groupId);
+-        cacheItem = new EntityCacheItem(groupId, getConfig());
+-        AppLogs appLogs = getAndSetAppLogs(groupId.getApplicationId());
+-        if (appLogs != null) {
+-          LOG.debug("Set applogs {} for group id {}", appLogs, groupId);
+-          cacheItem.setAppLogs(appLogs);
+-          this.cachedLogs.put(groupId, cacheItem);
+-        } else {
+-          LOG.warn("AppLogs for groupId {} is set to null!", groupId);
+-        }
+-      }
+-    }
+-    TimelineStore store = null;
+-    if (cacheItem.getAppLogs() != null) {
+-      AppLogs appLogs = cacheItem.getAppLogs();
+-      LOG.debug("try refresh cache {} {}", groupId, appLogs.getAppId());
+-      cacheItems.add(cacheItem);
+-      store = cacheItem.refreshCache(aclManager, metrics);
+-    } else {
+-      LOG.warn("AppLogs for group id {} is null", groupId);
+-    }
+-    return store;
+-  }
+-
+-  @Override
+-  public TimelineEntities getEntities(String entityType, Long limit,
+-      Long windowStart, Long windowEnd, String fromId, Long fromTs,
+-      NameValuePair primaryFilter, Collection<NameValuePair> secondaryFilters,
+-      EnumSet<Field> fieldsToRetrieve, CheckAcl checkAcl) throws IOException {
+-    LOG.debug("getEntities type={} primary={}", entityType, primaryFilter);
+-    List<EntityCacheItem> relatedCacheItems = new ArrayList<>();
+-    List<TimelineStore> stores = getTimelineStoresForRead(entityType,
+-        primaryFilter, secondaryFilters, relatedCacheItems);
+-    TimelineEntities returnEntities = new TimelineEntities();
+-    for (TimelineStore store : stores) {
+-      LOG.debug("Try timeline store {} for the request", store.getName());
+-      TimelineEntities entities = store.getEntities(entityType, limit,
+-          windowStart, windowEnd, fromId, fromTs, primaryFilter,
+-          secondaryFilters, fieldsToRetrieve, checkAcl);
+-      if (entities != null) {
+-        returnEntities.addEntities(entities.getEntities());
+-      }
+-    }
+-    return returnEntities;
+-  }
+-
+-  @Override
+-  public TimelineEntity getEntity(String entityId, String entityType,
+-      EnumSet<Field> fieldsToRetrieve) throws IOException {
+-    LOG.debug("getEntity type={} id={}", entityType, entityId);
+-    List<EntityCacheItem> relatedCacheItems = new ArrayList<>();
+-    List<TimelineStore> stores = getTimelineStoresForRead(entityId, entityType,
+-        relatedCacheItems);
+-    for (TimelineStore store : stores) {
+-      LOG.debug("Try timeline store {}:{} for the request", store.getName(),
+-          store.toString());
+-      TimelineEntity e =
+-          store.getEntity(entityId, entityType, fieldsToRetrieve);
+-      if (e != null) {
+-        return e;
+-      }
+-    }
+-    LOG.debug("getEntity: Found nothing");
+-    return null;
+-  }
+-
+-  @Override
+-  public TimelineEvents getEntityTimelines(String entityType,
+-      SortedSet<String> entityIds, Long limit, Long windowStart,
+-      Long windowEnd, Set<String> eventTypes) throws IOException {
+-    LOG.debug("getEntityTimelines type={} ids={}", entityType, entityIds);
+-    TimelineEvents returnEvents = new TimelineEvents();
+-    List<EntityCacheItem> relatedCacheItems = new ArrayList<>();
+-
+-    if (entityIds == null || entityIds.isEmpty()) {
+-      return returnEvents;
+-    }
+-
+-    for (String entityId : entityIds) {
+-      LOG.debug("getEntityTimeline type={} id={}", entityType, entityId);
+-      List<TimelineStore> stores
+-          = getTimelineStoresForRead(entityId, entityType, relatedCacheItems);
+-      for (TimelineStore store : stores) {
+-        LOG.debug("Try timeline store {}:{} for the request", store.getName(),
+-            store.toString());
+-        SortedSet<String> entityIdSet = new TreeSet<>();
+-        entityIdSet.add(entityId);
+-        TimelineEvents events =
+-            store.getEntityTimelines(entityType, entityIdSet, limit,
+-                windowStart, windowEnd, eventTypes);
+-        if (events != null) {
+-          returnEvents.addEvents(events.getAllEvents());
+-        }
+-      }
+-    }
+-    return returnEvents;
+-  }
+-
+-  @Override
+-  public TimelineDomain getDomain(String domainId) throws IOException {
+-    return summaryStore.getDomain(domainId);
+-  }
+-
+-  @Override
+-  public TimelineDomains getDomains(String owner) throws IOException {
+-    return summaryStore.getDomains(owner);
+-  }
+-
+-  @Override
+-  public TimelinePutResponse put(TimelineEntities data) throws IOException {
+-    return summaryStore.put(data);
+-  }
+-
+-  @Override
+-  public void put(TimelineDomain domain) throws IOException {
+-    summaryStore.put(domain);
+-  }
+-
+-  /**
+-   * This is a special remote iterator whose {@link #hasNext()} method
+-   * returns false if {@link #stopExecutors} is true.
+-   *
+-   * This provides an implicit shutdown of all iterative file list and scan
+-   * operations without needing to implement it in the while loops themselves.
+-   */
+-  private class StoppableRemoteIterator implements RemoteIterator<FileStatus> {
+-    private final RemoteIterator<FileStatus> remote;
+-
+-    public StoppableRemoteIterator(RemoteIterator<FileStatus> remote) {
+-      this.remote = remote;
+-    }
+-
+-    @Override
+-    public boolean hasNext() throws IOException {
+-      return !stopExecutors.get() && remote.hasNext();
+-    }
+-
+-    @Override
+-    public FileStatus next() throws IOException {
+-      return remote.next();
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStoreMetrics.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStoreMetrics.java
+deleted file mode 100644
+index de2ef3ba6f2..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/EntityGroupFSTimelineStoreMetrics.java
++++ /dev/null
+@@ -1,160 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.metrics2.MetricsSystem;
+-import org.apache.hadoop.metrics2.annotation.Metric;
+-import org.apache.hadoop.metrics2.annotation.Metrics;
+-import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
+-import org.apache.hadoop.metrics2.lib.MutableCounterLong;
+-import org.apache.hadoop.metrics2.lib.MutableStat;
+-
+-/**
+- * This class tracks metrics for the EntityGroupFSTimelineStore. It tracks
+- * the read and write metrics for timeline server v1.5. It serves as a
+- * complement to {@link TimelineDataManagerMetrics}.
+- */
+-@Metrics(about="Metrics for EntityGroupFSTimelineStore", context="yarn")
+-public class EntityGroupFSTimelineStoreMetrics {
+-  private static final String DEFAULT_VALUE_WITH_SCALE = "TimeMs";
+-
+-  // General read related metrics
+-  @Metric("getEntity calls to summary storage")
+-  private MutableCounterLong getEntityToSummaryOps;
+-
+-  @Metric("getEntity calls to detail storage")
+-  private MutableCounterLong getEntityToDetailOps;
+-
+-  // Summary data related metrics
+-  @Metric(value = "summary log read ops and time",
+-      valueName = DEFAULT_VALUE_WITH_SCALE)
+-  private MutableStat summaryLogRead;
+-
+-  @Metric("entities read into the summary storage")
+-  private MutableCounterLong entitiesReadToSummary;
+-
+-  // Detail data cache related metrics
+-  @Metric("cache storage read that does not require a refresh")
+-  private MutableCounterLong noRefreshCacheRead;
+-
+-  @Metric("cache storage refresh due to the cached storage is stale")
+-  private MutableCounterLong cacheStaleRefreshes;
+-
+-  @Metric("cache storage evicts")
+-  private MutableCounterLong cacheEvicts;
+-
+-  @Metric(value = "cache storage refresh ops and time",
+-      valueName = DEFAULT_VALUE_WITH_SCALE)
+-  private MutableStat cacheRefresh;
+-
+-  // Log scanner and cleaner related metrics
+-  @Metric(value = "active log scan ops and time",
+-      valueName = DEFAULT_VALUE_WITH_SCALE)
+-  private MutableStat activeLogDirScan;
+-
+-  @Metric(value = "log cleaner purging ops and time",
+-      valueName = DEFAULT_VALUE_WITH_SCALE)
+-  private MutableStat logClean;
+-
+-  @Metric("log cleaner dirs purged")
+-  private MutableCounterLong logsDirsCleaned;
+-
+-  private static EntityGroupFSTimelineStoreMetrics instance = null;
+-
+-  EntityGroupFSTimelineStoreMetrics() {
+-  }
+-
+-  public static synchronized EntityGroupFSTimelineStoreMetrics create() {
+-    if (instance == null) {
+-      MetricsSystem ms = DefaultMetricsSystem.instance();
+-      instance = ms.register(new EntityGroupFSTimelineStoreMetrics());
+-    }
+-    return instance;
+-  }
+-
+-  // Setters
+-  // General read related
+-  public void incrGetEntityToSummaryOps() {
+-    getEntityToSummaryOps.incr();
+-  }
+-
+-  public void incrGetEntityToDetailOps() {
+-    getEntityToDetailOps.incr();
+-  }
+-
+-  // Summary data related
+-  public void addSummaryLogReadTime(long msec) {
+-    summaryLogRead.add(msec);
+-  }
+-
+-  public void incrEntitiesReadToSummary(long delta) {
+-    entitiesReadToSummary.incr(delta);
+-  }
+-
+-  // Cache related
+-  public void incrNoRefreshCacheRead() {
+-    noRefreshCacheRead.incr();
+-  }
+-
+-  public void incrCacheStaleRefreshes() {
+-    cacheStaleRefreshes.incr();
+-  }
+-
+-  public void incrCacheEvicts() {
+-    cacheEvicts.incr();
+-  }
+-
+-  public void addCacheRefreshTime(long msec) {
+-    cacheRefresh.add(msec);
+-  }
+-
+-  // Log scanner and cleaner related
+-  public void addActiveLogDirScanTime(long msec) {
+-    activeLogDirScan.add(msec);
+-  }
+-
+-  public void addLogCleanTime(long msec) {
+-    logClean.add(msec);
+-  }
+-
+-  public void incrLogsDirsCleaned() {
+-    logsDirsCleaned.incr();
+-  }
+-
+-  // Getters
+-  MutableCounterLong getEntitiesReadToSummary() {
+-    return entitiesReadToSummary;
+-  }
+-
+-  MutableCounterLong getLogsDirsCleaned() {
+-    return logsDirsCleaned;
+-  }
+-
+-  MutableCounterLong getGetEntityToSummaryOps() {
+-    return getEntityToSummaryOps;
+-  }
+-
+-  MutableCounterLong getGetEntityToDetailOps() {
+-    return getEntityToDetailOps;
+-  }
+-
+-  MutableStat getCacheRefresh() {
+-    return cacheRefresh;
+-  }
+-}
+-
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LevelDBCacheTimelineStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LevelDBCacheTimelineStore.java
+deleted file mode 100644
+index f84eeebbf0c..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LevelDBCacheTimelineStore.java
++++ /dev/null
+@@ -1,328 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.IOUtils;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.timeline.util.LeveldbUtils;
+-import org.fusesource.leveldbjni.JniDBFactory;
+-import org.iq80.leveldb.DB;
+-import org.iq80.leveldb.DBIterator;
+-import org.iq80.leveldb.Options;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.util.Map;
+-import java.util.concurrent.atomic.AtomicInteger;
+-
+-/**
+- * LevelDB implementation of {@link KeyValueBasedTimelineStore}. This
+- * implementation stores the entity hash map into a LevelDB instance.
+- * There are two partitions of the key space. One partition is to store a
+- * entity id to start time mapping:
+- *
+- * i!ENTITY_ID!ENTITY_TYPE to ENTITY_START_TIME
+- *
+- * The other partition is to store the actual data:
+- *
+- * e!START_TIME!ENTITY_ID!ENTITY_TYPE to ENTITY_BYTES
+- *
+- * This storage does not have any garbage collection mechanism, and is designed
+- * mainly for caching usages.
+- */
+-@Private
+-@Unstable
+-public class LevelDBCacheTimelineStore extends KeyValueBasedTimelineStore {
+-  private static final Logger LOG
+-      = LoggerFactory.getLogger(LevelDBCacheTimelineStore.class);
+-  private static final String CACHED_LDB_FILE_PREFIX = "-timeline-cache.ldb";
+-  private String dbId;
+-  private DB entityDb;
+-  private Configuration configuration;
+-  private static final AtomicInteger DB_COUNTER = new AtomicInteger(0);
+-  private static final String CACHED_LDB_FILENAME = "db";
+-
+-  public LevelDBCacheTimelineStore(String id, String name) {
+-    super(name);
+-    dbId = id;
+-    entityInsertTimes = new MemoryTimelineStore.HashMapStoreAdapter<>();
+-    domainById = new MemoryTimelineStore.HashMapStoreAdapter<>();
+-    domainsByOwner = new MemoryTimelineStore.HashMapStoreAdapter<>();
+-  }
+-
+-  public LevelDBCacheTimelineStore(String id) {
+-    this(id, LevelDBCacheTimelineStore.class.getName());
+-  }
+-
+-  public LevelDBCacheTimelineStore() {
+-    this(CACHED_LDB_FILENAME + String.valueOf(DB_COUNTER.getAndIncrement()),
+-        LevelDBCacheTimelineStore.class.getName());
+-  }
+-
+-  @Override
+-  protected synchronized void serviceInit(Configuration conf) throws Exception {
+-    configuration = conf;
+-    Options options = new Options();
+-    options.createIfMissing(true);
+-    options.cacheSize(conf.getLong(
+-        YarnConfiguration.TIMELINE_SERVICE_LEVELDB_CACHE_READ_CACHE_SIZE,
+-        YarnConfiguration.
+-            DEFAULT_TIMELINE_SERVICE_LEVELDB_CACHE_READ_CACHE_SIZE));
+-    JniDBFactory factory = new JniDBFactory();
+-    Path dbPath = new Path(
+-        conf.get(YarnConfiguration.TIMELINE_SERVICE_LEVELDB_PATH),
+-        dbId + CACHED_LDB_FILE_PREFIX);
+-    FileSystem localFS = null;
+-
+-    try {
+-      localFS = FileSystem.getLocal(conf);
+-      if (!localFS.exists(dbPath)) {
+-        if (!localFS.mkdirs(dbPath)) {
+-          throw new IOException("Couldn't create directory for leveldb " +
+-              "timeline store " + dbPath);
+-        }
+-        localFS.setPermission(dbPath, LeveldbUtils.LEVELDB_DIR_UMASK);
+-      }
+-    } finally {
+-      IOUtils.cleanupWithLogger(LOG, localFS);
+-    }
+-    LOG.info("Using leveldb path " + dbPath);
+-    entityDb = factory.open(new File(dbPath.toString()), options);
+-    entities = new LevelDBMapAdapter<>(entityDb);
+-
+-    super.serviceInit(conf);
+-  }
+-
+-  @Override
+-  protected synchronized void serviceStop() throws Exception {
+-    IOUtils.cleanupWithLogger(LOG, entityDb);
+-    Path dbPath = new Path(
+-        configuration.get(YarnConfiguration.TIMELINE_SERVICE_LEVELDB_PATH),
+-        dbId + CACHED_LDB_FILE_PREFIX);
+-    FileSystem localFS = null;
+-    try {
+-      localFS = FileSystem.getLocal(configuration);
+-      if (!localFS.delete(dbPath, true)) {
+-          throw new IOException("Couldn't delete data file for leveldb " +
+-              "timeline store " + dbPath);
+-      }
+-    } finally {
+-      IOUtils.cleanupWithLogger(LOG, localFS);
+-    }
+-    super.serviceStop();
+-  }
+-
+-  /**
+-   * A specialized hash map storage that uses LevelDB for storing entity id to
+-   * entity mappings.
+-   *
+-   * @param <K> an {@link EntityIdentifier} typed hash key
+-   * @param <V> a {@link TimelineEntity} typed value
+-   */
+-  static class LevelDBMapAdapter<K extends EntityIdentifier,
+-      V extends TimelineEntity> implements TimelineStoreMapAdapter<K, V> {
+-    private static final String TIME_INDEX_PREFIX = "i";
+-    private static final String ENTITY_STORAGE_PREFIX = "e";
+-    DB entityDb;
+-
+-    public LevelDBMapAdapter(DB currLevelDb) {
+-      entityDb = currLevelDb;
+-    }
+-
+-    @Override
+-    public V get(K entityId) {
+-      V result = null;
+-      // Read the start time from the index
+-      byte[] startTimeBytes = entityDb.get(getStartTimeKey(entityId));
+-      if (startTimeBytes == null) {
+-        return null;
+-      }
+-
+-      // Build the key for the entity storage and read it
+-      try {
+-        result = getEntityForKey(getEntityKey(entityId, startTimeBytes));
+-      } catch (IOException e) {
+-        LOG.error("GenericObjectMapper cannot read key from key "
+-            + entityId.toString()
+-            + " into an object. Read aborted! ");
+-        LOG.error(e.getMessage());
+-      }
+-
+-      return result;
+-    }
+-
+-    @Override
+-    public void put(K entityId, V entity) {
+-      Long startTime = entity.getStartTime();
+-      if (startTime == null) {
+-        startTime = System.currentTimeMillis();
+-      }
+-      // Build the key for the entity storage and read it
+-      byte[] startTimeBytes = GenericObjectMapper.writeReverseOrderedLong(
+-          startTime);
+-      try {
+-        byte[] valueBytes = GenericObjectMapper.write(entity);
+-        entityDb.put(getEntityKey(entityId, startTimeBytes), valueBytes);
+-      } catch (IOException e) {
+-        LOG.error("GenericObjectMapper cannot write "
+-            + entity.getClass().getName()
+-            + " into a byte array. Write aborted! ");
+-        LOG.error(e.getMessage());
+-      }
+-
+-      // Build the key for the start time index
+-      entityDb.put(getStartTimeKey(entityId), startTimeBytes);
+-    }
+-
+-    @Override
+-    public void remove(K entityId) {
+-      // Read the start time from the index (key starts with an "i") then delete
+-      // the record
+-      LeveldbUtils.KeyBuilder startTimeKeyBuilder
+-          = LeveldbUtils.KeyBuilder.newInstance();
+-      startTimeKeyBuilder.add(TIME_INDEX_PREFIX).add(entityId.getId())
+-          .add(entityId.getType());
+-      byte[] startTimeBytes = entityDb.get(startTimeKeyBuilder.getBytes());
+-      if (startTimeBytes == null) {
+-        return;
+-      }
+-      entityDb.delete(startTimeKeyBuilder.getBytes());
+-
+-      // Build the key for the entity storage and delete it
+-      entityDb.delete(getEntityKey(entityId, startTimeBytes));
+-    }
+-
+-    @Override
+-    public CloseableIterator<V> valueSetIterator() {
+-      return getIterator(null, Long.MAX_VALUE);
+-    }
+-
+-    @Override
+-    public CloseableIterator<V> valueSetIterator(V minV) {
+-      return getIterator(
+-          new EntityIdentifier(minV.getEntityId(), minV.getEntityType()),
+-          minV.getStartTime());
+-    }
+-
+-    private CloseableIterator<V> getIterator(
+-        EntityIdentifier startId, long startTimeMax) {
+-
+-      final DBIterator internalDbIterator = entityDb.iterator();
+-
+-      // we need to iterate from the first element with key greater than or
+-      // equal to ENTITY_STORAGE_PREFIX!maxTS(!startId), but stop on the first
+-      // key who does not have prefix ENTITY_STORATE_PREFIX
+-
+-      // decide end prefix
+-      LeveldbUtils.KeyBuilder entityPrefixKeyBuilder
+-          = LeveldbUtils.KeyBuilder.newInstance();
+-      entityPrefixKeyBuilder.add(ENTITY_STORAGE_PREFIX);
+-      final byte[] prefixBytes = entityPrefixKeyBuilder.getBytesForLookup();
+-      // decide start prefix on top of end prefix and seek
+-      final byte[] startTimeBytes
+-          = GenericObjectMapper.writeReverseOrderedLong(startTimeMax);
+-      entityPrefixKeyBuilder.add(startTimeBytes, true);
+-      if (startId != null) {
+-        entityPrefixKeyBuilder.add(startId.getId());
+-      }
+-      final byte[] startPrefixBytes
+-          = entityPrefixKeyBuilder.getBytesForLookup();
+-      internalDbIterator.seek(startPrefixBytes);
+-
+-      return new CloseableIterator<V>() {
+-        @Override
+-        public boolean hasNext() {
+-          if (!internalDbIterator.hasNext()) {
+-            return false;
+-          }
+-          Map.Entry<byte[], byte[]> nextEntry = internalDbIterator.peekNext();
+-          if (LeveldbUtils.prefixMatches(
+-              prefixBytes, prefixBytes.length, nextEntry.getKey())) {
+-            return true;
+-          }
+-          return false;
+-        }
+-
+-        @Override
+-        public V next() {
+-          if (hasNext()) {
+-            Map.Entry<byte[], byte[]> nextRaw = internalDbIterator.next();
+-            try {
+-              V result = getEntityForKey(nextRaw.getKey());
+-              return result;
+-            } catch (IOException e) {
+-              LOG.error("GenericObjectMapper cannot read key from key "
+-                  + nextRaw.getKey()
+-                  + " into an object. Read aborted! ");
+-              LOG.error(e.getMessage());
+-            }
+-          }
+-          return null;
+-        }
+-
+-        // We do not support remove operations within one iteration
+-        @Override
+-        public void remove() {
+-          LOG.error("LevelDB map adapter does not support iterate-and-remove"
+-              + " use cases. ");
+-        }
+-
+-        @Override
+-        public void close() throws IOException {
+-          internalDbIterator.close();
+-        }
+-      };
+-    }
+-    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+-
+-    @SuppressWarnings("unchecked")
+-    private V getEntityForKey(byte[] key) throws IOException {
+-      byte[] resultRaw = entityDb.get(key);
+-      if (resultRaw == null) {
+-        return null;
+-      }
+-      return (V) OBJECT_MAPPER.readValue(resultRaw, TimelineEntity.class);
+-    }
+-
+-    private byte[] getStartTimeKey(K entityId) {
+-      LeveldbUtils.KeyBuilder startTimeKeyBuilder
+-          = LeveldbUtils.KeyBuilder.newInstance();
+-      startTimeKeyBuilder.add(TIME_INDEX_PREFIX).add(entityId.getId())
+-          .add(entityId.getType());
+-      return startTimeKeyBuilder.getBytes();
+-    }
+-
+-    private byte[] getEntityKey(K entityId, byte[] startTimeBytes) {
+-      LeveldbUtils.KeyBuilder entityKeyBuilder
+-          = LeveldbUtils.KeyBuilder.newInstance();
+-      entityKeyBuilder.add(ENTITY_STORAGE_PREFIX).add(startTimeBytes, true)
+-          .add(entityId.getId()).add(entityId.getType());
+-      return entityKeyBuilder.getBytes();
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LogInfo.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LogInfo.java
+deleted file mode 100644
+index 8cc6b72ab9c..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/LogInfo.java
++++ /dev/null
+@@ -1,304 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with this
+- * work for additional information regarding copyright ownership.  The ASF
+- * licenses this file to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations under
+- * the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import com.fasterxml.jackson.core.JsonFactory;
+-import com.fasterxml.jackson.core.JsonParseException;
+-import com.fasterxml.jackson.core.JsonParser;
+-import com.fasterxml.jackson.databind.MappingIterator;
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.apache.hadoop.classification.InterfaceAudience;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.IOUtils;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.util.Time;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineDomain;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.util.ArrayList;
+-
+-abstract class LogInfo {
+-  public static final String ENTITY_FILE_NAME_DELIMITERS = "_.";
+-
+-  public String getAttemptDirName() {
+-    return attemptDirName;
+-  }
+-
+-  public long getOffset() {
+-    return offset;
+-  }
+-
+-  public void setOffset(long newOffset) {
+-    this.offset = newOffset;
+-  }
+-
+-
+-  public long getLastProcessedTime() {
+-    return lastProcessedTime;
+-  }
+-
+-  public void setLastProcessedTime(long lastProcessedTime) {
+-    this.lastProcessedTime = lastProcessedTime;
+-  }
+-
+-  private String attemptDirName;
+-  private long lastProcessedTime = -1;
+-  private String filename;
+-  private String user;
+-  private long offset = 0;
+-
+-  private static final Logger LOG = LoggerFactory.getLogger(LogInfo.class);
+-
+-  public LogInfo(String attemptDirName, String file, String owner) {
+-    this.attemptDirName = attemptDirName;
+-    filename = file;
+-    user = owner;
+-  }
+-
+-  public Path getPath(Path rootPath) {
+-    Path attemptPath = new Path(rootPath, attemptDirName);
+-    return new Path(attemptPath, filename);
+-  }
+-
+-  public String getFilename() {
+-    return filename;
+-  }
+-
+-  public boolean matchesGroupId(TimelineEntityGroupId groupId) {
+-    return matchesGroupId(groupId.toString());
+-  }
+-
+-  @InterfaceAudience.Private
+-  @VisibleForTesting
+-  boolean matchesGroupId(String groupId){
+-    // Return true if the group id is a segment (separated by _, ., or end of
+-    // string) of the file name.
+-    int pos = filename.indexOf(groupId);
+-    if (pos < 0) {
+-      return false;
+-    }
+-    return filename.length() == pos + groupId.length()
+-        || ENTITY_FILE_NAME_DELIMITERS.contains(String.valueOf(
+-        filename.charAt(pos + groupId.length())
+-    ));
+-  }
+-
+-  public long parseForStore(TimelineDataManager tdm, Path appDirPath,
+-      boolean appCompleted, JsonFactory jsonFactory, ObjectMapper objMapper,
+-      FileSystem fs) throws IOException {
+-    LOG.debug("Parsing for log dir {} on attempt {}", appDirPath,
+-        attemptDirName);
+-    Path logPath = getPath(appDirPath);
+-    FileStatus status = fs.getFileStatus(logPath);
+-    long numParsed = 0;
+-    if (status != null) {
+-      long curModificationTime = status.getModificationTime();
+-      if (curModificationTime > getLastProcessedTime()) {
+-        long startTime = Time.monotonicNow();
+-        try {
+-          LOG.info("Parsing {} at offset {}", logPath, offset);
+-          long count =
+-              parsePath(tdm, logPath, appCompleted, jsonFactory, objMapper, fs);
+-          setLastProcessedTime(curModificationTime);
+-          LOG.info("Parsed {} entities from {} in {} msec", count, logPath,
+-              Time.monotonicNow() - startTime);
+-          numParsed += count;
+-        } catch (RuntimeException e) {
+-          // If AppLogs cannot parse this log, it may be corrupted or just empty
+-          if (e.getCause() instanceof JsonParseException
+-              && (status.getLen() > 0 || offset > 0)) {
+-            // log on parse problems if the file as been read in the past or
+-            // is visibly non-empty
+-            LOG.info("Log {} appears to be corrupted. Skip. ", logPath);
+-          } else {
+-            LOG.error("Failed to parse " + logPath + " from offset " + offset,
+-                e);
+-          }
+-        }
+-      } else {
+-        LOG.info("Skip Parsing {} as there is no change", logPath);
+-      }
+-    } else {
+-      LOG.warn("{} no longer exists. Skip for scanning. ", logPath);
+-    }
+-    return numParsed;
+-  }
+-
+-  private long parsePath(TimelineDataManager tdm, Path logPath,
+-      boolean appCompleted, JsonFactory jsonFactory, ObjectMapper objMapper,
+-      FileSystem fs) throws IOException {
+-    UserGroupInformation ugi =
+-        UserGroupInformation.createRemoteUser(user);
+-    FSDataInputStream in = fs.open(logPath);
+-    JsonParser parser = null;
+-    try {
+-      in.seek(offset);
+-      try {
+-        parser = jsonFactory.createParser((InputStream)in);
+-        parser.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+-      } catch (IOException e) {
+-        // if app hasn't completed then there may be errors due to the
+-        // incomplete file which are treated as EOF until app completes
+-        if (appCompleted) {
+-          throw e;
+-        } else {
+-          LOG.debug("Exception in parse path: {}", e.getMessage());
+-          return 0;
+-        }
+-      }
+-
+-      return doParse(tdm, parser, objMapper, ugi, appCompleted);
+-    } finally {
+-      IOUtils.closeStream(parser);
+-      IOUtils.closeStream(in);
+-    }
+-  }
+-
+-  protected abstract long doParse(TimelineDataManager tdm, JsonParser parser,
+-      ObjectMapper objMapper, UserGroupInformation ugi, boolean appCompleted)
+-      throws IOException;
+-}
+-
+-class EntityLogInfo extends LogInfo {
+-  private static final Logger LOG = LoggerFactory.getLogger(
+-      EntityGroupFSTimelineStore.class);
+-
+-  public EntityLogInfo(String attemptId,
+-      String file, String owner) {
+-    super(attemptId, file, owner);
+-  }
+-
+-  @Override
+-  protected long doParse(TimelineDataManager tdm, JsonParser parser,
+-      ObjectMapper objMapper, UserGroupInformation ugi, boolean appCompleted)
+-      throws IOException {
+-    long count = 0;
+-    TimelineEntities entities = new TimelineEntities();
+-    ArrayList<TimelineEntity> entityList = new ArrayList<TimelineEntity>(1);
+-    boolean postError = false;
+-    try {
+-      MappingIterator<TimelineEntity> iter = objMapper.readValues(parser,
+-          TimelineEntity.class);
+-      long curPos;
+-      while (iter.hasNext()) {
+-        TimelineEntity entity = iter.next();
+-        String etype = entity.getEntityType();
+-        String eid = entity.getEntityId();
+-        LOG.debug("Read entity {} of {}", eid, etype);
+-        ++count;
+-        curPos = ((FSDataInputStream) parser.getInputSource()).getPos();
+-        LOG.debug("Parser now at offset {}", curPos);
+-
+-        try {
+-          LOG.debug("Adding {}({}) to store", eid, etype);
+-          entityList.add(entity);
+-          entities.setEntities(entityList);
+-          TimelinePutResponse response = tdm.postEntities(entities, ugi);
+-          for (TimelinePutResponse.TimelinePutError e
+-              : response.getErrors()) {
+-            LOG.warn("Error putting entity: {} ({}): {}",
+-                e.getEntityId(), e.getEntityType(), e.getErrorCode());
+-          }
+-          setOffset(curPos);
+-          entityList.clear();
+-        } catch (YarnException e) {
+-          postError = true;
+-          throw new IOException("Error posting entities", e);
+-        } catch (IOException e) {
+-          postError = true;
+-          throw new IOException("Error posting entities", e);
+-        }
+-      }
+-    } catch (IOException e) {
+-      // if app hasn't completed then there may be errors due to the
+-      // incomplete file which are treated as EOF until app completes
+-      if (appCompleted || postError) {
+-        throw e;
+-      }
+-    } catch (RuntimeException e) {
+-      if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+-        throw e;
+-      }
+-    }
+-    return count;
+-  }
+-}
+-
+-class DomainLogInfo extends LogInfo {
+-  private static final Logger LOG = LoggerFactory.getLogger(
+-      EntityGroupFSTimelineStore.class);
+-
+-  public DomainLogInfo(String attemptDirName, String file,
+-      String owner) {
+-    super(attemptDirName, file, owner);
+-  }
+-
+-  protected long doParse(TimelineDataManager tdm, JsonParser parser,
+-      ObjectMapper objMapper, UserGroupInformation ugi, boolean appCompleted)
+-      throws IOException {
+-    long count = 0;
+-    long curPos;
+-    boolean putError = false;
+-    try {
+-      MappingIterator<TimelineDomain> iter = objMapper.readValues(parser,
+-          TimelineDomain.class);
+-
+-      while (iter.hasNext()) {
+-        TimelineDomain domain = iter.next();
+-        domain.setOwner(ugi.getShortUserName());
+-        LOG.trace("Read domain {}", domain.getId());
+-        ++count;
+-        curPos = ((FSDataInputStream) parser.getInputSource()).getPos();
+-        LOG.debug("Parser now at offset {}", curPos);
+-
+-        try {
+-          tdm.putDomain(domain, ugi);
+-          setOffset(curPos);
+-        } catch (YarnException e) {
+-          putError = true;
+-          throw new IOException("Error posting domain", e);
+-        } catch (IOException e) {
+-          putError = true;
+-          throw new IOException("Error posting domain", e);
+-        }
+-      }
+-    } catch (IOException e) {
+-      // if app hasn't completed then there may be errors due to the
+-      // incomplete file which are treated as EOF until app completes
+-      if (appCompleted || putError) {
+-        throw e;
+-      }
+-    } catch (RuntimeException e) {
+-      if (appCompleted || !(e.getCause() instanceof JsonParseException)) {
+-        throw e;
+-      }
+-    }
+-    return count;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/TimelineEntityGroupPlugin.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/TimelineEntityGroupPlugin.java
+deleted file mode 100644
+index 9cdbf5fc2e9..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/TimelineEntityGroupPlugin.java
++++ /dev/null
+@@ -1,74 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId;
+-
+-import java.util.Collection;
+-import java.util.Set;
+-import java.util.SortedSet;
+-
+-/**
+- * Plugin to map a requested query ( or an Entity/set of Entities ) to a CacheID.
+- * The Cache ID is an identifier to the data set that needs to be queried to
+- * serve the response for the query.
+- */
+-public abstract class TimelineEntityGroupPlugin {
+-
+-  /**
+-   * Get the {@link TimelineEntityGroupId}s for the data sets that need to be
+-   * scanned to serve the query.
+-   *
+-   * @param entityType Entity Type being queried
+-   * @param primaryFilter Primary filter being applied
+-   * @param secondaryFilters Secondary filters being applied in the query
+-   * @return {@link org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId}
+-   */
+-  public abstract Set<TimelineEntityGroupId> getTimelineEntityGroupId(
+-      String entityType, NameValuePair primaryFilter,
+-      Collection<NameValuePair> secondaryFilters);
+-
+-  /**
+-   * Get the {@link TimelineEntityGroupId}s for the data sets that need to be
+-   * scanned to serve the query.
+-   *
+-   * @param entityType Entity Type being queried
+-   * @param entityId Entity Id being requested
+-   * @return {@link org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId}
+-   */
+-  public abstract Set<TimelineEntityGroupId> getTimelineEntityGroupId(
+-      String entityId,
+-      String entityType);
+-
+-
+-  /**
+-   * Get the {@link TimelineEntityGroupId}s for the data sets that need to be
+-   * scanned to serve the query.
+-   *
+-   * @param entityType Entity Type being queried
+-   * @param entityIds Entity Ids being requested
+-   * @param eventTypes Event Types being requested
+-   * @return {@link org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId}
+-   */
+-  public abstract Set<TimelineEntityGroupId> getTimelineEntityGroupId(
+-      String entityType, SortedSet<String> entityIds,
+-      Set<String> eventTypes);
+-
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/package-info.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/package-info.java
+deleted file mode 100644
+index 6f61bba43d3..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/main/java/org/apache/hadoop/yarn/server/timeline/package-info.java
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-@InterfaceAudience.Private
+-@InterfaceStability.Unstable
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.classification.InterfaceAudience;
+-import org.apache.hadoop.classification.InterfaceStability;
+\ No newline at end of file
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/EntityGroupPlugInForTest.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/EntityGroupPlugInForTest.java
+deleted file mode 100644
+index 89208054de3..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/EntityGroupPlugInForTest.java
++++ /dev/null
+@@ -1,59 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.util.Sets;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntityGroupId;
+-
+-import java.util.Collection;
+-import java.util.Set;
+-import java.util.SortedSet;
+-
+-class EntityGroupPlugInForTest extends TimelineEntityGroupPlugin {
+-
+-  static final String APP_ID_FILTER_NAME = "appid";
+-
+-  @Override
+-  public Set<TimelineEntityGroupId> getTimelineEntityGroupId(String entityType,
+-      NameValuePair primaryFilter,
+-      Collection<NameValuePair> secondaryFilters) {
+-    ApplicationId appId = ApplicationId.fromString(
+-        primaryFilter.getValue().toString());
+-    return Sets.newHashSet(getStandardTimelineGroupId(appId));
+-  }
+-
+-  @Override
+-  public Set<TimelineEntityGroupId> getTimelineEntityGroupId(String entityId,
+-      String entityType) {
+-    ApplicationId appId = ApplicationId.fromString(
+-        entityId);
+-    return Sets.newHashSet(getStandardTimelineGroupId(appId));
+-  }
+-
+-  @Override
+-  public Set<TimelineEntityGroupId> getTimelineEntityGroupId(String entityType,
+-      SortedSet<String> entityIds,
+-      Set<String> eventTypes) {
+-    return Sets.newHashSet();
+-  }
+-
+-  static TimelineEntityGroupId getStandardTimelineGroupId(ApplicationId appId) {
+-    return TimelineEntityGroupId.newInstance(appId, "test");
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/PluginStoreTestUtils.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/PluginStoreTestUtils.java
+deleted file mode 100644
+index cb887fe264f..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/PluginStoreTestUtils.java
++++ /dev/null
+@@ -1,256 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import com.fasterxml.jackson.annotation.JsonInclude;
+-import com.fasterxml.jackson.core.JsonFactory;
+-import com.fasterxml.jackson.core.JsonGenerator;
+-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import com.fasterxml.jackson.databind.type.TypeFactory;
+-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEvent;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.server.timeline.security.TimelineACLsManager;
+-
+-import java.io.IOException;
+-import java.io.OutputStream;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.EnumSet;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-
+-/**
+- * Utility methods related to the ATS v1.5 plugin storage tests.
+- */
+-public class PluginStoreTestUtils {
+-
+-  /**
+-   * For a given file system, setup directories ready to test the plugin storage.
+-   *
+-   * @param fs a {@link FileSystem} object that the plugin storage will work with
+-   * @return the dfsCluster ready to start plugin storage tests.
+-   * @throws IOException
+-   */
+-  public static FileSystem prepareFileSystemForPluginStore(FileSystem fs)
+-      throws IOException {
+-    Path activeDir = new Path(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_ACTIVE_DIR_DEFAULT
+-    );
+-    Path doneDir = new Path(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_DONE_DIR_DEFAULT
+-    );
+-
+-    fs.mkdirs(activeDir);
+-    fs.mkdirs(doneDir);
+-    return fs;
+-  }
+-
+-  /**
+-   * Prepare configuration for plugin tests. This method will also add the mini
+-   * DFS cluster's info to the configuration.
+-   * Note: the test program needs to setup the reader plugin by itself.
+-   *
+-   * @param conf
+-   * @param dfsCluster
+-   * @return the modified configuration
+-   */
+-  public static YarnConfiguration prepareConfiguration(YarnConfiguration conf,
+-      MiniDFSCluster dfsCluster) {
+-    conf.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY,
+-        dfsCluster.getURI().toString());
+-    conf.setFloat(YarnConfiguration.TIMELINE_SERVICE_VERSION, 1.5f);
+-    conf.setLong(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SCAN_INTERVAL_SECONDS,
+-        1);
+-    conf.set(YarnConfiguration.TIMELINE_SERVICE_STORE,
+-        EntityGroupFSTimelineStore.class.getName());
+-    return conf;
+-  }
+-
+-  static FSDataOutputStream createLogFile(Path logPath, FileSystem fs)
+-      throws IOException {
+-    FSDataOutputStream stream;
+-    stream = fs.create(logPath, true);
+-    return stream;
+-  }
+-
+-  static ObjectMapper createObjectMapper() {
+-    ObjectMapper mapper = new ObjectMapper();
+-    mapper.setAnnotationIntrospector(
+-        new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+-    return mapper;
+-  }
+-
+-  /**
+-   * Create sample entities for testing
+-   * @return two timeline entities in a {@link TimelineEntities} object
+-   */
+-  static TimelineEntities generateTestEntities() {
+-    TimelineEntities entities = new TimelineEntities();
+-    Map<String, Set<Object>> primaryFilters =
+-        new HashMap<String, Set<Object>>();
+-    Set<Object> l1 = new HashSet<Object>();
+-    l1.add("username");
+-    Set<Object> l2 = new HashSet<Object>();
+-    l2.add(Integer.MAX_VALUE);
+-    Set<Object> l3 = new HashSet<Object>();
+-    l3.add("123abc");
+-    Set<Object> l4 = new HashSet<Object>();
+-    l4.add((long)Integer.MAX_VALUE + 1l);
+-    primaryFilters.put("user", l1);
+-    primaryFilters.put("appname", l2);
+-    primaryFilters.put("other", l3);
+-    primaryFilters.put("long", l4);
+-    Map<String, Object> secondaryFilters = new HashMap<String, Object>();
+-    secondaryFilters.put("startTime", 123456);
+-    secondaryFilters.put("status", "RUNNING");
+-    Map<String, Object> otherInfo1 = new HashMap<String, Object>();
+-    otherInfo1.put("info1", "val1");
+-    otherInfo1.putAll(secondaryFilters);
+-
+-    String entityId1 = "id_1";
+-    String entityType1 = "type_1";
+-    String entityId2 = "id_2";
+-    String entityType2 = "type_2";
+-
+-    Map<String, Set<String>> relatedEntities =
+-        new HashMap<String, Set<String>>();
+-    relatedEntities.put(entityType2, Collections.singleton(entityId2));
+-
+-    TimelineEvent ev3 = createEvent(789l, "launch_event", null);
+-    TimelineEvent ev4 = createEvent(0l, "init_event", null);
+-    List<TimelineEvent> events = new ArrayList<TimelineEvent>();
+-    events.add(ev3);
+-    events.add(ev4);
+-    entities.addEntity(createEntity(entityId2, entityType2, 456l, events, null,
+-        null, null, "domain_id_1"));
+-
+-    TimelineEvent ev1 = createEvent(123l, "start_event", null);
+-    entities.addEntity(createEntity(entityId1, entityType1, 123l,
+-        Collections.singletonList(ev1), relatedEntities, primaryFilters,
+-        otherInfo1, "domain_id_1"));
+-    return entities;
+-  }
+-
+-  static void verifyTestEntities(TimelineDataManager tdm)
+-      throws YarnException, IOException {
+-    TimelineEntity entity1 = tdm.getEntity("type_1", "id_1",
+-        EnumSet.allOf(TimelineReader.Field.class),
+-        UserGroupInformation.getLoginUser());
+-    TimelineEntity entity2 = tdm.getEntity("type_2", "id_2",
+-        EnumSet.allOf(TimelineReader.Field.class),
+-        UserGroupInformation.getLoginUser());
+-    assertNotNull(entity1);
+-    assertNotNull(entity2);
+-    assertEquals((Long) 123l, entity1.getStartTime(), "Failed to read out entity 1");
+-    assertEquals((Long) 456l, entity2.getStartTime(), "Failed to read out entity 2");
+-  }
+-
+-  /**
+-   * Create a test entity
+-   */
+-  static TimelineEntity createEntity(String entityId, String entityType,
+-      Long startTime, List<TimelineEvent> events,
+-      Map<String, Set<String>> relatedEntities,
+-      Map<String, Set<Object>> primaryFilters,
+-      Map<String, Object> otherInfo, String domainId) {
+-    TimelineEntity entity = new TimelineEntity();
+-    entity.setEntityId(entityId);
+-    entity.setEntityType(entityType);
+-    entity.setStartTime(startTime);
+-    entity.setEvents(events);
+-    if (relatedEntities != null) {
+-      for (Map.Entry<String, Set<String>> e : relatedEntities.entrySet()) {
+-        for (String v : e.getValue()) {
+-          entity.addRelatedEntity(e.getKey(), v);
+-        }
+-      }
+-    } else {
+-      entity.setRelatedEntities(null);
+-    }
+-    entity.setPrimaryFilters(primaryFilters);
+-    entity.setOtherInfo(otherInfo);
+-    entity.setDomainId(domainId);
+-    return entity;
+-  }
+-
+-  /**
+-   * Create a test event
+-   */
+-  static TimelineEvent createEvent(long timestamp, String type, Map<String,
+-      Object> info) {
+-    TimelineEvent event = new TimelineEvent();
+-    event.setTimestamp(timestamp);
+-    event.setEventType(type);
+-    event.setEventInfo(info);
+-    return event;
+-  }
+-
+-  /**
+-   * Write timeline entities to a file system
+-   * @param entities
+-   * @param logPath
+-   * @param fs
+-   * @throws IOException
+-   */
+-  static void writeEntities(TimelineEntities entities, Path logPath,
+-      FileSystem fs) throws IOException {
+-    FSDataOutputStream outStream = createLogFile(logPath, fs);
+-    JsonGenerator jsonGenerator
+-        = new JsonFactory().createGenerator((OutputStream)outStream);
+-    jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
+-    ObjectMapper objMapper = createObjectMapper();
+-    for (TimelineEntity entity : entities.getEntities()) {
+-      objMapper.writeValue(jsonGenerator, entity);
+-    }
+-    outStream.close();
+-  }
+-
+-  static TimelineDataManager getTdmWithStore(Configuration config, TimelineStore store) {
+-    TimelineACLsManager aclManager = new TimelineACLsManager(config);
+-    TimelineDataManager tdm = new TimelineDataManager(store, aclManager);
+-    tdm.init(config);
+-    return tdm;
+-  }
+-
+-  static TimelineDataManager getTdmWithMemStore(Configuration config) {
+-    TimelineStore store = new MemoryTimelineStore("MemoryStore.test");
+-    TimelineDataManager tdm = getTdmWithStore(config, store);
+-    return tdm;
+-  }
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestEntityGroupFSTimelineStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestEntityGroupFSTimelineStore.java
+deleted file mode 100644
+index 748cf92747e..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestEntityGroupFSTimelineStore.java
++++ /dev/null
+@@ -1,809 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.commons.lang3.tuple.Pair;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileContext;
+-import org.apache.hadoop.fs.FileContextTestHelper;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.hdfs.HdfsConfiguration;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.metrics2.lib.MutableCounterLong;
+-import org.apache.hadoop.metrics2.lib.MutableStat;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.test.GenericTestUtils;
+-import org.apache.hadoop.util.ApplicationClassLoader;
+-import org.apache.hadoop.util.JarFinder;
+-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.timeline.EntityGroupFSTimelineStore.AppState;
+-import org.apache.hadoop.yarn.server.timeline.TimelineReader.Field;
+-import org.apache.hadoop.yarn.util.ConverterUtils;
+-import org.junit.jupiter.api.AfterAll;
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeAll;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-import org.junit.jupiter.api.TestInfo;
+-
+-import com.fasterxml.jackson.annotation.JsonInclude;
+-import com.fasterxml.jackson.core.JsonFactory;
+-import com.fasterxml.jackson.core.JsonGenerator;
+-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import com.fasterxml.jackson.databind.type.TypeFactory;
+-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+-
+-import java.io.DataInputStream;
+-import java.io.DataOutputStream;
+-import java.io.File;
+-import java.io.IOException;
+-import java.io.OutputStream;
+-import java.net.URL;
+-import java.net.URLClassLoader;
+-import java.util.ArrayList;
+-import java.util.EnumSet;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.function.Supplier;
+-
+-import static org.assertj.core.api.Assertions.assertThat;
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertFalse;
+-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-import static org.junit.jupiter.api.Assertions.fail;
+-import static org.mockito.Mockito.mock;
+-import static org.mockito.Mockito.when;
+-
+-public class TestEntityGroupFSTimelineStore extends TimelineStoreTestUtils {
+-
+-  private static final String SAMPLE_APP_PREFIX_CACHE_TEST = "1234_000";
+-  private static final int CACHE_TEST_CACHE_SIZE = 5;
+-
+-  private static final String TEST_SUMMARY_LOG_FILE_NAME
+-      = EntityGroupFSTimelineStore.SUMMARY_LOG_PREFIX + "test";
+-  private static final String TEST_DOMAIN_LOG_FILE_NAME
+-      = EntityGroupFSTimelineStore.DOMAIN_LOG_PREFIX + "test";
+-
+-  private static final Path TEST_ROOT_DIR
+-      = new Path(System.getProperty("test.build.data",
+-          System.getProperty("java.io.tmpdir")),
+-      TestEntityGroupFSTimelineStore.class.getSimpleName());
+-
+-  private static Configuration config = new YarnConfiguration();
+-  private static MiniDFSCluster hdfsCluster;
+-  private static FileSystem fs;
+-  private static FileContext fc;
+-  private static FileContextTestHelper fileContextTestHelper =
+-      new FileContextTestHelper("/tmp/TestEntityGroupFSTimelineStore");
+-
+-  private static List<ApplicationId> sampleAppIds;
+-  private static ApplicationId mainTestAppId;
+-  private static Path mainTestAppDirPath;
+-  private static Path testDoneDirPath;
+-  private static Path testActiveDirPath;
+-  private static String mainEntityLogFileName;
+-
+-  private EntityGroupFSTimelineStore store;
+-  private TimelineEntity entityNew;
+-
+-  private File rootDir;
+-  private File testJar;
+-
+-  @BeforeAll
+-  public static void setupClass() throws Exception {
+-    config.setBoolean(YarnConfiguration.TIMELINE_SERVICE_TTL_ENABLE, false);
+-    config.set(
+-        YarnConfiguration
+-            .TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SUMMARY_ENTITY_TYPES,
+-        "YARN_APPLICATION,YARN_APPLICATION_ATTEMPT,YARN_CONTAINER");
+-    config.setInt(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_APP_CACHE_SIZE,
+-        CACHE_TEST_CACHE_SIZE);
+-    config.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, TEST_ROOT_DIR.toString());
+-    HdfsConfiguration hdfsConfig = new HdfsConfiguration();
+-    hdfsCluster
+-        = new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+-    fs = hdfsCluster.getFileSystem();
+-    fc = FileContext.getFileContext(hdfsCluster.getURI(0), config);
+-
+-    sampleAppIds = new ArrayList<>(CACHE_TEST_CACHE_SIZE + 1);
+-    for (int i = 0; i < CACHE_TEST_CACHE_SIZE + 1; i++) {
+-      ApplicationId appId = ApplicationId.fromString(
+-          ConverterUtils.APPLICATION_PREFIX + "_" + SAMPLE_APP_PREFIX_CACHE_TEST
+-              + i);
+-      sampleAppIds.add(appId);
+-    }
+-    testActiveDirPath = getTestRootPath("active");
+-    // Among all sample applicationIds, choose the first one for most of the
+-    // tests.
+-    mainTestAppId = sampleAppIds.get(0);
+-    mainTestAppDirPath = new Path(testActiveDirPath, mainTestAppId.toString());
+-    mainEntityLogFileName = EntityGroupFSTimelineStore.ENTITY_LOG_PREFIX
+-          + EntityGroupPlugInForTest.getStandardTimelineGroupId(mainTestAppId);
+-
+-    testDoneDirPath = getTestRootPath("done");
+-    config.set(YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_DONE_DIR,
+-        testDoneDirPath.toString());
+-    config.set(
+-        YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_ACTIVE_DIR,
+-        testActiveDirPath.toString());
+-  }
+-
+-  @BeforeEach
+-  public void setup(TestInfo testInfo) throws Exception {
+-    for (ApplicationId appId : sampleAppIds) {
+-      Path attemotDirPath =
+-          new Path(new Path(testActiveDirPath, appId.toString()),
+-              getAttemptDirName(appId));
+-      createTestFiles(appId, attemotDirPath);
+-    }
+-
+-    store = new EntityGroupFSTimelineStore();
+-    if (testInfo.getTestMethod().get().getName().contains("Plugin")) {
+-      rootDir = GenericTestUtils.getTestDir(getClass()
+-          .getSimpleName());
+-      if (!rootDir.exists()) {
+-        rootDir.mkdirs();
+-      }
+-      testJar = null;
+-      testJar = JarFinder.makeClassLoaderTestJar(this.getClass(), rootDir,
+-          "test-runjar.jar", 2048,
+-          EntityGroupPlugInForTest.class.getName());
+-      config.set(
+-          YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_CLASSPATH,
+-          testJar.getAbsolutePath());
+-      // add "-org.apache.hadoop." as system classes
+-      String systemClasses = "-org.apache.hadoop." + "," +
+-          ApplicationClassLoader.SYSTEM_CLASSES_DEFAULT;
+-      config.set(
+-          YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_SYSTEM_CLASSES,
+-          systemClasses);
+-
+-      config.set(YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_CLASSES,
+-          EntityGroupPlugInForTest.class.getName());
+-    }
+-    store.init(config);
+-    store.setFs(fs);
+-    store.start();
+-  }
+-
+-  @AfterEach
+-  public void tearDown() throws Exception {
+-    store.stop();
+-    for (ApplicationId appId : sampleAppIds) {
+-      fs.delete(new Path(testActiveDirPath,appId.toString()), true);
+-    }
+-    if (testJar != null) {
+-      testJar.delete();
+-      rootDir.delete();
+-    }
+-  }
+-
+-  @AfterAll
+-  public static void tearDownClass() throws Exception {
+-    hdfsCluster.shutdown();
+-    FileContext fileContext = FileContext.getLocalFSFileContext();
+-    fileContext.delete(new Path(
+-        config.get(YarnConfiguration.TIMELINE_SERVICE_LEVELDB_PATH)), true);
+-  }
+-
+-  @Test
+-  void testAppLogsScanLogs() throws Exception {
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    appLogs.scanForLogs();
+-    List<LogInfo> summaryLogs = appLogs.getSummaryLogs();
+-    List<LogInfo> detailLogs = appLogs.getDetailLogs();
+-    assertEquals(2, summaryLogs.size());
+-    assertEquals(1, detailLogs.size());
+-
+-    for (LogInfo log : summaryLogs) {
+-      String fileName = log.getFilename();
+-      assertTrue(fileName.equals(TEST_SUMMARY_LOG_FILE_NAME)
+-          || fileName.equals(TEST_DOMAIN_LOG_FILE_NAME));
+-    }
+-
+-    for (LogInfo log : detailLogs) {
+-      String fileName = log.getFilename();
+-      assertEquals(fileName, mainEntityLogFileName);
+-    }
+-  }
+-
+-  @Test
+-  void testAppLogsDomainLogLastlyScanned() throws Exception {
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    Path attemptDirPath = new Path(new Path(testActiveDirPath,
+-            mainTestAppId.toString()),
+-        getAttemptDirName(mainTestAppId));
+-    //Delete the domain log from AppDirPath so first scan won't find it
+-    fs.delete(new Path(attemptDirPath, TEST_DOMAIN_LOG_FILE_NAME), false);
+-    appLogs.scanForLogs();
+-    List<LogInfo> summaryLogs = appLogs.getSummaryLogs();
+-    assertEquals(1, summaryLogs.size());
+-    assertEquals(TEST_SUMMARY_LOG_FILE_NAME, summaryLogs.get(0).getFilename());
+-
+-    //Generate the domain log
+-    FSDataOutputStream out = fs.create(
+-        new Path(attemptDirPath, TEST_DOMAIN_LOG_FILE_NAME));
+-    out.close();
+-
+-    appLogs.scanForLogs();
+-    assertEquals(2, summaryLogs.size());
+-    assertEquals(TEST_DOMAIN_LOG_FILE_NAME, summaryLogs.get(0).getFilename());
+-  }
+-
+-  @Test
+-  void testMoveToDone() throws Exception {
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    Path pathBefore = appLogs.getAppDirPath();
+-    appLogs.moveToDone();
+-    Path pathAfter = appLogs.getAppDirPath();
+-    assertNotEquals(pathBefore, pathAfter);
+-    assertTrue(pathAfter.toString().contains(testDoneDirPath.toString()));
+-
+-    fs.delete(pathAfter, true);
+-  }
+-
+-  @Test
+-  void testParseSummaryLogs() throws Exception {
+-    TimelineDataManager tdm = PluginStoreTestUtils.getTdmWithMemStore(config);
+-    MutableCounterLong scanned = store.metrics.getEntitiesReadToSummary();
+-    long beforeScan = scanned.value();
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    appLogs.scanForLogs();
+-    appLogs.parseSummaryLogs(tdm);
+-    PluginStoreTestUtils.verifyTestEntities(tdm);
+-    assertEquals(beforeScan + 2L, scanned.value());
+-  }
+-
+-  @Test
+-  void testWithAnonymousUser() throws Exception {
+-    try {
+-      TimelineDataManager tdm = PluginStoreTestUtils.getTdmWithMemStore(config);
+-      EntityGroupFSTimelineStore.AppLogs appLogs =
+-          store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-              AppState.COMPLETED);
+-      FileStatus fileStatus = mock(FileStatus.class);
+-      when(fileStatus.getOwner()).thenReturn(null);
+-      appLogs.scanForLogs();
+-      appLogs.parseSummaryLogs(tdm);
+-      PluginStoreTestUtils.verifyTestEntities(tdm);
+-    } catch (IllegalArgumentException ie) {
+-      fail("No exception needs to be thrown as anonymous user is configured");
+-    }
+-  }
+-
+-  @Test
+-  void testCleanLogs() throws Exception {
+-    // Create test dirs and files
+-    // Irrelevant file, should not be reclaimed
+-    String appDirName = mainTestAppId.toString();
+-    String attemptDirName = ApplicationAttemptId.appAttemptIdStrPrefix
+-        + appDirName + "_1";
+-    Path irrelevantFilePath = new Path(
+-        testDoneDirPath, "irrelevant.log");
+-    FSDataOutputStream stream = fs.create(irrelevantFilePath);
+-    stream.close();
+-    // Irrelevant directory, should not be reclaimed
+-    Path irrelevantDirPath = new Path(testDoneDirPath, "irrelevant");
+-    fs.mkdirs(irrelevantDirPath);
+-
+-    Path doneAppHomeDir = new Path(new Path(new Path(testDoneDirPath,
+-        Long.toString(mainTestAppId.getClusterTimestamp())), "0000"), "001");
+-    // First application, untouched after creation
+-    Path appDirClean = new Path(doneAppHomeDir, appDirName);
+-    Path attemptDirClean = new Path(appDirClean, attemptDirName);
+-    fs.mkdirs(attemptDirClean);
+-    Path filePath = new Path(attemptDirClean, "test.log");
+-    stream = fs.create(filePath);
+-    stream.close();
+-    // Second application, one file touched after creation
+-    Path appDirHoldByFile = new Path(doneAppHomeDir, appDirName + "1");
+-    Path attemptDirHoldByFile
+-        = new Path(appDirHoldByFile, attemptDirName);
+-    fs.mkdirs(attemptDirHoldByFile);
+-    Path filePathHold = new Path(attemptDirHoldByFile, "test1.log");
+-    stream = fs.create(filePathHold);
+-    stream.close();
+-    // Third application, one dir touched after creation
+-    Path appDirHoldByDir = new Path(doneAppHomeDir, appDirName + "2");
+-    Path attemptDirHoldByDir = new Path(appDirHoldByDir, attemptDirName);
+-    fs.mkdirs(attemptDirHoldByDir);
+-    Path dirPathHold = new Path(attemptDirHoldByDir, "hold");
+-    fs.mkdirs(dirPathHold);
+-    // Fourth application, empty dirs
+-    Path appDirEmpty = new Path(doneAppHomeDir, appDirName + "3");
+-    Path attemptDirEmpty = new Path(appDirEmpty, attemptDirName);
+-    fs.mkdirs(attemptDirEmpty);
+-    Path dirPathEmpty = new Path(attemptDirEmpty, "empty");
+-    fs.mkdirs(dirPathEmpty);
+-
+-    // Should retain all logs after this run
+-    MutableCounterLong dirsCleaned = store.metrics.getLogsDirsCleaned();
+-    long before = dirsCleaned.value();
+-    store.cleanLogs(testDoneDirPath, 10000);
+-    assertTrue(fs.exists(irrelevantDirPath));
+-    assertTrue(fs.exists(irrelevantFilePath));
+-    assertTrue(fs.exists(filePath));
+-    assertTrue(fs.exists(filePathHold));
+-    assertTrue(fs.exists(dirPathHold));
+-    assertTrue(fs.exists(dirPathEmpty));
+-
+-    // Make sure the created dir is old enough
+-    Thread.sleep(2000);
+-    // Touch the second application
+-    stream = fs.append(filePathHold);
+-    stream.writeBytes("append");
+-    stream.close();
+-    // Touch the third application by creating a new dir
+-    fs.mkdirs(new Path(dirPathHold, "holdByMe"));
+-
+-    store.cleanLogs(testDoneDirPath, 1000);
+-
+-    // Verification after the second cleaner call
+-    assertTrue(fs.exists(irrelevantDirPath));
+-    assertTrue(fs.exists(irrelevantFilePath));
+-    assertTrue(fs.exists(filePathHold));
+-    assertTrue(fs.exists(dirPathHold));
+-    assertTrue(fs.exists(doneAppHomeDir));
+-
+-    // appDirClean and appDirEmpty should be cleaned up
+-    assertFalse(fs.exists(appDirClean));
+-    assertFalse(fs.exists(appDirEmpty));
+-    assertEquals(before + 2L, dirsCleaned.value());
+-  }
+-
+-  @Test
+-  void testCleanBuckets() throws Exception {
+-    // ClusterTimeStampDir with App Log Dirs
+-    Path clusterTimeStampDir1 = new Path(testDoneDirPath,
+-        Long.toString(sampleAppIds.get(0).getClusterTimestamp()));
+-    Path appDir1 = new Path(new Path(new Path(
+-        clusterTimeStampDir1, "0000"), "000"), sampleAppIds.get(0).toString());
+-    Path appDir2 = new Path(new Path(new Path(
+-        clusterTimeStampDir1, "0000"), "001"), sampleAppIds.get(1).toString());
+-    Path appDir3 = new Path(new Path(new Path(
+-        clusterTimeStampDir1, "0000"), "002"), sampleAppIds.get(2).toString());
+-    Path appDir4 = new Path(new Path(new Path(
+-        clusterTimeStampDir1, "0001"), "000"), sampleAppIds.get(3).toString());
+-
+-    // ClusterTimeStampDir with no App Log Dirs
+-    Path clusterTimeStampDir2 = new Path(testDoneDirPath, "1235");
+-
+-    // Irrevelant ClusterTimeStampDir
+-    Path clusterTimeStampDir3 = new Path(testDoneDirPath, "irrevelant");
+-    Path appDir5 = new Path(new Path(new Path(
+-        clusterTimeStampDir3, "0000"), "000"), sampleAppIds.get(4).toString());
+-
+-    fs.mkdirs(appDir1);
+-    fs.mkdirs(appDir2);
+-    fs.mkdirs(appDir3);
+-    fs.mkdirs(appDir4);
+-    fs.mkdirs(clusterTimeStampDir2);
+-    fs.mkdirs(appDir5);
+-
+-    Thread.sleep(2000);
+-
+-    store.cleanLogs(testDoneDirPath, 1000);
+-
+-    // ClusterTimeStampDir will be removed only if no App Log Dir Present
+-    assertTrue(fs.exists(clusterTimeStampDir1));
+-    assertFalse(fs.exists(appDir1));
+-    assertFalse(fs.exists(appDir2));
+-    assertFalse(fs.exists(appDir3));
+-    assertFalse(fs.exists(appDir4));
+-    assertFalse(fs.exists(clusterTimeStampDir2));
+-    assertTrue(fs.exists(appDir5));
+-
+-    store.cleanLogs(testDoneDirPath, 1000);
+-    assertFalse(fs.exists(clusterTimeStampDir1));
+-  }
+-
+-  @Test
+-  void testNullCheckGetEntityTimelines() throws Exception {
+-    try {
+-      store.getEntityTimelines("YARN_APPLICATION", null, null, null, null,
+-          null);
+-    } catch (NullPointerException e) {
+-      fail("NPE when getEntityTimelines called with Null EntityIds");
+-    }
+-  }
+-
+-  @Test
+-  void testPluginRead() throws Exception {
+-    // Verify precondition
+-    assertEquals(EntityGroupPlugInForTest.class.getName(),
+-        store.getConfig().get(
+-            YarnConfiguration.TIMELINE_SERVICE_ENTITY_GROUP_PLUGIN_CLASSES));
+-    List<TimelineEntityGroupPlugin> currPlugins = store.getPlugins();
+-    for (TimelineEntityGroupPlugin plugin : currPlugins) {
+-      ClassLoader pluginClassLoader = plugin.getClass().getClassLoader();
+-      assertTrue(pluginClassLoader instanceof ApplicationClassLoader,
+-          "Should set up ApplicationClassLoader");
+-      URL[] paths = ((URLClassLoader) pluginClassLoader).getURLs();
+-      boolean foundJAR = false;
+-      for (URL path : paths) {
+-        if (path.toString().contains(testJar.getAbsolutePath())) {
+-          foundJAR = true;
+-        }
+-      }
+-      assertTrue(foundJAR, "Not found path " + testJar.getAbsolutePath()
+-          + " for plugin " + plugin.getClass().getName());
+-    }
+-    // Load data and cache item, prepare timeline store by making a cache item
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    EntityCacheItem cacheItem = new EntityCacheItem(
+-        EntityGroupPlugInForTest.getStandardTimelineGroupId(mainTestAppId),
+-        config);
+-    cacheItem.setAppLogs(appLogs);
+-    store.setCachedLogs(
+-        EntityGroupPlugInForTest.getStandardTimelineGroupId(mainTestAppId),
+-        cacheItem);
+-    MutableCounterLong detailLogEntityRead =
+-        store.metrics.getGetEntityToDetailOps();
+-    MutableStat cacheRefresh = store.metrics.getCacheRefresh();
+-    long numEntityReadBefore = detailLogEntityRead.value();
+-    long cacheRefreshBefore = cacheRefresh.lastStat().numSamples();
+-
+-    // Generate TDM
+-    TimelineDataManager tdm
+-        = PluginStoreTestUtils.getTdmWithStore(config, store);
+-
+-    // Verify single entity read
+-    TimelineEntity entity3 = tdm.getEntity("type_3", mainTestAppId.toString(),
+-        EnumSet.allOf(TimelineReader.Field.class),
+-        UserGroupInformation.getLoginUser());
+-    assertNotNull(entity3);
+-    assertEquals(entityNew.getStartTime(), entity3.getStartTime());
+-    // Verify multiple entities read
+-    NameValuePair primaryFilter = new NameValuePair(
+-        EntityGroupPlugInForTest.APP_ID_FILTER_NAME, mainTestAppId.toString());
+-    TimelineEntities entities = tdm.getEntities("type_3", primaryFilter, null,
+-        null, null, null, null, null, EnumSet.allOf(TimelineReader.Field.class),
+-        UserGroupInformation.getLoginUser());
+-    assertEquals(1, entities.getEntities().size());
+-    for (TimelineEntity entity : entities.getEntities()) {
+-      assertEquals(entityNew.getStartTime(), entity.getStartTime());
+-    }
+-    // Verify metrics
+-    assertEquals(numEntityReadBefore + 2L, detailLogEntityRead.value());
+-    assertEquals(cacheRefreshBefore + 1L, cacheRefresh.lastStat().numSamples());
+-  }
+-
+-  @Test
+-  void testSummaryRead() throws Exception {
+-    // Load data
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath,
+-            AppState.COMPLETED);
+-    MutableCounterLong summaryLogEntityRead
+-        = store.metrics.getGetEntityToSummaryOps();
+-    long numEntityReadBefore = summaryLogEntityRead.value();
+-    TimelineDataManager tdm
+-        = PluginStoreTestUtils.getTdmWithStore(config, store);
+-    appLogs.scanForLogs();
+-    appLogs.parseSummaryLogs(tdm);
+-
+-    // Verify single entity read
+-    PluginStoreTestUtils.verifyTestEntities(tdm);
+-    // Verify multiple entities read
+-    TimelineEntities entities = tdm.getEntities("type_1", null, null, null,
+-        null, null, null, null, EnumSet.allOf(TimelineReader.Field.class),
+-        UserGroupInformation.getLoginUser());
+-    assertThat(entities.getEntities()).hasSize(1);
+-    for (TimelineEntity entity : entities.getEntities()) {
+-      assertEquals((Long) 123L, entity.getStartTime());
+-    }
+-    // Verify metrics
+-    assertEquals(numEntityReadBefore + 5L, summaryLogEntityRead.value());
+-
+-  }
+-
+-  @Test
+-  void testGetEntityPluginRead() throws Exception {
+-    EntityGroupFSTimelineStore store = null;
+-    ApplicationId appId =
+-        ApplicationId.fromString("application_1501509265053_0001");
+-    String user = UserGroupInformation.getCurrentUser().getShortUserName();
+-    Path userBase = new Path(testActiveDirPath, user);
+-    Path userAppRoot = new Path(userBase, appId.toString());
+-    Path attemotDirPath = new Path(userAppRoot, getAttemptDirName(appId));
+-
+-    try {
+-      store = createAndStartTimelineStore(AppState.ACTIVE);
+-      String logFileName = EntityGroupFSTimelineStore.ENTITY_LOG_PREFIX
+-          + EntityGroupPlugInForTest.getStandardTimelineGroupId(appId);
+-      createTestFiles(appId, attemotDirPath, logFileName);
+-      TimelineEntity entity = store.getEntity(entityNew.getEntityId(),
+-          entityNew.getEntityType(), EnumSet.allOf(Field.class));
+-      assertNotNull(entity);
+-      assertEquals(entityNew.getEntityId(), entity.getEntityId());
+-      assertEquals(entityNew.getEntityType(), entity.getEntityType());
+-    } finally {
+-      if (store != null) {
+-        store.stop();
+-      }
+-      fs.delete(userBase, true);
+-    }
+-  }
+-
+-  @Test
+-  void testScanActiveLogsWithInvalidFile() throws Exception {
+-    Path invalidFile = new Path(testActiveDirPath, "invalidfile");
+-    try {
+-      if (!fs.exists(invalidFile)) {
+-        fs.createNewFile(invalidFile);
+-      }
+-      store.scanActiveLogs();
+-    } catch (StackOverflowError error) {
+-      fail("EntityLogScanner crashed with StackOverflowError");
+-    } finally {
+-      if (fs.exists(invalidFile)) {
+-        fs.delete(invalidFile, false);
+-      }
+-    }
+-  }
+-
+-  @Test
+-  void testScanActiveLogsAndMoveToDonePluginRead() throws Exception {
+-    EntityGroupFSTimelineStore store = null;
+-    ApplicationId appId =
+-        ApplicationId.fromString("application_1501509265053_0002");
+-    String user = UserGroupInformation.getCurrentUser().getShortUserName();
+-    Path userBase = new Path(testActiveDirPath, user);
+-    Path userAppRoot = new Path(userBase, appId.toString());
+-    Path attemotDirPath = new Path(userAppRoot, getAttemptDirName(appId));
+-
+-    try {
+-      store = createAndStartTimelineStore(AppState.COMPLETED);
+-      String logFileName = EntityGroupFSTimelineStore.ENTITY_LOG_PREFIX
+-          + EntityGroupPlugInForTest.getStandardTimelineGroupId(appId);
+-      createTestFiles(appId, attemotDirPath, logFileName);
+-      store.scanActiveLogs();
+-
+-      TimelineEntity entity = store.getEntity(entityNew.getEntityId(),
+-          entityNew.getEntityType(), EnumSet.allOf(Field.class));
+-      assertNotNull(entity);
+-      assertEquals(entityNew.getEntityId(), entity.getEntityId());
+-      assertEquals(entityNew.getEntityType(), entity.getEntityType());
+-    } finally {
+-      if (store != null) {
+-        store.stop();
+-      }
+-      fs.delete(userBase, true);
+-    }
+-  }
+-
+-  // TestTimelineStore to validate the put entities call
+-  static class TestTimelineStore extends LeveldbTimelineStore {
+-    static final AtomicInteger ENTITIES_COUNT = new AtomicInteger(0);
+-
+-    TestTimelineStore() {
+-      super();
+-    }
+-
+-    @Override
+-    public TimelinePutResponse put(TimelineEntities entities) {
+-      ENTITIES_COUNT.getAndAdd(entities.getEntities().size());
+-      return new TimelinePutResponse();
+-    }
+-
+-    public static int getEntitiesCount() {
+-      return ENTITIES_COUNT.get();
+-    }
+-  }
+-
+-  @Test
+-  void testIfAnyDuplicateEntities() throws Exception {
+-    // Create an application with some entities
+-    ApplicationId appId =
+-        ApplicationId.fromString("application_1501509265053_0002");
+-    String user = UserGroupInformation.getCurrentUser().getShortUserName();
+-    Path activeDirPath = getTestRootPath("active1");
+-    Path doneDirPath = getTestRootPath("done1");
+-    Path userBase = new Path(activeDirPath, user);
+-    Path userAppRoot = new Path(userBase, appId.toString());
+-    Path attemptDirPath = new Path(userAppRoot, getAttemptDirName(appId));
+-
+-    String logFileName = EntityGroupFSTimelineStore.ENTITY_LOG_PREFIX
+-        + EntityGroupPlugInForTest.getStandardTimelineGroupId(appId);
+-    createTestFiles(appId, attemptDirPath, logFileName);
+-
+-    // stop the default store before creating new store to get the lock
+-    store.stop();
+-    EntityGroupFSTimelineStore newStore = new EntityGroupFSTimelineStore() {
+-      @Override
+-      protected AppState getAppState(ApplicationId appId) throws IOException {
+-        return AppState.ACTIVE;
+-      }
+-    };
+-
+-    try {
+-      // Start ATS with TestTimelineStore
+-      Configuration newConfig = new YarnConfiguration(config);
+-      newConfig.set(YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_SUMMARY_STORE,
+-          TestTimelineStore.class.getName());
+-      newConfig.set(YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_DONE_DIR,
+-          doneDirPath.toString());
+-      newConfig.set(
+-          YarnConfiguration.TIMELINE_SERVICE_ENTITYGROUP_FS_STORE_ACTIVE_DIR,
+-          activeDirPath.toString());
+-      newStore.init(newConfig);
+-      newStore.setFs(fs);
+-      newStore.start();
+-
+-      // Validate if the initial entities count are correct
+-      newStore.scanActiveLogs();
+-      GenericTestUtils.waitFor(new Supplier<Boolean>() {
+-        @Override
+-        public Boolean get() {
+-          return TestTimelineStore.getEntitiesCount() == 2;
+-        }
+-      }, 100, 10000);
+-      assertEquals(2, TestTimelineStore.getEntitiesCount(), "Wrong Initial Entities Count");
+-
+-      // Append the Summary log file with few more entities
+-      TimelineEntities entities = PluginStoreTestUtils.generateTestEntities();
+-      FSDataOutputStream outStream = fs.append(
+-          new Path(attemptDirPath, TEST_SUMMARY_LOG_FILE_NAME));
+-      JsonGenerator jsonGenerator
+-          = new JsonFactory().createGenerator((OutputStream) outStream);
+-      jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
+-      ObjectMapper objMapper = new ObjectMapper();
+-      objMapper.setAnnotationIntrospector(
+-          new JaxbAnnotationIntrospector(TypeFactory.defaultInstance()));
+-      objMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+-      for (TimelineEntity entity : entities.getEntities()) {
+-        objMapper.writeValue(jsonGenerator, entity);
+-      }
+-      outStream.close();
+-
+-      // Validate if there are any duplicates
+-      newStore.scanActiveLogs();
+-      GenericTestUtils.waitFor(new Supplier<Boolean>() {
+-        @Override
+-        public Boolean get() {
+-          return TestTimelineStore.getEntitiesCount() == 4;
+-        }
+-      }, 100, 10000);
+-      assertEquals(4, TestTimelineStore.getEntitiesCount(), "Duplicate Entities present");
+-
+-    } finally {
+-      if (newStore != null) {
+-        newStore.stop();
+-      }
+-      fs.delete(userAppRoot, true);
+-    }
+-  }
+-
+-  @Test
+-  void testStateStoreAndRecovery() throws Exception {
+-    // Prepare the AppLogs Data
+-    EntityGroupFSTimelineStore.AppLogs appLogs =
+-        store.new AppLogs(mainTestAppId, mainTestAppDirPath, AppState.COMPLETED);
+-    appLogs.scanForLogs();
+-    List<LogInfo> summaryLogs = appLogs.getSummaryLogs();
+-    List<EntityGroupFSTimelineStore.AppLogs> logsList = new ArrayList<>();
+-    logsList.add(appLogs);
+-
+-    // Store the Log files
+-    Path checkpointFile = new Path(fs.getHomeDirectory(), "atscheckpoint");
+-    try (DataOutputStream dataOutputStream = fs.create(checkpointFile)) {
+-      store.storeLogFiles(logsList, dataOutputStream);
+-    } catch (IOException e) {
+-      fail("Failed to store the log files");
+-    }
+-
+-    // Recover the Log files and validate the contents
+-    try (DataInputStream dataInputStream = fs.open(checkpointFile)) {
+-      HashMap<String, Pair<Long, Long>> logFiles =
+-          store.recoverLogFiles(dataInputStream);
+-      assertEquals(summaryLogs.size(), logFiles.size());
+-      for (LogInfo logInfo : summaryLogs) {
+-        String logFileName = logInfo.getAttemptDirName() +
+-            Path.SEPARATOR + logInfo.getFilename();
+-        Pair<Long, Long> pair = logFiles.get(logFileName);
+-        assertNotNull(pair, "Failed to recover " + logFileName);
+-        assertTrue(logInfo.getLastProcessedTime() == pair.getLeft(),
+-            "LastProcessedTime is not same");
+-        assertTrue(logInfo.getOffset() == pair.getRight(),
+-            "Offset is not same");
+-      }
+-    } catch (IOException e) {
+-      fail("Failed to recover the log files");
+-    }
+-  }
+-
+-
+-  private EntityGroupFSTimelineStore createAndStartTimelineStore(
+-      AppState appstate) {
+-    // stop before creating new store to get the lock
+-    store.stop();
+-
+-    EntityGroupFSTimelineStore newStore = new EntityGroupFSTimelineStore() {
+-      @Override
+-      protected AppState getAppState(ApplicationId appId) throws IOException {
+-        return appstate;
+-      }
+-    };
+-    newStore.init(config);
+-    newStore.setFs(fs);
+-    newStore.start();
+-    return newStore;
+-  }
+-
+-  private void createTestFiles(ApplicationId appId, Path attemptDirPath)
+-      throws IOException {
+-    createTestFiles(appId, attemptDirPath, mainEntityLogFileName);
+-  }
+-
+-  private void createTestFiles(ApplicationId appId, Path attemptDirPath,
+-      String logPath) throws IOException {
+-    TimelineEntities entities = PluginStoreTestUtils.generateTestEntities();
+-    PluginStoreTestUtils.writeEntities(entities,
+-        new Path(attemptDirPath, TEST_SUMMARY_LOG_FILE_NAME), fs);
+-    Map<String, Set<Object>> primaryFilters = new HashMap<>();
+-    Set<Object> appSet = new HashSet<Object>();
+-    appSet.add(appId.toString());
+-    primaryFilters.put(EntityGroupPlugInForTest.APP_ID_FILTER_NAME, appSet);
+-    entityNew = PluginStoreTestUtils
+-        .createEntity(appId.toString(), "type_3", 789L, null, null,
+-            primaryFilters, null, "domain_id_1");
+-    TimelineEntities entityList = new TimelineEntities();
+-    entityList.addEntity(entityNew);
+-    PluginStoreTestUtils.writeEntities(entityList,
+-        new Path(attemptDirPath, logPath), fs);
+-
+-    FSDataOutputStream out = fs.create(
+-        new Path(attemptDirPath, TEST_DOMAIN_LOG_FILE_NAME));
+-    out.close();
+-  }
+-
+-  private static Path getTestRootPath(String pathString) {
+-    return fileContextTestHelper.getTestRootPath(fc, pathString);
+-  }
+-
+-  private static String getAttemptDirName(ApplicationId appId) {
+-    return ApplicationAttemptId.appAttemptIdStrPrefix + appId.toString() + "_1";
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLevelDBCacheTimelineStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLevelDBCacheTimelineStore.java
+deleted file mode 100644
+index 7763956330e..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLevelDBCacheTimelineStore.java
++++ /dev/null
+@@ -1,108 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import java.io.IOException;
+-
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-
+-public class TestLevelDBCacheTimelineStore extends TimelineStoreTestUtils {
+-
+-  @BeforeEach
+-  public void setup() throws Exception {
+-    store = new LevelDBCacheTimelineStore("app1");
+-    store.init(new YarnConfiguration());
+-    store.start();
+-    loadTestEntityData();
+-    loadVerificationEntityData();
+-    loadTestDomainData();
+-  }
+-
+-  @AfterEach
+-  public void tearDown() throws Exception {
+-    store.stop();
+-  }
+-
+-  public TimelineStore getTimelineStore() {
+-    return store;
+-  }
+-
+-  @Test
+-  void testDefaultConstructor() {
+-    TimelineStore store = null;
+-    try {
+-      store = ReflectionUtils.newInstance(LevelDBCacheTimelineStore.class,
+-          new YarnConfiguration());
+-    } finally {
+-      assertNotNull(store, "LevelDBCacheTimelineStore failed to instantiate");
+-    }
+-  }
+-
+-  @Test
+-  public void testGetSingleEntity() throws IOException {
+-    super.testGetSingleEntity();
+-  }
+-
+-  @Test
+-  public void testGetEntities() throws IOException {
+-    super.testGetEntities();
+-  }
+-
+-  @Test
+-  public void testGetEntitiesWithFromId() throws IOException {
+-    super.testGetEntitiesWithFromId();
+-  }
+-
+-  @Test
+-  public void testGetEntitiesWithFromTs() throws IOException {
+-    super.testGetEntitiesWithFromTs();
+-  }
+-
+-  @Test
+-  public void testGetEntitiesWithPrimaryFilters() throws IOException {
+-    super.testGetEntitiesWithPrimaryFilters();
+-  }
+-
+-  @Test
+-  public void testGetEntitiesWithSecondaryFilters() throws IOException {
+-    super.testGetEntitiesWithSecondaryFilters();
+-  }
+-
+-  @Test
+-  public void testGetEvents() throws IOException {
+-    super.testGetEvents();
+-  }
+-
+-  @Test
+-  public void testGetDomain() throws IOException {
+-    super.testGetDomain();
+-  }
+-
+-  @Test
+-  public void testGetDomains() throws IOException {
+-    super.testGetDomains();
+-  }
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLogInfo.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLogInfo.java
+deleted file mode 100644
+index 6a4527c13c9..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestLogInfo.java
++++ /dev/null
+@@ -1,249 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with this
+- * work for additional information regarding copyright ownership.  The ASF
+- * licenses this file to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- * <p/>
+- * http://www.apache.org/licenses/LICENSE-2.0
+- * <p/>
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations under
+- * the License.
+- */
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import com.fasterxml.jackson.core.JsonFactory;
+-import com.fasterxml.jackson.core.JsonGenerator;
+-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+-import com.fasterxml.jackson.databind.ObjectMapper;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileContext;
+-import org.apache.hadoop.fs.FileContextTestHelper;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.hdfs.HdfsConfiguration;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineDomain;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
+-import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import java.io.IOException;
+-import java.io.OutputStream;
+-import java.nio.charset.StandardCharsets;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertFalse;
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-
+-public class TestLogInfo {
+-
+-  private static final Path TEST_ROOT_DIR = new Path(
+-      System.getProperty("test.build.data",
+-          System.getProperty("java.io.tmpdir")),
+-      TestLogInfo.class.getSimpleName());
+-
+-  private static final String TEST_ATTEMPT_DIR_NAME = "test_app";
+-  private static final String TEST_ENTITY_FILE_NAME = "test_entity";
+-  private static final String TEST_DOMAIN_FILE_NAME = "test_domain";
+-  private static final String TEST_BROKEN_FILE_NAME = "test_broken";
+-
+-  private Configuration config = new YarnConfiguration();
+-  private MiniDFSCluster hdfsCluster;
+-  private FileSystem fs;
+-  private FileContext fc;
+-  private FileContextTestHelper fileContextTestHelper = new FileContextTestHelper("/tmp/TestLogInfo");
+-  private ObjectMapper objMapper;
+-
+-  private JsonFactory jsonFactory = new JsonFactory();
+-  private JsonGenerator jsonGenerator;
+-  private FSDataOutputStream outStream = null;
+-  private FSDataOutputStream outStreamDomain = null;
+-
+-  private TimelineDomain testDomain;
+-
+-  private static final short FILE_LOG_DIR_PERMISSIONS = 0770;
+-
+-  @BeforeEach
+-  public void setup() throws Exception {
+-    config.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, TEST_ROOT_DIR.toString());
+-    HdfsConfiguration hdfsConfig = new HdfsConfiguration();
+-    hdfsCluster = new MiniDFSCluster.Builder(hdfsConfig).numDataNodes(1).build();
+-    fs = hdfsCluster.getFileSystem();
+-    fc = FileContext.getFileContext(hdfsCluster.getURI(0), config);
+-    Path testAppDirPath = getTestRootPath(TEST_ATTEMPT_DIR_NAME);
+-    fs.mkdirs(testAppDirPath, new FsPermission(FILE_LOG_DIR_PERMISSIONS));
+-    objMapper = PluginStoreTestUtils.createObjectMapper();
+-
+-    TimelineEntities testEntities = PluginStoreTestUtils.generateTestEntities();
+-    writeEntitiesLeaveOpen(testEntities,
+-        new Path(testAppDirPath, TEST_ENTITY_FILE_NAME));
+-
+-    testDomain = new TimelineDomain();
+-    testDomain.setId("domain_1");
+-    testDomain.setReaders(UserGroupInformation.getLoginUser().getUserName());
+-    testDomain.setOwner(UserGroupInformation.getLoginUser().getUserName());
+-    testDomain.setDescription("description");
+-    writeDomainLeaveOpen(testDomain,
+-        new Path(testAppDirPath, TEST_DOMAIN_FILE_NAME));
+-
+-    writeBrokenFile(new Path(testAppDirPath, TEST_BROKEN_FILE_NAME));
+-  }
+-
+-  @AfterEach
+-  public void tearDown() throws Exception {
+-    jsonGenerator.close();
+-    outStream.close();
+-    outStreamDomain.close();
+-    hdfsCluster.shutdown();
+-  }
+-
+-  @Test
+-  void testMatchesGroupId() throws Exception {
+-    String testGroupId = "app1_group1";
+-    // Match
+-    EntityLogInfo testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        "app1_group1",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertTrue(testLogInfo.matchesGroupId(testGroupId));
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        "test_app1_group1",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertTrue(testLogInfo.matchesGroupId(testGroupId));
+-    // Unmatch
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app2_group1",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertFalse(testLogInfo.matchesGroupId(testGroupId));
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app1_group2",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertFalse(testLogInfo.matchesGroupId(testGroupId));
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app1_group12",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertFalse(testLogInfo.matchesGroupId(testGroupId));
+-    // Check delimiters
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app1_group1_2",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertTrue(testLogInfo.matchesGroupId(testGroupId));
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app1_group1.dat",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertTrue(testLogInfo.matchesGroupId(testGroupId));
+-    // Check file names shorter than group id
+-    testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME, "app2",
+-        UserGroupInformation.getLoginUser().getUserName());
+-    assertFalse(testLogInfo.matchesGroupId(testGroupId));
+-  }
+-
+-  @Test
+-  void testParseEntity() throws Exception {
+-    // Load test data
+-    TimelineDataManager tdm = PluginStoreTestUtils.getTdmWithMemStore(config);
+-    EntityLogInfo testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        TEST_ENTITY_FILE_NAME,
+-        UserGroupInformation.getLoginUser().getUserName());
+-    testLogInfo.parseForStore(tdm, getTestRootPath(), true, jsonFactory, objMapper,
+-        fs);
+-    // Verify for the first batch
+-    PluginStoreTestUtils.verifyTestEntities(tdm);
+-    tdm.close();
+-  }
+-
+-  @Test
+-  void testParseBrokenEntity() throws Exception {
+-    // Load test data
+-    TimelineDataManager tdm = PluginStoreTestUtils.getTdmWithMemStore(config);
+-    EntityLogInfo testLogInfo = new EntityLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        TEST_BROKEN_FILE_NAME,
+-        UserGroupInformation.getLoginUser().getUserName());
+-    DomainLogInfo domainLogInfo = new DomainLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        TEST_BROKEN_FILE_NAME,
+-        UserGroupInformation.getLoginUser().getUserName());
+-    // Try parse, should not fail
+-    testLogInfo.parseForStore(tdm, getTestRootPath(), true, jsonFactory, objMapper,
+-        fs);
+-    domainLogInfo.parseForStore(tdm, getTestRootPath(), true, jsonFactory, objMapper,
+-        fs);
+-    tdm.close();
+-  }
+-
+-  @Test
+-  void testParseDomain() throws Exception {
+-    // Load test data
+-    TimelineDataManager tdm = PluginStoreTestUtils.getTdmWithMemStore(config);
+-    DomainLogInfo domainLogInfo = new DomainLogInfo(TEST_ATTEMPT_DIR_NAME,
+-        TEST_DOMAIN_FILE_NAME,
+-        UserGroupInformation.getLoginUser().getUserName());
+-    domainLogInfo.parseForStore(tdm, getTestRootPath(), true, jsonFactory, objMapper,
+-        fs);
+-    // Verify domain data
+-    TimelineDomain resultDomain = tdm.getDomain("domain_1",
+-        UserGroupInformation.getLoginUser());
+-    assertNotNull(resultDomain);
+-    assertEquals(testDomain.getReaders(), resultDomain.getReaders());
+-    assertEquals(testDomain.getOwner(), resultDomain.getOwner());
+-    assertEquals(testDomain.getDescription(), resultDomain.getDescription());
+-  }
+-
+-  private void writeBrokenFile(Path logPath) throws IOException {
+-    FSDataOutputStream out = null;
+-    try {
+-      String broken = "{ broken { [[]} broken";
+-      out = PluginStoreTestUtils.createLogFile(logPath, fs);
+-      out.write(broken.getBytes(StandardCharsets.UTF_8));
+-      out.close();
+-      out = null;
+-    } finally {
+-      if (out != null) {
+-        out.close();
+-      }
+-    }
+-  }
+-
+-  // TestLogInfo needs to maintain opened hdfs files so we have to build our own
+-  // write methods
+-  private void writeEntitiesLeaveOpen(TimelineEntities entities, Path logPath)
+-      throws IOException {
+-    if (outStream == null) {
+-      outStream = PluginStoreTestUtils.createLogFile(logPath, fs);
+-      jsonGenerator = new JsonFactory().createGenerator(
+-          (OutputStream)outStream);
+-      jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
+-    }
+-    for (TimelineEntity entity : entities.getEntities()) {
+-      objMapper.writeValue(jsonGenerator, entity);
+-    }
+-    outStream.hflush();
+-  }
+-
+-  private void writeDomainLeaveOpen(TimelineDomain domain, Path logPath)
+-      throws IOException {
+-    if (outStreamDomain == null) {
+-      outStreamDomain = PluginStoreTestUtils.createLogFile(logPath, fs);
+-    }
+-    // Write domain uses its own json generator to isolate from entity writers
+-    JsonGenerator jsonGeneratorLocal
+-        = new JsonFactory().createGenerator((OutputStream)outStreamDomain);
+-    jsonGeneratorLocal.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
+-    objMapper.writeValue(jsonGeneratorLocal, domain);
+-    outStreamDomain.hflush();
+-  }
+-
+-  private Path getTestRootPath() {
+-    return fileContextTestHelper.getTestRootPath(fc);
+-  }
+-
+-  private Path getTestRootPath(String pathString) {
+-    return fileContextTestHelper.getTestRootPath(fc, pathString);
+-  }
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestOverrideTimelineStoreYarnClient.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestOverrideTimelineStoreYarnClient.java
+deleted file mode 100644
+index 5b9500a4017..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/src/test/java/org/apache/hadoop/yarn/server/timeline/TestOverrideTimelineStoreYarnClient.java
++++ /dev/null
+@@ -1,57 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.timeline;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.client.api.YarnClient;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.junit.jupiter.api.Test;
+-
+-import java.io.IOException;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-
+-public class TestOverrideTimelineStoreYarnClient {
+-
+-  @Test
+-  void testLifecycleAndOverride() throws Throwable {
+-    YarnConfiguration conf = new YarnConfiguration();
+-    try (NoRMStore store = new NoRMStore()) {
+-      store.init(conf);
+-      store.start();
+-      assertEquals(EntityGroupFSTimelineStore.AppState.ACTIVE,
+-          store.getAppState(ApplicationId.newInstance(1, 1)));
+-      store.stop();
+-    }
+-  }
+-
+-  private static class NoRMStore extends EntityGroupFSTimelineStore {
+-    @Override
+-    protected YarnClient createAndInitYarnClient(Configuration conf) {
+-      return null;
+-    }
+-
+-    @Override
+-    protected AppState getAppState(ApplicationId appId)
+-        throws IOException {
+-      return AppState.ACTIVE;
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+index f37b0ff8573..d6e27fafc36 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+@@ -41,7 +41,6 @@
+     <module>hadoop-yarn-server-sharedcachemanager</module>
+     <module>hadoop-yarn-server-tests</module>
+     <module>hadoop-yarn-server-applicationhistoryservice</module>
+-    <module>hadoop-yarn-server-timeline-pluginstorage</module>
+     <module>hadoop-yarn-server-timelineservice</module>
+     <module>hadoop-yarn-server-timelineservice-hbase</module>
+     <module>hadoop-yarn-server-timelineservice-hbase-tests</module>
