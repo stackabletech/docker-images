@@ -1,0 +1,13 @@
+diff --git a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
+index 1f36ca1116..87e04091c9 100644
+--- a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
++++ b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
+@@ -183,6 +183,8 @@ public class StandardServerConnectorFactory implements ServerConnectorFactory {
+             httpConfiguration.setSendServerVersion(SEND_SERVER_VERSION);
+ 
+             final SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
++            // Disable the SNI check, see https://github.com/stackabletech/decisions/issues/34
++            secureRequestCustomizer.setSniHostCheck(false);
+             httpConfiguration.addCustomizer(secureRequestCustomizer);
+         }
+ 
