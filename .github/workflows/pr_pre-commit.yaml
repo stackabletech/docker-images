@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+      - uses: stackabletech/actions/run-pre-commit@9a7313de6170edc00f5a497ef58dcbaeb46ee1d2 # 0.0.8
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           hadolint: ${{ env.HADOLINT_VERSION }}
