@@ -33,7 +33,7 @@ All notable changes to this project will be documented in this file.
 - java: migrate to temurin jdk/jre ([#894]).
 - tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
-- ci: Bump `stackabletech/actions` to 0.0.7 ([#901], [#903]).
+- ci: Bump `stackabletech/actions` to 0.0.8 ([#901], [#903], [#907]).
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
 
 ### Removed
@@ -93,6 +93,7 @@ All notable changes to this project will be documented in this file.
 [#901]: https://github.com/stackabletech/docker-images/pull/901
 [#902]: https://github.com/stackabletech/docker-images/pull/902
 [#903]: https://github.com/stackabletech/docker-images/pull/903
+[#907]: https://github.com/stackabletech/docker-images/pull/907
 
 ## [24.7.0] - 2024-07-24
 
