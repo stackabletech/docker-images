@@ -103,8 +103,8 @@ WORKDIR /stackable
 # labels to build a rackID from.
 # Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
 
-RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
-    cd hdfs-utils-${HDFS_UTILS} && \
+RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/heads/feat/extended-request.tar.gz" | tar -xzC . && \
+    cd hdfs-utils-feat-extended-request && \
     mvn --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
