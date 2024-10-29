@@ -45,6 +45,8 @@ curl "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux
     -o /stackable/bin/jq
 chmod +x /stackable/bin/jq
 
+# Needed to to patch manifests in OLM environments with tolerations
+# and environment variables.
 curl "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
     -o /stackable/bin/yq
 chmod +x /stackable/bin/yq
