@@ -37,15 +37,15 @@ ENV PATH=/stackable/bin:$PATH
 
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
 RUN <<EOF
-curl --fail -L "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
+curl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
     -o /stackable/bin/kubectl
 chmod +x /stackable/bin/kubectl
 
-curl --fail -L "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" \
+curl "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" \
     -o /stackable/bin/jq
 chmod +x /stackable/bin/jq
 
-curl --fail -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
+curl "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
     -o /stackable/bin/yq
 chmod +x /stackable/bin/yq
 
