@@ -35,12 +35,12 @@ for BIULD_WORKFLOW_FILE in .github/workflows/build_*.yaml; do
 
   BIULD_WORKFLOW_NAME=$(yq -r '.name' "$BIULD_WORKFLOW_FILE")
   BIULD_WORKFLOW_BASENAME=$(basename "$BIULD_WORKFLOW_FILE")
-  BIULD_WORKFLOW_WORKFLOW_URL="${GITHUB_ACTION_URL_PREFIX}/${BIULD_WORKFLOW_BASENAME}"
-  BIULD_WORKFLOW_BADGE_URL="${BIULD_WORKFLOW_WORKFLOW_URL}/badge.svg"
+  BIULD_WORKFLOW_URL="${GITHUB_ACTION_URL_PREFIX}/${BIULD_WORKFLOW_BASENAME}"
+  BIULD_WORKFLOW_BADGE_URL="${BIULD_WORKFLOW_URL}/badge.svg"
 
   # Append the image and link shortcuts to be printed at the end
   LINK_SHORTCUTS+=("[${BIULD_WORKFLOW_NAME}]: ${BIULD_WORKFLOW_BADGE_URL}")
-  LINK_SHORTCUTS+=("[${BIULD_WORKFLOW_BASENAME}]: ${BIULD_WORKFLOW_WORKFLOW_URL}")
+  LINK_SHORTCUTS+=("[${BIULD_WORKFLOW_BASENAME}]: ${BIULD_WORKFLOW_URL}")
 
   # Print the cells which contain the shortcuts to the image and link:
   # eg: [![Build Airflow]][build_airflow.yaml]

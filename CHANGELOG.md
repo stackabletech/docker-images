@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add HBase connector ([#878], [#882]).
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
+- ci: Handle release builds in the same build workflows ([#xxx]).
 
 ### Changed
 
@@ -97,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#907]: https://github.com/stackabletech/docker-images/pull/907
 [#910]: https://github.com/stackabletech/docker-images/pull/910
 [#912]: https://github.com/stackabletech/docker-images/pull/912
+[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
 
 ## [24.7.0] - 2024-07-24
 
