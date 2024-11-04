@@ -1,8 +1,8 @@
 ---
-name: Build HBase
+name: Build Kafka
 
 env:
-  PRODUCT_NAME: hbase
+  PRODUCT_NAME: kafka
 
 on:
   workflow_dispatch:
@@ -14,14 +14,15 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - hbase/**
+      - kcat/**
+      - kafka/**
+      - kafka-testing-tools/**
       - vector/**
-      - hadoop/**
       - stackable-base/**
       - java-base/**
       - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_hbase.yaml
+      - .github/workflows/build_kafka.yaml
 
 jobs:
   generate_matrix:

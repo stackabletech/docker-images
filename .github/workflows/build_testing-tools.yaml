@@ -1,8 +1,8 @@
 ---
-name: Build Java Development
+name: Build Testing Tools
 
 env:
-  PRODUCT_NAME: java-devel
+  PRODUCT_NAME: testing-tools
 
 on:
   workflow_dispatch:
@@ -14,9 +14,9 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - java-devel/**
+      - testing-tools/**
       - .github/actions/**
-      - .github/workflows/dev_java-devel.yaml
+      - .github/workflows/build_testing-tools.yaml
 
 jobs:
   generate_matrix:

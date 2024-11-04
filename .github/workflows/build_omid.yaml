@@ -1,8 +1,8 @@
 ---
-name: Build Airflow
+name: Build Omid
 
 env:
-  PRODUCT_NAME: airflow
+  PRODUCT_NAME: omid
 
 on:
   workflow_dispatch:
@@ -14,11 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - airflow/**
+      - omid/**
       - vector/**
       - stackable-base/**
+      - java-base/**
+      - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_airflow.yaml
+      - .github/workflows/build_omid.yaml
 
 jobs:
   generate_matrix:

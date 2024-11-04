@@ -1,8 +1,8 @@
 ---
-name: Build Testing Tools
+name: Build ZooKeeper
 
 env:
-  PRODUCT_NAME: testing-tools
+  PRODUCT_NAME: zookeeper
 
 on:
   workflow_dispatch:
@@ -14,9 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - testing-tools/**
+      - zookeeper/**
+      - vector/**
+      - stackable-base/**
+      - java-base/**
+      - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_testing-tools.yaml
+      - .github/workflows/build_zookeeper.yaml
 
 jobs:
   generate_matrix:

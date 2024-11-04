@@ -1,8 +1,8 @@
 ---
-name: Build ZooKeeper
+name: Build Krb5
 
 env:
-  PRODUCT_NAME: zookeeper
+  PRODUCT_NAME: krb5
 
 on:
   workflow_dispatch:
@@ -14,13 +14,9 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - zookeeper/**
-      - vector/**
-      - stackable-base/**
-      - java-base/**
-      - java-devel/**
+      - krb5/**
       - .github/actions/**
-      - .github/workflows/dev_zookeeper.yaml
+      - .github/workflows/build_krb5.yaml
 
 jobs:
   generate_matrix:

@@ -1,8 +1,8 @@
 ---
-name: Build Tools
+name: Build Kafka Testing Tools
 
 env:
-  PRODUCT_NAME: tools
+  PRODUCT_NAME: kafka-testing-tools
 
 on:
   workflow_dispatch:
@@ -14,10 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - tools/**
+      - kcat/**
+      - kafka-testing-tools/**
+      - vector/**
       - stackable-base/**
+      - java-base/**
       - .github/actions/**
-      - .github/workflows/dev_tools.yaml
+      - .github/workflows/build_kafka-testing-tools.yaml
 
 jobs:
   generate_matrix:

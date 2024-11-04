@@ -1,8 +1,8 @@
 ---
-name: Build Superset
+name: Build Trino CLI
 
 env:
-  PRODUCT_NAME: superset
+  PRODUCT_NAME: trino-cli
 
 on:
   workflow_dispatch:
@@ -14,11 +14,12 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - superset/**
+      - trino-cli/**
       - vector/**
       - stackable-base/**
+      - java-base/**
       - .github/actions/**
-      - .github/workflows/dev_superset.yaml
+      - .github/workflows/build_trino-cli.yaml
 
 jobs:
   generate_matrix:

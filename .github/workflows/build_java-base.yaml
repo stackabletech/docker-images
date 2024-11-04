@@ -1,8 +1,8 @@
 ---
-name: Build Spark K8s
+name: Build Java Base
 
 env:
-  PRODUCT_NAME: spark-k8s
+  PRODUCT_NAME: java-base
 
 on:
   workflow_dispatch:
@@ -14,13 +14,9 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - spark-k8s/**
-      - vector/**
-      - stackable-base/**
       - java-base/**
-      - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_spark-k8s.yaml
+      - .github/workflows/build_java-base.yaml
 
 jobs:
   generate_matrix:

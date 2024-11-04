@@ -1,8 +1,8 @@
 ---
-name: Build Trino
+name: Build Hello-World
 
 env:
-  PRODUCT_NAME: trino
+  PRODUCT_NAME: hello-world
 
 on:
   workflow_dispatch:
@@ -14,13 +14,9 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - trino/**
-      - vector/**
-      - stackable-base/**
-      - java-base/**
-      - java-devel/**
+      - hello-world/**
       - .github/actions/**
-      - .github/workflows/dev_trino.yaml
+      - .github/workflows/build_hello-world.yaml
 
 jobs:
   generate_matrix:

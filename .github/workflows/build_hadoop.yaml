@@ -1,8 +1,8 @@
 ---
-name: Build Trino CLI
+name: Build Hadoop
 
 env:
-  PRODUCT_NAME: trino-cli
+  PRODUCT_NAME: hadoop
 
 on:
   workflow_dispatch:
@@ -14,12 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - trino-cli/**
+      - hadoop/**
       - vector/**
       - stackable-base/**
       - java-base/**
+      - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_trino-cli.yaml
+      - .github/workflows/build_hadoop.yaml
 
 jobs:
   generate_matrix:

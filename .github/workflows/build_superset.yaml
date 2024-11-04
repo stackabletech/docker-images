@@ -1,8 +1,8 @@
 ---
-name: Build Stackable Base
+name: Build Superset
 
 env:
-  PRODUCT_NAME: stackable-base
+  PRODUCT_NAME: superset
 
 on:
   workflow_dispatch:
@@ -14,10 +14,11 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - superset/**
+      - vector/**
       - stackable-base/**
-      - tools/**
       - .github/actions/**
-      - .github/workflows/dev_stackable-base.yaml
+      - .github/workflows/build_superset.yaml
 
 jobs:
   generate_matrix:

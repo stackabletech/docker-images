@@ -1,8 +1,8 @@
 ---
-name: Build kcat
+name: Build Trino
 
 env:
-  PRODUCT_NAME: kcat
+  PRODUCT_NAME: trino
 
 on:
   workflow_dispatch:
@@ -14,13 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - kcat/**
-      - kafka-testing-tools/**
+      - trino/**
       - vector/**
       - stackable-base/**
       - java-base/**
+      - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_kcat.yaml
+      - .github/workflows/build_trino.yaml
 
 jobs:
   generate_matrix:

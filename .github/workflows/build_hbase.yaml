@@ -1,8 +1,8 @@
 ---
-name: Build NiFi
+name: Build HBase
 
 env:
-  PRODUCT_NAME: nifi
+  PRODUCT_NAME: hbase
 
 on:
   workflow_dispatch:
@@ -14,13 +14,14 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - nifi/**
+      - hbase/**
       - vector/**
+      - hadoop/**
       - stackable-base/**
       - java-base/**
       - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_nifi.yaml
+      - .github/workflows/build_hbase.yaml
 
 jobs:
   generate_matrix:

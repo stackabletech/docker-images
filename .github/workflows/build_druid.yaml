@@ -1,8 +1,8 @@
 ---
-name: Build Hadoop
+name: Build Druid
 
 env:
-  PRODUCT_NAME: hadoop
+  PRODUCT_NAME: druid
 
 on:
   workflow_dispatch:
@@ -14,13 +14,13 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - hadoop/**
+      - druid/**
       - vector/**
       - stackable-base/**
       - java-base/**
       - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_hadoop.yaml
+      - .github/workflows/build_druid.yaml
 
 jobs:
   generate_matrix:

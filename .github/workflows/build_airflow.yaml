@@ -1,8 +1,8 @@
 ---
-name: Build Vector
+name: Build Airflow
 
 env:
-  PRODUCT_NAME: vector
+  PRODUCT_NAME: airflow
 
 on:
   workflow_dispatch:
@@ -14,9 +14,11 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - airflow/**
       - vector/**
+      - stackable-base/**
       - .github/actions/**
-      - .github/workflows/dev_vector.yaml
+      - .github/workflows/build_airflow.yaml
 
 jobs:
   generate_matrix:

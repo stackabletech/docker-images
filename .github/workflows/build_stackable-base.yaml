@@ -1,8 +1,8 @@
 ---
-name: Build Kafka Testing Tools
+name: Build Stackable Base
 
 env:
-  PRODUCT_NAME: kafka-testing-tools
+  PRODUCT_NAME: stackable-base
 
 on:
   workflow_dispatch:
@@ -14,13 +14,10 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - kcat/**
-      - kafka-testing-tools/**
-      - vector/**
       - stackable-base/**
-      - java-base/**
+      - tools/**
       - .github/actions/**
-      - .github/workflows/dev_kafka-testing-tools.yaml
+      - .github/workflows/build_stackable-base.yaml
 
 jobs:
   generate_matrix:

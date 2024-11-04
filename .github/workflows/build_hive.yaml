@@ -1,8 +1,8 @@
 ---
-name: Build Omid
+name: Build Hive
 
 env:
-  PRODUCT_NAME: omid
+  PRODUCT_NAME: hive
 
 on:
   workflow_dispatch:
@@ -14,13 +14,14 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - omid/**
+      - hive/**
       - vector/**
+      - hadoop/**
       - stackable-base/**
       - java-base/**
       - java-devel/**
       - .github/actions/**
-      - .github/workflows/dev_omid.yaml
+      - .github/workflows/build_hive.yaml
 
 jobs:
   generate_matrix:
