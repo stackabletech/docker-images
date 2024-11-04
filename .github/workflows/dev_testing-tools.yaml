@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: shard
-        uses: stackabletech/actions/shard@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/shard@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
     outputs:
@@ -47,16 +47,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/build-product-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -66,7 +69,7 @@ jobs:
           source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -88,8 +91,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -98,7 +103,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable0.0.0-dev
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@0c5dbc42a80519b5e1ad6ac1d8bc54a0e1ece8fb # 0.0.7
+        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
