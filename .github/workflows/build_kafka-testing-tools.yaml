@@ -3,6 +3,7 @@ name: Build Kafka Testing Tools
 
 env:
   PRODUCT_NAME: kafka-testing-tools
+  SDP_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
 
 on:
   workflow_dispatch:
@@ -11,6 +12,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - '*'
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
@@ -29,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: shard
-        uses: stackabletech/actions/shard@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/shard@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
     outputs:
@@ -52,18 +55,19 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+          sdp-version: ${{ env.SDP_RELEASE_TAG }}
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -73,7 +77,7 @@ jobs:
           source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -96,9 +100,9 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -107,7 +111,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable0.0.0-dev
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
