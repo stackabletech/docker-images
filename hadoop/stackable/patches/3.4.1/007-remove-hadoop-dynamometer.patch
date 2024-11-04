@@ -1,0 +1,36 @@
+diff --git a/dev-support/bin/dist-layout-stitching b/dev-support/bin/dist-layout-stitching
+index d4bfd8aaada..e769b26ff84 100755
+--- a/dev-support/bin/dist-layout-stitching
++++ b/dev-support/bin/dist-layout-stitching
+@@ -149,7 +149,6 @@ run cp -p "${ROOT}/hadoop-client-modules/hadoop-client-runtime/target/hadoop-cli
+ run cp -p "${ROOT}/hadoop-client-modules/hadoop-client-minicluster/target/hadoop-client-minicluster-${VERSION}.jar" share/hadoop/client/
+ 
+ run copy "${ROOT}/hadoop-tools/hadoop-tools-dist/target/hadoop-tools-dist-${VERSION}" .
+-run copy "${ROOT}/hadoop-tools/hadoop-dynamometer/hadoop-dynamometer-dist/target/hadoop-dynamometer-dist-${VERSION}" .
+ 
+ 
+ echo
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index d4fe2c03160..4da6c2fdc20 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -198,7 +198,6 @@
+       <item name="Resource Estimator Service" href="hadoop-resourceestimator/ResourceEstimator.html"/>
+       <item name="Scheduler Load Simulator" href="hadoop-sls/SchedulerLoadSimulator.html"/>
+       <item name="Hadoop Benchmarking" href="hadoop-project-dist/hadoop-common/Benchmarking.html"/>
+-      <item name="Dynamometer" href="hadoop-dynamometer/Dynamometer.html"/>
+     </menu>
+ 
+     <menu name="Reference" inherit="top">
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 0f4b0954e1e..01ef91f75f6 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -33,7 +33,6 @@
+     <module>hadoop-streaming</module>
+     <module>hadoop-distcp</module>
+     <module>hadoop-federation-balance</module>
+-    <module>hadoop-dynamometer</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+     <module>hadoop-tools-dist</module>

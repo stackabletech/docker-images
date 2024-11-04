@@ -1,0 +1,44 @@
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index ad056195706..9a1ae24385b 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -568,12 +568,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-server-router</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-yarn-server-globalpolicygenerator</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+index 1856e97a654..e62d38f14e9 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+@@ -45,7 +45,6 @@
+     <module>hadoop-yarn-server-timelineservice</module>
+     <module>hadoop-yarn-server-timelineservice-hbase</module>
+     <module>hadoop-yarn-server-timelineservice-hbase-tests</module>
+-    <module>hadoop-yarn-server-router</module>
+     <module>hadoop-yarn-server-timelineservice-documentstore</module>
+     <module>hadoop-yarn-server-globalpolicygenerator</module>
+   </modules>
+diff --git a/hadoop-yarn-project/pom.xml b/hadoop-yarn-project/pom.xml
+index e79e643a7f1..2f5d50dc3fc 100644
+--- a/hadoop-yarn-project/pom.xml
++++ b/hadoop-yarn-project/pom.xml
+@@ -73,10 +73,6 @@
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-yarn-server-web-proxy</artifactId>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-router</artifactId>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-yarn-server-globalpolicygenerator</artifactId>

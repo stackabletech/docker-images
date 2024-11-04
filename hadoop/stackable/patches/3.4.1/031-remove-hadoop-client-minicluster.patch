@@ -1,0 +1,41 @@
+diff --git a/dev-support/bin/dist-layout-stitching b/dev-support/bin/dist-layout-stitching
+index e769b26ff84..1f6c1f79f5a 100755
+--- a/dev-support/bin/dist-layout-stitching
++++ b/dev-support/bin/dist-layout-stitching
+@@ -146,7 +146,6 @@ run cp -pr "${ROOT}/hadoop-common-project/hadoop-kms/target/hadoop-kms-${VERSION
+ run mkdir -p "share/hadoop/client"
+ run cp -p "${ROOT}/hadoop-client-modules/hadoop-client-api/target/hadoop-client-api-${VERSION}.jar" share/hadoop/client/
+ run cp -p "${ROOT}/hadoop-client-modules/hadoop-client-runtime/target/hadoop-client-runtime-${VERSION}.jar" share/hadoop/client/
+-run cp -p "${ROOT}/hadoop-client-modules/hadoop-client-minicluster/target/hadoop-client-minicluster-${VERSION}.jar" share/hadoop/client/
+ 
+ run copy "${ROOT}/hadoop-tools/hadoop-tools-dist/target/hadoop-tools-dist-${VERSION}" .
+ 
+diff --git a/hadoop-client-modules/pom.xml b/hadoop-client-modules/pom.xml
+index 1a858204c66..1b77a04bb4c 100644
+--- a/hadoop-client-modules/pom.xml
++++ b/hadoop-client-modules/pom.xml
+@@ -33,8 +33,6 @@
+     <module>hadoop-client-api</module>
+     <!-- Should be used at runtime scope for remaining classes necessary for hadoop-client-api to function -->
+     <module>hadoop-client-runtime</module>
+-    <!-- Should be used at test scope for those that need access to mini cluster that works with above api and runtime -->
+-    <module>hadoop-client-minicluster</module>
+     <!-- Checks invariants above -->
+     <module>hadoop-client-check-invariants</module>
+   </modules>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index b49ad05a1e0..9ed26fbeb67 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -290,11 +290,6 @@
+         <artifactId>hadoop-client-runtime</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-client-minicluster</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-common</artifactId>
