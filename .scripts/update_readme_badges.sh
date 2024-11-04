@@ -30,21 +30,21 @@ for _ in $(seq 0 $((COLS - 1))); do
 done
 echo "|" >> "$BADGES_TMP"
 
-for BIULD_WORKFLOW_FILE in .github/workflows/build_*.yaml; do
+for BUILD_WORKFLOW_FILE in .github/workflows/build_*.yaml; do
   CURRENT_COLUMN=$(( (CURRENT_COLUMN + 1) % COLS ))
 
-  BIULD_WORKFLOW_NAME=$(yq -r '.name' "$BIULD_WORKFLOW_FILE")
-  BIULD_WORKFLOW_BASENAME=$(basename "$BIULD_WORKFLOW_FILE")
-  BIULD_WORKFLOW_URL="${GITHUB_ACTION_URL_PREFIX}/${BIULD_WORKFLOW_BASENAME}"
-  BIULD_WORKFLOW_BADGE_URL="${BIULD_WORKFLOW_URL}/badge.svg"
+  BUILD_WORKFLOW_NAME=$(yq -r '.name' "$BUILD_WORKFLOW_FILE")
+  BUILD_WORKFLOW_BASENAME=$(basename "$BUILD_WORKFLOW_FILE")
+  BUILD_WORKFLOW_URL="${GITHUB_ACTION_URL_PREFIX}/${BUILD_WORKFLOW_BASENAME}"
+  BUILD_WORKFLOW_BADGE_URL="${BUILD_WORKFLOW_URL}/badge.svg"
 
   # Append the image and link shortcuts to be printed at the end
-  LINK_SHORTCUTS+=("[${BIULD_WORKFLOW_NAME}]: ${BIULD_WORKFLOW_BADGE_URL}")
-  LINK_SHORTCUTS+=("[${BIULD_WORKFLOW_BASENAME}]: ${BIULD_WORKFLOW_URL}")
+  LINK_SHORTCUTS+=("[${BUILD_WORKFLOW_NAME}]: ${BUILD_WORKFLOW_BADGE_URL}")
+  LINK_SHORTCUTS+=("[${BUILD_WORKFLOW_BASENAME}]: ${BUILD_WORKFLOW_URL}")
 
   # Print the cells which contain the shortcuts to the image and link:
   # eg: [![Build Airflow]][build_airflow.yaml]
-  echo -n "| [![${BIULD_WORKFLOW_NAME}]][${BIULD_WORKFLOW_BASENAME}] " >> "$BADGES_TMP"
+  echo -n "| [![${BUILD_WORKFLOW_NAME}]][${BUILD_WORKFLOW_BASENAME}] " >> "$BADGES_TMP"
   # Use this for debugging the grid (comment out the echo above):
   # echo -n "| x "
 
