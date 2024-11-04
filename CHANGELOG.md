@@ -24,7 +24,6 @@ All notable changes to this project will be documented in this file.
 - spark: Add HBase connector ([#878], [#882]).
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
-- ci: Handle release builds in the same build workflows ([#xxx]).
 
 ### Changed
 
@@ -35,8 +34,9 @@ All notable changes to this project will be documented in this file.
 - java: migrate to temurin jdk/jre ([#894]).
 - tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
-- ci: Bump `stackabletech/actions` to 0.1.0 ([#901], [#903], [#907], [#910]).
+- ci: Bump `stackabletech/actions` to 0.2.0 ([#901], [#903], [#907], [#910], [#913]).
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
+- ci: Handle release builds in the same build workflows ([#913]).
 
 ### Removed
 
@@ -98,7 +98,7 @@ All notable changes to this project will be documented in this file.
 [#907]: https://github.com/stackabletech/docker-images/pull/907
 [#910]: https://github.com/stackabletech/docker-images/pull/910
 [#912]: https://github.com/stackabletech/docker-images/pull/912
-[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
+[#913]: https://github.com/stackabletech/docker-images/pull/913
 
 ## [24.7.0] - 2024-07-24
 
