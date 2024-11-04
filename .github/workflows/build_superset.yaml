@@ -3,17 +3,15 @@ name: Build Superset
 
 env:
   PRODUCT_NAME: superset
-  SDP_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+  SDP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 1 1/2 * *' # https://crontab.guru/#0_1_1/2_*_*
   push:
-    branches:
-      - main
-    tags:
-      - '*'
+    branches: [main]
+    tags: ['*']
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
@@ -62,7 +60,7 @@ jobs:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
-          sdp-version: ${{ env.SDP_RELEASE_TAG }}
+          sdp-version: ${{ env.SDP_VERSION }}
 
       - name: Publish Container Image on docker.stackable.tech
         uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
