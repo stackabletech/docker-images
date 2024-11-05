@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/java-devel AS builder
+FROM stackable/image/java-devel AS hadoop-builder
 
 ARG PRODUCT
 ARG ASYNC_PROFILER
@@ -95,6 +95,17 @@ ARG HDFS_UTILS
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
+# Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.
+# We can not simply use java-devel with Java 17, as it is also used to compile Hadoop in this
+# Dockerfile, which needs Java 11. So we need to also use the java-devel image in version 11 and
+# install Java 17 ourselves.
+# The adptiom yum repo is already added by the java-devel Dockerfile.
+RUN microdnf update && \
+    microdnf install -y temurin-17-jdk && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+ENV JAVA_HOME="/usr/lib/jvm/temurin-17-jdk"
+
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
@@ -125,9 +136,9 @@ LABEL name="Apache Hadoop" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
 
