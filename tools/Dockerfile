@@ -7,6 +7,7 @@ ARG PRODUCT
 ARG KUBECTL_VERSION
 ARG RELEASE
 ARG JQ_VERSION
+ARG YQ_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
@@ -43,6 +44,12 @@ chmod +x /stackable/bin/kubectl
 curl "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" \
     -o /stackable/bin/jq
 chmod +x /stackable/bin/jq
+
+# Needed to to patch manifests in OLM environments with tolerations
+# and environment variables.
+curl "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
+    -o /stackable/bin/yq
+chmod +x /stackable/bin/yq
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
