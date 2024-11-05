@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
 - ci: Bump `stackabletech/actions` to 0.1.0 ([#901], [#903], [#907], [#910]).
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
+- hadoop: Bump to `hdfs-utils` 0.4.0 ([#XXX]).
 
 ### Removed
 

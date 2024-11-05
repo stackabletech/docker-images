@@ -6,7 +6,7 @@ versions = [
         "async_profiler": "2.9",
         "jmx_exporter": "1.0.1",
         "protobuf": "3.7.1",
-        "hdfs_utils": "0.3.0",
+        "hdfs_utils": "0.4.0",
     },
     {
         "product": "3.3.6",
@@ -15,7 +15,7 @@ versions = [
         "async_profiler": "2.9",
         "jmx_exporter": "1.0.1",
         "protobuf": "3.7.1",
-        "hdfs_utils": "0.3.0",
+        "hdfs_utils": "0.4.0",
     },
     {
         "product": "3.4.0",
@@ -24,6 +24,6 @@ versions = [
         "async_profiler": "2.9",
         "jmx_exporter": "1.0.1",
         "protobuf": "3.7.1",
-        "hdfs_utils": "0.3.0",
+        "hdfs_utils": "0.4.0",
     },
 ]
