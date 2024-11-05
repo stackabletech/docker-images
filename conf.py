@@ -98,7 +98,7 @@ cache = [
 
 args = {
     "STACKABLE_USER_NAME": "stackable",
-    "STACKABLE_USER_UID": "1000",
-    "STACKABLE_USER_GID": "1000",
+    "STACKABLE_USER_UID": "782252253",
+    "STACKABLE_USER_GID": "574654813",
     "DELETE_CACHES": "true",
 }
