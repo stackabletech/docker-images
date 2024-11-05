@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Changed default user & group IDs from 1000 to a much higher values ([#916])
+
+[#916]: https://github.com/stackabletech/docker-images/pull/916
+
 ## [24.11.0] - 2024-11-18
 
 ### Added
