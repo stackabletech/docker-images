@@ -45,7 +45,7 @@ echo "Validating SHA512 Checksums"
 # This is due to the NiFi sha512 files sometimes ending on newline and sometimes dont.
 # See https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-source-release.zip.sha512 vs
 #     https://archive.apache.org/dist/nifi/1.27.0/nifi-1.27.0-source-release.zip.sha512
-if ! (sha512sum "$src_file" | cut -d ' ' -f 1 | diff - <(echo -e "$(<${src_file}.sha512)")); then
+if ! (sha512sum "$src_file" | cut -d ' ' -f 1 | diff - <(echo -e "$(<"${src_file}".sha512)")); then
   echo "ERROR: One of the SHA512 sums does not match"
   exit 1
 fi
