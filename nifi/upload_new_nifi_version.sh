@@ -41,7 +41,11 @@ curl --fail -LOs "${download_url}/${src_file}.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksums"
-if ! (sha512sum "$src_file" | cut -d ' ' -f 1 | tr -d '\n' | diff - "$src_file.sha512"); then
+# The '<(echo -e $(<${src_file}.sha512))' part removes possible new lines in the provided .sha512 file.
+# This is due to the NiFi sha512 files sometimes ending on newline and sometimes dont.
+# See https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-source-release.zip.sha512 vs
+#     https://archive.apache.org/dist/nifi/1.27.0/nifi-1.27.0-source-release.zip.sha512
+if ! (sha512sum "$src_file" | cut -d ' ' -f 1 | diff - <(echo -e $(<${src_file}.sha512))); then
   echo "ERROR: One of the SHA512 sums does not match"
   exit 1
 fi
@@ -53,6 +57,8 @@ if ! (gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
   exit 1
 fi
+
+exit 0
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
