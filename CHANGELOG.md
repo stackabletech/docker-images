@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add HBase connector ([#878], [#882]).
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
+- nifi: Add version 2.0.0 ([#xxx]).
 
 ### Changed
 
@@ -55,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove `3.8.4` ([#851]).
 - nifi: Remove `1.21.0` and `1.25.0` ([#868]).
 - druid: Remove `28.0.1` ([#880]).
+- nifi: Remmoved binaries from upload nifi script ([#xxx]).
 
 ### Fixed
 
@@ -101,6 +103,7 @@ All notable changes to this project will be documented in this file.
 [#912]: https://github.com/stackabletech/docker-images/pull/912
 [#913]: https://github.com/stackabletech/docker-images/pull/913
 [#914]: https://github.com/stackabletech/docker-images/pull/914
+[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
 
 ## [24.7.0] - 2024-07-24
 
