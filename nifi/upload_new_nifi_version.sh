@@ -58,8 +58,6 @@ if ! (gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   exit 1
 fi
 
-exit 0
-
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
 curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/nifi/' || EXIT_STATUS=$?
