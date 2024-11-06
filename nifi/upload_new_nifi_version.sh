@@ -41,7 +41,7 @@ curl --fail -LOs "${download_url}/${src_file}.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksums"
-# The '<(echo -e $(<${src_file}.sha512))' part removes possible new lines in the provided .sha512 file.
+# The 'echo -e "$(<"${src_file}".sha512)")' part removes possible new lines in the provided .sha512 file.
 # This is due to the NiFi sha512 files sometimes ending on newline and sometimes dont.
 # See https://archive.apache.org/dist/nifi/2.0.0/nifi-2.0.0-source-release.zip.sha512 vs
 #     https://archive.apache.org/dist/nifi/1.27.0/nifi-1.27.0-source-release.zip.sha512
