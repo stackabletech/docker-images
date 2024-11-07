@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - ci: Handle release builds in the same build workflows ([#913]).
 - hadoop: Bump to `hdfs-utils` 0.4.0 ([#914]).
 - superset: Fix `CVE-2024-1135` by upgrading `gunicorn` from 21.2.0 to 22.0.0 ([#919]).
+- jmx_exporter: Updated to a custom-built version of 1.0.1 to fix performance regressions ([#920]).
 
 ### Removed
 
@@ -103,6 +104,7 @@ All notable changes to this project will be documented in this file.
 [#913]: https://github.com/stackabletech/docker-images/pull/913
 [#914]: https://github.com/stackabletech/docker-images/pull/914
 [#919]: https://github.com/stackabletech/docker-images/pull/919
+[#920]: https://github.com/stackabletech/docker-images/pull/920
 
 ## [24.7.0] - 2024-07-24
 
