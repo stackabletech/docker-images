@@ -50,7 +50,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -60,7 +60,7 @@ jobs:
           source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -85,7 +85,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -94,10 +94,51 @@ jobs:
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@fe921a914283975f3be1f5f47348467a94276d41 # 0.1.0
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
+
+  notify:
+    name: Failure Notification
+    needs: [mirror-image, publish_manifests]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+        with:
+          channel-id: "C07UG6JH44F" # notifications-container-images
+          payload: |
+            {
+              "text": "*${{ github.workflow }}* failed",
+              "attachments": [
+                {
+                  "pretext": "See the details below for a summary of which job(s) failed.",
+                  "color": "#aa0000",
+                  "fields": [
+                    {
+                      "title": "Mirror Image",
+                      "short": true,
+                      "value": "${{ needs.mirror-image.result }}"
+                    },
+                    {
+                      "title": "Build/Publish Manifests",
+                      "short": true,
+                      "value": "${{ needs.publish_manifests.result }}"
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "Go to workflow run",
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
