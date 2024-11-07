@@ -43,9 +43,8 @@ RUN microdnf update && \
         # Needed to modify the SBOM
         jq && \
     microdnf clean all && \
-    rm -rf /var/cache/yum
-
-RUN <<EOF
+    rm -rf /var/cache/yum && \
+bash <<EOF
 python${PYTHON} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
@@ -119,9 +118,8 @@ RUN microdnf update && \
         socat \
         unixODBC && \
     microdnf clean all && \
-    rm -rf /var/cache/yum
-
-RUN <<EOF
+    rm -rf /var/cache/yum && \
+bash <<EOF
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
 curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
