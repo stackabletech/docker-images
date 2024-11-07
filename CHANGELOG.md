@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add HBase connector ([#878], [#882]).
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
+- hive: Fix CVE-2024-36114 in Hive `3.1.3` and `4.0.0` by upgrading a dependency. ([#xxx]).
 
 ### Changed
 
@@ -101,6 +102,7 @@ All notable changes to this project will be documented in this file.
 [#912]: https://github.com/stackabletech/docker-images/pull/912
 [#913]: https://github.com/stackabletech/docker-images/pull/913
 [#914]: https://github.com/stackabletech/docker-images/pull/914
+[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
 
 ## [24.7.0] - 2024-07-24
 
