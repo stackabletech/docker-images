@@ -105,13 +105,17 @@ microdnf update
 microdnf install \
   ca-certificates \
   cyrus-sasl \
+  # Needed for the gitsync functionality
   git \
   libpq \
+  # Needed for authentication of clients against LDAP servers
   openldap \
   openldap-clients \
+  # We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
   openssh-clients \
   openssl-libs \
   openssl-pkcs11 \
+  # Airflow needs Python
   python${PYTHON} \
   socat \
   unixODBC
