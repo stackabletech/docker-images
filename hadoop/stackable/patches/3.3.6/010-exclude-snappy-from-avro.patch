@@ -1,0 +1,64 @@
+diff --git a/hadoop-common-project/hadoop-common/pom.xml b/hadoop-common-project/hadoop-common/pom.xml
+index 9c7657b53af..a5e945deeae 100644
+--- a/hadoop-common-project/hadoop-common/pom.xml
++++ b/hadoop-common-project/hadoop-common/pom.xml
+@@ -239,6 +239,12 @@
+       <groupId>org.apache.avro</groupId>
+       <artifactId>avro</artifactId>
+       <scope>compile</scope>
++      <exclusions>
++        <exclusion>
++          <groupId>org.xerial.snappy</groupId>
++          <artifactId>snappy-java</artifactId>
++        </exclusion>
++      </exclusions>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.ant</groupId>
+diff --git a/hadoop-mapreduce-project/hadoop-mapreduce-client/pom.xml b/hadoop-mapreduce-project/hadoop-mapreduce-client/pom.xml
+index a5bffce09ab..97e7b9e7d88 100644
+--- a/hadoop-mapreduce-project/hadoop-mapreduce-client/pom.xml
++++ b/hadoop-mapreduce-project/hadoop-mapreduce-client/pom.xml
+@@ -68,6 +68,10 @@
+           <artifactId>paranamer-ant</artifactId>
+           <groupId>com.thoughtworks.paranamer</groupId>
+         </exclusion>
++        <exclusion>
++          <groupId>org.xerial.snappy</groupId>
++          <artifactId>snappy-java</artifactId>
++        </exclusion>
+       </exclusions>
+     </dependency>
+     <dependency>
+diff --git a/hadoop-mapreduce-project/pom.xml b/hadoop-mapreduce-project/pom.xml
+index 45ea915b62b..eae48021994 100644
+--- a/hadoop-mapreduce-project/pom.xml
++++ b/hadoop-mapreduce-project/pom.xml
+@@ -74,6 +74,10 @@
+           <artifactId>paranamer-ant</artifactId>
+           <groupId>com.thoughtworks.paranamer</groupId>
+         </exclusion>
++        <exclusion>
++          <groupId>org.xerial.snappy</groupId>
++          <artifactId>snappy-java</artifactId>
++        </exclusion>
+       </exclusions>
+     </dependency>
+     <dependency>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index da39c1e0ad0..b78943d1837 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -1311,6 +1311,12 @@
+         <groupId>org.apache.avro</groupId>
+         <artifactId>avro</artifactId>
+         <version>${avro.version}</version>
++        <exclusions>
++          <exclusion>
++			<groupId>org.xerial.snappy</groupId>
++			<artifactId>snappy-java</artifactId>
++          </exclusion>
++        </exclusions>
+       </dependency>
+       <dependency>
+         <groupId>net.sf.kosmosfs</groupId>
