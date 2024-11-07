@@ -1,8 +1,8 @@
 diff --git a/pom.xml b/pom.xml
-index 6af359c..0be2176 100644
+index 3190206e88..7e754f691d 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -954,6 +954,24 @@
+@@ -974,6 +974,24 @@
                      </excludes>
                  </configuration>
              </plugin>

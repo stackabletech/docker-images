@@ -26,7 +26,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
-index 97337d63e2..0f7a272de7 100644
+index 97337d63e2..12ce1d8646 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
 @@ -47,6 +47,7 @@ public class HostHeaderHandler extends Handler.Abstract {
