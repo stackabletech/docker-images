@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
 - ci: Handle release builds in the same build workflows ([#913]).
 - hadoop: Bump to `hdfs-utils` 0.4.0 ([#914]).
-- jmx exporter: Updated to a custom-built version of 1.0.1 to fix performance regressions ([#920])
+- jmx_exporter: Updated to a custom-built version of 1.0.1 to fix performance regressions ([#920]).
 
 ### Removed
 
