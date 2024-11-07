@@ -68,6 +68,13 @@ RUN python3 -m venv /stackable/app \
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
         # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
         tzdata \
+    # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
+    # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
+    # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
+    && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
+        then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
+        && pip install gunicorn==22.0.0; \
+    fi \
     && pip install \
         --no-cache-dir \
         --upgrade \

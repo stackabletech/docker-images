@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
 - ci: Handle release builds in the same build workflows ([#913]).
 - hadoop: Bump to `hdfs-utils` 0.4.0 ([#914]).
+- superset: Fix `CVE-2024-1135` by upgrading `gunicorn` from 21.2.0 to 22.0.0 ([#XXX]).
 
 ### Removed
 
