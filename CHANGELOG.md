@@ -63,6 +63,7 @@ All notable changes to this project will be documented in this file.
 
 - hbase: link to phoenix server jar ([#811]).
 - trino: Correctly report Trino version ([#881]).
+- hadoop: Fix CVE-2023-34455 by excluding a trasitive dependency to an old java-snappy lib ([#923])
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -106,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#914]: https://github.com/stackabletech/docker-images/pull/914
 [#917]: https://github.com/stackabletech/docker-images/pull/917
 [#920]: https://github.com/stackabletech/docker-images/pull/920
+[#923]: https://github.com/stackabletech/docker-images/pull/923
 
 ## [24.7.0] - 2024-07-24
 
