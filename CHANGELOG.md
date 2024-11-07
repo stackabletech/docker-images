@@ -56,7 +56,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove `3.8.4` ([#851]).
 - nifi: Remove `1.21.0` and `1.25.0` ([#868]).
 - druid: Remove `28.0.1` ([#880]).
-- nifi: Remmoved binaries from upload nifi script ([#917]).
+- nifi: Removed binaries from upload nifi script ([#917]).
 
 ### Fixed
 
