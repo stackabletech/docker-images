@@ -28,12 +28,13 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches /stackable/patches
 
-RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
+RUN --mount=type=cache,id=maven-nifi-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
+    curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
     # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
     -o /stackable/stackable-bcrypt.jar && \
     # Get the source release from nexus
     curl "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
-    unzip "nifi-${PRODUCT}-source-release.zip" && \
+    unzip -qq "nifi-${PRODUCT}-source-release.zip" && \
     # Clean up downloaded source after unzipping
     rm -rf "nifi-${PRODUCT}-source-release.zip" && \
     # The NiFi "binary" ends up in a folder named "nifi-${PRODUCT}" which should be copied to /stackable
@@ -45,7 +46,7 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     patches/apply_patches.sh ${PRODUCT} && \
     # Build NiFi
     cd /stackable/nifi-${PRODUCT}-src/ && \
-    mvn clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws && \
+    mvn --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws && \
     # Copy the binaries to the /stackable folder
     mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
     # Copy the SBOM as well

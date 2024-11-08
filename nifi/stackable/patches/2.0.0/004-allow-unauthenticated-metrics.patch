@@ -1,0 +1,130 @@
+diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
+index d3962a8f51..26566f0f8b 100644
+--- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
++++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
+@@ -149,6 +149,7 @@ public class NiFiProperties extends ApplicationProperties {
+     public static final String SECURITY_AUTO_RELOAD_INTERVAL = "nifi.security.autoreload.interval";
+     public static final String SECURITY_USER_AUTHORIZER = "nifi.security.user.authorizer";
+     public static final String SECURITY_ANONYMOUS_AUTHENTICATION = "nifi.security.allow.anonymous.authentication";
++    public static final String SECURITY_ANONYMOUS_PROMETHEUS_METRICS = "nifi.security.allow.anonymous.prometheus.metrics";
+     public static final String SECURITY_USER_LOGIN_IDENTITY_PROVIDER = "nifi.security.user.login.identity.provider";
+     public static final String SECURITY_OCSP_RESPONDER_URL = "nifi.security.ocsp.responder.url";
+     public static final String SECURITY_OCSP_RESPONDER_CERTIFICATE = "nifi.security.ocsp.responder.certificate";
+@@ -977,6 +978,15 @@ public class NiFiProperties extends ApplicationProperties {
+         return "true".equalsIgnoreCase(anonymousAuthenticationAllowed);
+     }
+ 
++    /**
++     * @return True if property value is 'true'; False otherwise.
++     */
++    public Boolean isAnonymousPrometheusMetricsAllowed() {
++        final String anonymousPrometheusMetricsAllowed = getProperty(SECURITY_ANONYMOUS_PROMETHEUS_METRICS, "false");
++
++        return "true".equalsIgnoreCase(anonymousPrometheusMetricsAllowed);
++    }
++
+     /**
+      * Returns whether an OpenId Connect (OIDC) URL is set.
+      *
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-security/src/main/java/org/apache/nifi/web/security/configuration/WebSecurityConfiguration.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-security/src/main/java/org/apache/nifi/web/security/configuration/WebSecurityConfiguration.java
+index 2870eb6a13..535208cc22 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-security/src/main/java/org/apache/nifi/web/security/configuration/WebSecurityConfiguration.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-security/src/main/java/org/apache/nifi/web/security/configuration/WebSecurityConfiguration.java
+@@ -19,11 +19,7 @@ package org.apache.nifi.web.security.configuration;
+ import org.apache.nifi.util.NiFiProperties;
+ import org.apache.nifi.web.security.StandardAuthenticationEntryPoint;
+ import org.apache.nifi.web.security.anonymous.NiFiAnonymousAuthenticationFilter;
+-import org.apache.nifi.web.security.csrf.CsrfCookieFilter;
+-import org.apache.nifi.web.security.csrf.CsrfCookieRequestMatcher;
+-import org.apache.nifi.web.security.csrf.SkipReplicatedCsrfFilter;
+-import org.apache.nifi.web.security.csrf.StandardCookieCsrfTokenRepository;
+-import org.apache.nifi.web.security.csrf.StandardCsrfTokenRequestAttributeHandler;
++import org.apache.nifi.web.security.csrf.*;
+ import org.apache.nifi.web.security.log.AuthenticationUserFilter;
+ import org.apache.nifi.web.security.oidc.client.web.OidcBearerTokenRefreshFilter;
+ import org.apache.nifi.web.security.oidc.logout.OidcLogoutFilter;
+@@ -44,9 +40,9 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationCodeGra
+ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+ import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+ import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+-import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
+-import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
+ import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
++import org.springframework.security.saml2.provider.service.web.Saml2WebSsoAuthenticationRequestFilter;
++import org.springframework.security.saml2.provider.service.web.authentication.Saml2WebSsoAuthenticationFilter;
+ import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestFilter;
+ import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutResponseFilter;
+ import org.springframework.security.web.SecurityFilterChain;
+@@ -54,14 +50,11 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
+ import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+ import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+ import org.springframework.security.web.csrf.CsrfFilter;
+-import org.springframework.security.web.util.matcher.AndRequestMatcher;
+-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+-import org.springframework.security.web.util.matcher.OrRequestMatcher;
+-import org.springframework.security.web.util.matcher.RequestMatcher;
+-import org.springframework.security.web.util.matcher.RequestMatchers;
++import org.springframework.security.web.util.matcher.*;
+ 
+ import java.util.List;
+ import java.util.stream.Collectors;
++import java.util.stream.Stream;
+ 
+ /**
+  * Application Security Configuration using Spring Security
+@@ -76,12 +69,14 @@ public class WebSecurityConfiguration {
+     private static final List<String> UNFILTERED_PATHS = List.of(
+             "/access/token",
+             "/access/logout/complete",
+-            "/authentication/configuration"
++            "/authentication/configuration",
++            "/flow/metrics/prometheus",
++            "/nifi-api/flow/metrics/prometheus"
+     );
+ 
+-    private static final RequestMatcher UNFILTERED_PATHS_REQUEST_MATCHER = new OrRequestMatcher(
+-            UNFILTERED_PATHS.stream().map(AntPathRequestMatcher::new).collect(Collectors.toList())
+-    );
++    // private static final RequestMatcher UNFILTERED_PATHS_REQUEST_MATCHER = new OrRequestMatcher(
++    //         UNFILTERED_PATHS.stream().map(AntPathRequestMatcher::new).collect(Collectors.toList())
++    // );
+ 
+     /**
+      * Spring Security Authentication Manager configured using Authentication Providers from specific configuration classes
+@@ -115,6 +110,27 @@ public class WebSecurityConfiguration {
+             final Saml2SingleLogoutFilter saml2SingleLogoutFilter,
+             final Saml2LocalLogoutFilter saml2LocalLogoutFilter
+     ) throws Exception {
++        RequestMatcher unfiltered_paths_request_matcher;
++        if (properties.isAnonymousPrometheusMetricsAllowed()) {
++            unfiltered_paths_request_matcher = new OrRequestMatcher(
++                    Stream.of(
++                            "/access/token",
++                            "/access/logout/complete",
++                            "/authentication/configuration",
++                            "/flow/metrics/prometheus",
++                            "/nifi-api/flow/metrics/prometheus",
++                            "/**"
++                    ).map(AntPathRequestMatcher::new).collect(Collectors.toList())
++            );        //     unfiltered_paths_request_matcher = RequestMatchers.anyOf(UNFILTERED_PATHS_REQUEST_MATCHER,
++        //             new AntPathRequestMatcher("/nifi-api/flow/metrics/prometheus"),
++        //             new AntPathRequestMatcher("/flow/metrics/prometheus"),
++        //             new AntPathRequestMatcher("/**"));
++        } else {
++            unfiltered_paths_request_matcher = new OrRequestMatcher(
++                UNFILTERED_PATHS.stream().map(AntPathRequestMatcher::new).collect(Collectors.toList())
++            );
++        }
++
+         http
+                 .logout(AbstractHttpConfigurer::disable)
+                 .rememberMe(AbstractHttpConfigurer::disable)
+@@ -125,7 +141,7 @@ public class WebSecurityConfiguration {
+                 .headers(AbstractHttpConfigurer::disable)
+                 .securityMatchers(securityMatchers -> securityMatchers
+                         .requestMatchers(
+-                                RequestMatchers.not(UNFILTERED_PATHS_REQUEST_MATCHER)
++                                RequestMatchers.not(unfiltered_paths_request_matcher)
+                         )
+                 )
+                 .authorizeHttpRequests(authorize -> authorize
