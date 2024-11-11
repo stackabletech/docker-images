@@ -63,7 +63,7 @@ All notable changes to this project will be documented in this file.
 
 - hbase: link to phoenix server jar ([#811]).
 - trino: Correctly report Trino version ([#881]).
-- druid: Fix CVE-2024-36114 in Hive `1.27.0` and `2.0.0` by upgrading a dependency. ([#xxx]).
+- druid: Fix CVE-2024-36114 in Hive `1.27.0` and `2.0.0` by upgrading a dependency. ([#926]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -107,7 +107,7 @@ All notable changes to this project will be documented in this file.
 [#914]: https://github.com/stackabletech/docker-images/pull/914
 [#917]: https://github.com/stackabletech/docker-images/pull/917
 [#920]: https://github.com/stackabletech/docker-images/pull/920
-[#xxx]: https://github.com/stackabletech/docker-images/pull/xxx
+[#926]: https://github.com/stackabletech/docker-images/pull/926
 
 ## [24.7.0] - 2024-07-24
 
