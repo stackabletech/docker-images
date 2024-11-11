@@ -33,9 +33,24 @@ rm -rf /var/cache/yum
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+EOF
 
+FROM product-utils-builder AS config-utils
+
+RUN <<EOF
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+EOF
+
+FROM product-utils-builder AS containerdebug
+
+# Copying from local folder during development..
+COPY containerdebug containerdebug
+RUN <<EOF
+# git clone --depth 1 https://github.com/stackabletech/containerdebug
+cd ./containerdebug
 . "$HOME/.cargo/env"
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
@@ -178,8 +193,9 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
-COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
