@@ -1,0 +1,27 @@
+Fix CVE-2023-34455
+see https://github.com/stackabletech/vulnerabilities/issues/558
+and https://github.com/stackabletech/vulnerabilities/issues/862
+
+Exclude snappy-java 1.1.8 from the standalone-metastore artifact
+and use the version shipped with the Hadoop binaries patched by
+Stackable with https://github.com/stackabletech/docker-images/blob/main/hadoop/stackable/patches/3.3.6/007-snappy-cves-3.3.6.patch
+
+diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
+index 2982a45ca0..1c4f2ddbf4 100644
+--- a/standalone-metastore/pom.xml
++++ b/standalone-metastore/pom.xml
+@@ -204,6 +204,14 @@
+         <artifactId>hadoop-common</artifactId>
+         <version>${hadoop.version}</version>
+         <exclusions>
++          <!-- Fix for CVE-2023-34455
++            snappy-java can be excluded since a newer version is packaged
++            with the Hadoop binaries.
++          -->
++          <exclusion>
++            <groupId>org.xerial.snappy</groupId>
++            <artifactId>snappy-java</artifactId>
++          </exclusion>
+           <exclusion>
+             <groupId>org.apache.zookeeper</groupId>
+             <artifactId>zookeeper</artifactId>
