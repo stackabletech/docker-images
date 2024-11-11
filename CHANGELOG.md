@@ -62,6 +62,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - hbase: link to phoenix server jar ([#811]).
+- spark: Fix CVE-2024-36114 in Spark 3.5.1 by upgrading a dependency.
+  Spark 3.5.2 is not affected. ([#921])
 - trino: Correctly report Trino version ([#881]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
@@ -106,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#914]: https://github.com/stackabletech/docker-images/pull/914
 [#917]: https://github.com/stackabletech/docker-images/pull/917
 [#920]: https://github.com/stackabletech/docker-images/pull/920
+[#921]: https://github.com/stackabletech/docker-images/pull/921
 
 ## [24.7.0] - 2024-07-24
 
