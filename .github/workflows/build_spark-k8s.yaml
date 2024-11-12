@@ -15,6 +15,7 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - hbase/**
       - spark-k8s/**
       - vector/**
       - stackable-base/**
