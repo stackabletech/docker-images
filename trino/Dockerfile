@@ -36,7 +36,7 @@ mvn versions:set -DnewVersion=${STORAGE_CONNECTOR}
 ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
 EOF
 
-FROM stackable/image/java-devel AS builder
+FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
 ARG STORAGE_CONNECTOR
@@ -113,36 +113,6 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
 # ===
 
-FROM stackable/image/java-devel AS jmx-exporter-builder
-
-ARG JMX_EXPORTER
-ARG STACKABLE_USER_UID
-
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/jmx-exporter/${JMX_EXPORTER} /stackable/jmx_prometheus-${JMX_EXPORTER}-src/patches/${JMX_EXPORTER}
-
-RUN curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
-# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
-# hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${JMX_EXPORTER},target=/root/.m2/repository <<EOF
-cd jmx_prometheus-${JMX_EXPORTER}-src
-./patches/apply_patches.sh ${JMX_EXPORTER}
-mvn package
-EOF
-
 FROM stackable/image/java-base
 
 ARG PRODUCT
@@ -173,11 +143,13 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
-COPY --from=jmx-exporter-builder /stackable/jmx_prometheus-${JMX_EXPORTER}-src/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+COPY --from=trino-builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
 
 RUN <<EOF
 ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
+
+curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # All files and folders owned by root group to support running as arbitrary users.
