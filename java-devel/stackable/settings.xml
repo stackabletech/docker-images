@@ -1,7 +1,43 @@
 <settings>
+  <mirrors>
+    <mirror>
+      <id>nexus</id>
+      <mirrorOf>*</mirrorOf>
+      <url>https://build-repo.stackable.tech/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+
   <profiles>
     <profile>
       <id>stackable</id>
+
+      <!--Enable snapshots for the built-in central repo to direct -->
+      <!--all requests to nexus via the mirror -->
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+
       <properties>
         <!--
         This is to work around an issue where Maven builds in Github Actions would randomly fail.
