@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - spark: Fix CVE-2024-36114 in Spark 3.5.1 by upgrading a dependency.
   Spark 3.5.2 is not affected. ([#921])
 - trino: Correctly report Trino version ([#881]).
+- druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -111,6 +112,7 @@ All notable changes to this project will be documented in this file.
 [#919]: https://github.com/stackabletech/docker-images/pull/919
 [#920]: https://github.com/stackabletech/docker-images/pull/920
 [#921]: https://github.com/stackabletech/docker-images/pull/921
+[#926]: https://github.com/stackabletech/docker-images/pull/926
 
 ## [24.7.0] - 2024-07-24
 
