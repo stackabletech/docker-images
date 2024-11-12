@@ -4,3 +4,4 @@
 03-patch-updates.patch
 04-include-dataformat-xml.patch
 05-patch-cyclonedx-plugin.patch
+06-CVE-2024-36114-bump-aircompressor-0-27.patch

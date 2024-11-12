@@ -6,3 +6,4 @@
 05-xmllayout-dependencies.patch
 06-dont-build-targz.patch
 07-cyclonedx-plugin.patch
+08-CVE-2024-36114-bump-aircompressor-0-27.patch
