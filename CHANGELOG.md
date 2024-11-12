@@ -63,7 +63,7 @@ All notable changes to this project will be documented in this file.
 
 - hbase: link to phoenix server jar ([#811]).
 - trino: Correctly report Trino version ([#881]).
-- nifi: Fix CVE-2024-36114 in Hive `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
+- nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
