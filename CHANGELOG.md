@@ -70,6 +70,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
 - hbase: Fix CVE-2024-36114 in HBase `2.6.0` by upgrading a dependency. ([#925]).
 - druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
+- hbase: Fix CVE-2023-34455 in HBase `2.4.18` by upgrading a dependency. ([#934]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -119,6 +120,7 @@ All notable changes to this project will be documented in this file.
 [#924]: https://github.com/stackabletech/docker-images/pull/924
 [#925]: https://github.com/stackabletech/docker-images/pull/925
 [#926]: https://github.com/stackabletech/docker-images/pull/926
+[#934]: https://github.com/stackabletech/docker-images/pull/934
 
 ## [24.7.0] - 2024-07-24
 
