@@ -2,15 +2,13 @@ Include Prometheus emitter in distribution
 
 From: Lars Francke <git@lars-francke.de>
 
-
----
- 0 files changed
+Update 2024-11-14: fix CVE-2023-34455
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index d7cd645767..eda1ddcfab 100644
+index e27329e96d..ea79123ab3 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -464,6 +464,52 @@
+@@ -464,6 +464,66 @@
                  </plugins>
              </build>
          </profile>
@@ -52,6 +50,20 @@ index d7cd645767..eda1ddcfab 100644
 +                                        <argument>--no-default-hadoop</argument>
 +                                        <argument>-c</argument>
 +                                        <argument>org.apache.druid.extensions.contrib:prometheus-emitter</argument>
++                                    </arguments>
++                                </configuration>
++                            </execution>
++                            <execution>
++                                <id>fix-cve-2023-34455-remove-snappy</id>
++                                <phase>package</phase>
++                                <goals>
++                                    <goal>exec</goal>
++                                </goals>
++                                <configuration>
++                                    <executable>rm</executable>
++                                    <arguments>
++                                      <argument>${project.build.directory}/hadoop-dependencies/hadoop-client-api/3.3.6/snappy-java-1.1.8.2.jar</argument>
++                                      <argument>${project.build.directory}/hadoop-dependencies/hadoop-client-runtime/3.3.6/snappy-java-1.1.8.2.jar</argument>
 +                                    </arguments>
 +                                </configuration>
 +                            </execution>
