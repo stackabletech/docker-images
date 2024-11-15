@@ -4,6 +4,14 @@ From: Lars Francke <git@lars-francke.de>
 
 Update 2024-11-14: fix CVE-2023-34455
 
+See: https://github.com/stackabletech/vulnerabilities/issues/558
+
+The Prometheus installation brings in a set of redundand dependendencies including the vulnerable
+snappy-java library. Updated versions of this libary are already present in the classpath.
+Therefore, we explicitely remove the affected jars as it it is recommended by the Druid authors here:
+
+https://github.com/apache/druid/blob/09d36ee324747f1407705c27618b6d415c3fa8a9/services/src/main/java/org/apache/druid/cli/PullDependencies.java#L90
+
 diff --git a/distribution/pom.xml b/distribution/pom.xml
 index e27329e96d..ea79123ab3 100644
 --- a/distribution/pom.xml
