@@ -1,5 +1,7 @@
 ---
 name: Build Java Base
+run-name: |
+  Build Java Base (attempt #${{ github.run_attempt }})
 
 env:
   PRODUCT_NAME: java-base
@@ -122,7 +124,7 @@ jobs:
           channel-id: "C07UG6JH44F" # notifications-container-images
           payload: |
             {
-              "text": "*${{ github.workflow }}* failed",
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
               "attachments": [
                 {
                   "pretext": "See the details below for a summary of which job(s) failed.",
@@ -148,7 +150,7 @@ jobs:
                     {
                       "type": "button",
                       "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
                     }
                   ]
                 }
