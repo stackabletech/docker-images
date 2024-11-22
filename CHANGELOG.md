@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
 - nifi: Add version 2.0.0 ([#917]).
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943])
 
 ### Changed
 
