@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+
+[#943]: https://github.com/stackabletech/docker-images/pull/943
+
 ## [24.11.0] - 2024-11-18
 
 ### Added
@@ -27,7 +33,6 @@ All notable changes to this project will be documented in this file.
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
 - tools: install yq command line tool for YAML manipulation ([#912]).
 - nifi: Add version 2.0.0 ([#917]).
-- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 
 ### Changed
 
@@ -122,7 +127,6 @@ All notable changes to this project will be documented in this file.
 [#924]: https://github.com/stackabletech/docker-images/pull/924
 [#925]: https://github.com/stackabletech/docker-images/pull/925
 [#926]: https://github.com/stackabletech/docker-images/pull/926
-[#943]: https://github.com/stackabletech/docker-images/pull/943
 
 ## [24.7.0] - 2024-07-24
 
