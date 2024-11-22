@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+
+[#943]: https://github.com/stackabletech/docker-images/pull/943
+
 ## [24.11.0] - 2024-11-18
 
 ### Added
