@@ -9,6 +9,17 @@ FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
+FROM python:3.12-alpine AS opa-auth-manager-builder
+
+COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
+
+WORKDIR /tmp/opa-auth-manager
+
+RUN <<EOF
+pip install poetry
+poetry build
+EOF
+
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
@@ -17,6 +28,7 @@ ARG PYTHON
 ARG TARGETARCH
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
+COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
 
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
@@ -56,6 +68,8 @@ pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --const
 pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
 # Needed for OIDC
 pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
+pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
