@@ -1,5 +1,7 @@
 ---
 name: Build Stackable Base
+run-name: |
+  Build Stackable Base (attempt #${{ github.run_attempt }})
 
 env:
   PRODUCT_NAME: stackable-base
@@ -94,8 +96,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
         uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
@@ -103,7 +103,7 @@ jobs:
           image-registry-username: github
           image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
           image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable0.0.0-dev
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
@@ -112,7 +112,7 @@ jobs:
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: sdp/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable0.0.0-dev
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
 
   notify:
     name: Failure Notification
@@ -125,7 +125,7 @@ jobs:
           channel-id: "C07UG6JH44F" # notifications-container-images
           payload: |
             {
-              "text": "*${{ github.workflow }}* failed",
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
               "attachments": [
                 {
                   "pretext": "See the details below for a summary of which job(s) failed.",
@@ -151,7 +151,7 @@ jobs:
                     {
                       "type": "button",
                       "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
                     }
                   ]
                 }

@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+
+### Fixed
+
+- hbase: Fix CVE-2023-34455 in HBase `2.4.18` by upgrading a dependency. ([#934]).
+- hive: Fix CVE-2023-34455 in Hive 4.0.0 by excluding snappy-java from the build ([#929])
+
+[#929]: https://github.com/stackabletech/docker-images/pull/929
+[#943]: https://github.com/stackabletech/docker-images/pull/943
+[#934]: https://github.com/stackabletech/docker-images/pull/934
+
+## [24.11.0] - 2024-11-18
+
+### Added
+
 - ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
 - vector: Add version `0.41.1` ([#802], [#815], [#867]).
@@ -70,7 +85,6 @@ All notable changes to this project will be documented in this file.
 - nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
 - hbase: Fix CVE-2024-36114 in HBase `2.6.0` by upgrading a dependency. ([#925]).
 - druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
-- hive: Fix CVE-2023-34455 in Hive 4.0.0 by excluding snappy-java from the build ([#929])
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -120,7 +134,6 @@ All notable changes to this project will be documented in this file.
 [#924]: https://github.com/stackabletech/docker-images/pull/924
 [#925]: https://github.com/stackabletech/docker-images/pull/925
 [#926]: https://github.com/stackabletech/docker-images/pull/926
-[#929]: https://github.com/stackabletech/docker-images/pull/929
 
 ## [24.7.0] - 2024-07-24
 
