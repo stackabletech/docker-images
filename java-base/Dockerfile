@@ -33,8 +33,8 @@ EOF
 
 RUN microdnf update && \
     ls -al /var/cache/yum/metadata/ && \
-    ls -al /var/cache/yum/metadata/Adoptium-9-aarch64 && \
-    cat /var/cache/yum/metadata/Adoptium-9-aarch64/public
+    ls -al /var/cache/yum/metadata/Adoptium-9-* && \
+    cat /var/cache/yum/metadata/Adoptium-9-*/public
 RUN microdnf install \
     # Needed to run Java programs
     "temurin-${PRODUCT}-jre" \
