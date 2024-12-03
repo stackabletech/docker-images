@@ -6,6 +6,8 @@
 #
 FROM stackable/image/vector
 
+RUN curl -sSL https://packages.adoptium.net/artifactory/api/gpg/key/public
+
 ARG PRODUCT
 ARG RELEASE="1"
 
@@ -30,7 +32,10 @@ gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
 EOF
 
 RUN microdnf update && \
-    microdnf install \
+    ls -al /var/cache/yum/metadata/ && \
+    ls -al /var/cache/yum/metadata/Adoptium-9-aarch64 && \
+    cat /var/cache/yum/metadata/Adoptium-9-aarch64/public
+RUN microdnf install \
     # Needed to run Java programs
     "temurin-${PRODUCT}-jre" \
     # Needed, because otherwise e.g. Zookeeper fails with
