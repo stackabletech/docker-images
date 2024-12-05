@@ -8,6 +8,10 @@ on:
     # For now, we run on all paths, but if the products could be moved into a subdirectory, we could match on that
     # paths: []
 
+env:
+  GIT_BASE_REF: ${{ github.event.pull_request.base.sha }}
+  GIT_HEAD_REF: ${{ github.event.pull_request.head.sha }}
+
 jobs:
   # The set of paths for changed files (eg: airflow/Dockerfile, zookeeper/stackable/jmx/server.yaml)
   # ... limited to the product-paths (eg: airflow, zookeeper) that have a versions.py
@@ -17,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
       - id: shard
         shell: bash
         env:
@@ -27,7 +33,7 @@ jobs:
 
           PRODUCT_VERSION_PAIRS=$(
             # shellcheck disable=SC2016
-            git diff --name-only \
+            git diff --name-only "${GIT_BASE_REF}..${GIT_HEAD_REF}" \
             | cut --delimiter=/ --fields=1 | xargs -I {} find {} -type f -maxdepth 1 -name versions.toml \
             | xargs -r dirname \
             | xargs -I {} tomlq --raw-output --arg product "{}" '{$product: .versions | map_values(select(.build_on_pr)) | keys[]}' {}/versions.toml \
