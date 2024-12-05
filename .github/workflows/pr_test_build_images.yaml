@@ -2,7 +2,6 @@
 name: Test Build Images
 
 on:
-  workflow_dispatch:
   pull_request:
     branches: [main, 'release-*']
     # For now, we run on all paths, but if the products could be moved into a subdirectory, we could match on that
