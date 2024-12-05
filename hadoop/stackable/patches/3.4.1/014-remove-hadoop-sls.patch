@@ -1,0 +1,78 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 76eb0568048..411ae8d6251 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -83,17 +83,6 @@
+       <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+       <fileMode>0755</fileMode>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-sls/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-sls/target/hadoop-sls-${project.version}/sls</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sls</outputDirectory>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-resourceestimator/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 253208f1eeb..4678ceba842 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -1507,11 +1507,6 @@
+         <artifactId>metrics-core</artifactId>
+         <version>${metrics.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-sls</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-cloud-storage</artifactId>
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index 45c1c19ea75..d212938b2e5 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -194,7 +194,6 @@
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+       <item name="Rumen" href="hadoop-rumen/Rumen.html"/>
+-      <item name="Scheduler Load Simulator" href="hadoop-sls/SchedulerLoadSimulator.html"/>
+       <item name="Hadoop Benchmarking" href="hadoop-project-dist/hadoop-common/Benchmarking.html"/>
+     </menu>
+ 
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 8781f0b9b42..eae261ade7a 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -78,11 +78,6 @@
+       <scope>compile</scope>
+       <version>${project.version}</version>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-sls</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-azure-datalake</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 48920bab35b..9e520eb1125 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -35,7 +35,6 @@
+     <module>hadoop-federation-balance</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-tools-dist</module>
+-    <module>hadoop-sls</module>
+     <module>hadoop-azure</module>
+     <module>hadoop-aws</module>
+     <module>hadoop-azure-datalake</module>

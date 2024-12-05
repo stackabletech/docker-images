@@ -1,0 +1,82 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 411ae8d6251..89b474f9afc 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -53,21 +53,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-rumen/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-rumen/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-streaming/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 4678ceba842..31d6da673ae 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -658,11 +658,6 @@
+         <version>${hadoop.version}</version>
+         <type>test-jar</type>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-rumen</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+ 
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index d212938b2e5..8be5e704e86 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -193,7 +193,6 @@
+       <item name="Hadoop Streaming" href="hadoop-streaming/HadoopStreaming.html"/>
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+-      <item name="Rumen" href="hadoop-rumen/Rumen.html"/>
+       <item name="Hadoop Benchmarking" href="hadoop-project-dist/hadoop-common/Benchmarking.html"/>
+     </menu>
+ 
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index eae261ade7a..35f9b0be70f 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -55,11 +55,6 @@
+       <artifactId>hadoop-federation-balance</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-rumen</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-aws</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 9e520eb1125..5b3ebd13a42 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -33,7 +33,6 @@
+     <module>hadoop-streaming</module>
+     <module>hadoop-distcp</module>
+     <module>hadoop-federation-balance</module>
+-    <module>hadoop-rumen</module>
+     <module>hadoop-tools-dist</module>
+     <module>hadoop-azure</module>
+     <module>hadoop-aws</module>

@@ -1,0 +1,12 @@
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+index b550bf83deb..3933c52faad 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+@@ -36,7 +36,6 @@
+   <modules>
+     <module>hadoop-yarn-applications-unmanaged-am-launcher</module>
+     <module>hadoop-yarn-services</module>
+-    <module>hadoop-yarn-applications-mawo</module>
+   </modules>
+ 
+  <profiles>
