@@ -111,7 +111,7 @@ jobs:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ env.PRODUCT_VERSION }}
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
-          sdp-version: ${{ env.SDP_VERSION }}+pr${{ github.event.pull_request.number }}
+          sdp-version: ${{ env.SDP_VERSION }}
 
       - run: |
           docker images
