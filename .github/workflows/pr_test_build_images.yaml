@@ -31,6 +31,9 @@ jobs:
           set -euo pipefail
           [ -n "$GITHUB_DEBUG" ] && set -x
 
+          # Needed for tomlq
+          pip install yq==3.4.3
+
           PRODUCT_VERSION_PAIRS=$(
             # shellcheck disable=SC2016
             git diff --name-only "${GIT_BASE_REF}..${GIT_HEAD_REF}" \
