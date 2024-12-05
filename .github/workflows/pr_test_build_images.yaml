@@ -8,10 +8,42 @@ on:
     # paths: []
 
 env:
+  BASE_BRANCH: ${{ github.base_ref }}
   GIT_BASE_REF: ${{ github.event.pull_request.base.sha }}
   GIT_HEAD_REF: ${{ github.event.pull_request.head.sha }}
 
 jobs:
+  # look at the branch that we are merging into:
+  # main               -> 0.0.0-dev
+  # release-XX.X       -> XX.X
+  # release-XX.X.X     -> XX.X.X
+  # release-XX.X-rcY   -> XX.X-rcY
+  # release-XX.X.X-rcY -> XX.X-rcY
+  determine_sdp_version:
+    name: Determine SDP Version
+    runs-on: ubuntu-latest
+    steps:
+      - id: extract_sdp_version
+        shell: bash
+        name: sdp_version
+        run: |
+          set -euo pipefail
+
+          case "$BASE_BRANCH" in
+            main)
+              echo "sdp_version=0.0.0-dev" | tee -a "$GITHUB_OUTPUT"
+              ;;
+            release-*)
+              echo "sdp_version=${BASE_BRANCH#release-}" | tee -a "$GITHUB_OUTPUT"
+              ;;
+            *)
+              >&2 echo "Unexpected branch. Update the workflow branch filter and add a case above"
+              exit 1
+              ;;
+          esac
+    outputs:
+      sdp_version: ${{ steps.extract_sdp_version.outputs.sdp_version }}
+
   # The set of paths for changed files (eg: airflow/Dockerfile, zookeeper/stackable/jmx/server.yaml)
   # ... limited to the product-paths (eg: airflow, zookeeper) that have a versions.py
   # Then for each _product_, shard based on product versions that have the "test" indicator
@@ -22,6 +54,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 0
+      # todo, move this to stackabletech/actions
       - id: shard
         shell: bash
         env:
@@ -49,7 +82,7 @@ jobs:
 
   build:
     name: Build/Publish ${{ matrix.product_version_pairs.name }}-${{ matrix.product_version_pairs.version }}-${{ matrix.runner.arch }} Image
-    needs: [generate_matrix]
+    needs: [determine_sdp_version, generate_matrix]
     permissions:
       id-token: write
     runs-on: ${{ matrix.runner.name }}
@@ -60,12 +93,80 @@ jobs:
           - {name: "ubicloud-standard-8-arm", arch: "arm64"}
         # Eg: [{"name":"airflow","version":"2.10.2"},{"name":"airflow","version":"2.9.3"},{"name":"zookeeper","version":"3.9.2"}]
         product_version_pairs: ${{ fromJson(needs.generate_matrix.outputs.product_version_pairs) }}
+    env:
+      SDP_VERSION: ${{ needs.determine_sdp_version.outputs.sdp_version }}
+      PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
+      PRODUCT_VERSION: ${{ matrix.product_version_pairs.version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-      - env:
-          PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
-          PRODUCT_VERSION: ${{ matrix.product_version_pairs.version }}
-        run: |
-          echo "PRODUCT_NAME=$PRODUCT_NAME"
-          echo "PRODUCT_VERSION=$PRODUCT_VERSION"
+
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+
+      - name: Build Product Image
+        id: build
+        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          product-name: ${{ env.PRODUCT_NAME }}
+          product-version: ${{ env.PRODUCT_VERSION }}
+          build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+          sdp-version: ${{ env.SDP_VERSION }}+pr${{ github.event.pull_request.number }}
+
+      - run: |
+          docker images
+
+  #     - name: Publish Container Image on docker.stackable.tech
+  #       uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+  #       with:
+  #         image-registry-uri: docker.stackable.tech
+  #         image-registry-username: github
+  #         image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+  #         image-repository: stackable/${{ env.PRODUCT_NAME }}
+  #         image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+  #         source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+  #     - name: Publish Container Image on oci.stackable.tech
+  #       uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+  #       with:
+  #         image-registry-uri: oci.stackable.tech
+  #         image-registry-username: robot$sdp+github-action-build
+  #         image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+  #         image-repository: sdp/${{ env.PRODUCT_NAME }}
+  #         image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+  #         source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+  # publish_manifests:
+  #   name: Build/Publish ${{ matrix.product_version_pairs.name }}-${{ matrix.product_version_pairs.version }}-${{ matrix.runner.arch }} Manifests
+  #   needs: [determine_sdp_version, generate_matrix, build]
+  #   permissions:
+  #     id-token: write
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       product_version_pairs: ${{ fromJson(needs.generate_matrix.outputs.product_version_pairs) }}
+  #   env:
+  #     SDP_VERSION: ${{ needs.determine_sdp_version.outputs.sdp_version }}
+  #     PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
+  #     PRODUCT_VERSION: ${{ matrix.product_version_pairs.version }}
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+  #     - name: Publish and Sign Image Index Manifest to docker.stackable.tech
+  #       uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+  #       with:
+  #         image-registry-uri: docker.stackable.tech
+  #         image-registry-username: github
+  #         image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+  #         image-repository: stackable/${{ env.PRODUCT_NAME }}
+  #         image-index-manifest-tag: ${{ env.PRODUCT_VERSION }}-stackable${{ env.SDP_VERSION }}+pr${{ github.event.pull_request.number }}
+
+  #     - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+  #       uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+  #       with:
+  #         image-registry-uri: oci.stackable.tech
+  #         image-registry-username: robot$sdp+github-action-build
+  #         image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+  #         image-repository: sdp/${{ env.PRODUCT_NAME }}
+  #         image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}+pr${{ github.event.pull_request.number }}
