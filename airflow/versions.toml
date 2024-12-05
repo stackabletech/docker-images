@@ -1,6 +1,7 @@
 [versions."2.9.2"]
 
 [versions."2.9.3"]
+build_on_pr = true
 
 [versions."2.10.2"]
 build_on_pr = true

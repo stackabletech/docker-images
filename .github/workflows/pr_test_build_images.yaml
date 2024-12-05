@@ -39,6 +39,7 @@ jobs:
             git diff --name-only "${GIT_BASE_REF}..${GIT_HEAD_REF}" \
             | cut --delimiter=/ --fields=1 | xargs -I {} find {} -type f -maxdepth 1 -name versions.toml \
             | xargs -r dirname \
+            | sort | uniq \
             | xargs -I {} tomlq --raw-output --arg product "{}" '{"name": $product, "version": .versions | map_values(select(.build_on_pr)) | keys[]}' {}/versions.toml \
             | jq --slurp --compact-output '.'
           )
