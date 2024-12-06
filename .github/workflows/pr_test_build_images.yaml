@@ -147,9 +147,11 @@ jobs:
       matrix:
         product_version_pairs: ${{ fromJson(needs.generate_matrix.outputs.product_version_pairs) }}
     env:
-      SDP_VERSION: ${{ needs.determine_sdp_version.outputs.sdp_version }}
       PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
-      PRODUCT_VERSION: ${{ matrix.product_version_pairs.version }}
+      # Ideally we would want to use the suggested-image-index-manifest-tag output of stackablestackabletech/actions/build-product-image,
+      # however, since the builds are done in a matrix, we are not able to get the unique outputs. There are hacky attempts, eg:
+      # https://github.com/orgs/community/discussions/17245#discussioncomment-6770056, but we have opted to construct the tag here:
+      IMAGE_INDEX_MANIFEST_TAG: ${{ matrix.product_version_pairs.version }}-stackable${{ needs.determine_sdp_version.outputs.sdp_version }}-pr${{ github.event.pull_request.number }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -161,7 +163,7 @@ jobs:
           image-registry-username: github
           image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
           image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ env.PRODUCT_VERSION }}-stackable${{ env.SDP_VERSION }}-pr${{ github.event.pull_request.number }}
+          image-index-manifest-tag: ${{ env.IMAGE_INDEX_MANIFEST_TAG }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
@@ -170,4 +172,4 @@ jobs:
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: sdp/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ env.PRODUCT_VERSION }}-stackable${{ env.SDP_VERSION }}-pr${{ github.event.pull_request.number }}
+          image-index-manifest-tag: ${{ env.IMAGE_INDEX_MANIFEST_TAG }}
