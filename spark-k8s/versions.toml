@@ -1,12 +1,8 @@
-[versions."2.9.2"]
+[versions."3.5.1"]
 # This will come later. See: https://github.com/stackabletech/docker-images/issues/770
 # dependencies = { ... }
 
-[versions."2.9.3"]
-# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
-# dependencies = { ... }
-
-[versions."2.10.2"]
+[versions."3.5.2"]
 build_on_pr = true
 # This will come later. See: https://github.com/stackabletech/docker-images/issues/770
 # dependencies = { ... }
