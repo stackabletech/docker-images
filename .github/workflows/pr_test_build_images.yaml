@@ -66,6 +66,9 @@ jobs:
           # Needed for tomlq
           pip install yq==3.4.3
 
+          # TODO (@NickLarsenNZ): Filter out superficial changes, eg: only comments added/removed.
+          # An idea: before the `xargs -r dirname` command, we can compare old and new with comments stripped.
+          # And keep adding rules as we need them.
           PRODUCT_VERSION_PAIRS=$(
             # shellcheck disable=SC2016
             git diff --name-only "${GIT_BASE_REF}..${GIT_HEAD_REF}" \
@@ -76,7 +79,6 @@ jobs:
             | jq --slurp --compact-output '.'
           )
           echo "product_version_pairs=$PRODUCT_VERSION_PAIRS" | tee -a "$GITHUB_OUTPUT"
-
     outputs:
       product_version_pairs: ${{ steps.shard.outputs.product_version_pairs }}
 
