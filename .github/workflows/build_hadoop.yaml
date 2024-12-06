@@ -22,7 +22,6 @@ on:
       - stackable-base/**
       - java-base/**
       - java-devel/**
-      - .github/actions/**
       - .github/workflows/build_hadoop.yaml
 
 jobs:

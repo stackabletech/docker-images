@@ -21,7 +21,6 @@ on:
       - vector/**
       - stackable-base/**
       - java-base/**
-      - .github/actions/**
       - .github/workflows/build_trino-cli.yaml
 
 jobs:

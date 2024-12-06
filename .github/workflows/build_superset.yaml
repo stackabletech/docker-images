@@ -20,7 +20,6 @@ on:
       - superset/**
       - vector/**
       - stackable-base/**
-      - .github/actions/**
       - .github/workflows/build_superset.yaml
 
 jobs:
