@@ -1,0 +1,4 @@
+[versions."455"]
+build_on_pr = true
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }

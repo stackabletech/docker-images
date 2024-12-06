@@ -82,6 +82,8 @@ ARG TINI
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
+# Example change
+
 LABEL name="Apache Airflow" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \

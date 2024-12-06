@@ -53,7 +53,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -63,7 +63,7 @@ jobs:
           source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -88,7 +88,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -97,7 +97,7 @@ jobs:
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
