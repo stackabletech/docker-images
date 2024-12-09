@@ -1,0 +1,213 @@
+diff --git a/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/io/serializer/avro/TestAvroSerialization.java b/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/io/serializer/avro/TestAvroSerialization.java
+index b2d2a8d100..97e281ba85 100644
+--- a/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/io/serializer/avro/TestAvroSerialization.java
++++ b/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/io/serializer/avro/TestAvroSerialization.java
+@@ -33,7 +33,7 @@ public class TestAvroSerialization {
+   @Test
+   public void testSpecific() throws Exception {
+     AvroRecord before = new AvroRecord();
+-    before.intField = 5;
++    before.setIntField(5);
+     AvroRecord after = SerializationTestUtil.testSerialization(conf, before);
+     assertEquals(before, after);
+   }
+diff --git a/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-core/src/main/java/org/apache/hadoop/mapreduce/jobhistory/JobQueueChangeEvent.java b/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-core/src/main/java/org/apache/hadoop/mapreduce/jobhistory/JobQueueChangeEvent.java
+index 66f3781239..aa70bbff62 100644
+--- a/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-core/src/main/java/org/apache/hadoop/mapreduce/jobhistory/JobQueueChangeEvent.java
++++ b/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-core/src/main/java/org/apache/hadoop/mapreduce/jobhistory/JobQueueChangeEvent.java
+@@ -31,8 +31,8 @@ public class JobQueueChangeEvent implements HistoryEvent {
+   private JobQueueChange datum = new JobQueueChange();
+   
+   public JobQueueChangeEvent(JobID id, String queueName) {
+-    datum.jobid = new Utf8(id.toString());
+-    datum.jobQueueName = new Utf8(queueName);
++    datum.setJobid(new Utf8(id.toString()));
++    datum.setJobQueueName(new Utf8(queueName));
+   }
+   
+   JobQueueChangeEvent() { }
+@@ -54,13 +54,13 @@ public class JobQueueChangeEvent implements HistoryEvent {
+   
+   /** Get the Job ID */
+   public JobID getJobId() {
+-    return JobID.forName(datum.jobid.toString());
++    return JobID.forName(datum.getJobid().toString());
+   }
+   
+   /** Get the new Job queue name */
+   public String getJobQueueName() {
+-    if (datum.jobQueueName != null) {
+-      return datum.jobQueueName.toString();
++    if (datum.getJobQueueName() != null) {
++      return datum.getJobQueueName().toString();
+     }
+     return null;
+   }
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index bcba56eced..2d52e3ebb1 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -37,7 +37,7 @@
+     <!--Whether to proceed to next module if any test failures exist-->
+     <maven.test.failure.ignore>true</maven.test.failure.ignore>
+     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+-    <jetty.version>9.4.53.v20231009</jetty.version>
++    <jetty.version>9.4.56.v20240826</jetty.version>
+     <test.exclude>_</test.exclude>
+     <test.exclude.pattern>_</test.exclude.pattern>
+ 
+@@ -63,7 +63,7 @@
+     <java.security.egd>file:///dev/urandom</java.security.egd>
+ 
+     <!-- avro version -->
+-    <avro.version>1.9.2</avro.version>
++    <avro.version>1.11.4</avro.version>
+ 
+     <!-- jersey version -->
+     <jersey.version>1.19.4</jersey.version>
+@@ -108,7 +108,7 @@
+     <findbugs.version>3.0.5</findbugs.version>
+     <dnsjava.version>3.6.1</dnsjava.version>
+ 
+-    <guava.version>27.0-jre</guava.version>
++    <guava.version>32.0.1-jre</guava.version>
+     <guice.version>4.2.3</guice.version>
+ 
+     <bouncycastle.version>1.78.1</bouncycastle.version>
+@@ -143,7 +143,7 @@
+     <jna.version>5.2.0</jna.version>
+     <gson.version>2.9.0</gson.version>
+     <metrics.version>3.2.4</metrics.version>
+-    <netty4.version>4.1.100.Final</netty4.version>
++    <netty4.version>4.1.108.Final</netty4.version>
+     <snappy-java.version>1.1.10.4</snappy-java.version>
+     <lz4-java.version>1.7.1</lz4-java.version>
+ 
+diff --git a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobBuilder.java b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobBuilder.java
+index 1213e6a46f..603b248f6e 100644
+--- a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobBuilder.java
++++ b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobBuilder.java
+@@ -460,7 +460,7 @@ public class JobBuilder {
+     }
+     task.setFinishTime(event.getFinishTime());
+     task.setTaskStatus(getPre21Value(event.getTaskStatus()));
+-    task.incorporateCounters(((TaskFinished) event.getDatum()).counters);
++    task.incorporateCounters(((TaskFinished) event.getDatum()).getCounters());
+   }
+ 
+   private void processTaskFailedEvent(TaskFailedEvent event) {
+@@ -472,7 +472,7 @@ public class JobBuilder {
+     task.setFinishTime(event.getFinishTime());
+     task.setTaskStatus(getPre21Value(event.getTaskStatus()));
+     TaskFailed t = (TaskFailed)(event.getDatum());
+-    task.putDiagnosticInfo(t.error.toString());
++    task.putDiagnosticInfo(t.getError().toString());
+     // killed task wouldn't have failed attempt.
+     if (t.getFailedDueToAttempt() != null) {
+       task.putFailedDueToAttemptId(t.getFailedDueToAttempt().toString());
+@@ -542,7 +542,7 @@ public class JobBuilder {
+     }
+     attempt.setFinishTime(event.getFinishTime());
+     attempt
+-        .incorporateCounters(((TaskAttemptFinished) event.getDatum()).counters);
++        .incorporateCounters(((TaskAttemptFinished) event.getDatum()).getCounters());
+   }
+ 
+   private void processReduceAttemptFinishedEvent(
+@@ -568,7 +568,7 @@ public class JobBuilder {
+     attempt.setShuffleFinished(event.getShuffleFinishTime());
+     attempt.setSortFinished(event.getSortFinishTime());
+     attempt
+-        .incorporateCounters(((ReduceAttemptFinished) event.getDatum()).counters);
++        .incorporateCounters(((ReduceAttemptFinished) event.getDatum()).getCounters());
+     attempt.arraySetClockSplits(event.getClockSplits());
+     attempt.arraySetCpuUsages(event.getCpuUsages());
+     attempt.arraySetVMemKbytes(event.getVMemKbytes());
+@@ -596,7 +596,7 @@ public class JobBuilder {
+     // is redundant, but making this will add future-proofing.
+     attempt.setFinishTime(event.getFinishTime());
+     attempt
+-      .incorporateCounters(((MapAttemptFinished) event.getDatum()).counters);
++      .incorporateCounters(((MapAttemptFinished) event.getDatum()).getCounters());
+     attempt.arraySetClockSplits(event.getClockSplits());
+     attempt.arraySetCpuUsages(event.getCpuUsages());
+     attempt.arraySetVMemKbytes(event.getVMemKbytes());
+@@ -661,11 +661,11 @@ public class JobBuilder {
+ 
+     JobFinished job = (JobFinished)event.getDatum();
+     Map<String, Long> countersMap =
+-        JobHistoryUtils.extractCounters(job.totalCounters);
++        JobHistoryUtils.extractCounters(job.getTotalCounters());
+     result.putTotalCounters(countersMap);
+-    countersMap = JobHistoryUtils.extractCounters(job.mapCounters);
++    countersMap = JobHistoryUtils.extractCounters(job.getMapCounters());
+     result.putMapCounters(countersMap);
+-    countersMap = JobHistoryUtils.extractCounters(job.reduceCounters);
++    countersMap = JobHistoryUtils.extractCounters(job.getReduceCounters());
+     result.putReduceCounters(countersMap);
+   }
+ 
+diff --git a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobHistoryUtils.java b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobHistoryUtils.java
+index 6ae87bbd40..34ef95f337 100644
+--- a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobHistoryUtils.java
++++ b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/JobHistoryUtils.java
+@@ -157,9 +157,9 @@ public class JobHistoryUtils {
+   static Map<String, Long> extractCounters(JhCounters counters) {
+     Map<String, Long> countersMap = new HashMap<String, Long>();
+     if (counters != null) {
+-      for (JhCounterGroup group : counters.groups) {
+-        for (JhCounter counter : group.counts) {
+-          countersMap.put(counter.name.toString(), counter.value);
++      for (JhCounterGroup group : counters.getGroups()) {
++        for (JhCounter counter : group.getCounts()) {
++          countersMap.put(counter.getName().toString(), counter.getValue());
+         }
+       }
+     }
+diff --git a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTask.java b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTask.java
+index 4ae33a7661..2308e58690 100644
+--- a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTask.java
++++ b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTask.java
+@@ -268,11 +268,11 @@ public class LoggedTask implements DeepCompare {
+       String counterName) {
+     counterName = canonicalizeCounterName(counterName);
+ 
+-    for (JhCounterGroup group : counters.groups) {
+-      for (JhCounter counter : group.counts) {
++    for (JhCounterGroup group : counters.getGroups()) {
++      for (JhCounter counter : group.getCounts()) {
+         if (counterName
+-            .equals(canonicalizeCounterName(counter.name.toString()))) {
+-          thunk.set(counter.value);
++            .equals(canonicalizeCounterName(counter.getName().toString()))) {
++          thunk.set(counter.getValue());
+           return;
+         }
+       }
+diff --git a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTaskAttempt.java b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTaskAttempt.java
+index 5c6abd372c..fae53b2926 100644
+--- a/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTaskAttempt.java
++++ b/hadoop-tools/hadoop-rumen/src/main/java/org/apache/hadoop/tools/rumen/LoggedTaskAttempt.java
+@@ -636,11 +636,11 @@ public class LoggedTaskAttempt implements DeepCompare {
+       String counterName) {
+     counterName = canonicalizeCounterName(counterName);
+ 
+-    for (JhCounterGroup group : counters.groups) {
+-      for (JhCounter counter : group.counts) {
++    for (JhCounterGroup group : counters.getGroups()) {
++      for (JhCounter counter : group.getCounts()) {
+         if (counterName
+-            .equals(canonicalizeCounterName(counter.name.toString()))) {
+-          thunk.set(counter.value);
++            .equals(canonicalizeCounterName(counter.getName().toString()))) {
++          thunk.set(counter.getValue());
+           return;
+         }
+       }
+@@ -769,4 +769,4 @@ public class LoggedTaskAttempt implements DeepCompare {
+     compare1(vMemKbytes, other.vMemKbytes, loc, "vMemKbytes");
+     compare1(physMemKbytes, other.physMemKbytes, loc, "physMemKbytes");
+   }
+-}
+\ No newline at end of file
++}
