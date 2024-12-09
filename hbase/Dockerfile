@@ -140,6 +140,7 @@ ARG DELETE_CACHES="true"
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 --chmod=755 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -318,6 +319,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stacka
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
 
@@ -354,11 +356,18 @@ ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 ENV HBASE_CONF_DIR=/stackable/hbase/conf
@@ -367,4 +376,4 @@ ENV PATH="${PATH}:/stackable/bin:/stackable/hbase/bin"
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 
 WORKDIR /stackable/hbase
-CMD ["./bin/hbase", "master", "start" ]
+CMD ["./bin/hbase-entrypoint", "master", "localhost", "16010" ]

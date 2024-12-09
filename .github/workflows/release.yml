@@ -1,11 +1,9 @@
 ---
 name: Publish release images
 on:
-  push:
-    tags:
-      # Tag names are used passed as 'image_version' to image_tools.bake and
-      # are validated there.
-      - '*'
+  # The release workflow is now taken care of in the build_* workflows.
+  # This workflow can still be manually run on a tag if needed during the release.
+  workflow_dispatch:
 
 jobs:
   build_and_push:

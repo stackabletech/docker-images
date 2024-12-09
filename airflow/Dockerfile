@@ -12,6 +12,7 @@ FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
+ARG STATSD_EXPORTER
 ARG PYTHON
 ARG TARGETARCH
 
@@ -38,20 +39,39 @@ RUN microdnf update && \
         python${PYTHON}-pip \
         python${PYTHON}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
-        unixODBC && \
+        unixODBC \
+        # Needed to modify the SBOM
+        jq && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-RUN python${PYTHON} -m venv --system-site-packages /stackable/app && \
-    source /stackable/app/bin/activate && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt && \
-    # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-    pip install --no-cache-dir s3fs cyclonedx-bom && \
-    cyclonedx-py environment --schema-version 1.5 --outfile /stackable/airflow-${PRODUCT}.cdx.json
+RUN <<EOF
+python${PYTHON} -m venv --system-site-packages /stackable/app
+
+source /stackable/app/bin/activate
+
+pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
+# Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
+pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
+# Needed for OIDC
+pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
+# Create the SBOM for Airflow
+# Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
+cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
+
+# Break circular dependencies by removing the apache-airflow dependency from the providers
+jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
+    .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT}'"))
+else
+    .
+end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
+EOF
 
 WORKDIR /stackable
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${STATSD_EXPORTER}.cdx.json
 
 FROM stackable/image/vector AS airflow-main-image
 
@@ -114,6 +134,13 @@ mkdir -pv ${AIRFLOW_HOME}/logs
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable

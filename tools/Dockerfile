@@ -7,7 +7,9 @@ ARG PRODUCT
 ARG KUBECTL_VERSION
 ARG RELEASE
 ARG JQ_VERSION
+ARG YQ_VERSION
 ARG TARGETARCH
+ARG STACKABLE_USER_UID
 
 LABEL name="Stackable Tools" \
     maintainer="info@stackable.tech" \
@@ -30,16 +32,36 @@ RUN microdnf update && \
 
 COPY tools/licenses /licenses
 
-USER stackable
 WORKDIR /stackable/bin
 ENV PATH=/stackable/bin:$PATH
 
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
-RUN curl https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl \
-    -o /stackable/bin/kubectl && chmod +x /stackable/bin/kubectl
+RUN <<EOF
+curl "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
+    -o /stackable/bin/kubectl
+chmod +x /stackable/bin/kubectl
 
-RUN curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 \
-    -o /stackable/bin/jq && \
-    chmod +x /stackable/bin/jq
+curl "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" \
+    -o /stackable/bin/jq
+chmod +x /stackable/bin/jq
 
-USER stackable
+# Needed to to patch manifests in OLM environments with tolerations
+# and environment variables.
+curl "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
+    -o /stackable/bin/yq
+chmod +x /stackable/bin/yq
+
+# All files and folders owned by root group to support running as arbitrary users.
+# This is best practice as all container users will belong to the root group (0).
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+chmod -R g=u /stackable
+EOF
+
+# ----------------------------------------
+# Attention: We are changing the group of all files in /stackable directly above
+# If you do any file based actions (copying / creating etc.) below this comment you
+# absolutely need to make sure that the correct permissions are applied!
+# chown ${STACKABLE_USER_UID}:0
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}

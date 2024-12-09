@@ -1,0 +1,161 @@
+---
+name: Build Stackable Base
+run-name: |
+  Build Stackable Base (attempt #${{ github.run_attempt }})
+
+env:
+  PRODUCT_NAME: stackable-base
+  SDP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 1/2 * *' # https://crontab.guru/#0_1_1/2_*_*
+  push:
+    branches: [main]
+    tags: ['*']
+    paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - stackable-base/**
+      - tools/**
+      - .github/actions/**
+      - .github/workflows/build_stackable-base.yaml
+
+jobs:
+  generate_matrix:
+    name: Generate Version List
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - id: shard
+        uses: stackabletech/actions/shard@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          product-name: ${{ env.PRODUCT_NAME }}
+    outputs:
+      versions: ${{ steps.shard.outputs.versions }}
+
+  build:
+    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Image
+    needs: [generate_matrix]
+    permissions:
+      id-token: write
+    runs-on: ${{ matrix.runner.name }}
+    strategy:
+      matrix:
+        runner:
+          - {name: "ubuntu-latest", arch: "amd64"}
+          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+
+      - name: Build Product Image
+        id: build
+        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          product-name: ${{ env.PRODUCT_NAME }}
+          product-version: ${{ matrix.versions }}
+          build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+          sdp-version: ${{ env.SDP_VERSION }}
+
+      - name: Publish Container Image on docker.stackable.tech
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          image-registry-uri: docker.stackable.tech
+          image-registry-username: github
+          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+          image-repository: stackable/${{ env.PRODUCT_NAME }}
+          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+      - name: Publish Container Image on oci.stackable.tech
+        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$sdp+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: sdp/${{ env.PRODUCT_NAME }}
+          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+  publish_manifests:
+    name: Build/Publish ${{ matrix.versions }} Manifests
+    needs: [generate_matrix, build]
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Publish and Sign Image Index Manifest to docker.stackable.tech
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          image-registry-uri: docker.stackable.tech
+          image-registry-username: github
+          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+          image-repository: stackable/${{ env.PRODUCT_NAME }}
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
+
+      - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$sdp+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: sdp/${{ env.PRODUCT_NAME }}
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
+
+  notify:
+    name: Failure Notification
+    needs: [generate_matrix, build, publish_manifests]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+        with:
+          channel-id: "C07UG6JH44F" # notifications-container-images
+          payload: |
+            {
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
+              "attachments": [
+                {
+                  "pretext": "See the details below for a summary of which job(s) failed.",
+                  "color": "#aa0000",
+                  "fields": [
+                    {
+                      "title": "Generate Version List",
+                      "short": true,
+                      "value": "${{ needs.generate_matrix.result }}"
+                    },
+                    {
+                      "title": "Build/Publish Image",
+                      "short": true,
+                      "value": "${{ needs.build.result }}"
+                    },
+                    {
+                      "title": "Build/Publish Manifests",
+                      "short": true,
+                      "value": "${{ needs.publish_manifests.result }}"
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "Go to workflow run",
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
