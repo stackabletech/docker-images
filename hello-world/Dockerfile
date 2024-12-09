@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
+FROM stackable/image/stackable-base AS stackable-base
+
 FROM stackable/image/java-base
 
 ARG PRODUCT
@@ -14,6 +16,10 @@ LABEL name="Hello World" \
       release="${RELEASE}" \
       summary="The Stackable image for the Stackable Hello World Operator" \
       description="This image is deployed by the Stackable Hello World Operator."
+
+ENV HOME=/stackable
+
+COPY --from=stackable-base --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
 RUN <<EOF
 microdnf update

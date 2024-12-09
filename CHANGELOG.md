@@ -8,9 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - base: Add containerdebug tool ([#928]).
+- hello: Add containerdebug tool ([#950]).
 
 [#928]: https://github.com/stackabletech/docker-images/pull/928
 [#943]: https://github.com/stackabletech/docker-images/pull/943
+[#950]: https://github.com/stackabletech/docker-images/pull/950
 
 ## [24.11.0] - 2024-11-18
 
