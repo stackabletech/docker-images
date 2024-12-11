@@ -7,12 +7,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+- base: Add containerdebug tool ([#928]).
 
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 
 [#884]: https://github.com/stackabletech/docker-images/pull/884
+[#928]: https://github.com/stackabletech/docker-images/pull/928
 [#943]: https://github.com/stackabletech/docker-images/pull/943
 
 ## [24.11.0] - 2024-11-18
