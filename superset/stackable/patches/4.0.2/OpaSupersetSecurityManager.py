@@ -44,9 +44,9 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
 
         # TODO: See if you want to delete roles and how
         if set(user.roles) != set(roles):
-        logging.info(f'found diff in {user.roles} vs. {roles}')
-        user.roles = roles
-        self.update_user(user)
+            logging.info(f'found diff in {user.roles} vs. {roles}')
+            user.roles = roles
+            self.update_user(user)
 
         logging.info(f'found user roles: {user.roles}')
 
