@@ -34,6 +34,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         roles = list(map(self.find_role, role_names)) 
 
         # fairly primitive check if roles are already in database
+        # TODO: Sophisticate
         for i, role in enumerate(roles): 
             if role == None:
                 logging.info(f'Found None: {role}, adding role {role_names[i]}')
