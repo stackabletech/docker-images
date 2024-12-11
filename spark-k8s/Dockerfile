@@ -192,7 +192,10 @@ RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
       -Dhadoop.version="$HADOOP" \
       -Dmaven.test.skip=true \
       -DskipTests \
-      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
+      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+      --no-transfer-progress \
+      --batch-mode
+
 # <<< Build spark
 
 # Get the correct `tini` binary for our architecture.
