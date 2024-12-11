@@ -46,6 +46,7 @@ jobs:
       id-token: write
     runs-on: ${{ matrix.runner.name }}
     strategy:
+      fail-fast: false
       matrix:
         runner:
           - {name: "ubuntu-latest", arch: "amd64"}
@@ -94,6 +95,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
