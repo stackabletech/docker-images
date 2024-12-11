@@ -12,11 +12,10 @@ import logging
 """
 We want OPA to sync roles.
 1. Role Sync via OPA
-2. Automated sync
-3. CRD option to turn sync on, off.
-4. CRD option for auto delete roles from OPA and how ( Prefix maybe )
-5. 
-6. 
+2. Automated sync ( how and where to sync configurable [Decision Role sync policy] )
+3. CRD option to turn sync on, off. [ ~Decision~ Standardized through op-rs ]
+4. CRD option for auto delete roles from OPA and how ( Prefix maybe ) [ Decision ]
+5. Come up with a patch process for such things ( @Lars )
 """
 class OpaSupersetSecurityManager(SupersetSecurityManager):
 
