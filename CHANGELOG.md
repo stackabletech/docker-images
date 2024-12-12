@@ -4,10 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
+- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
+
+[#953]: https://github.com/stackabletech/docker-images/pull/953
+
 ## [24.11.1-rc2] - 2024-12-12
 
 ### Added
- 
+
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.

@@ -29,6 +29,7 @@ jobs:
     permissions:
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - amd64
