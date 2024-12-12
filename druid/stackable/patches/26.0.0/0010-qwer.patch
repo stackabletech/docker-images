@@ -8,7 +8,7 @@ Subject: qwer
  1 file changed, 2 insertions(+)
 
 diff --git a/upload.sh b/upload.sh
-index 9d421fa786..5d910c9725 100755
+index 3927c205e3..493739e181 100755
 --- a/upload.sh
 +++ b/upload.sh
 @@ -25,6 +25,8 @@ if [ $# -lt 1 ]; then
