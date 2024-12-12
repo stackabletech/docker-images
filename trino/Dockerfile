@@ -33,7 +33,7 @@ cd trino-storage-${STORAGE_CONNECTOR}-src
 mvn versions:set -DnewVersion=${STORAGE_CONNECTOR}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true
+./mvnw --batch-mode --no-transfer-progress package -DskipTests -Dmaven.gitcommitid.skip=true
 EOF
 
 FROM stackable/image/java-devel AS trino-builder
@@ -79,7 +79,7 @@ git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${PRODUCT}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw package -DskipTests --projects="!docs,!core/trino-server-rpm"
+./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
 
 # Delete the worst intermediate build products to free some space
 rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
