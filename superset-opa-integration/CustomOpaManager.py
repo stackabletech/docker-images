@@ -20,6 +20,21 @@ We want OPA to sync roles.
 """
 class OpaSupersetSecurityManager(SupersetSecurityManager):
 
+    """
+    This is called:
+    as get_user_permissions() in FlaskApplicationBuilder
+    - bootstrap_user_data() in superset views (REST APIs)
+    as get_user_roles
+    - get_rls_filter() -> row-level filter on tables
+    - dashboard rbac filter
+    - is_admin() -> used in many places as admin role in special
+
+    Important!
+    user.roles can also be called directly, looks like you don't have to use the getter...
+
+    Seems to not use user.roles:
+    - resource ownership (looks at owner attribute, not roles)
+    """
     def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
         if not user:
             user = g.user
