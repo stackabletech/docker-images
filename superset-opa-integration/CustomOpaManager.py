@@ -1,75 +1,55 @@
-          from flask import g
-          from flask_appbuilder.security.sqla.models import (Role, User)
-          from opa_client.opa import OpaClient
-          from superset.security.manager import SupersetSecurityManager
-          from typing import (Optional, List)
+from flask import g
+from flask_appbuilder.security.sqla.models import (Role, User)
+from opa_client.opa import OpaClient
+from superset.security.manager import SupersetSecurityManager
+from typing import (Optional, List)
 
-          import logging
+import logging
 
-          logger = logging.get_logger(__name__)
+# logger = logging.get_logger(__name__)
 
-          class OpaSupersetSecurityManager(SupersetSecurityManager):
+"""
+We want OPA to sync roles.
+1. Role Sync via OPA
+2. Automated sync ( how and where to sync configurable [Decision Role sync policy] )
+3. CRD option to turn sync on, off. [ ~Decision~ Standardized through op-rs ]
+4. CRD option for auto delete roles from OPA and how ( Prefix maybe ) [ Decision ]
+  --> Maybe we don't want that as we could reach permission states in dashboards, charts etc. which
+  had been RBAC but now the role is gone. What now? Unsecure state.
+5. Come up with a patch process for such things ( @Lars )
+"""
+class OpaSupersetSecurityManager(SupersetSecurityManager):
 
-              # Override to sync new opa roles in Superset... maybe... 
-              def sync_role_definitions(self) -> None:
-                """
-                Syncing roles from opa with available roles in Superset. Override if diffs.
-                Leaves initial roles from superset untouched.
-                """
+    def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
+        if not user:
+            user = g.user
 
-                def _get_opa_roles() -> list[str]:
-                  logger.info('Retrieve Opa roles')
-                  # Not great to invoke OpaClient twice. TODO: Better solution
-                  client = OpaClient(host = 'simple-opa', port=8081)
-                  policies = client.get_policies_list()
-                  logger.info(f'retrieved opa informations: {policies}') 
+        # TODO: Let the operator configure host and port
+        client = OpaClient(host = 'simple-opa', port=8081)
+        response = client.query_rule(
+                input_data = {'username': user.username},
+                package_path = 'superset',
+                rule_name = 'user_roles')
+        logging.info(f'Query: {response}')
+        role_names = response['result']
+        logging.info(f'found opa roles: {role_names}')
+        roles    = list(map(self.find_role, role_names))
 
-                  
-      
-                logger.info("Syncing role definition")
+        # fairly primitive check if roles are already in database
+        # TODO: Sophisticate
+        for i, role in enumerate(roles):
+          if role == None:
+            logging.info(f'Found None: {role}, adding role {role_names[i]}')
+            self.add_role(role_names[i])
 
-                self.create_custom_permissions()
+        roles = list(map(self.find_role, role_names))
 
-                pvms = self._get_all_pvms()
+        # TODO: See if you want to delete roles and how
+        if set(user.roles) != set(roles):
+          logging.info(f'found diff in {user.roles} vs. {roles}')
+          user.roles = roles
+          self.update_user(user)
 
-                # Creating default roles
-                self.set_role("Admin", self._is_admin_pvm, pvms)
-                self.set_role("Alpha", self._is_alpha_pvm, pvms)
-                self.set_role("Gamma", self._is_gamma_pvm, pvms)
-                self.set_role("sql_lab", self._is_sql_lab_pvm, pvms)
+        logging.info(f'found user roles: {user.roles}')
 
-                # TODO: OPA part right here
-                for role in _get_opa_roles():
-                  self.add_role(role)
-
-                # Configure public role
-                if current_app.config["PUBLIC_ROLE_LIKE"]:
-                    self.copy_role(
-                        current_app.config["PUBLIC_ROLE_LIKE"],
-                        self.auth_role_public,
-                        merge=True,
-                    )
-
-                self.create_missing_perms()
-
-                # commit role and view menu updates
-                self.get_session.commit()
-                self.clean_perms()
-
-              def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
-                  if not user:
-                      user = g.user
-
-                  client = OpaClient(host = 'simple-opa', port=8081)
-                  logging.info(f'client host: {client._host}, client root: {client._root_url}')
-                  response = client.check_policy_rule(
-                          input_data = {'username': user.username},
-                          package_path = 'superset',
-                          rule_name = 'user_roles')
-
-                  role_names = response['result']
-                  roles = list(map(self.find_role, role_names))
-
-                  user.roles = roles
-
-                  return roles
+        return roles

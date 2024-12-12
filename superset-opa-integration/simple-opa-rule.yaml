@@ -7,23 +7,19 @@ metadata:
     opa.stackable.tech/bundle: "true"
 data:
   roles.rego: |
-    # package superset
-
-    # user_roles = [ "Custom2", "Admin", "DeLaTest"]
     package superset
 
-    import data.users
+    import rego.v1  
 
-    user_roles[roles] {
-        some i
-        user := users[i]
+    default user_roles := []
+
+    user_roles := roles if {
+        some user in users
         roles := user.roles
         user.username == input.username
     }
-  data.json: |
-    {
-        "users": [
-            {"username": "Admin", "roles": ["Admin"]},
-            {"username": "testuser", "roles": ["El_Testos", "Custom2"]}
-        ]
-    }
+
+    users := [
+        {"username": "admin", "roles": ["Admin", "Test"]},
+        {"username": "testuser", "roles": ["El_Testos", "Custom2"]}
+    ]
