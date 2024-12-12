@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
-Subject: [PATCH 3/8] Stop building unused extensions.
+Subject: Stop building unused extensions.
 
 By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused

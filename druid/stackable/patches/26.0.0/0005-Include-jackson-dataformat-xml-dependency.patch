@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
-Subject: [PATCH 5/8] Include jackson-dataformat-xml dependency.
+Subject: Include jackson-dataformat-xml dependency.
 
 This allows us to use XmlLayout for Log4jV2.
 By including it here as a dependency we can make sure that we always have
