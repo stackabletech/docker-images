@@ -1,4 +1,4 @@
-From 0e58cf8a9f8bd00e80e4ce3fa53f44e403d223a5 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
 Subject: [PATCH 6/8] Stop building the tar.gz distribution.

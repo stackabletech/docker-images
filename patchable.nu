@@ -115,4 +115,7 @@ def "main export"  [
     rm ...(glob $"($patch_dir)/{*.patch,series}" | tee { print $in })
     log info $"Exporting patches to ($patch_dir)"
     git format-patch $config.base -o $patch_dir --base $config.base
+    # Normally the patches include their own commit IDs, which will change for every for every reimport
+    log info "Scrubbing commit ID from patches"
+    sed -i "1s/From [0-9a-f]\\+ /From 0000000000000000000000000000000000000000 /" ...(glob $"($patch_dir)/*.patch")
 }

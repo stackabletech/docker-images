@@ -1,4 +1,4 @@
-From 92424a94661977b29d5294a2cd3a38783941e280 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
 Subject: [PATCH 1/8] Removes all traces of the druid ranger extension
