@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Thu, 12 Dec 2024 18:27:00 +0100
+Subject: qwer
+
+---
+ upload.sh | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/upload.sh b/upload.sh
+index 9d421fa786..5d910c9725 100755
+--- a/upload.sh
++++ b/upload.sh
+@@ -25,6 +25,8 @@ if [ $# -lt 1 ]; then
+   exit 2
+ fi
+ 
++echo b
++
+ VERSION=$1
+ DRUID_TAR=druid-$VERSION-bin.tar.gz
+ MYSQL_TAR=mysql-metadata-storage-$VERSION.tar.gz
+-- 
+2.47.1
+

@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Thu, 12 Dec 2024 18:26:17 +0100
+Subject: asdf
+
+---
+ upload.sh | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/upload.sh b/upload.sh
+index 2b49df1a49..9d421fa786 100755
+--- a/upload.sh
++++ b/upload.sh
+@@ -18,6 +18,8 @@
+ # Script to upload tarball of assembly build to static.druid.io for serving
+ #
+ 
++echo a
++
+ if [ $# -lt 1 ]; then
+   echo "Usage: $0 <version>" >&2
+   exit 2
+-- 
+2.47.1
+
