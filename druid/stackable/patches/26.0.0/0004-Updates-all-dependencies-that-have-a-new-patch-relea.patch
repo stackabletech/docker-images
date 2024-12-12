@@ -1,10 +1,17 @@
-Updates all dependencies that have a new patch release available.
-
+From d81ea0c7b0daf74d9eb0658b9ffabc61fd2eae78 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: [PATCH 4/8] Updates all dependencies that have a new patch release
+ available.
 
 ---
- 0 files changed
+ extensions-core/avro-extensions/pom.xml       |  2 +-
+ extensions-core/kubernetes-extensions/pom.xml |  2 +-
+ extensions-core/orc-extensions/pom.xml        |  2 +-
+ extensions-core/parquet-extensions/pom.xml    |  2 +-
+ extensions-core/protobuf-extensions/pom.xml   |  2 +-
+ pom.xml                                       | 20 +++++++++----------
+ 6 files changed, 15 insertions(+), 15 deletions(-)
 
 diff --git a/extensions-core/avro-extensions/pom.xml b/extensions-core/avro-extensions/pom.xml
 index 35b154a469..a9eb0c6851 100644
@@ -126,3 +133,6 @@ index f5001910e1..2364f27dc4 100644
          <!-- When upgrading ZK, edit docs and integration tests as well (integration-tests/docker-base/setup.sh) -->
          <zookeeper.version>3.5.10</zookeeper.version>
          <checkerframework.version>2.5.7</checkerframework.version>
+-- 
+2.47.1
+

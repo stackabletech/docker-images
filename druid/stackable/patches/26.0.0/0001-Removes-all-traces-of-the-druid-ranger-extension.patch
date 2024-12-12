@@ -1,10 +1,12 @@
-Removes all traces of the druid ranger extension
-
+From 92424a94661977b29d5294a2cd3a38783941e280 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: [PATCH 1/8] Removes all traces of the druid ranger extension
 
 ---
- 0 files changed
+ distribution/pom.xml | 4 ----
+ pom.xml              | 1 -
+ 2 files changed, 5 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
 index eec26171af..a6e72cf2c2 100644
@@ -40,3 +42,8 @@ index 0c6294f5ed..a33c6bd521 100644
          <module>extensions-core/druid-catalog</module>
          <module>extensions-core/testing-tools</module>
          <!-- Community extensions -->
+
+base-commit: 7cffb81a8e124d5f218f9af16ad685acf5e9c67c
+-- 
+2.47.1
+

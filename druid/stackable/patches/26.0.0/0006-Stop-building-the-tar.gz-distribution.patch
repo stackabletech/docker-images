@@ -1,11 +1,12 @@
-Stop building the tar.gz distribution.
-
+From 0e58cf8a9f8bd00e80e4ce3fa53f44e403d223a5 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: [PATCH 6/8] Stop building the tar.gz distribution.
 
 All we do is build Druid tar and gzip it only to immediately uncompress it
 again. So, instead we just skip the compression step entirely.
 ---
- distribution/src/assembly/assembly.xml |    2 +-
+ distribution/src/assembly/assembly.xml | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/distribution/src/assembly/assembly.xml b/distribution/src/assembly/assembly.xml
@@ -21,3 +22,6 @@ index ff8e0d2fdd..f9daa49e21 100644
      </formats>
      <fileSets>
          <fileSet>
+-- 
+2.47.1
+

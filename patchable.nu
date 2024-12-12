@@ -85,6 +85,34 @@ def "main checkout" [
     }
     log info $"Creating work branch ($worktree_branch)"
     git checkout -B $worktree_branch
-    log info $"Importing patches"
-    git am $"($patch_dir)/series" --patch-format stgit-series
+    log info "Importing patches"
+    let series_file = $"($patch_dir)/series"
+    if ($series_file | path exists) {
+        log info $"Series file exists at ($series_file), treating as stgit series"
+        git am $"($patch_dir)/series" --patch-format stgit-series
+    } else {
+        log info $"No series file found at ($series_file), treating as git mailbox"
+        git am ...(glob $"($patch_dir)/*.patch" | sort)
+    }
+}
+
+def "main export"  [
+    product: string
+    version: string
+] {
+    let config = product-version-config $product $version
+    let product_repo = (product-repo $product --upstream=$config.upstream)
+    let worktree_path = product-version-worktree-root $product $version
+    let worktree_branch = product-version-worktree-branch $version
+    let $patch_dir = product-version-patch-dir $product $version
+    log info $"Worktree root is ($worktree_path)"
+    log info $"Worktree branch is ($worktree_branch), from base ($config.base) and patches at ($patch_dir)"
+    # These environment variables make git operate on the product worktree from now on
+    # $GIT_DIR must be the worktree's .git dir, even if that is just an alias for the backing repo, since each worktree maintains its own index
+    $env.GIT_DIR = $"($worktree_path)/.git"
+    $env.GIT_WORK_TREE = $worktree_path
+    log info "Deleting existing patches"
+    rm ...(glob $"($patch_dir)/{*.patch,series}" | tee { print $in })
+    log info $"Exporting patches to ($patch_dir)"
+    git format-patch $config.base -o $patch_dir --base $config.base
 }
