@@ -1,3 +1,7 @@
+Update CycloneDX plugin
+
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+---
 diff --git a/pom.xml b/pom.xml
 index c0f0654..133cbf8 100644
 --- a/pom.xml
