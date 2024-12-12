@@ -45,14 +45,29 @@ def product-version-config [product: string, version: string] {
 }
 
 def "main" [] {
+    print "Subcommands:"
+    print "  ./patchable.nu checkout --help - Check out a product version from its patches"
+    print "  ./patchable.nu export --help - Update a product's patches from its worktree"
+    print ""
     print "Usage:"
-    print "  patchable checkout [--help]"
+    print "  $ ./patchable.nu checkout druid 26.0.0"
+    print "  $ enter druid/patchable-work/worktree/26.0.0/"
+    print "  $ # do stuff"
+    print "  $ git commit"
+    print "  $ dexit"
+    print "  $ ./patchable.nu export druid 26.0.0"
+    print "  $ git status"
 }
 
+# Check out a patched source tree from its upstream sources with patches applied.
+#
+# If the source tree already exists it will be overwritten. Old commits can be recovered from the git reflog.
+#
+# A separate source tree is maintained for each product.
 def "main checkout" [
-    product: string
-    version: string
-    --force
+    product: string # The name of the product (example: druid)
+    version: string # The version of the product (example: 26.0.0)
+    --force # Overwrite existing checkouts somewhat more aggressively
 ] {
     let config = product-version-config $product $version
     let product_repo = (product-repo $product --upstream=$config.upstream)
@@ -96,9 +111,10 @@ def "main checkout" [
     }
 }
 
+# Export the patches in the current source tree of a product.
 def "main export"  [
-    product: string
-    version: string
+    product: string # The name of the product (example: druid)
+    version: string # The version of the product (example: 26.0.0)
 ] {
     let config = product-version-config $product $version
     let product_repo = (product-repo $product --upstream=$config.upstream)
