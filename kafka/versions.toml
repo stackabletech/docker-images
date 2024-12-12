@@ -1,0 +1,8 @@
+[versions."3.7.1"]
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }
+
+[versions."3.8.0"]
+build_on_pr = true
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }

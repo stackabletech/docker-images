@@ -1,5 +1,6 @@
 ---
 rules:
+  # Example change
   # replicated Zookeeper
   - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+)><>(\\w+)"
     name: "zookeeper_$2"

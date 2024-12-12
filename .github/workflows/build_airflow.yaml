@@ -20,7 +20,6 @@ on:
       - airflow/**
       - vector/**
       - stackable-base/**
-      - .github/actions/**
       - .github/workflows/build_airflow.yaml
 
 jobs:
@@ -30,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: shard
-        uses: stackabletech/actions/shard@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/shard@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
     outputs:
@@ -54,11 +53,11 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/free-disk-space@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/build-product-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
@@ -66,7 +65,7 @@ jobs:
           sdp-version: ${{ env.SDP_VERSION }}
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -76,7 +75,7 @@ jobs:
           source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -100,7 +99,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -109,7 +108,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build

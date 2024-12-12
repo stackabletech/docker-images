@@ -2,14 +2,176 @@
 name: Test Build Images
 
 on:
-  workflow_dispatch:
   pull_request:
-    branches: [main, 'release/*']
+    branches: [main, 'release-*']
     # For now, we run on all paths, but if the products could be moved into a subdirectory, we could match on that
     # paths: []
 
+env:
+  BASE_BRANCH: ${{ github.base_ref }}
+  GIT_BASE_REF: ${{ github.event.pull_request.base.sha }}
+  GIT_HEAD_REF: ${{ github.event.pull_request.head.sha }}
+
 jobs:
-  dummy:
+  # look at the branch that we are merging into:
+  # main               -> 0.0.0-dev
+  # release-XX.X       -> XX.X
+  # release-XX.X.X     -> XX.X.X
+  # release-XX.X-rcY   -> XX.X-rcY
+  # release-XX.X.X-rcY -> XX.X-rcY
+  determine_sdp_version:
+    name: Determine SDP Version
     runs-on: ubuntu-latest
     steps:
-      - run: echo TODO
+      - id: extract_sdp_version
+        shell: bash
+        name: sdp_version
+        run: |
+          set -euo pipefail
+
+          case "$BASE_BRANCH" in
+            main)
+              echo "sdp_version=0.0.0-dev" | tee -a "$GITHUB_OUTPUT"
+              ;;
+            release-*)
+              echo "sdp_version=${BASE_BRANCH#release-}" | tee -a "$GITHUB_OUTPUT"
+              ;;
+            *)
+              >&2 echo "Unexpected branch. Update the workflow branch filter and add a case above"
+              exit 1
+              ;;
+          esac
+    outputs:
+      sdp_version: ${{ steps.extract_sdp_version.outputs.sdp_version }}
+
+  # The set of paths for changed files (eg: airflow/Dockerfile, zookeeper/stackable/jmx/server.yaml)
+  # ... limited to the product-paths (eg: airflow, zookeeper) that have a versions.py
+  # Then for each _product_, shard based on product versions that have the "test" indicator
+  generate_matrix:
+    name: Generate Products and Versions Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          fetch-depth: 0
+      # todo, move this to stackabletech/actions
+      - id: shard
+        shell: bash
+        env:
+          GITHUB_DEBUG: ${{ runner.debug }}
+        run: |
+          set -euo pipefail
+          [ -n "$GITHUB_DEBUG" ] && set -x
+
+          # Needed for tomlq
+          pip install yq==3.4.3
+
+          # TODO (@NickLarsenNZ): Filter out superficial changes, eg: only comments added/removed.
+          # An idea: before the `xargs -r dirname` command, we can compare old and new with comments stripped.
+          # And keep adding rules as we need them.
+          PRODUCT_VERSION_PAIRS=$(
+            # shellcheck disable=SC2016
+            git diff --name-only "${GIT_BASE_REF}..${GIT_HEAD_REF}" \
+            | cut --delimiter=/ --fields=1 | xargs -I {} find {} -type f -maxdepth 1 -name versions.toml \
+            | xargs -r dirname \
+            | sort | uniq \
+            | xargs -I {} tomlq --raw-output --arg product "{}" '{"name": $product, "version": .versions | map_values(select(.build_on_pr)) | keys[]}' {}/versions.toml \
+            | jq --slurp --compact-output '.'
+          )
+          echo "product_version_pairs=$PRODUCT_VERSION_PAIRS" | tee -a "$GITHUB_OUTPUT"
+    outputs:
+      product_version_pairs: ${{ steps.shard.outputs.product_version_pairs }}
+
+  build:
+    name: Build/Publish ${{ matrix.product_version_pairs.name }}-${{ matrix.product_version_pairs.version }}-${{ matrix.runner.arch }} Image
+    needs: [determine_sdp_version, generate_matrix]
+    permissions:
+      id-token: write
+    runs-on: ${{ matrix.runner.name }}
+    strategy:
+      matrix:
+        runner:
+          - {name: "ubuntu-latest", arch: "amd64"}
+          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
+        # Eg: [{"name":"airflow","version":"2.10.2"},{"name":"airflow","version":"2.9.3"},{"name":"zookeeper","version":"3.9.2"}]
+        product_version_pairs: ${{ fromJson(needs.generate_matrix.outputs.product_version_pairs) }}
+    env:
+      SDP_VERSION: ${{ needs.determine_sdp_version.outputs.sdp_version }}
+      PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
+      PRODUCT_VERSION: ${{ matrix.product_version_pairs.version }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+
+      - name: Build Product Image
+        id: build
+        uses: stackabletech/actions/build-product-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+        with:
+          product-name: ${{ env.PRODUCT_NAME }}
+          product-version: ${{ env.PRODUCT_VERSION }}
+          build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
+          sdp-version: ${{ env.SDP_VERSION }}
+          extra-tag-data: pr${{ github.event.pull_request.number }}
+
+      - run: |
+          docker images
+
+      - name: Publish Container Image on docker.stackable.tech
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+        with:
+          image-registry-uri: docker.stackable.tech
+          image-registry-username: github
+          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+          image-repository: stackable/${{ env.PRODUCT_NAME }}
+          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+      - name: Publish Container Image on oci.stackable.tech
+        uses: stackabletech/actions/publish-image@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$sdp+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: sdp/${{ env.PRODUCT_NAME }}
+          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
+
+  publish_manifests:
+    name: Build/Publish ${{ matrix.product_version_pairs.name }}-${{ matrix.product_version_pairs.version }} Manifests
+    needs: [determine_sdp_version, generate_matrix, build]
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        product_version_pairs: ${{ fromJson(needs.generate_matrix.outputs.product_version_pairs) }}
+    env:
+      PRODUCT_NAME: ${{ matrix.product_version_pairs.name }}
+      # Ideally we would want to use the suggested-image-index-manifest-tag output of stackablestackabletech/actions/build-product-image,
+      # however, since the builds are done in a matrix, we are not able to get the unique outputs. There are hacky attempts, eg:
+      # https://github.com/orgs/community/discussions/17245#discussioncomment-6770056, but we have opted to construct the tag here:
+      IMAGE_INDEX_MANIFEST_TAG: ${{ matrix.product_version_pairs.version }}-stackable${{ needs.determine_sdp_version.outputs.sdp_version }}-pr${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Publish and Sign Image Index Manifest to docker.stackable.tech
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+        with:
+          image-registry-uri: docker.stackable.tech
+          image-registry-username: github
+          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
+          image-repository: stackable/${{ env.PRODUCT_NAME }}
+          image-index-manifest-tag: ${{ env.IMAGE_INDEX_MANIFEST_TAG }}
+
+      - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+        uses: stackabletech/actions/publish-index-manifest@95626907fd8cae2f17c862ae40bcab1aa5a2c854 # v0.5.0
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$sdp+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: sdp/${{ env.PRODUCT_NAME }}
+          image-index-manifest-tag: ${{ env.IMAGE_INDEX_MANIFEST_TAG }}

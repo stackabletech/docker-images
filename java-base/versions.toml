@@ -1,0 +1,20 @@
+[versions."8"]
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }
+
+[versions."11"]
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }
+
+[versions."17"]
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }
+
+[versions."21"]
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }
+
+[versions."22"]
+build_on_pr = true
+# This will come later. See: https://github.com/stackabletech/docker-images/issues/770
+# dependencies = { ... }

@@ -1,3 +1,6 @@
+# Please also update versions.toml. It will eventually replace versions.py
+# For more information, see: https://github.com/stackabletech/docker-images/issues/770
+
 versions = [
     # Also do not merge java-base with java below as "JAVA-BASE is not a valid identifier" in Dockerfiles, it's unfortunate but to fix this would require a bigger refactoring of names or the image tools
     # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
