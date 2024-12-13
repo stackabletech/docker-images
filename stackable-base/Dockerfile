@@ -9,10 +9,13 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
 # renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
+# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
+# renovate: datasource=github-tags packageName=stackabletech/containerdebug
+ENV CONTAINERDEBUG_VERSION=0.1.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.80.1
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.82.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
@@ -33,9 +36,22 @@ rm -rf /var/cache/yum
 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+EOF
 
+FROM product-utils-builder AS config-utils
+
+RUN <<EOF
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+EOF
+
+FROM product-utils-builder AS containerdebug
+
+RUN <<EOF
+git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
+cd ./containerdebug
 . "$HOME/.cargo/env"
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
@@ -178,8 +194,13 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
-COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+
+# **containerdebug**
+# Debug tool that logs generic system information.
+COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
