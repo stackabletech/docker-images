@@ -1,5 +1,7 @@
 ---
 name: Build Omid
+run-name: |
+  Build Omid (attempt #${{ github.run_attempt }})
 
 env:
   PRODUCT_NAME: omid
@@ -29,6 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
       - id: shard
         uses: stackabletech/actions/shard@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
@@ -43,6 +47,7 @@ jobs:
       id-token: write
     runs-on: ${{ matrix.runner.name }}
     strategy:
+      fail-fast: false
       matrix:
         runner:
           - {name: "ubuntu-latest", arch: "amd64"}
@@ -51,6 +56,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
 
       - name: Free Disk Space
         uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
@@ -91,14 +98,15 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
 
-      - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
         uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
         with:
@@ -128,7 +136,7 @@ jobs:
           channel-id: "C07UG6JH44F" # notifications-container-images
           payload: |
             {
-              "text": "*${{ github.workflow }}* failed",
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
               "attachments": [
                 {
                   "pretext": "See the details below for a summary of which job(s) failed.",
@@ -154,7 +162,7 @@ jobs:
                     {
                       "type": "button",
                       "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
                     }
                   ]
                 }

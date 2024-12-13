@@ -1,5 +1,8 @@
 ---
 name: Mirror Container Image
+run-name: |
+  Mirror Container Image (attempt #${{ github.run_attempt }})
+
 on:
   workflow_dispatch:
     inputs:
@@ -26,12 +29,15 @@ jobs:
     permissions:
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - amd64
           - arm64
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
 
       - name: Pull container image
         shell: bash
@@ -77,6 +83,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
 
       - name: Extract Repo Name
         env:
@@ -113,7 +121,7 @@ jobs:
           channel-id: "C07UG6JH44F" # notifications-container-images
           payload: |
             {
-              "text": "*${{ github.workflow }}* failed",
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
               "attachments": [
                 {
                   "pretext": "See the details below for a summary of which job(s) failed.",
@@ -134,7 +142,7 @@ jobs:
                     {
                       "type": "button",
                       "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
                     }
                   ]
                 }
