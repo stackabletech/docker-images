@@ -43,8 +43,9 @@ RUN microdnf update && \
         # Needed to modify the SBOM
         jq && \
     microdnf clean all && \
-    rm -rf /var/cache/yum && \
-bash <<EOF
+    rm -rf /var/cache/yum
+
+RUN <<EOF
 python${PYTHON} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
