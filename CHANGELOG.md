@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- ci: Fix various static analysis errors ([#955]).
 - all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
 - all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
 
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 [#943]: https://github.com/stackabletech/docker-images/pull/943
 [#952]: https://github.com/stackabletech/docker-images/pull/952
 [#953]: https://github.com/stackabletech/docker-images/pull/953
+[#955]: https://github.com/stackabletech/docker-images/pull/955
 
 ## [24.11.0] - 2024-11-18
 
