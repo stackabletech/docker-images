@@ -16,6 +16,7 @@ from airflow.auth.managers.models.resource_details import (
 )
 from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.utils.log.logging_mixin import LoggingMixin
+import requests
 
 class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     """
@@ -42,7 +43,24 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_configuration to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
+
+        input= {
+            'method': method,
+            'details': details,
+            'user': {
+                'id': user.get_id(),
+                'name': user.get_name(),
+            },
+        }
+        response = requests.post(
+            'http://opa:8081/v1/data/airflow/is_authorized_configuration',
+            json=input,
+            timeout=10
+        ).json()
+
+        return response.get("result") == "True"
 
     def is_authorized_connection(
         self,
