@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
-- base: Add containerdebug tool ([#928]).
+- base: Add containerdebug tool ([#928], [#959]).
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.
@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 [#952]: https://github.com/stackabletech/docker-images/pull/952
 [#953]: https://github.com/stackabletech/docker-images/pull/953
 [#955]: https://github.com/stackabletech/docker-images/pull/955
+[#959]: https://github.com/stackabletech/docker-images/pull/959
 
 ## [24.11.0] - 2024-11-18
 
