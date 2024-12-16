@@ -6,6 +6,39 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+- base: Add containerdebug tool ([#928], [#959]).
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+
+### Changed
+
+- ci: Fix various static analysis errors ([#955]).
+- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
+- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
+
+### Removed
+
+- kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
+
+### Fixed
+
+- druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
+
+[#884]: https://github.com/stackabletech/docker-images/pull/884
+[#928]: https://github.com/stackabletech/docker-images/pull/928
+[#943]: https://github.com/stackabletech/docker-images/pull/943
+[#952]: https://github.com/stackabletech/docker-images/pull/952
+[#953]: https://github.com/stackabletech/docker-images/pull/953
+[#955]: https://github.com/stackabletech/docker-images/pull/955
+[#959]: https://github.com/stackabletech/docker-images/pull/959
+[#935]: https://github.com/stackabletech/docker-images/pull/935
+
+## [24.11.0] - 2024-11-18
+
+### Added
+
 - ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
 - vector: Add version `0.41.1` ([#802], [#815], [#867]).
@@ -70,7 +103,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
 - hbase: Fix CVE-2024-36114 in HBase `2.6.0` by upgrading a dependency. ([#925]).
 - druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
-- druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
+- hbase: Fix CVE-2023-34455 in HBase `2.4.18` by upgrading a dependency. ([#934]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -120,7 +153,7 @@ All notable changes to this project will be documented in this file.
 [#924]: https://github.com/stackabletech/docker-images/pull/924
 [#925]: https://github.com/stackabletech/docker-images/pull/925
 [#926]: https://github.com/stackabletech/docker-images/pull/926
-[#935]: https://github.com/stackabletech/docker-images/pull/935
+[#934]: https://github.com/stackabletech/docker-images/pull/934
 
 ## [24.7.0] - 2024-07-24
 
