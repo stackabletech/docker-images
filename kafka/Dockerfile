@@ -68,8 +68,6 @@ LABEL name="Apache Kafka" \
       summary="The Stackable image for Apache Kafka." \
       description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-# This is needed for kubectl
-COPY kafka/kubernetes.repo /etc/yum.repos.d/kubernetes.repo
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
@@ -82,10 +80,8 @@ WORKDIR /stackable
 RUN <<EOF
 microdnf update
 # cyrus-sasl-gssapi: needed by kcat for kerberos
-# kubectl: Can be removed once listener-operator integration is used
 microdnf install \
-  cyrus-sasl-gssapi \
-  kubectl
+  cyrus-sasl-gssapi
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
