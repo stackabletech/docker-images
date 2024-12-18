@@ -18,7 +18,7 @@ RUN microdnf update && \
 # [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.9.6,).
 #
 WORKDIR /tmp
-RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
+RUN if [[ "${PRODUCT}" != 1.* ]] ; then \
     curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
     ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
     fi
@@ -47,7 +47,7 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     cd /stackable/nifi-${PRODUCT}-src/ && \
     # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
     # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
-    if [[ "${PRODUCT}" == 2.* ]] ; then \
+    if [[ "${PRODUCT}" != 1.* ]] ; then \
     mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp ; \
     else \
     mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp ; \
