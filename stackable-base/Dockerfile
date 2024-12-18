@@ -11,7 +11,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b
 ENV CONFIG_UTILS_VERSION=0.2.0
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.1.0
+ENV CONTAINERDEBUG_VERSION=0.1.1
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
