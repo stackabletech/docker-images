@@ -20,65 +20,96 @@ spec:
         config:
           rowLimit: 10000
           webserverTimeout: 300
+    podOverrides:
+      spec:
+        containers:
+        - name: superset
+          env:
+          - name: STACKABLE_OPA_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                key: OPA
+                name: simple-opa
     configOverrides:
       superset_config.py:
         EXPERIMENTAL_FILE_HEADER: |
+          from http.client import HTTPException
+          import os
           from flask import g
           from flask_appbuilder.security.sqla.models import (Role, User)
           from opa_client.opa import OpaClient
           from superset.security.manager import SupersetSecurityManager
-          from typing import (Optional, List)
+          from superset import conf
+          from typing import (Optional, Tuple, List)
 
           import logging
 
           # logger = logging.get_logger(__name__)
-
-          """
-          We want OPA to sync roles.
-          1. Role Sync via OPA
-          2. Automated sync ( how and where to sync configurable [Decision Role sync policy] )
-          3. CRD option to turn sync on, off. [ ~Decision~ Standardized through op-rs ]
-          4. CRD option for auto delete roles from OPA and how ( Prefix maybe ) [ Decision ]
-            --> Maybe we don't want that as we could reach permission states in dashboards, charts etc. which
-            had been RBAC but now the role is gone. What now? Unsecure state.
-          5. Come up with a patch process for such things ( @Lars )
-          """
           class OpaSupersetSecurityManager(SupersetSecurityManager):
 
               def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
                   if not user:
                       user = g.user
+                  
+                  default_role = self.resolve_role(self.get_default_role())
 
-                  # TODO: Let the operator configure host and port
-                  client = OpaClient(host = 'simple-opa', port=8081)
-                  response = client.query_rule(
-                          input_data = {'username': user.username},
-                          package_path = 'superset',
-                          rule_name = 'user_roles')
-                  logging.info(f'Query: {response}')
-                  role_names = response['result']
-                  logging.info(f'found opa roles: {role_names}')
-                  roles = list(map(self.find_role, role_names))
+                  opa_role_names = self.get_opa_user_roles(user.username)
+                  logging.info(f'OPA returned roles: {opa_role_names}')
 
-                  # fairly primitive check if roles are already in database
-                  # TODO: Sophisticate
-                  for i, role in enumerate(roles):
-                    if role == None:
-                      logging.info(f'Found None: {role}, adding role {role_names[i]}')
-                      self.add_role(role_names[i])
-
-                  roles = list(map(self.find_role, role_names))
-
-                  # TODO: See if you want to delete roles and how
-                  if set(user.roles) != set(roles):
-                    logging.info(f'found diff in {user.roles} vs. {roles}')
-                    user.roles = roles
+                  opa_roles = set(map(self.resolve_role, opa_role_names))
+                  # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
+                  opa_roles.add(default_role)
+                  
+                  if set(user.roles) != opa_roles:
+                    logging.info(f'Found diff in {user.roles} vs. {opa_roles}')
+                    user.roles = list(opa_roles)
                     self.update_user(user)
 
-                  logging.info(f'found user roles: {user.roles}')
+                  return user.roles
+              
 
+              def get_opa_user_roles(self, username: str) -> set[str]:
+                  """
+                  Queries an Open Policy Agent instance for the roles of a given user and returns a list of role names.
+                  Returns an empty list if an exception during the connection to Open Policy Agent is encountered or if the query result
+                  is not a list.
+                  """
+
+                  host, port, tls = self.resolve_opa_endpoint()
+                  client = OpaClient(host = host, port = port, ssl = tls)
+                  try:
+                    response = client.query_rule(
+                            input_data = {'username': username},
+                            package_path = 'superset',
+                            rule_name = 'user_roles')
+                  except HTTPException as e:
+                    logging.error(f'Encountered an exception while querying OPA:\n{e}')
+                    return []
+                  roles = response.get('result')
+                  # If OPA didn't return a result or if the result is not a list, return no roles.
+                  if roles is None or type(roles).__name__ != "list":
+                    logging.error(f'The OPA query didn\'t return a list: {response}')
+                    return []
                   return roles
- 
+
+
+              def resolve_opa_endpoint(self) -> Tuple[str, int, bool]:
+                opa_endpoint = os.getenv('STACKABLE_OPA_ENDPOINT')
+                [protocol, host, port] = opa_endpoint.split(":")
+                return host.lstrip('/'), int(port.rstrip('/')), protocol == 'https'
+                          
+
+              def resolve_role(self, role_name: str) -> Role:
+                role = self.find_role(role_name)
+                if role is None:
+                  logging.info(f'Creating role {role_name} as it doesn\'t already exist.')
+                  self.add_role(role_name)
+                return self.find_role(role_name)
+                  
+            
+              def get_default_role(self) -> str:
+                return conf["AUTH_USER_REGISTRATION_ROLE"] if conf["AUTH_USER_REGISTRATION_ROLE"] else "Public"
+        AUTH_USER_REGISTRATION_ROLE: Gamma
         # Maybe also ENABLE_TEMPLATE_PROCESSING
         CUSTOM_SECURITY_MANAGER: OpaSupersetSecurityManager
         FEATURE_FLAGS: |-
