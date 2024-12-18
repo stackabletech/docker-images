@@ -23,8 +23,50 @@ rules:
       kind: 'MetricsSystem'
       sub: $2
     type: GAUGE
-  # All NameNode infos
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (\d+)'
+  # Total raw capacity in bytes, e.g. Hadoop:name=NameNodeInfo,attribute=Total
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(total): (\d+)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: COUNTER
+  # Generic counter, e.g. Hadoop:name=FSNamesystem,attribute=FilesTotal
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_total): (\d+)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: COUNTER
+  # Metrics suffixed with _created, e.g. Hadoop:name=NameNodeActivity,attribute=FilesCreated
+  # The suffix _created is reserved for timestamps, therefore an underscore is appended.
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_created): (.*)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3_
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: GAUGE
+  # Metrics suffixed with _info, e.g. Hadoop:name=JvmMetrics,attribute=LogInfo
+  # The suffix _info is reserved for static information, therefore an underscore is appended.
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info): (.*)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3_
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: GAUGE
+  # All other Hadoop metrics
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (.*)'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
     value: $4

@@ -23,6 +23,11 @@ All notable changes to this project will be documented in this file.
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 
+### Fixed
+
+- hadoop: Fix the JMX exporter configuration for metrics suffixed with
+  `_total`, `_info` and `_created` ([#962]).
+
 [#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
 [#943]: https://github.com/stackabletech/docker-images/pull/943
@@ -31,6 +36,7 @@ All notable changes to this project will be documented in this file.
 [#955]: https://github.com/stackabletech/docker-images/pull/955
 [#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
+[#962]: https://github.com/stackabletech/docker-images/pull/962
 
 ## [24.11.0] - 2024-11-18
 
