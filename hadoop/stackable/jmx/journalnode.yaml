@@ -23,8 +23,19 @@ rules:
       kind: 'MetricsSystem'
       sub: $2
     type: GAUGE
-  # All JournalNode infos
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (\d+)'
+  # Metrics suffixed with _info, e.g. Hadoop:name=JvmMetrics,attribute=LogInfo
+  # The suffix _info is reserved for static information, therefore an underscore is appended.
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info): (.*)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3_
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: GAUGE
+  # All other Hadoop metrics
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (.*)'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
     value: $4
