@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - base: Add containerdebug tool ([#928], [#959]).
 - tools: Add the package util-linux-core ([#952]).
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 [#952]: https://github.com/stackabletech/docker-images/pull/952
 [#953]: https://github.com/stackabletech/docker-images/pull/953
 [#955]: https://github.com/stackabletech/docker-images/pull/955
+[#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#935]: https://github.com/stackabletech/docker-images/pull/935
 
