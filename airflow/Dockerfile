@@ -100,27 +100,29 @@ ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
 # Update image and install needed packages
-RUN microdnf update && \
-    microdnf install \
-        ca-certificates \
-        cyrus-sasl \
-        # Needed for the gitsync functionality
-        git \
-        libpq \
-        # Needed for authentication of clients against LDAP servers
-        openldap \
-        openldap-clients \
-        # We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
-        openssh-clients \
-        openssl-libs \
-        openssl-pkcs11 \
-        # Airflow needs Python
-        python${PYTHON} \
-        socat \
-        unixODBC && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum && \
-bash <<EOF
+RUN <<EOF
+microdnf update
+
+# git: Needed for the gitsync functionality
+# openldap: Needed for authentication of clients against LDAP servers
+# openssh-clients: We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
+# python: Airflow needs Python
+microdnf install \
+  ca-certificates \
+  cyrus-sasl \
+  git \
+  libpq \
+  openldap \
+  openldap-clients \
+  openssh-clients \
+  openssl-libs \
+  openssl-pkcs11 \
+  python${PYTHON} \
+  socat \
+  unixODBC
+microdnf clean all
+rm -rf /var/cache/yum
+
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
 curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
