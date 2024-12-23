@@ -1,37 +1,26 @@
-diff --git a/superset/security/manager.py b/superset/security/manager.py
-index e5a32e97a..6971cf59a 100644
---- a/superset/security/manager.py
-+++ b/superset/security/manager.py
-@@ -21,7 +21,7 @@ import logging
- import re
- import time
- from collections import defaultdict
--from typing import Any, Callable, cast, NamedTuple, Optional, TYPE_CHECKING, Union
-+from typing import Any, Callable, cast, List, NamedTuple, Optional, Tuple, TYPE_CHECKING, Union
- 
- from flask import current_app, Flask, g, Request
- from flask_appbuilder import Model
-@@ -45,7 +45,9 @@ from flask_appbuilder.security.views import (
- from flask_appbuilder.widgets import ListWidget
- from flask_babel import lazy_gettext as _
- from flask_login import AnonymousUserMixin, LoginManager
+diff --git a/superset/security/OpaSupersetSecurityManager.py b/superset/security/OpaSupersetSecurityManager.py
+new file mode 100644
+index 0000000000..56fe61c917
+--- /dev/null
++++ b/superset/security/OpaSupersetSecurityManager.py
+@@ -0,0 +1,71 @@
++from typing import Any, Callable, cast, List, Optional, Tuple
 +from http.client import HTTPException
- from jwt.api_jwt import _jwt_global_obj
 +from opa_client.opa import OpaClient
- from sqlalchemy import and_, inspect, or_
- from sqlalchemy.engine.base import Connection
- from sqlalchemy.orm import eagerload
-@@ -2465,3 +2467,64 @@ class SupersetSecurityManager(  # pylint: disable=too-many-public-methods
-         return current_app.config["AUTH_ROLE_ADMIN"] in [
-             role.name for role in self.get_user_roles()
-         ]
++from superset.security import SupersetSecurityManager
++from flask import current_app, g
 +
++from flask_appbuilder.security.sqla.models import (
++    Role,
++    User,
++)
 +
++import logging
 +class OpaSupersetSecurityManager(SupersetSecurityManager):
 +    def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
 +        if not user:
 +            user = g.user
-+        
++
 +        default_role = self.resolve_role(current_app.config.get("AUTH_USER_REGISTRATION_ROLE"))
 +
 +        opa_role_names = self.get_opa_user_roles(user.username)
@@ -47,7 +36,7 @@ index e5a32e97a..6971cf59a 100644
 +          self.update_user(user)
 +
 +        return user.roles
-+    
++
 +
 +    def get_opa_user_roles(self, username: str) -> set[str]:
 +        """
@@ -78,7 +67,7 @@ index e5a32e97a..6971cf59a 100644
 +      opa_endpoint = current_app.config.get('STACKABLE_OPA_ENDPOINT')
 +      [protocol, host, port] = opa_endpoint.split(":")
 +      return host.lstrip('/'), int(port.rstrip('/')), protocol == 'https'
-+    
++
 +
 +    def resolve_role(self, role_name: str) -> Role:
 +      role = self.find_role(role_name)
