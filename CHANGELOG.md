@@ -6,6 +6,42 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+- base: Add containerdebug tool ([#928], [#959]).
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+
+### Changed
+
+- ci: Fix various static analysis errors ([#955]).
+- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
+- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
+
+### Removed
+
+- kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
+
+### Fixed
+
+- hadoop: Fix the JMX exporter configuration for metrics suffixed with
+  `_total`, `_info` and `_created` ([#962]).
+
+[#884]: https://github.com/stackabletech/docker-images/pull/884
+[#928]: https://github.com/stackabletech/docker-images/pull/928
+[#943]: https://github.com/stackabletech/docker-images/pull/943
+[#952]: https://github.com/stackabletech/docker-images/pull/952
+[#953]: https://github.com/stackabletech/docker-images/pull/953
+[#955]: https://github.com/stackabletech/docker-images/pull/955
+[#958]: https://github.com/stackabletech/docker-images/pull/958
+[#959]: https://github.com/stackabletech/docker-images/pull/959
+[#962]: https://github.com/stackabletech/docker-images/pull/962
+
+## [24.11.0] - 2024-11-18
+
+### Added
+
 - ci: Add mirror workflow, add new helper scripts ([#819]).
 - opa: Add version `0.67.1` ([#797]).
 - vector: Add version `0.41.1` ([#802], [#815], [#867]).
@@ -23,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Add cyrus-sasl-gssapi package for kerberos ([#874]).
 - spark: Add HBase connector ([#878], [#882]).
 - hbase: hbase-entrypoint.sh script to start and gracefully stop services ([#898]).
+- tools: install yq command line tool for YAML manipulation ([#912]).
+- nifi: Add version 2.0.0 ([#917]).
 
 ### Changed
 
@@ -33,7 +71,12 @@ All notable changes to this project will be documented in this file.
 - java: migrate to temurin jdk/jre ([#894]).
 - tools: bump kubectl to `1.31.1` and jq to `1.7.1` ([#896]).
 - Make username, user id, group id configurable, use numeric ids everywhere, change group of all files to 0 ([#849], [#890], [#897]).
-- ci: Bump `stackabletech/actions` to 0.0.7 ([#901], [#903]).
+- ci: Bump `stackabletech/actions` to 0.2.0 ([#901], [#903], [#907], [#910], [#913]).
+- ubi-rust-builder: Bump Rust toolchain to 1.81.0 ([#902]).
+- ci: Handle release builds in the same build workflows ([#913]).
+- hadoop: Bump to `hdfs-utils` 0.4.0 ([#914]).
+- superset: Fix `CVE-2024-1135` by upgrading `gunicorn` from 21.2.0 to 22.0.0 ([#919]).
+- jmx_exporter: Updated to a custom-built version of 1.0.1 to fix performance regressions ([#920]).
 
 ### Removed
 
@@ -51,11 +94,19 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove `3.8.4` ([#851]).
 - nifi: Remove `1.21.0` and `1.25.0` ([#868]).
 - druid: Remove `28.0.1` ([#880]).
+- nifi: Removed binaries from upload nifi script ([#917]).
 
 ### Fixed
 
 - hbase: link to phoenix server jar ([#811]).
+- spark: Fix CVE-2024-36114 in Spark 3.5.1 by upgrading a dependency.
+  Spark 3.5.2 is not affected. ([#921])
 - trino: Correctly report Trino version ([#881]).
+- hive: Fix CVE-2024-36114 in Hive `3.1.3` and `4.0.0` by upgrading a dependency. ([#922]).
+- nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
+- hbase: Fix CVE-2024-36114 in HBase `2.6.0` by upgrading a dependency. ([#925]).
+- druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
+- hbase: Fix CVE-2023-34455 in HBase `2.4.18` by upgrading a dependency. ([#934]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -90,7 +141,22 @@ All notable changes to this project will be documented in this file.
 [#897]: https://github.com/stackabletech/docker-images/pull/897
 [#898]: https://github.com/stackabletech/docker-images/pull/898
 [#901]: https://github.com/stackabletech/docker-images/pull/901
+[#902]: https://github.com/stackabletech/docker-images/pull/902
 [#903]: https://github.com/stackabletech/docker-images/pull/903
+[#907]: https://github.com/stackabletech/docker-images/pull/907
+[#910]: https://github.com/stackabletech/docker-images/pull/910
+[#912]: https://github.com/stackabletech/docker-images/pull/912
+[#913]: https://github.com/stackabletech/docker-images/pull/913
+[#914]: https://github.com/stackabletech/docker-images/pull/914
+[#917]: https://github.com/stackabletech/docker-images/pull/917
+[#919]: https://github.com/stackabletech/docker-images/pull/919
+[#920]: https://github.com/stackabletech/docker-images/pull/920
+[#921]: https://github.com/stackabletech/docker-images/pull/921
+[#922]: https://github.com/stackabletech/docker-images/pull/922
+[#924]: https://github.com/stackabletech/docker-images/pull/924
+[#925]: https://github.com/stackabletech/docker-images/pull/925
+[#926]: https://github.com/stackabletech/docker-images/pull/926
+[#934]: https://github.com/stackabletech/docker-images/pull/934
 
 ## [24.7.0] - 2024-07-24
 

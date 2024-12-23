@@ -4,5 +4,6 @@ versions = [
         "kubectl_version": "1.31.1",
         "jq_version": "1.7.1",
         "stackable-base": "1.0.0",
+        "yq_version": "4.44.3",
     },
 ]

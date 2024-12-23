@@ -10,3 +10,4 @@
 09-maven-warning.patch
 10-postgres-driver.patch
 11-cyclonedx-plugin.patch
+12-CVE-2024-36114-bump-aircompressor-0-27.patch
