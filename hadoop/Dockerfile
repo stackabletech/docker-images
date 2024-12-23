@@ -11,10 +11,7 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
 
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
+WORKDIR /stackable/jmx
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -26,17 +23,21 @@ RUN <<EOF
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+EOF
 
-#TODO: Can the symlink go?
-ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+WORKDIR /stackable
 
-ARCH="${TARGETARCH/amd64/x64}"
+RUN <<EOF
+export ARCH="${TARGETARCH/amd64/x64}"
 curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
+EOF
 
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
+WORKDIR /opt/protobuf-src
+RUN <<EOF
 mkdir /opt/protobuf-src
 cd /opt/protobuf-src
 curl https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz
@@ -71,7 +72,7 @@ RUN <<EOF
 curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC .
 patches/apply_patches.sh ${PRODUCT}
 cd hadoop-${PRODUCT}-src
-mvn --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true
+mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true
 
 cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}
 mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json
@@ -104,6 +105,17 @@ ARG HDFS_UTILS
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
+# Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.
+# We can not simply use java-devel with Java 17, as it is also used to compile Hadoop in this
+# Dockerfile, which needs Java 11. So we need to also use the java-devel image in version 11 and
+# install Java 17 ourselves.
+# The adptiom yum repo is already added by the java-devel Dockerfile.
+RUN microdnf update && \
+    microdnf install -y temurin-17-jdk && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+ENV JAVA_HOME="/usr/lib/jvm/temurin-17-jdk"
+
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
@@ -114,7 +126,7 @@ WORKDIR /stackable
 
 RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
-    mvn --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn --batch-mode --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
     rm -rf /stackable/hdfs-utils-main
@@ -139,6 +151,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stack
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 
 
 # fuse is required for fusermount (called by fuse_dfs)

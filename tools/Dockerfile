@@ -7,6 +7,7 @@ ARG PRODUCT
 ARG KUBECTL_VERSION
 ARG RELEASE
 ARG JQ_VERSION
+ARG YQ_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
@@ -25,6 +26,12 @@ RUN microdnf update && \
     iputils \
     openssl \
     tar \
+    # util-linux-core contains a basic set of Linux utilities, including
+    # the command logger which allows to enter messages into the system
+    # log.
+    # cpe:2.3:a:kernel:util-linux:*:*:*:*:*:*:*:*
+    # https://nvd.nist.gov/vuln/search/results?isCpeNameSearch=true&query=cpe%3A2.3%3Aa%3Akernel%3Autil-linux%3A*%3A*%3A*%3A*%3A*%3A*%3A*%3A
+    util-linux-core \
     zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
@@ -43,6 +50,12 @@ chmod +x /stackable/bin/kubectl
 curl "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" \
     -o /stackable/bin/jq
 chmod +x /stackable/bin/jq
+
+# Needed to to patch manifests in OLM environments with tolerations
+# and environment variables.
+curl "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH}" \
+    -o /stackable/bin/yq
+chmod +x /stackable/bin/yq
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
