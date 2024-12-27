@@ -30,6 +30,7 @@ index 0000000000..6ff95b62b7
 +        logging.info(f'found opa roles in superset: {opa_roles}')
 +        # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
 +        if opa_roles == None:
++          logging.info(f'Defaulting to AUTH_USER_REGISTRATION_ROLE, as opa_roles returned None')
 +          opa_roles.add(default_role)
 +        
 +        if set(user.roles) != opa_roles:
