@@ -8,34 +8,38 @@ metadata:
   }
 spec:
   image:
-    custom: docker.stackable.tech/stackable/superset:4.0.2-stackable0.0.0-dev-opaV6
+    custom: docker.stackable.tech/sandbox/superset:4.0.2-stackable0.0.0-dev-opaV7
     productVersion: 4.0.2
     pullPolicy: Never
   clusterConfig:
     credentialsSecret: simple-superset-credentials
     listenerClass: external-unstable
+    authorization:
+      opa:
+        configMapName: simple-opa
+        package: superset
   nodes:
     roleGroups:
       default:
         config:
           rowLimit: 10000
           webserverTimeout: 300
-    podOverrides:
-      spec:
-        containers:
-        - name: superset
-          env:
-          - name: STACKABLE_OPA_ENDPOINT
-            valueFrom:
-              configMapKeyRef:
-                key: OPA
-                name: simple-opa
-    envOverrides:         
-      AUTH_USER_REGISTRATION_ROLE: Gamma
+    # podOverrides:
+      # spec:
+        # containers:
+        # - name: superset
+          # env:
+          # - name: STACKABLE_OPA_ENDPOINT
+            # valueFrom:
+              # configMapKeyRef:
+                # key: OPA
+                # name: simple-opa
+                #envOverrides:         
+                #AUTH_USER_REGISTRATION_ROLE: Gamma
     configOverrides:
       superset_config.py:
-        EXPERIMENTAL_FILE_HEADER: |
-          from superset.security.manager import OpaSupersetSecurityManager
+        # EXPERIMENTAL_FILE_HEADER: |
+        #  from superset.security.manager import OpaSupersetSecurityManager
         # Maybe also ENABLE_TEMPLATE_PROCESSING
         FEATURE_FLAGS: |-
           {
@@ -69,9 +73,9 @@ spec:
             False
           }
         # TODO: Add these line with superset operator
-        CUSTOM_SECURITY_MANAGER: OpaSupersetSecurityManager
-        AUTH_USER_REGISTRATION_ROLE: os.getenv('AUTH_USER_REGISTRATION_ROLE', 'Public')
-        STACKABLE_OPA_ENDPOINT: os.getenv('STACKABLE_OPA_ENDPOINT')
-        STACKABLE_OPA_PACKAGE: |-
-          "superset"
-        STACKABLE_OPA_RULE: os.getenv('STACKABLE_OPA_RULE', 'user_roles')
+        # CUSTOM_SECURITY_MANAGER: OpaSupersetSecurityManager
+        # AUTH_USER_REGISTRATION_ROLE: os.getenv('AUTH_USER_REGISTRATION_ROLE', 'Public')
+        # STACKABLE_OPA_ENDPOINT: os.getenv('STACKABLE_OPA_ENDPOINT')
+        # STACKABLE_OPA_PACKAGE: |-
+          # "superset"
+        # STACKABLE_OPA_RULE: os.getenv('STACKABLE_OPA_RULE', 'user_roles')

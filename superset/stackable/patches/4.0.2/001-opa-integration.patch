@@ -27,7 +27,8 @@ index 0000000000..56fe61c917
 +        logging.info(f'OPA returned roles: {opa_role_names}')
 +
 +        opa_roles = set(map(self.resolve_role, opa_role_names))
-+        # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
++        # Ensure that in case of a bad or no response from OPA each user will have at least one role.
++        # I'm not toooo happy with that. Everybody get's public, even administrators. We should change that.
 +        opa_roles.add(default_role)
 +        
 +        if set(user.roles) != opa_roles:
