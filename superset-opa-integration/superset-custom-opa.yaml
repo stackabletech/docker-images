@@ -8,7 +8,7 @@ metadata:
   }
 spec:
   image:
-    custom: docker.stackable.tech/sandbox/superset:4.0.2-stackable0.0.0-dev-opaV7
+    custom: docker.stackable.tech/sandbox/superset:4.0.2-stackable0.0.0-dev-opaV2
     productVersion: 4.0.2
     pullPolicy: Never
   clusterConfig:

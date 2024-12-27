@@ -1,10 +1,10 @@
 diff --git a/superset/security/OpaSupersetSecurityManager.py b/superset/security/OpaSupersetSecurityManager.py
 new file mode 100644
-index 0000000000..56fe61c917
+index 0000000000..6ff95b62b7
 --- /dev/null
 +++ b/superset/security/OpaSupersetSecurityManager.py
-@@ -0,0 +1,71 @@
-+from typing import Any, Callable, cast, List, Optional, Tuple
+@@ -0,0 +1,73 @@
++from typing import List, Optional, Tuple
 +from http.client import HTTPException
 +from opa_client.opa import OpaClient
 +from superset.security import SupersetSecurityManager
@@ -27,9 +27,10 @@ index 0000000000..56fe61c917
 +        logging.info(f'OPA returned roles: {opa_role_names}')
 +
 +        opa_roles = set(map(self.resolve_role, opa_role_names))
-+        # Ensure that in case of a bad or no response from OPA each user will have at least one role.
-+        # I'm not toooo happy with that. Everybody get's public, even administrators. We should change that.
-+        opa_roles.add(default_role)
++        logging.info(f'found opa roles in superset: {opa_roles}')
++        # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
++        if opa_roles == None:
++          opa_roles.add(default_role)
 +        
 +        if set(user.roles) != opa_roles:
 +          logging.info(f'Found diff in {user.roles} vs. {opa_roles}')
