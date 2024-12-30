@@ -1,6 +1,6 @@
 diff --git a/superset/security/OpaSupersetSecurityManager.py b/superset/security/OpaSupersetSecurityManager.py
 new file mode 100644
-index 0000000000..6ff95b62b7
+index 0000000000..b3f216c405
 --- /dev/null
 +++ b/superset/security/OpaSupersetSecurityManager.py
 @@ -0,0 +1,73 @@
@@ -15,7 +15,7 @@ index 0000000000..6ff95b62b7
 +    User,
 +)
 +
-+import logging
++import logging    
 +class OpaSupersetSecurityManager(SupersetSecurityManager):
 +    def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
 +        if not user:
@@ -27,10 +27,9 @@ index 0000000000..6ff95b62b7
 +        logging.info(f'OPA returned roles: {opa_role_names}')
 +
 +        opa_roles = set(map(self.resolve_role, opa_role_names))
-+        logging.info(f'found opa roles in superset: {opa_roles}')
++        logging.info(f'found Roles in Database: {opa_roles}')
 +        # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
-+        if opa_roles == None:
-+          logging.info(f'Defaulting to AUTH_USER_REGISTRATION_ROLE, as opa_roles returned None')
++        if opa_roles == {None}:
 +          opa_roles.add(default_role)
 +        
 +        if set(user.roles) != opa_roles:
