@@ -1,6 +1,6 @@
 diff --git a/superset/security/OpaSupersetSecurityManager.py b/superset/security/OpaSupersetSecurityManager.py
 new file mode 100644
-index 0000000000..b3f216c405
+index 0000000000..a435572d0e
 --- /dev/null
 +++ b/superset/security/OpaSupersetSecurityManager.py
 @@ -0,0 +1,73 @@
@@ -28,8 +28,8 @@ index 0000000000..b3f216c405
 +
 +        opa_roles = set(map(self.resolve_role, opa_role_names))
 +        logging.info(f'found Roles in Database: {opa_roles}')
-+        # Ensure that in case of a bad or no reponse from OPA each user will have at least one role.
-+        if opa_roles == {None}:
++        # Ensure that in case of a bad or no response from OPA each user will have at least one role.
++        if opa_roles == {None} or opa_roles == []:
 +          opa_roles.add(default_role)
 +        
 +        if set(user.roles) != opa_roles:
@@ -66,7 +66,7 @@ index 0000000000..b3f216c405
 +
 +
 +    def resolve_opa_endpoint(self) -> Tuple[str, int, bool]:
-+      opa_endpoint = current_app.config.get('STACKABLE_OPA_ENDPOINT')
++      opa_endpoint = current_app.config.get('STACKABLE_OPA_BASE_URL')
 +      [protocol, host, port] = opa_endpoint.split(":")
 +      return host.lstrip('/'), int(port.rstrip('/')), protocol == 'https'
 +
