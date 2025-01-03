@@ -1,9 +1,11 @@
-diff --git a/superset/security/OpaSupersetSecurityManager.py b/superset/security/OpaSupersetSecurityManager.py
+diff --git a/superset/security/opa_manager.py b/superset/security/opa_manager.py
 new file mode 100644
-index 0000000000..a435572d0e
+index 000000000..771377a2b
 --- /dev/null
-+++ b/superset/security/OpaSupersetSecurityManager.py
-@@ -0,0 +1,73 @@
++++ b/superset/security/opa_manager.py
+@@ -0,0 +1,75 @@
++import logging
++
 +from typing import List, Optional, Tuple
 +from http.client import HTTPException
 +from opa_client.opa import OpaClient
@@ -15,7 +17,7 @@ index 0000000000..a435572d0e
 +    User,
 +)
 +
-+import logging    
++
 +class OpaSupersetSecurityManager(SupersetSecurityManager):
 +    def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
 +        if not user:
@@ -27,10 +29,10 @@ index 0000000000..a435572d0e
 +        logging.info(f'OPA returned roles: {opa_role_names}')
 +
 +        opa_roles = set(map(self.resolve_role, opa_role_names))
-+        logging.info(f'found Roles in Database: {opa_roles}')
++        logging.info(f'Resolved OPA Roles in Database: {opa_roles}')
 +        # Ensure that in case of a bad or no response from OPA each user will have at least one role.
-+        if opa_roles == {None} or opa_roles == []:
-+          opa_roles.add(default_role)
++        if opa_roles == {None} or opa_roles == set():
++          opa_roles = {default_role}
 +        
 +        if set(user.roles) != opa_roles:
 +          logging.info(f'Found diff in {user.roles} vs. {opa_roles}')
@@ -47,7 +49,7 @@ index 0000000000..a435572d0e
 +        :returns: A list of role names or an empty list if an exception during the connection to OPA
 +        is encountered or if OPA didn't return a list.
 +        """
-+        host, port, tls = self.resolve_opa_endpoint()
++        host, port, tls = self.resolve_opa_base_path()
 +        client = OpaClient(host = host, port = port, ssl = tls)
 +        try:
 +          response = client.query_rule(
@@ -65,9 +67,9 @@ index 0000000000..a435572d0e
 +        return roles
 +
 +
-+    def resolve_opa_endpoint(self) -> Tuple[str, int, bool]:
-+      opa_endpoint = current_app.config.get('STACKABLE_OPA_BASE_URL')
-+      [protocol, host, port] = opa_endpoint.split(":")
++    def resolve_opa_base_path(self) -> Tuple[str, int, bool]:
++      opa_base_path = current_app.config.get('STACKABLE_OPA_BASE_URL')
++      [protocol, host, port] = opa_base_path.split(":")
 +      return host.lstrip('/'), int(port.rstrip('/')), protocol == 'https'
 +
 +
@@ -77,3 +79,136 @@ index 0000000000..a435572d0e
 +        logging.info(f'Creating role {role_name} as it doesn\'t already exist.')
 +        self.add_role(role_name)
 +      return self.find_role(role_name)
+diff --git a/tests/unit_tests/security/opa_manager_test.py b/tests/unit_tests/security/opa_manager_test.py
+new file mode 100644
+index 000000000..978d1ca1c
+--- /dev/null
++++ b/tests/unit_tests/security/opa_manager_test.py
+@@ -0,0 +1,127 @@
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#   http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++
++# pylint: disable=invalid-name, unused-argument, redefined-outer-name
++
++import pytest
++from flask_appbuilder.security.sqla.models import Role, User
++from flask import current_app
++from pytest_mock import MockFixture
++
++from superset.extensions import appbuilder
++from superset.security.opa_manager import OpaSupersetSecurityManager
++
++
++def test_opa_security_manager(app_context: None) -> None:
++    """
++    Test that the OPA security manager can be built.
++    """
++    sm = OpaSupersetSecurityManager(appbuilder)
++    assert sm
++
++
++@pytest.fixture
++def user() -> User:
++    """
++    Return a user.
++    """
++    user = User()
++    user.id = 1234
++    user.first_name = 'mock'
++    user.last_name = 'mock'
++    user.username = 'mock'
++    user.email = 'mock@mock.com'
++
++    return user
++
++
++def test_add_roles(
++    mocker: MockFixture,
++    app_context: None,
++    user: User,
++) -> None:
++    """
++    Test that roles are correctly added to a user.
++    """
++    sm = OpaSupersetSecurityManager(appbuilder)
++    mocker.patch('flask_appbuilder.security.sqla.manager.SecurityManager.update_user', return_value = True)
++
++    opa_roles = ['Test1', 'Test2', 'Test3']
++    mocker.patch('superset.security.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles', return_value = opa_roles)
++    assert set(sm.get_user_roles(user)) == set(map(sm.resolve_role, opa_roles))
++
++
++def test_change_roles(
++    mocker: MockFixture,
++    app_context: None,
++    user: User,
++) -> None:
++    """
++    Test that roles are correcty changed on a user.
++    """
++    sm = OpaSupersetSecurityManager(appbuilder)
++    mocker.patch('flask_appbuilder.security.sqla.manager.SecurityManager.update_user', return_value = True)
++
++    user_roles = ['Test1', 'Test2', 'Test3']
++    opa_roles = ['Test4']
++    user.roles = list(map(sm.resolve_role, user_roles))
++    mocker.patch('superset.security.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles', return_value = opa_roles)
++    assert set(sm.get_user_roles(user)) == set(map(sm.resolve_role, opa_roles))
++
++
++def test_no_roles(
++    mocker: MockFixture,
++    app_context: None,
++    user: User,
++) -> None:
++    """
++    Test that only the default role is assigned if OPA returns no roles.
++    """
++    sm = OpaSupersetSecurityManager(appbuilder)
++    mocker.patch('flask_appbuilder.security.sqla.manager.SecurityManager.update_user', return_value = True)
++
++    opa_roles = []
++    mocker.patch('superset.security.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles', return_value = opa_roles)
++    default_role = sm.resolve_role('Public')
++    assert set(sm.get_user_roles(user)) == {default_role}
++
++
++def test_roles_not_created(
++    mocker: MockFixture,
++    app_context: None,
++    user: User,
++) -> None:
++    """
++    Test that only the default role is assigned if a new role can't be created in the DB.
++    """
++    sm = OpaSupersetSecurityManager(appbuilder)
++    mocker.patch('flask_appbuilder.security.sqla.manager.SecurityManager.update_user', return_value = True)
++
++    opa_roles = ['Test5', 'Test6']
++    mocker.patch('superset.security.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles', return_value = opa_roles)
++    mocker.patch('superset.security.opa_manager.OpaSupersetSecurityManager.add_role', return_value = None)
++    default_role = sm.resolve_role('Public')
++    assert set(sm.get_user_roles(user)) == {default_role}
++
++
++def test_resolve_opa_base_path(
++    mocker: MockFixture,
++    app_context: None,
++) -> None:
++    sm = OpaSupersetSecurityManager(appbuilder)
++    mocker.patch('flask.current_app.config.get', return_value = 'http://opa-instance:8081')
++    assert sm.resolve_opa_base_path() == ('opa-instance', 8081, False)
