@@ -11,5 +11,6 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "authorizer": "0.5.0",
+        "hadoop": "3.4.1",
     },
 ]

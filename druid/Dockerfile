@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
+FROM stackable/image/hadoop AS hadoop-builder
+
 FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
@@ -9,6 +11,7 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 ARG STACKABLE_USER_UID
+ARG HADOOP
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -46,6 +49,11 @@ COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-dr
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
 
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar /stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar /stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar /stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar
+
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
     --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
     --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
@@ -54,9 +62,35 @@ curl "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODU
 cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
+sed -i "s/<hadoop\.compile\.version>3\.[0-9]\+\.[0-9]\+<\/hadoop\.compile\.version>/<hadoop.compile.version>${HADOOP}<\/hadoop.compile.version>/g" pom.xml
+
+mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-common -Dversion=${HADOOP} -Dpackaging=jar
+mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-client-runtime -Dversion=${HADOOP} -Dpackaging=jar
+mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-client-api -Dversion=${HADOOP} -Dpackaging=jar
+mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-aws -Dversion=${HADOOP} -Dpackaging=jar
+EOF
+
+RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
+    --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
+    <<EOF
+cd apache-druid-${PRODUCT}-src
 mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
 mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
+EOF
+
+RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
+    --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
+    --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
+    <<EOF
+# Copy all SBOMs for the extensions since they are not included in the main bom.json
+for SBOM_FILE in $(find "/stackable/apache-druid-${PRODUCT}-src/extensions-"* -name bom.json); do
+  EXTENSION_DIR_NAME="$(echo "$SBOM_FILE" | awk -F'/' '{print $(NF-2)}')"
+  if [ "$EXTENSION_DIR_NAME" != "testing-tools" ]; then
+    cp $SBOM_FILE "/stackable/apache-druid-${PRODUCT}/extensions/$EXTENSION_DIR_NAME.cdx.json"
+  fi
+done
 rm -rf /stackable/apache-druid-${PRODUCT}-src
 
 # We're removing these to make the intermediate layer smaller
@@ -106,6 +140,7 @@ LABEL io.k8s.display-name="${NAME}"
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/hadoop /stackable/hadoop
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
 

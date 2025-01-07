@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>tech.stackable</groupId>
+  <artifactId>hdfs-utils</artifactId>
+  <version>0.4.0</version>
+
+  <name>Apache Hadoop HDFS utils</name>
+  <url>https://github.com/stackabletech/hdfs-utils/</url>
+  <organization>
+    <name>Stackable GmbH</name>
+    <url>https://stackable.tech</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:${project.scm.url}</connection>
+    <developerConnection>scm:git:${project.scm.url}</developerConnection>
+    <tag>HEAD</tag>
+    <url>git@github.com:stackabletech/hdfs-utils.git</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/stackabletech/hdfs-utils/issues</url>
+  </issueManagement>
+
+  <properties>
+    <java.version>11</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Tip:
+     Use "mvn versions:display-dependency-updates" and
+     "mvn versions:display-plugin-updates"
+     to check for updates -->
+    <cleanthat.version>2.22</cleanthat.version>
+    <error-prone.version>2.35.1</error-prone.version>
+    <google-java-format.version>1.24.0</google-java-format.version>
+
+    <cyclonedx-maven-plugin.version>2.9.0</cyclonedx-maven-plugin.version>
+    <maven-clean-plugin.version>3.4.0</maven-clean-plugin.version>
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-deploy-plugin.version>3.1.3</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+    <maven-install-plugin.version>3.1.3</maven-install-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+    <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+    <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
+
+    <kubernetes-client.version>6.13.1</kubernetes-client.version>
+    <okio.version>1.17.6</okio.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Needed by topology-provider -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
+      <version>${kubernetes-client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client-api</artifactId>
+      <version>${kubernetes-client.version}</version>
+    </dependency>
+    <dependency>
+      <!--
+      We bump this here to get rid of a critical CVE in okio 1.15 which we get via kubernetes-client.
+      We tried understanding _why_ we get 1.15 as dependency:tree for kubernetes-client says we should be getting 1.17.6.
+      As we failed to understand this we did this short/medium term fix of adding an explicit dependency here which should override the one coming from kubernetes-client.
+      This can be removed again as soon as we get the proper version from kubernetes-client.
+      -->
+      <groupId>com.squareup.okio</groupId>
+      <artifactId>okio</artifactId>
+      <version>${okio.version}</version>
+    </dependency>
+    <!-- End of needed by topology-provider -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${maven-clean-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <compilerArgs>
+            <arg>-XDcompilePolicy=simple</arg>
+            <arg>--should-stop=ifError=FLOW</arg>
+            <arg>-Xplugin:ErrorProne</arg>
+          </compilerArgs>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>com.google.errorprone</groupId>
+              <artifactId>error_prone_core</artifactId>
+              <version>${error-prone.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven-deploy-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven-enforcer-plugin.version}</version>
+        <configuration>
+          <rules>
+            <banDuplicatePomDependencyVersions/>
+            <banDynamicVersions/>
+            <banDuplicatePomDependencyVersions/>
+            <banDynamicVersions/>
+            <requireJavaVersion>
+              <version>${java.version}</version>
+            </requireJavaVersion>
+            <requireMavenVersion>
+              <version>3.6.3</version>
+            </requireMavenVersion>
+            <requirePluginVersions/>
+          </rules>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>${maven-install-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven-jar-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven-resources-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven-shade-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven-site-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless-maven-plugin.version}</version>
+        <configuration>
+          <java>
+            <cleanthat>
+              <version>${cleanthat.version}</version>
+            </cleanthat>
+            <removeUnusedImports/>
+            <formatAnnotations/>
+            <googleJavaFormat>
+              <version>${google-java-format.version}</version>
+            </googleJavaFormat>
+          </java>
+          <markdown>
+            <includes>
+              <include>**/*.md</include>
+            </includes>
+            <flexmark/>
+          </markdown>
+          <json>
+            <includes>
+              <include>src/**/*.json</include>
+            </includes>
+            <jackson/>
+          </json>
+          <!--
+           POM rewriting conflicts with the maven-release-plugin.
+           The release plugin rewrites the POM file in a way that is incompatible with spotless, and they change
+           the contents back and forth to match their respective styles. -->
+          <!--pom>
+            <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
+            </sortPom>
+          </pom-->
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>${cyclonedx-maven-plugin.version}</version>
+        <configuration>
+          <projectType>application</projectType>
+          <schemaVersion>1.5</schemaVersion>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>makeBom</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>hadoop-3.3.6</id>
+      <properties>
+        <hadoop.version>3.3.6</hadoop.version>
+        <!-- Taken from https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/3.3.6 -->
+        <slf4j.version>1.7.36</slf4j.version>
+        <jackson.version>2.12.7.1</jackson.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>hadoop-3.3.4</id>
+      <properties>
+        <hadoop.version>3.3.4</hadoop.version>
+        <!-- Taken from https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/3.3.4 -->
+        <slf4j.version>1.7.36</slf4j.version>
+        <jackson.version>2.12.7.1</jackson.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>hadoop-3.4.0</id>
+      <!--
+      Users need to explicitly set the version of Hadoop they want to build against
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      -->
+      <properties>
+        <hadoop.version>3.4.0</hadoop.version>
+        <!-- Taken from https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/3.4.0 -->
+        <slf4j.version>1.7.36</slf4j.version>
+        <jackson.version>2.12.7.1</jackson.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>hadoop-3.4.1</id>
+      <!--
+      Users need to explicitly set the version of Hadoop they want to build against
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      -->
+      <properties>
+        <hadoop.version>3.4.1</hadoop.version>
+        <!-- Taken from https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common/3.4.1 -->
+        <slf4j.version>1.7.36</slf4j.version>
+        <jackson.version>2.12.7.1</jackson.version>
+      </properties>
+    </profile>
+  </profiles>
+</project>

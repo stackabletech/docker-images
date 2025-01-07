@@ -38,8 +38,12 @@ EOF
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
 WORKDIR /opt/protobuf-src
 RUN <<EOF
+microdnf update
+microdnf install autoconf automake libtool
+
 curl https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz
 tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner
+./autogen.sh
 ./configure --prefix=/opt/protobuf
 make "-j$(nproc)"
 make install
@@ -50,8 +54,7 @@ ENV PROTOBUF_HOME=/opt/protobuf
 ENV PATH="${PATH}:/opt/protobuf/bin"
 
 RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-RUN microdnf update && \
-    microdnf install \
+RUN microdnf install \
     # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
     boost1.78-devel && \
     microdnf clean all && \
@@ -61,7 +64,6 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches /stackable/patches
 
-# Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
 # Also skip building the yarn, mapreduce and minicluster modules: this will result in the modules being excluded but not all
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
@@ -70,7 +72,7 @@ RUN <<EOF
 curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC .
 patches/apply_patches.sh ${PRODUCT}
 cd hadoop-${PRODUCT}-src
-mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true
+mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true
 
 cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}
 mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json
@@ -121,9 +123,10 @@ WORKDIR /stackable
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from.
 # Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
-
+COPY hadoop/hdfs-utils-hadoop-3.4.1-pom.xml /stackable
 RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
+    cp /stackable/hdfs-utils-hadoop-3.4.1-pom.xml pom.xml && \
     mvn --batch-mode --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \

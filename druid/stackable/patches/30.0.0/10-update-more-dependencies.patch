@@ -1,0 +1,35 @@
+diff --git a/extensions-core/azure-extensions/pom.xml b/extensions-core/azure-extensions/pom.xml
+index ca9c8d5..25772a0 100644
+--- a/extensions-core/azure-extensions/pom.xml
++++ b/extensions-core/azure-extensions/pom.xml
+@@ -38,7 +38,7 @@
+             <dependency>
+                 <groupId>com.azure</groupId>
+                 <artifactId>azure-sdk-bom</artifactId>
+-                <version>1.2.23</version>
++                <version>1.2.30</version>
+                 <type>pom</type>
+                 <scope>import</scope>
+             </dependency>
+diff --git a/pom.xml b/pom.xml
+index 322614a..fdd6033 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -83,7 +83,7 @@
+         <gson.version>2.10.1</gson.version>
+         <scala.library.version>2.13.11</scala.library.version>
+         <avatica.version>1.23.0</avatica.version>
+-        <avro.version>1.11.3</avro.version>
++        <avro.version>1.11.4</avro.version>
+         <!-- When updating Calcite, also propagate updates to these files which we've copied and modified:
+              default_config.fmpp
+              sql/src/main/codegen/includes/*
+@@ -92,7 +92,7 @@
+         <confluent.version>6.2.12</confluent.version>
+         <datasketches.version>4.2.0</datasketches.version>
+         <datasketches.memory.version>2.2.1</datasketches.memory.version>
+-        <derby.version>10.14.2.0</derby.version>
++        <derby.version>10.15.2.0</derby.version>
+         <dropwizard.metrics.version>4.2.26</dropwizard.metrics.version>
+         <errorprone.version>2.20.0</errorprone.version>
+         <!-- An additional null check was introduced in fastutils 8.5.7 that breaks data ingestion tasks:
