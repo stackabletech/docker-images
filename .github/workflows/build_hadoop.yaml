@@ -64,7 +64,7 @@ jobs:
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/build-product-image@e439b6cf181d0a56573de53e102048b42c1aaf90 # 9000
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
