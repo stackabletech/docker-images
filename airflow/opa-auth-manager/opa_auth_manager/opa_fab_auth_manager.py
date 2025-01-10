@@ -2,6 +2,7 @@
 Custom Auth manager for Airflow
 """
 
+from typing import cast, override
 from airflow.auth.managers.base_auth_manager import ResourceMethod
 from airflow.auth.managers.models.base_user import BaseUser
 from airflow.auth.managers.models.resource_details import (
@@ -16,7 +17,24 @@ from airflow.auth.managers.models.resource_details import (
 )
 from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.utils.log.logging_mixin import LoggingMixin
+from cachetools import TTLCache, cachedmethod
+import json
 import requests
+
+class OpaInput:
+
+    def __init__(self, input: dict) -> None:
+        self.input = input
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, OpaInput) \
+            and self.input == other.input
+
+    def __hash__(self) -> int:
+        return hash(json.dumps(self.input, sort_keys=True))
+
+    def to_dict(self) -> dict:
+        return self.input
 
 class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     """
@@ -24,6 +42,45 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     Agent
     """
 
+    def init(self) -> None:
+        """Run operations when Airflow is initializing."""
+        super().init()
+        self._init_config()
+
+        config = self.appbuilder.get_app.config
+        self.opa_cache = TTLCache(
+            maxsize=config.get("AUTH_OPA_CACHE_MAXSIZE"),
+            ttl=config.get("AUTH_OPA_CACHE_TTL_IN_SEC"),
+        )
+        self.opa_session = requests.Session()
+
+    def _init_config(self):
+        config = self.appbuilder.get_app.config
+        config.setdefault('AUTH_OPA_CACHE_MAXSIZE', 1000)
+        config.setdefault("AUTH_OPA_CACHE_TTL_IN_SEC", 30)
+        config.setdefault("AUTH_OPA_REQUEST_URL", "http://opa:8081/v1/data/airflow")
+        config.setdefault("AUTH_OPA_REQUEST_TIMEOUT", 10)
+
+    def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response | None:
+        self.opa_session.post(url=url, json=json, timeout=timeout)
+
+    @cachedmethod(lambda self: self.opa_cache)
+    def _is_authorized_in_opa(self, endpoint: str, input: OpaInput) -> bool:
+        config = self.appbuilder.get_app.config
+        opa_url = config.get("AUTH_OPA_REQUEST_URL")
+        try:
+            response = cast(requests.Response, self.call_opa(
+                f'{opa_url}/{endpoint}',
+                json=input.to_dict(),
+                timeout=config.get("AUTH_OPA_REQUEST_TIMEOUT")
+            ))
+            result = response.json().get("result")
+            return result == True
+        except Exception as e:
+            self.log.error(f"Request to OPA failed: {e}")
+            return False
+
+    @override
     def is_authorized_configuration(
         self,
         *,
@@ -46,22 +103,28 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         if not user:
             user = self.get_user()
 
-        input= {
-            'method': method,
-            'details': details,
-            'user': {
-                'id': user.get_id(),
-                'name': user.get_name(),
-            },
-        }
-        response = requests.post(
-            'http://opa:8081/v1/data/airflow/is_authorized_configuration',
-            json=input,
-            timeout=10
-        ).json()
+        if not details:
+            section = None
+        else:
+            section = details.section
 
-        return response.get("result") == "True"
+        return self._is_authorized_in_opa(
+            'is_authorized_configuration',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'details': {
+                        'section': section,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
 
+    @override
     def is_authorized_connection(
         self,
         *,
@@ -80,8 +143,31 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_connection to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        if not details:
+            conn_id = None
+        else:
+            conn_id = details.conn_id
+
+        return self._is_authorized_in_opa(
+            'is_authorized_connection',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'details': {
+                        'conn_id': conn_id,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_dag(
         self,
         *,
@@ -103,8 +189,37 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_dag to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        if not access_entity:
+            entity = None
+        else:
+            entity = access_entity.name
+
+        if not details:
+            dag_id = None
+        else:
+            dag_id = details.id
+
+        return self._is_authorized_in_opa(
+            'is_authorized_dag',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'access_entity': entity,
+                    'details': {
+                        'id': dag_id,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_dataset(
         self,
         *,
@@ -123,8 +238,31 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_dataset to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        if not details:
+            uri = None
+        else:
+            uri = details.uri
+
+        return self._is_authorized_in_opa(
+            'is_authorized_dataset',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'details': {
+                        'uri': uri,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_pool(
         self,
         *,
@@ -143,8 +281,31 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_pool to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        if not details:
+            name = None
+        else:
+            name = details.name
+
+        return self._is_authorized_in_opa(
+            'is_authorized_pool',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'details': {
+                        'name': name,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_variable(
         self,
         *,
@@ -163,8 +324,31 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_variable to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        if not details:
+            key = None
+        else:
+            key = details.key
+
+        return self._is_authorized_in_opa(
+            'is_authorized_variable',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'details': {
+                        'key': key,
+                    },
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_view(
         self,
         *,
@@ -181,8 +365,23 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_view to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
 
+        return self._is_authorized_in_opa(
+            'is_authorized_view',
+            OpaInput({
+                'input': {
+                    'access_view': access_view.name,
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )
+
+    @override
     def is_authorized_custom_view(
         self,
         *,
@@ -208,4 +407,19 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.info("Forward is_authorized_custom_view to OPA")
 
-        return True
+        if not user:
+            user = self.get_user()
+
+        return self._is_authorized_in_opa(
+            'is_authorized_custom_view',
+            OpaInput({
+                'input': {
+                    'method': method,
+                    'resource_name': resource_name,
+                    'user': {
+                        'id': user.get_id(),
+                        'name': user.get_name(),
+                    },
+                }
+            })
+        )

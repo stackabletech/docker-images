@@ -9,7 +9,7 @@ FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
-FROM python:3.12-alpine AS opa-auth-manager-builder
+FROM python:3.12-bookworm AS opa-auth-manager-builder
 
 COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
 
@@ -18,6 +18,8 @@ WORKDIR /tmp/opa-auth-manager
 RUN <<EOF
 pip install poetry
 poetry build
+poetry install
+poetry run pytest
 EOF
 
 FROM stackable/image/vector AS airflow-build-image

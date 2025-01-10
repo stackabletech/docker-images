@@ -8,15 +8,14 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.13"
 requests = "^2.32.3"
+cachetools = "^5.5.0"
 
 [tool.poetry.group.dev.dependencies]
 apache-airflow = "^2.10.3"
 pylint = "^3.3.1"
-pytest = "^8.3.3"
-
 
 [tool.poetry.group.test.dependencies]
-requests-mock = "^1.12.1"
+pytest = "^8.3.3"
 
 [build-system]
 requires = ["poetry-core"]
