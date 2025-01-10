@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "opa-authorizer"
+version = "0.1.0"
+description = ""
+authors = ["Benedikt Labrenz <benedikt.labrenz@stackable.tech>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9.0,<3.13"
+apache-superset = "==4.0.2"
+flask = "^2.2.5"
+flask-appbuilder = "^4.4.1"
+opa-python-client = "^2.0.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.3.1"
+pytest = "^8.3.3"
+
+[tool.poetry.group.test.dependencies]
+pytest-mock = "^3.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

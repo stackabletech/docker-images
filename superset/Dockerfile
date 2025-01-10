@@ -3,6 +3,32 @@
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
+FROM stackable/image/vector AS opa-authorizer-builder
+
+ARG PYTHON
+
+RUN microdnf update \
+    && microdnf install \
+    gcc \
+    gcc-c++ \
+    python${PYTHON} \
+    python${PYTHON}-devel \
+    python${PYTHON}-pip \
+    && microdnf clean all && \
+    rm -rf /var/cache/yum
+
+RUN pip install \
+    poetry \
+    pytest
+
+COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+
+WORKDIR /tmp/opa-authorizer
+
+RUN poetry install && \
+    poetry run pytest && \
+    poetry build
+
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
@@ -12,6 +38,7 @@ ARG TARGETARCH
 ARG TARGETOS
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
 
 RUN microdnf update \
     && microdnf install \
@@ -82,7 +109,8 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         python-json-logger \
         cyclonedx-bom \
-    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
+    pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}
