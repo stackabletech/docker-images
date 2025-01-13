@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+      - uses: stackabletech/actions/run-pre-commit@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           hadolint: ${{ env.HADOLINT_VERSION }}

@@ -36,7 +36,7 @@ jobs:
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/shard@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
     outputs:
@@ -62,11 +62,11 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/free-disk-space@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/build-product-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
@@ -74,7 +74,7 @@ jobs:
           sdp-version: ${{ env.SDP_VERSION }}
 
       - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -84,7 +84,7 @@ jobs:
           source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -110,7 +110,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           image-registry-uri: docker.stackable.tech
           image-registry-username: github
@@ -119,7 +119,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@a3f7587879e9f12e04a29fd26435949aaa4fd59c # 0.2.0
+        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
