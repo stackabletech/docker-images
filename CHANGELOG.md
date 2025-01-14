@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [24.11.1] - 2025-01-14
+
 ### Changed
 
 - ci: Fix various static analysis errors ([#955]).
