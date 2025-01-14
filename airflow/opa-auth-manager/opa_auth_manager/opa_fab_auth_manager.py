@@ -2,7 +2,7 @@
 Custom Auth manager for Airflow
 """
 
-from typing import cast, override
+from typing import override
 from airflow.auth.managers.base_auth_manager import ResourceMethod
 from airflow.auth.managers.models.base_user import BaseUser
 from airflow.auth.managers.models.resource_details import (
@@ -61,23 +61,23 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         config.setdefault("AUTH_OPA_REQUEST_URL", "http://opa:8081/v1/data/airflow")
         config.setdefault("AUTH_OPA_REQUEST_TIMEOUT", 10)
 
-    def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response | None:
-        self.opa_session.post(url=url, json=json, timeout=timeout)
+    def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response:
+        return self.opa_session.post(url=url, json=json, timeout=timeout)
 
     @cachedmethod(lambda self: self.opa_cache)
     def _is_authorized_in_opa(self, endpoint: str, input: OpaInput) -> bool:
         config = self.appbuilder.get_app.config
         opa_url = config.get("AUTH_OPA_REQUEST_URL")
         try:
-            response = cast(requests.Response, self.call_opa(
+            response = self.call_opa(
                 f'{opa_url}/{endpoint}',
                 json=input.to_dict(),
                 timeout=config.get("AUTH_OPA_REQUEST_TIMEOUT")
-            ))
+            )
             result = response.json().get("result")
             return result == True
         except Exception as e:
-            self.log.error(f"Request to OPA failed: {e}")
+            self.log.error(f"Request to OPA failed", exc_info=e)
             return False
 
     @override
