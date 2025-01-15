@@ -1294,13 +1294,13 @@ asymmetric-crypto = ["cryptography (>=3.3.1)"]
 
 [[package]]
 name = "flask-limiter"
-version = "3.10.0"
+version = "3.10.1"
 description = "Rate limiting for flask applications"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "Flask_Limiter-3.10.0-py3-none-any.whl", hash = "sha256:640ba763e05eb66bad3976d218b57c11c04c21e9ce42d20767975e7369e2ddcd"},
-    {file = "flask_limiter-3.10.0.tar.gz", hash = "sha256:4b54cc4f4d254147a78967e58db2e9339f72f7cffb84fbfd1c6fcbf13b198960"},
+    {file = "Flask_Limiter-3.10.1-py3-none-any.whl", hash = "sha256:afa3bfa9854dd2d3267816fcfcdfa91bcadf055acc4d2461119a2670306fbccb"},
+    {file = "flask_limiter-3.10.1.tar.gz", hash = "sha256:5ff8395f2acbc565ba6af43dc4b9c5b0a3665989681791d01dfaa6388bb332c6"},
 ]
 
 [package.dependencies]
@@ -2021,13 +2021,13 @@ files = [
 
 [[package]]
 name = "limits"
-version = "4.0.0"
+version = "4.0.1"
 description = "Rate limiting utilities"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "limits-4.0.0-py3-none-any.whl", hash = "sha256:0024ebe5a36c905fcff2d30a8e7680840b75ecdb989db10c526e9fabba529b58"},
-    {file = "limits-4.0.0.tar.gz", hash = "sha256:0516cec7c0803e0e1ecd48ad2f75547b85e2be5fb343a24e033f1316f5487e31"},
+    {file = "limits-4.0.1-py3-none-any.whl", hash = "sha256:67667e669f570cf7be4e2c2bc52f763b3f93bdf66ea945584360bc1a3f251901"},
+    {file = "limits-4.0.1.tar.gz", hash = "sha256:a54f5c058dfc965319ae3ee78faf222294659e371b46d22cd7456761f7e46d5a"},
 ]
 
 [package.dependencies]
@@ -2311,13 +2311,13 @@ test = ["functools32 (>=3.2.3-2)", "pytest (>=4.6.7)", "pytest-cov (>=2.6.1)"]
 
 [[package]]
 name = "more-itertools"
-version = "10.5.0"
+version = "10.6.0"
 description = "More routines for operating on iterables, beyond itertools"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "more-itertools-10.5.0.tar.gz", hash = "sha256:5482bfef7849c25dc3c6dd53a6173ae4795da2a41a80faea6700d9f5846c5da6"},
-    {file = "more_itertools-10.5.0-py3-none-any.whl", hash = "sha256:037b0d3203ce90cca8ab1defbbdac29d5f993fc20131f3664dc8d6acfa872aef"},
+    {file = "more-itertools-10.6.0.tar.gz", hash = "sha256:2cd7fad1009c31cc9fb6a035108509e6547547a7a738374f10bd49a09eb3ee3b"},
+    {file = "more_itertools-10.6.0-py3-none-any.whl", hash = "sha256:6eb054cb4b6db1473f6e15fcc676a08e4732548acd47c708f0e179c2c7c01e89"},
 ]
 
 [[package]]
@@ -3112,18 +3112,19 @@ files = [
 
 [[package]]
 name = "referencing"
-version = "0.35.1"
+version = "0.36.1"
 description = "JSON Referencing + Python"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "referencing-0.35.1-py3-none-any.whl", hash = "sha256:eda6d3234d62814d1c64e305c1331c9a3a6132da475ab6382eaa997b21ee75de"},
-    {file = "referencing-0.35.1.tar.gz", hash = "sha256:25b42124a6c8b632a425174f24087783efb348a6f1e0008e63cd4466fedf703c"},
+    {file = "referencing-0.36.1-py3-none-any.whl", hash = "sha256:363d9c65f080d0d70bc41c721dce3c7f3e77fc09f269cd5c8813da18069a6794"},
+    {file = "referencing-0.36.1.tar.gz", hash = "sha256:ca2e6492769e3602957e9b831b94211599d2aade9477f5d44110d2530cf9aade"},
 ]
 
 [package.dependencies]
 attrs = ">=22.2.0"
 rpds-py = ">=0.7.0"
+typing-extensions = {version = ">=4.4.0", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "requests"
@@ -3768,13 +3769,13 @@ watchdog = ["watchdog"]
 
 [[package]]
 name = "wirerope"
-version = "0.4.8"
+version = "1.0.0"
 description = "'Turn functions and methods into fully controllable objects'"
 optional = false
 python-versions = "*"
 files = [
-    {file = "wirerope-0.4.8-py2.py3-none-any.whl", hash = "sha256:99e54b9bd9d3a8e18199b87e2c5edf58d7f64e3f7e2f5bb041034025f03a4e68"},
-    {file = "wirerope-0.4.8.tar.gz", hash = "sha256:fa172d09eff7534563f315e38712b5fa3b88a1aa3467b539a7510f2e427a7af4"},
+    {file = "wirerope-1.0.0-py2.py3-none-any.whl", hash = "sha256:59346555c7b5dbd1c683a4e123f8bed30ca99df646f6867ea6439ceabf43c2f6"},
+    {file = "wirerope-1.0.0.tar.gz", hash = "sha256:7da8bb6feeff9dd939bd7141ef0dc392674e43ba662e20909d6729db81a7c8d0"},
 ]
 
 [package.dependencies]

@@ -16,6 +16,7 @@ from flask_login import login_user
 from opa_auth_manager.opa_fab_auth_manager import OpaFabAuthManager
 import pytest
 import requests
+import time
 
 class MockedOpaFabAuthManager(OpaFabAuthManager):
 
@@ -51,21 +52,22 @@ class User(BaseUser):
         return False
 
 @pytest.fixture
-def flask_app() -> Flask:
-    return Flask(__name__)
-
-@pytest.fixture
-def auth_manager(flask_app: Flask) -> Generator[MockedOpaFabAuthManager, Any, None]:
+def auth_manager(request) -> Generator[MockedOpaFabAuthManager, Any, None]:
+    flask_app = Flask(__name__)
     flask_app.config["SECRET_KEY"] = "secret" # required for test_request_context below
+    flask_app.config.from_mapping(request.param)
+
     appbuilder = init_appbuilder(flask_app)
     auth_manager = MockedOpaFabAuthManager(appbuilder)
     auth_manager.init()
+
     with flask_app.test_request_context():
         login_user(User(user_id='1', username='testuser'))
         yield auth_manager
 
 class TestOpaFabAuthManager:
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_configuration_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager,
@@ -91,6 +93,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_configuration_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager,
@@ -118,6 +121,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_connection_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -143,6 +147,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_connection_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -170,6 +175,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_dag_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -196,6 +202,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_dag_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -225,6 +232,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_dataset_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -250,6 +258,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_dataset_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -277,6 +286,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_pool_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -302,6 +312,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_pool_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -329,6 +340,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_variable_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -354,6 +366,7 @@ class TestOpaFabAuthManager:
             method='GET',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_variable_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -381,6 +394,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_view_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -403,6 +417,7 @@ class TestOpaFabAuthManager:
             access_view=AccessView.WEBSITE,
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_view_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -426,6 +441,7 @@ class TestOpaFabAuthManager:
             user=User(user_id='2', username='otheruser'),
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_custom_view_with_defaults(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -450,6 +466,7 @@ class TestOpaFabAuthManager:
             resource_name='Users',
         )
 
+    @pytest.mark.parametrize('auth_manager', [{}], indirect=True)
     def test_is_authorized_custom_view_with_all_settings(
         self,
         auth_manager: MockedOpaFabAuthManager
@@ -474,3 +491,145 @@ class TestOpaFabAuthManager:
             resource_name='Users',
             user=User(user_id='2', username='otheruser'),
         )
+
+    @pytest.mark.parametrize(
+        'auth_manager',
+        [{
+            'AUTH_OPA_REQUEST_URL': 'https://other-endpoint',
+            'AUTH_OPA_REQUEST_TIMEOUT': 60,
+        }],
+        indirect=True,
+    )
+    def test_opa_request_configurations(
+        self,
+        auth_manager: MockedOpaFabAuthManager
+    ) -> None:
+        auth_manager.mock_opa_call(
+            'https://other-endpoint/is_authorized_configuration',
+            {
+                'input': {
+                    'method': 'GET',
+                    'details': {
+                        'section': None,
+                    },
+                    'user': {
+                        'id': '1',
+                        'name': 'testuser',
+                    },
+                }
+            },
+            60
+        )
+
+        assert auth_manager.is_authorized_configuration(
+            method='GET',
+        )
+
+    @pytest.mark.parametrize(
+        'auth_manager',
+        [{
+            'AUTH_OPA_CACHE_MAXSIZE': 3,
+        }],
+        indirect=True,
+    )
+    def test_opa_cache_maxsize_configuration(
+        self,
+        auth_manager: MockedOpaFabAuthManager
+    ) -> None:
+        def add_to_cache(section: str) -> None:
+            auth_manager.mock_opa_call(
+                'http://opa:8081/v1/data/airflow/is_authorized_configuration',
+                {
+                    'input': {
+                        'method': 'GET',
+                        'details': {
+                            'section': section,
+                        },
+                        'user': {
+                            'id': '1',
+                            'name': 'testuser',
+                        },
+                    }
+                },
+                10
+            )
+
+            assert auth_manager.is_authorized_configuration(
+                method='GET',
+                details=ConfigurationDetails(section=section),
+            )
+
+        def is_cached(section: str) -> bool:
+            auth_manager.mock_opa_call('', {}, 0)
+            return auth_manager.is_authorized_configuration(
+                method='GET',
+                details=ConfigurationDetails(section=section),
+            )
+
+        add_to_cache('core')
+        add_to_cache('database')
+        add_to_cache('logging')
+
+        assert is_cached('core')
+        assert is_cached('database')
+        assert is_cached('logging')
+
+        add_to_cache('metrics')
+
+        assert is_cached('database')
+        assert is_cached('logging')
+        assert is_cached('metrics')
+        # The log output "ERROR - Request to OPA failed" is expected.
+        assert not is_cached('core')
+
+    @pytest.mark.parametrize(
+        'auth_manager',
+        [{
+            'AUTH_OPA_CACHE_TTL_IN_SEC': 3,
+        }],
+        indirect=True,
+    )
+    def test_opa_cache_ttl_in_sec_configuration(
+        self,
+        auth_manager: MockedOpaFabAuthManager
+    ) -> None:
+        def add_to_cache(section: str) -> None:
+            auth_manager.mock_opa_call(
+                'http://opa:8081/v1/data/airflow/is_authorized_configuration',
+                {
+                    'input': {
+                        'method': 'GET',
+                        'details': {
+                            'section': section,
+                        },
+                        'user': {
+                            'id': '1',
+                            'name': 'testuser',
+                        },
+                    }
+                },
+                10
+            )
+
+            assert auth_manager.is_authorized_configuration(
+                method='GET',
+                details=ConfigurationDetails(section=section),
+            )
+
+        def is_cached(section: str) -> bool:
+            auth_manager.mock_opa_call('', {}, 0)
+            return auth_manager.is_authorized_configuration(
+                method='GET',
+                details=ConfigurationDetails(section=section),
+            )
+
+        add_to_cache('core')
+
+        assert is_cached('core')
+        time.sleep(1)
+        assert is_cached('core')
+        time.sleep(1)
+        assert is_cached('core')
+        time.sleep(2)
+        # The log output "ERROR - Request to OPA failed" is expected.
+        assert not is_cached('core')

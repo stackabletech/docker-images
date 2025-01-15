@@ -2,7 +2,6 @@
 Custom Auth manager for Airflow
 """
 
-from typing import override
 from airflow.auth.managers.base_auth_manager import ResourceMethod
 from airflow.auth.managers.models.base_user import BaseUser
 from airflow.auth.managers.models.resource_details import (
@@ -18,10 +17,14 @@ from airflow.auth.managers.models.resource_details import (
 from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.utils.log.logging_mixin import LoggingMixin
 from cachetools import TTLCache, cachedmethod
+from typing import override
 import json
 import requests
 
 class OpaInput:
+    """
+    Wrapper for the OPA input structure which is hashable so that it can be cached
+    """
 
     def __init__(self, input: dict) -> None:
         self.input = input
@@ -42,42 +45,71 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     Agent
     """
 
+    AUTH_OPA_CACHE_MAXSIZE_DEFAULT=1000
+    AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT=30
+    AUTH_OPA_REQUEST_URL_DEFAULT='http://opa:8081/v1/data/airflow'
+    AUTH_OPA_REQUEST_TIMEOUT_DEFAULT=10
+
     def init(self) -> None:
-        """Run operations when Airflow is initializing."""
+        """
+        Run operations when Airflow is initializing.
+        """
+
         super().init()
-        self._init_config()
 
         config = self.appbuilder.get_app.config
         self.opa_cache = TTLCache(
-            maxsize=config.get("AUTH_OPA_CACHE_MAXSIZE"),
-            ttl=config.get("AUTH_OPA_CACHE_TTL_IN_SEC"),
+            maxsize=config.get(
+                'AUTH_OPA_CACHE_MAXSIZE',
+                self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
+            ),
+            ttl=config.get(
+                'AUTH_OPA_CACHE_TTL_IN_SEC',
+                self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
+            ),
         )
         self.opa_session = requests.Session()
 
-    def _init_config(self):
-        config = self.appbuilder.get_app.config
-        config.setdefault('AUTH_OPA_CACHE_MAXSIZE', 1000)
-        config.setdefault("AUTH_OPA_CACHE_TTL_IN_SEC", 30)
-        config.setdefault("AUTH_OPA_REQUEST_URL", "http://opa:8081/v1/data/airflow")
-        config.setdefault("AUTH_OPA_REQUEST_TIMEOUT", 10)
-
     def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response:
+        """
+        Send a POST request to OPA.
+
+        This function can be overriden in tests.
+
+        :param url: URL for the OPA rule
+        :param json: json to send in the body
+        """
+
         return self.opa_session.post(url=url, json=json, timeout=timeout)
 
     @cachedmethod(lambda self: self.opa_cache)
     def _is_authorized_in_opa(self, endpoint: str, input: OpaInput) -> bool:
+        """
+        Forward an authorization request to OPA.
+
+        :param endpoint: the OPA rule
+        :param input: the input structure for OPA
+        """
+
+        self.log.debug("Forward authorization request to OPA")
+
         config = self.appbuilder.get_app.config
-        opa_url = config.get("AUTH_OPA_REQUEST_URL")
+        opa_url = config.get(
+            'AUTH_OPA_REQUEST_URL',
+            self.AUTH_OPA_REQUEST_URL_DEFAULT
+        )
         try:
             response = self.call_opa(
                 f'{opa_url}/{endpoint}',
                 json=input.to_dict(),
-                timeout=config.get("AUTH_OPA_REQUEST_TIMEOUT")
+                timeout=config.get(
+                    'AUTH_OPA_REQUEST_TIMEOUT',
+                    self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
+                )
             )
-            result = response.json().get("result")
-            return result == True
+            return response.json().get('result')
         except Exception as e:
-            self.log.error(f"Request to OPA failed", exc_info=e)
+            self.log.error("Request to OPA failed", exc_info=e)
             return False
 
     @override
@@ -98,7 +130,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_configuration to OPA")
+        self.log.debug("Check is_authorized_configuration")
 
         if not user:
             user = self.get_user()
@@ -141,7 +173,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_connection to OPA")
+        self.log.debug("Check is_authorized_connection")
 
         if not user:
             user = self.get_user()
@@ -187,7 +219,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_dag to OPA")
+        self.log.debug("Check is_authorized_dag")
 
         if not user:
             user = self.get_user()
@@ -236,7 +268,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_dataset to OPA")
+        self.log.debug("Check is_authorized_dataset")
 
         if not user:
             user = self.get_user()
@@ -279,7 +311,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_pool to OPA")
+        self.log.debug("Check is_authorized_pool")
 
         if not user:
             user = self.get_user()
@@ -322,7 +354,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_variable to OPA")
+        self.log.debug("Check is_authorized_variable")
 
         if not user:
             user = self.get_user()
@@ -363,7 +395,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_view to OPA")
+        self.log.debug("Check is_authorized_view")
 
         if not user:
             user = self.get_user()
@@ -405,7 +437,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             current user
         """
 
-        self.log.info("Forward is_authorized_custom_view to OPA")
+        self.log.debug("Check is_authorized_custom_view")
 
         if not user:
             user = self.get_user()
