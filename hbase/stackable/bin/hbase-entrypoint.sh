@@ -69,8 +69,9 @@ cp /stackable/tmp/hdfs/core-site.xml /stackable/conf
 cp /stackable/tmp/hbase/* /stackable/conf
 cp /stackable/tmp/log_config/log4j* /stackable/conf
 
-rm -f /stackable/log/_vector/shutdown
+rm -f "${STACKABLE_LOG_DIR}/_vector/shutdown"
 prepare_signal_handlers
+/stackable/containerdebug --output="${STACKABLE_LOG_DIR}/containerdebug-state.json" --loop &
 /stackable/hbase/bin/hbase "${HBASE_ROLE_NAME}" start &
 wait_for_termination $!
-mkdir -p /stackable/log/_vector && touch /stackable/log/_vector/shutdown
+mkdir -p "${STACKABLE_LOG_DIR}/_vector" && touch "${STACKABLE_LOG_DIR}/_vector/shutdown"
