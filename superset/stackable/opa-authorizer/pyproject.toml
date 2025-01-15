@@ -11,6 +11,7 @@ apache-superset = "==4.0.2"
 flask = "^2.2.5"
 flask-appbuilder = "^4.4.1"
 opa-python-client = "^2.0.2"
+cachetools = "^5.5.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -2906,8 +2906,8 @@ numba = {version = ">=0.53.1", optional = true, markers = "extra == \"performanc
 numexpr = {version = ">=2.7.1", optional = true, markers = "extra == \"performance\""}
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
     {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -4863,4 +4863,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9.0,<3.13"
-content-hash = "85585c0ea024721799657d16ee6e751f78b39e434df17c7f103613bf736bd8b0"
+content-hash = "bb53d4d18e4c4914f973c9e6f53ae6019f2f603175fb07e018c0b73efed48d06"

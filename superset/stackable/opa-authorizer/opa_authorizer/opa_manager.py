@@ -1,8 +1,10 @@
 # pylint: disable=missing-module-docstring
 import logging
+import os
 
 from http.client import HTTPException
 from typing import List, Optional, Tuple
+from cachetools import cached, TTLCache
 from flask import current_app, g
 from flask_appbuilder.security.sqla.models import (
     Role,
@@ -49,6 +51,10 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         return user.roles
 
 
+    @cached(cache=TTLCache(
+        maxsize = 1024,
+        ttl = int(os.getenv('STACKABLE_OPA_CACHE_TTL', '10'))
+        ))
     def get_opa_user_roles(self, username: str) -> set[str]:
         """
         Queries an Open Policy Agent instance for the roles of a given user.
