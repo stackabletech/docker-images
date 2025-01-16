@@ -1,10 +1,9 @@
 # pylint: disable=missing-module-docstring
 import logging
-import os
 
 from http.client import HTTPException
 from typing import List, Optional, Tuple
-from cachetools import cached, TTLCache
+from cachetools import cachedmethod, TTLCache
 from flask import current_app, g
 from flask_appbuilder.security.sqla.models import (
     Role,
@@ -18,6 +17,26 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     """
     Custom security manager that syncs user-role mappings from Open Policy Agent to Superset.
     """
+    AUTH_OPA_CACHE_MAXSIZE_DEFAULT=1000
+    AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT=30
+    AUTH_OPA_REQUEST_URL_DEFAULT='http://opa:8081/'
+
+    def __init__(self, appbuilder):
+        self.appbuilder = appbuilder
+        super().__init__(self.appbuilder)
+        config = self.appbuilder.get_app.config
+        self.opa_cache = self.opa_cache = TTLCache(
+            maxsize=config.get(
+                'AUTH_OPA_CACHE_MAXSIZE',
+                self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
+            ),
+            ttl=config.get(
+                'AUTH_OPA_CACHE_TTL_IN_SEC',
+                self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
+            ),
+        )
+
+
     def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
         """
         Retrieves a user's roles from an Open Policy Agent instance updating the
@@ -51,10 +70,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         return user.roles
 
 
-    @cached(cache=TTLCache(
-        maxsize = 1024,
-        ttl = int(os.getenv('STACKABLE_OPA_CACHE_TTL', '10'))
-        ))
+    @cachedmethod(lambda self: self.opa_cache)
     def get_opa_user_roles(self, username: str) -> set[str]:
         """
         Queries an Open Policy Agent instance for the roles of a given user.
@@ -86,7 +102,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
 
         :returns: Hostname, port and protocol (http/https).
         """
-        opa_base_path = current_app.config.get('STACKABLE_OPA_BASE_URL')
+        opa_base_path = current_app.config.get('STACKABLE_OPA_BASE_URL', self.AUTH_OPA_REQUEST_URL_DEFAULT)
         [protocol, host, port] = opa_base_path.split(":")
         # remove any path be appended to the base url
         port = int(port.split('/')[0])
