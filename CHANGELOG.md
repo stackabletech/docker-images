@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: Add OPA support to Airflow ([#978]).
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - base: Add containerdebug tool ([#928], [#959]).
@@ -37,6 +38,7 @@ All notable changes to this project will be documented in this file.
 [#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#962]: https://github.com/stackabletech/docker-images/pull/962
+[#978]: https://github.com/stackabletech/docker-images/pull/978
 
 ## [24.11.0] - 2024-11-18
 
