@@ -80,9 +80,9 @@ def "main checkout" [
     # $GIT_DIR must be the worktree's .git dir, even if that is just an alias for the backing repo, since each worktree maintains its own index
     $env.GIT_DIR = $"($worktree_path)/.git"
     $env.GIT_WORK_TREE = $worktree_path
-    let worktree_git_dir = git rev-parse --git-dir
-    let worktree_rebase_progress_dir = $"($worktree_git_dir)/rebase-apply"
     if ($worktree_path | path exists) {
+        let worktree_git_dir = git rev-parse --git-dir
+        let worktree_rebase_progress_dir = $"($worktree_git_dir)/rebase-apply"
         log info "Worktree root already exists, resetting"
         if ($worktree_rebase_progress_dir | path exists) {
             if $force {
