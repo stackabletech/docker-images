@@ -49,10 +49,7 @@ COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-dr
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar /stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar /stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar /stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop/share/hadoop/* /stackable/shared/artifacts/org/apache/hadoop
 
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
     --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
@@ -63,11 +60,6 @@ cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
 
 sed -i "s/<hadoop\.compile\.version>3\.[0-9]\+\.[0-9]\+<\/hadoop\.compile\.version>/<hadoop.compile.version>${HADOOP}<\/hadoop.compile.version>/g" pom.xml
-
-mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/common/hadoop-common-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-common -Dversion=${HADOOP} -Dpackaging=jar
-mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/client/hadoop-client-runtime-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-client-runtime -Dversion=${HADOOP} -Dpackaging=jar
-mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/client/hadoop-client-api-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-client-api -Dversion=${HADOOP} -Dpackaging=jar
-mvn install:install-file -Dfile=/stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar -DgroupId=org.apache.hadoop -DartifactId=hadoop-aws -Dversion=${HADOOP} -Dpackaging=jar
 EOF
 
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
@@ -140,7 +132,6 @@ LABEL io.k8s.display-name="${NAME}"
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/hadoop /stackable/hadoop
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
 
