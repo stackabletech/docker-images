@@ -18,6 +18,8 @@ RUN microdnf update \
     rm -rf /var/cache/yum
 
 RUN pip install \
+    --no-cache-dir \
+    --upgrade \
     poetry \
     pytest
 

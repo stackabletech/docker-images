@@ -27,8 +27,8 @@ def opa_security_manager(
 
     with app.app_context():
         mocker.patch(
-            'flask_appbuilder.security.sqla.manager.SecurityManager.create_db',
-            return_value = None
+            "flask_appbuilder.security.sqla.manager.SecurityManager.create_db",
+            return_value=None,
         )
         return OpaSupersetSecurityManager(appbuilder)
 
@@ -40,17 +40,15 @@ def user() -> User:
     """
     user = User()
     user.id = 1234
-    user.first_name = 'mock'
-    user.last_name = 'mock'
-    user.username = 'mock'
-    user.email = 'mock@mock.com'
+    user.first_name = "mock"
+    user.last_name = "mock"
+    user.username = "mock"
+    user.email = "mock@mock.com"
 
     return user
 
 
-def test_opa_security_manager(
-    opa_security_manager: OpaSupersetSecurityManager
-) -> None:
+def test_opa_security_manager(opa_security_manager: OpaSupersetSecurityManager) -> None:
     """
     Test that the OPA security manager can be built.
     """
@@ -66,24 +64,25 @@ def test_add_roles(
     """
     Test that roles are correctly added to a user.
     """
-    opa_roles = ['Test1', 'Test2', 'Test3']
+    opa_roles = ["Test1", "Test2", "Test3"]
 
     with app.app_context():
         mocker.patch(
-            'flask_appbuilder.security.sqla.manager.SecurityManager.update_user',
-            return_value = True
+            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
+            return_value=True,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles',
-            return_value = opa_roles
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
+            return_value=opa_roles,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role', 
-            wraps=mock_resolve_role
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
+            wraps=mock_resolve_role,
         )
 
-        assert set(map(lambda r: r.name, opa_security_manager.get_user_roles(user))) \
-            == set(opa_roles)
+        assert set(
+            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
+        ) == set(opa_roles)
 
 
 def test_change_roles(
@@ -95,26 +94,27 @@ def test_change_roles(
     """
     Test that roles are correcty changed on a user.
     """
-    opa_roles = ['Test4']
+    opa_roles = ["Test4"]
 
     with app.app_context():
         mocker.patch(
-            'flask_appbuilder.security.sqla.manager.SecurityManager.update_user',
-            return_value = True
+            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
+            return_value=True,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles',
-            return_value = opa_roles
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
+            return_value=opa_roles,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role', 
-            wraps=mock_resolve_role
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
+            wraps=mock_resolve_role,
         )
-        user_roles = ['Test1', 'Test2', 'Test3']
+        user_roles = ["Test1", "Test2", "Test3"]
         user.roles = list(map(opa_security_manager.resolve_role, user_roles))
 
-        assert set(map(lambda r: r.name, opa_security_manager.get_user_roles(user))) \
-            == set(opa_roles)
+        assert set(
+            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
+        ) == set(opa_roles)
 
 
 def test_no_roles(
@@ -130,19 +130,21 @@ def test_no_roles(
 
     with app.app_context():
         mocker.patch(
-            'flask_appbuilder.security.sqla.manager.SecurityManager.update_user',
-            return_value = True
+            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
+            return_value=True,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles',
-            return_value = opa_roles
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
+            return_value=opa_roles,
         )
         mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role', 
-            wraps=mock_resolve_role
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
+            wraps=mock_resolve_role,
         )
 
-        assert set(map(lambda r: r.name, opa_security_manager.get_user_roles(user))) == {'Public'}
+        assert set(
+            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
+        ) == {"Public"}
 
 
 def test_get_opa_roles(
@@ -153,20 +155,17 @@ def test_get_opa_roles(
     """
     Test that roles are correctly extracted from the OPA response.
     """
-    roles = ['Test1', 'Test2', 'Test3']
-    response = {'result': roles}
+    roles = ["Test1", "Test2", "Test3"]
+    response = {"result": roles}
 
     with app.app_context():
+        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            'opa_client.opa.OpaClient.query_rule',
-            return_value = response
-        )
-        mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url',
-            return_value = ('opa-instance', 8081, False)
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
+            return_value=("opa-instance", 8081, False),
         )
 
-        assert opa_security_manager.get_opa_user_roles('User1') == roles
+        assert opa_security_manager.get_opa_user_roles("User1") == roles
 
 
 def test_get_opa_roles_no_result(
@@ -177,19 +176,16 @@ def test_get_opa_roles_no_result(
     """
     Test that no roles are returned if the OPA response doesn't contain a query result.
     """
-    response = {'error': 'error occurred'}
+    response = {"error": "error occurred"}
 
     with app.app_context():
+        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            'opa_client.opa.OpaClient.query_rule',
-            return_value = response
-        )
-        mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url',
-            return_value = ('opa-instance', 8081, False)
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
+            return_value=("opa-instance", 8081, False),
         )
 
-        assert opa_security_manager.get_opa_user_roles('User1') == []
+        assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
 def test_get_opa_roles_not_a_list(
@@ -200,19 +196,16 @@ def test_get_opa_roles_not_a_list(
     """
     Test that no roles are returned if the query result doesn't contain a list.
     """
-    response = {'result': "['Test1', 'Test2', 'Test3']"} # type string not list
+    response = {"result": "['Test1', 'Test2', 'Test3']"}  # type string not list
 
     with app.app_context():
+        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            'opa_client.opa.OpaClient.query_rule',
-            return_value = response
-        )
-        mocker.patch(
-            'opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url',
-            return_value = ('opa-instance', 8081, False)
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
+            return_value=("opa-instance", 8081, False),
         )
 
-        assert opa_security_manager.get_opa_user_roles('User1') == []
+        assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
 def test_resolve_opa_base_url(
@@ -225,10 +218,13 @@ def test_resolve_opa_base_url(
     """
     with app.app_context():
         mocker.patch(
-            'flask.current_app.config.get',
-            return_value = 'http://opa-instance:8081'
+            "flask.current_app.config.get", return_value="http://opa-instance:8081"
         )
-        assert opa_security_manager.resolve_opa_base_url() == ('opa-instance', 8081, False)
+        assert opa_security_manager.resolve_opa_base_url() == (
+            "opa-instance",
+            8081,
+            False,
+        )
 
 
 def test_resolve_opa_base_url_with_path(
@@ -242,10 +238,14 @@ def test_resolve_opa_base_url_with_path(
     """
     with app.app_context():
         mocker.patch(
-            'flask.current_app.config.get',
-            return_value = 'http://opa-instance:8081/v1/data/superset'
+            "flask.current_app.config.get",
+            return_value="http://opa-instance:8081/v1/data/superset",
         )
-        assert opa_security_manager.resolve_opa_base_url() == ('opa-instance', 8081, False)
+        assert opa_security_manager.resolve_opa_base_url() == (
+            "opa-instance",
+            8081,
+            False,
+        )
 
 
 def mock_resolve_role(role_name: str) -> Role:
