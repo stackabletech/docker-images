@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 - vector: remove version 0.41.1 [#980].
+
 ### Fixed
 
 - hadoop: Fix the JMX exporter configuration for metrics suffixed with
