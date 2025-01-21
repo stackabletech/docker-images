@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.
+- vector: Add version 0.43.1, remove version 0.41.1 [#980]
 
 ### Changed
 
@@ -37,7 +38,7 @@ All notable changes to this project will be documented in this file.
 [#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#962]: https://github.com/stackabletech/docker-images/pull/962
-
+[#980]: https://github.com/stackabletech/docker-images/pull/980
 ## [24.11.0] - 2024-11-18
 
 ### Added
