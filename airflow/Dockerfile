@@ -99,9 +99,14 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-# Update image and install python
+# Update image and install needed packages
 RUN <<EOF
 microdnf update
+
+# git: Needed for the gitsync functionality
+# openldap: Needed for authentication of clients against LDAP servers
+# openssh-clients: We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
+# python: Airflow needs Python
 microdnf install \
   ca-certificates \
   cyrus-sasl \

@@ -11,10 +11,7 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
 
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/fuse_dfs_wrapper
+WORKDIR /stackable/jmx
 
 # The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
 # the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
@@ -26,6 +23,8 @@ RUN curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prome
     chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
     ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+
+WORKDIR /stackable
 
 RUN ARCH="${TARGETARCH/amd64/x64}" && \
     curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC . && \
@@ -65,7 +64,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches /stackable/patches
 RUN curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
     patches/apply_patches.sh ${PRODUCT} && \
     cd hadoop-${PRODUCT}-src && \
-    mvn --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
@@ -116,7 +115,7 @@ WORKDIR /stackable
 
 RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
-    mvn --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
+    mvn --batch-mode --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
     rm -rf /stackable/hdfs-utils-main
@@ -141,6 +140,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stack
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 
 
 # fuse is required for fusermount (called by fuse_dfs)
