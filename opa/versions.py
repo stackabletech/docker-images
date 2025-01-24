@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "0.66.0",
+        "product": "1.0.0",
         "vector": "0.43.1",
         "bundle_builder_version": "1.1.2",
         "stackable-base": "1.0.0",
