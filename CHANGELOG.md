@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-￼
+
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - base: Add containerdebug tool ([#928], [#959]).
