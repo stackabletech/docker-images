@@ -6,14 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 ￼
-￼- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
-￼- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
-￼- base: Add containerdebug tool ([#928], [#959]).
-￼- tools: Add the package util-linux-core ([#952]).
-￼  util-linux-core contains a basic set of Linux utilities, including the
-￼  command logger which allows to enter messages into the system log.
-￼- vector: Add version 0.43.1 ([#980]).
-￼- opa: Add version 1.0.0 ([#981])
+- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
+- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+- base: Add containerdebug tool ([#928], [#959]).
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+- vector: Add version 0.43.1 ([#980]).
+- opa: Add version 1.0.0 ([#981])
 
 ### Removed
 
@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - hadoop: Fix the JMX exporter configuration for metrics suffixed with
-￼  `_total`, `_info` and `_created` ([#962]).
+  `_total`, `_info` and `_created` ([#962]).
 
 [#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
