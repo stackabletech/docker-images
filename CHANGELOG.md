@@ -4,16 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Added
-
-- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
-- nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
-- base: Add containerdebug tool ([#928], [#959]).
-- tools: Add the package util-linux-core ([#952]).
-  util-linux-core contains a basic set of Linux utilities, including the
-  command logger which allows to enter messages into the system log.
-- vector: Add version 0.43.1 ([#980]).
-- opa: Add version 1.0.0 ([#981])
+## [24.11.1] - 2025-01-14
 
 ### Changed
 
@@ -21,28 +12,20 @@ All notable changes to this project will be documented in this file.
 - all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
 - all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
 
-### Removed
-
-- kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
-- vector: remove version 0.41.1 ([#980]).
-- opa: remove version 0.66.0 ([#981])
-
-### Fixed
-
-- hadoop: Fix the JMX exporter configuration for metrics suffixed with
-  `_total`, `_info` and `_created` ([#962]).
-
-[#884]: https://github.com/stackabletech/docker-images/pull/884
-[#928]: https://github.com/stackabletech/docker-images/pull/928
-[#943]: https://github.com/stackabletech/docker-images/pull/943
-[#952]: https://github.com/stackabletech/docker-images/pull/952
 [#953]: https://github.com/stackabletech/docker-images/pull/953
 [#955]: https://github.com/stackabletech/docker-images/pull/955
-[#958]: https://github.com/stackabletech/docker-images/pull/958
-[#959]: https://github.com/stackabletech/docker-images/pull/959
-[#962]: https://github.com/stackabletech/docker-images/pull/962
-[#980]: https://github.com/stackabletech/docker-images/pull/980
-[#981]: https://github.com/stackabletech/docker-images/pull/981
+
+## [24.11.1-rc2] - 2024-12-12
+
+### Added
+
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+
+[#952]: https://github.com/stackabletech/docker-images/pull/952
+
+## [24.11.1-rc1] - 2024-12-05
 
 ## [24.11.0] - 2024-11-18
 
@@ -112,7 +95,6 @@ All notable changes to this project will be documented in this file.
 - nifi: Fix CVE-2024-36114 in NiFi `1.27.0` and `2.0.0` by upgrading a dependency. ([#924]).
 - hbase: Fix CVE-2024-36114 in HBase `2.6.0` by upgrading a dependency. ([#925]).
 - druid: Fix CVE-2024-36114 in Druid `26.0.0` and `30.0.0` by upgrading a dependency ([#926]).
-- hbase: Fix CVE-2023-34455 in HBase `2.4.18` by upgrading a dependency. ([#934]).
 
 [#783]: https://github.com/stackabletech/docker-images/pull/783
 [#797]: https://github.com/stackabletech/docker-images/pull/797
@@ -162,7 +144,6 @@ All notable changes to this project will be documented in this file.
 [#924]: https://github.com/stackabletech/docker-images/pull/924
 [#925]: https://github.com/stackabletech/docker-images/pull/925
 [#926]: https://github.com/stackabletech/docker-images/pull/926
-[#934]: https://github.com/stackabletech/docker-images/pull/934
 
 ## [24.7.0] - 2024-07-24
 
