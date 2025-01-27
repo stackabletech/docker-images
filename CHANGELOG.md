@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
   command logger which allows to enter messages into the system log.
 - vector: Add version 0.43.1 ([#980]).
 - opa: Add version 1.0.0 ([#981])
+- statsd-exporter: Bump version to 0.28.0
 
 ### Changed
 
