@@ -22,7 +22,8 @@ from typing import override
 import json
 import requests
 
-METRIC_NAME_OPA_CACHE_LIMIT_REACHED="opa_cache_limit_reached"
+METRIC_NAME_OPA_CACHE_LIMIT_REACHED = "opa_cache_limit_reached"
+
 
 class OpaInput:
     """
@@ -33,14 +34,14 @@ class OpaInput:
         self.input = input
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, OpaInput) \
-            and self.input == other.input
+        return isinstance(other, OpaInput) and self.input == other.input
 
     def __hash__(self) -> int:
         return hash(json.dumps(self.input, sort_keys=True))
 
     def to_dict(self) -> dict:
         return self.input
+
 
 class Cache(TTLCache):
     """
@@ -56,16 +57,17 @@ class Cache(TTLCache):
         Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED)
         return super().popitem()
 
+
 class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     """
     Auth manager based on the FabAuthManager which delegates the authorization to an Open Policy
     Agent
     """
 
-    AUTH_OPA_CACHE_MAXSIZE_DEFAULT=1000
-    AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT=30
-    AUTH_OPA_REQUEST_URL_DEFAULT='http://opa:8081/v1/data/airflow'
-    AUTH_OPA_REQUEST_TIMEOUT_DEFAULT=10
+    AUTH_OPA_CACHE_MAXSIZE_DEFAULT = 1000
+    AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT = 30
+    AUTH_OPA_REQUEST_URL_DEFAULT = "http://opa:8081/v1/data/airflow"
+    AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
 
     def init(self) -> None:
         """
@@ -79,12 +81,10 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         config = self.appbuilder.get_app.config
         self.opa_cache = Cache(
             maxsize=config.get(
-                'AUTH_OPA_CACHE_MAXSIZE',
-                self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
+                "AUTH_OPA_CACHE_MAXSIZE", self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
             ),
             ttl=config.get(
-                'AUTH_OPA_CACHE_TTL_IN_SEC',
-                self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
+                "AUTH_OPA_CACHE_TTL_IN_SEC", self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
             ),
         )
         self.opa_session = requests.Session()
@@ -113,20 +113,16 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self.log.debug("Forward authorization request to OPA")
 
         config = self.appbuilder.get_app.config
-        opa_url = config.get(
-            'AUTH_OPA_REQUEST_URL',
-            self.AUTH_OPA_REQUEST_URL_DEFAULT
-        )
+        opa_url = config.get("AUTH_OPA_REQUEST_URL", self.AUTH_OPA_REQUEST_URL_DEFAULT)
         try:
             response = self.call_opa(
-                f'{opa_url}/{endpoint}',
+                f"{opa_url}/{endpoint}",
                 json=input.to_dict(),
                 timeout=config.get(
-                    'AUTH_OPA_REQUEST_TIMEOUT',
-                    self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
-                )
+                    "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
+                ),
             )
-            return response.json().get('result')
+            return response.json().get("result")
         except Exception as e:
             self.log.error("Request to OPA failed", exc_info=e)
             return False
@@ -160,19 +156,21 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             section = details.section
 
         return self._is_authorized_in_opa(
-            'is_authorized_configuration',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'details': {
-                        'section': section,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_configuration",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "details": {
+                            "section": section,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -203,19 +201,21 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             conn_id = details.conn_id
 
         return self._is_authorized_in_opa(
-            'is_authorized_connection',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'details': {
-                        'conn_id': conn_id,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_connection",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "details": {
+                            "conn_id": conn_id,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -254,20 +254,22 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             dag_id = details.id
 
         return self._is_authorized_in_opa(
-            'is_authorized_dag',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'access_entity': entity,
-                    'details': {
-                        'id': dag_id,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_dag",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "access_entity": entity,
+                        "details": {
+                            "id": dag_id,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -298,19 +300,21 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             uri = details.uri
 
         return self._is_authorized_in_opa(
-            'is_authorized_dataset',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'details': {
-                        'uri': uri,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_dataset",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "details": {
+                            "uri": uri,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -341,19 +345,21 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             name = details.name
 
         return self._is_authorized_in_opa(
-            'is_authorized_pool',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'details': {
-                        'name': name,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_pool",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "details": {
+                            "name": name,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -384,19 +390,21 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             key = details.key
 
         return self._is_authorized_in_opa(
-            'is_authorized_variable',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'details': {
-                        'key': key,
-                    },
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_variable",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "details": {
+                            "key": key,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -420,16 +428,18 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             user = self.get_user()
 
         return self._is_authorized_in_opa(
-            'is_authorized_view',
-            OpaInput({
-                'input': {
-                    'access_view': access_view.name,
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_view",
+            OpaInput(
+                {
+                    "input": {
+                        "access_view": access_view.name,
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
 
     @override
@@ -462,15 +472,17 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
             user = self.get_user()
 
         return self._is_authorized_in_opa(
-            'is_authorized_custom_view',
-            OpaInput({
-                'input': {
-                    'method': method,
-                    'resource_name': resource_name,
-                    'user': {
-                        'id': user.get_id(),
-                        'name': user.get_name(),
-                    },
+            "is_authorized_custom_view",
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "resource_name": resource_name,
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
                 }
-            })
+            ),
         )
