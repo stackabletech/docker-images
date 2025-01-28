@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "opa-auth-manager"
 version = "0.1.0"
-description = ""
+description = "Auth manager for Airflow which delegates the authorization to an Open Policy Agent"
 authors = ["Siegfried Weber <mail@siegfriedweber.net>"]
 readme = "README.md"
 
