@@ -15,11 +15,14 @@ from airflow.auth.managers.models.resource_details import (
     VariableDetails,
 )
 from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
+from airflow.stats import Stats
 from airflow.utils.log.logging_mixin import LoggingMixin
 from cachetools import TTLCache, cachedmethod
 from typing import override
 import json
 import requests
+
+METRIC_NAME_OPA_CACHE_LIMIT_REACHED="opa_cache_limit_reached"
 
 class OpaInput:
     """
@@ -39,6 +42,20 @@ class OpaInput:
     def to_dict(self) -> dict:
         return self.input
 
+class Cache(TTLCache):
+    """
+    LRU Cache implementation with per-item time-to-live (TTL) value.
+    """
+
+    @override
+    def popitem(self):
+        """
+        Remove the least recently used item that has not already expired.
+        """
+
+        Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED)
+        return super().popitem()
+
 class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     """
     Auth manager based on the FabAuthManager which delegates the authorization to an Open Policy
@@ -57,8 +74,10 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         super().init()
 
+        Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED, count=0)
+
         config = self.appbuilder.get_app.config
-        self.opa_cache = TTLCache(
+        self.opa_cache = Cache(
             maxsize=config.get(
                 'AUTH_OPA_CACHE_MAXSIZE',
                 self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
