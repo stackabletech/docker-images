@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.
+- vector: Add version 0.43.1 ([#980]).
+- opa: Add version 1.0.0 ([#981])
 
 ### Changed
 
@@ -22,6 +24,13 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
+- vector: remove version 0.41.1 ([#980]).
+- opa: remove version 0.66.0 ([#981])
+
+### Fixed
+
+- hadoop: Fix the JMX exporter configuration for metrics suffixed with
+  `_total`, `_info` and `_created` ([#962]).
 
 ### Fixed
 
@@ -36,6 +45,9 @@ All notable changes to this project will be documented in this file.
 [#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#935]: https://github.com/stackabletech/docker-images/pull/935
+[#962]: https://github.com/stackabletech/docker-images/pull/962
+[#980]: https://github.com/stackabletech/docker-images/pull/980
+[#981]: https://github.com/stackabletech/docker-images/pull/981
 
 ## [24.11.0] - 2024-11-18
 
