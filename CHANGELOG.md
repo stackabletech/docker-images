@@ -15,12 +15,6 @@ All notable changes to this project will be documented in this file.
 - vector: Add version 0.43.1 ([#980]).
 - opa: Add version 1.0.0 ([#981])
 
-### Changed
-
-- ci: Fix various static analysis errors ([#955]).
-- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
-- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
-
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
@@ -36,15 +30,30 @@ All notable changes to this project will be documented in this file.
 [#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
 [#943]: https://github.com/stackabletech/docker-images/pull/943
-[#952]: https://github.com/stackabletech/docker-images/pull/952
-[#953]: https://github.com/stackabletech/docker-images/pull/953
-[#955]: https://github.com/stackabletech/docker-images/pull/955
 [#958]: https://github.com/stackabletech/docker-images/pull/958
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#935]: https://github.com/stackabletech/docker-images/pull/935
 [#962]: https://github.com/stackabletech/docker-images/pull/962
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
+
+## [24.11.1] - 2025-01-14
+
+### Changed
+
+- ci: Fix various static analysis errors ([#955]).
+- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
+- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
+
+### Added
+
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+
+[#952]: https://github.com/stackabletech/docker-images/pull/952
+[#953]: https://github.com/stackabletech/docker-images/pull/953
+[#955]: https://github.com/stackabletech/docker-images/pull/955
 
 ## [24.11.0] - 2024-11-18
 
