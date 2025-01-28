@@ -16,7 +16,7 @@ COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
 WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
-pip install poetry
+pip install --no-cache-dir poetry
 poetry build
 poetry install
 poetry run pytest
