@@ -29,12 +29,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
 - hadoop: Fix the JMX exporter configuration for metrics suffixed with
   `_total`, `_info` and `_created` ([#962]).
-
-### Fixed
-
-- druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
 
 [#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
