@@ -1,3 +1,5 @@
+# Airflow OPA auth manager
+
 Auth manager for Airflow which delegates the authorization to an Open Policy
 Agent
 
