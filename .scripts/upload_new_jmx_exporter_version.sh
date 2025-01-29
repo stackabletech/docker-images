@@ -31,13 +31,20 @@ trap cleanup EXIT
 
 cd "$WORK_DIR" || exit
 
-# JMX Exporter does not currently publish signatures or SBOMs (as of 2023-07-24, latest version at this point 0.19.0)
+JAR_FILE="jmx_prometheus_javaagent-$VERSION.jar"
+SUM_FILE="$JAR_FILE.sha256"
+
 echo "Downloading JMX Exporter"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/$VERSION/jmx_prometheus_javaagent-$VERSION.jar"
+curl --fail -LOs "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$JAR_FILE"
+curl --fail -LOs "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$SUM_FILE"
+
+# Check that sha256 sum matches before uploading
+sha256sum --check --status "$SUM_FILE" && echo "SHA256 Sum matches"
 
 echo "Uploading to Nexus"
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "jmx_prometheus_javaagent-$VERSION.jar" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$JAR_FILE" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$SUM_FILE" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
 
-echo "Successfully uploaded new version of JMX Exporter ($VERSION) to Nexus"
+echo "Successfully uploaded new version of the JMX Exporter ($VERSION) Jar to Nexus"
 echo "https://repo.stackable.tech/service/rest/repository/browse/packages/jmx-exporter/"
-echo "https://github.com/prometheus/jmx_exporter/releases/tag/parent-$VERSION"
+echo "https://github.com/prometheus/jmx_exporter/releases/tag/$VERSION"
