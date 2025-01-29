@@ -23,7 +23,7 @@ fi
 
 # deletes the temp directory
 function cleanup {
-    rm -rf "$WORK_DIR"
+  rm -rf "$WORK_DIR"
 }
 
 # register the cleanup function to be called on the EXIT signal
@@ -31,20 +31,12 @@ trap cleanup EXIT
 
 cd "$WORK_DIR" || exit
 
-src_file=jmx_prometheus-$VERSION-src.tar.gz
-
 # JMX Exporter does not currently publish signatures or SBOMs (as of 2023-07-24, latest version at this point 0.19.0)
 echo "Downloading JMX Exporter"
-# JMX Exporter provides no offficial source tarballs, download from Git
-git clone https://github.com/prometheus/jmx_exporter "jmx_prometheus-${VERSION}" "--branch=${VERSION}" --depth=1
-
-echo "Archiving JMX Exporter"
-git -C "jmx_prometheus-${VERSION}" archive "${VERSION}" --format=tar.gz --prefix="jmx_prometheus-${VERSION}-src/" > "${src_file}"
-sha256sum "${src_file}" | cut --delimiter=' ' --field=1 > "${src_file}.sha256"
+curl --fail -LOs "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/$VERSION/jmx_prometheus_javaagent-$VERSION.jar"
 
 echo "Uploading to Nexus"
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha256" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
+curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "jmx_prometheus_javaagent-$VERSION.jar" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'
 
 echo "Successfully uploaded new version of JMX Exporter ($VERSION) to Nexus"
 echo "https://repo.stackable.tech/service/rest/repository/browse/packages/jmx-exporter/"
