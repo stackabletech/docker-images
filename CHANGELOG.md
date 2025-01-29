@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
   command logger which allows to enter messages into the system log.
 - vector: Add version 0.43.1 ([#980]).
 - opa: Add version 1.0.0 ([#981])
+- druid: Add version 31.0.1 ([#984])
 
 ### Removed
 
@@ -36,6 +37,7 @@ All notable changes to this project will be documented in this file.
 [#962]: https://github.com/stackabletech/docker-images/pull/962
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
+[#984]: https://github.com/stackabletech/docker-images/pull/984
 
 ## [24.11.1] - 2025-01-14
 

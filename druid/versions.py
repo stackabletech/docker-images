@@ -12,4 +12,11 @@ versions = [
         "java-devel": "17",
         "authorizer": "0.5.0",
     },
+    {
+        "product": "31.0.1",
+        # https://druid.apache.org/docs/31.0.1/operations/java/
+        "java-base": "17",
+        "java-devel": "17",
+        "authorizer": "0.7.0",
+    },
 ]
