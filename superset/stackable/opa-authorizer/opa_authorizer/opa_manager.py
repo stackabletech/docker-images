@@ -94,7 +94,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         )
         input = {"input": {"username": username}}
         response = self.call_opa(
-            url=f"{opa_url}v1/data/{package}/{rule}",
+            url=f"{opa_url}/v1/data/{package}/{rule}",
             json=input,
             timeout=timeout,
         )
