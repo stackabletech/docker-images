@@ -1,15 +1,14 @@
 # pylint: disable=missing-module-docstring
 import logging
 
-from http.client import HTTPException
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from cachetools import cachedmethod, TTLCache
 from flask import current_app, g
 from flask_appbuilder.security.sqla.models import (
     Role,
     User,
 )
-from opa_client.opa import OpaClient
+import requests
 from superset.security import SupersetSecurityManager
 
 
@@ -21,6 +20,9 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     AUTH_OPA_CACHE_MAXSIZE_DEFAULT = 1000
     AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT = 30
     AUTH_OPA_REQUEST_URL_DEFAULT = "http://opa:8081/"
+    AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
+    AUTH_OPA_PACKAGE_DEFAULT = "superset"
+    AUTH_OPA_RULE_DEFAULT = "user_roles"
 
     def __init__(self, appbuilder):
         self.appbuilder = appbuilder
@@ -34,6 +36,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
                 "AUTH_OPA_CACHE_TTL_IN_SEC", self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
             ),
         )
+        self.opa_session = requests.Session()
 
     def get_user_roles(self, user: Optional[User] = None) -> List[Role]:
         """
@@ -78,37 +81,41 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         :returns: A list of role names or an empty list if an exception during
         the connection to OPA is encountered or if OPA didn't return a list.
         """
-        host, port, tls = self.resolve_opa_base_url()
-        client = OpaClient(host=host, port=port, ssl=tls)
-        try:
-            response = client.query_rule(
-                input_data={"username": username},
-                package_path=current_app.config.get("STACKABLE_OPA_PACKAGE"),
-                rule_name=current_app.config.get("STACKABLE_OPA_RULE"),
-            )
-        except HTTPException as exception:
-            logging.error("Encountered an exception while querying OPA:%s", exception)
+
+        opa_url = current_app.config.get(
+            "AUTH_OPA_REQUEST_URL", self.AUTH_OPA_REQUEST_URL_DEFAULT
+        )
+        package = current_app.config.get(
+            "AUTH_OPA_PACKAGE", self.AUTH_OPA_PACKAGE_DEFAULT
+        )
+        rule = current_app.config.get("AUTH_OPA_RULE", self.AUTH_OPA_RULE_DEFAULT)
+        timeout = current_app.config.get(
+            "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
+        )
+        input = {"input": {"username": username}}
+        response = self.call_opa(
+            url=f"{opa_url}v1/data/{package}/{rule}",
+            json=input,
+            timeout=timeout,
+        )
+
+        if response.status_code is None or response.status_code != 200:
+            logging.error("Error while querying OPA.")
             return []
-        roles = response.get("result")
+
+        roles = response.json().get("result")
         # If OPA didn't return a result or if the result is not a list, return no roles.
         if roles is None or type(roles).__name__ != "list":
-            logging.error("The OPA query didn't return a list: %s", response)
+            logging.error("The OPA query didn't return a list: %s", response.json())
             return []
         return roles
 
-    def resolve_opa_base_url(self) -> Tuple[str, int, bool]:
-        """
-        Extracts connection parameters of an Open Policy Agent instance from config.
-
-        :returns: Hostname, port and protocol (http/https).
-        """
-        opa_base_path = current_app.config.get(
-            "STACKABLE_OPA_BASE_URL", self.AUTH_OPA_REQUEST_URL_DEFAULT
+    def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response:
+        return self.opa_session.post(
+            url=url,
+            json=json,
+            timeout=timeout,
         )
-        [protocol, host, port] = opa_base_path.split(":")
-        # remove any path be appended to the base url
-        port = int(port.split("/")[0])
-        return host.lstrip("/"), port, protocol == "https"
 
     def resolve_role(self, role_name: str) -> Role:
         """

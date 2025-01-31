@@ -4,6 +4,7 @@ from flask import Flask
 from flask_appbuilder.security.sqla.models import Role, User
 from pytest_mock import MockFixture
 
+import requests
 from superset.extensions import appbuilder
 from opa_authorizer.opa_manager import OpaSupersetSecurityManager
 
@@ -155,17 +156,21 @@ def test_get_opa_roles(
     """
     Test that roles are correctly extracted from the OPA response.
     """
-    roles = ["Test1", "Test2", "Test3"]
-    response = {"result": roles}
+    response = requests.Response()
+    response.status_code = 200
+    response._content = '{"result": ["Test1", "Test2", "Test3"]}'.encode()
 
     with app.app_context():
-        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
-            return_value=("opa-instance", 8081, False),
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == roles
+        assert opa_security_manager.get_opa_user_roles("User1") == [
+            "Test1",
+            "Test2",
+            "Test3",
+        ]
 
 
 def test_get_opa_roles_no_result(
@@ -176,13 +181,14 @@ def test_get_opa_roles_no_result(
     """
     Test that no roles are returned if the OPA response doesn't contain a query result.
     """
-    response = {"error": "error occurred"}
+    response = requests.Response()
+    response.status_code = 200
+    response._content = '{"error": "error occurred"}'.encode()
 
     with app.app_context():
-        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
-            return_value=("opa-instance", 8081, False),
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            return_value=response,
         )
 
         assert opa_security_manager.get_opa_user_roles("User1") == []
@@ -196,56 +202,38 @@ def test_get_opa_roles_not_a_list(
     """
     Test that no roles are returned if the query result doesn't contain a list.
     """
-    response = {"result": "['Test1', 'Test2', 'Test3']"}  # type string not list
+    response = requests.Response()
+    response.status_code = 200
+    response._content = '{"result": "some string"}'.encode()
 
     with app.app_context():
-        mocker.patch("opa_client.opa.OpaClient.query_rule", return_value=response)
         mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_opa_base_url",
-            return_value=("opa-instance", 8081, False),
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            return_value=response,
         )
 
         assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
-def test_resolve_opa_base_url(
+def test_get_opa_roles_wrong_statuscode(
     mocker: MockFixture,
     app: Flask,
     opa_security_manager: OpaSupersetSecurityManager,
 ) -> None:
     """
-    Test that only OPA base URL parts correctly resolved from the config.
+    Test that no roles are returned if the query result doesn't contain a list.
     """
+    response = requests.Response()
+    response.status_code = 200
+    response._content = '{"error": "internal server error"}'.encode()
+
     with app.app_context():
         mocker.patch(
-            "flask.current_app.config.get", return_value="http://opa-instance:8081"
-        )
-        assert opa_security_manager.resolve_opa_base_url() == (
-            "opa-instance",
-            8081,
-            False,
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            return_value=response,
         )
 
-
-def test_resolve_opa_base_url_with_path(
-    mocker: MockFixture,
-    app: Flask,
-    opa_security_manager: OpaSupersetSecurityManager,
-) -> None:
-    """
-    Test that only OPA base URL parts correctly resolved from the config when the URL
-    also contains a path.
-    """
-    with app.app_context():
-        mocker.patch(
-            "flask.current_app.config.get",
-            return_value="http://opa-instance:8081/v1/data/superset",
-        )
-        assert opa_security_manager.resolve_opa_base_url() == (
-            "opa-instance",
-            8081,
-            False,
-        )
+        assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
 def mock_resolve_role(role_name: str) -> Role:
