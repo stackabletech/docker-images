@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - git-sync: Bump version to 4.4.0 ([#990]).
 - kafka: Bump version to 3.9.0 ([#988]).
+- superset: Add version `4.1.1` ([#991]).
 
 ### Changed
 
@@ -46,6 +47,7 @@ All notable changes to this project will be documented in this file.
 [#982]: https://github.com/stackabletech/docker-images/pull/982
 [#990]: https://github.com/stackabletech/docker-images/pull/990
 [#988]: https://github.com/stackabletech/docker-images/pull/988
+[#991]: https://github.com/stackabletech/docker-images/pull/991
 
 ## [24.11.1] - 2025-01-14
 
