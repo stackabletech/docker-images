@@ -16,6 +16,11 @@ All notable changes to this project will be documented in this file.
 - opa: Add version 1.0.0 ([#981]).
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - git-sync: Bump version to 4.4.0 ([#990]).
+- kafka: Bump version to 3.9.0 ([#988]).
+
+### Changed
+
+- kafka: Bump 3.7.1 to 3.7.2 ([#968]).
 
 ### Removed
 
@@ -40,6 +45,7 @@ All notable changes to this project will be documented in this file.
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
 [#990]: https://github.com/stackabletech/docker-images/pull/990
+[#988]: https://github.com/stackabletech/docker-images/pull/988
 
 ## [24.11.1] - 2025-01-14
 
