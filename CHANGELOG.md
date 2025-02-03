@@ -15,10 +15,12 @@ All notable changes to this project will be documented in this file.
 - vector: Add version 0.43.1 ([#980]).
 - opa: Add version 1.0.0 ([#981]).
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
+- kafka: Bump version to 3.9.0 ([#968]).
 
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
+- kafka: Remove 2.7.1 ([#968]).
 - vector: remove version 0.41.1 ([#980]).
 - opa: remove version 0.66.0 ([#981])
 
@@ -38,6 +40,7 @@ All notable changes to this project will be documented in this file.
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
+[#968]: https://github.com/stackabletech/docker-images/pull/968
 
 ## [24.11.1] - 2025-01-14
 
