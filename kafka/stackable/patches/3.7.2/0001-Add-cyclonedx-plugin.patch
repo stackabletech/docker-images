@@ -1,8 +1,17 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 3 Feb 2025 13:54:54 +0100
+Subject: Add cyclonedx-plugin
+
+---
+ build.gradle | 44 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
+
 diff --git a/build.gradle b/build.gradle
-index 32e6e8f..13a0def 100644
+index 3a9914a9cd..398a7c994e 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,47 @@ plugins {
+@@ -48,6 +48,48 @@ plugins {
    // artifacts - see https://github.com/johnrengelman/shadow/issues/901
    id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
    id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
@@ -45,8 +54,23 @@ index 32e6e8f..13a0def 100644
 +      'upgrade-system-tests-33',
 +      'upgrade-system-tests-34',
 +      'upgrade-system-tests-35',
-+      'upgrade-system-tests-36'
++      'upgrade-system-tests-36',
++      'upgrade-system-tests-37'
 +    ]
  }
  
  ext {
+@@ -1015,7 +1057,7 @@ project(':core') {
+     testImplementation libs.junitJupiter
+     testImplementation libs.slf4jlog4j
+     testImplementation libs.caffeine
+-    
++
+     generator project(':generator')
+   }
+ 
+
+base-commit: 79a8f2b5f44f9d5a6867190d1dfc463d08d60b82
+-- 
+2.40.1
+
