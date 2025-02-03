@@ -24,6 +24,9 @@ REGION_MOVER_OPTS="--regionserverhost ${HBASE_ROLE_SERVICE_HOST}:${HBASE_ROLE_SE
 if [ -f /stackable/kerberos/krb5.conf ]; then
   KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
   export KERBEROS_REALM
+  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/core-site.xml
+  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/hbase-site.xml
+  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/hdfs-site.xml
 fi
 
 prepare_signal_handlers() {
