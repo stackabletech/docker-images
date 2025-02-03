@@ -17,10 +17,13 @@ All notable changes to this project will be documented in this file.
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - kafka: Bump version to 3.9.0 ([#988]).
 
+### Changed
+
+- kafka: Bump 3.7.1 to 3.7.2 ([#968]).
+
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
-- kafka: Remove 3.7.1 ([#988]).
 - vector: remove version 0.41.1 ([#980]).
 - opa: remove version 0.66.0 ([#981])
 
