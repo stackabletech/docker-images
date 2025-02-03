@@ -21,14 +21,6 @@ HBASE_ROLE_SERVICE_HOST="${HOSTNAME}.${HBASE_ROLE_SERVICE_NAME}"
 
 REGION_MOVER_OPTS="--regionserverhost ${HBASE_ROLE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
 
-if [ -f /stackable/kerberos/krb5.conf ]; then
-  KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
-  export KERBEROS_REALM
-  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/core-site.xml
-  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/hbase-site.xml
-  sed -i -e "s/\$\{env\.KERBEROS_REALM\}/${KERBEROS_REALM}/g" /stackable/conf/hdfs-site.xml
-fi
-
 prepare_signal_handlers() {
   unset term_child_pid
   unset term_kill_needed
@@ -71,6 +63,14 @@ cp /stackable/tmp/hdfs/hdfs-site.xml /stackable/conf
 cp /stackable/tmp/hdfs/core-site.xml /stackable/conf
 cp /stackable/tmp/hbase/* /stackable/conf
 cp /stackable/tmp/log_config/log4j* /stackable/conf
+
+if [ -f /stackable/kerberos/krb5.conf ]; then
+  KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
+  export KERBEROS_REALM
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/core-site.xml
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hbase-site.xml
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hdfs-site.xml
+fi
 
 rm -f "${STACKABLE_LOG_DIR}/_vector/shutdown"
 prepare_signal_handlers
