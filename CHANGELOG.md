@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
-
-- Update registry references to oci ([#989]).
-
 ### Added
 
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
@@ -25,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - kafka: Bump 3.7.1 to 3.7.2 ([#968]).
+- Update registry references to oci ([#989]).
 
 ### Removed
 
