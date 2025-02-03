@@ -21,7 +21,7 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 
 ## Build Product Images
 
-Product images are published to the `docker.stackable.tech` registry under the `stackable` organization by default.
+Product images are published to the `oci.stackable.tech` registry under the `sdp` organization by default.
 
 ### Build single products locally
 
@@ -75,7 +75,7 @@ This will bake in the current stable Rust version at the time this image was bui
 ## Example usage
 
 ```dockerfile
-FROM docker.stackable.tech/ubi9-rust-builder AS builder
+FROM oci.stackable.tech/ubi9-rust-builder AS builder
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
 LABEL maintainer="Stackable GmbH"

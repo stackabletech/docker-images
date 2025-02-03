@@ -34,7 +34,7 @@ on:
       registry:
         description: 'Image repository.'
         required: true
-        default: 'docker.stackable.tech'
+        default: 'oci.stackable.tech'
         type: string
 jobs:
   preflight:
