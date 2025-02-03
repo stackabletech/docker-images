@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Update registry references to oci ([#989]).
+
 ### Added
 
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
@@ -38,6 +42,7 @@ All notable changes to this project will be documented in this file.
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
+[#989]: https://github.com/stackabletech/docker-images/pull/989
 
 ## [24.11.1] - 2025-01-14
 
