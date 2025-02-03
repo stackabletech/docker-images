@@ -1,11 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Wed, 29 Jan 2025 16:50:30 +0100
+Subject: Add cyclonedx-plugin
+
+---
+ build.gradle | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
 diff --git a/build.gradle b/build.gradle
-index 32e6e8f..13a0def 100644
+index 5b064f4203..2d7b442e7b 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,47 @@ plugins {
-   // artifacts - see https://github.com/johnrengelman/shadow/issues/901
-   id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
-   id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
+@@ -51,6 +51,48 @@ plugins {
+   //  We are going to drop JDK8 support. Hence, the spotless is upgrade to newest version and be applied only if the build env is compatible with JDK 11.
+   //  spotless 6.15.0+ has issue in runtime with JDK8 even through we define it with `apply:false`. see https://github.com/diffplug/spotless/issues/2156 for more details
+   id 'com.diffplug.spotless' version "6.14.0" apply false
 +  id 'org.cyclonedx.bom' version '1.10.0'
 +}
 +
@@ -45,8 +54,14 @@ index 32e6e8f..13a0def 100644
 +      'upgrade-system-tests-33',
 +      'upgrade-system-tests-34',
 +      'upgrade-system-tests-35',
-+      'upgrade-system-tests-36'
++      'upgrade-system-tests-36',
++      'upgrade-system-tests-37'
 +    ]
  }
  
  ext {
+
+base-commit: 84caaa6e9da06435411510a81fa321d4f99c351f
+-- 
+2.40.1
+
