@@ -19,4 +19,8 @@ versions = [
         "product": "22",
         "stackable-base": "1.0.0",
     },
+    {
+        "product": "23",
+        "stackable-base": "1.0.0",
+    },
 ]
