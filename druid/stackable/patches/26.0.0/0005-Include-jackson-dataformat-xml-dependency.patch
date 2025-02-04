@@ -28,5 +28,5 @@ index fdc6f1f548..9f18e614e9 100644
              <groupId>com.fasterxml.jackson.datatype</groupId>
              <artifactId>jackson-datatype-joda</artifactId>
 -- 
-2.47.1
+2.48.1
 
