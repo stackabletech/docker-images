@@ -69,7 +69,7 @@ pip install image-tools-stackabletech==0.0.13
 # Test a product image can build, eg: ZooKeeper
 bake --product zookeeper=x.y.z # where x.y.z is a valid product version using the newly added Java version
 
-kind load docker-image docker.stackable.tech/stackable/zookeeper:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/zookeeper:x.y.z-stackable0.0.0-dev
 
 # Change directory into one of the operator repositories (eg: zookeeper-operator) and update the
 # product version in tests/test-definition.yaml

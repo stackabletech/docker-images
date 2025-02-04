@@ -34,7 +34,12 @@ on:
       registry:
         description: 'Image repository.'
         required: true
-        default: 'docker.stackable.tech'
+        default: 'oci.stackable.tech'
+        type: string
+      organization:
+        description: 'Organization name within the given registry'
+        required: true
+        default: 'sdp'
         type: string
 jobs:
   preflight:
@@ -84,12 +89,14 @@ jobs:
         if: ${{ inputs.submit == true }}
         env:
           REGISTRY: ${{ inputs.registry }}
-          IMAGE_VERSION: ${{inputs.tag }}
+          ORGANIZATION: ${{ inputs.organization }}
+          IMAGE_VERSION: ${{ inputs.tag }}
         run: |
           ARCH_FOR_PREFLIGHT="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           check-container --product "${{ matrix.product }}" \
             --image-version "$IMAGE_VERSION" \
             --registry "$REGISTRY" \
+            --organization "$ORGANIZATION" \
             --architecture "linux/${ARCH_FOR_PREFLIGHT}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
@@ -98,12 +105,14 @@ jobs:
         if: ${{ inputs.submit == false }}
         env:
           REGISTRY: ${{ inputs.registry }}
-          IMAGE_VERSION: ${{inputs.tag }}
+          ORGANIZATION: ${{ inputs.organization }}
+          IMAGE_VERSION: ${{ inputs.tag }}
         run: |
           ARCH_FOR_PREFLIGHT="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           check-container --product "${{ matrix.product }}" \
             --image-version "$IMAGE_VERSION" \
             --registry "$REGISTRY" \
+            --organization "$ORGANIZATION" \
             --architecture "linux/${ARCH_FOR_PREFLIGHT}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \

@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - kafka: Bump 3.7.1 to 3.7.2 ([#968]).
+- Update registry references to oci ([#989]).
 
 ### Removed
 
@@ -44,6 +45,7 @@ All notable changes to this project will be documented in this file.
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
+[#989]: https://github.com/stackabletech/docker-images/pull/989
 [#990]: https://github.com/stackabletech/docker-images/pull/990
 [#988]: https://github.com/stackabletech/docker-images/pull/988
 
