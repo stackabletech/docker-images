@@ -1,10 +1,8 @@
-use std::{
-    path::{Path, PathBuf},
-    process::Stdio,
-};
+use std::path::{Path, PathBuf};
 
 use git2::{
-    build::RepoBuilder, ObjectType, Repository, Signature, StatusOptions, WorktreeAddOptions,
+    FetchOptions, ObjectType, Repository, RepositoryInitOptions, Signature, StatusOptions,
+    WorktreeAddOptions,
 };
 use regex::{Regex, RegexBuilder};
 use serde::Deserialize;
@@ -63,7 +61,7 @@ impl ProductVersionContext<'_> {
     }
 
     fn worktree_branch(&self) -> String {
-        format!("patchable-{}", self.pv.version)
+        format!("patchable/{}", self.pv.version)
     }
 }
 
@@ -111,14 +109,49 @@ fn main() {
                         error = &err as &dyn std::error::Error,
                         product.repository = %product_repo_root.display(),
                         product.upstream = config.upstream,
-                        "product repository not found, cloning from upstream"
+                        "product repository not found, initializing"
                     );
-                    RepoBuilder::new()
-                        .bare(true)
-                        .clone(&config.upstream, &product_repo_root)
-                        .unwrap()
+                    let repo = Repository::init_opts(
+                        &product_repo_root,
+                        RepositoryInitOptions::new()
+                            .bare(true)
+                            .initial_head("patchable-dummy")
+                            .external_template(false),
+                    )
+                    .unwrap();
+
+                    repo
                 }
             };
+
+            match product_repo.revparse_single(&config.base) {
+                Ok(_) => tracing::info!(
+                    worktree.branch.base = config.base,
+                    "base commit exists, reusing"
+                ),
+                Err(err) => {
+                    tracing::info!(
+                        error = &err as &dyn std::error::Error,
+                        worktree.branch.base = config.base,
+                        product.upstream = config.upstream,
+                        "base commit not found, fetching from upstream"
+                    );
+                    product_repo
+                        .remote_anonymous(&config.upstream)
+                        .unwrap()
+                        .fetch(
+                            &[&config.base],
+                            Some(
+                                FetchOptions::new()
+                                    // TODO: could be 1, CLI option maybe?
+                                    .depth(0),
+                            ),
+                            None,
+                        )
+                        .unwrap();
+                }
+            }
+
             let product_worktree_root = ctx.worktree_root();
             let worktree_branch = ctx.worktree_branch();
             let mut product_version_repo = match Repository::open(&product_worktree_root) {
@@ -137,12 +170,24 @@ fn main() {
                         "worktree not found, creating"
                     );
                     std::fs::create_dir_all(product_worktree_root.parent().unwrap()).unwrap();
+                    let worktree_ref = product_repo
+                        .branch(
+                            &worktree_branch,
+                            &product_repo
+                                .revparse_single(&config.base)
+                                .unwrap()
+                                .peel_to_commit()
+                                .unwrap(),
+                            true,
+                        )
+                        .unwrap()
+                        .into_reference();
                     Repository::open_from_worktree(
                         &product_repo
                             .worktree(
-                                &worktree_branch,
+                                &ctx.pv.version,
                                 &product_worktree_root,
-                                Some(&WorktreeAddOptions::new()),
+                                Some(WorktreeAddOptions::new().reference(Some(&worktree_ref))),
                             )
                             .unwrap(),
                     )
