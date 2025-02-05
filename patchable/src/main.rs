@@ -12,44 +12,56 @@ struct ProductVersion {
     version: String,
 }
 
-impl ProductVersion {
-    fn root(&self, images_root: &Path) -> PathBuf {
-        images_root.join(&self.product)
-    }
-
-    fn patch_dir(&self, images_root: &Path) -> PathBuf {
-        self.root(images_root)
-            .join("stackable/patches")
-            .join(&self.version)
-    }
-
-    fn config_path(&self, images_root: &Path) -> PathBuf {
-        self.patch_dir(images_root).join("patchable.toml")
-    }
-
-    fn work_root(&self, images_root: &Path) -> PathBuf {
-        self.root(images_root).join("patchable-work")
-    }
-
-    fn repo(&self, images_root: &Path) -> PathBuf {
-        self.work_root(images_root).join("product-repo")
-    }
-
-    fn worktree_root(&self, images_root: &Path) -> PathBuf {
-        self.work_root(images_root)
-            .join("worktree")
-            .join(&self.version)
-    }
-
-    fn worktree_branch(&self) -> String {
-        format!("patchable/{}", self.version)
-    }
-}
-
 #[derive(Deserialize)]
 struct ProductVersionConfig {
     upstream: String,
     base: String,
+}
+
+struct ProductVersionContext<'a> {
+    pv: ProductVersion,
+    images_repo_root: &'a Path,
+}
+
+impl ProductVersionContext<'_> {
+    fn load_config(&self) -> ProductVersionConfig {
+        tracing::info!(
+            config.path = %self.config_path().display(),
+            "loading config"
+        );
+        toml::from_str::<ProductVersionConfig>(
+            &std::fs::read_to_string(self.config_path()).unwrap(),
+        )
+        .unwrap()
+    }
+
+    fn root(&self) -> PathBuf {
+        self.images_repo_root.join(&self.pv.product)
+    }
+
+    fn patch_dir(&self) -> PathBuf {
+        self.root().join("stackable/patches").join(&self.pv.version)
+    }
+
+    fn config_path(&self) -> PathBuf {
+        self.patch_dir().join("patchable.toml")
+    }
+
+    fn work_root(&self) -> PathBuf {
+        self.root().join("patchable-work")
+    }
+
+    fn repo(&self) -> PathBuf {
+        self.work_root().join("product-repo")
+    }
+
+    fn worktree_root(&self) -> PathBuf {
+        self.work_root().join("worktree").join(&self.pv.version)
+    }
+
+    fn worktree_branch(&self) -> String {
+        format!("patchable/{}", self.pv.version)
+    }
 }
 
 #[derive(clap::Parser)]
@@ -77,30 +89,53 @@ fn main() {
     let images_repo_root = images_repo.workdir().unwrap();
     match opts.cmd {
         Cmd::Checkout { pv } => {
-            let config = toml::from_str::<ProductVersionConfig>(
-                &std::fs::read_to_string(pv.config_path(images_repo_root)).unwrap(),
-            )
-            .unwrap();
-            let product_repo_root = pv.repo(images_repo_root);
-            let product_repo = match Repository::open(&product_repo_root) {
-                Ok(repo) => repo,
-                Err(_) => RepoBuilder::new()
-                    .bare(true)
-                    .clone(&config.upstream, &product_repo_root)
-                    .unwrap(),
+            let ctx = ProductVersionContext {
+                pv,
+                images_repo_root,
             };
-            let product_worktree_root = pv.worktree_root(images_repo_root);
-            let mut product_version_repo = match Repository::open(&product_worktree_root) {
-                Ok(wt) => wt,
+            let config = ctx.load_config();
+            let product_repo_root = ctx.repo();
+            let product_repo = match Repository::open(&product_repo_root) {
+                Ok(repo) => {
+                    tracing::info!(
+                        product.repository = %product_repo_root.display(),
+                        "product repository found, reusing"
+                    );
+                    repo
+                }
                 Err(err) => {
                     tracing::info!(
                         error = &err as &dyn std::error::Error,
+                        product.repository = %product_repo_root.display(),
+                        product.upstream = config.upstream,
+                        "product repository not found, cloning from upstream"
+                    );
+                    RepoBuilder::new()
+                        .bare(true)
+                        .clone(&config.upstream, &product_repo_root)
+                        .unwrap()
+                }
+            };
+            let product_worktree_root = ctx.worktree_root();
+            let mut product_version_repo = match Repository::open(&product_worktree_root) {
+                Ok(wt) => {
+                    tracing::info!(
+                        worktree.root = %product_worktree_root.display(),
+                        "worktree found, resetting and reusing"
+                    );
+                    wt
+                }
+                Err(err) => {
+                    tracing::info!(
+                        error = &err as &dyn std::error::Error,
+                        worktree.root = %product_worktree_root.display(),
+                        product.repository = %product_repo_root.display(),
                         "worktree not found, creating"
                     );
                     Repository::open_from_worktree(
                         &product_repo
                             .worktree(
-                                &pv.version,
+                                &ctx.pv.version,
                                 &product_worktree_root,
                                 Some(&WorktreeAddOptions::new()),
                             )
@@ -109,6 +144,8 @@ fn main() {
                     .unwrap()
                 }
             };
+
+            tracing::info!("cleaning up existing rebase state");
             product_version_repo.cleanup_state().unwrap();
 
             let stash = if product_version_repo
@@ -116,20 +153,28 @@ fn main() {
                 .unwrap()
                 .is_empty()
             {
+                tracing::info!("worktree is clean, no need to stash");
                 None
             } else {
-                Some(
-                    product_version_repo
-                        .stash_save(
-                            &Signature::now("Patchable", "noreply+patchable@stackable.tech")
-                                .unwrap(),
-                            "Existing work before checking out ",
-                            None,
-                        )
-                        .unwrap(),
-                )
+                tracing::warn!("worktree is dirty, stashing changes!");
+                let stash = product_version_repo
+                    .stash_save(
+                        &Signature::now("Patchable", "noreply+patchable@stackable.tech").unwrap(),
+                        "Existing work before checking out ",
+                        None,
+                    )
+                    .unwrap();
+                tracing::info!(%stash, "created stash");
+                Some(stash)
             };
 
+            let worktree_branch = ctx.worktree_branch();
+            tracing::info!(
+                worktree.branch = worktree_branch,
+                worktree.branch.base = config.base,
+                "checking out base commit into branch"
+            );
+            // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
             product_version_repo
                 .set_head_detached(
                     product_version_repo
@@ -143,8 +188,8 @@ fn main() {
             {
                 let branch = product_version_repo
                     .branch(
-                        &pv.worktree_branch(),
-                        &product_version_repo
+                        &worktree_branch,
+                        product_version_repo
                             .revparse_single(&config.base)
                             .unwrap()
                             .as_commit()
@@ -161,15 +206,27 @@ fn main() {
                     .unwrap();
             }
 
-            let patch_dir = pv.patch_dir(images_repo_root);
+            let patch_dir = ctx.patch_dir();
+            tracing::info!(
+                patch.dir = %patch_dir.display(),
+                "applying patches"
+            );
             let series_file = patch_dir.join("series");
             let mut apply_cmd = raw_git_cmd(&product_version_repo);
             if series_file.exists() {
+                tracing::info!(
+                    patch.series = %series_file.display(),
+                    "series file found, treating as stgit series"
+                );
                 apply_cmd
                     .arg("am")
                     .arg(series_file)
                     .args(["--patch-format", "stgit-series"]);
             } else {
+                tracing::info!(
+                    patch.series = %series_file.display(),
+                    "series file not found, treating as git mailbox"
+                );
                 let mut patch_files = patch_dir
                     .read_dir()
                     .unwrap()
@@ -195,20 +252,44 @@ fn main() {
                         }
                     })
                     .unwrap();
-                product_version_repo
-                    .stash_pop(stash_index.unwrap(), None)
-                    .unwrap();
+                let stash_index = stash_index.unwrap();
+                tracing::info!(
+                    stash = %format_args!("stash@{{{stash_index}}}"),
+                    "restoring stash"
+                );
+                product_version_repo.stash_pop(stash_index, None).unwrap();
             }
+
+            tracing::info!(
+                worktree.root = %product_worktree_root.display(),
+                "worktree is ready!"
+            );
         }
         Cmd::Export { pv } => {
-            let config = toml::from_str::<ProductVersionConfig>(
-                &std::fs::read_to_string(pv.config_path(images_repo_root)).unwrap(),
-            )
-            .unwrap();
+            let ctx = ProductVersionContext {
+                pv,
+                images_repo_root,
+            };
+            let config = ctx.load_config();
 
-            let patch_dir = pv.patch_dir(images_repo_root);
+            let product_worktree_root = ctx.worktree_root();
+            tracing::info!(
+                worktree.root = %product_worktree_root.display(),
+                "opening product worktree"
+            );
+            let product_version_repo = Repository::open(&product_worktree_root).unwrap();
+
+            let patch_dir = ctx.patch_dir();
+            tracing::info!(
+                patch.dir = %patch_dir.display(),
+                "deleting existing patch files"
+            );
+            // git format-patch is happy to overwrite existing files,
+            // but we also want to delete removed (or renamed) patch files.
             for entry in patch_dir.read_dir().unwrap() {
                 let path = entry.unwrap().path();
+                // git format-patch emits the mailbox format, not stgit(/quilt),
+                // so also remove markers that make it look like that
                 if path.file_name().is_some_and(|x| x == "series")
                     || path.extension().is_some_and(|x| x == "patch")
                 {
@@ -216,8 +297,12 @@ fn main() {
                 }
             }
 
-            let product_version_repo =
-                Repository::open(pv.worktree_root(images_repo_root)).unwrap();
+            tracing::info!(
+                patch.dir = %patch_dir.display(),
+                worktree.root = %product_worktree_root.display(),
+                worktree.base = config.base,
+                "exporting commits since base"
+            );
             if !raw_git_cmd(&product_version_repo)
                 .arg("format-patch")
                 .arg(&config.base)
@@ -235,9 +320,11 @@ fn main() {
                 panic!("failed to format patches");
             }
 
+            // Normally the patches include their own commit IDs, which will change for every for every re-checkout
+            // checkout doesn't actually care about this value, so we can just replace it with a deterministic dummy
+            tracing::info!("scrubbing commit ID from exported patches");
             let regex_line = RegexBuilder::new("^.*$").multi_line(true).build().unwrap();
             let regex_from = Regex::new("^From [0-9a-f]+ ").unwrap();
-
             for entry in patch_dir.read_dir().unwrap() {
                 let path = entry.unwrap().path();
                 if path.extension().is_some_and(|x| x == "patch") {
@@ -253,6 +340,11 @@ fn main() {
                     std::fs::write(path, patch_file).unwrap();
                 }
             }
+
+            tracing::info!(
+                patch.dir = %patch_dir.display(),
+                "worktree is exported!"
+            );
         }
     }
 }
