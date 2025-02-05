@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - git-sync: Bump version to 4.4.0 ([#990]).
 - kafka: Bump version to 3.9.0 ([#988]).
 - java: Add JDK/JRE 23 ([#992]).
+- trino: Add 469 ([#993]).
 
 ### Changed
 
@@ -50,6 +51,7 @@ All notable changes to this project will be documented in this file.
 [#990]: https://github.com/stackabletech/docker-images/pull/990
 [#988]: https://github.com/stackabletech/docker-images/pull/988
 [#992]: https://github.com/stackabletech/docker-images/pull/992
+[#993]: https://github.com/stackabletech/docker-images/pull/993
 
 ## [24.11.1] - 2025-01-14
 
