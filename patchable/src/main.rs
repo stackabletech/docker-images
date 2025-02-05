@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    process::Stdio,
+};
 
 use git2::{
     build::RepoBuilder, ObjectType, Repository, Signature, StatusOptions, WorktreeAddOptions,
@@ -60,7 +63,7 @@ impl ProductVersionContext<'_> {
     }
 
     fn worktree_branch(&self) -> String {
-        format!("patchable/{}", self.pv.version)
+        format!("patchable-{}", self.pv.version)
     }
 }
 
@@ -117,6 +120,7 @@ fn main() {
                 }
             };
             let product_worktree_root = ctx.worktree_root();
+            let worktree_branch = ctx.worktree_branch();
             let mut product_version_repo = match Repository::open(&product_worktree_root) {
                 Ok(wt) => {
                     tracing::info!(
@@ -132,10 +136,11 @@ fn main() {
                         product.repository = %product_repo_root.display(),
                         "worktree not found, creating"
                     );
+                    std::fs::create_dir_all(product_worktree_root.parent().unwrap()).unwrap();
                     Repository::open_from_worktree(
                         &product_repo
                             .worktree(
-                                &ctx.pv.version,
+                                &worktree_branch,
                                 &product_worktree_root,
                                 Some(&WorktreeAddOptions::new()),
                             )
@@ -168,7 +173,6 @@ fn main() {
                 Some(stash)
             };
 
-            let worktree_branch = ctx.worktree_branch();
             tracing::info!(
                 worktree.branch = worktree_branch,
                 worktree.branch.base = config.base,
@@ -236,7 +240,7 @@ fn main() {
                 patch_files.sort();
                 apply_cmd.arg("am").args(patch_files);
             }
-            if !apply_cmd.spawn().unwrap().wait().unwrap().success() {
+            if !apply_cmd.status().unwrap().success() {
                 panic!("failed to apply patches");
             }
 
@@ -311,9 +315,7 @@ fn main() {
                 .arg("--base")
                 .arg(&config.base)
                 .arg("--keep-subject")
-                .spawn()
-                .unwrap()
-                .wait()
+                .status()
                 .unwrap()
                 .success()
             {
