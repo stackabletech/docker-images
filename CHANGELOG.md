@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Bump version to 3.9.0 ([#988]).
 - java: Add JDK/JRE 23 ([#992]).
 - trino: Add 469 ([#993]).
+- trino-cli: Add version 469 ([#993]).
 
 ### Changed
 
