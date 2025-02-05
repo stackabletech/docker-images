@@ -30,7 +30,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Download new constraints file (see `airflow/download_constraints.sh`).
 - [ ] Update other dependencies if applicable (eg: python, statsd_exporter, etc).
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
