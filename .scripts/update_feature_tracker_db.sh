@@ -46,7 +46,7 @@ product_image_digest() {
   #
   # Params:
   #
-  # IMAGE_NAME - Example: docker.stackable.tech/stackable/zookeeper:3.8.3-stackable23.11.0
+  # IMAGE_NAME - Example: oci.stackable.tech/sdp/zookeeper:3.8.3-stackable23.11.0
   #
   IMAGE_NAME="$1"
 
@@ -123,7 +123,7 @@ update_release_components() {
   #
   # RELEASE_VERSION     - Example: 23.11.0
   # PRODUCT_VERSION_ID  - Example: 38. See ensure_product_version() above.
-  # REPOSITORY_NAME     - Example: docker.stackable.tech/stackable/zookeeper
+  # REPOSITORY_NAME     - Example: oci.stackable.tech/sdp/zookeeper
   # IMAGE_DIGEST        - Example: sha256:822d427031bf93055c51f4dc3bcaa468867ce83f59de6824af279df4cce2d066
 
   local RELEASE_VERSION="$1"
@@ -170,8 +170,8 @@ main() {
   local RELEASE_NAME="${1:-}"
   local RELEASE_VERSION="${2:-}"
 
-  local REGISTRY=docker.stackable.tech # REGISTRY=oci.stackable.tech
-  local REGISTRY_PATH=stackable        # REGISTRY_PATH=sdp
+  local REGISTRY=oci.stackable.tech
+  local REGISTRY_PATH=sdp
 
   if [ -z "$RELEASE_NAME" ]; then
     echo "Release name cannot be empty."

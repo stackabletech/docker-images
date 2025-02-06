@@ -16,6 +16,13 @@ All notable changes to this project will be documented in this file.
 - vector: Add version 0.43.1 ([#980]).
 - opa: Add version 1.0.0 ([#981]).
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
+- git-sync: Bump version to 4.4.0 ([#990]).
+- kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
+
+### Changed
+
+- kafka: Bump 3.8.0 to 3.8.1 ([#995]).
+- Update registry references to oci ([#989]).
 
 ### Removed
 
@@ -40,6 +47,10 @@ All notable changes to this project will be documented in this file.
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
+[#989]: https://github.com/stackabletech/docker-images/pull/989
+[#990]: https://github.com/stackabletech/docker-images/pull/990
+[#988]: https://github.com/stackabletech/docker-images/pull/988
+[#995]: https://github.com/stackabletech/docker-images/pull/995
 
 ## [24.11.1] - 2025-01-14
 

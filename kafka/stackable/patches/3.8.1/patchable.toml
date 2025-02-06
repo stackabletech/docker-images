@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/kafka"
+base = "70d6ff42debf7e17478beb899fb5756bfbdbfbb5"

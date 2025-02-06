@@ -75,7 +75,7 @@ pip install image-tools-stackabletech==0.0.13
 
 bake --product vector=x.y.z # where x.y.z is the new version added in this PR
 
-kind load docker-image docker.stackable.tech/stackable/vector:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/vector:x.y.z-stackable0.0.0-dev
 
 # Change directory into one of the operator repositories and update the
 # product version in tests/test-definition.yaml
