@@ -157,52 +157,6 @@ fn main() {
                 }
             }
 
-            let product_worktree_root = ctx.worktree_root();
-            let worktree_branch = ctx.worktree_branch();
-            let product_version_repo = match Repository::open(&product_worktree_root) {
-                Ok(wt) => {
-                    tracing::info!(
-                        worktree.root = %product_worktree_root.display(),
-                        "worktree found, resetting and reusing"
-                    );
-                    wt
-                }
-                Err(err) => {
-                    tracing::info!(
-                        error = &err as &dyn std::error::Error,
-                        worktree.root = %product_worktree_root.display(),
-                        product.repository = %product_repo_root.display(),
-                        "worktree not found, creating"
-                    );
-                    std::fs::create_dir_all(product_worktree_root.parent().unwrap()).unwrap();
-                    let worktree_ref = product_repo
-                        .branch(
-                            &worktree_branch,
-                            &product_repo
-                                .revparse_single(&config.base)
-                                .unwrap()
-                                .peel_to_commit()
-                                .unwrap(),
-                            true,
-                        )
-                        .unwrap()
-                        .into_reference();
-                    Repository::open_from_worktree(
-                        &product_repo
-                            .worktree(
-                                &ctx.pv.version,
-                                &product_worktree_root,
-                                Some(WorktreeAddOptions::new().reference(Some(&worktree_ref))),
-                            )
-                            .unwrap(),
-                    )
-                    .unwrap()
-                }
-            };
-
-            tracing::info!("cleaning up existing rebase state");
-            product_version_repo.cleanup_state().unwrap();
-
             let patch_dir = ctx.patch_dir();
             tracing::info!(
                 patch.dir = %patch_dir.display(),
@@ -238,17 +192,14 @@ fn main() {
                 patch_files.sort();
                 patch_files
             };
-            let mut last_commit_id = product_version_repo
-                .revparse_single(&config.base)
-                .unwrap()
-                .id();
+            let mut last_commit_id = product_repo.revparse_single(&config.base).unwrap().id();
             for patch_file in patch_files {
                 tracing::info!(
                     patch.file = %patch_file.display(),
                     "parsing patch"
                 );
                 let mailsplit_dir = tempdir().unwrap();
-                let mailsplit = raw_git_cmd(&product_version_repo)
+                let mailsplit = raw_git_cmd(&product_repo)
                     .arg("mailsplit")
                     // mailsplit doesn't accept split arguments ("-o dir")
                     .arg(format!("-o{}", mailsplit_dir.path().to_str().unwrap()))
@@ -274,7 +225,7 @@ fn main() {
                     let patch_split_patch_file = mailsplit_dir
                         .path()
                         .join(format!("{patch_mail_file_name}-patch"));
-                    let mailinfo = raw_git_cmd(&product_version_repo)
+                    let mailinfo = raw_git_cmd(&product_repo)
                         .arg("mailinfo")
                         .args([&patch_split_msg_file, &patch_split_patch_file])
                         .stdin(File::open(mailsplit_dir.path().join(patch_mail_file_name)).unwrap())
@@ -311,13 +262,13 @@ fn main() {
                         ),
                     )
                     .unwrap();
-                    let parent_commit = product_version_repo.find_commit(last_commit_id).unwrap();
+                    let parent_commit = product_repo.find_commit(last_commit_id).unwrap();
                     tracing::info!(
                         commit.base = %parent_commit.id(),
                         commit.subject = subject.unwrap(),
                         "applying patch"
                     );
-                    let patch_tree_id = product_version_repo
+                    let patch_tree_id = product_repo
                         .apply_to_tree(
                             &parent_commit.tree().unwrap(),
                             &Diff::from_buffer(&std::fs::read(patch_split_patch_file).unwrap())
@@ -325,7 +276,7 @@ fn main() {
                             None,
                         )
                         .unwrap()
-                        .write_tree_to(&product_version_repo)
+                        .write_tree_to(&product_repo)
                         .unwrap();
                     let msg = std::fs::read_to_string(patch_split_msg_file).unwrap();
                     let full_msg = if msg.is_empty() {
@@ -333,13 +284,13 @@ fn main() {
                     } else {
                         &format!("{}\n\n{msg}", subject.unwrap())
                     };
-                    last_commit_id = product_version_repo
+                    last_commit_id = product_repo
                         .commit(
                             None,
                             &author,
                             &author,
                             full_msg,
-                            &product_version_repo.find_tree(patch_tree_id).unwrap(),
+                            &product_repo.find_tree(patch_tree_id).unwrap(),
                             &[&parent_commit],
                         )
                         .unwrap();
@@ -350,38 +301,64 @@ fn main() {
                 }
             }
 
-            tracing::info!(
-                worktree.branch = worktree_branch,
-                worktree.branch.commit = %last_commit_id,
-                worktree.branch.base = config.base,
-                "checking out branch"
-            );
-            // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
-            product_version_repo
-                .set_head_detached(
-                    product_version_repo
-                        .head()
+            let product_worktree_root = ctx.worktree_root();
+            let worktree_branch = ctx.worktree_branch();
+            match Repository::open(&product_worktree_root) {
+                Ok(worktree) => {
+                    tracing::info!(
+                        worktree.root = %product_worktree_root.display(),
+                        worktree.branch = worktree_branch,
+                        worktree.branch.commit = %last_commit_id,
+                        worktree.branch.base = config.base,
+                        "worktree found, reusing and resetting"
+                    );
+                    // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
+                    worktree
+                        .set_head_detached(worktree.head().unwrap().peel_to_commit().unwrap().id())
+                        .unwrap();
+                    let branch = worktree
+                        .branch(
+                            &worktree_branch,
+                            &worktree.find_commit(last_commit_id).unwrap(),
+                            true,
+                        )
                         .unwrap()
-                        .peel_to_commit()
+                        .into_reference();
+                    worktree
+                        .checkout_tree(&branch.peel(ObjectType::Commit).unwrap(), None)
+                        .unwrap();
+                    worktree.set_head_bytes(branch.name_bytes()).unwrap();
+                }
+                Err(err) => {
+                    tracing::info!(
+                        error = &err as &dyn std::error::Error,
+                        worktree.root = %product_worktree_root.display(),
+                        worktree.branch = worktree_branch,
+                        worktree.branch.commit = %last_commit_id,
+                        worktree.branch.base = config.base,
+                        product.repository = %product_repo_root.display(),
+                        "worktree not found, creating"
+                    );
+                    std::fs::create_dir_all(product_worktree_root.parent().unwrap()).unwrap();
+                    let worktree_ref = product_repo
+                        .branch(
+                            &worktree_branch,
+                            &product_repo.find_commit(last_commit_id).unwrap(),
+                            true,
+                        )
                         .unwrap()
-                        .id(),
-                )
-                .unwrap();
-            {
-                let branch = product_version_repo
-                    .branch(
-                        &worktree_branch,
-                        &product_version_repo.find_commit(last_commit_id).unwrap(),
-                        true,
+                        .into_reference();
+                    Repository::open_from_worktree(
+                        &product_repo
+                            .worktree(
+                                &ctx.pv.version,
+                                &product_worktree_root,
+                                Some(WorktreeAddOptions::new().reference(Some(&worktree_ref))),
+                            )
+                            .unwrap(),
                     )
-                    .unwrap()
-                    .into_reference();
-                product_version_repo
-                    .checkout_tree(&branch.peel(ObjectType::Commit).unwrap(), None)
                     .unwrap();
-                product_version_repo
-                    .set_head_bytes(branch.name_bytes())
-                    .unwrap();
+                }
             }
 
             tracing::info!(
@@ -455,7 +432,10 @@ fn main() {
 /// Used for functionality that is not currently implemented by libgit2/gix.
 fn raw_git_cmd(repo: &Repository) -> std::process::Command {
     let mut cmd = std::process::Command::new("git");
-    cmd.env("GIT_DIR", repo.path())
-        .env("GIT_WORK_TREE", repo.workdir().unwrap());
+    cmd.env("GIT_DIR", repo.path());
+    cmd.env(
+        "GIT_WORK_TREE",
+        repo.workdir().unwrap_or(Path::new("/dev/null")),
+    );
     cmd
 }
