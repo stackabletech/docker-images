@@ -1,11 +1,17 @@
-use std::path::{Path, PathBuf};
+use core::str;
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+    process::Stdio,
+};
 
 use git2::{
-    FetchOptions, ObjectType, Repository, RepositoryInitOptions, Signature, StatusOptions,
+    Diff, FetchOptions, ObjectType, Repository, RepositoryInitOptions, Signature,
     WorktreeAddOptions,
 };
-use regex::{Regex, RegexBuilder};
 use serde::Deserialize;
+use tempfile::tempdir;
+use time::{format_description::well_known::Rfc2822, OffsetDateTime};
 
 #[derive(clap::Parser)]
 struct ProductVersion {
@@ -108,7 +114,6 @@ fn main() {
                     tracing::info!(
                         error = &err as &dyn std::error::Error,
                         product.repository = %product_repo_root.display(),
-                        product.upstream = config.upstream,
                         "product repository not found, initializing"
                     );
                     let repo = Repository::init_opts(
@@ -154,7 +159,7 @@ fn main() {
 
             let product_worktree_root = ctx.worktree_root();
             let worktree_branch = ctx.worktree_branch();
-            let mut product_version_repo = match Repository::open(&product_worktree_root) {
+            let product_version_repo = match Repository::open(&product_worktree_root) {
                 Ok(wt) => {
                     tracing::info!(
                         worktree.root = %product_worktree_root.display(),
@@ -198,30 +203,150 @@ fn main() {
             tracing::info!("cleaning up existing rebase state");
             product_version_repo.cleanup_state().unwrap();
 
-            let stash = if product_version_repo
-                .statuses(Some(StatusOptions::new().include_unmodified(false)))
-                .unwrap()
-                .is_empty()
-            {
-                tracing::info!("worktree is clean, no need to stash");
-                None
+            let patch_dir = ctx.patch_dir();
+            tracing::info!(
+                patch.dir = %patch_dir.display(),
+                "applying patches"
+            );
+            // This effectively reimplements git-am, but lets us:
+            // 1. Fake the committer information to match author (to ensure that we get deterministic committer IDs across machines)
+            // 2. Avoid touching the worktree until all patches have been applied
+            //   (letting us keep any dirty files in the worktree that don't conflict with the final switcheroo,
+            //   even if those files are modified by some of the patches)
+            let mailsplit_dir = tempdir().unwrap();
+            let series_file = patch_dir.join("series");
+            let patch_files = if series_file.exists() {
+                tracing::info!(
+                    patch.series = %series_file.display(),
+                    "series file found, treating as stgit series"
+                );
+                std::fs::read_to_string(series_file)
+                    .unwrap()
+                    .lines()
+                    .map(|file_name| patch_dir.join(file_name))
+                    .collect::<Vec<_>>()
             } else {
-                tracing::warn!("worktree is dirty, stashing changes!");
-                let stash = product_version_repo
-                    .stash_save(
-                        &Signature::now("Patchable", "noreply+patchable@stackable.tech").unwrap(),
-                        "Existing work before checking out ",
+                tracing::info!(
+                    patch.series = %series_file.display(),
+                    "series file not found, treating as git mailbox"
+                );
+                let mut patch_files = patch_dir
+                    .read_dir()
+                    .unwrap()
+                    .map(|x| x.unwrap().path())
+                    .filter(|x| x.extension().is_some_and(|x| x == "patch"))
+                    .collect::<Vec<_>>();
+                patch_files.sort();
+                patch_files
+            };
+            let mailsplit = raw_git_cmd(&product_version_repo)
+                .arg("mailsplit")
+                // mailsplit doesn't accept split arguments ("-o dir")
+                .arg(format!("-o{}", mailsplit_dir.path().to_str().unwrap()))
+                .arg("--")
+                .args(patch_files)
+                .stderr(Stdio::inherit())
+                .output()
+                .unwrap();
+            if !mailsplit.status.success() {
+                panic!("failed to apply patches");
+            }
+            let mailsplit_patch_count = str::from_utf8(&mailsplit.stdout)
+                .unwrap()
+                .trim()
+                .parse::<u32>()
+                .unwrap();
+            let mut last_commit_id = product_version_repo
+                .revparse_single(&config.base)
+                .unwrap()
+                .id();
+            for patch_i in 1..=mailsplit_patch_count {
+                // Matches the format emitted by git-mailsplit
+                let patch_mail_file_name = format!("{patch_i:04}");
+                tracing::info!(patch.index = patch_mail_file_name, "parsing patch");
+                let patch_split_msg_file = mailsplit_dir
+                    .path()
+                    .join(format!("{patch_mail_file_name}-msg"));
+                let patch_split_patch_file = mailsplit_dir
+                    .path()
+                    .join(format!("{patch_mail_file_name}-patch"));
+                let mailinfo = raw_git_cmd(&product_version_repo)
+                    .arg("mailinfo")
+                    .args([&patch_split_msg_file, &patch_split_patch_file])
+                    .stdin(File::open(mailsplit_dir.path().join(patch_mail_file_name)).unwrap())
+                    .stderr(Stdio::inherit())
+                    .output()
+                    .unwrap();
+                if !mailinfo.status.success() {
+                    panic!("failed to apply patches");
+                }
+                let patch_info = str::from_utf8(&mailinfo.stdout).unwrap();
+
+                let mut author_name = None;
+                let mut author_email = None;
+                let mut date = None;
+                let mut subject = None;
+                for patch_info_line in patch_info.lines() {
+                    if !patch_info_line.is_empty() {
+                        match patch_info_line.split_once(": ").unwrap() {
+                            ("Author", x) => author_name = Some(x),
+                            ("Email", x) => author_email = Some(x),
+                            ("Date", x) => date = Some(x),
+                            ("Subject", x) => subject = Some(x),
+                            (header, _) => panic!("unknown header type {header:?}"),
+                        }
+                    }
+                }
+                let date = OffsetDateTime::parse(date.unwrap(), &Rfc2822).unwrap();
+                let author = Signature::new(
+                    author_name.unwrap(),
+                    author_email.unwrap(),
+                    &git2::Time::new(date.unix_timestamp(), date.offset().whole_minutes().into()),
+                )
+                .unwrap();
+                let parent_commit = product_version_repo.find_commit(last_commit_id).unwrap();
+                tracing::info!(
+                    commit.base = %parent_commit.id(),
+                    commit.subject = subject.unwrap(),
+                    "applying patch"
+                );
+                let patch_tree_id = product_version_repo
+                    .apply_to_tree(
+                        &parent_commit.tree().unwrap(),
+                        &Diff::from_buffer(&std::fs::read(patch_split_patch_file).unwrap())
+                            .unwrap(),
                         None,
                     )
+                    .unwrap()
+                    .write_tree_to(&product_version_repo)
                     .unwrap();
-                tracing::info!(%stash, "created stash");
-                Some(stash)
-            };
+                let msg = std::fs::read_to_string(patch_split_msg_file).unwrap();
+                let full_msg = if msg.is_empty() {
+                    subject.unwrap()
+                } else {
+                    &format!("{}\n\n{msg}", subject.unwrap())
+                };
+                last_commit_id = product_version_repo
+                    .commit(
+                        None,
+                        &author,
+                        &author,
+                        full_msg,
+                        &product_version_repo.find_tree(patch_tree_id).unwrap(),
+                        &[&parent_commit],
+                    )
+                    .unwrap();
+                tracing::info!(
+                    commit.id = %last_commit_id,
+                    "applied patch"
+                );
+            }
 
             tracing::info!(
                 worktree.branch = worktree_branch,
+                worktree.branch.commit = %last_commit_id,
                 worktree.branch.base = config.base,
-                "checking out base commit into branch"
+                "checking out branch"
             );
             // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
             product_version_repo
@@ -238,11 +363,7 @@ fn main() {
                 let branch = product_version_repo
                     .branch(
                         &worktree_branch,
-                        product_version_repo
-                            .revparse_single(&config.base)
-                            .unwrap()
-                            .as_commit()
-                            .unwrap(),
+                        &product_version_repo.find_commit(last_commit_id).unwrap(),
                         true,
                     )
                     .unwrap()
@@ -253,62 +374,6 @@ fn main() {
                 product_version_repo
                     .set_head_bytes(branch.name_bytes())
                     .unwrap();
-            }
-
-            let patch_dir = ctx.patch_dir();
-            tracing::info!(
-                patch.dir = %patch_dir.display(),
-                "applying patches"
-            );
-            let series_file = patch_dir.join("series");
-            let mut apply_cmd = raw_git_cmd(&product_version_repo);
-            if series_file.exists() {
-                tracing::info!(
-                    patch.series = %series_file.display(),
-                    "series file found, treating as stgit series"
-                );
-                apply_cmd
-                    .arg("am")
-                    .arg(series_file)
-                    .args(["--patch-format", "stgit-series"]);
-            } else {
-                tracing::info!(
-                    patch.series = %series_file.display(),
-                    "series file not found, treating as git mailbox"
-                );
-                let mut patch_files = patch_dir
-                    .read_dir()
-                    .unwrap()
-                    .map(|x| x.unwrap().path())
-                    .filter(|x| x.extension().is_some_and(|x| x == "patch"))
-                    .collect::<Vec<_>>();
-                patch_files.sort();
-                apply_cmd.arg("am").args(patch_files);
-            }
-            // Make commit hashes deterministic by removing variables that depend on the local environment
-            apply_cmd.args(["--committer-date-is-author-date"]);
-            if !apply_cmd.status().unwrap().success() {
-                panic!("failed to apply patches");
-            }
-
-            if let Some(stash) = stash {
-                let mut stash_index = None;
-                product_version_repo
-                    .stash_foreach(|i, _, oid| {
-                        if oid == &stash {
-                            stash_index = Some(i);
-                            true
-                        } else {
-                            false
-                        }
-                    })
-                    .unwrap();
-                let stash_index = stash_index.unwrap();
-                tracing::info!(
-                    stash = %format_args!("stash@{{{stash_index}}}"),
-                    "restoring stash"
-                );
-                product_version_repo.stash_pop(stash_index, None).unwrap();
             }
 
             tracing::info!(

@@ -1,4 +1,4 @@
-From 0b4fd5532600d94e032f15b4bd9896ed66256b51 Mon Sep 17 00:00:00 2001
+From 4276496b4df4c5e40df3b27bf9fc989b4ee9259b Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
 Subject: Include jackson-dataformat-xml dependency.
