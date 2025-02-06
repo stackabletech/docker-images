@@ -16,14 +16,14 @@ All notable changes to this project will be documented in this file.
 - opa: Add version 1.0.0 ([#981]).
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - git-sync: Bump version to 4.4.0 ([#990]).
-- kafka: Bump version to 3.9.0 ([#988]).
+- kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
 - java: Add JDK/JRE 23 ([#992]).
 - trino: Add 469 ([#993]).
 - trino-cli: Add version 469 ([#993]).
 
 ### Changed
 
-- kafka: Bump 3.7.1 to 3.7.2 ([#968]).
+- kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
 
 ### Removed
@@ -53,6 +53,7 @@ All notable changes to this project will be documented in this file.
 [#988]: https://github.com/stackabletech/docker-images/pull/988
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
+[#995]: https://github.com/stackabletech/docker-images/pull/995
 
 ## [24.11.1] - 2025-01-14
 

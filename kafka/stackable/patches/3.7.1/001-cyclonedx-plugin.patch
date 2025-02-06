@@ -1,8 +1,8 @@
 diff --git a/build.gradle b/build.gradle
-index 92082fe..e3d6c72 100644
+index 32e6e8f..13a0def 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,48 @@ plugins {
+@@ -48,6 +48,47 @@ plugins {
    // artifacts - see https://github.com/johnrengelman/shadow/issues/901
    id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
    id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
@@ -45,8 +45,7 @@ index 92082fe..e3d6c72 100644
 +      'upgrade-system-tests-33',
 +      'upgrade-system-tests-34',
 +      'upgrade-system-tests-35',
-+      'upgrade-system-tests-36',
-+      'upgrade-system-tests-37'
++      'upgrade-system-tests-36'
 +    ]
  }
  
