@@ -17,6 +17,9 @@ All notable changes to this project will be documented in this file.
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - git-sync: Bump version to 4.4.0 ([#990]).
 - kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
+- java: Add JDK/JRE 23 ([#992]).
+- trino: Add 469 ([#993]).
+- trino-cli: Add version 469 ([#993]).
 
 ### Changed
 
@@ -48,6 +51,8 @@ All notable changes to this project will be documented in this file.
 [#989]: https://github.com/stackabletech/docker-images/pull/989
 [#990]: https://github.com/stackabletech/docker-images/pull/990
 [#988]: https://github.com/stackabletech/docker-images/pull/988
+[#992]: https://github.com/stackabletech/docker-images/pull/992
+[#993]: https://github.com/stackabletech/docker-images/pull/993
 [#995]: https://github.com/stackabletech/docker-images/pull/995
 
 ## [24.11.1] - 2025-01-14

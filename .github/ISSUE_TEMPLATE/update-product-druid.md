@@ -33,16 +33,16 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Delete old patch directories.
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
 ```[tasklist]
 ### Related Pull Requests
 - [ ] _Link to the docker-images PR (product update)_
-- [ ] _Link to the operator PR (getting_started / kuttl)_
+- [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
 - [ ] _Link to [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) PR_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
