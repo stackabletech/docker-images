@@ -1,4 +1,7 @@
-# pylint: disable=missing-module-docstring
+"""
+Custom security manager for Superset
+"""
+
 import logging
 
 from typing import List, Optional
@@ -14,7 +17,7 @@ from superset.security import SupersetSecurityManager
 
 class OpaSupersetSecurityManager(SupersetSecurityManager):
     """
-    Custom security manager that syncs user-role mappings from Open Policy Agent to Superset.
+    Custom security manager that syncs role mappings from Open Policy Agent to Superset.
     """
 
     AUTH_OPA_CACHE_MAXSIZE_DEFAULT = 1000
@@ -23,6 +26,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
     AUTH_OPA_PACKAGE_DEFAULT = "superset"
     AUTH_OPA_RULE_DEFAULT = "user_roles"
+    AUTH_USER_REGISTRATION_ROLE_DEFAULT = "Public"
 
     def __init__(self, appbuilder):
         self.appbuilder = appbuilder
@@ -49,22 +53,31 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             user = g.user
 
         default_role = self.resolve_role(
-            current_app.config.get("AUTH_USER_REGISTRATION_ROLE")
+            current_app.config.get(
+                "AUTH_USER_REGISTRATION_ROLE", self.AUTH_USER_REGISTRATION_ROLE_DEFAULT
+            )
         )
 
         opa_role_names = self.get_opa_user_roles(user.username)
-        logging.info("OPA returned roles: %s", opa_role_names)
+        logging.debug(
+            "OPA returned roles for user %s: %s", user.get_full_name(), opa_role_names
+        )
 
         opa_roles = set(map(self.resolve_role, opa_role_names))
-        logging.info("Resolved OPA Roles in Database: %s", opa_roles)
+        logging.debug(
+            "Resolved OPA Roles in database for user %s: %s",
+            user.get_full_name(),
+            opa_roles,
+        )
         # Ensure that in case of a bad or no response from OPA each user will have
         # at least one role.
         if opa_roles == {None} or opa_roles == set():
             opa_roles = {default_role}
 
         if set(user.roles) != opa_roles:
-            logging.info(
-                "Found a diff between %s (Superset) and %s (OPA).",
+            logging.debug(
+                "Found a diff in roles for user %s: %s (Superset) and %s (OPA).",
+                user.get_full_name(),
                 user.roles,
                 opa_roles,
             )
@@ -74,7 +87,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         return user.roles
 
     @cachedmethod(lambda self: self.opa_cache)
-    def get_opa_user_roles(self, username: str) -> set[str]:
+    def get_opa_user_roles(self, username: str) -> list[str]:
         """
         Queries an Open Policy Agent instance for the roles of a given user.
 
@@ -93,22 +106,26 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
         )
         input = {"input": {"username": username}}
-        response = self.call_opa(
-            url=f"{opa_url}/v1/data/{package}/{rule}",
-            json=input,
-            timeout=timeout,
-        )
+        try:
+            response = self.call_opa(
+                url=f"{opa_url}/v1/data/{package}/{rule}",
+                json=input,
+                timeout=timeout,
+            )
 
-        if response.status_code is None or response.status_code != 200:
-            logging.error("Error while querying OPA.")
-            return []
+            if response.status_code is None or response.status_code != 200:
+                logging.error("OPA returned status code %s", response.status_code)
+                return []
 
-        roles = response.json().get("result")
-        # If OPA didn't return a result or if the result is not a list, return no roles.
-        if roles is None or type(roles).__name__ != "list":
-            logging.error("The OPA query didn't return a list: %s", response.json())
+            roles = response.json().get("result")
+            if roles is None or type(roles).__name__ != "list":
+                logging.error("The OPA query didn't return a list: %s", response.json())
+                return []
+
+            return roles
+        except Exception as e:
+            logging.error("Request to OPA failed", exc_info=e)
             return []
-        return roles
 
     def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response:
         return self.opa_session.post(
@@ -125,6 +142,6 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         """
         role = self.find_role(role_name)
         if role is None:
-            logging.info("Creating role %s as it doesn't already exist.", role_name)
+            logging.debug("Creating role %s as it doesn't already exist.", role_name)
             self.add_role(role_name)
         return self.find_role(role_name)

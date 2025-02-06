@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name, unused-argument, redefined-outer-name, missing-module-docstring
+from http.client import HTTPException
 import pytest
 from flask import Flask
 from flask_appbuilder.security.sqla.models import Role, User
@@ -173,17 +174,17 @@ def test_get_opa_roles(
         ]
 
 
-def test_get_opa_roles_no_result(
+def test_get_opa_roles_result_missing(
     mocker: MockFixture,
     app: Flask,
     opa_security_manager: OpaSupersetSecurityManager,
 ) -> None:
     """
-    Test that no roles are returned if the OPA response doesn't contain a query result.
+    Test that no roles are returned if the OPA response doesn't contain a result.
     """
     response = requests.Response()
     response.status_code = 200
-    response._content = '{"error": "error occurred"}'.encode()
+    response._content = '{"not_result": "key result is missing"}'.encode()
 
     with app.app_context():
         mocker.patch(
@@ -215,6 +216,27 @@ def test_get_opa_roles_not_a_list(
         assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
+def test_get_opa_roles_not_a_valid_json(
+    mocker: MockFixture,
+    app: Flask,
+    opa_security_manager: OpaSupersetSecurityManager,
+) -> None:
+    """
+    Test that no roles are returned if the query result doesn't contain a list.
+    """
+    response = requests.Response()
+    response.status_code = 200
+    response._content = '{"result": ["Test1'.encode()
+
+    with app.app_context():
+        mocker.patch(
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            return_value=response,
+        )
+
+        assert opa_security_manager.get_opa_user_roles("User1") == []
+
+
 def test_get_opa_roles_wrong_statuscode(
     mocker: MockFixture,
     app: Flask,
@@ -236,6 +258,23 @@ def test_get_opa_roles_wrong_statuscode(
         assert opa_security_manager.get_opa_user_roles("User1") == []
 
 
+def test_get_opa_roles_http_exception(
+    mocker: MockFixture,
+    app: Flask,
+    opa_security_manager: OpaSupersetSecurityManager,
+) -> None:
+    """
+    Test that no roles are returned if the query result doesn't contain a list.
+    """
+    with app.app_context():
+        mocker.patch(
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.call_opa",
+            wraps=mock_call_opa,
+        )
+
+        assert opa_security_manager.get_opa_user_roles("User1") == []
+
+
 def mock_resolve_role(role_name: str) -> Role:
     """
     Returns a role without interacting with the db.
@@ -245,3 +284,7 @@ def mock_resolve_role(role_name: str) -> Role:
     role.name = role_name
 
     return role
+
+
+def mock_call_opa(url: str, json: dict, timeout: int) -> requests.Response:
+    raise HTTPException
