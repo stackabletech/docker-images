@@ -18,7 +18,7 @@ versions = [
         "jmx_exporter": "1.1.0",
     },
     {
-        "product": "3.8.0",
+        "product": "3.8.1",
         "java-base": "21",
         "java-devel": "21",
         "scala": "2.13",
