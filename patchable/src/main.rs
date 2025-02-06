@@ -12,6 +12,7 @@ use git2::{
 use serde::Deserialize;
 use tempfile::tempdir;
 use time::{format_description::well_known::Rfc2822, OffsetDateTime};
+use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _, EnvFilter};
 
 #[derive(clap::Parser)]
 struct ProductVersion {
@@ -90,7 +91,28 @@ enum Cmd {
 }
 
 fn main() {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .with(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
+        .init();
+    git2::trace_set(git2::TraceLevel::Trace, |level, msg| {
+        let msg = String::from_utf8_lossy(msg);
+        match level {
+            git2::TraceLevel::None | git2::TraceLevel::Fatal | git2::TraceLevel::Error => {
+                tracing::error!(target: "git", "{msg}")
+            }
+            git2::TraceLevel::Warn => tracing::warn!(target: "git", "{msg}"),
+            git2::TraceLevel::Info => tracing::info!(target: "git", "{msg}"),
+            git2::TraceLevel::Debug => tracing::debug!(target: "git", "{msg}"),
+            git2::TraceLevel::Trace => tracing::trace!(target: "git", "{msg}"),
+        }
+    })
+    .unwrap();
+
     let opts = <Opts as clap::Parser>::parse();
     let images_repo = Repository::discover(".").unwrap();
     let images_repo_root = images_repo.workdir().unwrap();
