@@ -311,7 +311,7 @@ fn main() {
                             None,
                             &author,
                             &author,
-                            full_msg,
+                            full_msg.trim(),
                             &product_repo.find_tree(patch_tree_id).unwrap(),
                             &[&parent_commit],
                         )
@@ -402,6 +402,57 @@ fn main() {
             );
             let product_version_repo = Repository::open(&product_worktree_root).unwrap();
 
+            // Canonicalize commit messages and committer information, so that we generate the same commit IDs that we load in `patchable checkout`,
+            // even if we have rebased (etc) through them.
+            let head = product_version_repo
+                .head()
+                .unwrap()
+                .peel_to_commit()
+                .unwrap();
+            let patch_base = product_version_repo
+                .revparse_single(&config.base)
+                .unwrap()
+                .peel_to_commit()
+                .unwrap();
+            tracing::info!(
+                worktree.branch.base = %patch_base.id(),
+                worktree.branch.commit = %head.id(),
+                "canonicalizing commit history"
+            );
+            let mut canonicalize_revwalk = product_version_repo.revwalk().unwrap();
+            canonicalize_revwalk.push(head.id()).unwrap();
+            canonicalize_revwalk.hide(patch_base.id()).unwrap();
+            canonicalize_revwalk
+                .set_sorting(git2::Sort::TOPOLOGICAL | git2::Sort::REVERSE)
+                .unwrap();
+            let mut last_canonical_commit = product_version_repo
+                .revparse_single(&config.base)
+                .unwrap()
+                .id();
+            for base_commit in canonicalize_revwalk {
+                let base_commit = product_version_repo
+                    .find_commit(base_commit.unwrap())
+                    .unwrap();
+                let author = base_commit.author();
+                last_canonical_commit = product_version_repo
+                    .commit(
+                        None,
+                        &author,
+                        &author,
+                        base_commit.message().unwrap().trim(),
+                        &base_commit.tree().unwrap(),
+                        &[&product_version_repo
+                            .find_commit(last_canonical_commit)
+                            .unwrap()],
+                    )
+                    .unwrap();
+            }
+            tracing::info!(
+                worktree.branch.commit = %head.id(),
+                worktree.branch.commit.canonicalized = %last_canonical_commit,
+                "canonicalized commit"
+            );
+
             let patch_dir = ctx.patch_dir();
             tracing::info!(
                 patch.dir = %patch_dir.display(),
@@ -423,12 +474,13 @@ fn main() {
             tracing::info!(
                 patch.dir = %patch_dir.display(),
                 worktree.root = %product_worktree_root.display(),
-                worktree.base = config.base,
+                worktree.branch.canonicalized = %last_canonical_commit,
+                worktree.branch.base = %patch_base.id(),
                 "exporting commits since base"
             );
             if !raw_git_cmd(&product_version_repo)
                 .arg("format-patch")
-                .arg(&config.base)
+                .arg(format!("{}..{}", config.base, last_canonical_commit))
                 .arg("-o")
                 .arg(&patch_dir)
                 .arg("--base")
