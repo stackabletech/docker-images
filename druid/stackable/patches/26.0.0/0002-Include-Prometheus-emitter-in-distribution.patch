@@ -1,4 +1,4 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From dc8b5d9b733ab542b7af038f19361d39be5cba60 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
 Subject: Include Prometheus emitter in distribution

@@ -285,6 +285,8 @@ fn main() {
                 patch_files.sort();
                 apply_cmd.arg("am").args(patch_files);
             }
+            // Make commit hashes deterministic by removing variables that depend on the local environment
+            apply_cmd.args(["--committer-date-is-author-date"]);
             if !apply_cmd.status().unwrap().success() {
                 panic!("failed to apply patches");
             }
@@ -365,27 +367,6 @@ fn main() {
                 .success()
             {
                 panic!("failed to format patches");
-            }
-
-            // Normally the patches include their own commit IDs, which will change for every for every re-checkout
-            // checkout doesn't actually care about this value, so we can just replace it with a deterministic dummy
-            tracing::info!("scrubbing commit ID from exported patches");
-            let regex_line = RegexBuilder::new("^.*$").multi_line(true).build().unwrap();
-            let regex_from = Regex::new("^From [0-9a-f]+ ").unwrap();
-            for entry in patch_dir.read_dir().unwrap() {
-                let path = entry.unwrap().path();
-                if path.extension().is_some_and(|x| x == "patch") {
-                    let mut patch_file = std::fs::read_to_string(&path).unwrap();
-                    let line_1 = regex_line.find(&patch_file).unwrap();
-                    let from = regex_from
-                        .find_at(&patch_file[..line_1.end()], line_1.start())
-                        .unwrap();
-                    patch_file.replace_range(
-                        from.range(),
-                        "From 0000000000000000000000000000000000000000 ",
-                    );
-                    std::fs::write(path, patch_file).unwrap();
-                }
             }
 
             tracing::info!(
