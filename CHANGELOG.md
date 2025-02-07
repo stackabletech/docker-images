@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
-- superset: Add role mapping from OPA ([979]).
+- superset: Add role mapping from OPA ([#979]).
 - base: Add containerdebug tool ([#928], [#959]).
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
