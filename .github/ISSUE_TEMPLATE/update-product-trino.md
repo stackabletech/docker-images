@@ -31,7 +31,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Upload new version (see `trino/*.sh` scripts).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, opa_authorizer, storage_connector, etc).
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
@@ -40,16 +40,16 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `trino-cli/versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `trino-cli/upload_new_trino_version.sh` scripts).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
 ```[tasklist]
 ### Related Pull Requests
 - [ ] _Link to the docker-images PR (product update)_
-- [ ] _Link to the operator PR (getting_started / kuttl)_
+- [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
 

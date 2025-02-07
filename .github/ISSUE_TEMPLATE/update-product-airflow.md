@@ -30,7 +30,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Download new constraints file (see `airflow/download_constraints.sh`).
 - [ ] Update other dependencies if applicable (eg: python, statsd_exporter, etc).
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
@@ -39,7 +39,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] _Link to the docker-images PR (product update)_
 - [ ] _Link to operator PR (getting_started / kuttl)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
 
