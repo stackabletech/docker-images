@@ -21,11 +21,6 @@ HBASE_ROLE_SERVICE_HOST="${HOSTNAME}.${HBASE_ROLE_SERVICE_NAME}"
 
 REGION_MOVER_OPTS="--regionserverhost ${HBASE_ROLE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
 
-if [ -f /stackable/kerberos/krb5.conf ]; then
-  KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
-  export KERBEROS_REALM
-fi
-
 prepare_signal_handlers() {
   unset term_child_pid
   unset term_kill_needed
@@ -69,8 +64,17 @@ cp /stackable/tmp/hdfs/core-site.xml /stackable/conf
 cp /stackable/tmp/hbase/* /stackable/conf
 cp /stackable/tmp/log_config/log4j* /stackable/conf
 
-rm -f /stackable/log/_vector/shutdown
+if [ -f /stackable/kerberos/krb5.conf ]; then
+  KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
+  export KERBEROS_REALM
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/core-site.xml
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hbase-site.xml
+  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hdfs-site.xml
+fi
+
+rm -f "${STACKABLE_LOG_DIR}/_vector/shutdown"
 prepare_signal_handlers
+/stackable/containerdebug --output="${STACKABLE_LOG_DIR}/containerdebug-state.json" --loop &
 /stackable/hbase/bin/hbase "${HBASE_ROLE_NAME}" start &
 wait_for_termination $!
-mkdir -p /stackable/log/_vector && touch /stackable/log/_vector/shutdown
+mkdir -p "${STACKABLE_LOG_DIR}/_vector" && touch "${STACKABLE_LOG_DIR}/_vector/shutdown"

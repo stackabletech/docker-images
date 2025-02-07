@@ -67,7 +67,7 @@ pip install image-tools-stackabletech==0.0.13
 
 bake --product airflow=x.y.z # where x.y.z is the new version added in this PR
 
-kind load docker-image docker.stackable.tech/stackable/airflow:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/airflow:x.y.z-stackable0.0.0-dev
 
 # Change directory into the airflow-operator repository and update the
 # product version in tests/test-definition.yaml

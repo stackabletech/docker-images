@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 3 Feb 2025 13:56:21 +0100
+Subject: Use stackable maven mirror
+
+---
+ build.gradle | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index 398a7c994e..6fb5efe645 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -20,7 +20,9 @@ import java.nio.charset.StandardCharsets
+ 
+ buildscript {
+   repositories {
+-    mavenCentral()
++    maven {
++      url 'https://build-repo.stackable.tech/repository/maven-public/'
++    }
+   }
+   apply from: "$rootDir/gradle/dependencies.gradle"
+ 
+@@ -161,7 +163,9 @@ ext {
+ allprojects {
+ 
+   repositories {
+-    mavenCentral()
++    maven {
++      url 'https://build-repo.stackable.tech/repository/maven-public/'
++    }
+   }
+ 
+   dependencyUpdates {
+-- 
+2.40.1
+
