@@ -21,11 +21,13 @@ All notable changes to this project will be documented in this file.
 - java: Add JDK/JRE 23 ([#992]).
 - trino: Add 469 ([#993]).
 - trino-cli: Add version 469 ([#993]).
+- trino-storage-connector: Add version 469 ([#996]).
 
 ### Changed
 
 - kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
+- trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
 
 ### Removed
 
@@ -56,6 +58,7 @@ All notable changes to this project will be documented in this file.
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
 [#995]: https://github.com/stackabletech/docker-images/pull/995
+[#996]: https://github.com/stackabletech/docker-images/pull/996
 
 ## [24.11.1] - 2025-01-14
 
