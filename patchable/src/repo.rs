@@ -162,12 +162,12 @@ pub fn ensure_worktree_is_at(
     commit: Oid,
 ) -> Result<()> {
     tracing::info!("checking out worktree");
-    let commit_obj = repo
-        .find_commit(commit)
-        .context(FindCommitSnafu { repo, commit })?;
     match Repository::open(worktree_root) {
         Ok(worktree) => {
             tracing::info!("worktree found, reusing");
+            let commit_obj = worktree
+                .find_commit(commit)
+                .context(FindCommitSnafu { repo, commit })?;
             // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
             if let Ok(head) = worktree.head() {
                 tracing::info!(head.old = head.name(), "detaching worktree head");
@@ -217,9 +217,10 @@ pub fn ensure_worktree_is_at(
                 error = &err as &dyn std::error::Error,
                 "worktree not found, creating"
             );
-            std::fs::create_dir_all(worktree_root).context(CreateWorktreePathSnafu {
-                path: worktree_root,
-            })?;
+            if let Some(parent) = worktree_root.parent() {
+                std::fs::create_dir_all(parent)
+                    .context(CreateWorktreePathSnafu { path: parent })?;
+            }
             let worktree_ref = repo
                 .branch(
                     branch,

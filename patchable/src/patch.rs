@@ -1,10 +1,65 @@
-use std::{fs::File, path::Path, process::Stdio};
+use std::path::{Path, PathBuf};
 
-use git2::{Diff, Oid, Repository, Signature};
-use tempfile::tempdir;
-use time::{format_description::well_known::Rfc2822, OffsetDateTime};
+use git2::{Oid, Repository};
+use snafu::{ResultExt as _, Snafu};
 
-use crate::utils::raw_git_cmd;
+use crate::{
+    patch_mail::{mailinfo, mailsplit},
+    utils::raw_git_cmd,
+};
+
+#[derive(Debug, Snafu)]
+pub enum Error {
+    OpenStgitSeriesFile {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+    ListPatchDirectory {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+}
+type Result<T, E = Error> = std::result::Result<T, E>;
+
+/// Lists the patches to apply in `patch_dir`, in order.
+fn patch_files(patch_dir: &Path) -> Result<Vec<PathBuf>> {
+    let series_file = patch_dir.join("series");
+    Ok(match std::fs::read_to_string(&series_file) {
+        Ok(file) => {
+            tracing::info!(
+                patch.series = %series_file.display(),
+                "series file found, treating as stgit series"
+            );
+            file.lines()
+                .map(|file_name| patch_dir.join(file_name))
+                .collect::<Vec<_>>()
+        }
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            tracing::info!(
+                error = &err as &dyn std::error::Error,
+                patch.series = %series_file.display(),
+                "series file not found, treating as git mailbox"
+            );
+            let mut patch_files = patch_dir
+                .read_dir()
+                .unwrap()
+                .filter_map(|e| {
+                    e.map(|entry| {
+                        let path = entry.path();
+                        path.extension()
+                            .is_some_and(|ext| ext == "patch")
+                            .then_some(path)
+                    })
+                    .transpose()
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .context(ListPatchDirectorySnafu { path: patch_dir })?;
+            patch_files.sort();
+            patch_files
+        }
+        Err(err) => return Err(err).context(OpenStgitSeriesFileSnafu { path: series_file }),
+    })
+}
 
 /// Apply the patches in `patch_dir` to `base_commit`.
 ///
@@ -16,130 +71,36 @@ use crate::utils::raw_git_cmd;
 ///   (letting us keep any dirty files in the worktree that don't conflict with the final switcheroo,
 ///   even if those files are modified by some of the patches)
 #[tracing::instrument(skip(repo))]
-pub fn apply_patches(repo: &Repository, patch_dir: &Path, base_commit: Oid) -> Oid {
+pub fn apply_patches(repo: &Repository, patch_dir: &Path, base_commit: Oid) -> Result<Oid> {
     tracing::info!(
         patch.dir = %patch_dir.display(),
         "applying patches"
     );
-    let series_file = patch_dir.join("series");
-    let patch_files = if series_file.exists() {
-        tracing::info!(
-            patch.series = %series_file.display(),
-            "series file found, treating as stgit series"
-        );
-        std::fs::read_to_string(series_file)
-            .unwrap()
-            .lines()
-            .map(|file_name| patch_dir.join(file_name))
-            .collect::<Vec<_>>()
-    } else {
-        tracing::info!(
-            patch.series = %series_file.display(),
-            "series file not found, treating as git mailbox"
-        );
-        let mut patch_files = patch_dir
-            .read_dir()
-            .unwrap()
-            .map(|x| x.unwrap().path())
-            .filter(|x| x.extension().is_some_and(|x| x == "patch"))
-            .collect::<Vec<_>>();
-        patch_files.sort();
-        patch_files
-    };
     let mut last_commit_id = base_commit;
-    for patch_file in patch_files {
+    for patch_file in patch_files(patch_dir)? {
         tracing::info!(
-            patch.file = %patch_file.display(),
+            patch.file = ?patch_file,
             "parsing patch"
         );
-        let mailsplit_dir = tempdir().unwrap();
-        let mailsplit = raw_git_cmd(repo)
-            .arg("mailsplit")
-            // mailsplit doesn't accept split arguments ("-o dir")
-            .arg(format!("-o{}", mailsplit_dir.path().to_str().unwrap()))
-            .arg("--")
-            .arg(patch_file)
-            .stderr(Stdio::inherit())
-            .output()
-            .unwrap();
-        if !mailsplit.status.success() {
-            panic!("failed to apply patches");
-        }
-        let mailsplit_patch_count = std::str::from_utf8(&mailsplit.stdout)
-            .unwrap()
-            .trim()
-            .parse::<u32>()
-            .unwrap();
-        for patch_i in 1..=mailsplit_patch_count {
-            // Matches the format emitted by git-mailsplit
-            let patch_mail_file_name = format!("{patch_i:04}");
-            let patch_split_msg_file = mailsplit_dir
-                .path()
-                .join(format!("{patch_mail_file_name}-msg"));
-            let patch_split_patch_file = mailsplit_dir
-                .path()
-                .join(format!("{patch_mail_file_name}-patch"));
-            let mailinfo = raw_git_cmd(repo)
-                .arg("mailinfo")
-                .args([&patch_split_msg_file, &patch_split_patch_file])
-                .stdin(File::open(mailsplit_dir.path().join(patch_mail_file_name)).unwrap())
-                .stderr(Stdio::inherit())
-                .output()
-                .unwrap();
-            if !mailinfo.status.success() {
-                panic!("failed to apply patches");
-            }
-            let patch_info = std::str::from_utf8(&mailinfo.stdout).unwrap();
-
-            let mut author_name = None;
-            let mut author_email = None;
-            let mut date = None;
-            let mut subject = None;
-            for patch_info_line in patch_info.lines() {
-                if !patch_info_line.is_empty() {
-                    match patch_info_line.split_once(": ").unwrap() {
-                        ("Author", x) => author_name = Some(x),
-                        ("Email", x) => author_email = Some(x),
-                        ("Date", x) => date = Some(x),
-                        ("Subject", x) => subject = Some(x),
-                        (header, _) => panic!("unknown header type {header:?}"),
-                    }
-                }
-            }
-            let date = OffsetDateTime::parse(date.unwrap(), &Rfc2822).unwrap();
-            let author = Signature::new(
-                author_name.unwrap(),
-                author_email.unwrap(),
-                &git2::Time::new(date.unix_timestamp(), date.offset().whole_minutes().into()),
-            )
-            .unwrap();
-            let parent_commit = repo.find_commit(last_commit_id).unwrap();
+        for patch_email_file in mailsplit(repo, &patch_file).unwrap() {
+            let patch = mailinfo(repo, &patch_email_file).unwrap().parse().unwrap();
             tracing::info!(
-                commit.base = %parent_commit.id(),
-                commit.subject = subject.unwrap(),
+                commit.base = %last_commit_id,
+                commit.subject = patch.subject,
                 "applying patch"
             );
+            let parent_commit = repo.find_commit(last_commit_id).unwrap();
             let patch_tree_id = repo
-                .apply_to_tree(
-                    &parent_commit.tree().unwrap(),
-                    &Diff::from_buffer(&std::fs::read(patch_split_patch_file).unwrap()).unwrap(),
-                    None,
-                )
+                .apply_to_tree(&parent_commit.tree().unwrap(), &patch.patch, None)
                 .unwrap()
                 .write_tree_to(repo)
                 .unwrap();
-            let msg = std::fs::read_to_string(patch_split_msg_file).unwrap();
-            let full_msg = if msg.is_empty() {
-                subject.unwrap()
-            } else {
-                &format!("{}\n\n{msg}", subject.unwrap())
-            };
             last_commit_id = repo
                 .commit(
                     None,
-                    &author,
-                    &author,
-                    full_msg.trim(),
+                    &patch.author,
+                    &patch.author,
+                    &patch.message,
                     &repo.find_tree(patch_tree_id).unwrap(),
                     &[&parent_commit],
                 )
@@ -150,7 +111,7 @@ pub fn apply_patches(repo: &Repository, patch_dir: &Path, base_commit: Oid) -> O
             );
         }
     }
-    last_commit_id
+    Ok(last_commit_id)
 }
 
 /// Canonicalize commits for all commits between `base_commit` (exclusive) and `leaf_commit` (inclusive).

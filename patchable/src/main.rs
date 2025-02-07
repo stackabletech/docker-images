@@ -1,5 +1,6 @@
 mod error;
 mod patch;
+mod patch_mail;
 mod repo;
 mod utils;
 
@@ -148,7 +149,8 @@ fn main() -> Result<(), Error> {
             let base_commit =
                 repo::ensure_commit_exists_or_fetch(&product_repo, &config.base, &config.upstream)
                     .context(FetchBaseCommitSnafu)?;
-            let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit);
+            let patched_commit =
+                patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit).unwrap();
 
             let product_worktree_root = ctx.worktree_root();
             repo::ensure_worktree_is_at(
