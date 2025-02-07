@@ -1,3 +1,4 @@
+mod error;
 mod patch;
 mod repo;
 mod utils;
@@ -7,6 +8,7 @@ use std::path::{Path, PathBuf};
 
 use git2::Repository;
 use serde::Deserialize;
+use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
@@ -85,7 +87,24 @@ enum Cmd {
     },
 }
 
-fn main() {
+#[derive(Debug, Snafu)]
+pub enum Error {
+    #[snafu(display("failed to find images repository"))]
+    FindImagesRepo { source: git2::Error },
+    #[snafu(display("images repository has no work directory"))]
+    NoImagesRepoWorkdir,
+
+    #[snafu(display("failed to fetch patch series' base commit"))]
+    FetchBaseCommit { source: repo::Error },
+
+    #[snafu(display("failed to open product repository"))]
+    OpenProductRepoForCheckout { source: repo::Error },
+    #[snafu(display("failed to checkout product worktree"))]
+    CheckoutProductWorktree { source: repo::Error },
+}
+
+#[snafu::report]
+fn main() -> Result<(), Error> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .with(
@@ -109,8 +128,8 @@ fn main() {
     .unwrap();
 
     let opts = <Opts as clap::Parser>::parse();
-    let images_repo = Repository::discover(".").unwrap();
-    let images_repo_root = images_repo.workdir().unwrap();
+    let images_repo = Repository::discover(".").context(FindImagesRepoSnafu)?;
+    let images_repo_root = images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?;
     match opts.cmd {
         Cmd::Checkout { pv } => {
             let ctx = ProductVersionContext {
@@ -123,10 +142,12 @@ fn main() {
                 "finding product repository",
                 product.repository = ?product_repo_root,
             )
-            .in_scope(|| repo::ensure_bare_repo(&product_repo_root));
+            .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
+            .context(OpenProductRepoForCheckoutSnafu)?;
 
             let base_commit =
-                repo::ensure_commit_exists_or_pull(&product_repo, &config.base, &config.upstream);
+                repo::ensure_commit_exists_or_fetch(&product_repo, &config.base, &config.upstream)
+                    .context(FetchBaseCommitSnafu)?;
             let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit);
 
             let product_worktree_root = ctx.worktree_root();
@@ -136,7 +157,8 @@ fn main() {
                 &product_worktree_root,
                 &ctx.worktree_branch(),
                 patched_commit,
-            );
+            )
+            .context(CheckoutProductWorktreeSnafu)?;
 
             tracing::info!(
                 worktree.root = ?product_worktree_root,
@@ -188,4 +210,6 @@ fn main() {
             );
         }
     }
+
+    Ok(())
 }

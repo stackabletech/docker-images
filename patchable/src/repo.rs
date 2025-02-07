@@ -1,48 +1,129 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use git2::{FetchOptions, ObjectType, Oid, Repository, RepositoryInitOptions, WorktreeAddOptions};
+use snafu::{ResultExt, Snafu};
+
+use crate::error::{self, CommitRef};
+
+#[derive(Debug, Snafu)]
+pub enum Error {
+    #[snafu(display("failed to init repository at {path:?}"))]
+    Init { source: git2::Error, path: PathBuf },
+    #[snafu(display("failed to open repository at {path:?}"))]
+    Open { source: git2::Error, path: PathBuf },
+
+    #[snafu(display(
+        "failed to create worktree branch {branch:?} pointing at {commit} in {repo}"
+    ))]
+    CreateWorktreeBranch {
+        source: git2::Error,
+        repo: error::RepoPath,
+        branch: String,
+        commit: error::CommitId,
+    },
+    #[snafu(display("failed to create worktree folder at {path:?}"))]
+    CreateWorktreePath {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+    #[snafu(display("failed to create worktree {path:?} pointing at {branch} in {repo}"))]
+    CreateWorktree {
+        source: git2::Error,
+        repo: error::RepoPath,
+        path: PathBuf,
+        branch: CommitRef,
+    },
+
+    #[snafu(display("failed to detach worktree {worktree} from {old_target} to {commit}"))]
+    DetachWorktree {
+        source: git2::Error,
+        worktree: error::RepoPath,
+        old_target: error::CommitRef,
+        commit: error::CommitId,
+    },
+    #[snafu(display("failed to checkout commit {commit} to worktree {worktree}"))]
+    CheckoutWorktree {
+        source: git2::Error,
+        worktree: error::RepoPath,
+        commit: error::CommitId,
+    },
+    #[snafu(display("failed to update worktree {worktree}'s head to {target}"))]
+    UpdateWorktreeHead {
+        source: git2::Error,
+        worktree: error::RepoPath,
+        target: error::CommitRef,
+    },
+
+    #[snafu(display("failed to find {commit} in {repo}"))]
+    FindCommit {
+        source: git2::Error,
+        repo: error::RepoPath,
+        commit: error::CommitRef,
+    },
+
+    #[snafu(display("failed to create remote in {repo} for {url:?}"))]
+    CreateRemote {
+        source: git2::Error,
+        repo: error::RepoPath,
+        url: String,
+    },
+    #[snafu(display("failed to fetch refs {refs:?} from {url:?} to {repo}"))]
+    Fetch {
+        source: git2::Error,
+        repo: error::RepoPath,
+        url: String,
+        refs: Vec<String>,
+    },
+}
+type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// Open the Git repository at `path`, creating it if it doesn't already exist.
 #[tracing::instrument]
-pub fn ensure_bare_repo(path: &Path) -> Repository {
+pub fn ensure_bare_repo(path: &Path) -> Result<Repository> {
     match Repository::open(path) {
         Ok(repo) => {
             tracing::info!("repository found, reusing");
-            repo
+            Ok(repo)
         }
-        Err(err) => {
+        Err(err) if err.code() == git2::ErrorCode::NotFound => {
             tracing::info!(
                 error = &err as &dyn std::error::Error,
                 "repository not found, initializing"
             );
-            let repo = Repository::init_opts(
+            Repository::init_opts(
                 path,
                 RepositoryInitOptions::new()
                     .bare(true)
                     .external_template(false),
             )
-            .unwrap();
-
-            repo
+            .context(InitSnafu { path })
         }
+        Err(err) => Err(err).context(OpenSnafu { path }),
     }
 }
 
-/// Pull `commit` from `upstream_url`, if it doesn't already exist.
+/// Fetch `commit` from `upstream_url`, if it doesn't already exist.
 #[tracing::instrument(skip(repo))]
-pub fn ensure_commit_exists_or_pull(repo: &Repository, commit: &str, upstream_url: &str) -> Oid {
-    match repo.revparse_single(commit) {
+pub fn ensure_commit_exists_or_fetch(
+    repo: &Repository,
+    commit: &str,
+    upstream_url: &str,
+) -> Result<Oid> {
+    let commit = match repo.revparse_single(commit) {
         Ok(commit_obj) => {
             tracing::info!("base commit exists, reusing");
-            commit_obj
+            Ok(commit_obj)
         }
-        Err(err) => {
+        Err(err) if err.code() == git2::ErrorCode::NotFound => {
             tracing::info!(
                 error = &err as &dyn std::error::Error,
                 "base commit not found, fetching from upstream"
             );
             repo.remote_anonymous(upstream_url)
-                .unwrap()
+                .context(CreateRemoteSnafu {
+                    repo,
+                    url: upstream_url,
+                })?
                 .fetch(
                     &[commit],
                     Some(
@@ -52,14 +133,21 @@ pub fn ensure_commit_exists_or_pull(repo: &Repository, commit: &str, upstream_ur
                     ),
                     Some("fetching patchable base commit"),
                 )
-                .unwrap();
+                .with_context(|_| FetchSnafu {
+                    repo,
+                    url: upstream_url,
+                    refs: vec![commit.to_string()],
+                })?;
             tracing::info!("fetched base commit");
-            repo.revparse_single(commit).unwrap()
+            repo.revparse_single(commit)
         }
+        Err(err) => Err(err),
     }
-    .peel_to_commit()
-    .unwrap()
-    .id()
+    .context(FindCommitSnafu { repo, commit })?;
+    Ok(commit
+        .peel_to_commit()
+        .context(FindCommitSnafu { repo, commit })?
+        .id())
 }
 
 /// Ensure that the worktree at `worktree_root` exists and is checked out at `branch`.
@@ -72,39 +160,94 @@ pub fn ensure_worktree_is_at(
     worktree_root: &Path,
     branch: &str,
     commit: Oid,
-) {
+) -> Result<()> {
+    tracing::info!("checking out worktree");
+    let commit_obj = repo
+        .find_commit(commit)
+        .context(FindCommitSnafu { repo, commit })?;
     match Repository::open(worktree_root) {
         Ok(worktree) => {
-            tracing::info!("worktree found, reusing and resetting");
+            tracing::info!("worktree found, reusing");
             // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
-            worktree
-                .set_head_detached(worktree.head().unwrap().peel_to_commit().unwrap().id())
-                .unwrap();
+            if let Ok(head) = worktree.head() {
+                tracing::info!(head.old = head.name(), "detaching worktree head");
+                let head_commit = head
+                    .peel_to_commit()
+                    .context(FindCommitSnafu {
+                        repo: &worktree,
+                        commit: &head,
+                    })?
+                    .id();
+                worktree
+                    .set_head_detached(head_commit)
+                    .context(DetachWorktreeSnafu {
+                        worktree: worktree_root,
+                        old_target: head,
+                        commit: head_commit,
+                    })?;
+            }
             let branch = worktree
-                .branch(branch, &worktree.find_commit(commit).unwrap(), true)
-                .unwrap()
+                .branch(branch, &commit_obj, true)
+                .context(CreateWorktreeBranchSnafu {
+                    repo: &worktree,
+                    branch,
+                    commit,
+                })?
                 .into_reference();
+            let commit = branch.peel(ObjectType::Commit).context(FindCommitSnafu {
+                repo: &worktree,
+                commit: &branch,
+            })?;
             worktree
-                .checkout_tree(&branch.peel(ObjectType::Commit).unwrap(), None)
-                .unwrap();
-            worktree.set_head_bytes(branch.name_bytes()).unwrap();
+                .checkout_tree(&commit, None)
+                .context(CheckoutWorktreeSnafu {
+                    worktree: &worktree,
+                    commit: &commit,
+                })?;
+            worktree
+                .set_head_bytes(branch.name_bytes())
+                .context(UpdateWorktreeHeadSnafu {
+                    worktree: &worktree,
+                    target: &branch,
+                })?;
+            Ok(())
         }
-        Err(err) => {
+        Err(err) if err.code() == git2::ErrorCode::NotFound => {
             tracing::info!(
                 error = &err as &dyn std::error::Error,
                 "worktree not found, creating"
             );
-            std::fs::create_dir_all(worktree_root.parent().unwrap()).unwrap();
+            std::fs::create_dir_all(worktree_root).context(CreateWorktreePathSnafu {
+                path: worktree_root,
+            })?;
             let worktree_ref = repo
-                .branch(branch, &repo.find_commit(commit).unwrap(), true)
-                .unwrap()
+                .branch(
+                    branch,
+                    &repo
+                        .find_commit(commit)
+                        .context(FindCommitSnafu { repo, commit })?,
+                    true,
+                )
+                .context(CreateWorktreeBranchSnafu {
+                    repo,
+                    branch,
+                    commit,
+                })?
                 .into_reference();
             repo.worktree(
                 worktree_name,
                 worktree_root,
                 Some(WorktreeAddOptions::new().reference(Some(&worktree_ref))),
             )
-            .unwrap();
+            .context(CreateWorktreeSnafu {
+                repo,
+                path: worktree_root,
+                branch: worktree_ref,
+            })?;
+            Ok(())
         }
+        Err(err) => Err(err).context(OpenSnafu {
+            path: worktree_root,
+        }),
     }
 }
