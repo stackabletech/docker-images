@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use git2::{Object, Oid, Reference, Repository};
+use git2::{Commit, Object, Oid, Reference, Repository};
 
 #[derive(Debug)]
 pub struct CommitId(Oid);
@@ -17,6 +17,11 @@ impl Display for CommitId {
 impl From<Oid> for CommitId {
     fn from(value: Oid) -> Self {
         Self(value)
+    }
+}
+impl From<&Commit<'_>> for CommitId {
+    fn from(value: &Commit<'_>) -> Self {
+        value.id().into()
     }
 }
 impl From<&Object<'_>> for CommitId {

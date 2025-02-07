@@ -196,7 +196,8 @@ fn main() -> Result<(), Error> {
                     .peel_to_commit()
                     .unwrap()
                     .id(),
-            );
+            )
+            .unwrap();
 
             let patch_dir = ctx.patch_dir();
             patch::format_patches(
@@ -204,7 +205,8 @@ fn main() -> Result<(), Error> {
                 &patch_dir,
                 base_commit,
                 canonical_leaf_commit,
-            );
+            )
+            .unwrap();
 
             tracing::info!(
                 patch.dir = ?patch_dir,
