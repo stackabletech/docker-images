@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - java: Add JDK/JRE 23 ([#992]).
 - trino: Add 469 ([#993]).
 - trino-cli: Add version 469 ([#993]).
+- hbase: Support for 2.6.1 ([#997]).
 
 ### Changed
 
@@ -56,6 +57,7 @@ All notable changes to this project will be documented in this file.
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
 [#995]: https://github.com/stackabletech/docker-images/pull/995
+[#997]: https://github.com/stackabletech/docker-images/pull/997
 
 ## [24.11.1] - 2025-01-14
 
