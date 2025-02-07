@@ -24,6 +24,7 @@ vector = importlib.import_module("vector.versions")
 nifi = importlib.import_module("nifi.versions")
 omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
+opensearch = importlib.import_module("opensearch.versions")
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 superset = importlib.import_module("superset.versions")
@@ -51,6 +52,7 @@ products = [
     {"name": "nifi", "versions": nifi.versions},
     {"name": "omid", "versions": omid.versions},
     {"name": "opa", "versions": opa.versions},
+    {"name": "opensearch", "versions": opensearch.versions},
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
     {"name": "superset", "versions": superset.versions},
