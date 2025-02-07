@@ -1,45 +1,11 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/java-devel AS storage-connector-builder
-
-ARG STORAGE_CONNECTOR
-ARG STACKABLE_USER_UID
-
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
-
-RUN curl "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
-# hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${STORAGE_CONNECTOR},target=/root/.m2/repository <<EOF
-cd trino-storage-${STORAGE_CONNECTOR}-src
-./patches/apply_patches.sh ${STORAGE_CONNECTOR}
-
-# Upstream builds are marked as -SNAPSHOT, even for release builds
-mvn versions:set -DnewVersion=${STORAGE_CONNECTOR}
-
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests -Dmaven.gitcommitid.skip=true
-EOF
+FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
 
 FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
-ARG STORAGE_CONNECTOR
 ARG STACKABLE_USER_UID
 
 RUN <<EOF
@@ -94,8 +60,7 @@ chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
 rm -r /stackable/trino-server-${PRODUCT}-src
 EOF
 
-COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
-
+COPY --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
