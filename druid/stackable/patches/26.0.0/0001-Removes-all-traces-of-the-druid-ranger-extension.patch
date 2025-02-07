@@ -42,8 +42,6 @@ index 0c6294f5ed..a33c6bd521 100644
          <module>extensions-core/druid-catalog</module>
          <module>extensions-core/testing-tools</module>
          <!-- Community extensions -->
-
-base-commit: 7cffb81a8e124d5f218f9af16ad685acf5e9c67c
 -- 
 2.48.1
 
