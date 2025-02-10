@@ -62,7 +62,8 @@ pub enum Error {
     NoSubject,
     #[snafu(display("failed to parse \"Date\" header (should be RFC2822)"))]
     InvalidMailDate {
-        source: time::error::Parse,
+        #[snafu(source(from(time::error::Parse, Box::new)))]
+        source: Box<time::error::Parse>,
         date: String,
     },
     #[snafu(display("failed to build commit signature from headers"))]

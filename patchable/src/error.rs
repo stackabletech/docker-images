@@ -8,7 +8,7 @@ use std::{
 use git2::{Commit, Object, Oid, Reference, Repository};
 
 #[derive(Debug)]
-pub struct CommitId(Oid);
+pub struct CommitId(Box<Oid>);
 impl Display for CommitId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -16,7 +16,7 @@ impl Display for CommitId {
 }
 impl From<Oid> for CommitId {
     fn from(value: Oid) -> Self {
-        Self(value)
+        Self(Box::new(value))
     }
 }
 impl From<&Commit<'_>> for CommitId {
