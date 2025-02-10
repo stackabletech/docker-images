@@ -55,6 +55,24 @@ bake --image-version 0.0.0-dev
 The GitHub action called `Build (and optionally publish) 0.0.0-dev images` can be triggered manually to do build all images in all versions.
 When triggered manually it will _not_ push the images to the registry.
 
+## Patches
+
+Many products apply Stackable-specific patches, managed by [Patchable](rust/patchable).
+
+### Check out patched sources locally
+
+This is not required for building the images, but is useful when debugging or hacking on our patch sets.
+
+```sh
+cargo patchable checkout druid 26.0.0
+```
+
+### Save patched sources
+
+```sh
+cargo patchable export druid 26.0.0
+```
+
 ## Verify Product Images
 
 To verify if Apache Zookeeper validate against OpenShift preflight, run:

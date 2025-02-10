@@ -21,12 +21,15 @@ pub enum Error {
         branch: String,
         commit: error::CommitId,
     },
-    #[snafu(display("failed to create worktree folder at {path:?}"))]
+    #[snafu(display("failed to create worktree parent folder at {path:?}"))]
     CreateWorktreePath {
         source: std::io::Error,
         path: PathBuf,
     },
-    #[snafu(display("failed to create worktree {path:?} pointing at {branch} in {repo}"))]
+    #[snafu(display(
+        "failed to create worktree {path:?} pointing at {branch} in {repo} (hint: {})",
+        "it may have been created but deleted in the past, try `git -C {repo} worktree prune`"
+    ))]
     CreateWorktree {
         source: git2::Error,
         repo: error::RepoPath,

@@ -71,7 +71,12 @@ impl ProductVersionContext<'_> {
     }
 }
 
+/// Patchable is a tool for managing patches for the third-party products distributed by Stackable.
 #[derive(clap::Parser)]
+#[clap(
+    // Encourage people to let cargo decide the current version
+    bin_name = "cargo patchable",
+)]
 struct Opts {
     #[clap(subcommand)]
     cmd: Cmd,
@@ -79,10 +84,19 @@ struct Opts {
 
 #[derive(clap::Parser)]
 enum Cmd {
+    /// Check out a patched source tree to docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
+    ///
+    /// The patches will be pulled from docker-images/<PRODUCT>/stackable/patches/<VERSION>
+    ///
+    /// The source tree will be overwritten if it already exists (equivalent to `git switch`).
     Checkout {
         #[clap(flatten)]
         pv: ProductVersion,
     },
+
+    /// Export the patches from the source tree at docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
+    ///
+    /// The patches will be saved to docker-images/<PRODUCT>/stackable/patches/<VERSION>
     Export {
         #[clap(flatten)]
         pv: ProductVersion,
