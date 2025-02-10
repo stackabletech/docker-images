@@ -1,4 +1,5 @@
-from typing import Any, Generator, override
+from typing import Any, Generator
+from overrides import override
 from airflow.auth.managers.models.base_user import BaseUser
 from airflow.auth.managers.models.resource_details import (
     AccessView,
