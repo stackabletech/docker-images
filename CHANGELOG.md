@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.
 - vector: Add version 0.43.1 ([#980]).
-- opa: Add version 1.0.0 ([#981]).
+- opa: Add version 1.0.1 ([#981], [#1000]).
 - statsd-exporter: Bump version to 0.28.0 ([#982]).
 - git-sync: Bump version to 4.4.0 ([#990]).
 - kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
 [#995]: https://github.com/stackabletech/docker-images/pull/995
 [#996]: https://github.com/stackabletech/docker-images/pull/996
 [#999]: https://github.com/stackabletech/docker-images/pull/999
+[#1000]: https://github.com/stackabletech/docker-images/pull/1000
 
 ## [24.11.1] - 2025-01-14
 
