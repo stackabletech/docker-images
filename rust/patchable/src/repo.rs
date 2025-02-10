@@ -105,24 +105,29 @@ pub fn ensure_bare_repo(path: &Path) -> Result<Repository> {
     }
 }
 
-/// Try to resolve `commitish` locally. If it doesn't exist, try to fetch it from `upstream_url`.
+/// Try to resolve and fetch `commitish` from `upstream_url`.
+///
+/// As an optimization, it can skip fetching if `commitish` is a literal commit ID that exists locally.
 ///
 /// Returns the resolved commit ID.
 #[tracing::instrument(skip(repo))]
-pub fn resolve_commitish_or_fetch(
+pub fn resolve_and_fetch_commitish(
     repo: &Repository,
     commitish: &str,
     upstream_url: &str,
 ) -> Result<Oid> {
-    let commit = match repo.revparse_single(commitish) {
+    let oid = Oid::from_str(commitish);
+    let commitish_is_oid = oid.is_ok();
+    let local_commit = oid.and_then(|oid| repo.find_commit(oid));
+    let commit = match local_commit {
         Ok(commit_obj) => {
-            tracing::info!("base commit exists, reusing");
+            tracing::info!("literal commit exists locally, reusing");
             Ok(commit_obj)
         }
-        Err(err) if err.code() == git2::ErrorCode::NotFound => {
+        Err(err) if !commitish_is_oid || err.code() == git2::ErrorCode::NotFound => {
             tracing::info!(
                 error = &err as &dyn std::error::Error,
-                "base commit not found, fetching from upstream"
+                "base commit not found locally, fetching from upstream"
             );
             repo.remote_anonymous(upstream_url)
                 .context(CreateRemoteSnafu {
@@ -147,6 +152,7 @@ pub fn resolve_commitish_or_fetch(
             tracing::info!("fetched base commit");
             // FETCH_HEAD is written by Remote::fetch to be the last reference fetched
             repo.revparse_single("FETCH_HEAD")
+                .and_then(|obj| obj.peel_to_commit())
         }
         Err(err) => Err(err),
     }
@@ -154,10 +160,7 @@ pub fn resolve_commitish_or_fetch(
         repo,
         commit: commitish,
     })?;
-    Ok(commit
-        .peel_to_commit()
-        .context(FindCommitSnafu { repo, commit })?
-        .id())
+    Ok(commit.id())
 }
 
 /// Ensure that the worktree at `worktree_root` exists and is checked out at `branch`.

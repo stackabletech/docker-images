@@ -174,12 +174,6 @@ pub enum Error {
 
     #[snafu(display("failed to open product repository at {path:?}"))]
     OpenProductRepo { source: git2::Error, path: PathBuf },
-    #[snafu(display("failed to find base commit {commit:?} in repository {repo}"))]
-    FindBaseCommit {
-        source: git2::Error,
-        repo: error::RepoPath,
-        commit: String,
-    },
     #[snafu(display("failed to find head commit in repository {repo}"))]
     FindHeadCommit {
         source: git2::Error,
@@ -245,7 +239,7 @@ fn main() -> Result<()> {
             .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
             .context(OpenProductRepoForCheckoutSnafu)?;
 
-            let base_commit = repo::resolve_commitish_or_fetch(
+            let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &config.base.to_string(),
                 &config.upstream,
@@ -341,7 +335,7 @@ fn main() -> Result<()> {
             // --base can be a reference, but patchable.toml should always have a resolved commit id,
             // so that it cannot be changed under our feet (without us knowing so, anyway...).
             tracing::info!(?base, "resolving base commit-ish");
-            let base_commit = repo::resolve_commitish_or_fetch(&product_repo, &base, &upstream)
+            let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream)
                 .context(FetchBaseCommitSnafu)?;
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
