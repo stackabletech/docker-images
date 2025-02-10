@@ -2,7 +2,7 @@
 # It's therefore ok if we only support a single version at a time.
 versions = [
     {
-        "product": "469",
+        "product": "470",
         "java-base": "23",
     },
 ]
