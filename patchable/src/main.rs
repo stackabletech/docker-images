@@ -30,15 +30,16 @@ struct ProductVersionContext<'a> {
 }
 
 impl ProductVersionContext<'_> {
-    fn load_config(&self) -> ProductVersionConfig {
+    fn load_config(&self) -> Result<ProductVersionConfig> {
+        let path = &self.config_path();
         tracing::info!(
-            config.path = %self.config_path().display(),
+            config.path = ?path,
             "loading config"
         );
         toml::from_str::<ProductVersionConfig>(
-            &std::fs::read_to_string(self.config_path()).unwrap(),
+            &std::fs::read_to_string(path).context(LoadConfigSnafu { path })?,
         )
-        .unwrap()
+        .context(ParseConfigSnafu { path })
     }
 
     fn root(&self) -> PathBuf {
@@ -90,6 +91,20 @@ enum Cmd {
 
 #[derive(Debug, Snafu)]
 pub enum Error {
+    #[snafu(display("failed to configure git logging"))]
+    ConfigureGitLogging { source: git2::Error },
+
+    #[snafu(display("failed to load config from {path:?}"))]
+    LoadConfig {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+    #[snafu(display("failed to parse config from {path:?}"))]
+    ParseConfig {
+        source: toml::de::Error,
+        path: PathBuf,
+    },
+
     #[snafu(display("failed to find images repository"))]
     FindImagesRepo { source: git2::Error },
     #[snafu(display("images repository has no work directory"))]
@@ -97,15 +112,47 @@ pub enum Error {
 
     #[snafu(display("failed to fetch patch series' base commit"))]
     FetchBaseCommit { source: repo::Error },
+    #[snafu(display("failed to apply patch series"))]
+    ApplyPatches { source: patch::Error },
 
     #[snafu(display("failed to open product repository"))]
     OpenProductRepoForCheckout { source: repo::Error },
     #[snafu(display("failed to checkout product worktree"))]
     CheckoutProductWorktree { source: repo::Error },
+
+    #[snafu(display("failed to open product repository at {path:?}"))]
+    OpenProductRepo { source: git2::Error, path: PathBuf },
+    #[snafu(display("failed to find base commit {commit:?} in repository {repo}"))]
+    FindBaseCommit {
+        source: git2::Error,
+        repo: error::RepoPath,
+        commit: String,
+    },
+    #[snafu(display("failed to find head commit in repository {repo}"))]
+    FindHeadCommit {
+        source: git2::Error,
+        repo: error::RepoPath,
+    },
+    #[snafu(display("failed to canonicalize history between {base}..{leaf}"))]
+    CanonicalizeHistory {
+        source: patch::Error,
+        base: error::CommitId,
+        leaf: error::CommitId,
+    },
+    #[snafu(display(
+        "failed to format patches between {base}..{leaf} (canonicalized from {original_leaf})"
+    ))]
+    FormatPatches {
+        source: patch::Error,
+        base: error::CommitId,
+        leaf: error::CommitId,
+        original_leaf: error::CommitId,
+    },
 }
+type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[snafu::report]
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .with(
@@ -126,7 +173,7 @@ fn main() -> Result<(), Error> {
             git2::TraceLevel::Trace => tracing::trace!(target: "git", "{msg}"),
         }
     })
-    .unwrap();
+    .context(ConfigureGitLoggingSnafu)?;
 
     let opts = <Opts as clap::Parser>::parse();
     let images_repo = Repository::discover(".").context(FindImagesRepoSnafu)?;
@@ -137,7 +184,7 @@ fn main() -> Result<(), Error> {
                 pv,
                 images_repo_root,
             };
-            let config = ctx.load_config();
+            let config = ctx.load_config()?;
             let product_repo_root = ctx.repo();
             let product_repo = tracing::info_span!(
                 "finding product repository",
@@ -149,8 +196,8 @@ fn main() -> Result<(), Error> {
             let base_commit =
                 repo::ensure_commit_exists_or_fetch(&product_repo, &config.base, &config.upstream)
                     .context(FetchBaseCommitSnafu)?;
-            let patched_commit =
-                patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit).unwrap();
+            let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
+                .context(ApplyPatchesSnafu)?;
 
             let product_worktree_root = ctx.worktree_root();
             repo::ensure_worktree_is_at(
@@ -172,32 +219,42 @@ fn main() -> Result<(), Error> {
                 pv,
                 images_repo_root,
             };
-            let config = ctx.load_config();
+            let config = ctx.load_config()?;
 
             let product_worktree_root = ctx.worktree_root();
             tracing::info!(
                 worktree.root = ?product_worktree_root,
                 "opening product worktree"
             );
-            let product_version_repo = Repository::open(&product_worktree_root).unwrap();
+            let product_version_repo =
+                Repository::open(&product_worktree_root).context(OpenProductRepoSnafu {
+                    path: product_worktree_root,
+                })?;
 
             let base_commit = product_version_repo
                 .revparse_single(&config.base)
-                .unwrap()
-                .peel_to_commit()
-                .unwrap()
+                .and_then(|c| c.peel_to_commit())
+                .context(FindBaseCommitSnafu {
+                    repo: &product_version_repo,
+                    commit: config.base,
+                })?
+                .id();
+            let original_leaf_commit = product_version_repo
+                .head()
+                .and_then(|c| c.peel_to_commit())
+                .context(FindHeadCommitSnafu {
+                    repo: &product_version_repo,
+                })?
                 .id();
             let canonical_leaf_commit = patch::canonicalize_commit_history(
                 &product_version_repo,
                 base_commit,
-                product_version_repo
-                    .head()
-                    .unwrap()
-                    .peel_to_commit()
-                    .unwrap()
-                    .id(),
+                original_leaf_commit,
             )
-            .unwrap();
+            .context(CanonicalizeHistorySnafu {
+                base: base_commit,
+                leaf: original_leaf_commit,
+            })?;
 
             let patch_dir = ctx.patch_dir();
             patch::format_patches(
@@ -206,7 +263,11 @@ fn main() -> Result<(), Error> {
                 base_commit,
                 canonical_leaf_commit,
             )
-            .unwrap();
+            .context(FormatPatchesSnafu {
+                base: base_commit,
+                leaf: canonical_leaf_commit,
+                original_leaf: original_leaf_commit,
+            })?;
 
             tracing::info!(
                 patch.dir = ?patch_dir,
