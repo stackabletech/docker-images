@@ -1,5 +1,5 @@
 [workspace]
-members = ["patchable"]
+members = ["rust/*"]
 resolver = "2"
 
 [workspace.dependencies]
