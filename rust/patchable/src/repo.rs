@@ -57,7 +57,7 @@ pub enum Error {
         target: error::CommitRef,
     },
 
-    #[snafu(display("failed to find {commit} in {repo}"))]
+    #[snafu(display("failed to find commit {commit} in {repo}"))]
     FindCommit {
         source: git2::Error,
         repo: error::RepoPath,
@@ -105,14 +105,16 @@ pub fn ensure_bare_repo(path: &Path) -> Result<Repository> {
     }
 }
 
-/// Fetch `commit` from `upstream_url`, if it doesn't already exist.
+/// Try to resolve `commitish` locally. If it doesn't exist, try to fetch it from `upstream_url`.
+///
+/// Returns the resolved commit ID.
 #[tracing::instrument(skip(repo))]
-pub fn ensure_commit_exists_or_fetch(
+pub fn resolve_commitish_or_fetch(
     repo: &Repository,
-    commit: &str,
+    commitish: &str,
     upstream_url: &str,
 ) -> Result<Oid> {
-    let commit = match repo.revparse_single(commit) {
+    let commit = match repo.revparse_single(commitish) {
         Ok(commit_obj) => {
             tracing::info!("base commit exists, reusing");
             Ok(commit_obj)
@@ -128,9 +130,10 @@ pub fn ensure_commit_exists_or_fetch(
                     url: upstream_url,
                 })?
                 .fetch(
-                    &[commit],
+                    &[commitish],
                     Some(
                         FetchOptions::new()
+                            .update_fetchhead(true)
                             // TODO: could be 1, CLI option maybe?
                             .depth(0),
                     ),
@@ -139,14 +142,18 @@ pub fn ensure_commit_exists_or_fetch(
                 .with_context(|_| FetchSnafu {
                     repo,
                     url: upstream_url,
-                    refs: vec![commit.to_string()],
+                    refs: vec![commitish.to_string()],
                 })?;
             tracing::info!("fetched base commit");
-            repo.revparse_single(commit)
+            // FETCH_HEAD is written by Remote::fetch to be the last reference fetched
+            repo.revparse_single("FETCH_HEAD")
         }
         Err(err) => Err(err),
     }
-    .context(FindCommitSnafu { repo, commit })?;
+    .context(FindCommitSnafu {
+        repo,
+        commit: commitish,
+    })?;
     Ok(commit
         .peel_to_commit()
         .context(FindCommitSnafu { repo, commit })?

@@ -5,20 +5,29 @@ mod repo;
 mod utils;
 
 use core::str;
-use std::path::{Path, PathBuf};
+use std::{
+    fs::File,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 use git2::Repository;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
 struct ProductVersion {
+    /// The product name slug (such as druid)
     product: String,
+
+    /// The product version (such as 28.0.0)
+    ///
+    /// Should not contain a v prefix.
     version: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ProductVersionConfig {
     upstream: String,
     base: String,
@@ -101,6 +110,22 @@ enum Cmd {
         #[clap(flatten)]
         pv: ProductVersion,
     },
+
+    /// Creates a patchable.toml for a given product version
+    Init {
+        #[clap(flatten)]
+        pv: ProductVersion,
+
+        /// The upstream URL (such as https://github.com/apache/druid.git)
+        #[clap(long)]
+        upstream: String,
+
+        /// The upstream commit-ish (such as druid-28.0.0) that the patch series applies to
+        ///
+        /// Refs (such as tags and branches) will be resolved to commit IDs.
+        #[clap(long)]
+        base: String,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -116,6 +141,18 @@ pub enum Error {
     #[snafu(display("failed to parse config from {path:?}"))]
     ParseConfig {
         source: toml::de::Error,
+        path: PathBuf,
+    },
+    #[snafu(display("failed to serialize config"))]
+    SerializeConfig { source: toml::ser::Error },
+    #[snafu(display("failed to create patch dir at {path:?}"))]
+    CreatePatchDir {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+    #[snafu(display("failed to save config to {path:?}"))]
+    SaveConfig {
+        source: std::io::Error,
         path: PathBuf,
     },
 
@@ -208,7 +245,7 @@ fn main() -> Result<()> {
             .context(OpenProductRepoForCheckoutSnafu)?;
 
             let base_commit =
-                repo::ensure_commit_exists_or_fetch(&product_repo, &config.base, &config.upstream)
+                repo::resolve_commitish_or_fetch(&product_repo, &config.base, &config.upstream)
                     .context(FetchBaseCommitSnafu)?;
             let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
                 .context(ApplyPatchesSnafu)?;
@@ -228,6 +265,7 @@ fn main() -> Result<()> {
                 "worktree is ready!"
             );
         }
+
         Cmd::Export { pv } => {
             let ctx = ProductVersionContext {
                 pv,
@@ -287,6 +325,40 @@ fn main() -> Result<()> {
                 patch.dir = ?patch_dir,
                 "worktree is exported!"
             );
+        }
+
+        Cmd::Init { pv, upstream, base } => {
+            let ctx = ProductVersionContext {
+                pv,
+                images_repo_root,
+            };
+
+            let product_repo_root = ctx.repo();
+            let product_repo = tracing::info_span!(
+                "finding product repository",
+                product.repository = ?product_repo_root,
+            )
+            .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
+            .context(OpenProductRepoForCheckoutSnafu)?;
+
+            tracing::info!(?base, "resolving base commit-ish");
+            let base_commit = repo::resolve_commitish_or_fetch(&product_repo, &base, &upstream)
+                .context(FetchBaseCommitSnafu)?;
+            tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
+
+            let config = ProductVersionConfig {
+                upstream,
+                base: base.to_string(),
+            };
+            let config_path = ctx.config_path();
+            if let Some(config_dir) = config_path.parent() {
+                std::fs::create_dir_all(config_dir)
+                    .context(CreatePatchDirSnafu { path: config_dir })?;
+            }
+            let config_toml = toml::to_string_pretty(&config).context(SerializeConfigSnafu)?;
+            File::create_new(&config_path)
+                .and_then(|mut f| f.write_all(config_toml.as_bytes()))
+                .context(SaveConfigSnafu { path: config_path })?;
         }
     }
 

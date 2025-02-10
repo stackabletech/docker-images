@@ -37,3 +37,11 @@ It currently recognizes the following keys:
 
 - `upstream` - the URL of the upstream repository (such as `https://github.com/apache/druid.git`)
 - `base` - the commit hash of the upstream base commit (such as `7cffb81a8e124d5f218f9af16ad685acf5e9c67c`)
+
+### Template
+
+Instead of creating this manually, run `patchable init`:
+
+```toml
+cargo patchable init druid 28.0.0 --upstream=https://github.com/apache/druid.git --base=druid-28.0.0
+```
