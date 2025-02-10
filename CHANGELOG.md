@@ -22,6 +22,9 @@ All notable changes to this project will be documented in this file.
 - trino: Add 469 ([#993]).
 - trino-cli: Add version 469 ([#993]).
 - trino-storage-connector: Add version 469 ([#996]).
+- trino: Add 470 ([#999]).
+- trino-cli: Add version 470 ([#999]).
+- trino-storage-connector: Add version 470 ([#999]).
 
 ### Changed
 
@@ -33,7 +36,10 @@ All notable changes to this project will be documented in this file.
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 - vector: remove version 0.41.1 ([#980]).
-- opa: remove version 0.66.0 ([#981])
+- opa: remove version 0.66.0 ([#981]).
+- trino: Remove 469 ([#999]).
+- trino-cli: Remove version 469 ([#999]).
+- trino-storage-connector: Remove version 469 ([#999]).
 
 ### Fixed
 
@@ -59,6 +65,7 @@ All notable changes to this project will be documented in this file.
 [#993]: https://github.com/stackabletech/docker-images/pull/993
 [#995]: https://github.com/stackabletech/docker-images/pull/995
 [#996]: https://github.com/stackabletech/docker-images/pull/996
+[#999]: https://github.com/stackabletech/docker-images/pull/999
 
 ## [24.11.1] - 2025-01-14
 

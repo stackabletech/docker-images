@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Tue, 4 Feb 2025 10:49:16 +0100
+Date: Mon, 10 Feb 2025 12:16:43 +0100
 Subject: Add cyclonedx plugin
 
 ---
@@ -8,10 +8,10 @@ Subject: Add cyclonedx plugin
  1 file changed, 18 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index 0d27151d77..b1682d7ab3 100644
+index a1604d5ebe..3f9f794504 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -2850,6 +2850,24 @@
+@@ -2814,6 +2814,24 @@
                      </excludes>
                  </configuration>
              </plugin>
@@ -37,7 +37,7 @@ index 0d27151d77..b1682d7ab3 100644
      </build>
  
 
-base-commit: 39ef08e249549a6616916539f4ad21032d084c7a
+base-commit: 05bc059cf0c9263e4ee8be2c1ad69753d0dd4faf
 -- 
 2.40.1
 
