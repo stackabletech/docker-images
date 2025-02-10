@@ -11,7 +11,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use git2::Repository;
+use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
@@ -30,7 +30,8 @@ struct ProductVersion {
 #[derive(Deserialize, Serialize)]
 struct ProductVersionConfig {
     upstream: String,
-    base: String,
+    #[serde(with = "utils::oid_serde")]
+    base: Oid,
 }
 
 struct ProductVersionContext<'a> {
@@ -244,9 +245,12 @@ fn main() -> Result<()> {
             .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
             .context(OpenProductRepoForCheckoutSnafu)?;
 
-            let base_commit =
-                repo::resolve_commitish_or_fetch(&product_repo, &config.base, &config.upstream)
-                    .context(FetchBaseCommitSnafu)?;
+            let base_commit = repo::resolve_commitish_or_fetch(
+                &product_repo,
+                &config.base.to_string(),
+                &config.upstream,
+            )
+            .context(FetchBaseCommitSnafu)?;
             let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
                 .context(ApplyPatchesSnafu)?;
 
@@ -283,14 +287,7 @@ fn main() -> Result<()> {
                     path: product_worktree_root,
                 })?;
 
-            let base_commit = product_version_repo
-                .revparse_single(&config.base)
-                .and_then(|c| c.peel_to_commit())
-                .context(FindBaseCommitSnafu {
-                    repo: &product_version_repo,
-                    commit: config.base,
-                })?
-                .id();
+            let base_commit = config.base;
             let original_leaf_commit = product_version_repo
                 .head()
                 .and_then(|c| c.peel_to_commit())
@@ -341,14 +338,17 @@ fn main() -> Result<()> {
             .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
             .context(OpenProductRepoForCheckoutSnafu)?;
 
+            // --base can be a reference, but patchable.toml should always have a resolved commit id,
+            // so that it cannot be changed under our feet (without us knowing so, anyway...).
             tracing::info!(?base, "resolving base commit-ish");
             let base_commit = repo::resolve_commitish_or_fetch(&product_repo, &base, &upstream)
                 .context(FetchBaseCommitSnafu)?;
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
+            tracing::info!("saving configuration");
             let config = ProductVersionConfig {
                 upstream,
-                base: base.to_string(),
+                base: base_commit,
             };
             let config_path = ctx.config_path();
             if let Some(config_dir) = config_path.parent() {
@@ -358,7 +358,14 @@ fn main() -> Result<()> {
             let config_toml = toml::to_string_pretty(&config).context(SerializeConfigSnafu)?;
             File::create_new(&config_path)
                 .and_then(|mut f| f.write_all(config_toml.as_bytes()))
-                .context(SaveConfigSnafu { path: config_path })?;
+                .context(SaveConfigSnafu { path: &config_path })?;
+
+            tracing::info!(
+                config.path = ?config_path,
+                product = ctx.pv.product,
+                version = ctx.pv.version,
+                "created configuration for product version"
+            );
         }
     }
 
