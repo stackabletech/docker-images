@@ -14,10 +14,10 @@ versions = [
         "trino-storage-connector": "455",
     },
     {
-        "product": "469",
+        "product": "470",
         "java-base": "23",
         "java-devel": "23",
         "jmx_exporter": "1.1.0",
-        "trino-storage-connector": "469",
+        "trino-storage-connector": "470",
     },
 ]
