@@ -29,6 +29,7 @@ stackable_base = importlib.import_module("stackable-base.versions")
 superset = importlib.import_module("superset.versions")
 trino_cli = importlib.import_module("trino-cli.versions")
 trino = importlib.import_module("trino.versions")
+trino_storage_connector = importlib.import_module("trino-storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
 kcat = importlib.import_module("kcat.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
@@ -56,6 +57,7 @@ products = [
     {"name": "superset", "versions": superset.versions},
     {"name": "trino-cli", "versions": trino_cli.versions},
     {"name": "trino", "versions": trino.versions},
+    {"name": "trino-storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
     {"name": "kcat", "versions": kcat.versions},
     {"name": "testing-tools", "versions": testing_tools.versions},
@@ -94,5 +96,5 @@ args = {
     "STACKABLE_USER_NAME": "stackable",
     "STACKABLE_USER_UID": "1000",
     "STACKABLE_USER_GID": "1000",
-    "DELETE_CACHES": "true"
+    "DELETE_CACHES": "true",
 }

@@ -33,16 +33,16 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Delete old patch directories.
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 ```
 
 ```[tasklist]
 ### Related Pull Requests
 - [ ] _Link to the docker-images PR (product update)_
-- [ ] _Link to the operator PR (getting_started / kuttl)_
+- [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
 - [ ] _Link to [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) PR_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
@@ -71,7 +71,7 @@ pip install image-tools-stackabletech==0.0.13
 
 bake --product druid=x.y.z # where x.y.z is the new version added in this PR
 
-kind load docker-image docker.stackable.tech/stackable/druid:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/druid:x.y.z-stackable0.0.0-dev
 
 # Change directory into the druid-operator repository and update the
 # product version in tests/test-definition.yaml
