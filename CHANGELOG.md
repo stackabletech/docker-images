@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add 470 ([#999]).
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
+- superset: Add version `4.1.1` ([#991]).
 
 ### Changed
 
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#989]: https://github.com/stackabletech/docker-images/pull/989
 [#990]: https://github.com/stackabletech/docker-images/pull/990
 [#988]: https://github.com/stackabletech/docker-images/pull/988
+[#991]: https://github.com/stackabletech/docker-images/pull/991
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
 [#995]: https://github.com/stackabletech/docker-images/pull/995
