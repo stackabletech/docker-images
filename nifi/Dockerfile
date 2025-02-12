@@ -87,15 +87,17 @@ ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
 microdnf update
 
-# python-pip: Required to install nipyapi
+# python-pip: Required to install Python packages
+# Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
 microdnf install \
   python-pip
 
 microdnf clean all
 rm -rf /var/cache/yum
 
-# The nipyapi is required for the ReportingTaskJob
-pip install --no-cache-dir nipyapi==0.19.1 && \
+# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
+pip install --no-cache-dir \
+    nipyapi==0.19.1
 
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported

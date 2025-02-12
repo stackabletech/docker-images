@@ -18,7 +18,8 @@ from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.stats import Stats
 from airflow.utils.log.logging_mixin import LoggingMixin
 from cachetools import TTLCache, cachedmethod
-from typing import override
+from typing import Optional, Union
+from overrides import override
 import json
 import requests
 
@@ -132,8 +133,8 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        details: ConfigurationDetails | None = None,
-        user: BaseUser | None = None,
+        details: Optional[ConfigurationDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on
@@ -178,8 +179,8 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        details: ConnectionDetails | None = None,
-        user: BaseUser | None = None,
+        details: Optional[ConnectionDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a connection.
@@ -223,9 +224,9 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        access_entity: DagAccessEntity | None = None,
-        details: DagDetails | None = None,
-        user: BaseUser | None = None,
+        access_entity: Optional[DagAccessEntity] = None,
+        details: Optional[DagDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a DAG.
@@ -277,8 +278,8 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        details: DatasetDetails | None = None,
-        user: BaseUser | None = None,
+        details: Optional[DatasetDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a dataset.
@@ -322,8 +323,8 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        details: PoolDetails | None = None,
-        user: BaseUser | None = None,
+        details: Optional[PoolDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a pool.
@@ -367,8 +368,8 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         method: ResourceMethod,
-        details: VariableDetails | None = None,
-        user: BaseUser | None = None,
+        details: Optional[VariableDetails] = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a variable.
@@ -412,7 +413,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         access_view: AccessView,
-        user: BaseUser | None = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to access a read-only state of the installation.
@@ -446,9 +447,9 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     def is_authorized_custom_view(
         self,
         *,
-        method: ResourceMethod | str,
+        method: Union[ResourceMethod, str],
         resource_name: str,
-        user: BaseUser | None = None,
+        user: Optional[BaseUser] = None,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a custom view.
