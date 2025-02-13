@@ -76,6 +76,10 @@ impl ProductVersionContext<'_> {
         self.work_root().join("worktree").join(&self.pv.version)
     }
 
+    fn base_branch(&self) -> String {
+        format!("patchable/base/{}", self.pv.version)
+    }
+
     fn worktree_branch(&self) -> String {
         format!("patchable/{}", self.pv.version)
     }
@@ -245,21 +249,47 @@ fn main() -> Result<()> {
                 &config.upstream,
             )
             .context(FetchBaseCommitSnafu)?;
+            let base_branch = ctx.base_branch();
+            let base_branch = match product_repo
+                .find_commit(base_commit)
+                .and_then(|base| product_repo.branch(&base_branch, &base, true))
+            {
+                Ok(_) => {
+                    tracing::info!(
+                        branch.base = base_branch,
+                        branch.base.commit = %base_commit,
+                        "updated base branch"
+                    );
+                    Some(base_branch)
+                }
+                Err(err) => {
+                    tracing::warn!(
+                        error = &err as &dyn std::error::Error,
+                        branch.base = base_branch,
+                        branch.base.commit = %base_commit,
+                        "failed to update base branch reference, ignoring..."
+                    );
+                    None
+                }
+            };
             let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
                 .context(ApplyPatchesSnafu)?;
 
             let product_worktree_root = ctx.worktree_root();
+            let worktree_branch = ctx.worktree_branch();
             repo::ensure_worktree_is_at(
                 &product_repo,
                 &ctx.pv.version,
                 &product_worktree_root,
-                &ctx.worktree_branch(),
+                &worktree_branch,
                 patched_commit,
             )
             .context(CheckoutProductWorktreeSnafu)?;
 
             tracing::info!(
                 worktree.root = ?product_worktree_root,
+                branch.worktree = worktree_branch,
+                branch.base = base_branch,
                 "worktree is ready!"
             );
 

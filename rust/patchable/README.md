@@ -12,8 +12,7 @@ to be an individual patch.
 ## Usage
 
 ```sh
-cargo patchable checkout druid 26.0.0
-pushd $(git rev-parse --show-toplevel)/druid/patchable-work/worktree/26.0.0/
+pushd $(cargo patchable checkout druid 26.0.0)
 # do stuff
 git commit
 popd

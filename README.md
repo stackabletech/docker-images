@@ -64,13 +64,40 @@ Many products apply Stackable-specific patches, managed by [Patchable](rust/patc
 This is not required for building the images, but is useful when debugging or hacking on our patch sets.
 
 ```sh
-cargo patchable checkout druid 26.0.0
+cd $(cargo patchable checkout druid 26.0.0)
 ```
 
 ### Save patched sources
 
 ```sh
 cargo patchable export druid 26.0.0
+```
+
+### Porting patch series to a new version
+
+Patchable doesn't support restoring a patch series that doesn't apply cleanly. Instead, use `git cherry-pick` to rebase the patch series.
+
+For example, let's try rebasing our patch series from Druid 26.0.0 to Druid 28.0.0 (which is not packaged by SDP):
+
+```sh
+# Restore the old version
+# In addition to creating the version worktree, this also creates the branches patchable/26.0.0 (26.0.0 with our patches applied) and
+# patchable/base/26.0.0 (upstream 26.0.0 with no patches).
+cargo patchable checkout druid 26.0.0
+# Tell Patchable about the new version 28.0.0, which can be fetched from https://github.com/apache/druid.git, and has the tag druid-28.0.0
+cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
+# Create and go to the worktree for the new version
+pushd $(cargo patchable checkout druid 28.0.0)
+
+# Rebase the patch series
+git cherry-pick patchable/base/26.0.0..patchable/26.0.0
+# Solve conflicts and `git cherry-pick --continue` until done
+# You can also use `git cherry-pick --skip` to skip patches that are no longer required
+
+# Leave and export the new patch series!
+popd
+cargo patchable export druid 28.0.0
+git status
 ```
 
 ## Verify Product Images
