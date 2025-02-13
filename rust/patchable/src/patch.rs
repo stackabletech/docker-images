@@ -128,6 +128,8 @@ fn patch_files(patch_dir: &Path) -> Result<Vec<PathBuf>> {
                 "series file found, treating as stgit series"
             );
             file.lines()
+                // Skip comment lines
+                .filter(|line| !line.starts_with('#'))
                 .map(|file_name| patch_dir.join(file_name))
                 .collect::<Vec<_>>()
         }
