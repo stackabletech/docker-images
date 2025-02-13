@@ -200,7 +200,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 #[snafu::report]
 fn main() -> Result<()> {
     tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
@@ -262,6 +262,9 @@ fn main() -> Result<()> {
                 worktree.root = ?product_worktree_root,
                 "worktree is ready!"
             );
+
+            // Print directory so you can run `cd $(cargo patchable checkout ...)`
+            println!("{}", product_worktree_root.display());
         }
 
         Cmd::Export { pv } => {
