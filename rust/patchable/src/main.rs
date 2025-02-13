@@ -118,6 +118,10 @@ enum Cmd {
     Checkout {
         #[clap(flatten)]
         pv: ProductVersion,
+
+        /// Check out the base commit, without applying patches
+        #[clap(long)]
+        base_only: bool,
     },
 
     /// Export the patches from the source tree at docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
@@ -241,7 +245,7 @@ fn main() -> Result<()> {
     let images_repo = Repository::discover(".").context(FindImagesRepoSnafu)?;
     let images_repo_root = images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?;
     match opts.cmd {
-        Cmd::Checkout { pv } => {
+        Cmd::Checkout { pv, base_only } => {
             let ctx = ProductVersionContext {
                 pv,
                 images_repo_root,
@@ -280,8 +284,13 @@ fn main() -> Result<()> {
                     None
                 }
             };
-            let patched_commit = patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
-                .context(ApplyPatchesSnafu)?;
+            let patched_commit = if !base_only {
+                patch::apply_patches(&product_repo, &ctx.patch_dir(), base_commit)
+                    .context(ApplyPatchesSnafu)?
+            } else {
+                tracing::warn!("--base-only specified, skipping patches");
+                base_commit
+            };
 
             let product_worktree_root = ctx.worktree_root();
             let worktree_branch = ctx.worktree_branch();

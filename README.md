@@ -79,6 +79,27 @@ cargo patchable export druid 26.0.0
 cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
 ```
 
+### Importing patch series into Patchable
+
+Patchable is stricter about applying invalid patches (both metadata and patches themselves) than Git is.
+
+If an initial `cargo patchable checkout` fails then `git am` can be useful for the initial migration:
+
+```sh
+# Create Patchable configuration for the new version, if it doesn't already exist
+cargo patchable init druid 30.0.0 --upstream https://github.com/apache/druid.git --base druid-30.0.0
+# Check out the upstream base commit, without trying to apply the patches
+pushd $(cargo patchable checkout druid 30.0.0 --base-only)
+
+# Apply the patch series
+git am ../../../stackable/patches/30.0.0/*.patch
+# Resolve any conflicts that arise, and `git am --continue` until done
+
+# Leave and export the new patch series!
+popd
+cargo patchable export druid 30.0.0
+```
+
 ### Porting patch series to a new version
 
 Patchable doesn't support restoring a patch series that doesn't apply cleanly. Instead, use `git cherry-pick` to rebase the patch series.
