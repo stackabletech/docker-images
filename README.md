@@ -73,6 +73,12 @@ cd $(cargo patchable checkout druid 26.0.0)
 cargo patchable export druid 26.0.0
 ```
 
+### Initialize a new patch series
+
+```sh
+cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
+```
+
 ### Porting patch series to a new version
 
 Patchable doesn't support restoring a patch series that doesn't apply cleanly. Instead, use `git cherry-pick` to rebase the patch series.

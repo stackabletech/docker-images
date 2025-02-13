@@ -52,34 +52,46 @@ impl ProductVersionContext<'_> {
         .context(ParseConfigSnafu { path })
     }
 
-    fn root(&self) -> PathBuf {
+    /// The root directory for files related to the product (across all versions).
+    fn product_dir(&self) -> PathBuf {
         self.images_repo_root.join(&self.pv.product)
     }
 
+    /// The directory containing patches for the product version.
     fn patch_dir(&self) -> PathBuf {
-        self.root().join("stackable/patches").join(&self.pv.version)
+        self.product_dir()
+            .join("stackable/patches")
+            .join(&self.pv.version)
     }
 
+    /// The patchable configuration file for the product version.
     fn config_path(&self) -> PathBuf {
         self.patch_dir().join("patchable.toml")
     }
 
+    /// The directory containing all ephemeral data used by patchable for the product (across all versions).
+    ///
+    /// Should be gitignored, and can safely be deleted as long as all relevant versions have been `patchable export`ed.
     fn work_root(&self) -> PathBuf {
-        self.root().join("patchable-work")
+        self.product_dir().join("patchable-work")
     }
 
-    fn repo(&self) -> PathBuf {
+    /// The repository for the product (across all versions).
+    fn product_repo(&self) -> PathBuf {
         self.work_root().join("product-repo")
     }
 
+    /// The worktree root for the product version.
     fn worktree_root(&self) -> PathBuf {
         self.work_root().join("worktree").join(&self.pv.version)
     }
 
+    /// Branch pointing at the upstream base commit for the product version.
     fn base_branch(&self) -> String {
         format!("patchable/base/{}", self.pv.version)
     }
 
+    /// branch pointing at the last commit in the patch series for the product version.
     fn worktree_branch(&self) -> String {
         format!("patchable/{}", self.pv.version)
     }
@@ -235,13 +247,9 @@ fn main() -> Result<()> {
                 images_repo_root,
             };
             let config = ctx.load_config()?;
-            let product_repo_root = ctx.repo();
-            let product_repo = tracing::info_span!(
-                "finding product repository",
-                product.repository = ?product_repo_root,
-            )
-            .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
-            .context(OpenProductRepoForCheckoutSnafu)?;
+            let product_repo_root = ctx.product_repo();
+            let product_repo = repo::ensure_bare_repo(&product_repo_root)
+                .context(OpenProductRepoForCheckoutSnafu)?;
 
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
@@ -357,7 +365,7 @@ fn main() -> Result<()> {
                 images_repo_root,
             };
 
-            let product_repo_root = ctx.repo();
+            let product_repo_root = ctx.product_repo();
             let product_repo = tracing::info_span!(
                 "finding product repository",
                 product.repository = ?product_repo_root,

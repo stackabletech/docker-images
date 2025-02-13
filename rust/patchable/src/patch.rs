@@ -171,10 +171,7 @@ fn patch_files(patch_dir: &Path) -> Result<Vec<PathBuf>> {
 ///   even if those files are modified by some of the patches)
 #[tracing::instrument(skip(repo))]
 pub fn apply_patches(repo: &Repository, patch_dir: &Path, base_commit: Oid) -> Result<Oid> {
-    tracing::info!(
-        patch.dir = %patch_dir.display(),
-        "applying patches"
-    );
+    tracing::info!("applying patches");
     let mut last_commit_id = base_commit;
     for ref patch_file in patch_files(patch_dir)? {
         tracing::info!(
