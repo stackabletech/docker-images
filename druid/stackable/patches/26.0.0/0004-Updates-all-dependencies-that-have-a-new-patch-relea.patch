@@ -132,6 +132,3 @@ index f5001910e1..2364f27dc4 100644
          <!-- When upgrading ZK, edit docs and integration tests as well (integration-tests/docker-base/setup.sh) -->
          <zookeeper.version>3.5.10</zookeeper.version>
          <checkerframework.version>2.5.7</checkerframework.version>
--- 
-2.48.1
-

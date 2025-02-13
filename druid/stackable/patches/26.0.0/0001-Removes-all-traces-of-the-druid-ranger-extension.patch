@@ -42,6 +42,3 @@ index 0c6294f5ed..a33c6bd521 100644
          <module>extensions-core/druid-catalog</module>
          <module>extensions-core/testing-tools</module>
          <!-- Community extensions -->
--- 
-2.48.1
-

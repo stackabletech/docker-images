@@ -345,7 +345,11 @@ pub fn format_patches(
         .arg(format!("{base_commit}..{leaf_commit}"))
         .arg("-o")
         .arg(patch_dir)
-        .arg("--keep-subject")
+        .args([
+            "--keep-subject",
+            // By default, git includes its own version number as a suffix, which makes patches unstable across git versions
+            "--no-signature",
+        ])
         .status()
         .context(RunFormatMailSnafu)?;
     if !status.success() {

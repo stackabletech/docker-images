@@ -24,6 +24,3 @@ index 2364f27dc4..c902899304 100644
                  <executions>
                      <execution>
                          <phase>package</phase>
--- 
-2.48.1
-
