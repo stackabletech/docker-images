@@ -7,7 +7,15 @@ let
   bake = pkgs.callPackage (sources.image-tools + "/image-tools.nix") { };
 in
 pkgs.mkShell {
-  packages = with pkgs; [
+  packages = [
     bake
+  ];
+
+  buildInputs = [
+    # Required for libraries to be discoverable
+    pkgs.pkg-config
+
+    # Required by patchable
+    pkgs.openssl
   ];
 }
