@@ -1,0 +1,103 @@
+diff --git a/config/jvm.options b/config/jvm.options
+index bcaa277..df9c34e 100644
+--- a/config/jvm.options
++++ b/config/jvm.options
+@@ -89,5 +89,5 @@
+ ## OpenDistro Performance Analyzer
+ -Dclk.tck=100
+ -Djdk.attach.allowAttachSelf=true
+--Djava.security.policy=/usr/share/opensearch/config/opensearch-performance-analyzer/opensearch_security.policy
++-Djava.security.policy=/stackable/opensearch/config/opensearch-performance-analyzer/opensearch_security.policy
+ --add-opens=jdk.attach/sun.tools.attach=ALL-UNNAMED
+diff --git a/config/opensearch-performance-analyzer/supervisord.conf b/config/opensearch-performance-analyzer/supervisord.conf
+index e4c061c..b67886f 100644
+--- a/config/opensearch-performance-analyzer/supervisord.conf
++++ b/config/opensearch-performance-analyzer/supervisord.conf
+@@ -1,13 +1,13 @@
+ ; supervisor config file
+ 
+ [unix_http_server]
+-file=/usr/share/supervisor/performance_analyzer/supervisord.sock
++file=/stackable/supervisor/performance_analyzer/supervisord.sock
+ chmod=0770
+ 
+ [supervisord]
+-logfile=/usr/share/supervisor/performance_analyzer/supervisord.log ; (main log file;default $CWD/supervisord.log)
+-pidfile=/usr/share/supervisor/performance_analyzer/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
+-childlogdir=/usr/share/supervisor/performance_analyzer             ; ('AUTO' child log dir, default $TEMP)
++logfile=/stackable/supervisor/performance_analyzer/supervisord.log ; (main log file;default $CWD/supervisord.log)
++pidfile=/stackable/supervisor/performance_analyzer/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
++childlogdir=/stackable/supervisor/performance_analyzer             ; ('AUTO' child log dir, default $TEMP)
+ 
+ ; the below section must remain in the config file for RPC
+ ; (supervisorctl/web interface) to work, additional interfaces may be
+@@ -16,7 +16,7 @@ childlogdir=/usr/share/supervisor/performance_analyzer             ; ('AUTO' chi
+ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+ 
+ [supervisorctl]
+-serverurl=/usr/share/supervisord.sock
++serverurl=/stackable/supervisord.sock
+ 
+ ; The [include] section can just contain the "files" setting.  This
+ ; setting can list multiple files (separated by whitespace or
+@@ -27,7 +27,7 @@ serverurl=/usr/share/supervisord.sock
+ files = /etc/supervisor/conf.d/*.conf
+ 
+ [program:performance_analyzer]
+-command=/usr/share/opensearch/performance-analyzer-rca/bin/performance-analyzer-agent /usr/share/opensearch
++command=/stackable/opensearch/performance-analyzer-rca/bin/performance-analyzer-agent /stackable/opensearch
+ user=1000
+ autostart=true                                                      ; start at supervisord start (default: true)
+ autorestart=unexpected                                              ; autorestart if exited after running (def: unexpected)
+diff --git a/opensearch-docker-entrypoint.sh b/opensearch-docker-entrypoint.sh
+index d998663..45ef018 100755
+--- a/opensearch-docker-entrypoint.sh
++++ b/opensearch-docker-entrypoint.sh
+@@ -9,7 +9,6 @@
+ # in favor of a newly started container
+ 
+ # Export OpenSearch Home
+-export OPENSEARCH_HOME=/usr/share/opensearch
+ export OPENSEARCH_PATH_CONF=$OPENSEARCH_HOME/config
+ 
+ # The virtual file /proc/self/cgroup should list the current cgroup
+diff --git a/performance-analyzer-rca/config/supervisord.conf b/performance-analyzer-rca/config/supervisord.conf
+index e4c061c..b67886f 100644
+--- a/performance-analyzer-rca/config/supervisord.conf
++++ b/performance-analyzer-rca/config/supervisord.conf
+@@ -1,13 +1,13 @@
+ ; supervisor config file
+ 
+ [unix_http_server]
+-file=/usr/share/supervisor/performance_analyzer/supervisord.sock
++file=/stackable/supervisor/performance_analyzer/supervisord.sock
+ chmod=0770
+ 
+ [supervisord]
+-logfile=/usr/share/supervisor/performance_analyzer/supervisord.log ; (main log file;default $CWD/supervisord.log)
+-pidfile=/usr/share/supervisor/performance_analyzer/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
+-childlogdir=/usr/share/supervisor/performance_analyzer             ; ('AUTO' child log dir, default $TEMP)
++logfile=/stackable/supervisor/performance_analyzer/supervisord.log ; (main log file;default $CWD/supervisord.log)
++pidfile=/stackable/supervisor/performance_analyzer/supervisord.pid ; (supervisord pidfile;default supervisord.pid)
++childlogdir=/stackable/supervisor/performance_analyzer             ; ('AUTO' child log dir, default $TEMP)
+ 
+ ; the below section must remain in the config file for RPC
+ ; (supervisorctl/web interface) to work, additional interfaces may be
+@@ -16,7 +16,7 @@ childlogdir=/usr/share/supervisor/performance_analyzer             ; ('AUTO' chi
+ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+ 
+ [supervisorctl]
+-serverurl=/usr/share/supervisord.sock
++serverurl=/stackable/supervisord.sock
+ 
+ ; The [include] section can just contain the "files" setting.  This
+ ; setting can list multiple files (separated by whitespace or
+@@ -27,7 +27,7 @@ serverurl=/usr/share/supervisord.sock
+ files = /etc/supervisor/conf.d/*.conf
+ 
+ [program:performance_analyzer]
+-command=/usr/share/opensearch/performance-analyzer-rca/bin/performance-analyzer-agent /usr/share/opensearch
++command=/stackable/opensearch/performance-analyzer-rca/bin/performance-analyzer-agent /stackable/opensearch
+ user=1000
+ autostart=true                                                      ; start at supervisord start (default: true)
+ autorestart=unexpected                                              ; autorestart if exited after running (def: unexpected)
