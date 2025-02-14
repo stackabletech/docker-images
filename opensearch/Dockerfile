@@ -1,6 +1,8 @@
 ARG PRODUCT
 
+
 FROM opensearchproject/opensearch:${PRODUCT} AS source
+
 
 FROM stackable/image/java-devel AS builder
 
@@ -11,8 +13,7 @@ RUN <<EOF
 microdnf update
 
 # patch: Required for the apply-patches.sh script
-microdnf install \
-patch
+microdnf install patch
 
 microdnf clean all
 rm -rf /var/cache/yum
@@ -21,18 +22,40 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=source /usr/share/opensearch opensearch
-COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/apply_patches.sh opensearch/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/${PRODUCT} opensearch/patches/${PRODUCT}
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=source \
+    /usr/share/opensearch \
+    opensearch
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    opensearch/stackable/patches/apply_patches.sh \
+    opensearch/patches/apply_patches.sh
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    opensearch/stackable/patches/${PRODUCT} \
+    opensearch/patches/${PRODUCT}
 
 WORKDIR /stackable/opensearch
 
 RUN <<EOF
 patches/apply_patches.sh ${PRODUCT}
 rm -r patches
+
+# The JDK from jdk-base is used instead.
+rm -r jdk
+
+# Change the group permissions already in the builder image to reduce
+# the size of the final image.
+# see https://github.com/stackabletech/docker-images/issues/961
+chmod -R g=u ${HOME}
 EOF
 
-FROM stackable/image/java-base AS final
+
+# The OpenSearch Performance Analyzer needs a JDK, not just a JRE.
+# With a JRE, the following exception is thrown:
+# java.lang.ClassNotFoundException: com.sun.tools.attach.VirtualMachine
+FROM stackable/image/jdk-base
 
 ARG PRODUCT
 ARG RELEASE
@@ -55,7 +78,11 @@ LABEL org.opencontainers.image.revision="${RELEASE}"
 LABEL org.opencontainers.image.title="${NAME}"
 LABEL org.opencontainers.image.description="${DESCRIPTION}"
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/opensearch ${OPENSEARCH_HOME}
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=builder \
+    /stackable/opensearch \
+    ${OPENSEARCH_HOME}
 
 RUN <<EOF
 microdnf update

@@ -18,6 +18,7 @@ hello_world = importlib.import_module("hello-world.versions")
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
+jdk_base = importlib.import_module("jdk-base.versions")
 kafka = importlib.import_module("kafka.versions")
 krb5 = importlib.import_module("krb5.versions")
 vector = importlib.import_module("vector.versions")
@@ -46,6 +47,7 @@ products = [
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
+    {"name": "jdk-base", "versions": jdk_base.versions},
     {"name": "kafka", "versions": kafka.versions},
     {"name": "krb5", "versions": krb5.versions},
     {"name": "vector", "versions": vector.versions},
