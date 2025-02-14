@@ -18,7 +18,7 @@ RUN microdnf update && \
 # [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.9.6,).
 #
 WORKDIR /tmp
-RUN if [[ "${PRODUCT}" == 2.* ]] ; then \
+RUN if [[ "${PRODUCT}" != 1.* ]] ; then \
     curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC . && \
     ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn ; \
     fi
@@ -45,7 +45,13 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     patches/apply_patches.sh ${PRODUCT} && \
     # Build NiFi
     cd /stackable/nifi-${PRODUCT}-src/ && \
-    mvn clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp && \
+    # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
+    # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
+    if [[ "${PRODUCT}" != 1.* ]] ; then \
+    mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp ; \
+    else \
+    mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp ; \
+    fi && \
     # Copy the binaries to the /stackable folder
     mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
     # Copy the SBOM as well
@@ -81,15 +87,17 @@ ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
 microdnf update
 
-# python-pip: Required to install nipyapi
+# python-pip: Required to install Python packages
+# Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
 microdnf install \
   python-pip
 
 microdnf clean all
 rm -rf /var/cache/yum
 
-# The nipyapi is required for the ReportingTaskJob
-pip install --no-cache-dir nipyapi==0.19.1 && \
+# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
+pip install --no-cache-dir \
+    nipyapi==0.19.1
 
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
@@ -112,7 +120,7 @@ USER ${STACKABLE_USER_UID}
 
 ENV HOME=/stackable
 ENV NIFI_HOME=/stackable/nifi
-ENV PATH="${PATH}":/stackable/nifi/bin
+ENV PATH="${PATH}:/stackable/nifi/bin"
 
 WORKDIR /stackable/nifi
 CMD ["bin/nifi.sh", "run"]

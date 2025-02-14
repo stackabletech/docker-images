@@ -31,7 +31,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Upload new versions (see the `hbase/*.sh` scripts).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: phoenix, opa_authorizer, etc).
-- [ ] Check other operators (getting_started / kuttl) for usage of the versions. Add the PR to the list below.
+- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR to the list below.
 ```
 
 ```[tasklist]
@@ -47,7 +47,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] _Link to the docker-images PR (product update)_
 - [ ] _Link to operator PR (getting_started / kuttl)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `next` branch)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 ```
 
@@ -76,8 +76,8 @@ pip install image-tools-stackabletech==0.0.13
 bake --product hbase=x.y.z # where x.y.z is the new version added in this PR
 bake --product omid=x.y.z # where x.y.z is the new version added in this PR
 
-kind load docker-image docker.stackable.tech/stackable/hbase:x.y.z-stackable0.0.0-dev
-kind load docker-image docker.stackable.tech/stackable/omid:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/hbase:x.y.z-stackable0.0.0-dev
+kind load docker-image oci.stackable.tech/sdp/omid:x.y.z-stackable0.0.0-dev
 
 # Change directory into the hbase-operator repository and update the
 # product version in tests/test-definition.yaml

@@ -34,7 +34,12 @@ on:
       registry:
         description: 'Image repository.'
         required: true
-        default: 'docker.stackable.tech'
+        default: 'oci.stackable.tech'
+        type: string
+      organization:
+        description: 'Organization name within the given registry'
+        required: true
+        default: 'sdp'
         type: string
 jobs:
   preflight:
@@ -70,6 +75,8 @@ jobs:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
         with:
           python-version: '3.x'
@@ -80,22 +87,32 @@ jobs:
           chmod +x preflight-linux-amd64
       - name: Submit preflight checks
         if: ${{ inputs.submit == true }}
+        env:
+          REGISTRY: ${{ inputs.registry }}
+          ORGANIZATION: ${{ inputs.organization }}
+          IMAGE_VERSION: ${{ inputs.tag }}
         run: |
           ARCH_FOR_PREFLIGHT="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           check-container --product "${{ matrix.product }}" \
-            --image-version "${{inputs.tag }}" \
-            --registry "${{ inputs.registry }}" \
+            --image-version "$IMAGE_VERSION" \
+            --registry "$REGISTRY" \
+            --organization "$ORGANIZATION" \
             --architecture "linux/${ARCH_FOR_PREFLIGHT}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \
             --submit
       - name: Run preflight checks (no submit)
         if: ${{ inputs.submit == false }}
+        env:
+          REGISTRY: ${{ inputs.registry }}
+          ORGANIZATION: ${{ inputs.organization }}
+          IMAGE_VERSION: ${{ inputs.tag }}
         run: |
           ARCH_FOR_PREFLIGHT="$(arch | sed -e 's#x86_64#amd64#' | sed -e 's#aarch64#arm64#')"
           check-container --product "${{ matrix.product }}" \
-            --image-version "${{inputs.tag }}" \
-            --registry "${{ inputs.registry }}" \
+            --image-version "$IMAGE_VERSION" \
+            --registry "$REGISTRY" \
+            --organization "$ORGANIZATION" \
             --architecture "linux/${ARCH_FOR_PREFLIGHT}" \
             --executable ./preflight-linux-amd64 \
             --token "${{ secrets.RH_PYXIS_API_TOKEN }}" \

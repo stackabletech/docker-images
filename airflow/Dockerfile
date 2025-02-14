@@ -5,9 +5,22 @@ ARG GIT_SYNC
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/sdp/git-sync:${GIT_SYNC} AS gitsync-image
+FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+
+FROM python:3.12-bookworm AS opa-auth-manager-builder
+
+COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
+
+WORKDIR /tmp/opa-auth-manager
+
+RUN <<EOF
+pip install --no-cache-dir poetry
+poetry build
+poetry install
+poetry run pytest
+EOF
 
 FROM stackable/image/vector AS airflow-build-image
 
@@ -17,6 +30,7 @@ ARG PYTHON
 ARG TARGETARCH
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
+COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
 
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
@@ -56,6 +70,8 @@ pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --const
 pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
 # Needed for OIDC
 pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
+pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
@@ -99,9 +115,14 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-# Update image and install python
+# Update image and install needed packages
 RUN <<EOF
 microdnf update
+
+# git: Needed for the gitsync functionality
+# openldap: Needed for authentication of clients against LDAP servers
+# openssh-clients: We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
+# python: Airflow needs Python
 microdnf install \
   ca-certificates \
   cyrus-sasl \

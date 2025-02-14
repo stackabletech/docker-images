@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 10 Feb 2025 12:16:43 +0100
+Subject: Add cyclonedx plugin
+
+---
+ pom.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/pom.xml b/pom.xml
+index a1604d5ebe..3f9f794504 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -2814,6 +2814,24 @@
+                     </excludes>
+                 </configuration>
+             </plugin>
++            <plugin>
++                <groupId>org.cyclonedx</groupId>
++                <artifactId>cyclonedx-maven-plugin</artifactId>
++                <version>2.9.1</version>
++                <configuration>
++                    <projectType>application</projectType>
++                    <schemaVersion>1.6</schemaVersion>
++                    <skipNotDeployed>false</skipNotDeployed>
++                </configuration>
++                <executions>
++                    <execution>
++                        <goals>
++                            <goal>makeBom</goal>
++                        </goals>
++                        <phase>package</phase>
++                    </execution>
++                </executions>
++            </plugin>
+         </plugins>
+     </build>
+ 
+
+base-commit: 05bc059cf0c9263e4ee8be2c1ad69753d0dd4faf
+-- 
+2.40.1
+
