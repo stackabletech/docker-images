@@ -23,7 +23,7 @@ RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zooke
     cd /stackable/apache-zookeeper-${PRODUCT}/ && \
     # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
     # that created all kinds of issues for the build container
-    mvn -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build && \
+    mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build && \
     mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable && \
     cd /stackable && \
     # Unpack the archive which contains the build artifacts from above. Remove some

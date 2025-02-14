@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "opa-auth-manager"
+version = "0.1.0"
+description = "Auth manager for Airflow which delegates the authorization to an Open Policy Agent"
+authors = ["Siegfried Weber <mail@siegfriedweber.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9.0,<3.13"
+requests = "^2.32.3"
+cachetools = "^5.5.0"
+overrides = "^7.7.0"
+
+[tool.poetry.group.dev.dependencies]
+apache-airflow = "^2.10.3"
+pylint = "^3.3.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -12,21 +12,21 @@ versions = [
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
         "jmx_exporter": "1.0.1-stackable",  # update the stackable/jmx/config<version> folder too
-        "opa_authorizer": "",  # only for HBase 2.6.0
+        "opa_authorizer": "",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
     {
-        "product": "2.6.0",
-        "hbase_thirdparty": "4.1.7",
-        "hbase_operator_tools": "1.3.0-7c738fc",
+        "product": "2.6.1",
+        "hbase_thirdparty": "4.1.9",
+        "hbase_operator_tools": "1.3.0-fd5a5fb",
         "java-base": "11",
         "java-devel": "11",
         "async_profiler": "2.9",
-        "phoenix": "5.3.0-4afe457",
+        "phoenix": "5.2.1",
         "hbase_profile": "2.6",
         "hadoop": "3.3.6",
         "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
-        "opa_authorizer": "0.1.0",  # only for HBase 2.6.0
+        "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
 ]

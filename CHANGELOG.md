@@ -6,11 +6,89 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: Add OPA support to Airflow ([#978]).
+- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
-- base: Add containerdebug tool ([#928]).
+- base: Add containerdebug tool ([#928], [#959]).
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+- vector: Add version 0.43.1 ([#980]).
+- opa: Add version 1.0.1 ([#981], [#1000]).
+- statsd-exporter: Bump version to 0.28.0 ([#982]).
+- git-sync: Bump version to 4.4.0 ([#990]).
+- kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
+- java: Add JDK/JRE 23 ([#992]).
+- trino: Add 469 ([#993]).
+- trino-cli: Add version 469 ([#993]).
+- hbase: Support for 2.6.1 ([#997]).
+- trino-storage-connector: Add version 469 ([#996]).
+- trino: Add 470 ([#999]).
+- trino-cli: Add version 470 ([#999]).
+- trino-storage-connector: Add version 470 ([#999]).
+- superset: Add version `4.1.1` ([#991]).
 
+### Changed
+
+- kafka: Bump 3.8.0 to 3.8.1 ([#995]).
+- Update registry references to oci ([#989]).
+- trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
+
+### Removed
+
+- kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
+- vector: remove version 0.41.1 ([#980]).
+- opa: remove version 0.66.0 ([#981]).
+- trino: Remove 469 ([#999]).
+- trino-cli: Remove version 469 ([#999]).
+- trino-storage-connector: Remove version 469 ([#999]).
+
+### Fixed
+
+- druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
+- hadoop: Fix the JMX exporter configuration for metrics suffixed with
+  `_total`, `_info` and `_created` ([#962]).
+
+[#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
 [#943]: https://github.com/stackabletech/docker-images/pull/943
+[#958]: https://github.com/stackabletech/docker-images/pull/958
+[#959]: https://github.com/stackabletech/docker-images/pull/959
+[#935]: https://github.com/stackabletech/docker-images/pull/935
+[#962]: https://github.com/stackabletech/docker-images/pull/962
+[#978]: https://github.com/stackabletech/docker-images/pull/978
+[#980]: https://github.com/stackabletech/docker-images/pull/980
+[#981]: https://github.com/stackabletech/docker-images/pull/981
+[#982]: https://github.com/stackabletech/docker-images/pull/982
+[#989]: https://github.com/stackabletech/docker-images/pull/989
+[#990]: https://github.com/stackabletech/docker-images/pull/990
+[#988]: https://github.com/stackabletech/docker-images/pull/988
+[#991]: https://github.com/stackabletech/docker-images/pull/991
+[#992]: https://github.com/stackabletech/docker-images/pull/992
+[#993]: https://github.com/stackabletech/docker-images/pull/993
+[#995]: https://github.com/stackabletech/docker-images/pull/995
+[#996]: https://github.com/stackabletech/docker-images/pull/996
+[#997]: https://github.com/stackabletech/docker-images/pull/997
+[#999]: https://github.com/stackabletech/docker-images/pull/999
+[#1000]: https://github.com/stackabletech/docker-images/pull/1000
+
+## [24.11.1] - 2025-01-14
+
+### Changed
+
+- ci: Fix various static analysis errors ([#955]).
+- all java products: These now use the Stackable Nexus build-repo by default instead of pulling from Maven central ([#953]).
+- all java products: Maven is now consistently run with `--batch-mode` and `--no-transfer-progress` to reduce noise ([#953]).
+
+### Added
+
+- tools: Add the package util-linux-core ([#952]).
+  util-linux-core contains a basic set of Linux utilities, including the
+  command logger which allows to enter messages into the system log.
+
+[#952]: https://github.com/stackabletech/docker-images/pull/952
+[#953]: https://github.com/stackabletech/docker-images/pull/953
+[#955]: https://github.com/stackabletech/docker-images/pull/955
 
 ## [24.11.0] - 2024-11-18
 

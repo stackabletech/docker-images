@@ -107,14 +107,14 @@ export JDK_JAVA_OPTIONS="\
 
 # Get the Scala version used by Spark
 SCALA_VERSION=$( \
-    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
+    mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
     -DforceStdout \
     -Dexpression='project.properties(scala.version)')
 
 # Get the Scala binary version used by Spark
 SCALA_BINARY_VERSION=$( \
-    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
+    mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
     -DforceStdout \
     -Dexpression='project.properties(scala.binary.version)')
@@ -149,7 +149,7 @@ ln -s /stackable/hbase-connectors/spark/hbase-spark/target/hbase-spark-${HBASE_C
 # Spark contains only log4j-slf4j2-impl-x.x.x.jar but not
 # log4j-slf4j-impl-x.x.x.jar. It is okay to have both JARs in the
 # classpath as long as they have the same version.
-mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
+mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=.
@@ -192,7 +192,10 @@ RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
       -Dhadoop.version="$HADOOP" \
       -Dmaven.test.skip=true \
       -DskipTests \
-      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
+      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+      --no-transfer-progress \
+      --batch-mode
+
 # <<< Build spark
 
 # Get the correct `tini` binary for our architecture.
