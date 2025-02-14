@@ -62,7 +62,7 @@ Many products apply Stackable-specific patches, managed by [Patchable](rust/patc
 Patchable doesn't _edit_ anything by itself. Instead, it's a uniform way to apply a set of patches
 to an upstream Git repository, and then export your local changes back into patch files.
 
-It doesn't care about how you make your local changes - you can then edit the branch created by
+It doesn't care about how you make your local changes - you can edit the branch created by
 patchable using any Git frontend, such as the git CLI or [jj](https://jj-vcs.github.io/jj/latest/).
 
 This way, the patch files are the global source of truth and track the history of our patch series,
