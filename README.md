@@ -59,24 +59,52 @@ When triggered manually it will _not_ push the images to the registry.
 
 Many products apply Stackable-specific patches, managed by [Patchable](rust/patchable).
 
+Patchable doesn't _edit_ anything by itself. Instead, it's a uniform way to apply a set of patches
+to an upstream Git repository, and then export your local changes back into patch files.
+You can then edit the branch created by patchable using any Git frontend, such as the git CLI or
+[jj](https://jj-vcs.github.io/jj/latest/).
+
+This way, the patch files are the global source of truth and track the history of our patch series,
+while you can still use the same familiar Git tools to manipulate them.
+
 ### Check out patched sources locally
 
-This is not required for building the images, but is useful when debugging or hacking on our patch sets.
+> [!NOTE]
+> This is not required for building images, but is used for when hacking on or debugging patch series.
 
 ```sh
-cd $(cargo patchable checkout druid 26.0.0)
-```
+# Fetches the upstream repository (if required), and creates a git worktree to work with it
+# It also creates two branches:
+# - patchable/{version} (HEAD, has all patches applied)
+# - patchable/base/{version} (the upstream)
+pushd $(cargo patchable checkout druid 26.0.0)
 
-### Save patched sources
+# Commit to add new patches
+git commit
 
-```sh
+# Rebase against the base commit to edit or remove patches
+git rebase --interactive patchable/base/26.0.0
+# jj edit also works, but make sure to go back to the tip before exporting
+
+# When done, export your patches and commit them (to docker-images)
+popd
 cargo patchable export druid 26.0.0
+git status
 ```
+
+> ![IMPORTANT]
+> `cargo patchable export` exports whatever is currently checked out (`HEAD`) in the worktree.
+> If you use `jj edit` (or `git switch`) then you _must_ go back to the tip before exporting, or
+> any patches after that point will be omitted from the export.
 
 ### Initialize a new patch series
 
+Patchable stores metadata about each patch series in its `patchable.toml`, and will not be able to check out
+a patch series that lacks one. It can be generated using `cargo patchable init`:
+
 ```sh
 cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
+cargo patchable checkout druid 28.0.0
 ```
 
 ### Importing patch series into Patchable
@@ -116,15 +144,29 @@ cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git
 # Create and go to the worktree for the new version
 pushd $(cargo patchable checkout druid 28.0.0)
 
-# Rebase the patch series
+# Cherry pick the old patch series
 git cherry-pick patchable/base/26.0.0..patchable/26.0.0
 # Solve conflicts and `git cherry-pick --continue` until done
-# You can also use `git cherry-pick --skip` to skip patches that are no longer required
+# You can also use `git cherry-pick --skip` to skip resolving conflicts for patches that are no longer required
+
+# If some patches are no longer required, use an interactive rebase to remove them (or do other cleanup)
+git rebase --interactive patchable/base/28.0.0
 
 # Leave and export the new patch series!
 popd
 cargo patchable export druid 28.0.0
 git status
+```
+
+### Porting patches between versions
+
+Individual patches can also be cherry-picked across versions.
+
+For example, assuming we are in the Druid 28.0.0 workspace and want to port the last patch of the Druid 26.0.0 series:
+
+```sh
+# git cherry-pick <hash> is also fine for grabbing arbitrary patches
+git cherry-pick patchable/26.0.0
 ```
 
 ## Verify Product Images
