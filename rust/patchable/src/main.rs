@@ -147,6 +147,20 @@ enum Cmd {
         #[clap(long)]
         base: String,
     },
+
+    /// Shows the patch directory for a given product version
+    PatchDir {
+        #[clap(flatten)]
+        pv: ProductVersion,
+    },
+
+    /// Shows the worktree directory for a given product version
+    ///
+    /// This is the same value as `cargo patchable checkout` returns, but does not perform a checkout.
+    WorktreeDir {
+        #[clap(flatten)]
+        pv: ProductVersion,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -410,6 +424,22 @@ fn main() -> Result<()> {
                 version = ctx.pv.version,
                 "created configuration for product version"
             );
+        }
+
+        Cmd::PatchDir { pv } => {
+            let ctx = ProductVersionContext {
+                pv,
+                images_repo_root,
+            };
+            println!("{}", ctx.patch_dir().display());
+        }
+
+        Cmd::WorktreeDir { pv } => {
+            let ctx = ProductVersionContext {
+                pv,
+                images_repo_root,
+            };
+            println!("{}", ctx.worktree_root().display());
         }
     }
 
