@@ -10,7 +10,7 @@ versions = [
         "java-devel": "11",
     },
     {
-        "product": "2.0.0",
+        "product": "2.2.0",
         "java-base": "21",
         "java-devel": "21",
     },
