@@ -93,7 +93,7 @@ cargo patchable export druid 26.0.0
 git status
 ```
 
-> ![IMPORTANT]
+> ![CAUTION]
 > `cargo patchable export` exports whatever is currently checked out (`HEAD`) in the worktree.
 > If you use `jj edit` (or `git switch`) then you _must_ go back to the tip before exporting, or
 > any patches after that point will be omitted from the export.
