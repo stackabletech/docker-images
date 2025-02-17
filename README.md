@@ -81,6 +81,8 @@ while you can still use the same familiar Git tools to manipulate them.
 pushd $(cargo patchable checkout druid 26.0.0)
 
 # Commit to add new patches
+# NOTE: the commit message will be used to construct the patch filename. Spaces
+# will be converted to hyphens automatically.
 git commit
 
 # Rebase against the base commit to edit or remove patches
