@@ -27,12 +27,14 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
 - superset: Add version `4.1.1` ([#991]).
+- Added Patchable patch management tool ([#1003]).
 
 ### Changed
 
 - kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
+- druid 26.0.0: Migrate to patchable ([#1003]).
 
 ### Removed
 
@@ -71,6 +73,7 @@ All notable changes to this project will be documented in this file.
 [#997]: https://github.com/stackabletech/docker-images/pull/997
 [#999]: https://github.com/stackabletech/docker-images/pull/999
 [#1000]: https://github.com/stackabletech/docker-images/pull/1000
+[#1003]: https://github.com/stackabletech/docker-images/pull/1003
 
 ## [24.11.1] - 2025-01-14
 

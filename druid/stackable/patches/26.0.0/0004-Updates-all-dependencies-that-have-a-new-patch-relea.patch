@@ -1,10 +1,16 @@
-Updates all dependencies that have a new patch release available.
-
+From 4229d1c0d096e10dce72929224a7b4c2284fb417 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: Updates all dependencies that have a new patch release available.
 
 ---
- 0 files changed
+ extensions-core/avro-extensions/pom.xml       |  2 +-
+ extensions-core/kubernetes-extensions/pom.xml |  2 +-
+ extensions-core/orc-extensions/pom.xml        |  2 +-
+ extensions-core/parquet-extensions/pom.xml    |  2 +-
+ extensions-core/protobuf-extensions/pom.xml   |  2 +-
+ pom.xml                                       | 20 +++++++++----------
+ 6 files changed, 15 insertions(+), 15 deletions(-)
 
 diff --git a/extensions-core/avro-extensions/pom.xml b/extensions-core/avro-extensions/pom.xml
 index 35b154a469..a9eb0c6851 100644
