@@ -1,7 +1,7 @@
-From 792142f38e1ec6033eb7f8052dc360b3759e7ea7 Mon Sep 17 00:00:00 2001
+From eed0684b8097203e9d61c52093eb6dfe0960850d Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
-Date: Thu, 12 Dec 2024 17:59:17 +0100
-Subject: Subject: Update CycloneDX plugin
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Update CycloneDX plugin
 
 ---
  pom.xml | 6 +++++-
