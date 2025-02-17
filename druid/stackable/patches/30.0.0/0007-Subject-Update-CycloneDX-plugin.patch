@@ -1,8 +1,17 @@
+From 792142f38e1ec6033eb7f8052dc360b3759e7ea7 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: Subject: Update CycloneDX plugin
+
+---
+ pom.xml | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
 diff --git a/pom.xml b/pom.xml
-index 9051ed2..10a2c85 100644
+index 38c6b8dbb5..de1a3bddc4 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1728,7 +1728,11 @@
+@@ -1700,7 +1700,11 @@
              <plugin>
                  <groupId>org.cyclonedx</groupId>
                  <artifactId>cyclonedx-maven-plugin</artifactId>
