@@ -1,5 +1,14 @@
+From e48528d39bc37aa72c19301e9a198f2fb33a0b21 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Thu, 21 Dec 2023 13:51:13 +0100
+Subject: Backport YARN-11527
+
+---
+ hadoop-project/pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
-index 0b2f6f17157d..9dc8b653eb93 100644
+index 0b2f6f1715..082834e261 100644
 --- a/hadoop-project/pom.xml
 +++ b/hadoop-project/pom.xml
 @@ -212,7 +212,7 @@

@@ -1,8 +1,18 @@
+From 892037bfc230b7d4401e234002f8388859685326 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Tue, 6 Feb 2024 16:10:54 +0100
+Subject: Backport HADOOP-18077
+
+---
+ .../src/main/java/org/apache/hadoop/http/HttpServer2.java | 6 ++++--
+ .../org/apache/hadoop/http/ProfilerDisabledServlet.java   | 8 +++++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
-index fb090fe4385a1..49807ac4b4597 100644
+index a7777f85cc..bbe0d9993d 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
-@@ -772,10 +772,11 @@ private void initializeWebServer(String name, String hostName,
+@@ -735,10 +735,11 @@ public final class HttpServer2 implements FilterContainer {
  
      addDefaultServlets();
      addPrometheusServlet(conf);
@@ -16,7 +26,7 @@ index fb090fe4385a1..49807ac4b4597 100644
      final String asyncProfilerHome = ProfileServlet.getAsyncProfilerHome();
      if (asyncProfilerHome != null && !asyncProfilerHome.trim().isEmpty()) {
        addServlet("prof", "/prof", ProfileServlet.class);
-@@ -787,6 +788,7 @@ private void addAsyncProfilerServlet(ContextHandlerCollection contexts) throws I
+@@ -750,6 +751,7 @@ public final class HttpServer2 implements FilterContainer {
        genCtx.addServlet(ProfileOutputServlet.class, "/*");
        genCtx.setResourceBase(tmpDir.toAbsolutePath().toString());
        genCtx.setDisplayName("prof-output-hadoop");
@@ -25,10 +35,10 @@ index fb090fe4385a1..49807ac4b4597 100644
        addServlet("prof", "/prof", ProfilerDisabledServlet.class);
        LOG.info("ASYNC_PROFILER_HOME environment variable and async.profiler.home system property "
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
-index 459485ffa5b56..c488b574990cc 100644
+index 459485ffa5..c488b57499 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
-@@ -36,9 +36,15 @@ protected void doGet(final HttpServletRequest req, final HttpServletResponse res
+@@ -36,9 +36,15 @@ public class ProfilerDisabledServlet extends HttpServlet {
        throws IOException {
      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
      ProfileServlet.setResponseHeader(resp);

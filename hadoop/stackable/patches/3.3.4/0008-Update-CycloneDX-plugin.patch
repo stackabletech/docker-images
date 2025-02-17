@@ -1,5 +1,14 @@
+From 962bf15aaec9796604b5086435c0a0123d29cae1 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Update CycloneDX plugin
+
+---
+ pom.xml | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
 diff --git a/pom.xml b/pom.xml
-index f4e435c..f050218 100644
+index f4e435c749..f0502184a2 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -116,6 +116,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x

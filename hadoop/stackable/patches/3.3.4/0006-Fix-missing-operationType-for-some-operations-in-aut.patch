@@ -1,8 +1,17 @@
+From a8b02d605c36ed9e6669a23ef177938b325aaf83 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
+Date: Thu, 15 Feb 2024 15:33:43 +0100
+Subject: Fix missing operationType for some operations in authorizer
+
+---
+ .../hdfs/server/namenode/FSNamesystem.java    | 41 +++++++++++--------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
+
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
-index 243f62295ca4..ba3caa6b6c04 100644
+index 243f62295c..ba3caa6b6c 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
-@@ -2501,15 +2501,16 @@ void unsetStoragePolicy(String src) throws IOException {
+@@ -2501,15 +2501,16 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     * @throws  IOException
     */
    BlockStoragePolicy getStoragePolicy(String src) throws IOException {
@@ -21,7 +30,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      }
    }
  
-@@ -2529,15 +2530,16 @@ BlockStoragePolicy[] getStoragePolicies() throws IOException {
+@@ -2529,15 +2530,16 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
    }
  
    long getPreferredBlockSize(String src) throws IOException {
@@ -40,7 +49,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      }
    }
  
-@@ -2590,7 +2592,6 @@ HdfsFileStatus startFile(String src, PermissionStatus permissions,
+@@ -2590,7 +2592,6 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        boolean createParent, short replication, long blockSize,
        CryptoProtocolVersion[] supportedVersions, String ecPolicyName,
        String storagePolicy, boolean logRetryCache) throws IOException {
@@ -48,7 +57,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      HdfsFileStatus status;
      try {
        status = startFileInt(src, permissions, holder, clientMachine, flag,
-@@ -2610,6 +2611,7 @@ private HdfsFileStatus startFileInt(String src,
+@@ -2610,6 +2611,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        long blockSize, CryptoProtocolVersion[] supportedVersions,
        String ecPolicyName, String storagePolicy, boolean logRetryCache)
        throws IOException {
@@ -56,7 +65,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      if (NameNode.stateChangeLog.isDebugEnabled()) {
        StringBuilder builder = new StringBuilder();
        builder.append("DIR* NameSystem.startFile: src=").append(src)
-@@ -2647,7 +2649,7 @@ private HdfsFileStatus startFileInt(String src,
+@@ -2647,7 +2649,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
  
      checkOperation(OperationCategory.WRITE);
      final FSPermissionChecker pc = getPermissionChecker();
@@ -65,7 +74,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      writeLock();
      try {
        checkOperation(OperationCategory.WRITE);
-@@ -2711,7 +2713,7 @@ private HdfsFileStatus startFileInt(String src,
+@@ -2711,7 +2713,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
          dir.writeUnlock();
        }
      } finally {
@@ -74,7 +83,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
        // There might be transactions logged while trying to recover the lease.
        // They need to be sync'ed even when an exception was thrown.
        if (!skipSync) {
-@@ -2740,10 +2742,11 @@ private HdfsFileStatus startFileInt(String src,
+@@ -2740,10 +2742,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     */
    boolean recoverLease(String src, String holder, String clientMachine)
        throws IOException {
@@ -87,7 +96,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      writeLock();
      try {
        checkOperation(OperationCategory.WRITE);
-@@ -2764,7 +2767,7 @@ boolean recoverLease(String src, String holder, String clientMachine)
+@@ -2764,7 +2767,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        skipSync = true;
        throw se;
      } finally {
@@ -96,7 +105,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
        // There might be transactions logged while trying to recover the lease.
        // They need to be sync'ed even when an exception was thrown.
        if (!skipSync) {
-@@ -2981,6 +2984,7 @@ LocatedBlock getAdditionalDatanode(String src, long fileId,
+@@ -2981,6 +2984,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        final Set<Node> excludes,
        final int numAdditionalNodes, final String clientName
        ) throws IOException {
@@ -104,7 +113,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      //check if the feature is enabled
      dtpReplaceDatanodeOnFailure.checkEnabled();
  
-@@ -2992,7 +2996,7 @@ LocatedBlock getAdditionalDatanode(String src, long fileId,
+@@ -2992,7 +2996,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
      final BlockType blockType;
      checkOperation(OperationCategory.READ);
      final FSPermissionChecker pc = getPermissionChecker();
@@ -113,7 +122,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      readLock();
      try {
        checkOperation(OperationCategory.READ);
-@@ -3015,7 +3019,7 @@ LocatedBlock getAdditionalDatanode(String src, long fileId,
+@@ -3015,7 +3019,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
            "src=%s, fileId=%d, blk=%s, clientName=%s, clientMachine=%s",
            src, fileId, blk, clientName, clientMachine));
      } finally {
@@ -122,7 +131,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      }
  
      if (clientnode == null) {
-@@ -3037,11 +3041,12 @@ LocatedBlock getAdditionalDatanode(String src, long fileId,
+@@ -3037,11 +3041,12 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     */
    void abandonBlock(ExtendedBlock b, long fileId, String src, String holder)
        throws IOException {
@@ -136,7 +145,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      writeLock();
      try {
        checkOperation(OperationCategory.WRITE);
-@@ -3050,7 +3055,7 @@ void abandonBlock(ExtendedBlock b, long fileId, String src, String holder)
+@@ -3050,7 +3055,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        NameNode.stateChangeLog.debug("BLOCK* NameSystem.abandonBlock: {} is " +
            "removed from pendingCreates", b);
      } finally {
@@ -145,7 +154,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      }
      getEditLog().logSync();
    }
-@@ -3104,10 +3109,11 @@ INodeFile checkLease(INodesInPath iip, String holder, long fileId)
+@@ -3104,10 +3109,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
    boolean completeFile(final String src, String holder,
                         ExtendedBlock last, long fileId)
      throws IOException {
@@ -158,7 +167,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      writeLock();
      try {
        checkOperation(OperationCategory.WRITE);
-@@ -3115,7 +3121,7 @@ boolean completeFile(final String src, String holder,
+@@ -3115,7 +3121,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        success = FSDirWriteFileOp.completeFile(this, pc, src, holder, last,
                                                fileId);
      } finally {
@@ -167,7 +176,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      }
      getEditLog().logSync();
      if (success) {
-@@ -3536,10 +3542,11 @@ void setQuota(String src, long nsQuota, long ssQuota, StorageType type)
+@@ -3536,10 +3542,11 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
     */
    void fsync(String src, long fileId, String clientName, long lastBlockLength)
        throws IOException {
@@ -180,7 +189,7 @@ index 243f62295ca4..ba3caa6b6c04 100644
      writeLock();
      try {
        checkOperation(OperationCategory.WRITE);
-@@ -3553,7 +3560,7 @@ void fsync(String src, long fileId, String clientName, long lastBlockLength)
+@@ -3553,7 +3560,7 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,
        }
        FSDirWriteFileOp.persistBlocks(dir, src, pendingFile, false);
      } finally {

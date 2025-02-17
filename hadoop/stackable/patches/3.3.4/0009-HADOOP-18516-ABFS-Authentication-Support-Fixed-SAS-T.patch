@@ -1,16 +1,35 @@
-commit 8c7c70b4b63990908687f6e49e9b0306ac12ef96
-Author: Anuj Modi <128447756+anujmodi2021@users.noreply.github.com>
-Date:   Fri Jun 7 19:03:23 2024 +0530
+From 864adf7a6752093b678cba762c9b2c43395318f1 Mon Sep 17 00:00:00 2001
+From: Anuj Modi <128447756+anujmodi2021@users.noreply.github.com>
+Date: Fri, 7 Jun 2024 19:03:23 +0530
+Subject: HADOOP-18516: [ABFS][Authentication] Support Fixed SAS Token for ABFS
+ Authentication (#6552)
 
-    HADOOP-18516: [ABFS][Authentication] Support Fixed SAS Token for ABFS Authentication (#6552)
-    
-    Contributed by Anuj Modi
+Contributed by Anuj Modi
+---
+ .../hadoop/fs/azurebfs/AbfsConfiguration.java |  69 +++++--
+ .../fs/azurebfs/AzureBlobFileSystem.java      |   3 +-
+ .../fs/azurebfs/AzureBlobFileSystemStore.java |   2 +-
+ .../azurebfs/constants/ConfigurationKeys.java |   5 +-
+ .../fs/azurebfs/services/AbfsClient.java      |   8 +-
+ .../services/FixedSASTokenProvider.java       |  65 +++++++
+ .../hadoop-azure/src/site/markdown/abfs.md    | 149 +++++++++++---
+ .../azurebfs/AbstractAbfsIntegrationTest.java |  23 ++-
+ .../ITestAzureBlobFileSystemChooseSAS.java    | 182 ++++++++++++++++++
+ .../MockDelegationSASTokenProvider.java       |   2 +-
+ .../extensions/MockSASTokenProvider.java      |  16 +-
+ .../azurebfs/utils/AccountSASGenerator.java   | 103 ++++++++++
+ .../fs/azurebfs/utils/SASGenerator.java       |  34 +++-
+ .../azurebfs/utils/ServiceSASGenerator.java   |  15 +-
+ 14 files changed, 607 insertions(+), 69 deletions(-)
+ create mode 100644 hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java
+ create mode 100644 hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java
+ create mode 100644 hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
-index 50cc57447f92..7e38da987ea4 100644
+index 50cc57447f..7e38da987e 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
-@@ -59,6 +59,7 @@
+@@ -59,6 +59,7 @@ import org.apache.hadoop.fs.azurebfs.oauth2.UserPasswordTokenProvider;
  import org.apache.hadoop.fs.azurebfs.security.AbfsDelegationTokenManager;
  import org.apache.hadoop.fs.azurebfs.services.AuthType;
  import org.apache.hadoop.fs.azurebfs.services.ExponentialRetryPolicy;
@@ -18,7 +37,7 @@ index 50cc57447f92..7e38da987ea4 100644
  import org.apache.hadoop.fs.azurebfs.services.KeyProvider;
  import org.apache.hadoop.fs.azurebfs.services.SimpleKeyProvider;
  import org.apache.hadoop.fs.azurebfs.utils.TracingHeaderFormat;
-@@ -876,33 +877,63 @@ public AccessTokenProvider getTokenProvider() throws TokenAccessProviderExceptio
+@@ -876,33 +877,63 @@ public class AbfsConfiguration{
      }
    }
  
@@ -102,10 +121,10 @@ index 50cc57447f92..7e38da987ea4 100644
    }
  
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
-index 750306c4a983..955efb7b700a 100644
+index 750306c4a9..955efb7b70 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
-@@ -1166,10 +1166,9 @@ public void access(final Path path, final FsAction mode) throws IOException {
+@@ -1166,10 +1166,9 @@ public class AzureBlobFileSystem extends FileSystem
  
    /**
     * Incrementing exists() calls from superclass for statistic collection.
@@ -118,10 +137,10 @@ index 750306c4a983..955efb7b700a 100644
    @Override
    public boolean exists(Path f) throws IOException {
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
-index d86a3d968461..db50161885b6 100644
+index d86a3d9684..db50161885 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
-@@ -1559,7 +1559,7 @@ private void initializeClient(URI uri, String fileSystemName,
+@@ -1559,7 +1559,7 @@ public class AzureBlobFileSystemStore implements Closeable, ListingSupport {
        creds = new SharedKeyCredentials(accountName.substring(0, dotIndex),
              abfsConfiguration.getStorageAccountKey());
      } else if (authType == AuthType.SAS) {
@@ -131,10 +150,10 @@ index d86a3d968461..db50161885b6 100644
      } else {
        LOG.trace("Fetching token provider");
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
-index 12beb5a9bbab..73ddfc303d2c 100644
+index 12beb5a9bb..73ddfc303d 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
-@@ -227,7 +227,10 @@ public static String accountProperty(String property, String account) {
+@@ -227,7 +227,10 @@ public final class ConfigurationKeys {
    public static final String FS_AZURE_ENABLE_DELEGATION_TOKEN = "fs.azure.enable.delegation.token";
    public static final String FS_AZURE_DELEGATION_TOKEN_PROVIDER_TYPE = "fs.azure.delegation.token.provider.type";
  
@@ -147,10 +166,10 @@ index 12beb5a9bbab..73ddfc303d2c 100644
  
    /** For performance, AbfsInputStream/AbfsOutputStream re-use SAS tokens until the expiry is within this number of seconds. **/
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
-index 69ef0d01c782..982013fef3ea 100644
+index 69ef0d01c7..982013fef3 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
-@@ -620,6 +620,7 @@ public AbfsRestOperation flush(final String path, final long position,
+@@ -620,6 +620,7 @@ public class AbfsClient implements Closeable {
      abfsUriQueryBuilder.addQuery(QUERY_PARAM_POSITION, Long.toString(position));
      abfsUriQueryBuilder.addQuery(QUERY_PARAM_RETAIN_UNCOMMITTED_DATA, String.valueOf(retainUncommittedData));
      abfsUriQueryBuilder.addQuery(QUERY_PARAM_CLOSE, String.valueOf(isClose));
@@ -158,7 +177,7 @@ index 69ef0d01c782..982013fef3ea 100644
      // AbfsInputStream/AbfsOutputStream reuse SAS tokens for better performance
      String sasTokenForReuse = appendSASTokenToQuery(path, SASTokenProvider.WRITE_OPERATION,
          abfsUriQueryBuilder, cachedSasToken);
-@@ -701,6 +702,7 @@ public AbfsRestOperation read(final String path, final long position, final byte
+@@ -701,6 +702,7 @@ public class AbfsClient implements Closeable {
      requestHeaders.add(new AbfsHttpHeader(IF_MATCH, eTag));
  
      final AbfsUriQueryBuilder abfsUriQueryBuilder = createDefaultUriQueryBuilder();
@@ -166,7 +185,7 @@ index 69ef0d01c782..982013fef3ea 100644
      // AbfsInputStream/AbfsOutputStream reuse SAS tokens for better performance
      String sasTokenForReuse = appendSASTokenToQuery(path, SASTokenProvider.READ_OPERATION,
          abfsUriQueryBuilder, cachedSasToken);
-@@ -995,12 +997,12 @@ private String appendSASTokenToQuery(String path,
+@@ -995,12 +997,12 @@ public class AbfsClient implements Closeable {
            sasToken = cachedSasToken;
            LOG.trace("Using cached SAS token.");
          }
@@ -184,7 +203,7 @@ index 69ef0d01c782..982013fef3ea 100644
      }
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java
 new file mode 100644
-index 000000000000..1a2614dcc1d2
+index 0000000000..1a2614dcc1
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java
 @@ -0,0 +1,65 @@
@@ -254,7 +273,7 @@ index 000000000000..1a2614dcc1d2
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md b/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
-index dfb7f3f42a5c..9ea8903583e3 100644
+index dfb7f3f42a..9ea8903583 100644
 --- a/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
 +++ b/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
 @@ -12,7 +12,7 @@
@@ -440,10 +459,10 @@ index dfb7f3f42a5c..9ea8903583e3 100644
  ## <a name="technical"></a> Technical notes
  
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
-index fd2f2690daea..3fe1c641cb96 100644
+index fd2f2690da..3fe1c641cb 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
-@@ -265,12 +265,29 @@ public void loadConfiguredFileSystem() throws Exception {
+@@ -265,12 +265,29 @@ public abstract class AbstractAbfsIntegrationTest extends
      useConfiguredFileSystem = true;
    }
  
@@ -478,7 +497,7 @@ index fd2f2690daea..3fe1c641cb96 100644
    }
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java
 new file mode 100644
-index 000000000000..d8db901151fe
+index 0000000000..d8db901151
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java
 @@ -0,0 +1,182 @@
@@ -665,10 +684,10 @@ index 000000000000..d8db901151fe
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
-index cf7d51da4c44..d1e5dd4519d0 100644
+index cf7d51da4c..d1e5dd4519 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
-@@ -40,7 +40,7 @@
+@@ -40,7 +40,7 @@ import org.apache.hadoop.fs.azurebfs.utils.SASGenerator;
  import org.apache.hadoop.security.AccessControlException;
  
  /**
@@ -678,10 +697,10 @@ index cf7d51da4c44..d1e5dd4519d0 100644
  public class MockDelegationSASTokenProvider implements SASTokenProvider {
  
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
-index 50ac20970f45..3fda128a9c01 100644
+index 50ac20970f..3fda128a9c 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
-@@ -20,7 +20,11 @@
+@@ -20,7 +20,11 @@ package org.apache.hadoop.fs.azurebfs.extensions;
  
  import java.io.IOException;
  
@@ -693,7 +712,7 @@ index 50ac20970f45..3fda128a9c01 100644
  import org.apache.hadoop.security.AccessControlException;
  
  import org.apache.hadoop.fs.azurebfs.AbfsConfiguration;
-@@ -28,17 +32,25 @@
+@@ -28,17 +32,25 @@ import org.apache.hadoop.fs.azurebfs.utils.Base64;
  import org.apache.hadoop.fs.azurebfs.utils.ServiceSASGenerator;
  
  /**
@@ -723,7 +742,7 @@ index 50ac20970f45..3fda128a9c01 100644
    @Override
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 new file mode 100644
-index 000000000000..2af741b7a4c1
+index 0000000000..2af741b7a4
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 @@ -0,0 +1,103 @@
@@ -831,10 +850,10 @@ index 000000000000..2af741b7a4c1
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
-index 2e9289d8d44c..a80ddac5ed36 100644
+index 2e9289d8d4..a80ddac5ed 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
-@@ -29,6 +29,10 @@
+@@ -29,6 +29,10 @@ import javax.crypto.spec.SecretKeySpec;
  
  import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
@@ -845,7 +864,7 @@ index 2e9289d8d44c..a80ddac5ed36 100644
  /**
   * Test SAS generator.
   */
-@@ -54,10 +58,8 @@ public String toString() {
+@@ -54,10 +58,8 @@ public abstract class SASGenerator {
    protected static final Logger LOG = LoggerFactory.getLogger(SASGenerator.class);
    public static final Duration FIVE_MINUTES = Duration.ofMinutes(5);
    public static final Duration ONE_DAY = Duration.ofDays(1);
@@ -858,7 +877,7 @@ index 2e9289d8d44c..a80ddac5ed36 100644
  
    private Mac hmacSha256;
    private byte[] key;
-@@ -68,7 +70,7 @@ private SASGenerator() {
+@@ -68,7 +70,7 @@ public abstract class SASGenerator {
  
    /**
     * Called by subclasses to initialize the cryptographic SHA-256 HMAC provider.
@@ -867,7 +886,7 @@ index 2e9289d8d44c..a80ddac5ed36 100644
     */
    protected SASGenerator(byte[] key) {
      this.key = key;
-@@ -85,6 +87,26 @@ private void initializeMac() {
+@@ -85,6 +87,26 @@ public abstract class SASGenerator {
      }
    }
  
@@ -894,7 +913,7 @@ index 2e9289d8d44c..a80ddac5ed36 100644
    protected String computeHmac256(final String stringToSign) {
      byte[] utf8Bytes;
      try {
-@@ -98,4 +120,4 @@ protected String computeHmac256(final String stringToSign) {
+@@ -98,4 +120,4 @@ public abstract class SASGenerator {
      }
      return Base64.encode(hmac);
    }
@@ -902,10 +921,10 @@ index 2e9289d8d44c..a80ddac5ed36 100644
 \ No newline at end of file
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
-index 24a1cea255b4..0ae5239e8f2a 100644
+index 24a1cea255..0ae5239e8f 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
-@@ -20,23 +20,26 @@
+@@ -20,23 +20,26 @@ package org.apache.hadoop.fs.azurebfs.utils;
  
  import java.time.Instant;
  
@@ -936,7 +955,7 @@ index 24a1cea255b4..0ae5239e8f2a 100644
      String sp = "rcwdl";
      String sv = AuthenticationVersion.Feb20.toString();
      String sr = "c";
-@@ -66,7 +69,7 @@ private String computeSignatureForSAS(String sp, String st, String se, String sv
+@@ -66,7 +69,7 @@ public class ServiceSASGenerator extends SASGenerator {
      sb.append("\n");
      sb.append(se);
      sb.append("\n");
@@ -945,7 +964,7 @@ index 24a1cea255b4..0ae5239e8f2a 100644
      sb.append("/blob/");
      sb.append(accountName);
      sb.append("/");
-@@ -93,4 +96,4 @@ private String computeSignatureForSAS(String sp, String st, String se, String sv
+@@ -93,4 +96,4 @@ public class ServiceSASGenerator extends SASGenerator {
      LOG.debug("Service SAS stringToSign: " + stringToSign.replace("\n", "."));
      return computeHmac256(stringToSign);
    }
