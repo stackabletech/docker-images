@@ -78,6 +78,8 @@ pub fn mailsplit(repo: &Repository, patch_file: &Path) -> Result<impl Iterator<I
     let base_dir = tempdir().context(CreateTempDirSnafu)?;
     let mailsplit = raw_git_cmd(repo)
         .arg("mailsplit")
+        // From <commit> is ignored anyway, so there's no point requiring it
+        .arg("-b")
         // mailsplit doesn't accept split arguments ("-o dir")
         .arg({
             let mut output_arg = OsString::from("-o");
