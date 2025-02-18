@@ -1,10 +1,10 @@
-Include Postgres driver by default
-
-From: Lars Francke <git@lars-francke.de>
-
+From ae1ed987662ce6a6d065c81423fabdca192af692 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Include Postgres driver by default
 
 ---
- standalone-metastore/pom.xml |    9 +++++++--
+ standalone-metastore/pom.xml | 9 +++++++--
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml

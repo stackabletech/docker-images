@@ -1,10 +1,10 @@
-Gets rid of a warning during build
-
-From: Lars Francke <git@lars-francke.de>
-
+From 005455cb5687d9c5429f538ed69ff77eeba766a5 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Gets rid of a warning during build
 
 ---
- serde/pom.xml |    5 -----
+ serde/pom.xml | 5 -----
  1 file changed, 5 deletions(-)
 
 diff --git a/serde/pom.xml b/serde/pom.xml

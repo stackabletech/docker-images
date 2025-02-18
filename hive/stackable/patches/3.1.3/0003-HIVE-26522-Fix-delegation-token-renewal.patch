@@ -1,6 +1,7 @@
-HIVE-26522
-
-From: Lars Francke <git@lars-francke.de>
+From cf431bb2620eafe9d555576d7b4ae2503890096c Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: HIVE-26522: Fix delegation token renewal
 
 Test for HIVE-22033 and backport to 3.1 and 2.3.
 HiveServer2: fix delegation token renewal
@@ -8,8 +9,8 @@ HiveServer2: fix delegation token renewal
 It says "HiveServer2" but the patch is in the metastore component hence I
 decided to include this patch
 ---
- .../TokenStoreDelegationTokenSecretManager.java    |    5 +
- ...TestTokenStoreDelegationTokenSecretManager.java |  121 ++++++++++++++++++++
+ ...okenStoreDelegationTokenSecretManager.java |   5 +-
+ ...okenStoreDelegationTokenSecretManager.java | 121 ++++++++++++++++++
  2 files changed, 125 insertions(+), 1 deletion(-)
  create mode 100644 standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/security/TestTokenStoreDelegationTokenSecretManager.java
 

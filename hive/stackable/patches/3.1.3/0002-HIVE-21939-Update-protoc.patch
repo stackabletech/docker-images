@@ -1,10 +1,11 @@
-HIVE-21939
+From 1e55c21569178d5263216494e1e44565a3280849 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
+Date: Thu, 11 Apr 2024 17:26:13 +0200
+Subject: HIVE-21939: Update protoc
 
-From: Lars Francke <git@lars-francke.de>
-
-protoc:2.5.0 dependence has broken building on aarch64
+protoc:2.5.0 dependency has broken building on aarch64
 ---
- standalone-metastore/pom.xml |   21 +++++++++++++++++++--
+ standalone-metastore/pom.xml | 21 +++++++++++++++++++--
  1 file changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml

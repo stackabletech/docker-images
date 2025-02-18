@@ -1,24 +1,26 @@
-HIVE-27508
-
-From: Lars Francke <git@lars-francke.de>
+From 3d8d7f1aa023647370e24e46f84e634732b64104 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: HIVE-27508: Java 11 preparation: system class loader is not
+ URLClassLoader
 
 Backport of HIVE-21584 to branch-3.1
 HIVE-21584: Java 11 preparation: system class loader is not URLClassLoader
 ---
- .../src/java/org/apache/hive/beeline/Commands.java |    2 
- .../org/apache/hadoop/hive/common/JavaUtils.java   |   57 +-------
- .../hive/llap/daemon/impl/FunctionLocalizer.java   |   18 ++-
- .../hadoop/hive/ql/exec/AddToClassPathAction.java  |   87 ++++++++++++
- .../org/apache/hadoop/hive/ql/exec/Utilities.java  |   98 ++++++--------
- .../apache/hadoop/hive/ql/exec/mr/ExecDriver.java  |    8 +
- .../apache/hadoop/hive/ql/exec/mr/ExecMapper.java  |   20 +--
- .../apache/hadoop/hive/ql/exec/mr/ExecReducer.java |   20 ---
- .../hive/ql/exec/spark/SparkRecordHandler.java     |   29 ++--
- .../hadoop/hive/ql/exec/tez/RecordProcessor.java   |   16 --
- .../hadoop/hive/ql/session/SessionState.java       |   57 ++++----
- .../hive/ql/exec/TestAddToClassPathAction.java     |  142 ++++++++++++++++++++
- .../hive/spark/client/SparkClientUtilities.java    |   23 +++
- .../hive/metastore/utils/MetaStoreUtils.java       |   20 ++-
+ .../org/apache/hive/beeline/Commands.java     |   2 +-
+ .../apache/hadoop/hive/common/JavaUtils.java  |  57 +------
+ .../llap/daemon/impl/FunctionLocalizer.java   |  18 ++-
+ .../hive/ql/exec/AddToClassPathAction.java    |  87 +++++++++++
+ .../apache/hadoop/hive/ql/exec/Utilities.java |  98 ++++++------
+ .../hadoop/hive/ql/exec/mr/ExecDriver.java    |   8 +-
+ .../hadoop/hive/ql/exec/mr/ExecMapper.java    |  20 +--
+ .../hadoop/hive/ql/exec/mr/ExecReducer.java   |  20 +--
+ .../ql/exec/spark/SparkRecordHandler.java     |  29 ++--
+ .../hive/ql/exec/tez/RecordProcessor.java     |  16 +-
+ .../hadoop/hive/ql/session/SessionState.java  |  57 +++----
+ .../ql/exec/TestAddToClassPathAction.java     | 142 ++++++++++++++++++
+ .../spark/client/SparkClientUtilities.java    |  23 ++-
+ .../hive/metastore/utils/MetaStoreUtils.java  |  20 ++-
  14 files changed, 386 insertions(+), 211 deletions(-)
  create mode 100644 ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
  create mode 100644 ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java

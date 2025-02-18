@@ -1,8 +1,17 @@
+From cbe6c05735995b9020f50443a144458eae8e1e97 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Add CycloneDX plugin
+
+---
+ standalone-metastore/pom.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index e36f1e6..eb14e69 100644
+index e2665473af..4f40e28f91 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
-@@ -773,6 +773,24 @@
+@@ -811,6 +811,24 @@
            </arguments>
          </configuration>
        </plugin>

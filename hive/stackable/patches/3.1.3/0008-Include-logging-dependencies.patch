@@ -1,10 +1,11 @@
-Include logging dependencies
+From f291a34cb2ae7df4b8e15b5d88dd48dbe0eeb302 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Include logging dependencies
 
-From: Lars Francke <git@lars-francke.de>
-
-This adds dependenciesr required for use of the XmlLayout for logging
+This adds dependencies required for use of the XmlLayout for logging
 ---
- standalone-metastore/pom.xml |   20 ++++++++++++++++++--
+ standalone-metastore/pom.xml | 20 ++++++++++++++++++--
  1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml

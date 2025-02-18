@@ -1,12 +1,12 @@
-Patch updates
-
-From: Lars Francke <git@lars-francke.de>
-
+From 49ff3be7f56e98b3566590b6d1b9324efbc138e9 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Patch updates
 
 ---
- druid-handler/pom.xml        |    2 +
- pom.xml                      |   64 +++++++++++++++++++++---------------------
- standalone-metastore/pom.xml |   26 +++++++++--------
+ druid-handler/pom.xml        |  2 +-
+ pom.xml                      | 64 ++++++++++++++++++------------------
+ standalone-metastore/pom.xml | 26 +++++++--------
  3 files changed, 46 insertions(+), 46 deletions(-)
 
 diff --git a/druid-handler/pom.xml b/druid-handler/pom.xml

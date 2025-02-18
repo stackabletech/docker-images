@@ -1,20 +1,21 @@
-HIVE-26882
+From 9cdc9b30678cfa48c15df19268fedc48241e7305 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: HIVE-26882: Allow transactional check of Table parameter before
+ altering the Table
 
-From: Lars Francke <git@lars-francke.de>
-
-Allow transactional check of Table parameter before altering the Table
 ---
- .../thrift/gen-cpp/hive_metastore_constants.cpp    |    5 +
- .../gen/thrift/gen-cpp/hive_metastore_constants.h  |    2 
- .../metastore/api/hive_metastoreConstants.java     |    4 +
- .../src/gen/thrift/gen-php/metastore/Types.php     |   10 ++
- .../gen/thrift/gen-py/hive_metastore/constants.py  |    2 
- .../gen/thrift/gen-rb/hive_metastore_constants.rb  |    3 +
- .../hadoop/hive/metastore/HiveAlterHandler.java    |   19 ++++
- .../apache/hadoop/hive/metastore/ObjectStore.java  |   28 +++++
- .../org/apache/hadoop/hive/metastore/RawStore.java |   16 +++
- .../src/main/thrift/hive_metastore.thrift          |    3 +
- .../client/TestTablesCreateDropAlterTruncate.java  |  102 ++++++++++++++++++++
+ .../gen-cpp/hive_metastore_constants.cpp      |   5 +-
+ .../thrift/gen-cpp/hive_metastore_constants.h |   2 +
+ .../api/hive_metastoreConstants.java          |   4 +
+ .../gen/thrift/gen-php/metastore/Types.php    |  10 +-
+ .../thrift/gen-py/hive_metastore/constants.py |   2 +
+ .../thrift/gen-rb/hive_metastore_constants.rb |   3 +
+ .../hive/metastore/HiveAlterHandler.java      |  19 +++-
+ .../hadoop/hive/metastore/ObjectStore.java    |  28 ++++-
+ .../hadoop/hive/metastore/RawStore.java       |  16 ++-
+ .../src/main/thrift/hive_metastore.thrift     |   3 +
+ .../TestTablesCreateDropAlterTruncate.java    | 102 ++++++++++++++++++
  11 files changed, 184 insertions(+), 10 deletions(-)
 
 diff --git a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
