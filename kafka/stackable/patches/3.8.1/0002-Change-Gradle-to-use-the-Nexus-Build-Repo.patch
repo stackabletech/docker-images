@@ -1,14 +1,14 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Mon, 3 Feb 2025 13:56:21 +0100
-Subject: Use stackable maven mirror
+From 698bad00ce09a01ee17664f7f3b04209d21603bc Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Thu, 12 Dec 2024 10:09:47 +0100
+Subject: Change Gradle to use the Nexus Build Repo
 
 ---
  build.gradle | 8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index 398a7c994e..6fb5efe645 100644
+index fadb64fda5..34786c0673 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -20,7 +20,9 @@ import java.nio.charset.StandardCharsets
@@ -22,7 +22,7 @@ index 398a7c994e..6fb5efe645 100644
    }
    apply from: "$rootDir/gradle/dependencies.gradle"
  
-@@ -161,7 +163,9 @@ ext {
+@@ -168,7 +170,9 @@ ext {
  allprojects {
  
    repositories {
@@ -33,6 +33,3 @@ index 398a7c994e..6fb5efe645 100644
    }
  
    dependencyUpdates {
--- 
-2.40.1
-

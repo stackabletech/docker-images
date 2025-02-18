@@ -1,14 +1,14 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Thu, 6 Feb 2025 10:21:26 +0100
-Subject: Add cyclonedx plugin
+From 629236f7f9eb4afc6fddceaeb27b4b1c48e13391 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Thu, 17 Oct 2024 11:01:40 +0200
+Subject: Add CycloneDX plugin
 
 ---
  build.gradle | 44 +++++++++++++++++++++++++++++++++++++++++++-
  1 file changed, 43 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
-index 8b44b09087..fadb64fda5 100644
+index 3a9914a9cd..398a7c994e 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,6 +48,48 @@ plugins {
@@ -60,7 +60,7 @@ index 8b44b09087..fadb64fda5 100644
  }
  
  ext {
-@@ -1011,7 +1053,7 @@ project(':core') {
+@@ -1015,7 +1057,7 @@ project(':core') {
      testImplementation libs.junitJupiter
      testImplementation libs.slf4jlog4j
      testImplementation libs.caffeine
@@ -69,8 +69,3 @@ index 8b44b09087..fadb64fda5 100644
      generator project(':generator')
    }
  
-
-base-commit: 70d6ff42debf7e17478beb899fb5756bfbdbfbb5
--- 
-2.40.1
-

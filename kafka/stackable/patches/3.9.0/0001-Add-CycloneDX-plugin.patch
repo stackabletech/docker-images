@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Wed, 29 Jan 2025 16:50:30 +0100
-Subject: Add cyclonedx-plugin
+From f172eee080ac79daf38a039e1f5dd06ad3968ce8 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Thu, 17 Oct 2024 11:01:40 +0200
+Subject: Add CycloneDX plugin
 
 ---
  build.gradle | 42 ++++++++++++++++++++++++++++++++++++++++++
@@ -60,8 +60,3 @@ index 5b064f4203..2d7b442e7b 100644
  }
  
  ext {
-
-base-commit: 84caaa6e9da06435411510a81fa321d4f99c351f
--- 
-2.40.1
-
