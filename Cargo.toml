@@ -1,0 +1,14 @@
+[workspace]
+members = ["rust/*"]
+resolver = "2"
+
+[workspace.dependencies]
+clap = { version = "4.5.27", features = ["derive"] }
+git2 = "0.20.0"
+serde = { version = "1.0.217", features = ["derive"] }
+snafu = "0.8.5"
+tempfile = "3.16.0"
+time = { version = "0.3.37", features = ["parsing"] }
+toml = "0.8.19"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }

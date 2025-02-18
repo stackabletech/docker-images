@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/druid.git"
+base = "7cffb81a8e124d5f218f9af16ad685acf5e9c67c"

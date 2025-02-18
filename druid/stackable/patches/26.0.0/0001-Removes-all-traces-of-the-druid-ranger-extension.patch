@@ -1,10 +1,12 @@
-Removes all traces of the druid ranger extension
-
+From a8bec93ee6d0a4364676333168229aa0ec56657e Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Thu, 12 Dec 2024 17:59:17 +0100
+Subject: Removes all traces of the druid ranger extension
 
 ---
- 0 files changed
+ distribution/pom.xml | 4 ----
+ pom.xml              | 1 -
+ 2 files changed, 5 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
 index eec26171af..a6e72cf2c2 100644
