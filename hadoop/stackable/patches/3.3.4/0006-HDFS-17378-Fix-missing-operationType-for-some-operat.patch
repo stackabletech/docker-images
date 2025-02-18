@@ -1,7 +1,8 @@
-From a8b02d605c36ed9e6669a23ef177938b325aaf83 Mon Sep 17 00:00:00 2001
+From b37250b77291531fea062ae1dc85429e95d854d1 Mon Sep 17 00:00:00 2001
 From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
 Date: Thu, 15 Feb 2024 15:33:43 +0100
-Subject: Fix missing operationType for some operations in authorizer
+Subject: HDFS-17378: Fix missing operationType for some operations in
+ authorizer
 
 ---
  .../hdfs/server/namenode/FSNamesystem.java    | 41 +++++++++++--------

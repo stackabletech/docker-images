@@ -1,4 +1,4 @@
-From a9f87e2811f973e8f96a7e835bd6f6e5115e2e25 Mon Sep 17 00:00:00 2001
+From 570804ae570faed84b98ab67e9ff7534f458caec Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
 Date: Thu, 11 Jan 2024 14:01:02 +0100
 Subject: Allow overriding datanode registration addresses

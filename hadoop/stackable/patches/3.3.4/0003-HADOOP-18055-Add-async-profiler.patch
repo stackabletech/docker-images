@@ -1,7 +1,7 @@
-From 19020c39bf1393d9a1ba590d1f3d4a79dc20806d Mon Sep 17 00:00:00 2001
+From f4a68edacf8afbf51c9ac996fa50623dd71c12b9 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Tue, 6 Feb 2024 16:10:54 +0100
-Subject: Add async-profiler
+Subject: HADOOP-18055: Add async-profiler
 
 ---
  .../org/apache/hadoop/http/HttpServer2.java   |  21 +

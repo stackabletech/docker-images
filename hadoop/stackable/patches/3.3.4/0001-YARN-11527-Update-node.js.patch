@@ -1,7 +1,7 @@
-From e48528d39bc37aa72c19301e9a198f2fb33a0b21 Mon Sep 17 00:00:00 2001
+From ebfaedd7b03927237db87a263d16c17b6aea00ad Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Thu, 21 Dec 2023 13:51:13 +0100
-Subject: Backport YARN-11527
+Subject: YARN-11527: Update node.js
 
 ---
  hadoop-project/pom.xml | 2 +-

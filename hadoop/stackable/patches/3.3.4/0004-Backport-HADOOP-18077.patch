@@ -1,4 +1,4 @@
-From 892037bfc230b7d4401e234002f8388859685326 Mon Sep 17 00:00:00 2001
+From 0ea496a764360c0d4143f9ee764b9c483ddf6d34 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Tue, 6 Feb 2024 16:10:54 +0100
 Subject: Backport HADOOP-18077

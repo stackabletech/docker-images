@@ -1,4 +1,4 @@
-From 522e3e03546bb977dca8cc3706f9d1fa6cb82acf Mon Sep 17 00:00:00 2001
+From 395c0da87fd16ca8e00febecbabdee1fb3f48895 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Tue, 6 Feb 2024 16:10:54 +0100
 Subject: Async-profiler: also grab itimer events

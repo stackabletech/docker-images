@@ -1,7 +1,7 @@
-From 4d999697cf3bbac00affc966c72d179c7f77ce3a Mon Sep 17 00:00:00 2001
+From ad83ab139ffffabd99549ee5207a116f7acc7cf6 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.de>
 Date: Thu, 16 May 2024 16:44:14 +0200
-Subject: Bump dependency versions to fix CVEs
+Subject: Bump Snappy version to fix CVEs
 
 ---
  hadoop-project/pom.xml | 2 +-
