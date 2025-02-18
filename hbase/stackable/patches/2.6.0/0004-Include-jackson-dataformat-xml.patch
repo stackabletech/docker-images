@@ -1,13 +1,14 @@
-Include jackson-dataformat-xml.
-
-From: Lars Francke <git@lars-francke.de>
+From 5aaae3665b8e50268810c5b3f443a204231b5d6a Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 12 Jul 2024 17:30:12 -0400
+Subject: Include jackson-dataformat-xml.
 
 This is needed for XmlLayout to work so our structured logging works.
 It is an optional dependency of log4j2 so we need to make sure to include
 it.
 ---
- hbase-assembly/pom.xml |    5 +++++
- pom.xml                |   12 ++++++++++++
+ hbase-assembly/pom.xml |  5 +++++
+ pom.xml                | 12 ++++++++++++
  2 files changed, 17 insertions(+)
 
 diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml

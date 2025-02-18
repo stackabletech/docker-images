@@ -1,7 +1,7 @@
-From 3d871f17a11c69b0db4fa42974f5bf51dd35751a Mon Sep 17 00:00:00 2001
+From 2aa0caa6a2c918f9f3bf21e9974f10fff1e1acc1 Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Fri, 6 Sep 2024 17:53:52 +0200
-Subject: Bumps cyclonedx-maven-plugin to version 2.8.0 and tweaks its
+Subject: Bump cyclonedx-maven-plugin to version 2.8.0 and tweak its
  configuration
 
 ---

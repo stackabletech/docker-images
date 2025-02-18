@@ -1,10 +1,11 @@
-HBASE-28567.
+From d0b4d835981de37250ad076298ef236c411b7ce0 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 12 Jul 2024 17:30:12 -0400
+Subject: HBASE-28567: Race condition causes MetaRegionLocationCache to never
+ set watcher to populate meta location
 
-From: Lars Francke <git@lars-francke.de>
-
-Race condition causes MetaRegionLocationCache to never set watcher to populate meta location
 ---
- .../apache/hadoop/hbase/zookeeper/ZKWatcher.java   |    5 +++++
+ .../java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java    | 5 +++++
  1 file changed, 5 insertions(+)
 
 diff --git a/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java b/hbase-zookeeper/src/main/java/org/apache/hadoop/hbase/zookeeper/ZKWatcher.java
