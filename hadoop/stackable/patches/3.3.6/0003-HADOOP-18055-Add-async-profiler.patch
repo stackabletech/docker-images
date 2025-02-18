@@ -1,8 +1,33 @@
+From 773ce66db817720e4f44ff307195014240b141a7 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Tue, 6 Feb 2024 16:10:54 +0100
+Subject: HADOOP-18055: Add async-profiler
+
+---
+ .../org/apache/hadoop/http/HttpServer2.java   |  21 +
+ .../hadoop/http/ProfileOutputServlet.java     |  87 ++++
+ .../apache/hadoop/http/ProfileServlet.java    | 394 ++++++++++++++++++
+ .../hadoop/http/ProfilerDisabledServlet.java  |  44 ++
+ .../org/apache/hadoop/util/ProcessUtils.java  |  74 ++++
+ .../src/main/resources/core-default.xml       |   2 +-
+ .../src/site/markdown/AsyncProfilerServlet.md | 145 +++++++
+ .../http/TestDisabledProfileServlet.java      |  95 +++++
+ .../hadoop-kms/src/site/markdown/index.md.vm  |   5 +-
+ .../src/site/markdown/ServerSetup.md.vm       |   5 +-
+ hadoop-project/src/site/site.xml              |   1 +
+ 11 files changed, 868 insertions(+), 5 deletions(-)
+ create mode 100644 hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileOutputServlet.java
+ create mode 100644 hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
+ create mode 100644 hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
+ create mode 100644 hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/ProcessUtils.java
+ create mode 100644 hadoop-common-project/hadoop-common/src/site/markdown/AsyncProfilerServlet.md
+ create mode 100644 hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/http/TestDisabledProfileServlet.java
+
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
-index 8dadbe390a56..1f66a7e809c8 100644
+index 8dadbe390a..1f66a7e809 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
-@@ -27,6 +27,7 @@
+@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
  import java.net.MalformedURLException;
  import java.net.URI;
  import java.net.URL;
@@ -10,7 +35,7 @@ index 8dadbe390a56..1f66a7e809c8 100644
  import java.nio.file.Path;
  import java.nio.file.Paths;
  import java.util.List;
-@@ -744,6 +745,26 @@ private void initializeWebServer(String name, String hostName,
+@@ -744,6 +745,26 @@ public final class HttpServer2 implements FilterContainer {
  
      addDefaultServlets();
      addPrometheusServlet(conf);
@@ -39,7 +64,7 @@ index 8dadbe390a56..1f66a7e809c8 100644
    private void addPrometheusServlet(Configuration conf) {
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileOutputServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileOutputServlet.java
 new file mode 100644
-index 000000000000..1ecc21f3753c
+index 0000000000..1ecc21f375
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileOutputServlet.java
 @@ -0,0 +1,87 @@
@@ -132,7 +157,7 @@ index 000000000000..1ecc21f3753c
 +}
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
 new file mode 100644
-index 000000000000..fc0ec7736ed8
+index 0000000000..fc0ec7736e
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
 @@ -0,0 +1,394 @@
@@ -532,7 +557,7 @@ index 000000000000..fc0ec7736ed8
 +}
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
 new file mode 100644
-index 000000000000..459485ffa5b5
+index 0000000000..459485ffa5
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
 @@ -0,0 +1,44 @@
@@ -582,7 +607,7 @@ index 000000000000..459485ffa5b5
 +}
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/ProcessUtils.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/ProcessUtils.java
 new file mode 100644
-index 000000000000..cf653b9c912c
+index 0000000000..cf653b9c91
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/ProcessUtils.java
 @@ -0,0 +1,74 @@
@@ -661,7 +686,7 @@ index 000000000000..cf653b9c912c
 +  }
 +}
 diff --git a/hadoop-common-project/hadoop-common/src/main/resources/core-default.xml b/hadoop-common-project/hadoop-common/src/main/resources/core-default.xml
-index b1a25ce1f008..8068bae96918 100644
+index b1a25ce1f0..8068bae969 100644
 --- a/hadoop-common-project/hadoop-common/src/main/resources/core-default.xml
 +++ b/hadoop-common-project/hadoop-common/src/main/resources/core-default.xml
 @@ -69,7 +69,7 @@
@@ -675,7 +700,7 @@ index b1a25ce1f008..8068bae96918 100644
  
 diff --git a/hadoop-common-project/hadoop-common/src/site/markdown/AsyncProfilerServlet.md b/hadoop-common-project/hadoop-common/src/site/markdown/AsyncProfilerServlet.md
 new file mode 100644
-index 000000000000..4b93cc219a5e
+index 0000000000..4b93cc219a
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/site/markdown/AsyncProfilerServlet.md
 @@ -0,0 +1,145 @@
@@ -826,7 +851,7 @@ index 000000000000..4b93cc219a5e
 +
 diff --git a/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/http/TestDisabledProfileServlet.java b/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/http/TestDisabledProfileServlet.java
 new file mode 100644
-index 000000000000..ce068bb6f1cf
+index 0000000000..ce068bb6f1
 --- /dev/null
 +++ b/hadoop-common-project/hadoop-common/src/test/java/org/apache/hadoop/http/TestDisabledProfileServlet.java
 @@ -0,0 +1,95 @@
@@ -926,7 +951,7 @@ index 000000000000..ce068bb6f1cf
 +
 +}
 diff --git a/hadoop-common-project/hadoop-kms/src/site/markdown/index.md.vm b/hadoop-common-project/hadoop-kms/src/site/markdown/index.md.vm
-index 6ea21d5cf407..09375d5aab52 100644
+index 6ea21d5cf4..09375d5aab 100644
 --- a/hadoop-common-project/hadoop-kms/src/site/markdown/index.md.vm
 +++ b/hadoop-common-project/hadoop-kms/src/site/markdown/index.md.vm
 @@ -1208,9 +1208,10 @@ Name               | Description
@@ -951,7 +976,7 @@ index 6ea21d5cf407..09375d5aab52 100644
    </property>
  
 diff --git a/hadoop-hdfs-project/hadoop-hdfs-httpfs/src/site/markdown/ServerSetup.md.vm b/hadoop-hdfs-project/hadoop-hdfs-httpfs/src/site/markdown/ServerSetup.md.vm
-index 2d0a5b8cd2e7..e97de0275ca2 100644
+index 2d0a5b8cd2..e97de0275c 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs-httpfs/src/site/markdown/ServerSetup.md.vm
 +++ b/hadoop-hdfs-project/hadoop-hdfs-httpfs/src/site/markdown/ServerSetup.md.vm
 @@ -162,9 +162,10 @@ Name               | Description
@@ -976,7 +1001,7 @@ index 2d0a5b8cd2e7..e97de0275ca2 100644
    </property>
  
 diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
-index b53cbd2a0565..0793e9777128 100644
+index b53cbd2a05..0793e97771 100644
 --- a/hadoop-project/src/site/site.xml
 +++ b/hadoop-project/src/site/site.xml
 @@ -74,6 +74,7 @@

@@ -1,5 +1,17 @@
+From 77312867feaf8931ce8650208ebcbdea5fcfdb0e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Thu, 11 Jan 2024 14:01:02 +0100
+Subject: Allow overriding datanode registration addresses
+
+---
+ .../org/apache/hadoop/hdfs/DFSConfigKeys.java |  9 +++
+ .../blockmanagement/DatanodeManager.java      | 43 +++++++-----
+ .../hadoop/hdfs/server/datanode/DNConf.java   | 70 +++++++++++++++++++
+ .../hadoop/hdfs/server/datanode/DataNode.java | 35 ++++++++--
+ 4 files changed, 135 insertions(+), 22 deletions(-)
+
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
-index e3f4bfcde84..3d65bcad229 100755
+index e3f4bfcde8..3d65bcad22 100755
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
 @@ -147,6 +147,13 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
@@ -26,7 +38,7 @@ index e3f4bfcde84..3d65bcad229 100755
    public static final boolean DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_DEFAULT = true;
  
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
-index 07381fc696f..8aeb92cff11 100644
+index 07381fc696..8aeb92cff1 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
 @@ -180,6 +180,8 @@ public class DatanodeManager {
@@ -50,7 +62,7 @@ index 07381fc696f..8aeb92cff11 100644
      this.checkIpHostnameInRegistration = conf.getBoolean(
          DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_KEY,
          DFSConfigKeys.DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_DEFAULT);
-@@ -1138,27 +1145,29 @@ void startAdminOperationIfNecessary(DatanodeDescriptor nodeReg) {
+@@ -1138,27 +1145,29 @@ public class DatanodeManager {
     */
    public void registerDatanode(DatanodeRegistration nodeReg)
        throws DisallowedDatanodeException, UnresolvedTopologyException {
@@ -98,7 +110,7 @@ index 07381fc696f..8aeb92cff11 100644
        // it will be disallowed from registering. 
        if (!hostConfigManager.isIncluded(nodeReg)) {
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
-index 9b5343321d3..790d508e5ea 100644
+index 9b5343321d..790d508e5e 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
 @@ -100,6 +100,11 @@ public class DNConf {
@@ -113,7 +125,7 @@ index 9b5343321d3..790d508e5ea 100644
    final boolean overwriteDownstreamDerivedQOP;
    private final boolean pmemCacheRecoveryEnabled;
  
-@@ -188,6 +193,11 @@ public DNConf(final Configurable dn) {
+@@ -188,6 +193,11 @@ public class DNConf {
      connectToDnViaHostname = getConf().getBoolean(
          DFSConfigKeys.DFS_DATANODE_USE_DN_HOSTNAME,
          DFSConfigKeys.DFS_DATANODE_USE_DN_HOSTNAME_DEFAULT);
@@ -125,7 +137,7 @@ index 9b5343321d3..790d508e5ea 100644
      this.blockReportInterval = getConf().getLong(
          DFS_BLOCKREPORT_INTERVAL_MSEC_KEY,
          DFS_BLOCKREPORT_INTERVAL_MSEC_DEFAULT);
-@@ -362,6 +372,66 @@ public boolean getConnectToDnViaHostname() {
+@@ -362,6 +372,66 @@ public class DNConf {
      return connectToDnViaHostname;
    }
  
@@ -193,10 +205,10 @@ index 9b5343321d3..790d508e5ea 100644
     * Returns socket timeout
     * 
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
-index 96c4ad9ae28..fdb8e631dc8 100644
+index 96c4ad9ae2..66b75cff3f 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
-@@ -117,6 +117,7 @@
+@@ -117,6 +117,7 @@ import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
  import java.util.Map;
@@ -204,7 +216,7 @@ index 96c4ad9ae28..fdb8e631dc8 100644
  import java.util.Map.Entry;
  import java.util.Set;
  import java.util.UUID;
-@@ -1876,11 +1877,35 @@ DatanodeRegistration createBPRegistration(NamespaceInfo nsInfo) {
+@@ -1876,11 +1877,35 @@ public class DataNode extends ReconfigurableBase
            NodeType.DATA_NODE);
      }
  
