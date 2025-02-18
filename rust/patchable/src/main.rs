@@ -161,6 +161,9 @@ enum Cmd {
         #[clap(flatten)]
         pv: ProductVersion,
     },
+
+    /// Shwos the images repository root
+    ImagesDir,
 }
 
 #[derive(Debug, Snafu)]
@@ -192,7 +195,7 @@ pub enum Error {
     },
 
     #[snafu(display("failed to find images repository"))]
-    FindImagesRepo { source: git2::Error },
+    FindImagesRepo { source: repo::Error },
     #[snafu(display("images repository has no work directory"))]
     NoImagesRepoWorkdir,
 
@@ -256,7 +259,7 @@ fn main() -> Result<()> {
     .context(ConfigureGitLoggingSnafu)?;
 
     let opts = <Opts as clap::Parser>::parse();
-    let images_repo = Repository::discover(".").context(FindImagesRepoSnafu)?;
+    let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
     let images_repo_root = images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?;
     match opts.cmd {
         Cmd::Checkout { pv, base_only } => {
@@ -441,6 +444,8 @@ fn main() -> Result<()> {
             };
             println!("{}", ctx.worktree_root().display());
         }
+
+        Cmd::ImagesDir => println!("{}", images_repo_root.display()),
     }
 
     Ok(())

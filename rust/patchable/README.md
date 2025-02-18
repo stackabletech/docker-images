@@ -44,3 +44,7 @@ Instead of creating this manually, run `patchable init`:
 ```toml
 cargo patchable init druid 28.0.0 --upstream=https://github.com/apache/druid.git --base=druid-28.0.0
 ```
+
+## Glossary
+
+- Images repo/directory - The checkout of stackabletech/docker-images
