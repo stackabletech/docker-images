@@ -1,12 +1,12 @@
-HBASE-28379 Upgrade thirdparty dep to 4.1.6
-
-From: Lars Francke <git@lars-francke.de>
-
+From 8720a56fe1727d3de52e937e9df1631ed7b3c476 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Thu, 11 Jul 2024 10:12:51 +0200
+Subject: HBASE-28379: Upgrade thirdparty deps
 
 ---
- hbase-protocol-shaded/pom.xml |    2 +-
- hbase-shaded/pom.xml          |    2 +-
- pom.xml                       |   16 +++++++++++++---
+ hbase-protocol-shaded/pom.xml |  2 +-
+ hbase-shaded/pom.xml          |  2 +-
+ pom.xml                       | 16 +++++++++++++---
  3 files changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/hbase-protocol-shaded/pom.xml b/hbase-protocol-shaded/pom.xml

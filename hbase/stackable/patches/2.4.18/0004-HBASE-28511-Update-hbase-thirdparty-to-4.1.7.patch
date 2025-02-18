@@ -1,16 +1,16 @@
-HBASE-28511 Update hbase-thirdparty to 4.1.7
-
-From: Lars Francke <git@lars-francke.de>
-
+From 92521e5f2798dbb21af9af56f48eb649f97e48ac Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Thu, 11 Jul 2024 10:12:51 +0200
+Subject: HBASE-28511: Update hbase-thirdparty to 4.1.7
 
 ---
- .../hadoop/hbase/security/EncryptionUtil.java      |    4 ++--
- .../hadoop/hbase/shaded/protobuf/ProtobufUtil.java |    2 +-
- .../mapreduce/TableSnapshotInputFormatImpl.java    |    2 +-
- hbase-protocol-shaded/pom.xml                      |    2 +-
- .../hadoop/hbase/io/hfile/FixedFileTrailer.java    |    2 +-
- .../hbase/zookeeper/MasterAddressTracker.java      |    2 +-
- pom.xml                                            |    8 ++++----
+ .../org/apache/hadoop/hbase/security/EncryptionUtil.java  | 4 ++--
+ .../apache/hadoop/hbase/shaded/protobuf/ProtobufUtil.java | 2 +-
+ .../hbase/mapreduce/TableSnapshotInputFormatImpl.java     | 2 +-
+ hbase-protocol-shaded/pom.xml                             | 2 +-
+ .../apache/hadoop/hbase/io/hfile/FixedFileTrailer.java    | 2 +-
+ .../hadoop/hbase/zookeeper/MasterAddressTracker.java      | 2 +-
+ pom.xml                                                   | 8 ++++----
  7 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/hbase-client/src/main/java/org/apache/hadoop/hbase/security/EncryptionUtil.java b/hbase-client/src/main/java/org/apache/hadoop/hbase/security/EncryptionUtil.java

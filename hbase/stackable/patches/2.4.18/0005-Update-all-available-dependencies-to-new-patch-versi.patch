@@ -1,10 +1,10 @@
-Updates all available dependencies to new patch versions
-
-From: Lars Francke <git@lars-francke.de>
-
+From 6acfff9441d96c18c2a1ec7c0d0c40aec8e94b2f Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Thu, 11 Jul 2024 10:12:51 +0200
+Subject: Update all available dependencies to new patch versions
 
 ---
- pom.xml |   46 +++++++++++++++++++++++-----------------------
+ pom.xml | 46 +++++++++++++++++++++++-----------------------
  1 file changed, 23 insertions(+), 23 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
