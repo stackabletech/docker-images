@@ -1,5 +1,15 @@
+From 08b7c02a497b8b3b70616281f810a898b1719a78 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Update CycloneDX plugin
+
+---
+ dev/make-distribution.sh | 1 -
+ pom.xml                  | 7 ++++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
 diff --git a/dev/make-distribution.sh b/dev/make-distribution.sh
-index ef7c010..0f4c1c7 100755
+index ef7c010e93..0f4c1c74e4 100755
 --- a/dev/make-distribution.sh
 +++ b/dev/make-distribution.sh
 @@ -171,7 +171,6 @@ BUILD_COMMAND=("$MVN" clean package \
@@ -11,7 +21,7 @@ index ef7c010..0f4c1c7 100755
  
  # Actually build the jar
 diff --git a/pom.xml b/pom.xml
-index 0f504db..6cca7db 100644
+index 0f504dbee8..6cca7db7bf 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3482,7 +3482,12 @@
