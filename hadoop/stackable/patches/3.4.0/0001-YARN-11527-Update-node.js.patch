@@ -1,10 +1,14 @@
-From bd2fa3a3a5ef57c5f6ca4f0e5535a1cd875e50d1 Mon Sep 17 00:00:00 2001
+From a3096eeaece059cebe553d188f81f6864a056bdc Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Thu, 21 Dec 2023 13:51:13 +0100
 Subject: YARN-11527: Update node.js
 
+---
+ hadoop-project/pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
-index 0ed96d087bc..9ebb6af4567 100644
+index 0ed96d087b..6f3b9371cd 100644
 --- a/hadoop-project/pom.xml
 +++ b/hadoop-project/pom.xml
 @@ -217,7 +217,7 @@
