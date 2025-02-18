@@ -1,3 +1,8 @@
+From 6a3e3e3416bafacb94e5b4963a355b2e0ce09a0f Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Update CycloneDX plugin
+
 diff --git a/pom.xml b/pom.xml
 index 0a7a478..3ceaf7a 100644
 --- a/pom.xml

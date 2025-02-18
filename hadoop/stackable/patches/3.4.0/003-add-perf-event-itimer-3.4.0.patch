@@ -1,3 +1,8 @@
+From 6b4eb2c72a71effdc2112567b750e24d5745c186 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Tue, 6 Feb 2024 16:10:54 +0100
+Subject: Async-profiler: also grab itimer events
+
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
 index fc0ec7736ed8..e324ad6d49fd 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java

@@ -1,3 +1,8 @@
+From 77312867feaf8931ce8650208ebcbdea5fcfdb0e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Thu, 11 Jan 2024 14:01:02 +0100
+Subject: Allow overriding datanode registration addresses
+
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
 index e3f4bfcde84..3d65bcad229 100755
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java

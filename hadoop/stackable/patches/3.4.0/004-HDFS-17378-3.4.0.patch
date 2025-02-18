@@ -1,3 +1,9 @@
+From 36ed6731ce3afa4ccacb40c1c82dfc81e0e80483 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
+Date: Thu, 15 Feb 2024 15:33:43 +0100
+Subject: HDFS-17378: Fix missing operationType for some operations in
+ authorizer
+
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
 index 277cc42222f..75766bcd696 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
