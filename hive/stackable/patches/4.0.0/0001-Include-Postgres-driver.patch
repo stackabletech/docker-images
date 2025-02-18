@@ -1,3 +1,13 @@
+From c5eb86648fe96b048723372024fa7278c9e108db Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
+Date: Tue, 3 Sep 2024 11:13:24 +0200
+Subject: Include Postgres driver
+
+---
+ standalone-metastore/metastore-server/pom.xml | 1 -
+ standalone-metastore/pom.xml                  | 1 -
+ 2 files changed, 2 deletions(-)
+
 diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
 index a8f680928c..7102f1b5ca 100644
 --- a/standalone-metastore/metastore-server/pom.xml

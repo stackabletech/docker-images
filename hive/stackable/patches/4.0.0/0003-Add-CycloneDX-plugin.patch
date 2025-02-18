@@ -1,5 +1,14 @@
+From 23995b6c1ef70e4e119ce0493e63ff3a75ea1378 Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Add CycloneDX plugin
+
+---
+ standalone-metastore/pom.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 28ac5ce..d6e2196 100644
+index 205fc31ec7..2982a45ca0 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -41,6 +41,7 @@
@@ -10,7 +19,7 @@ index 28ac5ce..d6e2196 100644
      <checkstyle.conf.dir>${basedir}/${standalone.metastore.path.to.root}/checkstyle</checkstyle.conf.dir>
      <!-- Test Properties -->
      <log4j.conf.dir>${project.basedir}/src/test/resources</log4j.conf.dir>
-@@ -590,6 +591,23 @@
+@@ -594,6 +595,23 @@
            </excludes>
          </configuration>
        </plugin>

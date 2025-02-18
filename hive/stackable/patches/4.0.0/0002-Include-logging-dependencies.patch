@@ -1,8 +1,18 @@
+From 69071d4d4525a8ceb27cbefa9a093d0678a1f3dd Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Include logging dependencies
+
+This adds dependencies required for use of the XmlLayout for logging
+---
+ standalone-metastore/pom.xml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 28ac5ceb65..03097e7f40 100644
+index e3cbd821bd..205fc31ec7 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
-@@ -494,6 +494,11 @@
+@@ -493,6 +493,11 @@
        <groupId>com.fasterxml.jackson.core</groupId>
        <artifactId>jackson-databind</artifactId>
      </dependency>
