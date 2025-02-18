@@ -1,5 +1,14 @@
+From 8b8b17064695f7c631ef3abd79351d756b155dd1 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Thu, 11 Jul 2024 10:12:51 +0200
+Subject: Update all dependencies which have a new patch update available.
+
+---
+ pom.xml | 48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
+
 diff --git a/pom.xml b/pom.xml
-index 01123cb..3734fb1 100644
+index 01123cb35b..3734fb1142 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -567,7 +567,7 @@
