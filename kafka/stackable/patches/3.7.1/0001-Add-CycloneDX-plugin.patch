@@ -1,5 +1,14 @@
+From 55bcff9a298c339bd7eb10cdd733e600f671861b Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Thu, 17 Oct 2024 11:01:40 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+
 diff --git a/build.gradle b/build.gradle
-index 32e6e8f..13a0def 100644
+index 32e6e8fdca..13a0deffec 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,6 +48,47 @@ plugins {
