@@ -27,7 +27,7 @@ COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
 
 WORKDIR /tmp/opa-authorizer
 
-RUN poetry install && \
+RUN poetry sync && \
     poetry run pytest && \
     poetry build
 
