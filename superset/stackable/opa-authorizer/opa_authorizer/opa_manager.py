@@ -26,7 +26,6 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
     AUTH_OPA_PACKAGE_DEFAULT = "superset"
     AUTH_OPA_RULE_DEFAULT = "user_roles"
-    AUTH_USER_REGISTRATION_ROLE_DEFAULT = "Public"
 
     def __init__(self, appbuilder):
         super().__init__(appbuilder)
@@ -54,10 +53,6 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         self.auth_opa_request_timeout: int = current_app.config.get(
             "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
         )
-        # Cannot name this "auth_auth_user_registration_role" because it clashes with some super() property constraints
-        self.user_registration_role: str = config.get(
-            "AUTH_USER_REGISTRATION_ROLE", self.AUTH_USER_REGISTRATION_ROLE_DEFAULT
-        )
         self.opa_session = requests.Session()
 
     @override
@@ -77,17 +72,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             log.error(
                 f"No OPA roles for user [{user.username}], defaulting to role AUTH_USER_REGISTRATION_ROLE"
             )
-            default_role = self.resolve_role(self.user_registration_role)
-            if not default_role:
-                log.error(
-                    f"Failed to resolve default role name {self.user_registration_role} for user [{user.username}]. User will have no roles."
-                )
-                return []
-            else:
-                log.info(
-                    f"User [{user.username}] will only have default role [{self.user_registration_role}]"
-                )
-                return [default_role]
+            return []
 
         user_role_set = set(user.roles)
         log.debug(f"Superset roles for user [{user.username}]: {user_role_set}")

@@ -145,9 +145,7 @@ def test_no_roles(
             wraps=mock_resolve_role,
         )
 
-        assert set(
-            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
-        ) == {"Public"}
+        assert opa_security_manager.get_user_roles(user) == []
 
 
 def test_get_opa_roles(
