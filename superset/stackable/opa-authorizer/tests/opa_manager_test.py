@@ -1,12 +1,13 @@
 # pylint: disable=invalid-name, unused-argument, redefined-outer-name, missing-module-docstring
 from http.client import HTTPException
+
 import pytest
+import requests
 from flask import Flask
 from flask_appbuilder.security.sqla.models import Role, User
 from pytest_mock import MockFixture
-
-import requests
 from superset.extensions import appbuilder
+
 from opa_authorizer.opa_manager import OpaSupersetSecurityManager
 
 
