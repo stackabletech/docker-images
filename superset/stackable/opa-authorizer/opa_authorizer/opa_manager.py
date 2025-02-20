@@ -3,6 +3,7 @@ Custom security manager for Superset
 """
 
 import logging
+from dataclasses import dataclass
 from typing import Optional
 
 import requests
@@ -13,6 +14,27 @@ from overrides import override
 from superset.security import SupersetSecurityManager
 
 log = logging.getLogger(__name__)
+
+
+class OpaError(Exception):
+    pass
+
+
+class SupersetError(Exception):
+    pass
+
+
+@dataclass
+class OpaResponse:
+    roles: list[str]
+
+
+def opa_response_from_json(json: dict) -> OpaResponse:
+    if "result" in json:
+        if type(json["result"]) is list:
+            return OpaResponse(roles=json["result"])
+
+    raise OpaError(f"Invalid OPA response: [{json}]")
 
 
 class OpaSupersetSecurityManager(SupersetSecurityManager):
@@ -53,6 +75,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         self.auth_opa_request_timeout: int = current_app.config.get(
             "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
         )
+
         self.opa_session = requests.Session()
 
     @override
@@ -66,28 +89,19 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         if not user:
             user = g.user
 
-        resolved_opa_roles = self.resolve_opa_roles(user.username)
+        resolved_opa_roles = self.roles(user.username)
 
-        if not resolved_opa_roles:
-            log.error(
-                f"No OPA roles for user [{user.username}], defaulting to role AUTH_USER_REGISTRATION_ROLE"
-            )
-            return []
+        # user.roles = resolved_opa_roles
 
-        user_role_set = set(user.roles)
-        log.debug(f"Superset roles for user [{user.username}]: {user_role_set}")
+        return resolved_opa_roles
 
-        if user_role_set != resolved_opa_roles:
-            log.info(
-                f"Superset and OPA roles diverge. Updating OPA roles for user [{user.username}]"
-            )
-            user.roles = list(resolved_opa_roles)
-            if not self.update_user(user):
-                log.error(f"Failed to update user roles for user {user.username}")
+    @cachedmethod(lambda self: self.role_cache)
+    def roles(self, username: str) -> list[Role]:
+        opa_role_names = self.opa_get_user_roles(username)
+        result = self.resolve_user_roles(opa_role_names)
+        return result
 
-        return user.roles
-
-    def get_opa_user_roles(self, username: str) -> list[str]:
+    def opa_get_user_roles(self, username: str) -> list[str]:
         """
         Queries an Open Policy Agent instance for the roles of a given user.
 
@@ -102,54 +116,17 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
                 timeout=self.auth_opa_request_timeout,
             )
 
-            if response.status_code != 200:
-                log.error(
-                    f"OPA request [{req_url}] for user [{username}] failed with response code [{response.status_code}]"
-                )
-                return []
+            opa_response: OpaResponse = response.json(
+                object_hook=opa_response_from_json
+            )
 
-            roles: list[str] = response.json().get("result")
-            if type(roles) is not list:
-                log.error(f"Expected a list or role names from OPA but got [{roles}]")
-                return []
+            log.info(f"OPA role names for user [{username}]: [{opa_response.roles}]")
 
-            if not roles:
-                log.error(
-                    "Expected a list or role names from OPA but got an empty list"
-                )
-                return []
-
-            log.debug(f"Retrieved OPA role names for user [{username}]: [{roles}]")
-            return roles
+            return opa_response.roles
 
         except Exception as e:
             log.error("Failed to get OPA role names", exc_info=e)
             return []
-
-    @cachedmethod(lambda self: self.role_cache)
-    def resolve_opa_roles(self, username: str) -> set[Role]:
-        """
-        Queries an Open Policy Agent instance for the roles of a given user.
-
-        Then maps the OPA role names to Superset Role objects.
-
-        The result is cached.
-
-        :returns: A set of Role objects assigned to the user or an empty set.
-        """
-        try:
-            roles = self.get_opa_user_roles(username)
-            resolved_opa_roles = self.resolve_role_list(roles)
-
-            log.debug(
-                f"Resolved OPA Roles for user [{username}]: [{resolved_opa_roles}]"
-            )
-
-            return resolved_opa_roles
-
-        except Exception as e:
-            log.error("Failed to resolve OPA roles", exc_info=e)
-            return set()
 
     def call_opa(self, url: str, json: dict, timeout: int) -> requests.Response:
         return self.opa_session.post(
@@ -158,30 +135,12 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             timeout=timeout,
         )
 
-    def resolve_role(self, role_name: str) -> Optional[Role]:
-        """
-        Finds a role by name creating it if it doesn't exist in Superset yet.
-
-        :returns: A role or None.
-        """
-        role: Optional[Role] = self.find_role(role_name)
-        if not role:
-            log.info(
-                f"Failed to resolve role {role_name}, attempting to create it with no permissions"
-            )
-            role = self.add_role(role_name)
-            if not role:
-                log.error(f"Failed to create new role {role_name}")
-            else:
-                log.info(f"Resolved role name [{role_name}] to new role.")
-
-        log.debug(f"Resolved role name [{role_name}] to existing role.")
-
-        return role
-
-    def resolve_role_list(self, roles: list[str]) -> set[Role]:
-        result: set[Role] = set()
+    def resolve_user_roles(self, roles: list[str]) -> list[Role]:
+        result: list[Role] = list()
         for role_name in roles:
-            if resolved_role := self.resolve_role(role_name):
-                result.add(resolved_role)
+            if resolved_role := self.find_role(role_name):
+                log.info(f"Resolved Superset role [{role_name}].")
+                result.append(resolved_role)
+            else:
+                raise SupersetError(f"Superset role [{role_name}] does not exist.")
         return result

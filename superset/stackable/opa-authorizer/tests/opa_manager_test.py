@@ -33,6 +33,10 @@ def opa_security_manager(
             "flask_appbuilder.security.sqla.manager.SecurityManager.create_db",
             return_value=None,
         )
+
+        # Disable caching
+        appbuilder.get_app.config["AUTH_OPA_CACHE_MAXSIZE"] = 0
+
         return OpaSupersetSecurityManager(appbuilder)
 
 
@@ -58,68 +62,6 @@ def test_opa_security_manager(opa_security_manager: OpaSupersetSecurityManager) 
     assert opa_security_manager
 
 
-def test_add_roles(
-    mocker: MockFixture,
-    app: Flask,
-    opa_security_manager: OpaSupersetSecurityManager,
-    user: User,
-) -> None:
-    """
-    Test that roles are correctly added to a user.
-    """
-    opa_roles = ["Test1", "Test2", "Test3"]
-
-    with app.app_context():
-        mocker.patch(
-            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
-            return_value=True,
-        )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
-            return_value=opa_roles,
-        )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
-            wraps=mock_resolve_role,
-        )
-
-        assert set(
-            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
-        ) == set(opa_roles)
-
-
-def test_change_roles(
-    mocker: MockFixture,
-    app: Flask,
-    opa_security_manager: OpaSupersetSecurityManager,
-    user: User,
-) -> None:
-    """
-    Test that roles are correcty changed on a user.
-    """
-    opa_roles = ["Test4"]
-
-    with app.app_context():
-        mocker.patch(
-            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
-            return_value=True,
-        )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
-            return_value=opa_roles,
-        )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
-            wraps=mock_resolve_role,
-        )
-        user_roles = ["Test1", "Test2", "Test3"]
-        user.roles = list(map(opa_security_manager.resolve_role, user_roles))
-
-        assert set(
-            map(lambda r: r.name, opa_security_manager.get_user_roles(user))
-        ) == set(opa_roles)
-
-
 def test_no_roles(
     mocker: MockFixture,
     app: Flask,
@@ -133,16 +75,12 @@ def test_no_roles(
 
     with app.app_context():
         mocker.patch(
-            "flask_appbuilder.security.sqla.manager.SecurityManager.update_user",
-            return_value=True,
-        )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.get_opa_user_roles",
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.opa_get_user_roles",
             return_value=opa_roles,
         )
         mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_role",
-            wraps=mock_resolve_role,
+            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_user_roles",
+            return_value=[],
         )
 
         assert opa_security_manager.get_user_roles(user) == []
@@ -166,7 +104,7 @@ def test_get_opa_roles(
             return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == [
+        assert opa_security_manager.opa_get_user_roles("User1") == [
             "Test1",
             "Test2",
             "Test3",
@@ -191,7 +129,7 @@ def test_get_opa_roles_result_missing(
             return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == []
+        assert opa_security_manager.opa_get_user_roles("User1") == []
 
 
 def test_get_opa_roles_not_a_list(
@@ -212,7 +150,7 @@ def test_get_opa_roles_not_a_list(
             return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == []
+        assert opa_security_manager.opa_get_user_roles("User1") == []
 
 
 def test_get_opa_roles_not_a_valid_json(
@@ -233,7 +171,7 @@ def test_get_opa_roles_not_a_valid_json(
             return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == []
+        assert opa_security_manager.opa_get_user_roles("User1") == []
 
 
 def test_get_opa_roles_wrong_statuscode(
@@ -254,7 +192,7 @@ def test_get_opa_roles_wrong_statuscode(
             return_value=response,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == []
+        assert opa_security_manager.opa_get_user_roles("User1") == []
 
 
 def test_get_opa_roles_http_exception(
@@ -271,7 +209,7 @@ def test_get_opa_roles_http_exception(
             wraps=mock_call_opa,
         )
 
-        assert opa_security_manager.get_opa_user_roles("User1") == []
+        assert opa_security_manager.opa_get_user_roles("User1") == []
 
 
 def mock_resolve_role(role_name: str) -> Role:
