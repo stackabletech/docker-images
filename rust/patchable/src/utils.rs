@@ -64,6 +64,11 @@ impl Quantizer {
 /// Runs a raw git command in the environment of a Git repository.
 ///
 /// Used for functionality that is not currently implemented by libgit2/gix.
+///
+/// NOTE: To avoid clobbering the terminal output, processes executed by this
+/// that inherit stdout and/or stderr *must* wrap the execution of the child
+/// (such as [`std::process::Command::output`] or [`std::process::Command::status`])
+/// in [`tracing_indicatif::suspend_tracing_indicatif`].
 pub fn raw_git_cmd(repo: &Repository) -> std::process::Command {
     let mut cmd = std::process::Command::new("git");
     cmd.env("GIT_DIR", repo.path());

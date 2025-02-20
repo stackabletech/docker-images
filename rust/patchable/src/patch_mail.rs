@@ -11,6 +11,7 @@ use git2::{Diff, Repository, Signature};
 use snafu::{OptionExt as _, ResultExt, Snafu};
 use tempfile::{tempdir, NamedTempFile};
 use time::{format_description::well_known::Rfc2822, OffsetDateTime};
+use tracing_indicatif::suspend_tracing_indicatif;
 
 use crate::utils::raw_git_cmd;
 
@@ -76,19 +77,21 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 /// Splits a series of git patch emails into individual patch emails.
 pub fn mailsplit(repo: &Repository, patch_file: &Path) -> Result<impl Iterator<Item = PathBuf>> {
     let base_dir = tempdir().context(CreateTempDirSnafu)?;
-    let mailsplit = raw_git_cmd(repo)
-        .arg("mailsplit")
-        // mailsplit doesn't accept split arguments ("-o dir")
-        .arg({
-            let mut output_arg = OsString::from("-o");
-            output_arg.push(base_dir.path());
-            output_arg
-        })
-        .arg("--")
-        .arg(patch_file)
-        .stderr(Stdio::inherit())
-        .output()
-        .context(RunMailsplitSnafu)?;
+    let mailsplit = suspend_tracing_indicatif(|| {
+        raw_git_cmd(repo)
+            .arg("mailsplit")
+            // mailsplit doesn't accept split arguments ("-o dir")
+            .arg({
+                let mut output_arg = OsString::from("-o");
+                output_arg.push(base_dir.path());
+                output_arg
+            })
+            .arg("--")
+            .arg(patch_file)
+            .stderr(Stdio::inherit())
+            .output()
+    })
+    .context(RunMailsplitSnafu)?;
     if !mailsplit.status.success() {
         return MailsplitFailedSnafu {
             status: mailsplit.status,
@@ -170,15 +173,18 @@ pub fn mailinfo(repo: &Repository, patch_email_file: &Path) -> Result<Mailinfo> 
     let patch_file = NamedTempFile::new()
         .context(CreateTempFileSnafu)?
         .into_temp_path();
-    let mailinfo = raw_git_cmd(repo)
-        .arg("mailinfo")
-        .args([&msg_file, &patch_file])
-        .stdin(File::open(patch_email_file).context(OpenMailFileSnafu {
-            path: patch_email_file,
-        })?)
-        .stderr(Stdio::inherit())
-        .output()
-        .context(RunMailinfoSnafu)?;
+    let patch_email_file = File::open(patch_email_file).context(OpenMailFileSnafu {
+        path: patch_email_file,
+    })?;
+    let mailinfo = suspend_tracing_indicatif(|| {
+        raw_git_cmd(repo)
+            .arg("mailinfo")
+            .args([&msg_file, &patch_file])
+            .stdin(patch_email_file)
+            .stderr(Stdio::inherit())
+            .output()
+    })
+    .context(RunMailinfoSnafu)?;
     if !mailinfo.status.success() {
         return MailinfoFailedSnafu {
             status: mailinfo.status,
