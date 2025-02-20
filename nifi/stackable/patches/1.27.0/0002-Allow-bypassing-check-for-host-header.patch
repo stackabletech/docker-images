@@ -1,4 +1,8 @@
-Subject: [PATCH] Allow bypassing check for host header.
+From eab66d5ff1db7f32062bc1eab252c19ddbf95797 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 24 Jun 2024 09:04:43 +0200
+Subject: Allow bypassing check for host header
+
 NiFi has the configuration option 'nifi.web.proxy.host' which controls allowed
 values for the host header field in any incoming request for the web ui.
 
@@ -20,11 +24,9 @@ hostnames by just setting it to "*" and this will effectively bypass the hostnam
 This allows us to keep the default behavior in place for those users where it works and not remove
 security features, but also enables users to disable this check if they know what they are doing.
 ---
-Index: nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
-IDEA additional info:
-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
-<+>UTF-8
-===================================================================
+ .../org/apache/nifi/web/server/HostHeaderHandler.java     | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
 diff --git a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
 index dd4bbf54c0..ea1b5b2da1 100644
 --- a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java

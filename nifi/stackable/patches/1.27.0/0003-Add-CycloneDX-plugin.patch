@@ -1,5 +1,14 @@
+From 1f6bc60943e4340e3fb77fd00a35cfaab62d12fc Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Add CycloneDX plugin
+
+---
+ pom.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
 diff --git a/pom.xml b/pom.xml
-index 0437c2b..0684bd5 100644
+index 0437c2b949..0684bd5a22 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1090,6 +1090,24 @@
