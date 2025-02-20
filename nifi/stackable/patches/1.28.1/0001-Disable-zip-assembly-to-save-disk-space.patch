@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Mon, 17 Feb 2025 15:13:39 +0100
-Subject: no zip assembly
+From 2793399fdb0effd09aa682cfeeda855ee0b5b52d Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Fri, 17 May 2024 15:38:33 +0200
+Subject: Disable zip assembly to save disk space
 
 ---
  nifi-assembly/pom.xml | 1 -
@@ -19,8 +19,3 @@ index 27928cf67e..d00154626a 100644
                              </formats>
                          </configuration>
                      </execution>
-
-base-commit: 883338fe28883733417d10f6ffa9319e75f5ea06
--- 
-2.40.1
-

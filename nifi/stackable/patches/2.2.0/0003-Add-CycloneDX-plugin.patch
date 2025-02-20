@@ -1,7 +1,7 @@
-From fbf66d408aefd995a2ac4a2b213b25a12cb9e96c Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Mon, 17 Feb 2025 17:31:17 +0100
-Subject: add cyclonedx plugin
+From 5fb37840eb45dc2b159089e75e2d0ef3054ac03d Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Add CycloneDX plugin
 
 ---
  pom.xml | 18 ++++++++++++++++++

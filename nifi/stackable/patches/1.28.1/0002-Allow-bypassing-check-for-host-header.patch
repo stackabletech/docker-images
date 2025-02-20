@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Nick Larsen <nick.larsen@stackable.tech>
-Date: Mon, 17 Feb 2025 15:19:01 +0100
-Subject: allow bypassing check for host header
+From 456e42ba95135d5a1174e3f543df07f35473e9b6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 24 Jun 2024 09:04:43 +0200
+Subject: Allow bypassing check for host header
 
 NiFi has the configuration option 'nifi.web.proxy.host' which controls allowed
 values for the host header field in any incoming request for the web ui.
@@ -60,6 +60,3 @@ index dd4bbf54c0..ea1b5b2da1 100644
      }
  
      @Override
--- 
-2.40.1
-
