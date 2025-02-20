@@ -1,9 +1,16 @@
 use std::path::{Path, PathBuf};
 
-use git2::{FetchOptions, ObjectType, Oid, Repository, RepositoryInitOptions, WorktreeAddOptions};
+use git2::{
+    FetchOptions, ObjectType, Oid, RemoteCallbacks, Repository, RepositoryInitOptions,
+    WorktreeAddOptions,
+};
 use snafu::{ResultExt, Snafu};
+use tracing_indicatif::span_ext::IndicatifSpanExt;
 
-use crate::error::{self, CommitRef};
+use crate::{
+    error::{self, CommitRef},
+    utils::{progress_bar_style, Quantizer},
+};
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -129,6 +136,28 @@ pub fn resolve_and_fetch_commitish(
                 error = &err as &dyn std::error::Error,
                 "base commit not found locally, fetching from upstream"
             );
+            let span_recv = tracing::info_span!("receiving");
+            let span_index = tracing::info_span!("indexing");
+            span_recv.pb_set_style(&progress_bar_style());
+            span_index.pb_set_style(&progress_bar_style());
+            let _ = span_recv.enter();
+            let _ = span_index.enter();
+            let mut callbacks = RemoteCallbacks::new();
+            let mut quant_recv = Quantizer::percent();
+            let mut quant_index = Quantizer::percent();
+            callbacks.transfer_progress(move |progress| {
+                quant_recv.update_span_progress(
+                    progress.received_objects(),
+                    progress.total_objects(),
+                    &span_recv,
+                );
+                quant_index.update_span_progress(
+                    progress.indexed_objects(),
+                    progress.total_objects(),
+                    &span_index,
+                );
+                true
+            });
             repo.remote_anonymous(upstream_url)
                 .context(CreateRemoteSnafu {
                     repo,
@@ -139,6 +168,7 @@ pub fn resolve_and_fetch_commitish(
                     Some(
                         FetchOptions::new()
                             .update_fetchhead(true)
+                            .remote_callbacks(callbacks)
                             // TODO: could be 1, CLI option maybe?
                             .depth(0),
                     ),

@@ -14,6 +14,7 @@ use std::{
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt as _, Snafu};
+use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
@@ -221,6 +222,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
+        .with(IndicatifLayer::new())
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
