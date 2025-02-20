@@ -3,33 +3,35 @@
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
-FROM stackable/image/vector AS opa-authorizer-builder
+FROM stackable/image/stackable-base AS opa-authorizer-builder
 
 ARG PYTHON
 
-RUN microdnf update \
-    && microdnf install \
+COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+
+RUN <<EOF
+microdnf update
+microdnf install \
     gcc \
     gcc-c++ \
     python${PYTHON} \
     python${PYTHON}-devel \
-    python${PYTHON}-pip \
-    && microdnf clean all && \
-    rm -rf /var/cache/yum
+    python${PYTHON}-pip
+microdnf clean all
+rm -rf /var/cache/yum
 
-RUN pip install \
+pip install \
     --no-cache-dir \
     --upgrade \
-    poetry \
-    pytest
+    poetry==2.1.1 \
+    pytest==8.3.4
 
-COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+cd /tmp/opa-authorizer
 
-WORKDIR /tmp/opa-authorizer
-
-RUN poetry sync && \
-    poetry run pytest && \
-    poetry build
+poetry sync
+poetry run pytest
+poetry build
+EOF
 
 FROM stackable/image/vector AS builder
 
