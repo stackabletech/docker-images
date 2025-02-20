@@ -110,6 +110,8 @@ struct Opts {
 }
 
 #[derive(clap::Parser)]
+// CLI parameters are documented for the CLI's `--help`, not for rustdoc
+#[allow(rustdoc::bare_urls, rustdoc::invalid_html_tags)]
 enum Cmd {
     /// Check out a patched source tree to docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
     ///

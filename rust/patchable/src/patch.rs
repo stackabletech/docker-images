@@ -13,6 +13,9 @@ use crate::{
     utils::raw_git_cmd,
 };
 
+#[cfg(doc)]
+use crate::repo::ensure_worktree_is_at;
+
 #[derive(Debug, Snafu)]
 pub enum Error {
     #[snafu(display("failed to open stgit series file {path:?}"))]
