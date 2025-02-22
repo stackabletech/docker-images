@@ -11,6 +11,7 @@ from cachetools import TTLCache, cachedmethod
 from flask import current_app, g
 from flask_appbuilder.security.sqla.models import Role, User
 from overrides import override
+from sqlalchemy.orm.session import Session
 from superset.security import SupersetSecurityManager
 
 log = logging.getLogger(__name__)
@@ -89,17 +90,24 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         if not user:
             user = g.user
 
-        resolved_opa_roles = self.roles(user.username)
+        resolved_opa_roles = self.roles(user)
 
-        # user.roles = resolved_opa_roles
+        self.merge_user_roles(user, resolved_opa_roles)
 
         return resolved_opa_roles
 
     @cachedmethod(lambda self: self.role_cache)
-    def roles(self, username: str) -> list[Role]:
-        opa_role_names = self.opa_get_user_roles(username)
-        result = self.resolve_user_roles(opa_role_names)
+    def roles(self, user: User) -> list[Role]:
+        opa_role_names = self.opa_get_user_roles(user.username)
+        result = self.resolve_user_roles(user, opa_role_names)
         return result
+
+    def merge_user_roles(self, user: User, roles: list[Role]):
+        if roles:
+            user.roles = roles
+            sqla_session = Session.object_session(user)
+            sqla_session.merge(user)
+            sqla_session.commit()
 
     def opa_get_user_roles(self, username: str) -> list[str]:
         """
@@ -135,12 +143,19 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             timeout=timeout,
         )
 
-    def resolve_user_roles(self, roles: list[str]) -> list[Role]:
+    def resolve_user_roles(self, user: User, roles: list[str]) -> list[Role]:
         result: list[Role] = list()
+        sqla_session = Session.object_session(user)
+        superset_roles = sqla_session.query(Role).all()
         for role_name in roles:
-            if resolved_role := self.find_role(role_name):
-                log.info(f"Resolved Superset role [{role_name}].")
-                result.append(resolved_role)
-            else:
+            found = False
+
+            for role in superset_roles:
+                if role.name == role_name:
+                    result.append(role)
+                    log.info(f"Resolved Superset role [{role_name}].")
+                    found = True
+
+            if not found:
                 raise SupersetError(f"Superset role [{role_name}] does not exist.")
         return result
