@@ -121,7 +121,16 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         Updates the roles of a user in the Superset database if neededd.
         """
         if self.superset_roles_outdated(user.roles, roles):
+            # Ensure any existing attached roles are removed from the relationship.
+            while True:
+                try:
+                    del user.roles[0]
+                except IndexError:
+                    break
+
+            # Attach new roles
             user.roles = roles
+
             # We need to use the same SQLA Session that was used to create the object
             sqla_session = Session.object_session(user)
             sqla_session.merge(user)
