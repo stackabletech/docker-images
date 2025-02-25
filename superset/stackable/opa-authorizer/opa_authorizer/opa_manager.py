@@ -201,5 +201,5 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
                     found = True
 
             if not found:
-                raise SupersetError(f"Superset role [{role_name}] does not exist.")
+                log.error(f"Superset role [{role_name}] does not exist.")
         return result
