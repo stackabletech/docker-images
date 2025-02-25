@@ -188,7 +188,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
             for role in superset_roles:
                 if role.name == role_name:
                     result.append(role)
-                    log.info(f"Resolved Superset role [{role_name}].")
+                    log.debug(f"Resolved Superset role [{role_name}].")
                     found = True
 
             if not found:
