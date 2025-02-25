@@ -7,19 +7,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.13"
-apache-superset = "==4.0.2"
-flask = "^2.2.5"
-flask-appbuilder = "^4.4.1"
 cachetools = "^5.5.0"
 overrides = "^7.7.0"
 
-
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.3.1"
-pytest = "^8.3.3"
+apache-superset = "~4.0"
 
 [tool.poetry.group.test.dependencies]
 pytest-mock = "^3.10.0"
+pytest = "^8.3.3"
 
 [build-system]
 requires = ["poetry-core"]
