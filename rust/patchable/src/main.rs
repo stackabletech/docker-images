@@ -14,6 +14,7 @@ use std::{
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt as _, Snafu};
+use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
@@ -109,6 +110,8 @@ struct Opts {
 }
 
 #[derive(clap::Parser)]
+// CLI parameters are documented for the CLI's `--help`, not for rustdoc
+#[allow(rustdoc::bare_urls, rustdoc::invalid_html_tags)]
 enum Cmd {
     /// Check out a patched source tree to docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
     ///
@@ -221,6 +224,7 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
+        .with(IndicatifLayer::new())
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())

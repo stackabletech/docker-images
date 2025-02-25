@@ -5,12 +5,16 @@ use std::{
 
 use git2::{Oid, Repository};
 use snafu::{OptionExt, ResultExt as _, Snafu};
+use tracing_indicatif::suspend_tracing_indicatif;
 
 use crate::{
     error::{self, CommitId},
     patch_mail::{self, mailinfo, mailsplit},
     utils::raw_git_cmd,
 };
+
+#[cfg(doc)]
+use crate::repo::ensure_worktree_is_at;
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -342,18 +346,20 @@ pub fn format_patches(
     }
 
     tracing::info!("exporting commits since base");
-    let status = raw_git_cmd(repo)
-        .arg("format-patch")
-        .arg(format!("{base_commit}..{leaf_commit}"))
-        .arg("-o")
-        .arg(patch_dir)
-        .args([
-            "--keep-subject",
-            // By default, git includes its own version number as a suffix, which makes patches unstable across git versions
-            "--no-signature",
-        ])
-        .status()
-        .context(RunFormatMailSnafu)?;
+    let status = suspend_tracing_indicatif(|| {
+        raw_git_cmd(repo)
+            .arg("format-patch")
+            .arg(format!("{base_commit}..{leaf_commit}"))
+            .arg("-o")
+            .arg(patch_dir)
+            .args([
+                "--keep-subject",
+                // By default, git includes its own version number as a suffix, which makes patches unstable across git versions
+                "--no-signature",
+            ])
+            .status()
+    })
+    .context(RunFormatMailSnafu)?;
     if !status.success() {
         return FormatMailFailedSnafu { status }.fail();
     }
