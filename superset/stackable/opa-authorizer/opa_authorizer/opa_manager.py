@@ -107,9 +107,8 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     @cachedmethod(lambda self: self.role_cache)
     def roles(self, user: User) -> list[Role]:
         """
-        Retrieves a user's role names from an Open Policy Agent instance.
-        Maps these names to existing Role objects in the Superset database and
-        possibly updates the user/role relationship.
+        Retrieves a user's role names from an Open Policy Agent instance and
+        maps them to existing Role objects in the Superset database.
         The result is cached.
         """
         opa_role_names = self.opa_get_user_roles(user.username)
