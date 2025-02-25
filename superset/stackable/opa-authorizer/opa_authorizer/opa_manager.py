@@ -109,7 +109,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         """
         Retrieves a user's role names from an Open Policy Agent instance.
         Maps these names to existing Role objects in the Superset database and
-        possibly updates the user entity.
+        possibly updates the user/role relationship.
         The result is cached.
         """
         opa_role_names = self.opa_get_user_roles(user.username)
