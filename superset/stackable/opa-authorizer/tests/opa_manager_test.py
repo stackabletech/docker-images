@@ -82,10 +82,6 @@ def test_no_roles(
             "opa_authorizer.opa_manager.OpaSupersetSecurityManager.resolve_user_roles",
             return_value=[],
         )
-        mocker.patch(
-            "opa_authorizer.opa_manager.OpaSupersetSecurityManager.merge_user_roles",
-            autospec=True,
-        )
 
         assert opa_security_manager.get_user_roles(user) == []
 

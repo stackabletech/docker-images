@@ -7,11 +7,10 @@ Superset database.
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 import requests
 from cachetools import TTLCache, cachedmethod
-from flask import current_app, g
+from flask import current_app
 from flask_appbuilder import AppBuilder
 from flask_appbuilder.security.sqla.models import Role, User
 from overrides import override
@@ -85,24 +84,19 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         self.opa_session: requests.Session = requests.Session()
 
     @override
-    def get_user_roles(self, user: Optional[User] = None) -> list[Role]:
+    def update_user_auth_stat(self, user, success=True):
         """
-        Retrieves a user's roles from an Open Policy Agent instance updating the
-        user-role mapping in Superset's database in the process.
-
-        :returns: A list of roles.
+        Update user authentication stats upon successful/unsuccessful
+        authentication attempts.
+        Additionally, retrieve the roles of a successfully authenticated
+        user from an Open Policy Agent instance and update the user-role
+        mapping in the database.
         """
-        if not user:
-            user = g.user
-
-        if user:
+        if success:
             resolved_opa_roles = self.roles(user)
+            user.roles = resolved_opa_roles
 
-            self.merge_user_roles(user, resolved_opa_roles)
-
-            return resolved_opa_roles
-        else:
-            raise Exception("Cannot get roles without a user.")
+        super().update_user_auth_stat(user, success)
 
     @cachedmethod(lambda self: self.role_cache)
     def roles(self, user: User) -> list[Role]:
@@ -114,33 +108,6 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         opa_role_names = self.opa_get_user_roles(user.username)
         result: list[Role] = self.resolve_user_roles(user, opa_role_names)
         return result
-
-    def merge_user_roles(self, user: User, roles: list[Role]):
-        """
-        Updates the roles of a user in the Superset database if neededd.
-        """
-        if self.superset_roles_outdated(user.roles, roles):
-            # Ensure any existing attached roles are removed from the relationship.
-            while True:
-                try:
-                    del user.roles[0]
-                except IndexError:
-                    break
-
-            # Attach new roles
-            user.roles = roles
-
-            # We need to use the same SQLA Session that was used to create the object
-            sqla_session = Session.object_session(user)
-            sqla_session.merge(user)
-            sqla_session.commit()
-
-    def superset_roles_outdated(
-        self, superset_roles: list[Role], opa_roles: list[Role]
-    ) -> bool:
-        superset_role_set: set[str] = set([role.name for role in superset_roles])
-        opa_role_set: set[str] = set([role.name for role in opa_roles])
-        return superset_role_set != opa_role_set
 
     def opa_get_user_roles(self, username: str) -> list[str]:
         """
