@@ -71,9 +71,6 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         self.auth_opa_url: str = config.get(
             "AUTH_OPA_REQUEST_URL", self.AUTH_OPA_REQUEST_URL_DEFAULT
         )
-        self.auth_opa_package: str = config.get(
-            "AUTH_OPA_PACKAGE", self.AUTH_OPA_PACKAGE_DEFAULT
-        )
         self.auth_opa_rule: str = config.get(
             "AUTH_OPA_RULE", self.AUTH_OPA_RULE_DEFAULT
         )
@@ -117,7 +114,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         """
         input = {"input": {"username": username}}
         try:
-            req_url = f"{self.auth_opa_url}/v1/data/{self.auth_opa_package}/{self.auth_opa_rule}"
+            req_url = f"{self.auth_opa_url}/{self.auth_opa_rule}"
             response = self.call_opa(
                 url=req_url,
                 json=input,
