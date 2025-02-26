@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
-
- - BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984])
-
 ### Added
 
 - airflow: Add OPA support to Airflow ([#978]).
@@ -41,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
 - druid 26.0.0: Migrate to patchable ([#1003]).
+- BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984])
 
 ### Removed
 
@@ -70,9 +67,9 @@ All notable changes to this project will be documented in this file.
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
 [#984]: https://github.com/stackabletech/docker-images/pull/984
+[#988]: https://github.com/stackabletech/docker-images/pull/988
 [#989]: https://github.com/stackabletech/docker-images/pull/989
 [#990]: https://github.com/stackabletech/docker-images/pull/990
-[#988]: https://github.com/stackabletech/docker-images/pull/988
 [#991]: https://github.com/stackabletech/docker-images/pull/991
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
