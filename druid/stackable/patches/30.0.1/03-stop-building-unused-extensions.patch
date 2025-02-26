@@ -1,20 +1,18 @@
-From 85cacbcc47c88a56acd60d91fbf0412040523c8d Mon Sep 17 00:00:00 2001
+Stop building unused extensions.
+
 From: Lars Francke <git@lars-francke.de>
-Date: Thu, 12 Dec 2024 17:59:17 +0100
-Subject: Stop building unused extensions.
 
 By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused
 extensions from the build.
 ---
- pom.xml | 32 ++++----------------------------
- 1 file changed, 4 insertions(+), 28 deletions(-)
+ 0 files changed
 
 diff --git a/pom.xml b/pom.xml
-index a33c6bd521..f5001910e1 100644
+index 2acb812cbe..38e0ddc61a 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -188,34 +188,10 @@
+@@ -201,39 +201,9 @@
          <module>extensions-core/google-extensions</module>
          <module>extensions-core/druid-catalog</module>
          <module>extensions-core/testing-tools</module>
@@ -41,31 +39,17 @@ index a33c6bd521..f5001910e1 100644
 -        <module>extensions-contrib/momentsketch</module>
 -        <module>extensions-contrib/moving-average-query</module>
 -        <module>extensions-contrib/tdigestsketch</module>
+-        <module>extensions-contrib/ddsketch</module>
 -        <module>extensions-contrib/influxdb-emitter</module>
 -        <module>extensions-contrib/gce-extensions</module>
 -        <module>extensions-contrib/aliyun-oss-extensions</module>
          <module>extensions-contrib/prometheus-emitter</module>
 -        <module>extensions-contrib/opentelemetry-emitter</module>
 -        <module>extensions-contrib/kubernetes-overlord-extensions</module>
-+
+-        <module>extensions-contrib/druid-iceberg-extensions</module>
+-        <module>extensions-contrib/druid-deltalake-extensions</module>
+-        <module>extensions-contrib/spectator-histogram</module>
+-        <module>extensions-contrib/rabbit-stream-indexing-service</module>
+ 
          <!-- distribution packaging -->
          <module>distribution</module>
-         <!-- Revised integration tests -->
-@@ -233,7 +209,7 @@
-                <enabled>false</enabled>
-             </snapshots>
-         </repository>
--        
-+
-         <!-- Only used by core, but moved to root for parallel build dependency resolution -->
-         <repository>
-             <id>sigar</id>
-@@ -243,7 +219,7 @@
-             </snapshots>
-         </repository>
-     </repositories>
--    
-+
-     <pluginRepositories>
-         <pluginRepository>
-             <id>${repoOrgId}</id>

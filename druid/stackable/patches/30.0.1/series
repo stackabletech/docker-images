@@ -1,0 +1,9 @@
+# This series applies on Git commit 0f4a8032d4f3c17fc8a7d3dba5fc272c1bd76c2b
+01-remove-ranger-security.patch
+02-prometheus-emitter-from-source.patch
+03-stop-building-unused-extensions.patch
+04-update-patch-dependencies.patch
+05-xmllayout-dependencies.patch
+06-dont-build-targz.patch
+07-cyclonedx-plugin.patch
+08-CVE-2024-36114-bump-aircompressor-0-27.patch

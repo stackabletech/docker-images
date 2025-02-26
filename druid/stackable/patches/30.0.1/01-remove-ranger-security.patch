@@ -1,18 +1,16 @@
-From a8bec93ee6d0a4364676333168229aa0ec56657e Mon Sep 17 00:00:00 2001
+Removes all traces of the druid ranger extension
+
 From: Lars Francke <git@lars-francke.de>
-Date: Thu, 12 Dec 2024 17:59:17 +0100
-Subject: Removes all traces of the druid ranger extension
+
 
 ---
- distribution/pom.xml | 4 ----
- pom.xml              | 1 -
- 2 files changed, 5 deletions(-)
+ 0 files changed
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index eec26171af..a6e72cf2c2 100644
+index 0f17a8c877..d7cd645767 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -255,8 +255,6 @@
+@@ -252,8 +252,6 @@
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions:druid-pac4j</argument>
                                          <argument>-c</argument>
@@ -21,20 +19,11 @@ index eec26171af..a6e72cf2c2 100644
                                          <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions:druid-catalog</argument>
-@@ -439,8 +437,6 @@
-                                         <argument>-c</argument>
-                                         <argument>org.apache.druid.extensions:druid-pac4j</argument>
-                                         <argument>-c</argument>
--                                        <argument>org.apache.druid.extensions:druid-ranger-security</argument>
--                                        <argument>-c</argument>
-                                         <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
-                                         <argument>${druid.distribution.pulldeps.opts}</argument>
-                                     </arguments>
 diff --git a/pom.xml b/pom.xml
-index 0c6294f5ed..a33c6bd521 100644
+index cfca79dc6e..2acb812cbe 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -186,7 +186,6 @@
+@@ -199,7 +199,6 @@
          <module>extensions-core/simple-client-sslcontext</module>
          <module>extensions-core/druid-basic-security</module>
          <module>extensions-core/google-extensions</module>
