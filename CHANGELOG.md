@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+ - BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984])
+
 ### Added
 
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
