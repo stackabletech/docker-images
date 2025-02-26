@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/nifi"
+base = "883338fe28883733417d10f6ffa9319e75f5ea06"

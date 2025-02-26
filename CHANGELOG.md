@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: Add OPA support to Airflow ([#978]).
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - base: Add containerdebug tool ([#928], [#959]).
@@ -17,14 +18,39 @@ All notable changes to this project will be documented in this file.
   util-linux-core contains a basic set of Linux utilities, including the
   command logger which allows to enter messages into the system log.
 - vector: Add version 0.43.1 ([#980]).
-- opa: Add version 1.0.0 ([#981])
 - druid: Add version 31.0.1 ([#984])
+- opa: Add version 1.0.1 ([#981], [#1000]).
+- statsd-exporter: Bump version to 0.28.0 ([#982]).
+- git-sync: Bump version to 4.4.0 ([#990]).
+- kafka: Add versions 3.7.2 and 3.9.0 ([#988]).
+- java: Add JDK/JRE 23 ([#992]).
+- trino: Add 469 ([#993]).
+- trino-cli: Add version 469 ([#993]).
+- hbase: Support for 2.6.1 ([#997]).
+- trino-storage-connector: Add version 469 ([#996]).
+- trino: Add 470 ([#999]).
+- trino-cli: Add version 470 ([#999]).
+- trino-storage-connector: Add version 470 ([#999]).
+- superset: Add version `4.1.1` ([#991]).
+- Add Patchable patch management tool ([#1003], [#1007]).
+- nifi: Add 1.28.1, 2.2.0 ([#1006]).
+
+### Changed
+
+- kafka: Bump 3.8.0 to 3.8.1 ([#995]).
+- Update registry references to oci ([#989]).
+- trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
+- druid 26.0.0: Migrate to patchable ([#1003]).
 
 ### Removed
 
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 - vector: remove version 0.41.1 ([#980]).
-- opa: remove version 0.66.0 ([#981])
+- opa: remove version 0.66.0 ([#981]).
+- trino: Remove 469 ([#999]).
+- trino-cli: Remove version 469 ([#999]).
+- trino-storage-connector: Remove version 469 ([#999]).
+- nifi: Remove 2.0.0 ([#1006]).
 
 ### Fixed
 
@@ -39,9 +65,25 @@ All notable changes to this project will be documented in this file.
 [#959]: https://github.com/stackabletech/docker-images/pull/959
 [#935]: https://github.com/stackabletech/docker-images/pull/935
 [#962]: https://github.com/stackabletech/docker-images/pull/962
+[#978]: https://github.com/stackabletech/docker-images/pull/978
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
+[#982]: https://github.com/stackabletech/docker-images/pull/982
 [#984]: https://github.com/stackabletech/docker-images/pull/984
+[#989]: https://github.com/stackabletech/docker-images/pull/989
+[#990]: https://github.com/stackabletech/docker-images/pull/990
+[#988]: https://github.com/stackabletech/docker-images/pull/988
+[#991]: https://github.com/stackabletech/docker-images/pull/991
+[#992]: https://github.com/stackabletech/docker-images/pull/992
+[#993]: https://github.com/stackabletech/docker-images/pull/993
+[#995]: https://github.com/stackabletech/docker-images/pull/995
+[#996]: https://github.com/stackabletech/docker-images/pull/996
+[#997]: https://github.com/stackabletech/docker-images/pull/997
+[#999]: https://github.com/stackabletech/docker-images/pull/999
+[#1000]: https://github.com/stackabletech/docker-images/pull/1000
+[#1003]: https://github.com/stackabletech/docker-images/pull/1003
+[#1006]: https://github.com/stackabletech/docker-images/pull/1006
+[#1007]: https://github.com/stackabletech/docker-images/pull/1007
 
 ## [24.11.1] - 2025-01-14
 

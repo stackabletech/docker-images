@@ -1,3 +1,7 @@
-# Byte-compiled / optimized / DLL files
+# compiled / optimized files
 __pycache__/
 *.py[cod]
+target/
+
+# Patchable working files
+patchable-work/
