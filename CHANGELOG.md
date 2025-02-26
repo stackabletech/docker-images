@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
 - superset: Add version `4.1.1` ([#991]).
-- Add Patchable patch management tool ([#1003]).
+- Add Patchable patch management tool ([#1003], [#1007]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
 
 ### Changed
@@ -77,6 +77,7 @@ All notable changes to this project will be documented in this file.
 [#1000]: https://github.com/stackabletech/docker-images/pull/1000
 [#1003]: https://github.com/stackabletech/docker-images/pull/1003
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
+[#1007]: https://github.com/stackabletech/docker-images/pull/1007
 
 ## [24.11.1] - 2025-01-14
 
