@@ -1,0 +1,44 @@
+From c0f56826d39506f5edb1c4b7211f118de2324fca Mon Sep 17 00:00:00 2001
+From: Lukas Voetmand <lukas.voetmand@stackable.tech>
+Date: Fri, 6 Sep 2024 17:53:52 +0200
+Subject: Update CycloneDX plugin
+
+---
+ pom.xml | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 0a7a478ad9..3ceaf7a4ad 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -118,7 +118,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+     <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
+     <jsonschema2pojo-maven-plugin.version>1.1.1</jsonschema2pojo-maven-plugin.version>
+     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+-    <cyclonedx.version>2.7.10</cyclonedx.version>
++    <cyclonedx.version>2.8.0</cyclonedx.version>
+ 
+     <shell-executable>bash</shell-executable>
+ 
+@@ -770,6 +770,11 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+             <groupId>org.cyclonedx</groupId>
+             <artifactId>cyclonedx-maven-plugin</artifactId>
+             <version>${cyclonedx.version}</version>
++            <configuration>
++                <projectType>application</projectType>
++                <schemaVersion>1.5</schemaVersion>
++                <skipNotDeployed>false</skipNotDeployed>
++            </configuration>
+             <executions>
+               <execution>
+                 <phase>package</phase>
+@@ -778,9 +783,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+                 </goals>
+               </execution>
+             </executions>
+-            <configuration>
+-              <outputFormat>xml</outputFormat>
+-            </configuration>
+           </plugin>
+         </plugins>
+       </build>

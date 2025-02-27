@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/kafka"
+upstream = "https://github.com/apache/kafka.git"
 base = "79a8f2b5f44f9d5a6867190d1dfc463d08d60b82"
