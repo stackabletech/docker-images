@@ -1,4 +1,4 @@
-From d1ae8732e2eee44abb5c831f5363c69e75e64a9a Mon Sep 17 00:00:00 2001
+From c7d74ad665618125e09f365bae0ecaa2876b6a87 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 17:59:17 +0100
 Subject: Stop building the tar.gz distribution.
