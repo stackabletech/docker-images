@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
 - druid 26.0.0: Migrate to patchable ([#1003]).
+- phoenix: Bump 5.2.0 to 5.2.1 ([#997], [#1009]).
 
 ### Removed
 
@@ -80,6 +81,7 @@ All notable changes to this project will be documented in this file.
 [#1003]: https://github.com/stackabletech/docker-images/pull/1003
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
+[#1009]: https://github.com/stackabletech/docker-images/pull/1009
 
 ## [24.11.1] - 2025-01-14
 
