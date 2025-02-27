@@ -1,0 +1,78 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index f99ebc66e8a..76eb0568048 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -39,34 +39,6 @@
+       <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+       <fileMode>0755</fileMode>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-pipes/src/main/native/pipes/api/hadoop</directory>
+-      <includes>
+-        <include>*.hh</include>
+-      </includes>
+-      <outputDirectory>/include</outputDirectory>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-pipes/src/main/native/utils/api/hadoop</directory>
+-      <includes>
+-        <include>*.hh</include>
+-      </includes>
+-      <outputDirectory>/include</outputDirectory>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-pipes/target/native</directory>
+-      <includes>
+-        <include>*.a</include>
+-      </includes>
+-      <outputDirectory>lib/native</outputDirectory>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-pipes/target/native/examples</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>lib/native/examples</outputDirectory>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-distcp/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+@@ -158,8 +130,6 @@
+         <exclude>org.apache.hadoop:hadoop-common</exclude>
+         <exclude>org.apache.hadoop:hadoop-hdfs</exclude>
+         <exclude>org.apache.hadoop:hadoop-client</exclude>
+-        <!-- pipes is native stuff, this just keeps pom from being package-->
+-        <exclude>org.apache.hadoop:hadoop-pipes</exclude>
+         <!-- use slf4j from common to avoid multiple binding warnings -->
+         <exclude>org.slf4j:slf4j-api</exclude>
+         <exclude>org.slf4j:slf4j-reload4j</exclude>
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index fd38216ef5a..a5dbad6cb7d 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -60,13 +60,6 @@
+       <artifactId>hadoop-rumen</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-pipes</artifactId>
+-      <scope>compile</scope>
+-      <type>pom</type>
+-      <version>${project.version}</version>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-aws</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index d0d152c3172..6ddcc96f82f 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -35,7 +35,6 @@
+     <module>hadoop-federation-balance</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-tools-dist</module>
+-    <module>hadoop-pipes</module>
+     <module>hadoop-sls</module>
+     <module>hadoop-resourceestimator</module>
+     <module>hadoop-azure</module>

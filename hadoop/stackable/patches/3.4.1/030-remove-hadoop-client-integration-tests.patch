@@ -1,0 +1,46 @@
+diff --git a/hadoop-client-modules/pom.xml b/hadoop-client-modules/pom.xml
+index 6e044ae1181..1a858204c66 100644
+--- a/hadoop-client-modules/pom.xml
++++ b/hadoop-client-modules/pom.xml
+@@ -37,8 +37,6 @@
+     <module>hadoop-client-minicluster</module>
+     <!-- Checks invariants above -->
+     <module>hadoop-client-check-invariants</module>
+-    <!-- Attempt to use the created libraries -->
+-    <module>hadoop-client-integration-tests</module>
+   </modules>
+ 
+ </project>
+diff --git a/hadoop-dist/pom.xml b/hadoop-dist/pom.xml
+index fa1878a1303..d321f29be64 100644
+--- a/hadoop-dist/pom.xml
++++ b/hadoop-dist/pom.xml
+@@ -67,12 +67,6 @@
+       <type>pom</type>
+       <scope>provided</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-client-integration-tests</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-
+   </dependencies>
+ 
+   <build>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index abff3976b4f..b49ad05a1e0 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -285,11 +285,6 @@
+         <version>${hadoop.version}</version>
+         <type>pom</type>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-client-integration-tests</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-client-runtime</artifactId>

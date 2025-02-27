@@ -1,0 +1,46 @@
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 3b6a3c97f9b..9dea7400edb 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -605,13 +605,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-applications-catalog-webapp</artifactId>
+-        <version>${hadoop.version}</version>
+-        <type>war</type>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+index 1e751a73d80..f453d0dadcf 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+@@ -37,7 +37,6 @@
+     <module>hadoop-yarn-applications-distributedshell</module>
+     <module>hadoop-yarn-applications-unmanaged-am-launcher</module>
+     <module>hadoop-yarn-services</module>
+-    <module>hadoop-yarn-applications-catalog</module>
+     <module>hadoop-yarn-applications-mawo</module>
+   </modules>
+ 
+diff --git a/hadoop-yarn-project/pom.xml b/hadoop-yarn-project/pom.xml
+index 564c051137b..0a3f39e41bc 100644
+--- a/hadoop-yarn-project/pom.xml
++++ b/hadoop-yarn-project/pom.xml
+@@ -85,11 +85,6 @@
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-yarn-services-core</artifactId>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-applications-catalog-webapp</artifactId>
+-      <type>war</type>
+-    </dependency>
+   </dependencies>
+ 
+   <build>
