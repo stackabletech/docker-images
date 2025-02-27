@@ -3,6 +3,36 @@
 
 FROM stackable/image/statsd_exporter AS statsd_exporter-builder
 
+FROM stackable/image/stackable-base AS opa-authorizer-builder
+
+ARG PYTHON
+
+COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+
+RUN <<EOF
+microdnf update
+microdnf install \
+    gcc \
+    gcc-c++ \
+    python${PYTHON} \
+    python${PYTHON}-devel \
+    python${PYTHON}-pip
+microdnf clean all
+rm -rf /var/cache/yum
+
+pip install \
+    --no-cache-dir \
+    --upgrade \
+    poetry==2.1.1 \
+    pytest==8.3.4
+
+cd /tmp/opa-authorizer
+
+poetry sync
+poetry run pytest
+poetry build
+EOF
+
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
@@ -12,6 +42,7 @@ ARG TARGETARCH
 ARG TARGETOS
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
 
 RUN microdnf update \
     && microdnf install \
@@ -62,7 +93,7 @@ RUN python3 -m venv /stackable/app \
         # Since https://github.com/stackabletech/superset-operator/pull/530
         # admins can add custom configuration to superset_conf.py.
         Flask_OIDC==2.2.0 \
-        Flask-OpenID==1.3.1\
+        Flask-OpenID==1.3.1 \
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
         # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
@@ -80,7 +111,8 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         python-json-logger \
         cyclonedx-bom \
-    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
+    pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY superset/stackable/patches /patches
 RUN /patches/apply_patches.sh ${PRODUCT}

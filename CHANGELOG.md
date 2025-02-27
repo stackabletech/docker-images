@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add OPA support to Airflow ([#978]).
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
+- superset: Add role mapping from OPA ([#979]).
 - base: Add containerdebug tool ([#928], [#959]).
 - tools: Add the package util-linux-core ([#952]).
   util-linux-core contains a basic set of Linux utilities, including the
@@ -27,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
 - superset: Add version `4.1.1` ([#991]).
-- Add Patchable patch management tool ([#1003], [#1005]).
+- Add Patchable patch management tool ([#1003], [#1005], [#1007]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
 
 ### Changed
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#935]: https://github.com/stackabletech/docker-images/pull/935
 [#962]: https://github.com/stackabletech/docker-images/pull/962
 [#978]: https://github.com/stackabletech/docker-images/pull/978
+[#979]: https://github.com/stackabletech/docker-images/pull/979
 [#980]: https://github.com/stackabletech/docker-images/pull/980
 [#981]: https://github.com/stackabletech/docker-images/pull/981
 [#982]: https://github.com/stackabletech/docker-images/pull/982
@@ -78,6 +80,7 @@ All notable changes to this project will be documented in this file.
 [#1003]: https://github.com/stackabletech/docker-images/pull/1003
 [#1005]: https://github.com/stackabletech/docker-images/pull/1005
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
+[#1007]: https://github.com/stackabletech/docker-images/pull/1007
 
 ## [24.11.1] - 2025-01-14
 

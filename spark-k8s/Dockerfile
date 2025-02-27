@@ -149,10 +149,10 @@ ln -s /stackable/hbase-connectors/spark/hbase-spark/target/hbase-spark-${HBASE_C
 # Spark contains only log4j-slf4j2-impl-x.x.x.jar but not
 # log4j-slf4j-impl-x.x.x.jar. It is okay to have both JARs in the
 # classpath as long as they have the same version.
-mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
-    -DoutputDirectory=.
+    -DoutputDirectory=./jars
 EOF
 
 
