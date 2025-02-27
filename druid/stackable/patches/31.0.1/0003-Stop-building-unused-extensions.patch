@@ -1,18 +1,20 @@
-Stop building unused extensions.
-
+From 540182e6a1169103cb77ff37d963186f23204800 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
+Date: Mon, 17 Feb 2025 16:42:34 +0100
+Subject: Stop building unused extensions.
 
 By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused
 extensions from the build.
 ---
- 0 files changed
+ pom.xml | 32 +-------------------------------
+ 1 file changed, 1 insertion(+), 31 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 2acb812cbe..38e0ddc61a 100644
+index 807f9f11df..e9e19f7920 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -201,39 +201,9 @@
+@@ -200,39 +200,9 @@
          <module>extensions-core/google-extensions</module>
          <module>extensions-core/druid-catalog</module>
          <module>extensions-core/testing-tools</module>
