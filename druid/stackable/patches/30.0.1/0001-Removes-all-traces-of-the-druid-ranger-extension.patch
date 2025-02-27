@@ -1,13 +1,15 @@
-Removes all traces of the druid ranger extension
-
+From 1f18905f78c9c46c7c12c1d705547f00ddbfa1ab Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Wed, 10 Jul 2024 17:07:13 +0200
+Subject: Removes all traces of the druid ranger extension
 
 ---
- 0 files changed
+ distribution/pom.xml | 2 --
+ pom.xml              | 1 -
+ 2 files changed, 3 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index 0f17a8c877..d7cd645767 100644
+index 1ebfa31f84..9c2cfc8753 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
 @@ -252,8 +252,6 @@
@@ -20,10 +22,10 @@ index 0f17a8c877..d7cd645767 100644
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions:druid-catalog</argument>
 diff --git a/pom.xml b/pom.xml
-index cfca79dc6e..2acb812cbe 100644
+index 17cd202ea6..08a3f24210 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -199,7 +199,6 @@
+@@ -198,7 +198,6 @@
          <module>extensions-core/simple-client-sslcontext</module>
          <module>extensions-core/druid-basic-security</module>
          <module>extensions-core/google-extensions</module>

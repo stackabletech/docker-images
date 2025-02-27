@@ -1,13 +1,19 @@
-Updates all dependencies that have a new patch release available.
-
+From cf05fadf57c308bf782844226d7fd133ec200189 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
-
+Date: Mon, 17 Feb 2025 16:42:49 +0100
+Subject: Updates all dependencies that have a new patch release available.
 
 ---
- 0 files changed
+ extensions-core/druid-pac4j/pom.xml           |  5 +++-
+ extensions-core/kubernetes-extensions/pom.xml |  2 +-
+ extensions-core/orc-extensions/pom.xml        |  2 +-
+ extensions-core/parquet-extensions/pom.xml    |  2 +-
+ pom.xml                                       | 29 ++++++++++---------
+ processing/pom.xml                            |  2 +-
+ 6 files changed, 24 insertions(+), 18 deletions(-)
 
 diff --git a/extensions-core/druid-pac4j/pom.xml b/extensions-core/druid-pac4j/pom.xml
-index 282e0e5b15..523a2ca305 100644
+index 1f95186c19..7961274438 100644
 --- a/extensions-core/druid-pac4j/pom.xml
 +++ b/extensions-core/druid-pac4j/pom.xml
 @@ -38,7 +38,10 @@
@@ -23,10 +29,10 @@ index 282e0e5b15..523a2ca305 100644
    </properties>
  
 diff --git a/extensions-core/kubernetes-extensions/pom.xml b/extensions-core/kubernetes-extensions/pom.xml
-index e3e77a99af..1304740ff3 100644
+index 33c8a0b2f6..17f288b868 100644
 --- a/extensions-core/kubernetes-extensions/pom.xml
 +++ b/extensions-core/kubernetes-extensions/pom.xml
-@@ -35,7 +35,7 @@
+@@ -34,7 +34,7 @@
    </parent>
  
    <properties>
@@ -36,7 +42,7 @@ index e3e77a99af..1304740ff3 100644
  
  
 diff --git a/extensions-core/orc-extensions/pom.xml b/extensions-core/orc-extensions/pom.xml
-index b7eb007979..2c210c42c0 100644
+index 47e178d19e..fd985b9061 100644
 --- a/extensions-core/orc-extensions/pom.xml
 +++ b/extensions-core/orc-extensions/pom.xml
 @@ -31,7 +31,7 @@
@@ -49,7 +55,7 @@ index b7eb007979..2c210c42c0 100644
      <dependencies>
          <dependency>
 diff --git a/extensions-core/parquet-extensions/pom.xml b/extensions-core/parquet-extensions/pom.xml
-index 371d2e7673..ad0b874db0 100644
+index b2b7c2ff04..f8d213d63c 100644
 --- a/extensions-core/parquet-extensions/pom.xml
 +++ b/extensions-core/parquet-extensions/pom.xml
 @@ -201,7 +201,7 @@
@@ -62,7 +68,7 @@ index 371d2e7673..ad0b874db0 100644
      </profile>
    </profiles>
 diff --git a/pom.xml b/pom.xml
-index 73fb14c1fc..26b24b8c14 100644
+index e8585349f4..e1b83dac70 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -74,7 +74,7 @@
@@ -98,7 +104,7 @@ index 73fb14c1fc..26b24b8c14 100644
 +        <jackson.version>2.12.7.20240502</jackson.version>
          <codehaus.jackson.version>1.9.13</codehaus.jackson.version>
          <log4j.version>2.22.1</log4j.version>
-         <mysql.version>5.1.49</mysql.version>
+         <mysql.version>8.2.0</mysql.version>
          <mariadb.version>2.7.3</mariadb.version>
          <netty3.version>3.10.6.Final</netty3.version>
 -        <netty4.version>4.1.108.Final</netty4.version>
@@ -110,9 +116,9 @@ index 73fb14c1fc..26b24b8c14 100644
          <resilience4j.version>1.3.1</resilience4j.version>
          <slf4j.version>1.7.36</slf4j.version>
          <jna.version>5.13.0</jna.version>
-@@ -120,17 +120,17 @@
-              however it is required in some cases when running against mockito 4.x (mockito 4.x is required for Java <11.
-              We use the following property to pick the proper artifact based on Java version (see pre-java-11 profile) -->
+@@ -119,17 +122,17 @@
+         <!-- mockito-inline artifact was removed in mockito 5.3 (mockito 5.x is required for Java >17),
+              however it is required in some cases when running against mockito 4.x (mockito 4.x is required for Java <11. We use the following property to pick the proper artifact based on Java version (see pre-java-11 profile) -->
          <mockito.inline.artifact>core</mockito.inline.artifact>
 -        <aws.sdk.version>1.12.638</aws.sdk.version>
 -        <caffeine.version>2.8.0</caffeine.version>
@@ -134,10 +140,10 @@ index 73fb14c1fc..26b24b8c14 100644
          <jdk.strong.encapsulation.argLine><!-- empty placeholder --></jdk.strong.encapsulation.argLine>
          <jdk.security.manager.allow.argLine><!-- empty placeholder --></jdk.security.manager.allow.argLine>
 diff --git a/processing/pom.xml b/processing/pom.xml
-index affd900fe6..0daad4fa56 100644
+index fcc16a65c5..2f5fb45890 100644
 --- a/processing/pom.xml
 +++ b/processing/pom.xml
-@@ -37,7 +37,7 @@
+@@ -36,7 +36,7 @@
      <sigar.base.version>1.6.5</sigar.base.version>
      <sigar.version>${sigar.base.version}.132</sigar.version>
      <ipaddress.version>5.3.4</ipaddress.version>
