@@ -1,7 +1,7 @@
-From 0874a0619531b6c43495144b38b369ff8389759a Mon Sep 17 00:00:00 2001
+From f6634ac02aa2fab11811915283e92c7b9ae1af5e Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 06:35:21 +0100
-Subject: Subject: Update FMPP version
+Subject: Update FMPP version
 
 This is because FMPP Maven Plugin depends on FMPP in version 0.9.14
 which itself depends on a Freemarker version that has not been pinned.
