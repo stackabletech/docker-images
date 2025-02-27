@@ -1,18 +1,18 @@
-From 098e0333cb3977164c62ab0f29aafaf9b1ac6c7c Mon Sep 17 00:00:00 2001
+From ac257969aaf853835a5a410bb3d432c2b8d9f390 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Wed, 10 Jul 2024 17:07:13 +0200
 Subject: Removes all traces of the druid ranger extension
 
 ---
- distribution/pom.xml | 4 ----
+ distribution/pom.xml | 2 --
  pom.xml              | 1 -
- 2 files changed, 5 deletions(-)
+ 2 files changed, 3 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index eec26171af..a6e72cf2c2 100644
+index dcb01abceb..1a4f7df716 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -255,8 +255,6 @@
+@@ -252,8 +252,6 @@
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions:druid-pac4j</argument>
                                          <argument>-c</argument>
@@ -21,20 +21,11 @@ index eec26171af..a6e72cf2c2 100644
                                          <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions:druid-catalog</argument>
-@@ -439,8 +437,6 @@
-                                         <argument>-c</argument>
-                                         <argument>org.apache.druid.extensions:druid-pac4j</argument>
-                                         <argument>-c</argument>
--                                        <argument>org.apache.druid.extensions:druid-ranger-security</argument>
--                                        <argument>-c</argument>
-                                         <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
-                                         <argument>${druid.distribution.pulldeps.opts}</argument>
-                                     </arguments>
 diff --git a/pom.xml b/pom.xml
-index 0c6294f5ed..a33c6bd521 100644
+index e5bcfafacb..807f9f11df 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -186,7 +186,6 @@
+@@ -198,7 +198,6 @@
          <module>extensions-core/simple-client-sslcontext</module>
          <module>extensions-core/druid-basic-security</module>
          <module>extensions-core/google-extensions</module>
