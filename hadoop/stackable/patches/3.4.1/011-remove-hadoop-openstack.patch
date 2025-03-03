@@ -1,0 +1,30 @@
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 056b64c46a1..253208f1eeb 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -682,13 +682,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <!-- This is empty; retained only for downstream app build compatibility. -->
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-openstack</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-azure</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 74fc141ddf7..d0d152c3172 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -36,7 +36,6 @@
+     <module>hadoop-rumen</module>
+     <module>hadoop-tools-dist</module>
+     <module>hadoop-pipes</module>
+-    <module>hadoop-openstack</module>
+     <module>hadoop-sls</module>
+     <module>hadoop-resourceestimator</module>
+     <module>hadoop-azure</module>
