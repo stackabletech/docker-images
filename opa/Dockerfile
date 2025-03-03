@@ -21,9 +21,15 @@ RUN microdnf update \
 
 WORKDIR /
 
+# WARNING (@NickLarsenNZ): We should pin the rustup version
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
-RUN cd ./opa-bundle-builder && . "$HOME/.cargo/env" && cargo --quiet build --release
+RUN <<EOF
+cd ./opa-bundle-builder
+. "$HOME/.cargo/env"
+rustup toolchain install
+cargo --quiet build --release
+EOF
 
 FROM stackable/image/stackable-base AS multilog-builder
 
