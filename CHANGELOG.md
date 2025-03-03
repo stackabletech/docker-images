@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- stackable-base: Bump cargo-cyclonedx to 0.5.7 ([#1013]).
 - kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
@@ -52,6 +53,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- stackable-base: Install missing rust toolchains ([#1013]).
+- opa: Install missing rust toolchains ([#1013]).
 - druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
 - hadoop: Fix the JMX exporter configuration for metrics suffixed with
   `_total`, `_info` and `_created` ([#962]).
@@ -84,6 +87,7 @@ All notable changes to this project will be documented in this file.
 [#1005]: https://github.com/stackabletech/docker-images/pull/1005
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
+[#1013]: https://github.com/stackabletech/docker-images/pull/1013
 
 ## [24.11.1] - 2025-01-14
 
