@@ -18,10 +18,10 @@ ENV CONTAINERDEBUG_VERSION=0.1.1
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.84.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
 
 RUN <<EOF
 microdnf update --assumeyes
@@ -34,6 +34,7 @@ microdnf --assumeyes install \
 microdnf clean all
 rm -rf /var/cache/yum
 
+# WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
@@ -44,6 +45,7 @@ RUN <<EOF
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
+rustup toolchain install
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
@@ -53,6 +55,7 @@ RUN <<EOF
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
 cd ./containerdebug
 . "$HOME/.cargo/env"
+rustup toolchain install
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
