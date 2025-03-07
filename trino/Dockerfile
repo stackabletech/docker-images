@@ -99,7 +99,7 @@ RUN microdnf update && \
     httpd-tools \
     python \
     tar \
-    libstdc++ `# Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143` \
+    libstdc++ # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143 \
     zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
