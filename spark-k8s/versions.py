@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "3.5.1",
+        "product": "3.5.2",
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
@@ -18,7 +18,7 @@ versions = [
         "hbase_connector": "1.0.1",
     },
     {
-        "product": "3.5.2",
+        "product": "3.5.5",
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
