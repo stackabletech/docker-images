@@ -31,6 +31,12 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `4.1.1` ([#991]).
 - Add Patchable patch management tool ([#1003], [#1005], [#1007]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
+- airflow: Add 2.10.4 ([#1021]).
+- hadoop: Add 3.4.1, use jmx_export 1.1.0 ([#1021]).
+- hive: Add 4.0.1, use jmx_export 1.1.0 ([#1021]).
+- zookeeper: Add 3.9.3, use jmx_export 1.1.0 ([#1021]).
+- hbase: Use jmx_export 1.1.0 ([#1021]).
+- omid: Use jmx_export 1.1.0 ([#1021]).
 
 ### Changed
 
@@ -38,7 +44,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
-- BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984])
+- BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984]).
 
 ### Removed
 
@@ -50,6 +56,8 @@ All notable changes to this project will be documented in this file.
 - trino-storage-connector: Remove version 469 ([#999]).
 - nifi: Remove 2.0.0 ([#1006]).
 - druid: Remove 26.0.0 ([#984])
+- airflow: Remove 2.9.2, and 2.10.2 ([#1021]).
+- hive: Remove 4.0.0 ([#1021]).
 
 ### Fixed
 
@@ -58,6 +66,8 @@ All notable changes to this project will be documented in this file.
 - druid: Fix CVE-2023-34455 in Druid `30.0.0` by deleting a dependency ([#935]).
 - hadoop: Fix the JMX exporter configuration for metrics suffixed with
   `_total`, `_info` and `_created` ([#962]).
+- nix: Move `pkg-config` to nativeBuildInputs ([#1021]).
+- hadoop: Use the fast mirror in the download script ([#1021]).
 
 [#884]: https://github.com/stackabletech/docker-images/pull/884
 [#928]: https://github.com/stackabletech/docker-images/pull/928
@@ -88,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
+[#1021]: https://github.com/stackabletech/docker-images/pull/1021
 
 ## [24.11.1] - 2025-01-14
 
