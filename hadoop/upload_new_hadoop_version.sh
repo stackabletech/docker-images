@@ -34,14 +34,14 @@ cd "$WORK_DIR" || exit
 bin_file=hadoop-$VERSION.tar.gz
 src_file=hadoop-$VERSION-src.tar.gz
 
-echo "Downloading Hadoop (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file"
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.asc"
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$bin_file.sha512"
+echo "Downloading Hadoop"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$bin_file"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$bin_file.asc"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$bin_file.sha512"
 
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file"
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.asc"
-curl --fail -LOs "https://archive.apache.org/dist/hadoop/common/hadoop-$VERSION/$src_file.sha512"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$src_file"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$src_file.asc"
+curl --fail -LO --progress-bar "https://dlcdn.apache.org/hadoop/common/hadoop-$VERSION/$src_file.sha512"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
@@ -53,7 +53,7 @@ if ! (sha512sum --tag "$bin_file" | diff - "$bin_file.sha512" && sha512sum --tag
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/hadoop/common/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/hadoop/common/KEYS | gpg --import")'
+echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://dlcdn.apache.org/hadoop/common/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://dlcdn.apache.org/hadoop/common/KEYS | gpg --import")'
 
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
