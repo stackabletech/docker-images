@@ -1,4 +1,4 @@
-From c5eb86648fe96b048723372024fa7278c9e108db Mon Sep 17 00:00:00 2001
+From 44d83fa02779ac3135f76ce711f11c108a432ea3 Mon Sep 17 00:00:00 2001
 From: Sebastian Bernauer <sebastian.bernauer@stackable.de>
 Date: Tue, 3 Sep 2024 11:13:24 +0200
 Subject: Include Postgres driver
@@ -9,7 +9,7 @@ Subject: Include Postgres driver
  2 files changed, 2 deletions(-)
 
 diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
-index a8f680928c..7102f1b5ca 100644
+index 3d14d6b2e3..fdc813c5b9 100644
 --- a/standalone-metastore/metastore-server/pom.xml
 +++ b/standalone-metastore/metastore-server/pom.xml
 @@ -334,7 +334,6 @@
@@ -21,10 +21,10 @@ index a8f680928c..7102f1b5ca 100644
      <dependency>
        <groupId>org.eclipse.jetty</groupId>
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 28ac5ceb65..e3cbd821bd 100644
+index 744b88c6db..c0bb928611 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
-@@ -397,7 +397,6 @@
+@@ -399,7 +399,6 @@
          <groupId>org.postgresql</groupId>
          <artifactId>postgresql</artifactId>
          <version>${postgres.version}</version>

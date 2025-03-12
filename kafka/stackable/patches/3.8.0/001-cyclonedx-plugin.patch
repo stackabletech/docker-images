@@ -1,14 +1,5 @@
-From b03f930266c43347645b4e978fa97cf644b270f8 Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Thu, 12 Dec 2024 10:09:47 +0100
-Subject: Change Gradle to use the Nexus Build Repo
-
----
- build.gradle | 44 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
-
 diff --git a/build.gradle b/build.gradle
-index 8b44b09087..fadb64fda5 100644
+index 92082fe..e3d6c72 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,6 +48,48 @@ plugins {
@@ -60,12 +51,3 @@ index 8b44b09087..fadb64fda5 100644
  }
  
  ext {
-@@ -1011,7 +1053,7 @@ project(':core') {
-     testImplementation libs.junitJupiter
-     testImplementation libs.slf4jlog4j
-     testImplementation libs.caffeine
--    
-+
-     generator project(':generator')
-   }
- 
