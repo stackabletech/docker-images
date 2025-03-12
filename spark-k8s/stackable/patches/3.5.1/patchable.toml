@@ -1,2 +1,0 @@
-upstream = "https://github.com/apache/spark.git"
-base = "fd86f85e181fc2dc0f50a096855acf83a6cc5d9c"

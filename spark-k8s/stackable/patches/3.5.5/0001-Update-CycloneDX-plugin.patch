@@ -1,6 +1,6 @@
-From 08b7c02a497b8b3b70616281f810a898b1719a78 Mon Sep 17 00:00:00 2001
-From: Lukas Voetmand <lukas.voetmand@stackable.tech>
-Date: Fri, 6 Sep 2024 17:53:52 +0200
+From 37ad7dcbb2a77267bbddafc4f3b3d99fddda0b28 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Tue, 11 Mar 2025 17:29:39 +0200
 Subject: Update CycloneDX plugin
 
 ---
@@ -21,10 +21,10 @@ index ef7c010e93..0f4c1c74e4 100755
  
  # Actually build the jar
 diff --git a/pom.xml b/pom.xml
-index 0f504dbee8..6cca7db7bf 100644
+index 9b009c3a42..483dceb8ea 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -3482,7 +3482,12 @@
+@@ -3534,7 +3534,12 @@
        <plugin>
          <groupId>org.cyclonedx</groupId>
          <artifactId>cyclonedx-maven-plugin</artifactId>

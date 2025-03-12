@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `4.1.1` ([#991]).
 - Add Patchable patch management tool ([#1003], [#1005], [#1007]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
+- spark: Add 3.5.5 ([#1022])
 
 ### Changed
 
@@ -50,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - trino-storage-connector: Remove version 469 ([#999]).
 - nifi: Remove 2.0.0 ([#1006]).
 - druid: Remove 26.0.0 ([#984])
+- spark: Remove 3.5.1 ([#1022])
 
 ### Fixed
 
@@ -88,6 +90,7 @@ All notable changes to this project will be documented in this file.
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
+[#1022]: https://github.com/stackabletech/docker-images/pull/1022
 
 ## [24.11.1] - 2025-01-14
 
