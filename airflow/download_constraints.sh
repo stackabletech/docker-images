@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-AIRFLOW_VERSION=${1:?"Missing version number argument (arg 1)"}
-PYTHON_VERSION=${2:-"3.12"}
+AIRFLOW_VERSION=${1:?"Missing product version number argument (arg 1)"}
+PYTHON_VERSION=${2:?"Missing python version number argument (arg 2)"}
 
 URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 FILENAME="constraints-${AIRFLOW_VERSION}-python${PYTHON_VERSION}.txt"
