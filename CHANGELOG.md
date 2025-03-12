@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Add 3.9.3, use jmx_export 1.1.0 ([#1021]).
 - hbase: Use jmx_export 1.1.0 ([#1021]).
 - omid: Use jmx_export 1.1.0 ([#1021]).
+- spark: Add 3.5.5 ([#1022]).
 
 ### Changed
 
@@ -57,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - druid: Remove 26.0.0 ([#984])
 - airflow: Remove 2.9.2, and 2.10.2 ([#1021]).
 - hive: Remove 4.0.0 ([#1021]).
+- spark: Remove 3.5.1 ([#1022]).
 
 ### Fixed
 
@@ -97,6 +99,7 @@ All notable changes to this project will be documented in this file.
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
+[#1022]: https://github.com/stackabletech/docker-images/pull/1022
 
 ## [24.11.1] - 2025-01-14
 
