@@ -41,7 +41,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - stackable-base: Bump cargo-cyclonedx to 0.5.7 ([#1013]).
-- kafka: Bump 3.8.0 to 3.8.1 ([#995]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
 - BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984]).
@@ -88,7 +87,6 @@ All notable changes to this project will be documented in this file.
 [#991]: https://github.com/stackabletech/docker-images/pull/991
 [#992]: https://github.com/stackabletech/docker-images/pull/992
 [#993]: https://github.com/stackabletech/docker-images/pull/993
-[#995]: https://github.com/stackabletech/docker-images/pull/995
 [#996]: https://github.com/stackabletech/docker-images/pull/996
 [#997]: https://github.com/stackabletech/docker-images/pull/997
 [#999]: https://github.com/stackabletech/docker-images/pull/999
