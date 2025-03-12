@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - airflow: Add OPA support to Airflow ([#978]).
+- airflow: Add version 2.10.4 ([#1023]).
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - superset: Add role mapping from OPA ([#979]).
@@ -43,6 +44,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+- airflow: Remove version 2.9.2 and 2.10.2 ([#1023]).
 - kafka: Remove `kubectl`, as we are now using listener-op ([#884]).
 - vector: remove version 0.41.1 ([#980]).
 - opa: remove version 0.66.0 ([#981]).
@@ -91,6 +93,7 @@ All notable changes to this project will be documented in this file.
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
 [#1022]: https://github.com/stackabletech/docker-images/pull/1022
+[#1023]: https://github.com/stackabletech/docker-images/pull/1023
 
 ## [24.11.1] - 2025-01-14
 
