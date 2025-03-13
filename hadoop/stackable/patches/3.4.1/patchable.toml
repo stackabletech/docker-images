@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/hadoop.git"
+base = "4d7825309348956336b8f06a08322b78422849b1"
