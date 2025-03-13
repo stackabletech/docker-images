@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Use jmx_export 1.1.0 ([#1021]).
 - omid: Use jmx_export 1.1.0 ([#1021]).
 - spark: Add 3.5.5 ([#1022]).
+- trino: Add libstdc++ package, needed by snappy and duckdb ([#1015]).
 
 ### Changed
 
@@ -98,6 +99,7 @@ All notable changes to this project will be documented in this file.
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
+[#1015]: https://github.com/stackabletech/docker-images/pull/1015
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
 [#1022]: https://github.com/stackabletech/docker-images/pull/1022
 

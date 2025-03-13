@@ -78,7 +78,7 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
 # ===
 
-FROM stackable/image/java-base
+FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG JMX_EXPORTER
@@ -99,6 +99,8 @@ RUN microdnf update && \
     httpd-tools \
     python \
     tar \
+    # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
+    libstdc++ \
     zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
