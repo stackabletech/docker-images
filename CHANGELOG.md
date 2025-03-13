@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `4.1.1` ([#991]).
 - Add Patchable patch management tool ([#1003], [#1005], [#1007]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
+<<<<<<< HEAD
 - airflow: Add 2.10.4 ([#1021]).
 - hadoop: Add 3.4.1, use jmx_export 1.1.0 ([#1021]).
 - hive: Add 4.0.1, use jmx_export 1.1.0 ([#1021]).
@@ -38,6 +39,9 @@ All notable changes to this project will be documented in this file.
 - hbase: Use jmx_export 1.1.0 ([#1021]).
 - omid: Use jmx_export 1.1.0 ([#1021]).
 - spark: Add 3.5.5 ([#1022]).
+=======
+- trino: Add libstdc++ package, needed by snappy and duckdb ([#1015]).
+>>>>>>> 6f61989 (changelog)
 
 ### Changed
 
@@ -98,6 +102,7 @@ All notable changes to this project will be documented in this file.
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
+[#1015]: https://github.com/stackabletech/docker-images/pull/1015
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
 [#1022]: https://github.com/stackabletech/docker-images/pull/1022
 
