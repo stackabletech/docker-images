@@ -1,0 +1,630 @@
+Entirely remove remove-hadoop-client-integration-tests
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../hadoop-client-integration-tests/pom.xml        |  206 --------------------
+ .../apache/hadoop/example/ITUseHadoopCodecs.java   |  144 --------------
+ .../apache/hadoop/example/ITUseMiniCluster.java    |  125 ------------
+ .../src/test/resources/hdfs-site.xml               |   34 ---
+ .../src/test/resources/log4j.properties            |   24 --
+ hadoop-client-modules/pom.xml                      |    2 
+ hadoop-dist/pom.xml                                |    6 -
+ hadoop-project/pom.xml                             |    5 
+ 8 files changed, 546 deletions(-)
+ delete mode 100644 hadoop-client-modules/hadoop-client-integration-tests/pom.xml
+ delete mode 100644 hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseHadoopCodecs.java
+ delete mode 100644 hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseMiniCluster.java
+ delete mode 100644 hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/hdfs-site.xml
+ delete mode 100644 hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/log4j.properties
+
+diff --git a/hadoop-client-modules/hadoop-client-integration-tests/pom.xml b/hadoop-client-modules/hadoop-client-integration-tests/pom.xml
+deleted file mode 100644
+index 3ea19baed19..00000000000
+--- a/hadoop-client-modules/hadoop-client-integration-tests/pom.xml
++++ /dev/null
+@@ -1,206 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+- Licensed under the Apache License, Version 2.0 (the "License");
+- you may not use this file except in compliance with the License.
+- You may obtain a copy of the License at
+-
+-   http://www.apache.org/licenses/LICENSE-2.0
+-
+- Unless required by applicable law or agreed to in writing, software
+- distributed under the License is distributed on an "AS IS" BASIS,
+- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- See the License for the specific language governing permissions and
+- limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <groupId>org.apache.hadoop</groupId>
+-    <artifactId>hadoop-project</artifactId>
+-    <version>3.4.0</version>
+-    <relativePath>../../hadoop-project</relativePath>
+-  </parent>
+-  <artifactId>hadoop-client-integration-tests</artifactId>
+-  <version>3.4.0</version>
+-
+-  <description>Checks that we can use the generated artifacts</description>
+-  <name>Apache Hadoop Client Packaging Integration Tests</name>
+-
+-  <properties>
+-    <failsafe.timeout>400</failsafe.timeout>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>ch.qos.reload4j</groupId>
+-      <artifactId>reload4j</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.slf4j</groupId>
+-      <artifactId>slf4j-api</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.lz4</groupId>
+-      <artifactId>lz4-java</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-  </dependencies>
+-  <profiles>
+-    <profile>
+-      <id>shade</id>
+-      <activation>
+-        <property><name>!skipShade</name></property>
+-      </activation>
+-      <dependencies>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-client-api</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-client-runtime</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-client-minicluster</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.bouncycastle</groupId>
+-          <artifactId>bcprov-jdk15on</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.bouncycastle</groupId>
+-          <artifactId>bcpkix-jdk15on</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>javax.xml.bind</groupId>
+-          <artifactId>jaxb-api</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>javax.activation</groupId>
+-          <artifactId>activation</artifactId>
+-          <version>1.1.1</version>
+-          <scope>test</scope>
+-        </dependency>
+-      </dependencies>
+-      <build>
+-        <plugins>
+-          <!-- Because our tests rely on our shaded artifacts, we can't compile
+-               them until after the package phase has run.
+-            -->
+-          <plugin>
+-            <groupId>org.apache.maven.plugins</groupId>
+-            <artifactId>maven-compiler-plugin</artifactId>
+-            <executions>
+-            <!--
+-               First, let's make sure the normal test-compile doesn't try to
+-               compile our integration tests.
+-            -->
+-              <execution>
+-                <id>default-testCompile</id>
+-                <phase>test-compile</phase>
+-                <configuration>
+-                  <testExcludes>
+-                    <testExclude>**/IT*</testExclude>
+-                    <testExclude>**/*IT</testExclude>
+-                  </testExcludes>
+-                </configuration>
+-              </execution>
+-            <!--
+-               Finally, let's make a 'just for integration tests'-compile that
+-               fires off prior to our integration tests but after the package
+-               phase has created our shaded artifacts.
+-            -->
+-              <execution>
+-                <id>compile-integration-tests</id>
+-                <phase>pre-integration-test</phase>
+-                <goals>
+-                  <goal>testCompile</goal>
+-                </goals>
+-                <configuration>
+-                  <testIncludes>
+-                    <testInclude>**/IT*</testInclude>
+-                    <testInclude>**/*IT</testInclude>
+-                  </testIncludes>
+-                </configuration>
+-              </execution>
+-            </executions>
+-          </plugin>
+-          <plugin>
+-            <groupId>org.apache.maven.plugins</groupId>
+-            <artifactId>maven-failsafe-plugin</artifactId>
+-            <executions>
+-              <execution>
+-                <goals>
+-                  <goal>integration-test</goal>
+-                  <goal>verify</goal>
+-                </goals>
+-                <configuration>
+-                  <trimStackTrace>false</trimStackTrace>
+-                </configuration>
+-              </execution>
+-            </executions>
+-          </plugin>
+-        </plugins>
+-      </build>
+-    </profile>
+-    <profile>
+-      <id>noshade</id>
+-      <activation>
+-        <property><name>skipShade</name></property>
+-      </activation>
+-      <dependencies>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-common</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-hdfs-client</artifactId>
+-          <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-hdfs</artifactId>
+-          <scope>test</scope>
+-          <type>test-jar</type>
+-          <exclusions>
+-            <exclusion>
+-              <groupId>org.ow2.asm</groupId>
+-              <artifactId>asm-commons</artifactId>
+-            </exclusion>
+-          </exclusions>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-yarn-server-tests</artifactId>
+-          <scope>test</scope>
+-          <type>test-jar</type>
+-        </dependency>
+-        <dependency>
+-          <groupId>org.apache.hadoop</groupId>
+-          <artifactId>hadoop-common</artifactId>
+-          <scope>test</scope>
+-          <type>test-jar</type>
+-        </dependency>
+-      </dependencies>
+-    </profile>
+-  </profiles>
+-
+-</project>
+-
+diff --git a/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseHadoopCodecs.java b/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseHadoopCodecs.java
+deleted file mode 100644
+index fd0effa143b..00000000000
+--- a/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseHadoopCodecs.java
++++ /dev/null
+@@ -1,144 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- *
+- */
+-
+-package org.apache.hadoop.example;
+-
+-import static org.junit.Assert.assertEquals;
+-import static org.junit.Assert.assertFalse;
+-
+-import java.io.*;
+-import java.util.Arrays;
+-import java.util.Random;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.CommonConfigurationKeys;
+-import org.apache.hadoop.io.DataInputBuffer;
+-import org.apache.hadoop.io.DataOutputBuffer;
+-import org.apache.hadoop.io.RandomDatum;
+-import org.apache.hadoop.io.compress.CompressionCodec;
+-import org.apache.hadoop.io.compress.CompressionInputStream;
+-import org.apache.hadoop.io.compress.CompressionOutputStream;
+-import org.apache.hadoop.io.compress.zlib.ZlibFactory;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.junit.Test;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * Ensure that we can perform codec operations given the API and runtime jars
+- * by performing some simple smoke tests.
+- */
+-public class ITUseHadoopCodecs {
+-
+-  private static final Logger LOG = LoggerFactory.getLogger(ITUseHadoopCodecs.class);
+-
+-  private Configuration haddopConf = new Configuration();
+-  private int dataCount = 100;
+-  private int dataSeed = new Random().nextInt();
+-
+-  @Test
+-  public void testGzipCodec() throws IOException {
+-    ZlibFactory.setNativeZlibLoaded(false);
+-    assertFalse(ZlibFactory.isNativeZlibLoaded(haddopConf));
+-    codecTest(haddopConf, dataSeed, 0, "org.apache.hadoop.io.compress.GzipCodec");
+-    codecTest(haddopConf, dataSeed, dataCount, "org.apache.hadoop.io.compress.GzipCodec");
+-  }
+-
+-  @Test
+-  public void testSnappyCodec() throws IOException {
+-    codecTest(haddopConf, dataSeed, 0, "org.apache.hadoop.io.compress.SnappyCodec");
+-    codecTest(haddopConf, dataSeed, dataCount, "org.apache.hadoop.io.compress.SnappyCodec");
+-  }
+-
+-  @Test
+-  public void testLz4Codec() {
+-    Arrays.asList(false, true).forEach(config -> {
+-      haddopConf.setBoolean(
+-          CommonConfigurationKeys.IO_COMPRESSION_CODEC_LZ4_USELZ4HC_KEY,
+-          config);
+-      try {
+-        codecTest(haddopConf, dataSeed, 0, "org.apache.hadoop.io.compress.Lz4Codec");
+-        codecTest(haddopConf, dataSeed, dataCount, "org.apache.hadoop.io.compress.Lz4Codec");
+-      } catch (IOException e) {
+-        throw new RuntimeException("failed when running codecTest", e);
+-      }
+-    });
+-  }
+-
+-  private void codecTest(Configuration conf, int seed, int count, String codecClass)
+-      throws IOException {
+-
+-    // Create the codec
+-    CompressionCodec codec = null;
+-    try {
+-      codec = (CompressionCodec)
+-              ReflectionUtils.newInstance(conf.getClassByName(codecClass), conf);
+-    } catch (ClassNotFoundException cnfe) {
+-      throw new IOException("Illegal codec!");
+-    }
+-    LOG.info("Created a Codec object of type: " + codecClass);
+-
+-    // Generate data
+-    DataOutputBuffer data = new DataOutputBuffer();
+-    RandomDatum.Generator generator = new RandomDatum.Generator(seed);
+-    for(int i = 0; i < count; ++i) {
+-      generator.next();
+-      RandomDatum key = generator.getKey();
+-      RandomDatum value = generator.getValue();
+-
+-      key.write(data);
+-      value.write(data);
+-    }
+-    LOG.info("Generated " + count + " records");
+-
+-    // Compress data
+-    DataOutputBuffer compressedDataBuffer = new DataOutputBuffer();
+-    try (CompressionOutputStream deflateFilter =
+-        codec.createOutputStream(compressedDataBuffer);
+-        DataOutputStream deflateOut =
+-            new DataOutputStream(new BufferedOutputStream(deflateFilter))) {
+-      deflateOut.write(data.getData(), 0, data.getLength());
+-      deflateOut.flush();
+-      deflateFilter.finish();
+-    }
+-
+-    // De-compress data
+-    DataInputBuffer deCompressedDataBuffer = new DataInputBuffer();
+-    deCompressedDataBuffer.reset(compressedDataBuffer.getData(), 0,
+-            compressedDataBuffer.getLength());
+-    DataInputBuffer originalData = new DataInputBuffer();
+-    originalData.reset(data.getData(), 0, data.getLength());
+-    try (CompressionInputStream inflateFilter =
+-        codec.createInputStream(deCompressedDataBuffer);
+-        DataInputStream originalIn =
+-            new DataInputStream(new BufferedInputStream(originalData))) {
+-
+-      // Check
+-      int expected;
+-      do {
+-        expected = originalIn.read();
+-        assertEquals("Inflated stream read by byte does not match",
+-                expected, inflateFilter.read());
+-      } while (expected != -1);
+-    }
+-
+-    LOG.info("SUCCESS! Completed checking " + count + " records");
+-  }
+-}
+diff --git a/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseMiniCluster.java b/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseMiniCluster.java
+deleted file mode 100644
+index 2e304861bab..00000000000
+--- a/hadoop-client-modules/hadoop-client-integration-tests/src/test/java/org/apache/hadoop/example/ITUseMiniCluster.java
++++ /dev/null
+@@ -1,125 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing,
+- * software distributed under the License is distributed on an
+- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+- * KIND, either express or implied.  See the License for the
+- * specific language governing permissions and limitations
+- * under the License.
+- *
+- */
+-
+-package org.apache.hadoop.example;
+-
+-import java.io.IOException;
+-import java.net.URISyntaxException;
+-
+-import org.junit.After;
+-import org.junit.Assert;
+-import org.junit.Before;
+-import org.junit.Test;
+-
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.IOUtils;
+-
+-import org.apache.hadoop.conf.Configuration;
+-
+-import org.apache.hadoop.hdfs.HdfsConfiguration;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-
+-import org.apache.hadoop.hdfs.web.WebHdfsTestUtil;
+-import org.apache.hadoop.hdfs.web.WebHdfsConstants;
+-import org.apache.hadoop.yarn.server.MiniYARNCluster;
+-
+-/**
+- * Ensure that we can perform operations against the shaded minicluster
+- * given the API and runtime jars by performing some simple smoke tests.
+- */
+-public class ITUseMiniCluster {
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(ITUseMiniCluster.class);
+-
+-  private MiniDFSCluster cluster;
+-  private MiniYARNCluster yarnCluster;
+-
+-  private static final String TEST_PATH = "/foo/bar/cats/dee";
+-  private static final String FILENAME = "test.file";
+-
+-  private static final String TEXT = "Lorem ipsum dolor sit amet, consectetur "
+-      + "adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore "
+-      + "magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation "
+-      + "ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute "
+-      + "irure dolor in reprehenderit in voluptate velit esse cillum dolore eu "
+-      + "fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,"
+-      + " sunt in culpa qui officia deserunt mollit anim id est laborum.";
+-
+-  @Before
+-  public void clusterUp() throws IOException {
+-    final Configuration conf = new HdfsConfiguration();
+-    cluster = new MiniDFSCluster.Builder(conf)
+-        .numDataNodes(3)
+-        .build();
+-    cluster.waitActive();
+-
+-    conf.set("yarn.scheduler.capacity.root.queues", "default");
+-    conf.setInt("yarn.scheduler.capacity.root.default.capacity", 100);
+-    yarnCluster = new MiniYARNCluster(getClass().getName(), 1, 1, 1, 1);
+-    yarnCluster.init(conf);
+-    yarnCluster.start();
+-  }
+-
+-  @After
+-  public void clusterDown() {
+-    if (cluster != null) {
+-      cluster.close();
+-    }
+-    IOUtils.cleanupWithLogger(LOG, yarnCluster);
+-  }
+-
+-  @Test
+-  public void useHdfsFileSystem() throws IOException {
+-    try (FileSystem fs = cluster.getFileSystem()) {
+-      simpleReadAfterWrite(fs);
+-    }
+-  }
+-
+-  public void simpleReadAfterWrite(final FileSystem fs) throws IOException {
+-    LOG.info("Testing read-after-write with FS implementation: {}", fs);
+-    final Path path = new Path(TEST_PATH, FILENAME);
+-    if (!fs.mkdirs(path.getParent())) {
+-      throw new IOException("Mkdirs failed to create " +
+-          TEST_PATH);
+-    }
+-    try (FSDataOutputStream out = fs.create(path)) {
+-      out.writeUTF(TEXT);
+-    }
+-    try (FSDataInputStream in = fs.open(path)) {
+-      final String result = in.readUTF();
+-      Assert.assertEquals("Didn't read back text we wrote.", TEXT, result);
+-    }
+-  }
+-
+-  @Test
+-  public void useWebHDFS() throws IOException, URISyntaxException {
+-    try (FileSystem fs = WebHdfsTestUtil.getWebHdfsFileSystem(
+-        cluster.getConfiguration(0), WebHdfsConstants.WEBHDFS_SCHEME)) {
+-      simpleReadAfterWrite(fs);
+-    }
+-  }
+-}
+diff --git a/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/hdfs-site.xml b/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/hdfs-site.xml
+deleted file mode 100644
+index cd13532906e..00000000000
+--- a/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/hdfs-site.xml
++++ /dev/null
+@@ -1,34 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration>
+-  <!-- Turn security off for tests by default -->
+-  <property>
+-    <name>hadoop.security.authentication</name>
+-    <value>simple</value>
+-  </property>
+-  <!-- Disable min block size since most tests use tiny blocks -->
+-  <property>
+-    <name>dfs.namenode.fs-limits.min-block-size</name>
+-    <value>0</value>
+-  </property>
+-
+-</configuration>
+diff --git a/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/log4j.properties b/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/log4j.properties
+deleted file mode 100644
+index db66160d850..00000000000
+--- a/hadoop-client-modules/hadoop-client-integration-tests/src/test/resources/log4j.properties
++++ /dev/null
+@@ -1,24 +0,0 @@
+-#
+-#   Licensed to the Apache Software Foundation (ASF) under one or more
+-#   contributor license agreements.  See the NOTICE file distributed with
+-#   this work for additional information regarding copyright ownership.
+-#   The ASF licenses this file to You under the Apache License, Version 2.0
+-#   (the "License"); you may not use this file except in compliance with
+-#   the License.  You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#   Unless required by applicable law or agreed to in writing, software
+-#   distributed under the License is distributed on an "AS IS" BASIS,
+-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#   See the License for the specific language governing permissions and
+-#   limitations under the License.
+-#
+-# log4j configuration used during build and unit tests
+-
+-log4j.rootLogger=info,stdout
+-log4j.threshold=ALL
+-log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+-log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+-log4j.appender.stdout.layout.ConversionPattern=%d{ISO8601} [%t] %-5p %c{2} (%F:%M(%L)) - %m%n
+-
+diff --git a/hadoop-client-modules/pom.xml b/hadoop-client-modules/pom.xml
+index 373ffd1483f..7f8a5710784 100644
+--- a/hadoop-client-modules/pom.xml
++++ b/hadoop-client-modules/pom.xml
+@@ -37,8 +37,6 @@
+     <module>hadoop-client-minicluster</module>
+     <!-- Checks invariants above -->
+     <module>hadoop-client-check-invariants</module>
+-    <!-- Attempt to use the created libraries -->
+-    <module>hadoop-client-integration-tests</module>
+   </modules>
+ 
+ </project>
+diff --git a/hadoop-dist/pom.xml b/hadoop-dist/pom.xml
+index 7cd2b677e60..39a485d2944 100644
+--- a/hadoop-dist/pom.xml
++++ b/hadoop-dist/pom.xml
+@@ -67,12 +67,6 @@
+       <type>pom</type>
+       <scope>provided</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-client-integration-tests</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-
+   </dependencies>
+ 
+   <build>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 0b9c7a05762..609b6d5b3ca 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -285,11 +285,6 @@
+         <version>${hadoop.version}</version>
+         <type>pom</type>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-client-integration-tests</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-client-runtime</artifactId>

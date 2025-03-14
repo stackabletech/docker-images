@@ -1,0 +1,2315 @@
+Entirely remove hadoop-archives
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../src/main/resources/assemblies/hadoop-tools.xml |   15 
+ hadoop-project/pom.xml                             |    5 
+ hadoop-project/src/site/site.xml                   |    1 
+ hadoop-tools/hadoop-archives/pom.xml               |  160 ---
+ .../org/apache/hadoop/tools/HadoopArchives.java    |  947 --------------------
+ .../src/main/shellprofile.d/hadoop-archives.sh     |   58 -
+ .../src/site/markdown/HadoopArchives.md.vm         |  162 ---
+ .../src/site/resources/css/site.css                |   30 -
+ .../apache/hadoop/tools/TestHadoopArchives.java    |  808 -----------------
+ hadoop-tools/hadoop-tools-dist/pom.xml             |    5 
+ hadoop-tools/pom.xml                               |    1 
+ 11 files changed, 2192 deletions(-)
+ delete mode 100644 hadoop-tools/hadoop-archives/pom.xml
+ delete mode 100644 hadoop-tools/hadoop-archives/src/main/java/org/apache/hadoop/tools/HadoopArchives.java
+ delete mode 100755 hadoop-tools/hadoop-archives/src/main/shellprofile.d/hadoop-archives.sh
+ delete mode 100644 hadoop-tools/hadoop-archives/src/site/markdown/HadoopArchives.md.vm
+ delete mode 100644 hadoop-tools/hadoop-archives/src/site/resources/css/site.css
+ delete mode 100644 hadoop-tools/hadoop-archives/src/test/java/org/apache/hadoop/tools/TestHadoopArchives.java
+
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index ee9e9040ec8..67f1c9a4586 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -23,14 +23,6 @@
+   </formats>
+   <includeBaseDirectory>false</includeBaseDirectory>
+   <fileSets>
+-    <fileSet>
+-      <directory>../hadoop-archives/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-distcp/src/main/shellprofile.d</directory>
+       <includes>
+@@ -83,13 +75,6 @@
+       </includes>
+       <outputDirectory>lib/native/examples</outputDirectory>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-archives/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-datajoin/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index f9255e5bdf3..16d692848b0 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -641,11 +641,6 @@
+         <artifactId>hadoop-streaming</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-archives</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-distcp</artifactId>
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index a0a58657161..eb28b16f9f9 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -191,7 +191,6 @@
+ 
+     <menu name="Tools" inherit="top">
+       <item name="Hadoop Streaming" href="hadoop-streaming/HadoopStreaming.html"/>
+-      <item name="Hadoop Archives" href="hadoop-archives/HadoopArchives.html"/>
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+       <item name="GridMix" href="hadoop-gridmix/GridMix.html"/>
+diff --git a/hadoop-tools/hadoop-archives/pom.xml b/hadoop-tools/hadoop-archives/pom.xml
+deleted file mode 100644
+index b2be121ed61..00000000000
+--- a/hadoop-tools/hadoop-archives/pom.xml
++++ /dev/null
+@@ -1,160 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <groupId>org.apache.hadoop</groupId>
+-    <artifactId>hadoop-project</artifactId>
+-    <version>3.4.0</version>
+-    <relativePath>../../hadoop-project</relativePath>
+-  </parent>
+-  <artifactId>hadoop-archives</artifactId>
+-  <version>3.4.0</version>
+-  <description>Apache Hadoop Archives</description>
+-  <name>Apache Hadoop Archives</name>
+-  <packaging>jar</packaging>
+-
+-  <properties>
+-    <hadoop.log.dir>${project.build.directory}/log</hadoop.log.dir>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-annotations</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-core</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs-client</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>org.ow2.asm</groupId>
+-          <artifactId>asm-commons</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-tests</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.assertj</groupId>
+-      <artifactId>assertj-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-  </dependencies>
+-
+-  <build>
+-    <plugins>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-antrun-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>create-log-dir</id>
+-            <phase>process-test-resources</phase>
+-            <goals>
+-              <goal>run</goal>
+-            </goals>
+-            <configuration>
+-              <target>
+-                <delete dir="${test.build.data}"/>
+-                <mkdir dir="${test.build.data}"/>
+-                <mkdir dir="${hadoop.log.dir}"/>
+-              </target>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-jar-plugin</artifactId>
+-         <configuration>
+-          <archive>
+-           <manifest>
+-            <mainClass>org.apache.hadoop.tools.HadoopArchives</mainClass>
+-           </manifest>
+-         </archive>
+-        </configuration>
+-       </plugin>
+-       <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-dependency-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>deplist</id>
+-            <phase>compile</phase>
+-            <goals>
+-              <goal>list</goal>
+-            </goals>
+-            <configuration>
+-              <!-- referenced by a built-in command -->
+-              <outputFile>${project.basedir}/target/hadoop-tools-deps/${project.artifactId}.tools-builtin.txt</outputFile>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+diff --git a/hadoop-tools/hadoop-archives/src/main/java/org/apache/hadoop/tools/HadoopArchives.java b/hadoop-tools/hadoop-archives/src/main/java/org/apache/hadoop/tools/HadoopArchives.java
+deleted file mode 100644
+index c72a926b131..00000000000
+--- a/hadoop-tools/hadoop-archives/src/main/java/org/apache/hadoop/tools/HadoopArchives.java
++++ /dev/null
+@@ -1,947 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import java.io.DataInput;
+-import java.io.DataOutput;
+-import java.io.IOException;
+-import java.io.UnsupportedEncodingException;
+-import java.net.URLEncoder;
+-import java.nio.charset.StandardCharsets;
+-import java.util.ArrayList;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Random;
+-import java.util.Set;
+-import java.util.TreeMap;
+-
+-import org.apache.commons.cli.CommandLine;
+-import org.apache.commons.cli.GnuParser;
+-import org.apache.commons.cli.HelpFormatter;
+-import org.apache.commons.cli.Options;
+-import org.apache.commons.cli.Parser;
+-import org.apache.hadoop.mapreduce.security.TokenCache;
+-import org.apache.hadoop.security.Credentials;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.HarFileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.io.IntWritable;
+-import org.apache.hadoop.io.LongWritable;
+-import org.apache.hadoop.io.SequenceFile;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.io.Writable;
+-import org.apache.hadoop.mapred.FileInputFormat;
+-import org.apache.hadoop.mapred.FileOutputFormat;
+-import org.apache.hadoop.mapred.FileSplit;
+-import org.apache.hadoop.mapred.InputFormat;
+-import org.apache.hadoop.mapred.InputSplit;
+-import org.apache.hadoop.mapred.JobClient;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.Mapper;
+-import org.apache.hadoop.mapred.OutputCollector;
+-import org.apache.hadoop.mapred.RecordReader;
+-import org.apache.hadoop.mapred.Reducer;
+-import org.apache.hadoop.mapred.Reporter;
+-import org.apache.hadoop.mapred.SequenceFileRecordReader;
+-import org.apache.hadoop.mapred.lib.NullOutputFormat;
+-import org.apache.hadoop.mapreduce.Cluster;
+-import org.apache.hadoop.mapreduce.JobSubmissionFiles;
+-import org.apache.hadoop.mapreduce.MRJobConfig;
+-import org.apache.hadoop.util.Tool;
+-import org.apache.hadoop.util.ToolRunner;
+-
+-/**
+- * a archive creation utility.
+- * This class provides methods that can be used 
+- * to create hadoop archives. For understanding of 
+- * Hadoop archives look at {@link HarFileSystem}.
+- */
+-public class HadoopArchives implements Tool {
+-  public static final int VERSION = 3;
+-  private static final Logger LOG = LoggerFactory.getLogger(HadoopArchives.class);
+-  
+-  private static final String NAME = "har"; 
+-  private static final String ARCHIVE_NAME = "archiveName";
+-  private static final String REPLICATION = "r";
+-  private static final String PARENT_PATH = "p";
+-  private static final String HELP = "help";
+-  static final String SRC_LIST_LABEL = NAME + ".src.list";
+-  static final String DST_DIR_LABEL = NAME + ".dest.path";
+-  static final String TMP_DIR_LABEL = NAME + ".tmp.dir";
+-  static final String JOB_DIR_LABEL = NAME + ".job.dir";
+-  static final String SRC_COUNT_LABEL = NAME + ".src.count";
+-  static final String TOTAL_SIZE_LABEL = NAME + ".total.size";
+-  static final String DST_HAR_LABEL = NAME + ".archive.name";
+-  static final String SRC_PARENT_LABEL = NAME + ".parent.path";
+-  /** the size of the blocks that will be created when archiving **/
+-  static final String HAR_BLOCKSIZE_LABEL = NAME + ".block.size";
+-  /** the replication factor for the file in archiving. **/
+-  static final String HAR_REPLICATION_LABEL = NAME + ".replication.factor";
+-  /** the size of the part files that will be created when archiving **/
+-  static final String HAR_PARTSIZE_LABEL = NAME + ".partfile.size";
+-
+-  /** size of each part file size **/
+-  long partSize = 2 * 1024 * 1024 * 1024l;
+-  /** size of blocks in hadoop archives **/
+-  long blockSize = 512 * 1024 * 1024l;
+-  /** the desired replication degree; default is 3 **/
+-  short repl = 3;
+-
+-  private static final String usage = "archive"
+-  + " <-archiveName <NAME>.har> <-p <parent path>> [-r <replication factor>]" +
+-      " <src>* <dest>" +
+-  "\n";
+-  
+- 
+-  private JobConf conf;
+-
+-  public void setConf(Configuration conf) {
+-    if (conf instanceof JobConf) {
+-      this.conf = (JobConf) conf;
+-    } else {
+-      this.conf = new JobConf(conf, HadoopArchives.class);
+-    }
+-
+-    // This is for test purposes since MR2, different from Streaming
+-    // here it is not possible to add a JAR to the classpath the tool
+-    // will when running the mapreduce job.
+-    String testJar = System.getProperty(TEST_HADOOP_ARCHIVES_JAR_PATH, null);
+-    if (testJar != null) {
+-      this.conf.setJar(testJar);
+-    }
+-  }
+-
+-  public Configuration getConf() {
+-    return this.conf;
+-  }
+-
+-  public HadoopArchives(Configuration conf) {
+-    setConf(conf);
+-  }
+-
+-  // check the src paths
+-  private static void checkPaths(Configuration conf, List<Path> paths) throws
+-  IOException {
+-    for (Path p : paths) {
+-      FileSystem fs = p.getFileSystem(conf);
+-      fs.getFileStatus(p);
+-    }
+-  }
+-
+-  /**
+-   * this assumes that there are two types of files file/dir
+-   * @param fs the input filesystem
+-   * @param fdir the filestatusdir of the path  
+-   * @param out the list of paths output of recursive ls
+-   * @throws IOException
+-   */
+-  private void recursivels(FileSystem fs, FileStatusDir fdir, List<FileStatusDir> out) 
+-  throws IOException {
+-    if (fdir.getFileStatus().isFile()) {
+-      out.add(fdir);
+-      return;
+-    }
+-    else {
+-      out.add(fdir);
+-      FileStatus[] listStatus = fs.listStatus(fdir.getFileStatus().getPath());
+-      fdir.setChildren(listStatus);
+-      for (FileStatus stat: listStatus) {
+-        FileStatusDir fstatDir = new FileStatusDir(stat, null);
+-        recursivels(fs, fstatDir, out);
+-      }
+-    }
+-  }
+-
+-  /** HarEntry is used in the {@link HArchivesMapper} as the input value. */
+-  private static class HarEntry implements Writable {
+-    String path;
+-    String[] children;
+-
+-    HarEntry() {}
+-    
+-    HarEntry(String path, String[] children) {
+-      this.path = path;
+-      this.children = children;
+-    }
+-
+-    boolean isDir() {
+-      return children != null;      
+-    }
+-
+-    @Override
+-    public void readFields(DataInput in) throws IOException {
+-      path = Text.readString(in);
+-
+-      if (in.readBoolean()) {
+-        children = new String[in.readInt()];
+-        for(int i = 0; i < children.length; i++) {
+-          children[i] = Text.readString(in);
+-        }
+-      } else {
+-        children = null;
+-      }
+-    }
+-
+-    @Override
+-    public void write(DataOutput out) throws IOException {
+-      Text.writeString(out, path);
+-
+-      final boolean dir = isDir();
+-      out.writeBoolean(dir);
+-      if (dir) {
+-        out.writeInt(children.length);
+-        for(String c : children) {
+-          Text.writeString(out, c);
+-        }
+-      }
+-    }
+-  }
+-
+-  /**
+-   * Input format of a hadoop archive job responsible for 
+-   * generating splits of the file list
+-   */
+-  static class HArchiveInputFormat implements InputFormat<LongWritable, HarEntry> {
+-
+-    //generate input splits from the src file lists
+-    public InputSplit[] getSplits(JobConf jconf, int numSplits)
+-    throws IOException {
+-      String srcfilelist = jconf.get(SRC_LIST_LABEL, "");
+-      if ("".equals(srcfilelist)) {
+-          throw new IOException("Unable to get the " +
+-              "src file for archive generation.");
+-      }
+-      long totalSize = jconf.getLong(TOTAL_SIZE_LABEL, -1);
+-      if (totalSize == -1) {
+-        throw new IOException("Invalid size of files to archive");
+-      }
+-      //we should be safe since this is set by our own code
+-      Path src = new Path(srcfilelist);
+-      FileSystem fs = src.getFileSystem(jconf);
+-      FileStatus fstatus = fs.getFileStatus(src);
+-      ArrayList<FileSplit> splits = new ArrayList<FileSplit>(numSplits);
+-      LongWritable key = new LongWritable();
+-      final HarEntry value = new HarEntry();
+-      // the remaining bytes in the file split
+-      long remaining = fstatus.getLen();
+-      // the count of sizes calculated till now
+-      long currentCount = 0L;
+-      // the endposition of the split
+-      long lastPos = 0L;
+-      // the start position of the split
+-      long startPos = 0L;
+-      long targetSize = totalSize/numSplits;
+-      // create splits of size target size so that all the maps 
+-      // have equals sized data to read and write to.
+-      try (SequenceFile.Reader reader = new SequenceFile.Reader(fs, src, jconf)) {
+-        while(reader.next(key, value)) {
+-          if (currentCount + key.get() > targetSize && currentCount != 0){
+-            long size = lastPos - startPos;
+-            splits.add(new FileSplit(src, startPos, size, (String[]) null));
+-            remaining = remaining - size;
+-            startPos = lastPos;
+-            currentCount = 0L;
+-          }
+-          currentCount += key.get();
+-          lastPos = reader.getPosition();
+-        }
+-        // the remaining not equal to the target size.
+-        if (remaining != 0) {
+-          splits.add(new FileSplit(src, startPos, remaining, (String[])null));
+-        }
+-      }
+-      return splits.toArray(new FileSplit[splits.size()]);
+-    }
+-
+-    @Override
+-    public RecordReader<LongWritable, HarEntry> getRecordReader(InputSplit split,
+-        JobConf job, Reporter reporter) throws IOException {
+-      return new SequenceFileRecordReader<LongWritable, HarEntry>(job,
+-                 (FileSplit)split);
+-    }
+-  }
+-
+-  private boolean checkValidName(String name) {
+-    Path tmp = new Path(name);
+-    if (tmp.depth() != 1) {
+-      return false;
+-    }
+-    if (name.endsWith(".har")) 
+-      return true;
+-    return false;
+-  }
+-  
+-
+-  private Path largestDepth(List<Path> paths) {
+-    Path deepest = paths.get(0);
+-    for (Path p: paths) {
+-      if (p.depth() > deepest.depth()) {
+-        deepest = p;
+-      }
+-    }
+-    return deepest;
+-  }
+-  
+-  /**
+-   * truncate the prefix root from the full path
+-   * @param fullPath the full path
+-   * @param root the prefix root to be truncated
+-   * @return the relative path
+-   */
+-  private Path relPathToRoot(Path fullPath, Path root) {
+-    // just take some effort to do it 
+-    // rather than just using substring 
+-    // so that we do not break sometime later
+-    final Path justRoot = new Path(Path.SEPARATOR);
+-    if (fullPath.depth() == root.depth()) {
+-      return justRoot;
+-    }
+-    else if (fullPath.depth() > root.depth()) {
+-      Path retPath = new Path(fullPath.getName());
+-      Path parent = fullPath.getParent();
+-      for (int i=0; i < (fullPath.depth() - root.depth() -1); i++) {
+-        retPath = new Path(parent.getName(), retPath);
+-        parent = parent.getParent();
+-      }
+-      return new Path(justRoot, retPath);
+-    }
+-    return null;
+-  }
+-
+-  /**
+-   * this method writes all the valid top level directories 
+-   * into the srcWriter for indexing. This method is a little
+-   * tricky. example- 
+-   * for an input with parent path /home/user/ and sources 
+-   * as /home/user/source/dir1, /home/user/source/dir2 - this 
+-   * will output <source, dir, dir1, dir2> (dir means that source is a dir
+-   * with dir1 and dir2 as children) and <source/dir1, file, null>
+-   * and <source/dir2, file, null>
+-   * @param srcWriter the sequence file writer to write the
+-   * directories to
+-   * @param paths the source paths provided by the user. They
+-   * are glob free and have full path (not relative paths)
+-   * @param parentPath the parent path that you want the archives
+-   * to be relative to. example - /home/user/dir1 can be archived with
+-   * parent as /home or /home/user.
+-   * @throws IOException
+-   */
+-  private void writeTopLevelDirs(SequenceFile.Writer srcWriter, 
+-      List<Path> paths, Path parentPath) throws IOException {
+-    // extract paths from absolute URI's
+-    List<Path> justPaths = new ArrayList<Path>();
+-    for (Path p: paths) {
+-      justPaths.add(new Path(p.toUri().getPath()));
+-    }
+-    /* find all the common parents of paths that are valid archive
+-     * paths. The below is done so that we do not add a common path
+-     * twice and also we need to only add valid child of a path that
+-     * are specified the user.
+-     */
+-    TreeMap<String, HashSet<String>> allpaths = new TreeMap<String, 
+-                                                HashSet<String>>();
+-    /* the largest depth of paths. the max number of times
+-     * we need to iterate
+-     */
+-    Path deepest = largestDepth(paths);
+-    Path root = new Path(Path.SEPARATOR);
+-    for (int i = parentPath.depth(); i < deepest.depth(); i++) {
+-      List<Path> parents = new ArrayList<Path>();
+-      for (Path p: justPaths) {
+-        if (p.compareTo(root) == 0){
+-          //do nothing
+-        }
+-        else {
+-          Path parent = p.getParent();
+-          if (null != parent) {
+-            if (allpaths.containsKey(parent.toString())) {
+-              HashSet<String> children = allpaths.get(parent.toString());
+-              children.add(p.getName());
+-            } 
+-            else {
+-              HashSet<String> children = new HashSet<String>();
+-              children.add(p.getName());
+-              allpaths.put(parent.toString(), children);
+-            }
+-            parents.add(parent);
+-          }
+-        }
+-      }
+-      justPaths = parents;
+-    }
+-    Set<Map.Entry<String, HashSet<String>>> keyVals = allpaths.entrySet();
+-    for (Map.Entry<String, HashSet<String>> entry : keyVals) {
+-      final Path relPath = relPathToRoot(new Path(entry.getKey()), parentPath);
+-      if (relPath != null) {
+-        final String[] children = new String[entry.getValue().size()];
+-        int i = 0;
+-        for(String child: entry.getValue()) {
+-          children[i++] = child;
+-        }
+-        append(srcWriter, 0L, relPath.toString(), children);
+-      }
+-    }
+-  }
+-
+-  private void append(SequenceFile.Writer srcWriter, long len,
+-      String path, String[] children) throws IOException {
+-    srcWriter.append(new LongWritable(len), new HarEntry(path, children));
+-  }
+-    
+-  /**
+-   * A static class that keeps
+-   * track of status of a path 
+-   * and there children if path is a dir
+-   */
+-  static class FileStatusDir {
+-    private FileStatus fstatus;
+-    private FileStatus[] children = null;
+-    
+-    /**
+-     * constructor for filestatusdir
+-     * @param fstatus the filestatus object that maps to filestatusdir
+-     * @param children the children list if fs is a directory
+-     */
+-    FileStatusDir(FileStatus fstatus, FileStatus[] children) {
+-      this.fstatus  = fstatus;
+-      this.children = children;
+-    }
+-    
+-    /**
+-     * set children of this object
+-     * @param listStatus the list of children
+-     */
+-    public void setChildren(FileStatus[] listStatus) {
+-      this.children = listStatus;
+-    }
+-
+-    /**
+-     * the filestatus of this object
+-     * @return the filestatus of this object
+-     */
+-    FileStatus getFileStatus() {
+-      return this.fstatus;
+-    }
+-    
+-    /**
+-     * the children list of this object, null if  
+-     * @return the children list
+-     */
+-    FileStatus[] getChildren() {
+-      return this.children;
+-    }
+-  }
+-  
+-  /**archive the given source paths into
+-   * the dest
+-   * @param parentPath the parent path of all the source paths
+-   * @param srcPaths the src paths to be archived
+-   * @param dest the dest dir that will contain the archive
+-   */
+-  void archive(Path parentPath, List<Path> srcPaths, 
+-      String archiveName, Path dest) throws IOException {
+-    checkPaths(conf, srcPaths);
+-    int numFiles = 0;
+-    long totalSize = 0;
+-    FileSystem fs = parentPath.getFileSystem(conf);
+-    this.blockSize = conf.getLong(HAR_BLOCKSIZE_LABEL, blockSize);
+-    this.partSize = conf.getLong(HAR_PARTSIZE_LABEL, partSize);
+-    conf.setLong(HAR_BLOCKSIZE_LABEL, blockSize);
+-    conf.setLong(HAR_PARTSIZE_LABEL, partSize);
+-    conf.set(DST_HAR_LABEL, archiveName);
+-    conf.set(SRC_PARENT_LABEL, fs.makeQualified(parentPath).toString());
+-    conf.setInt(HAR_REPLICATION_LABEL, repl);
+-    Path outputPath = new Path(dest, archiveName);
+-    FileOutputFormat.setOutputPath(conf, outputPath);
+-    FileSystem outFs = outputPath.getFileSystem(conf);
+-    if (outFs.exists(outputPath)) {
+-      throw new IOException("Archive path: "
+-          + outputPath.toString() + " already exists");
+-    }
+-    if (outFs.isFile(dest)) {
+-      throw new IOException("Destination " + dest.toString()
+-          + " should be a directory but is a file");
+-    }
+-    conf.set(DST_DIR_LABEL, outputPath.toString());
+-    Credentials credentials = conf.getCredentials();
+-    Path[] allPaths = new Path[] {parentPath, dest};
+-    TokenCache.obtainTokensForNamenodes(credentials, allPaths, conf);
+-    conf.setCredentials(credentials);
+-
+-    Path stagingArea;
+-    try {
+-      stagingArea = JobSubmissionFiles.getStagingDir(new Cluster(conf), 
+-          conf);
+-    } catch (InterruptedException ie) {
+-      throw new IOException(ie);
+-    }
+-    Path jobDirectory = new Path(stagingArea,
+-        NAME+"_"+Integer.toString(new Random().nextInt(Integer.MAX_VALUE), 36));
+-    FsPermission mapredSysPerms = 
+-      new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+-    FileSystem jobfs = jobDirectory.getFileSystem(conf);
+-    FileSystem.mkdirs(jobfs, jobDirectory,
+-        mapredSysPerms);
+-    conf.set(JOB_DIR_LABEL, jobDirectory.toString());
+-    //get a tmp directory for input splits
+-    Path srcFiles = new Path(jobDirectory, "_har_src_files");
+-    conf.set(SRC_LIST_LABEL, srcFiles.toString());
+-    SequenceFile.Writer srcWriter = SequenceFile.createWriter(jobfs, conf,
+-        srcFiles, LongWritable.class, HarEntry.class, 
+-        SequenceFile.CompressionType.NONE);
+-    // get the list of files 
+-    // create single list of files and dirs
+-    try {
+-      // write the top level dirs in first 
+-      writeTopLevelDirs(srcWriter, srcPaths, parentPath);
+-      srcWriter.sync();
+-      // these are the input paths passed 
+-      // from the command line
+-      // we do a recursive ls on these paths 
+-      // and then write them to the input file 
+-      // one at a time
+-      for (Path src: srcPaths) {
+-        ArrayList<FileStatusDir> allFiles = new ArrayList<FileStatusDir>();
+-        FileStatus fstatus = fs.getFileStatus(src);
+-        FileStatusDir fdir = new FileStatusDir(fstatus, null);
+-        recursivels(fs, fdir, allFiles);
+-        for (FileStatusDir statDir: allFiles) {
+-          FileStatus stat = statDir.getFileStatus();
+-          long len = stat.isDirectory()? 0:stat.getLen();
+-          final Path path = relPathToRoot(stat.getPath(), parentPath);
+-          final String[] children;
+-          if (stat.isDirectory()) {
+-            //get the children 
+-            FileStatus[] list = statDir.getChildren();
+-            children = new String[list.length];
+-            for (int i = 0; i < list.length; i++) {
+-              children[i] = list[i].getPath().getName();
+-            }
+-          }
+-          else {
+-            children = null;
+-          }
+-          append(srcWriter, len, path.toString(), children);
+-          srcWriter.sync();
+-          numFiles++;
+-          totalSize += len;
+-        }
+-      }
+-    } finally {
+-      srcWriter.close();
+-    }
+-    conf.setInt(SRC_COUNT_LABEL, numFiles);
+-    conf.setLong(TOTAL_SIZE_LABEL, totalSize);
+-    int numMaps = (int)(totalSize/partSize);
+-    //run atleast one map.
+-    conf.setNumMapTasks(numMaps == 0? 1:numMaps);
+-    conf.setNumReduceTasks(1);
+-    conf.setInputFormat(HArchiveInputFormat.class);
+-    conf.setOutputFormat(NullOutputFormat.class);
+-    conf.setMapperClass(HArchivesMapper.class);
+-    conf.setReducerClass(HArchivesReducer.class);
+-    conf.setMapOutputKeyClass(IntWritable.class);
+-    conf.setMapOutputValueClass(Text.class);
+-    FileInputFormat.addInputPath(conf, jobDirectory);
+-    //make sure no speculative execution is done
+-    conf.setSpeculativeExecution(false);
+-    JobClient.runJob(conf);
+-    //delete the tmp job directory
+-    try {
+-      jobfs.delete(jobDirectory, true);
+-    } catch(IOException ie) {
+-      LOG.info("Unable to clean tmp directory " + jobDirectory);
+-    }
+-  }
+-
+-  static class HArchivesMapper 
+-  implements Mapper<LongWritable, HarEntry, IntWritable, Text> {
+-    private JobConf conf = null;
+-    int partId = -1 ; 
+-    Path tmpOutputDir = null;
+-    Path tmpOutput = null;
+-    String partname = null;
+-    Path rootPath = null;
+-    FSDataOutputStream partStream = null;
+-    FileSystem destFs = null;
+-    byte[] buffer;
+-    int buf_size = 128 * 1024;
+-    private int replication = 3;
+-    long blockSize = 512 * 1024 * 1024l;
+-
+-    // configure the mapper and create 
+-    // the part file.
+-    // use map reduce framework to write into
+-    // tmp files. 
+-    public void configure(JobConf conf) {
+-      this.conf = conf;
+-      replication = conf.getInt(HAR_REPLICATION_LABEL, 3);
+-      // this is tightly tied to map reduce
+-      // since it does not expose an api 
+-      // to get the partition
+-      partId = conf.getInt(MRJobConfig.TASK_PARTITION, -1);
+-      // create a file name using the partition
+-      // we need to write to this directory
+-      tmpOutputDir = FileOutputFormat.getWorkOutputPath(conf);
+-      blockSize = conf.getLong(HAR_BLOCKSIZE_LABEL, blockSize);
+-      // get the output path and write to the tmp 
+-      // directory 
+-      partname = "part-" + partId;
+-      tmpOutput = new Path(tmpOutputDir, partname);
+-      rootPath = (conf.get(SRC_PARENT_LABEL, null) == null) ? null :
+-                  new Path(conf.get(SRC_PARENT_LABEL));
+-      if (rootPath == null) {
+-        throw new RuntimeException("Unable to read parent " +
+-        		"path for har from config");
+-      }
+-      try {
+-        destFs = tmpOutput.getFileSystem(conf);
+-        //this was a stale copy
+-        destFs.delete(tmpOutput, false);
+-        partStream = destFs.create(tmpOutput, false, conf.getInt("io.file.buffer.size", 4096), 
+-            destFs.getDefaultReplication(tmpOutput), blockSize);
+-      } catch(IOException ie) {
+-        throw new RuntimeException("Unable to open output file " + tmpOutput, ie);
+-      }
+-      buffer = new byte[buf_size];
+-    }
+-
+-    // copy raw data.
+-    public void copyData(Path input, FSDataInputStream fsin, 
+-        FSDataOutputStream fout, Reporter reporter) throws IOException {
+-      try {
+-        for (int cbread=0; (cbread = fsin.read(buffer))>= 0;) {
+-          fout.write(buffer, 0,cbread);
+-          reporter.progress();
+-        }
+-      } finally {
+-        fsin.close();
+-      }
+-    }
+-    
+-    /**
+-     * get rid of / in the beginning of path
+-     * @param p the path
+-     * @return return path without /
+-     */
+-    private Path realPath(Path p, Path parent) {
+-      Path rootPath = new Path(Path.SEPARATOR);
+-      if (rootPath.compareTo(p) == 0) {
+-        return parent;
+-      }
+-      return new Path(parent, new Path(p.toString().substring(1)));
+-    }
+-
+-    private static String encodeName(String s) 
+-      throws UnsupportedEncodingException {
+-      return URLEncoder.encode(s,"UTF-8");
+-    }
+-
+-    private static String encodeProperties( FileStatus fStatus )
+-      throws UnsupportedEncodingException {
+-      String propStr = encodeName(
+-          fStatus.getModificationTime() + " "
+-        + fStatus.getPermission().toShort() + " "
+-        + encodeName(fStatus.getOwner()) + " "
+-        + encodeName(fStatus.getGroup()));
+-      return propStr;
+-    }
+-
+-    // read files from the split input 
+-    // and write it onto the part files.
+-    // also output hash(name) and string 
+-    // for reducer to create index 
+-    // and masterindex files.
+-    public void map(LongWritable key, HarEntry value,
+-        OutputCollector<IntWritable, Text> out,
+-        Reporter reporter) throws IOException {
+-      Path relPath = new Path(value.path);
+-      int hash = HarFileSystem.getHarHash(relPath);
+-      String towrite = null;
+-      Path srcPath = realPath(relPath, rootPath);
+-      long startPos = partStream.getPos();
+-      FileSystem srcFs = srcPath.getFileSystem(conf);
+-      FileStatus srcStatus = srcFs.getFileStatus(srcPath);
+-      String propStr = encodeProperties(srcStatus);
+-      if (value.isDir()) { 
+-        towrite = encodeName(relPath.toString())
+-                  + " dir " + propStr + " 0 0 ";
+-        StringBuffer sbuff = new StringBuffer();
+-        sbuff.append(towrite);
+-        for (String child: value.children) {
+-          sbuff.append(encodeName(child) + " ");
+-        }
+-        towrite = sbuff.toString();
+-        //reading directories is also progress
+-        reporter.progress();
+-      }
+-      else {
+-        FSDataInputStream input = srcFs.open(srcStatus.getPath());
+-        reporter.setStatus("Copying file " + srcStatus.getPath() + 
+-            " to archive.");
+-        copyData(srcStatus.getPath(), input, partStream, reporter);
+-        towrite = encodeName(relPath.toString())
+-                  + " file " + partname + " " + startPos
+-                  + " " + srcStatus.getLen() + " " + propStr + " ";
+-      }
+-      out.collect(new IntWritable(hash), new Text(towrite));
+-    }
+-    
+-    public void close() throws IOException {
+-      // close the part files.
+-      partStream.close();
+-      destFs.setReplication(tmpOutput, (short) replication);
+-    }
+-  }
+-  
+-  /** the reduce for creating the index and the master index 
+-   * 
+-   */
+-  static class HArchivesReducer implements Reducer<IntWritable, 
+-  Text, Text, Text> {
+-    private JobConf conf = null;
+-    private long startIndex = 0;
+-    private long endIndex = 0;
+-    private long startPos = 0;
+-    private Path masterIndex = null;
+-    private Path index = null;
+-    private FileSystem fs = null;
+-    private FSDataOutputStream outStream = null;
+-    private FSDataOutputStream indexStream = null;
+-    private int numIndexes = 1000;
+-    private Path tmpOutputDir = null;
+-    private int written = 0;
+-    private int replication = 3;
+-    private int keyVal = 0;
+-    
+-    // configure 
+-    public void configure(JobConf conf) {
+-      this.conf = conf;
+-      tmpOutputDir = FileOutputFormat.getWorkOutputPath(this.conf);
+-      masterIndex = new Path(tmpOutputDir, "_masterindex");
+-      index = new Path(tmpOutputDir, "_index");
+-      replication = conf.getInt(HAR_REPLICATION_LABEL, 3);
+-      try {
+-        fs = masterIndex.getFileSystem(conf);
+-        fs.delete(masterIndex, false);
+-        fs.delete(index, false);
+-        indexStream = fs.create(index);
+-        outStream = fs.create(masterIndex);
+-        String version = VERSION + " \n";
+-        outStream.write(version.getBytes(StandardCharsets.UTF_8));
+-        
+-      } catch(IOException e) {
+-        throw new RuntimeException(e);
+-      }
+-    }
+-    
+-    // create the index and master index. The input to 
+-    // the reduce is already sorted by the hash of the 
+-    // files. SO we just need to write it to the index. 
+-    // We update the masterindex as soon as we update 
+-    // numIndex entries.
+-    public void reduce(IntWritable key, Iterator<Text> values,
+-        OutputCollector<Text, Text> out,
+-        Reporter reporter) throws IOException {
+-      keyVal = key.get();
+-      while(values.hasNext()) {
+-        Text value = values.next();
+-        String towrite = value.toString() + "\n";
+-        indexStream.write(towrite.getBytes(StandardCharsets.UTF_8));
+-        written++;
+-        if (written > numIndexes -1) {
+-          // every 1000 indexes we report status
+-          reporter.setStatus("Creating index for archives");
+-          reporter.progress();
+-          endIndex = keyVal;
+-          String masterWrite = startIndex + " " + endIndex + " " + startPos 
+-                              +  " " + indexStream.getPos() + " \n" ;
+-          outStream.write(masterWrite.getBytes(StandardCharsets.UTF_8));
+-          startPos = indexStream.getPos();
+-          startIndex = endIndex;
+-          written = 0;
+-        }
+-      }
+-    }
+-    
+-    public void close() throws IOException {
+-      //write the last part of the master index.
+-      if (written > 0) {
+-        String masterWrite = startIndex + " " + keyVal + " " + startPos  +
+-                             " " + indexStream.getPos() + " \n";
+-        outStream.write(masterWrite.getBytes(StandardCharsets.UTF_8));
+-      }
+-      // close the streams
+-      outStream.close();
+-      indexStream.close();
+-      // try increasing the replication 
+-      fs.setReplication(index, (short) replication);
+-      fs.setReplication(masterIndex, (short) replication);
+-    }
+-    
+-  }
+-
+-  private void printUsage(Options opts, boolean printDetailed) {
+-    HelpFormatter helpFormatter = new HelpFormatter();
+-    if (printDetailed) {
+-      helpFormatter.printHelp(usage.length() + 10, usage, null, opts, null,
+-          false);
+-    } else {
+-      System.out.println(usage);
+-    }
+-  }
+-
+-  /** the main driver for creating the archives
+-   *  it takes at least three command line parameters. The parent path, 
+-   *  The src and the dest. It does an lsr on the source paths.
+-   *  The mapper created archuves and the reducer creates 
+-   *  the archive index.
+-   */
+-
+-  public int run(String[] args) throws Exception {
+-    try {
+-      // Parse CLI options
+-      Options options = new Options();
+-      options.addOption(ARCHIVE_NAME, true,
+-          "Name of the Archive. This is mandatory option");
+-      options.addOption(PARENT_PATH, true,
+-          "Parent path of sources. This is mandatory option");
+-      options.addOption(REPLICATION, true, "Replication factor archive files");
+-      options.addOption(HELP, false, "Show the usage");
+-      Parser parser = new GnuParser();
+-      CommandLine commandLine = parser.parse(options, args, true);
+-
+-      if (commandLine.hasOption(HELP)) {
+-        printUsage(options, true);
+-        return 0;
+-      }
+-      if (!commandLine.hasOption(ARCHIVE_NAME)) {
+-        printUsage(options, false);
+-        throw new IOException("Archive Name not specified.");
+-      }
+-      String archiveName = commandLine.getOptionValue(ARCHIVE_NAME);
+-      if (!checkValidName(archiveName)) {
+-        printUsage(options, false);
+-        throw new IOException("Invalid name for archives. " + archiveName);
+-      }
+-      //check to see if relative parent has been provided or not
+-      //this is a required parameter. 
+-      if (!commandLine.hasOption(PARENT_PATH)) {
+-        printUsage(options, false);
+-        throw new IOException("Parent path not specified.");
+-      }
+-      Path parentPath = new Path(commandLine.getOptionValue(PARENT_PATH));
+-      if (!parentPath.isAbsolute()) {
+-        parentPath = parentPath.getFileSystem(getConf()).makeQualified(
+-            parentPath);
+-      }
+-
+-      if (commandLine.hasOption(REPLICATION)) {
+-        repl = Short.parseShort(commandLine.getOptionValue(REPLICATION));
+-      }
+-      // Remaining args
+-      args = commandLine.getArgs();
+-      List<Path> srcPaths = new ArrayList<Path>();
+-      Path destPath = null;
+-      //read the rest of the paths
+-      for (int i = 0; i < args.length; i++) {
+-        if (i == (args.length - 1)) {
+-          destPath = new Path(args[i]);
+-          if (!destPath.isAbsolute()) {
+-            destPath = destPath.getFileSystem(getConf()).makeQualified(destPath);
+-          }
+-        }
+-        else {
+-          Path argPath = new Path(args[i]);
+-          if (argPath.isAbsolute()) {
+-            printUsage(options, false);
+-            throw new IOException("Source path " + argPath +
+-                " is not relative to "+ parentPath);
+-          }
+-          srcPaths.add(new Path(parentPath, argPath));
+-        }
+-      }
+-      if (destPath == null) {
+-        printUsage(options, false);
+-        throw new IOException("Destination path not specified.");
+-      }
+-      if (srcPaths.size() == 0) {
+-        // assuming if the user does not specify path for sources
+-        // the whole parent directory needs to be archived. 
+-        srcPaths.add(parentPath);
+-      }
+-      // do a glob on the srcPaths and then pass it on
+-      List<Path> globPaths = new ArrayList<Path>();
+-      for (Path p: srcPaths) {
+-        FileSystem fs = p.getFileSystem(getConf());
+-        FileStatus[] statuses = fs.globStatus(p);
+-        if (statuses != null) {
+-          for (FileStatus status: statuses) {
+-            globPaths.add(fs.makeQualified(status.getPath()));
+-          }
+-        }
+-      }
+-      if (globPaths.isEmpty()) {
+-        throw new IOException("The resolved paths set is empty."
+-            + "  Please check whether the srcPaths exist, where srcPaths = "
+-            + srcPaths);
+-      }
+-
+-      archive(parentPath, globPaths, archiveName, destPath);
+-    } catch(IOException ie) {
+-      System.err.println(ie.getLocalizedMessage());
+-      return -1;
+-    }
+-    return 0;
+-  }
+-
+-  static final String TEST_HADOOP_ARCHIVES_JAR_PATH = "test.hadoop.archives.jar";
+-
+-  /** the main functions **/
+-  public static void main(String[] args) {
+-    JobConf job = new JobConf(HadoopArchives.class);
+-
+-    HadoopArchives harchives = new HadoopArchives(job);
+-    int ret = 0;
+-
+-    try{
+-      ret = ToolRunner.run(harchives, args);
+-    } catch(Exception e) {
+-      LOG.debug("Exception in archives  ", e);
+-      System.err.println(e.getClass().getSimpleName() + " in archives");
+-      final String s = e.getLocalizedMessage();
+-      if (s != null) {
+-        System.err.println(s);
+-      } else {
+-        e.printStackTrace(System.err);
+-      }
+-      System.exit(1);
+-    }
+-    System.exit(ret);
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-archives/src/main/shellprofile.d/hadoop-archives.sh b/hadoop-tools/hadoop-archives/src/main/shellprofile.d/hadoop-archives.sh
+deleted file mode 100755
+index 42fc1a093bc..00000000000
+--- a/hadoop-tools/hadoop-archives/src/main/shellprofile.d/hadoop-archives.sh
++++ /dev/null
+@@ -1,58 +0,0 @@
+-#!/usr/bin/env bash
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-if ! declare -f hadoop_subcommand_archive >/dev/null 2>/dev/null; then
+-
+-  if [[ "${HADOOP_SHELL_EXECNAME}" = hadoop ]]; then
+-    hadoop_add_subcommand "archive" client "create a Hadoop archive"
+-  fi
+-
+-  # this can't be indented otherwise shelldocs won't get it
+-
+-## @description  archive command for hadoop (and mapred)
+-## @audience     public
+-## @stability    stable
+-## @replaceable  yes
+-function hadoop_subcommand_archive
+-{
+-  # shellcheck disable=SC2034
+-  HADOOP_CLASSNAME=org.apache.hadoop.tools.HadoopArchives
+-  hadoop_add_to_classpath_tools hadoop-archives
+-}
+-
+-fi
+-
+-if ! declare -f mapred_subcommand_archive >/dev/null 2>/dev/null; then
+-
+-  if [[ "${HADOOP_SHELL_EXECNAME}" = mapred ]]; then
+-    hadoop_add_subcommand "archive" client "create a Hadoop archive"
+-  fi
+-
+-  # this can't be indented otherwise shelldocs won't get it
+-
+-## @description  archive command for mapred (calls hadoop version)
+-## @audience     public
+-## @stability    stable
+-## @replaceable  yes
+-function mapred_subcommand_archive
+-{
+-  # shellcheck disable=SC2034
+-  HADOOP_CLASSNAME=org.apache.hadoop.tools.HadoopArchives
+-  hadoop_add_to_classpath_tools hadoop-archives
+-}
+-
+-fi
+diff --git a/hadoop-tools/hadoop-archives/src/site/markdown/HadoopArchives.md.vm b/hadoop-tools/hadoop-archives/src/site/markdown/HadoopArchives.md.vm
+deleted file mode 100644
+index 9d83ed9700c..00000000000
+--- a/hadoop-tools/hadoop-archives/src/site/markdown/HadoopArchives.md.vm
++++ /dev/null
+@@ -1,162 +0,0 @@
+-<!---
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-
+-#set ( $H3 = '###' )
+-
+-Hadoop Archives Guide
+-=====================
+-
+- - [Overview](#Overview)
+- - [How to Create an Archive](#How_to_Create_an_Archive)
+- - [How to Look Up Files in Archives](#How_to_Look_Up_Files_in_Archives)
+- - [How to Unarchive an Archive](#How_to_Unarchive_an_Archive)
+- - [Archives Examples](#Archives_Examples)
+-     - [Creating an Archive](#Creating_an_Archive)
+-     - [Looking Up Files](#Looking_Up_Files)
+- - [Hadoop Archives and MapReduce](#Hadoop_Archives_and_MapReduce)
+-
+-Overview
+---------
+-
+-  Hadoop archives are special format archives. A Hadoop archive maps to a file
+-  system directory. A Hadoop archive always has a \*.har extension. A Hadoop
+-  archive directory contains metadata (in the form of _index and _masterindex)
+-  and data (part-\*) files. The _index file contains the name of the files that
+-  are part of the archive and the location within the part files.
+-
+-How to Create an Archive
+-------------------------
+-
+-  `Usage: hadoop archive -archiveName name -p <parent> [-r <replication factor>] <src>* <dest>`
+-
+-  -archiveName is the name of the archive you would like to create. An example
+-  would be foo.har. The name should have a \*.har extension. The parent argument
+-  is to specify the relative path to which the files should be archived to.
+-  Example would be :
+-
+-  `-p /foo/bar a/b/c e/f/g`
+-
+-  Here /foo/bar is the parent path and a/b/c, e/f/g are relative paths to
+-  parent. Note that this is a Map/Reduce job that creates the archives. You
+-  would need a map reduce cluster to run this. For a detailed example the later
+-  sections.
+-
+-  -r indicates the desired replication factor; if this optional argument is
+-  not specified, a replication factor of 3 will be used.
+-
+-  If you just want to archive a single directory /foo/bar then you can just use
+-
+-  `hadoop archive -archiveName zoo.har -p /foo/bar -r 3 /outputdir`
+-
+-  If you specify source files that are in an encryption zone, they will be
+-  decrypted and written into the archive. If the har file is not located in an
+-  encryption zone, then they will be stored in clear (decrypted) form. If the
+-  har file is located in an encryption zone they will stored in encrypted form.
+-
+-How to Look Up Files in Archives
+---------------------------------
+-
+-  The archive exposes itself as a file system layer. So all the fs shell
+-  commands in the archives work but with a different URI. Also, note that
+-  archives are immutable. So, rename's, deletes and creates return an error.
+-  URI for Hadoop Archives is
+-
+-  `har://scheme-hostname:port/archivepath/fileinarchive`
+-
+-  If no scheme is provided it assumes the underlying filesystem. In that case
+-  the URI would look like
+-
+-  `har:///archivepath/fileinarchive`
+-
+-How to Unarchive an Archive
+----------------------------
+-
+-  Since all the fs shell commands in the archives work transparently,
+-  unarchiving is just a matter of copying.
+-
+-  To unarchive sequentially:
+-
+-  `hdfs dfs -cp har:///user/zoo/foo.har/dir1 hdfs:/user/zoo/newdir`
+-
+-  To unarchive in parallel, use DistCp:
+-
+-  `hadoop distcp har:///user/zoo/foo.har/dir1 hdfs:/user/zoo/newdir`
+-
+-Archives Examples
+------------------
+-
+-$H3 Creating an Archive
+-
+-  `hadoop archive -archiveName foo.har -p /user/hadoop -r 3 dir1 dir2 /user/zoo`
+-
+-  The above example is creating an archive using /user/hadoop as the relative
+-  archive directory. The directories /user/hadoop/dir1 and /user/hadoop/dir2
+-  will be archived in the following file system directory -- /user/zoo/foo.har.
+-  Archiving does not delete the input files. If you want to delete the input
+-  files after creating the archives (to reduce namespace), you will have to do
+-  it on your own. In this example, because `-r 3` is specified, a replication
+-  factor of 3 will be used.
+-
+-$H3 Looking Up Files
+-
+-  Looking up files in hadoop archives is as easy as doing an ls on the
+-  filesystem. After you have archived the directories /user/hadoop/dir1 and
+-  /user/hadoop/dir2 as in the example above, to see all the files in the
+-  archives you can just run:
+-
+-  `hdfs dfs -ls -R har:///user/zoo/foo.har/`
+-
+-  To understand the significance of the -p argument, lets go through the above
+-  example again. If you just do an ls (not lsr) on the hadoop archive using
+-
+-  `hdfs dfs -ls har:///user/zoo/foo.har`
+-
+-  The output should be:
+-
+-```
+-har:///user/zoo/foo.har/dir1
+-har:///user/zoo/foo.har/dir2
+-```
+-
+-  As you can recall the archives were created with the following command
+-
+-  `hadoop archive -archiveName foo.har -p /user/hadoop dir1 dir2 /user/zoo`
+-
+-  If we were to change the command to:
+-
+-  `hadoop archive -archiveName foo.har -p /user/ hadoop/dir1 hadoop/dir2 /user/zoo`
+-
+-  then a ls on the hadoop archive using
+-
+-  `hdfs dfs -ls har:///user/zoo/foo.har`
+-
+-  would give you
+-
+-```
+-har:///user/zoo/foo.har/hadoop/dir1
+-har:///user/zoo/foo.har/hadoop/dir2
+-```
+-
+-  Notice that the archived files have been archived relative to /user/ rather
+-  than /user/hadoop.
+-
+-Hadoop Archives and MapReduce
+------------------------------
+-
+-  Using Hadoop Archives in MapReduce is as easy as specifying a different input
+-  filesystem than the default file system. If you have a hadoop archive stored
+-  in HDFS in /user/zoo/foo.har then for using this archive for MapReduce input,
+-  all you need is to specify the input directory as har:///user/zoo/foo.har. Since
+-  Hadoop Archives is exposed as a file system MapReduce will be able to use all
+-  the logical input files in Hadoop Archives as input.
+diff --git a/hadoop-tools/hadoop-archives/src/site/resources/css/site.css b/hadoop-tools/hadoop-archives/src/site/resources/css/site.css
+deleted file mode 100644
+index f830baafa8c..00000000000
+--- a/hadoop-tools/hadoop-archives/src/site/resources/css/site.css
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+-* Licensed to the Apache Software Foundation (ASF) under one or more
+-* contributor license agreements.  See the NOTICE file distributed with
+-* this work for additional information regarding copyright ownership.
+-* The ASF licenses this file to You under the Apache License, Version 2.0
+-* (the "License"); you may not use this file except in compliance with
+-* the License.  You may obtain a copy of the License at
+-*
+-*     http://www.apache.org/licenses/LICENSE-2.0
+-*
+-* Unless required by applicable law or agreed to in writing, software
+-* distributed under the License is distributed on an "AS IS" BASIS,
+-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-* See the License for the specific language governing permissions and
+-* limitations under the License.
+-*/
+-#banner {
+-  height: 93px;
+-  background: none;
+-}
+-
+-#bannerLeft img {
+-  margin-left: 30px;
+-  margin-top: 10px;
+-}
+-
+-#bannerRight img {
+-  margin: 17px;
+-}
+-
+diff --git a/hadoop-tools/hadoop-archives/src/test/java/org/apache/hadoop/tools/TestHadoopArchives.java b/hadoop-tools/hadoop-archives/src/test/java/org/apache/hadoop/tools/TestHadoopArchives.java
+deleted file mode 100644
+index 3267a683c27..00000000000
+--- a/hadoop-tools/hadoop-archives/src/test/java/org/apache/hadoop/tools/TestHadoopArchives.java
++++ /dev/null
+@@ -1,808 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import java.io.ByteArrayOutputStream;
+-import java.io.FilterInputStream;
+-import java.io.IOException;
+-import java.io.PrintStream;
+-import java.net.URI;
+-import java.nio.charset.StandardCharsets;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.StringTokenizer;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.FsShell;
+-import org.apache.hadoop.fs.HarFileSystem;
+-import org.apache.hadoop.fs.LocalFileSystem;
+-import org.apache.hadoop.fs.LocatedFileStatus;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.RemoteIterator;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.io.IOUtils;
+-import org.apache.hadoop.test.GenericTestUtils;
+-import org.apache.hadoop.util.JarFinder;
+-import org.apache.hadoop.util.ToolRunner;
+-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
+-import org.junit.After;
+-import org.junit.Assert;
+-import static org.junit.Assert.*;
+-import static org.slf4j.LoggerFactory.getLogger;
+-import static org.assertj.core.api.Assertions.assertThat;
+-
+-import org.junit.Before;
+-import org.junit.Test;
+-import org.slf4j.event.Level;
+-
+-/**
+- * test {@link HadoopArchives}
+- */
+-public class TestHadoopArchives {
+-
+-  public static final String HADOOP_ARCHIVES_JAR = JarFinder
+-      .getJar(HadoopArchives.class);
+-
+-  {
+-    GenericTestUtils.setLogLevel(
+-        getLogger(org.apache.hadoop.security.Groups.class), Level.ERROR);
+-  }
+-
+-  private static final String inputDir = "input";
+-
+-  private Path inputPath;
+-  private Path archivePath;
+-  private final List<String> fileList = new ArrayList<String>();
+-  private MiniDFSCluster dfscluster;
+-
+-  private Configuration conf;
+-  private FileSystem fs;
+-
+-  private static String createFile(Path root, FileSystem fs, String... dirsAndFile
+-      ) throws IOException {
+-    String fileBaseName = dirsAndFile[dirsAndFile.length - 1]; 
+-    return createFile(root, fs, fileBaseName.getBytes(StandardCharsets.UTF_8), dirsAndFile);
+-  }
+-  
+-  private static String createFile(Path root, FileSystem fs, byte[] fileContent, String... dirsAndFile
+-    ) throws IOException {
+-    StringBuilder sb = new StringBuilder();
+-    for (String segment: dirsAndFile) {
+-      if (sb.length() > 0) {
+-        sb.append(Path.SEPARATOR);  
+-      }
+-      sb.append(segment);
+-    }
+-    final Path f = new Path(root, sb.toString());
+-    final FSDataOutputStream out = fs.create(f);
+-    try {
+-         out.write(fileContent);
+-    } finally {
+-      out.close();
+-    }
+-    return sb.toString();
+-  }
+-
+-  @Before
+-  public void setUp() throws Exception {
+-    conf = new Configuration();
+-    conf.set(CapacitySchedulerConfiguration.PREFIX
+-        + CapacitySchedulerConfiguration.ROOT + "."
+-        + CapacitySchedulerConfiguration.QUEUES, "default");
+-    conf.set(CapacitySchedulerConfiguration.PREFIX
+-        + CapacitySchedulerConfiguration.ROOT + ".default."
+-        + CapacitySchedulerConfiguration.CAPACITY, "100");
+-    dfscluster =
+-        new MiniDFSCluster.Builder(conf).checkExitOnShutdown(true)
+-            .numDataNodes(3).format(true).racks(null).build();
+-
+-    fs = dfscluster.getFileSystem();
+-    
+-    // prepare archive path:
+-    archivePath = new Path(fs.getHomeDirectory(), "archive");
+-    fs.delete(archivePath, true);
+-    
+-    // prepare input path:
+-    inputPath = new Path(fs.getHomeDirectory(), inputDir);
+-    fs.delete(inputPath, true);
+-    fs.mkdirs(inputPath);
+-    // create basic input files:
+-    fileList.add(createFile(inputPath, fs, "a"));
+-    fileList.add(createFile(inputPath, fs, "b"));
+-    fileList.add(createFile(inputPath, fs, "c"));
+-  }
+-
+-  @After
+-  public void tearDown() throws Exception {
+-    if (dfscluster != null) {
+-      dfscluster.shutdown();
+-    }
+-  }
+-
+-  @Test
+-  public void testRelativePath() throws Exception {
+-    final Path sub1 = new Path(inputPath, "dir1");
+-    fs.mkdirs(sub1);
+-    createFile(inputPath, fs, sub1.getName(), "a");
+-    final FsShell shell = new FsShell(conf);
+-
+-    final List<String> originalPaths = lsr(shell, "input");
+-    System.out.println("originalPaths: " + originalPaths);
+-
+-    // make the archive:
+-    final String fullHarPathStr = makeArchive();
+-
+-    // compare results:
+-    final List<String> harPaths = lsr(shell, fullHarPathStr);
+-    Assert.assertEquals(originalPaths, harPaths);
+-  }
+-
+-  @Test
+-  public void testRelativePathWitRepl() throws Exception {
+-    final Path sub1 = new Path(inputPath, "dir1");
+-    fs.mkdirs(sub1);
+-    createFile(inputPath, fs, sub1.getName(), "a");
+-    final FsShell shell = new FsShell(conf);
+-
+-    final List<String> originalPaths = lsr(shell, "input");
+-    System.out.println("originalPaths: " + originalPaths);
+-
+-    // make the archive:
+-    final String fullHarPathStr = makeArchiveWithRepl();
+-
+-    // compare results:
+-    final List<String> harPaths = lsr(shell, fullHarPathStr);
+-    Assert.assertEquals(originalPaths, harPaths);
+-  }
+-
+-  @Test
+-  public void testOutputPathValidity() throws Exception {
+-    final String inputPathStr = inputPath.toUri().getPath();
+-    final URI uri = fs.getUri();
+-    final String harName = "foo.har";
+-    System.setProperty(HadoopArchives.TEST_HADOOP_ARCHIVES_JAR_PATH,
+-        HADOOP_ARCHIVES_JAR);
+-    final HadoopArchives har = new HadoopArchives(conf);
+-
+-    PrintStream stderr = System.err;
+-    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+-    PrintStream newErr = new PrintStream(byteStream);
+-    System.setErr(newErr);
+-
+-    // fail if the archive path already exists
+-    createFile(archivePath, fs, harName);
+-    final String[] args = { "-archiveName", harName, "-p", inputPathStr, "*",
+-        archivePath.toString() };
+-    Assert.assertEquals(-1, ToolRunner.run(har, args));
+-    String output = byteStream.toString();
+-    final Path outputPath = new Path(archivePath, harName);
+-    Assert.assertTrue(output.indexOf("Archive path: " + outputPath.toString()
+-        + " already exists") != -1);
+-
+-    byteStream.reset();
+-
+-    // fail if the destination directory is a file
+-    createFile(archivePath, fs, "sub1");
+-    final Path archivePath2 = new Path(archivePath, "sub1");
+-    final String[] args2 = { "-archiveName", harName, "-p", inputPathStr, "*",
+-        archivePath2.toString() };
+-    Assert.assertEquals(-1, ToolRunner.run(har, args2));
+-    output = byteStream.toString();
+-    Assert.assertTrue(output.indexOf("Destination " + archivePath2.toString()
+-        + " should be a directory but is a file") != -1);
+-
+-    System.setErr(stderr);
+-  }
+-
+-  @Test
+-  public void testPathWithSpaces() throws Exception {
+-    // create files/directories with spaces
+-    createFile(inputPath, fs, "c c");
+-    final Path sub1 = new Path(inputPath, "sub 1");
+-    fs.mkdirs(sub1);
+-    createFile(sub1, fs, "file x y z");
+-    createFile(sub1, fs, "file");
+-    createFile(sub1, fs, "x");
+-    createFile(sub1, fs, "y");
+-    createFile(sub1, fs, "z");
+-    final Path sub2 = new Path(inputPath, "sub 1 with suffix");
+-    fs.mkdirs(sub2);
+-    createFile(sub2, fs, "z");
+-
+-    final FsShell shell = new FsShell(conf);
+-    final String inputPathStr = inputPath.toUri().getPath();
+-    final List<String> originalPaths = lsr(shell, inputPathStr);
+-
+-    // make the archive:
+-    final String fullHarPathStr = makeArchive();
+-
+-    // compare results
+-    final List<String> harPaths = lsr(shell, fullHarPathStr);
+-    Assert.assertEquals(originalPaths, harPaths);
+-  }
+-
+-  @Test
+-  public void testSingleFile() throws Exception {
+-    final Path sub1 = new Path(inputPath, "dir1");
+-    fs.mkdirs(sub1);
+-    String singleFileName = "a";
+-    createFile(inputPath, fs, sub1.getName(), singleFileName);
+-    final FsShell shell = new FsShell(conf);
+-
+-    final List<String> originalPaths = lsr(shell, sub1.toString());
+-    System.out.println("originalPaths: " + originalPaths);
+-
+-    // make the archive:
+-    final String fullHarPathStr = makeArchive(sub1, singleFileName);
+-
+-    // compare results:
+-    final List<String> harPaths = lsr(shell, fullHarPathStr);
+-    Assert.assertEquals(originalPaths, harPaths);
+-  }
+-
+-  @Test
+-  public void testGlobFiles() throws Exception {
+-    final Path sub1 = new Path(inputPath, "dir1");
+-    final Path sub2 = new Path(inputPath, "dir2");
+-    fs.mkdirs(sub1);
+-    String fileName = "a";
+-    createFile(inputPath, fs, sub1.getName(), fileName);
+-    createFile(inputPath, fs, sub2.getName(), fileName);
+-    createFile(inputPath, fs, sub1.getName(), "b"); // not part of result
+-
+-    final String glob =  "dir{1,2}/a";
+-    final FsShell shell = new FsShell(conf);
+-    final List<String> originalPaths = lsr(shell, inputPath.toString(),
+-        inputPath + "/" + glob);
+-    System.out.println("originalPaths: " + originalPaths);
+-
+-    // make the archive:
+-    final String fullHarPathStr = makeArchive(inputPath, glob);
+-
+-    // compare results:
+-    final List<String> harPaths = lsr(shell, fullHarPathStr,
+-        fullHarPathStr + "/" + glob);
+-    Assert.assertEquals(originalPaths, harPaths);
+-  }
+-
+-  private static List<String> lsr(final FsShell shell, String rootDir) throws Exception {
+-    return lsr(shell, rootDir, null);
+-  }
+-
+-  private static List<String> lsr(final FsShell shell, String rootDir,
+-      String glob) throws Exception {
+-    final String dir = glob == null ? rootDir : glob;
+-    System.out.println("lsr root=" + rootDir);
+-    final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+-    final PrintStream out = new PrintStream(bytes);
+-    final PrintStream oldOut = System.out;
+-    final PrintStream oldErr = System.err;
+-    System.setOut(out);
+-    System.setErr(out);
+-    final String results;
+-    try {
+-      Assert.assertEquals(0, shell.run(new String[] { "-lsr", dir }));
+-      results = bytes.toString();
+-    } finally {
+-      IOUtils.closeStream(out);
+-      System.setOut(oldOut);
+-      System.setErr(oldErr);
+-    }
+-    System.out.println("lsr results:\n" + results);
+-    String dirname = rootDir;
+-    if (rootDir.lastIndexOf(Path.SEPARATOR) != -1) {
+-      dirname = rootDir.substring(rootDir.lastIndexOf(Path.SEPARATOR));
+-    }
+-
+-    final List<String> paths = new ArrayList<String>();
+-    for (StringTokenizer t = new StringTokenizer(results, "\n"); t
+-        .hasMoreTokens();) {
+-      final String s = t.nextToken();
+-      final int i = s.indexOf(dirname);
+-      if (i >= 0) {
+-        paths.add(s.substring(i + dirname.length()));
+-      }
+-    }
+-    Collections.sort(paths);
+-    System.out
+-        .println("lsr paths = " + paths.toString().replace(", ", ",\n  "));
+-    return paths;
+-  }
+-  
+-  @Test
+-  public void testReadFileContent() throws Exception {
+-    fileList.add(createFile(inputPath, fs, "c c"));
+-    final Path sub1 = new Path(inputPath, "sub 1");
+-    fs.mkdirs(sub1);
+-    fileList.add(createFile(inputPath, fs, sub1.getName(), "file x y z"));
+-    fileList.add(createFile(inputPath, fs, sub1.getName(), "file"));
+-    fileList.add(createFile(inputPath, fs, sub1.getName(), "x"));
+-    fileList.add(createFile(inputPath, fs, sub1.getName(), "y"));
+-    fileList.add(createFile(inputPath, fs, sub1.getName(), "z"));
+-    final Path sub2 = new Path(inputPath, "sub 1 with suffix");
+-    fs.mkdirs(sub2);
+-    fileList.add(createFile(inputPath, fs, sub2.getName(), "z"));
+-    // Generate a big binary file content:
+-    final byte[] binContent = prepareBin();
+-    fileList.add(createFile(inputPath, fs, binContent, sub2.getName(), "bin"));
+-    fileList.add(createFile(inputPath, fs, new byte[0], sub2.getName(), "zero-length"));
+-
+-    final String fullHarPathStr = makeArchive();
+-
+-    // Create fresh HarFs:
+-    final HarFileSystem harFileSystem = new HarFileSystem(fs);
+-    try {
+-      final URI harUri = new URI(fullHarPathStr);
+-      harFileSystem.initialize(harUri, fs.getConf());
+-      // now read the file content and compare it against the expected:
+-      int readFileCount = 0;
+-      for (final String pathStr0 : fileList) {
+-        final Path path = new Path(fullHarPathStr + Path.SEPARATOR + pathStr0);
+-        final String baseName = path.getName();
+-        final FileStatus status = harFileSystem.getFileStatus(path);
+-        if (status.isFile()) {
+-          // read the file:
+-          final byte[] actualContentSimple = readAllSimple(
+-              harFileSystem.open(path), true);
+-          
+-          final byte[] actualContentBuffer = readAllWithBuffer(
+-              harFileSystem.open(path), true);
+-          assertArrayEquals(actualContentSimple, actualContentBuffer);
+-          
+-          final byte[] actualContentFully = readAllWithReadFully(
+-              actualContentSimple.length,
+-              harFileSystem.open(path), true);
+-          assertArrayEquals(actualContentSimple, actualContentFully);
+-          
+-          final byte[] actualContentSeek = readAllWithSeek(
+-              actualContentSimple.length,
+-              harFileSystem.open(path), true);
+-          assertArrayEquals(actualContentSimple, actualContentSeek);
+-          
+-          final byte[] actualContentRead4
+-          = readAllWithRead4(harFileSystem.open(path), true);
+-          assertArrayEquals(actualContentSimple, actualContentRead4);
+-          
+-          final byte[] actualContentSkip = readAllWithSkip(
+-              actualContentSimple.length, 
+-              harFileSystem.open(path), 
+-              harFileSystem.open(path), 
+-              true);
+-          assertArrayEquals(actualContentSimple, actualContentSkip);
+-          
+-          if ("bin".equals(baseName)) {
+-            assertArrayEquals(binContent, actualContentSimple);
+-          } else if ("zero-length".equals(baseName)) {
+-            assertEquals(0, actualContentSimple.length);
+-          } else {
+-            String actual = new String(actualContentSimple, StandardCharsets.UTF_8);
+-            assertEquals(baseName, actual);
+-          }
+-          readFileCount++;
+-        }
+-      }
+-      assertThat(fileList.size()).isEqualTo(readFileCount);
+-    } finally {
+-      harFileSystem.close();
+-    }
+-  }
+-  
+-  private static byte[] readAllSimple(FSDataInputStream fsdis, boolean close) throws IOException {
+-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+-    try {
+-      int b;
+-      while (true) {
+-        b = fsdis.read();
+-        if (b < 0) {
+-          break;
+-        } else {
+-          baos.write(b);
+-        }
+-      }
+-      baos.close();
+-      return baos.toByteArray();
+-    } finally {
+-      if (close) {
+-        fsdis.close();
+-      }
+-    }
+-  }
+-
+-  private static byte[] readAllWithBuffer(FSDataInputStream fsdis, boolean close)
+-      throws IOException {
+-    try {
+-      final int available = fsdis.available();
+-      final byte[] buffer;
+-      final ByteArrayOutputStream baos;
+-      if (available < 0) {
+-        buffer = new byte[1024];
+-        baos = new ByteArrayOutputStream(buffer.length * 2);
+-      } else {
+-        buffer = new byte[available];
+-        baos = new ByteArrayOutputStream(available);
+-      }
+-      int readIntoBuffer = 0;
+-      int read; 
+-      while (true) {
+-        read = fsdis.read(buffer, readIntoBuffer, buffer.length - readIntoBuffer);
+-        if (read <= 0) {
+-          // end of stream:
+-          if (readIntoBuffer > 0) {
+-            baos.write(buffer, 0, readIntoBuffer);
+-          }
+-          return baos.toByteArray();
+-        } else {
+-          readIntoBuffer += read;
+-          if (readIntoBuffer == buffer.length) {
+-            // buffer is full, need to clean the buffer.
+-            // drop the buffered data to baos:
+-            baos.write(buffer);
+-            // reset the counter to start reading to the buffer beginning:
+-            readIntoBuffer = 0;
+-          } else if (readIntoBuffer > buffer.length) {
+-            throw new IOException("Read more than the buffer length: "
+-                + readIntoBuffer + ", buffer length = " + buffer.length);
+-          }
+-        }
+-      }
+-    } finally {
+-      if (close) {
+-        fsdis.close();
+-      }
+-    }
+-  }
+-
+-  private static byte[] readAllWithReadFully(int totalLength, FSDataInputStream fsdis, boolean close)
+-      throws IOException {
+-    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+-    // Simulate reading of some data structures of known length:
+-    final byte[] buffer = new byte[17];
+-    final int times = totalLength / buffer.length;
+-    final int remainder = totalLength % buffer.length;
+-    // it would be simpler to leave the position tracking to the 
+-    // InputStream, but we need to check the methods #readFully(2) 
+-    // and #readFully(4) that receive the position as a parameter:
+-    int position = 0;
+-    try {
+-      // read "data structures":
+-      for (int i=0; i<times; i++) {
+-        fsdis.readFully(position, buffer);
+-        position += buffer.length;
+-        baos.write(buffer);
+-      }
+-      if (remainder > 0) {
+-        // read the remainder:
+-        fsdis.readFully(position, buffer, 0, remainder);
+-        position += remainder;
+-        baos.write(buffer, 0, remainder);
+-      }
+-      try {
+-        fsdis.readFully(position, buffer, 0, 1);
+-        assertTrue(false);
+-      } catch (IOException ioe) {
+-        // okay
+-      }
+-      assertEquals(totalLength, position);
+-      final byte[] result = baos.toByteArray();
+-      assertEquals(totalLength, result.length);
+-      return result;
+-    } finally {
+-      if (close) {
+-        fsdis.close();
+-      }
+-    }
+-  }
+-
+-  private static byte[] readAllWithRead4(FSDataInputStream fsdis, boolean close)
+-      throws IOException {
+-    try {
+-      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+-      final byte[] buffer = new byte[17];
+-      int totalRead = 0;
+-      int read;
+-      while (true) {
+-        read = fsdis.read(totalRead, buffer, 0, buffer.length);
+-        if (read > 0) {
+-          totalRead += read;
+-          baos.write(buffer, 0, read);
+-        } else if (read < 0) {
+-          break; // EOF
+-        } else {
+-          // read == 0:
+-          // zero result may be returned *only* in case if the 4th 
+-          // parameter is 0. Since in our case this is 'buffer.length',
+-          // zero return value clearly indicates a bug: 
+-          throw new AssertionError("FSDataInputStream#read(4) returned 0, while " +
+-          		" the 4th method parameter is " + buffer.length + ".");
+-        }
+-      }
+-      final byte[] result = baos.toByteArray();
+-      return result;
+-    } finally {
+-      if (close) {
+-        fsdis.close();
+-      }
+-    }
+-  }
+-  
+-  private static byte[] readAllWithSeek(final int totalLength, 
+-      final FSDataInputStream fsdis, final boolean close)
+-      throws IOException {
+-    final byte[] result = new byte[totalLength];
+-    long pos;
+-    try {
+-      // read the data in the reverse order, from 
+-      // the tail to the head by pieces of 'buffer' length:
+-      final byte[] buffer = new byte[17];
+-      final int times = totalLength / buffer.length;
+-      int read;
+-      int expectedRead;
+-      for (int i=times; i>=0; i--) {
+-        pos = i * buffer.length;
+-        fsdis.seek(pos);
+-        // check that seek is successful:
+-        assertEquals(pos, fsdis.getPos());
+-        read = fsdis.read(buffer);
+-        // check we read right number of bytes:
+-        if (i == times) {
+-          expectedRead = totalLength % buffer.length; // remainder
+-          if (expectedRead == 0) {
+-            // zero remainder corresponds to the EOS, so
+-            // by the contract of DataInpitStream#read(byte[]) -1 should be 
+-            // returned:
+-            expectedRead = -1;
+-          }
+-        } else {
+-          expectedRead = buffer.length;
+-        }
+-        assertEquals(expectedRead, read);
+-        if (read > 0) {
+-          System.arraycopy(buffer, 0, result, (int)pos, read);
+-        }
+-      }
+-      
+-      // finally, check that #seek() to not existing position leads to IOE:
+-      expectSeekIOE(fsdis, Long.MAX_VALUE, "Seek to Long.MAX_VALUE should lead to IOE.");
+-      expectSeekIOE(fsdis, Long.MIN_VALUE, "Seek to Long.MIN_VALUE should lead to IOE.");
+-      long pp = -1L;
+-      expectSeekIOE(fsdis, pp, "Seek to "+pp+" should lead to IOE.");
+-      
+-      // NB: is is *possible* to #seek(length), but *impossible* to #seek(length + 1):
+-      fsdis.seek(totalLength);
+-      assertEquals(totalLength, fsdis.getPos());
+-      pp = totalLength + 1;
+-      expectSeekIOE(fsdis, pp, "Seek to the length position + 1 ("+pp+") should lead to IOE.");
+-      
+-      return result;
+-    } finally {
+-      if (close) {
+-        fsdis.close();
+-      }
+-    }
+-  }  
+-
+-  private static void expectSeekIOE(FSDataInputStream fsdis, long seekPos, String message) {
+-    try {
+-      fsdis.seek(seekPos);
+-      assertTrue(message + " (Position = " + fsdis.getPos() + ")", false);
+-    } catch (IOException ioe) {
+-      // okay
+-    }
+-  }
+-  
+-  /*
+-   * Reads data by chunks from 2 input streams:
+-   * reads chunk from stream 1, and skips this chunk in the stream 2;
+-   * Then reads next chunk from stream 2, and skips this chunk in stream 1. 
+-   */
+-  private static byte[] readAllWithSkip(
+-      final int totalLength, 
+-      final FSDataInputStream fsdis1, 
+-      final FSDataInputStream fsdis2, 
+-      final boolean close)
+-      throws IOException {
+-    // test negative skip arg: 
+-    assertEquals(0, fsdis1.skip(-1));
+-    // test zero skip arg: 
+-    assertEquals(0, fsdis1.skip(0));
+-    
+-    final ByteArrayOutputStream baos = new ByteArrayOutputStream(totalLength);
+-    try {
+-      // read the data in the reverse order, from 
+-      // the tail to the head by pieces of 'buffer' length:
+-      final byte[] buffer = new byte[17];
+-      final int times = totalLength / buffer.length;
+-      final int remainder = totalLength % buffer.length;
+-      long skipped;
+-      long expectedPosition;
+-      int toGo;
+-      for (int i=0; i<=times; i++) {
+-        toGo = (i < times) ? buffer.length : remainder;
+-        if (i % 2 == 0) {
+-          fsdis1.readFully(buffer, 0, toGo);
+-          skipped = skipUntilZero(fsdis2, toGo);
+-        } else {
+-          fsdis2.readFully(buffer, 0, toGo);
+-          skipped = skipUntilZero(fsdis1, toGo);
+-        }
+-        if (i < times) {
+-          assertEquals(buffer.length, skipped);
+-          expectedPosition = (i + 1) * buffer.length;
+-        } else { 
+-          // remainder:
+-          if (remainder > 0) {
+-            assertEquals(remainder, skipped);
+-          } else {
+-            assertEquals(0, skipped);
+-          }
+-          expectedPosition = totalLength;
+-        }
+-        // check if the 2 streams have equal and correct positions:
+-        assertEquals(expectedPosition, fsdis1.getPos());
+-        assertEquals(expectedPosition, fsdis2.getPos());
+-        // save the read data:
+-        if (toGo > 0) {
+-          baos.write(buffer, 0, toGo);
+-        }
+-      }
+-
+-      // finally, check up if ended stream cannot skip:
+-      assertEquals(0, fsdis1.skip(-1));
+-      assertEquals(0, fsdis1.skip(0));
+-      assertEquals(0, fsdis1.skip(1));
+-      assertEquals(0, fsdis1.skip(Long.MAX_VALUE));
+-      
+-      return baos.toByteArray();
+-    } finally {
+-      if (close) {
+-        fsdis1.close();
+-        fsdis2.close();
+-      }
+-    }
+-  }  
+-  
+-  private static long skipUntilZero(final FilterInputStream fis, 
+-      final long toSkip) throws IOException {
+-    long skipped = 0;
+-    long remainsToSkip = toSkip;
+-    long s;
+-    while (skipped < toSkip) {
+-      s = fis.skip(remainsToSkip); // actually skippped
+-      if (s == 0) {
+-        return skipped; // EOF or impossible to skip.
+-      }
+-      skipped += s; 
+-      remainsToSkip -= s;
+-    }
+-    return skipped;
+-  }
+-  
+-  private static byte[] prepareBin() {
+-    byte[] bb = new byte[77777];
+-    for (int i=0; i<bb.length; i++) {
+-      // Generate unique values, as possible:
+-      double d = Math.log(i + 2);
+-      long bits = Double.doubleToLongBits(d);
+-      bb[i] = (byte)bits;
+-    }
+-    return bb;
+-  }
+-
+-
+-  private String makeArchive() throws Exception {
+-    return makeArchive(inputPath, null);
+-  }
+-
+-  /*
+-   * Run the HadoopArchives tool to create an archive on the 
+-   * given file system.
+-   */
+-  private String makeArchive(Path parentPath, String relGlob) throws Exception {
+-    final String parentPathStr = parentPath.toUri().getPath();
+-    final String relPathGlob = relGlob == null ? "*" : relGlob;
+-    System.out.println("parentPathStr = " + parentPathStr);
+-
+-    final URI uri = fs.getUri();
+-    final String prefix = "har://hdfs-" + uri.getHost() + ":" + uri.getPort()
+-        + archivePath.toUri().getPath() + Path.SEPARATOR;
+-
+-    final String harName = "foo.har";
+-    final String fullHarPathStr = prefix + harName;
+-    final String[] args = { "-archiveName", harName, "-p", parentPathStr,
+-        relPathGlob, archivePath.toString() };
+-    System.setProperty(HadoopArchives.TEST_HADOOP_ARCHIVES_JAR_PATH,
+-        HADOOP_ARCHIVES_JAR);
+-    final HadoopArchives har = new HadoopArchives(conf);
+-    assertEquals(0, ToolRunner.run(har, args));
+-    return fullHarPathStr;
+-  }
+-
+-  /*
+- * Run the HadoopArchives tool to create an archive on the
+- * given file system with a specified replication degree.
+- */
+-  private String makeArchiveWithRepl() throws Exception {
+-    final String inputPathStr = inputPath.toUri().getPath();
+-    System.out.println("inputPathStr = " + inputPathStr);
+-
+-    final URI uri = fs.getUri();
+-    final String prefix = "har://hdfs-" + uri.getHost() + ":" + uri.getPort()
+-        + archivePath.toUri().getPath() + Path.SEPARATOR;
+-
+-    final String harName = "foo.har";
+-    final String fullHarPathStr = prefix + harName;
+-    final String[] args =
+-        { "-archiveName", harName, "-p", inputPathStr, "-r", "2", "*",
+-            archivePath.toString() };
+-    System.setProperty(HadoopArchives.TEST_HADOOP_ARCHIVES_JAR_PATH,
+-        HADOOP_ARCHIVES_JAR);
+-    final HadoopArchives har = new HadoopArchives(conf);
+-    assertEquals(0, ToolRunner.run(har, args));
+-    RemoteIterator<LocatedFileStatus> listFiles =
+-        fs.listFiles(new Path(archivePath.toString() + "/" + harName), false);
+-    while (listFiles.hasNext()) {
+-      LocatedFileStatus next = listFiles.next();
+-      if (!next.getPath().toString().endsWith("_SUCCESS")) {
+-        assertEquals(next.getPath().toString(), 2, next.getReplication());
+-      }
+-    }
+-    return fullHarPathStr;
+-  }
+-  
+-  @Test
+-  /*
+-   * Tests copying from archive file system to a local file system
+-   */
+-  public void testCopyToLocal() throws Exception {
+-    final String fullHarPathStr = makeArchive();
+-
+-    // make path to copy the file to:
+-    final String tmpDir
+-      = System.getProperty("test.build.data","build/test/data") + "/work-dir/har-fs-tmp";
+-    final Path tmpPath = new Path(tmpDir);
+-    final LocalFileSystem localFs = FileSystem.getLocal(new Configuration());
+-    localFs.delete(tmpPath, true);
+-    localFs.mkdirs(tmpPath);
+-    assertTrue(localFs.exists(tmpPath));
+-    
+-    // Create fresh HarFs:
+-    final HarFileSystem harFileSystem = new HarFileSystem(fs);
+-    try {
+-      final URI harUri = new URI(fullHarPathStr);
+-      harFileSystem.initialize(harUri, fs.getConf());
+-      
+-      final Path sourcePath = new Path(fullHarPathStr + Path.SEPARATOR + "a");
+-      final Path targetPath = new Path(tmpPath, "straus");
+-      // copy the Har file to a local file system:
+-      harFileSystem.copyToLocalFile(false, sourcePath, targetPath);
+-      FileStatus straus = localFs.getFileStatus(targetPath);
+-      // the file should contain just 1 character:
+-      assertEquals(1, straus.getLen());
+-    } finally {
+-      harFileSystem.close();
+-      localFs.delete(tmpPath, true);      
+-    }
+-  }
+-  
+-}
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 583506a7278..7c232c158a2 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -55,11 +55,6 @@
+       <artifactId>hadoop-federation-balance</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-archives</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-rumen</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 6e5f06e6fae..5ed1976b8a9 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -34,7 +34,6 @@
+     <module>hadoop-distcp</module>
+     <module>hadoop-federation-balance</module>
+     <module>hadoop-dynamometer</module>
+-    <module>hadoop-archives</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+     <module>hadoop-datajoin</module>

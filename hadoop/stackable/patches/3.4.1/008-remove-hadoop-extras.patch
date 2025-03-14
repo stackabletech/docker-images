@@ -1,0 +1,77 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 9121e90cdbd..5d59374cbf0 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -39,14 +39,6 @@
+       <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+       <fileMode>0755</fileMode>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-extras/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-pipes/src/main/native/pipes/api/hadoop</directory>
+       <includes>
+@@ -89,13 +81,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-extras/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-gridmix/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index acc94c6e50e..ffe72c5ac49 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -668,11 +668,6 @@
+         <artifactId>hadoop-rumen</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-extras</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+ 
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 1c3afdfeb82..8abe0914853 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -60,11 +60,6 @@
+       <artifactId>hadoop-rumen</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-extras</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-gridmix</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 01ef91f75f6..fdfccd6b274 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -36,7 +36,6 @@
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+     <module>hadoop-tools-dist</module>
+-    <module>hadoop-extras</module>
+     <module>hadoop-pipes</module>
+     <module>hadoop-openstack</module>
+     <module>hadoop-sls</module>
