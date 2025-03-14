@@ -69,7 +69,9 @@ RUN curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUC
     mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
-    rm -rf /stackable/hadoop-${PRODUCT}-src
+    rm -rf /stackable/hadoop-${PRODUCT}-src && \
+    # Set correct group
+    chmod -R g=u /stackable
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
@@ -118,7 +120,9 @@ RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_
     mvn --batch-mode --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
     mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
     cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
-    rm -rf /stackable/hdfs-utils-main
+    rm -rf /stackable/hdfs-utils-main && \
+    # Set correct group
+    chmod -R g=u /stackable
 
 FROM stackable/image/java-base AS final
 
@@ -128,12 +132,12 @@ ARG HDFS_UTILS
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Hadoop" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Hadoop." \
-      description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Hadoop." \
+    description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx/
@@ -159,6 +163,9 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+
+# Set correct group
+chmod -R g=u /stackable/fuse_dfs_wrapper
 mv /stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 # Remove unneeded binaries:
@@ -179,11 +186,6 @@ find . -name 'hadoop-*tests.jar' -type f -delete
 # Without this fuse_dfs does not work
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 COPY hadoop/licenses /licenses
