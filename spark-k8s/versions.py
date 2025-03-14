@@ -1,6 +1,6 @@
 versions = [
     {
-        "product": "3.5.1",
+        "product": "3.5.2",
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
@@ -13,12 +13,12 @@ versions = [
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "vector": "0.43.1",
-        "jmx_exporter": "1.0.1-stackable",
+        "jmx_exporter": "1.1.0",
         "tini": "0.19.0",
         "hbase_connector": "1.0.1",
     },
     {
-        "product": "3.5.2",
+        "product": "3.5.5",
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
@@ -31,7 +31,7 @@ versions = [
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "vector": "0.43.1",
-        "jmx_exporter": "1.0.1-stackable",
+        "jmx_exporter": "1.1.0",
         "tini": "0.19.0",
         "hbase_connector": "1.0.1",
     },

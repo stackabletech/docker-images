@@ -11,7 +11,7 @@ versions = [
         "phoenix": "5.2.1",
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
-        "jmx_exporter": "1.0.1-stackable",  # update the stackable/jmx/config<version> folder too
+        "jmx_exporter": "1.1.0",  # update the stackable/jmx/config<version> folder too
         "opa_authorizer": "",  # only for HBase 2.6.1
         "delete_caches": "true",
     },

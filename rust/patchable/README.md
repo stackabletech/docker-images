@@ -25,7 +25,7 @@ For more details, run `cargo patchable --help`.
 ## Notes
 
 - patchable only supports linear patch series (no merges beyond the base commit)
-- patchable doesn't support support merging "materialized" trees, merge the .patch files instead, and `checkout`/`export` to update the hashes
+- patchable doesn't support merging "materialized" trees, merge the .patch files instead, and `checkout`/`export` to update the hashes
 - `patchable checkout` doesn't support resolving patch conflicts, use `git am` instead (and then `patchable export` the resolved patches)
 - Always run patchable via `cargo patchable` (rather than `cargo install`ing it), to ensure that you use the correct version for a given checkout of docker-images
 
@@ -44,3 +44,7 @@ Instead of creating this manually, run `patchable init`:
 ```toml
 cargo patchable init druid 28.0.0 --upstream=https://github.com/apache/druid.git --base=druid-28.0.0
 ```
+
+## Glossary
+
+- Images repo/directory - The checkout of stackabletech/docker-images

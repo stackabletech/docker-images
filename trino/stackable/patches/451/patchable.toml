@@ -1,0 +1,2 @@
+upstream = "https://github.com/trinodb/trino.git"
+base = "2c974f7cb1d71e1f9f466941a317190a474fc432"

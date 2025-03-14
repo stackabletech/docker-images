@@ -1,0 +1,129 @@
+From 6acfff9441d96c18c2a1ec7c0d0c40aec8e94b2f Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Thu, 11 Jul 2024 10:12:51 +0200
+Subject: Update all available dependencies to new patch versions
+
+---
+ pom.xml | 46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index c4beb5aaeb..8bd80e81e2 100755
+--- a/pom.xml
++++ b/pom.xml
+@@ -540,7 +540,7 @@
+     <maven.min.version>3.0.4</maven.min.version>
+     <java.min.version>${compileSource}</java.min.version>
+     <!-- Dependencies -->
+-    <hadoop-two.version>2.10.0</hadoop-two.version>
++    <hadoop-two.version>2.10.2</hadoop-two.version>
+     <hadoop-three.version>3.1.2</hadoop-three.version>
+     <!-- These must be defined here for downstream build tools that don't look at profiles.
+          They ought to match the values found in our default hadoop profile, which is
+@@ -560,7 +560,7 @@
+       modules and cause trouble if we only rely on transitive dependencies.
+     -->
+     <netty3.version>3.10.6.Final</netty3.version>
+-    <netty4.version>4.1.108.Final</netty4.version>
++    <netty4.version>4.1.111.Final</netty4.version>
+     <!-- end HBASE-15925 default hadoop compatibility values -->
+     <audience-annotations.version>0.13.0</audience-annotations.version>
+     <!--
+@@ -569,15 +569,15 @@
+     -->
+     <javadoc.audience-annotations.version>0.13.0</javadoc.audience-annotations.version>
+     <avro.version>1.7.7</avro.version>
+-    <caffeine.version>2.8.1</caffeine.version>
++    <caffeine.version>2.8.8</caffeine.version>
+     <commons-codec.version>1.15</commons-codec.version>
+     <commons-io.version>2.11.0</commons-io.version>
+     <commons-lang3.version>3.9</commons-lang3.version>
+     <commons-math.version>3.6.1</commons-math.version>
+     <commons-cli.version>1.5.0</commons-cli.version>
+     <disruptor.version>3.4.4</disruptor.version>
+-    <httpclient.version>4.5.13</httpclient.version>
+-    <httpcore.version>4.4.13</httpcore.version>
++    <httpclient.version>4.5.14</httpclient.version>
++    <httpcore.version>4.4.16</httpcore.version>
+     <metrics-core.version>3.2.6</metrics-core.version>
+     <!--
+       Note that the version of jackson-[annotations,core,databind] must be kept in sync with the
+@@ -588,13 +588,13 @@
+     <jaxb-api.version>2.3.1</jaxb-api.version>
+     <servlet.api.version>3.1.0</servlet.api.version>
+     <wx.rs.api.version>2.1.1</wx.rs.api.version>
+-    <glassfish.jsp.version>2.3.2</glassfish.jsp.version>
+-    <glassfish.el.version>3.0.1-b08</glassfish.el.version>
+-    <jruby.version>9.2.13.0</jruby.version>
++    <glassfish.jsp.version>2.3.4</glassfish.jsp.version>
++    <glassfish.el.version>3.0.1-b12</glassfish.el.version>
++    <jruby.version>9.2.21.0</jruby.version>
+     <junit.version>4.13.2</junit.version>
+     <hamcrest.version>1.3</hamcrest.version>
+     <htrace.version>4.2.0-incubating</htrace.version>
+-    <reload4j.version>1.2.22</reload4j.version>
++    <reload4j.version>1.2.25</reload4j.version>
+     <mockito-core.version>2.28.2</mockito-core.version>
+     <!--Internally we use a different version of protobuf. See hbase-protocol-shaded-->
+     <external.protobuf.groupid>com.google.protobuf</external.protobuf.groupid>
+@@ -602,19 +602,19 @@
+     <external.protoc.version>${external.protobuf.version}</external.protoc.version>
+     <protobuf.plugin.version>0.6.1</protobuf.plugin.version>
+     <thrift.path>thrift</thrift.path>
+-    <thrift.version>0.14.1</thrift.version>
++    <thrift.version>0.14.2</thrift.version>
+     <zookeeper.version>3.8.4</zookeeper.version>
+     <jline.version>2.11</jline.version>
+-    <slf4j.version>1.7.33</slf4j.version>
++    <slf4j.version>1.7.36</slf4j.version>
+     <clover.version>4.0.3</clover.version>
+     <jamon-runtime.version>2.4.1</jamon-runtime.version>
+     <jettison.version>1.5.4</jettison.version>
+     <!--Make sure these joni/jcodings are compatible with the versions used by jruby-->
+-    <joni.version>2.1.31</joni.version>
+-    <jcodings.version>1.0.55</jcodings.version>
+-    <spy.version>2.12.2</spy.version>
+-    <bouncycastle.version>1.78</bouncycastle.version>
+-    <skyscreamer.version>1.5.1</skyscreamer.version>
++    <joni.version>2.1.48</joni.version>
++    <jcodings.version>1.0.58</jcodings.version>
++    <spy.version>2.12.3</spy.version>
++    <bouncycastle.version>1.78.1</bouncycastle.version>
++    <skyscreamer.version>1.5.3</skyscreamer.version>
+     <kerby.version>1.0.1</kerby.version>
+     <commons-crypto.version>1.0.0</commons-crypto.version>
+     <curator.version>4.2.0</curator.version>
+@@ -631,17 +631,17 @@
+     <lifecycle.mapping.version>1.0.0</lifecycle.mapping.version>
+     <maven.antrun.version>1.8</maven.antrun.version>
+     <maven.bundle.version>3.3.0</maven.bundle.version>
+-    <maven.checkstyle.version>3.1.0</maven.checkstyle.version>
++    <maven.checkstyle.version>3.1.2</maven.checkstyle.version>
+     <maven.eclipse.version>2.10</maven.eclipse.version>
+     <maven.gpg.version>3.0.1</maven.gpg.version>
+-    <maven.javadoc.version>3.4.0</maven.javadoc.version>
+-    <maven.warbucks.version>1.1.0</maven.warbucks.version>
++    <maven.javadoc.version>3.4.1</maven.javadoc.version>
++    <maven.warbucks.version>1.1.2</maven.warbucks.version>
+     <maven.project.info.report.version>3.1.2</maven.project.info.report.version>
+     <os.maven.version>1.5.0.Final</os.maven.version>
+     <findbugs-annotations.version>1.3.9-1</findbugs-annotations.version>
+     <spotbugs.version>4.7.3</spotbugs.version>
+-    <spotbugs.maven.version>4.7.2.1</spotbugs.maven.version>
+-    <surefire.version>3.1.0</surefire.version>
++    <spotbugs.maven.version>4.7.3.6</spotbugs.maven.version>
++    <surefire.version>3.1.2</surefire.version>
+     <wagon.ssh.version>2.12</wagon.ssh.version>
+     <xml.maven.version>1.0.1</xml.maven.version>
+     <spotless.version>2.27.2</spotless.version>
+@@ -652,8 +652,8 @@
+         hbase-thirdparty.
+     -->
+     <hbase-thirdparty.version>4.1.7</hbase-thirdparty.version>
+-    <maven-site.version>3.12.0</maven-site.version>
+-    <snappy.version>1.1.10.4</snappy.version>
++    <maven-site.version>3.12.1</maven-site.version>
++    <snappy.version>1.1.10.5</snappy.version>
+     <!-- Coverage properties -->
+     <jacoco.version>0.8.8</jacoco.version>
+     <jacocoArgLine/>

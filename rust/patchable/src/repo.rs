@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{self, Path, PathBuf};
 
 use git2::{
     FetchOptions, ObjectType, Oid, RemoteCallbacks, Repository, RepositoryInitOptions,
@@ -18,6 +18,19 @@ pub enum Error {
     Init { source: git2::Error, path: PathBuf },
     #[snafu(display("failed to open repository at {path:?}"))]
     Open { source: git2::Error, path: PathBuf },
+
+    #[snafu(display("failed to absolutize path {path:?}"))]
+    Absolutize {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+    #[snafu(display("no .patchable file found in parent of {path:?}"))]
+    NoDotPatchableFound { path: PathBuf },
+    #[snafu(display("failed to check if {path:?} contains a .patchable file"))]
+    CheckDotPatchable {
+        source: std::io::Error,
+        path: PathBuf,
+    },
 
     #[snafu(display(
         "failed to create worktree branch {branch:?} pointing at {commit} in {repo}"
@@ -293,5 +306,25 @@ pub fn ensure_worktree_is_at(
         Err(err) => Err(err).context(OpenSnafu {
             path: worktree_root,
         }),
+    }
+}
+
+/// Try to find the Git images repository in a parent directory of `path` (or `path` itself).
+///
+/// The repository is detected by that it contains a file named `.patchable`.
+pub fn discover_images_repo(path: impl AsRef<Path>) -> Result<Repository> {
+    let full_path = path::absolute(&path).context(AbsolutizeSnafu {
+        path: path.as_ref(),
+    })?;
+    let mut path: &Path = &full_path;
+    loop {
+        match path.join(".patchable").try_exists() {
+            Ok(true) => break Repository::open(path).context(OpenSnafu { path }),
+            Ok(false) => match path.parent() {
+                Some(p) => path = p,
+                None => break NoDotPatchableFoundSnafu { path: full_path }.fail(),
+            },
+            Err(err) => break Err(err).context(CheckDotPatchableSnafu { path }),
+        }
     }
 }

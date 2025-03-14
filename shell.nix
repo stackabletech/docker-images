@@ -12,10 +12,13 @@ pkgs.mkShell {
   ];
 
   buildInputs = [
-    # Required for libraries to be discoverable
-    pkgs.pkg-config
-
     # Required by patchable
     pkgs.openssl
   ];
+
+  nativeBuildInputs = [
+    # Required for libraries to be discoverable
+    pkgs.pkg-config
+  ];
+
 }

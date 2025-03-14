@@ -18,7 +18,7 @@ RUN <<EOF
 microdnf update
 
 # python-pyyaml:
-#   This note was last checked for version 30.0.0
+#   This note was last checked for version 31.0.1
 #   Required for the compilation of Druid.
 #   This requirement is documented in docs/development/build.md and version 5.1 or later is required.
 #   UBI 9 ships with 5.4.x so that should be fine
