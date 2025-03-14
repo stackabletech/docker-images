@@ -3,6 +3,8 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
+RUN chmod -R g=u /stackable 
+
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
@@ -87,6 +89,7 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-devel AS opa-authorizer-builder
@@ -121,6 +124,7 @@ fi
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
 fi
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-devel AS hbase-operator-tools-builder
@@ -186,6 +190,7 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+chmod -R g=u /stackable
 EOF
 
 
@@ -201,9 +206,9 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/
+  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
@@ -217,6 +222,7 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-devel AS phoenix-builder
@@ -277,6 +283,7 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+chmod -R g=u /stackable
 EOF
 
 
@@ -331,8 +338,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
-    /stackable/hbase-${PRODUCT}/lib/
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+  /stackable/hbase-${PRODUCT}/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
@@ -350,16 +357,12 @@ microdnf install \
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 # ----------------------------------------
