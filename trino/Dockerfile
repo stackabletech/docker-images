@@ -54,13 +54,16 @@ rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-se
 # while the raw output folder does not
 tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
 mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
 
 # Delete all intermediate build products to free some more space
 rm -r /stackable/trino-server-${PRODUCT}-src
+
+# We need to change group and not in the final image (file changes bloat images)
+chmod -R g=u /stackable
 EOF
 
 COPY --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
+RUN chmod -R g=u /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
@@ -86,12 +89,12 @@ ARG RELEASE
 ARG STACKABLE_USER_UID
 
 LABEL name="Trino" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Trino." \
-      description="This image is deployed by the Stackable Operator for Trino."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Trino." \
+    description="This image is deployed by the Stackable Operator for Trino."
 
 RUN microdnf update && \
     microdnf install \
@@ -108,19 +111,16 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=trino-builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
 
 RUN <<EOF
 ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
 curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod g=u /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chown ${STACKABLE_USER_UID}:0 /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 # ----------------------------------------
