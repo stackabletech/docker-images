@@ -88,7 +88,8 @@ ARG JMX_EXPORTER
 ARG RELEASE
 ARG STACKABLE_USER_UID
 
-LABEL name="Trino" \
+LABEL \
+    name="Trino" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
     version="${PRODUCT}" \
