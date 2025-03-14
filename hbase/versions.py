@@ -8,7 +8,7 @@ versions = [
         "java-base": "11",
         "java-devel": "11",
         "async_profiler": "2.9",
-        "phoenix": "5.2.0",
+        "phoenix": "5.2.1",
         "hbase_profile": "2.4",
         "hadoop": "3.3.6",
         "jmx_exporter": "1.1.0",  # update the stackable/jmx/config<version> folder too

@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump cargo-cyclonedx to 0.5.7 ([#1013]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
+- phoenix: Bump 5.2.0 to 5.2.1 ([#997], [#1009]).
 - BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984]).
 
 ### Removed
@@ -98,6 +99,7 @@ All notable changes to this project will be documented in this file.
 [#1005]: https://github.com/stackabletech/docker-images/pull/1005
 [#1006]: https://github.com/stackabletech/docker-images/pull/1006
 [#1007]: https://github.com/stackabletech/docker-images/pull/1007
+[#1009]: https://github.com/stackabletech/docker-images/pull/1009
 [#1013]: https://github.com/stackabletech/docker-images/pull/1013
 [#1015]: https://github.com/stackabletech/docker-images/pull/1015
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
