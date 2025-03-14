@@ -45,7 +45,6 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump cargo-cyclonedx to 0.5.7 ([#1013]).
 - Update registry references to oci ([#989]).
 - trino-storage-connector: Move the build out of trino/ for easier patching ([#996]).
-- druid 26.0.0: Migrate to patchable ([#1003]).
 - phoenix: Bump 5.2.0 to 5.2.1 ([#997], [#1009]).
 - BREAKING: druid: Bump opa-authorizer to 0.6.0 for all versions ([#984]).
 
