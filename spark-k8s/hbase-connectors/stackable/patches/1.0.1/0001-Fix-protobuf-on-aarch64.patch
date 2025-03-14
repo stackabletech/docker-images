@@ -1,3 +1,13 @@
+From 8211177df0ca6cae00bc3bebcd264364732691b3 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 13 Mar 2025 22:10:56 +0100
+Subject: Fix protobuf on aarch64
+
+---
+ pom.xml       | 19 ++++++++++++++++++-
+ spark/pom.xml |  2 +-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
 diff --git a/pom.xml b/pom.xml
 index e849cd1..f514e14 100644
 --- a/pom.xml

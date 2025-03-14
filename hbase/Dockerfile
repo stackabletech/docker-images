@@ -139,7 +139,8 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/apply_patches.sh /stackable/patches
 COPY --chown=${STACKABLE_USER_UID}:0 --chmod=755 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
@@ -152,7 +153,7 @@ RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid
 curl "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 chmod +x patches/apply_patches.sh
-patches/apply_patches.sh hbase-operator-tools/${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+patches/apply_patches.sh ${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 
 mvn \
   --batch-mode \
@@ -232,7 +233,8 @@ ARG STACKABLE_USER_UID
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/apply_patches.sh /stackable/patches
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
@@ -242,7 +244,7 @@ curl "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 
 chmod +x patches/apply_patches.sh
-patches/apply_patches.sh phoenix/${PHOENIX} phoenix-${PHOENIX}-src
+patches/apply_patches.sh ${PHOENIX} phoenix-${PHOENIX}-src
 
 # Passing "-f" means it'll build in the phoenix source directory without cding into it
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)

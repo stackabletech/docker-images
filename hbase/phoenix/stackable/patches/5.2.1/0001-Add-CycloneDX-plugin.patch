@@ -1,10 +1,19 @@
+From 7727bee78aa96e3342da8cb9b3221327f29c43db Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 13 Mar 2025 22:00:03 +0100
+Subject: Add CycloneDX plugin
+
+---
+ pom.xml | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
 diff --git a/pom.xml b/pom.xml
-index caa032a..0025687 100644
+index ed97bb870..f8534b4ad 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -549,6 +549,23 @@
-           </formats>
-         </configuration>
+@@ -697,6 +697,23 @@
+         <extensions>true</extensions>
+         <inherited>true</inherited>
        </plugin>
 +      <plugin>
 +        <groupId>org.cyclonedx</groupId>
@@ -25,4 +34,4 @@ index caa032a..0025687 100644
 +      </plugin>
      </plugins>
    </build>
-   <profiles>
+ 
