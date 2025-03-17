@@ -29,7 +29,7 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
 - superset: Add version `4.1.1` ([#991]).
-- Add Patchable patch management tool ([#1003], [#1005], [#1007]).
+- Add Patchable patch management tool ([#1003], [#1005], [#1007], [#1026]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
 - airflow: Add 2.10.4 ([#1021]).
 - hadoop: Add 3.4.1, use jmx_export 1.1.0 ([#1021]).
@@ -104,6 +104,7 @@ All notable changes to this project will be documented in this file.
 [#1015]: https://github.com/stackabletech/docker-images/pull/1015
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
 [#1022]: https://github.com/stackabletech/docker-images/pull/1022
+[#1026]: https://github.com/stackabletech/docker-images/pull/1026
 
 ## [24.11.1] - 2025-01-14
 
