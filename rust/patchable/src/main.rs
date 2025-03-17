@@ -107,6 +107,10 @@ impl ProductVersionContext<'_> {
 struct Opts {
     #[clap(subcommand)]
     cmd: Cmd,
+
+    /// Specify a custom root directory for the images repository
+    #[clap(long)]
+    images_repo_root: Option<PathBuf>,
 }
 
 #[derive(clap::Parser)]
@@ -165,7 +169,7 @@ enum Cmd {
         pv: ProductVersion,
     },
 
-    /// Shwos the images repository root
+    /// Shows the images repository root
     ImagesDir,
 }
 
@@ -201,6 +205,8 @@ pub enum Error {
     FindImagesRepo { source: repo::Error },
     #[snafu(display("images repository has no work directory"))]
     NoImagesRepoWorkdir,
+    #[snafu(display("images repository root at {path:?} is not a directory"))]
+    ImagesRepoRootDirCheck { path: PathBuf },
 
     #[snafu(display("failed to fetch patch series' base commit"))]
     FetchBaseCommit { source: repo::Error },
@@ -263,8 +269,19 @@ fn main() -> Result<()> {
     .context(ConfigureGitLoggingSnafu)?;
 
     let opts = <Opts as clap::Parser>::parse();
-    let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
-    let images_repo_root = images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?;
+    let images_repo_root_pathbuf = match opts.images_repo_root {
+        Some(path) => {
+            if !path.is_dir() {
+                return ImagesRepoRootDirCheckSnafu { path }.fail();
+            }
+            path
+        }
+        None => {
+            let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
+            images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?.to_owned()
+        }
+    };
+    let images_repo_root = images_repo_root_pathbuf.as_path();
     match opts.cmd {
         Cmd::Checkout { pv, base_only } => {
             let ctx = ProductVersionContext {

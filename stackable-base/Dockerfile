@@ -59,6 +59,23 @@ rustup toolchain install
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
+FROM product-utils-builder AS patchable
+
+# Copy source code of patchable
+COPY rust/patchable/ /patchable/rust/patchable
+# Copy workspace files
+COPY Cargo.* /patchable/
+
+RUN <<EOF
+microdnf update --assumeyes
+microdnf install --assumeyes openssl-devel pkg-config
+cd /patchable
+. "$HOME/.cargo/env"
+rustup toolchain install
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+microdnf clean all
+EOF
+
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
@@ -203,6 +220,10 @@ COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-ut
 # **containerdebug**
 # Debug tool that logs generic system information.
 COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+
+# **patchable**
+# Tool for patch management
+COPY --from=patchable --chown=${STACKABLE_USER_UID}:0 /patchable/target/release/patchable /stackable/patchable
 
 ENV PATH="${PATH}:/stackable"
 

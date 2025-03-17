@@ -23,10 +23,8 @@ microdnf update
 #   This requirement is documented in docs/development/build.md and version 5.1 or later is required.
 #   UBI 9 ships with 5.4.x so that should be fine
 #
-# patch: Required for the apply-patches.sh script
 microdnf install \
-python-pyyaml \
-patch
+python-pyyaml
 
 microdnf clean all
 rm -rf /var/cache/yum
@@ -35,8 +33,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=stackable:0 druid/stackable/patches/apply_patches.sh /stackable/apache-druid-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-druid-${PRODUCT}-src/druid/stackable/patches/${PRODUCT}
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
@@ -50,10 +47,8 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/sta
     --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
     --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
     <<EOF
-curl "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
-./patches/apply_patches.sh ${PRODUCT}
-
+cd "$(/stackable/patchable --images-repo-root=. checkout druid ${PRODUCT})" && \
 mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
 mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
