@@ -8,14 +8,9 @@ which itself depends on a Freemarker version that has not been pinned.
 Instead it specifies a "range" which resolves to a SNAPSHOT version
 which we don't want.
 ---
- 10-update-fmpp.patch | 0
- sql/pom.xml          | 7 +++++++
- 2 files changed, 7 insertions(+)
- create mode 100644 10-update-fmpp.patch
+ sql/pom.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/10-update-fmpp.patch b/10-update-fmpp.patch
-new file mode 100644
-index 0000000000..e69de29bb2
 diff --git a/sql/pom.xml b/sql/pom.xml
 index 56ed03f5c2..d0d19dd854 100644
 --- a/sql/pom.xml

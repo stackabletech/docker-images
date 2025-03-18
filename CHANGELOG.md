@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - omid: Use jmx_export 1.1.0 ([#1021]).
 - spark: Add 3.5.5 ([#1022]).
 - trino: Add libstdc++ package, needed by snappy and duckdb ([#1015]).
+- hive: Revert the removal of 4.0.0 ([#1031]).
 
 ### Changed
 
