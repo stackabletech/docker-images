@@ -1,0 +1,36 @@
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 1cf40d06dfe..b623be5215f 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -555,19 +555,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+-        <type>test-jar</type>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+index 7b0441dd616..ca533269634 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+@@ -41,7 +41,6 @@
+     <module>hadoop-yarn-server-sharedcachemanager</module>
+     <module>hadoop-yarn-server-tests</module>
+     <module>hadoop-yarn-server-applicationhistoryservice</module>
+-    <module>hadoop-yarn-server-timeline-pluginstorage</module>
+     <module>hadoop-yarn-server-timelineservice</module>
+     <module>hadoop-yarn-server-timelineservice-hbase</module>
+     <module>hadoop-yarn-server-timelineservice-hbase-tests</module>

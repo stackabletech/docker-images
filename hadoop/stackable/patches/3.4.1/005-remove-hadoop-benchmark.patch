@@ -1,0 +1,12 @@
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 6178bb15ecf..16b2adeda68 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -49,7 +49,6 @@
+     <module>hadoop-azure-datalake</module>
+     <module>hadoop-aliyun</module>
+     <module>hadoop-fs2img</module>
+-    <module>hadoop-benchmark</module>
+   </modules>
+ 
+   <build>

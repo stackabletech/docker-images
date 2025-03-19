@@ -1,0 +1,30 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+index 7b0bf7219cc..3c9cf4642ba 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+@@ -104,13 +104,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-unmanaged-am-launcher/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>hadoop-yarn/hadoop-yarn-client/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+index 3933c52faad..b1c38d02b86 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+@@ -34,7 +34,6 @@
+   <!-- Do not add dependencies here, add them to the POM of the leaf module -->
+ 
+   <modules>
+-    <module>hadoop-yarn-applications-unmanaged-am-launcher</module>
+     <module>hadoop-yarn-services</module>
+   </modules>
+ 
