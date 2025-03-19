@@ -59,7 +59,9 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     # Remove the unzipped sources
     rm -rf /stackable/nifi-${PRODUCT}-src && \
     # Remove generated docs in binary
-    rm -rf /stackable/nifi-${PRODUCT}/docs
+    rm -rf /stackable/nifi-${PRODUCT}/docs && \
+    # Set correct groups
+    chmod -R g=u /stackable
 
 FROM stackable/image/java-base AS final
 
@@ -102,11 +104,6 @@ pip install --no-cache-dir \
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
 ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 # ----------------------------------------
