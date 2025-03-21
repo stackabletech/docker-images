@@ -306,6 +306,7 @@ RUN <<EOF
 microdnf update
 # procps: required for spark startup scripts
 # java-*-openjdk-devel: This is needed by the Spark UI to display process information using jps and jmap
+#                       The spark-connect server also needs it to compile auto-generated classes on the fly.
 #                       Copying just the binaries from the builder stage failed.
 microdnf install \
   gzip \
@@ -330,6 +331,11 @@ ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examp
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
+
+# The base image (java-base) defines this to point to a JRE installation.
+# Spark Connect requires it to point to a JDK installation.
+ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
+
 
 # ----------------------------------------
 # Attention: We are changing the group of all files in /stackable directly above
