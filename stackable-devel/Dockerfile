@@ -16,6 +16,24 @@ ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
 
+# Sets the default shell to Bash with strict error handling and robust pipeline processing.
+# "-e": Exits immediately if a command exits with a non-zero status
+# "-u": Treats unset variables as an error, preventing unexpected behavior from undefined variables.
+# "-o pipefail": Causes a pipeline to return the exit status of the last command in the pipe that failed, ensuring errors in any part of a pipeline are not ignored.
+# "-c": Allows the execution of commands passed as a string
+# This is automatically inherited in all other Dockerfiles that use this unless it is overwritten
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+# We configure microdnf to not install weak dependencies in this file
+# Not doing this caused the content of images to become unpredictable because
+# based on which packages get updated by `microdnf update` new weak dependencies
+# might be installed that were not present earlier (the ubi base image doesn't
+# seem to install weak dependencies)
+# This also affects the packages that are installed in our Dockerfiles (java as prime
+# example).
+# https://github.com/stackabletech/docker-images/pull/533
+COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
+
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
@@ -28,11 +46,11 @@ ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
 
 RUN <<EOF
-microdnf update --assumeyes
+microdnf update
 
 # git: Needed to fetch source
 # gcc: Needed for compilation
-microdnf --assumeyes install \
+microdnf install \
   gcc \
   git
 
@@ -40,7 +58,7 @@ microdnf --assumeyes install \
 ### Add Stackable user and group
 ###
 # Added only temporarily to create the user and group, removed again below
-microdnf --assumeyes install shadow-utils
+microdnf install shadow-utils
 groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
 
 # The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
@@ -57,7 +75,7 @@ useradd \
   --create-home \
   --home-dir /stackable \
    ${STACKABLE_USER_NAME}
-microdnf --assumeyes remove shadow-utils
+microdnf remove shadow-utils
 
 microdnf clean all
 rm -rf /var/cache/yum
@@ -76,8 +94,8 @@ COPY rust/patchable/ /patchable/rust/patchable
 COPY Cargo.* /patchable/
 
 RUN <<EOF
-microdnf update --assumeyes
-microdnf install --assumeyes openssl-devel pkg-config
+microdnf update
+microdnf install openssl-devel pkg-config
 cd /patchable
 . "$HOME/.cargo/env"
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
