@@ -319,10 +319,6 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-# The base image (java-base) defines this to point to a JRE installation.
-# Spark Connect requires it to point to a JDK installation.
-ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
-
 ln -s /usr/bin/python${PYTHON} /usr/bin/python
 ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 
@@ -335,6 +331,11 @@ ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examp
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
+
+# The base image (java-base) defines this to point to a JRE installation.
+# Spark Connect requires it to point to a JDK installation.
+ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
+
 
 # ----------------------------------------
 # Attention: We are changing the group of all files in /stackable directly above
