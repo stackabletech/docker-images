@@ -10,15 +10,16 @@ ARG PRODUCT
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-# Copy patches and JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable /stackable
+# Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
+# Copy JMX config into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
-RUN mkdir -p zookeeper/stackable && mv patches zookeeper/stackable/ && \
-    BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=. checkout zookeeper ${PRODUCT})" && \
+RUN BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})" && \
     cd "${BUILD_SRC_DIR}" && \
     # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
     # that created all kinds of issues for the build container
