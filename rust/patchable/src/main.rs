@@ -5,11 +5,7 @@ mod repo;
 mod utils;
 
 use core::str;
-use std::{
-    fs::File,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{fs::File, io::Write, path::PathBuf};
 
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
@@ -35,12 +31,12 @@ struct ProductVersionConfig {
     base: Oid,
 }
 
-struct ProductVersionContext<'a> {
+struct ProductVersionContext {
     pv: ProductVersion,
-    images_repo_root: &'a Path,
+    images_repo_root: PathBuf,
 }
 
-impl ProductVersionContext<'_> {
+impl ProductVersionContext {
     fn load_config(&self) -> Result<ProductVersionConfig> {
         let path = &self.config_path();
         tracing::info!(
@@ -107,6 +103,10 @@ impl ProductVersionContext<'_> {
 struct Opts {
     #[clap(subcommand)]
     cmd: Cmd,
+
+    /// Specify a custom root directory for the images repository
+    #[clap(long)]
+    images_repo_root: Option<PathBuf>,
 }
 
 #[derive(clap::Parser)]
@@ -165,7 +165,7 @@ enum Cmd {
         pv: ProductVersion,
     },
 
-    /// Shwos the images repository root
+    /// Shows the images repository root
     ImagesDir,
 }
 
@@ -263,8 +263,16 @@ fn main() -> Result<()> {
     .context(ConfigureGitLoggingSnafu)?;
 
     let opts = <Opts as clap::Parser>::parse();
-    let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
-    let images_repo_root = images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?;
+    let images_repo_root = match opts.images_repo_root {
+        Some(path) => path,
+        None => {
+            let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
+            images_repo
+                .workdir()
+                .context(NoImagesRepoWorkdirSnafu)?
+                .to_owned()
+        }
+    };
     match opts.cmd {
         Cmd::Checkout { pv, base_only } => {
             let ctx = ProductVersionContext {

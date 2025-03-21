@@ -10,17 +10,17 @@ ARG PRODUCT
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-# Copy patches and JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable /stackable
+# Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
+# Copy JMX config into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
-RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC . && \
-    # Apply any required patches
-    patches/apply_patches.sh ${PRODUCT} && \
-    cd /stackable/apache-zookeeper-${PRODUCT}/ && \
+RUN BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})" && \
+    cd "${BUILD_SRC_DIR}" && \
     # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
     # that created all kinds of issues for the build container
     mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build && \
@@ -29,7 +29,7 @@ RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zooke
     # Unpack the archive which contains the build artifacts from above. Remove some
     # unused files to shrink the final image size.
     tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
-    mv /stackable/apache-zookeeper-${PRODUCT}/zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
+    mv "${BUILD_SRC_DIR}/zookeeper-assembly/target/bom.json" /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
     rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
     rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
     # Download the JMX exporter jar from our own repo
