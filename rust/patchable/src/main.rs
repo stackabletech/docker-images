@@ -5,11 +5,7 @@ mod repo;
 mod utils;
 
 use core::str;
-use std::{
-    fs::File,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{fs::File, io::Write, path::PathBuf};
 
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
@@ -35,12 +31,12 @@ struct ProductVersionConfig {
     base: Oid,
 }
 
-struct ProductVersionContext<'a> {
+struct ProductVersionContext {
     pv: ProductVersion,
-    images_repo_root: &'a Path,
+    images_repo_root: PathBuf,
 }
 
-impl ProductVersionContext<'_> {
+impl ProductVersionContext {
     fn load_config(&self) -> Result<ProductVersionConfig> {
         let path = &self.config_path();
         tracing::info!(
@@ -271,10 +267,12 @@ fn main() -> Result<()> {
         Some(path) => path,
         None => {
             let images_repo = repo::discover_images_repo(".").context(FindImagesRepoSnafu)?;
-            images_repo.workdir().context(NoImagesRepoWorkdirSnafu)?.to_owned()
+            images_repo
+                .workdir()
+                .context(NoImagesRepoWorkdirSnafu)?
+                .to_owned()
         }
     };
-    let images_repo_root = images_repo_root.as_path();
     match opts.cmd {
         Cmd::Checkout { pv, base_only } => {
             let ctx = ProductVersionContext {
