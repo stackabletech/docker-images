@@ -26,25 +26,12 @@ RUN if [[ "${PRODUCT}" != 1.* ]] ; then \
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
 
 RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
     # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
     -o /stackable/stackable-bcrypt.jar && \
-    # Get the source release from nexus
-    curl "https://repo.stackable.tech/repository/packages/nifi/nifi-${PRODUCT}-source-release.zip" -o "/stackable/nifi-${PRODUCT}-source-release.zip" && \
-    unzip "nifi-${PRODUCT}-source-release.zip" && \
-    # Clean up downloaded source after unzipping
-    rm -rf "nifi-${PRODUCT}-source-release.zip" && \
-    # The NiFi "binary" ends up in a folder named "nifi-${PRODUCT}" which should be copied to /stackable
-    # from /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} (see later steps)
-    # Therefore we add the suffix "-src" to be able to copy the binary and remove the unzipped sources afterwards.
-    mv nifi-${PRODUCT} nifi-${PRODUCT}-src && \
-    # Apply patches
-    chmod +x patches/apply_patches.sh && \
-    patches/apply_patches.sh ${PRODUCT} && \
-    # Build NiFi
-    cd /stackable/nifi-${PRODUCT}-src/ && \
+    cd "$(/stackable/patchable --images-repo-root=src checkout nifi ${PRODUCT})" && \
     # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
     # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
     if [[ "${PRODUCT}" != 1.* ]] ; then \
@@ -53,11 +40,9 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp ; \
     fi && \
     # Copy the binaries to the /stackable folder
-    mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
+    mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT} && \
     # Copy the SBOM as well
-    mv /stackable/nifi-${PRODUCT}-src/nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json && \
-    # Remove the unzipped sources
-    rm -rf /stackable/nifi-${PRODUCT}-src && \
+    mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json && \
     # Remove generated docs in binary
     rm -rf /stackable/nifi-${PRODUCT}/docs
 

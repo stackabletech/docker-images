@@ -19,17 +19,15 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
-RUN BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})" && \
-    cd "${BUILD_SRC_DIR}" && \
+RUN cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})" && \
     # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
     # that created all kinds of issues for the build container
     mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build && \
     mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable && \
-    cd /stackable && \
     # Unpack the archive which contains the build artifacts from above. Remove some
     # unused files to shrink the final image size.
-    tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
-    mv "${BUILD_SRC_DIR}/zookeeper-assembly/target/bom.json" /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
+    tar -C /stackable -xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
+    mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
     rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
     rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
     # Download the JMX exporter jar from our own repo

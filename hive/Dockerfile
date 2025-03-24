@@ -19,7 +19,10 @@ ARG STACKABLE_USER_UID
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable /stackable
+# Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
+# Copy JMX config into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -27,11 +30,7 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-curl "https://repo.stackable.tech/repository/packages/hive/apache-hive-${PRODUCT}-src.tar.gz" | tar -xzC .
-
-patches/apply_patches.sh ${PRODUCT}
-
-cd /stackable/apache-hive-${PRODUCT}-src/
+cd "$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
 
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
@@ -43,17 +42,20 @@ else
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects metastore-server
 
   # We only seem to get a .tar.gz archive, so let's extract that to the correct location
-  cd /stackable
-  tar --extract -f /stackable/apache-hive-${PRODUCT}-src/standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
-  mv /stackable/apache-hive-${PRODUCT}-src/standalone-metastore/metastore-server/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
+  tar --extract --directory=/stackable -f metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
+  mv metastore-server/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
 
   # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
   # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
   sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/ext/schemaTool.sh
+  cd ..
 fi
 
 cp /stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
-rm -rf /stackable/apache-hive-${PRODUCT}-src
+
+# Remove sourcecode
+cd ..
+rm -rf ./${PRODUCT}
 
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar

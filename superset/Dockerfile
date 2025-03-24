@@ -59,7 +59,6 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
-        patch \
         python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
@@ -113,9 +112,6 @@ RUN python3 -m venv /stackable/app \
         cyclonedx-bom \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
     pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
-
-COPY superset/stackable/patches /patches
-RUN /patches/apply_patches.sh ${PRODUCT}
 
 WORKDIR /stackable
 RUN source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json

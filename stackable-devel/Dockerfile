@@ -34,6 +34,9 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
+# Default curl configuration to avoid forgetting settings and to declutter the Dockerfiles
+COPY stackable-base/stackable/curlrc /root/.curlrc
+
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
@@ -50,8 +53,10 @@ microdnf update
 
 # git: Needed to fetch source
 # gcc: Needed for compilation
+# findutils: Needed for xargs, used (at least) by `gradlew` in the Kafka build process
 microdnf install \
   gcc \
+  findutils \
   git
 
 ###
@@ -79,6 +84,9 @@ microdnf remove shadow-utils
 
 microdnf clean all
 rm -rf /var/cache/yum
+
+cp /root/.curlrc /stackable/.curlrc
+chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 
 # WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"

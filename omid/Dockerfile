@@ -21,14 +21,11 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
-  curl https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
-  cd /stackable/phoenix-omid-${PRODUCT} || exit
-  ./patches/apply_patches.sh ${PRODUCT}
+  cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT})"
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
   mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json

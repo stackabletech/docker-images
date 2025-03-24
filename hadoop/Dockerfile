@@ -54,16 +54,14 @@ RUN microdnf update && \
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /stackable/src/hadoop/stackable/patches/${PRODUCT}
 
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
 # Also skip building the yarn, mapreduce and minicluster modules: this will result in the modules being excluded but not all
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
-RUN curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUCT}-src.tar.gz" | tar -xzC . && \
-    patches/apply_patches.sh ${PRODUCT} && \
-    cd hadoop-${PRODUCT}-src && \
+RUN cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT})" && \
     mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
     cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
     mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
