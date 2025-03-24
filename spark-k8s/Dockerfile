@@ -247,6 +247,15 @@ RUN curl -O https://repo.stackable.tech/repository/packages/jackson-dataformat-x
     && curl -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
     && curl -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
+WORKDIR /stackable/spark-${PRODUCT}/dist/connect
+
+# As of version 3.5.5, spark-connect jars are not included in the dist folder.
+# To avoid classpath conflicts with existing spark applications,
+# we create a new dist/connect folder, and copy them here.
+RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect_*-${PRODUCT}.jar . \
+    && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
+    && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar
+
 WORKDIR /stackable/jmx
 
 RUN curl -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
