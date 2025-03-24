@@ -254,7 +254,7 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/connect
 # we create a new dist/connect folder, and copy them here.
 RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect_*-${PRODUCT}.jar . \
     && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
-    && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar
+    && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar .
 
 WORKDIR /stackable/jmx
 
