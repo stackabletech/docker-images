@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [25.3.0-rc1] - 2025-03-21
+## [25.3.0] - 2025-03-21
 
 ### Added
 
