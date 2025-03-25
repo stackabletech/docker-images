@@ -1,10 +1,9 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
-# check=error=true
 
-# hadoop-builder: Provides Hadoop libraries
+# spark-builder: provides client libs for spark-connect
 FROM stackable/image/spark-k8s AS spark-builder
 
-FROM stackable/image/java-base AS final
+FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG PYTHON
@@ -17,36 +16,21 @@ LABEL name="Stackable Spark Connect Examples" \
     version="${PRODUCT}" \
     release="${RELEASE}" \
     summary="Spark Connect Examples" \
-    description="Spark Connect Examples"
+    description="Spark Connect client libraries for Python and the JVM, including some examples."
 
 
 ENV HOME=/stackable
-ENV SPARK_HOME=/stackable/spark
-ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
-ENV PYSPARK_PYTHON=/usr/bin/python
-ENV PYTHONPATH=$SPARK_HOME/python
 
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/licenses /licenses
-
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark /stackable/spark
-COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
+COPY spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark/connect /stackable/spark/connect
 
 RUN <<EOF
 microdnf update
-# java-*-openjdk-devel: This is needed by the Spark UI to display process information using jps and jmap
-#                       The spark-connect server also needs it to compile auto-generated classes on the fly.
-#                       Copying just the binaries from the builder stage failed.
-#
 # python{version}-setuptools: needed to build the pyspark[connect] package
-microdnf install \
-  gzip \
-  hostname \
+microdnf install --nodocs \
   "python${PYTHON}" \
   "python${PYTHON}-pip" \
-  "python${PYTHON}-setuptools" \
-  zip \
-  "java-${JAVA_VERSION}-openjdk-devel"
+  "python${PYTHON}-setuptools"
 microdnf clean all
 rm -rf /var/cache/yum
 
@@ -63,11 +47,6 @@ chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
 
-# The base image (java-base) defines this to point to a JRE installation.
-# Spark Connect requires it to point to a JDK installation.
-ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
-
-
 # ----------------------------------------
 # Attention: We are changing the group of all files in /stackable directly above
 # If you do any file based actions (copying / creating etc.) below this comment you
@@ -77,5 +56,4 @@ ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
 
 USER ${STACKABLE_USER_UID}
 
-WORKDIR /stackable/spark
-ENTRYPOINT [ "/stackable/run-spark.sh" ]
+WORKDIR /stackable/spark-connect-examples/python
