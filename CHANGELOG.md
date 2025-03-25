@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- spark-k8s: Replace OpenJDK with Temurin JDK and some cleanup ([#1034])
+- spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
 ## [25.3.0] - 2025-03-21
 
