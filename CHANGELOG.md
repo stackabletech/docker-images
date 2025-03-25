@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
+[#1034]: https://github.com/stackabletech/docker-images/pull/1034
+
 ## [25.3.0] - 2025-03-21
 
 ### Added
