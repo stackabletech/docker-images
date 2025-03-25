@@ -280,6 +280,8 @@ COPY shared/log4shell_scanner /bin/log4shell_scanner
 RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
 # ===
 
+# TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
+# To reduce the size of this image, the Adoptium repo could be moved to stackable-base instead.
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
@@ -299,7 +301,9 @@ LABEL name="Apache Spark" \
 
 ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
-ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
+# Override the java-base version of JAVA_HOME to point to the jdk.
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${JAVA_VERSION}-jdk"
+ENV PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
@@ -313,18 +317,18 @@ COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
 RUN <<EOF
 microdnf update
-# procps: required for spark startup scripts
-# java-*-openjdk-devel: This is needed by the Spark UI to display process information using jps and jmap
-#                       The spark-connect server also needs it to compile auto-generated classes on the fly.
-#                       Copying just the binaries from the builder stage failed.
-microdnf install \
+
+# temurin-{version}-jdk:
+#    This is needed by the Spark UI to display process information using jps and jmap
+#    The spark-connect server also needs it to compile auto-generated classes on the fly.
+microdnf install --nodocs \
   gzip \
   hostname \
   procps \
   "python${PYTHON}" \
   "python${PYTHON}-pip" \
   zip \
-  "java-${JAVA_VERSION}-openjdk-devel"
+  "temurin-${JAVA_VERSION}-jdk"
 microdnf clean all
 rm -rf /var/cache/yum
 
@@ -340,10 +344,6 @@ ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examp
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 chmod -R g=u /stackable
 EOF
-
-# The base image (java-base) defines this to point to a JRE installation.
-# Spark Connect requires it to point to a JDK installation.
-ENV JAVA_HOME="/usr/lib/jvm/java-${JAVA_VERSION}-openjdk"
 
 
 # ----------------------------------------
