@@ -318,9 +318,11 @@ COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 RUN <<EOF
 microdnf update
 
+# procps:
+#    Required for spark startup scripts.
 # temurin-{version}-jdk:
-#    This is needed by the Spark UI to display process information using jps and jmap
-#    The spark-connect server also needs it to compile auto-generated classes on the fly.
+#    Needed by the Spark UI to display process information using "jps" and "jmap".
+#    Spark-Connect needs "javac" to compile auto-generated classes on the fly.
 microdnf install --nodocs \
   gzip \
   hostname \
