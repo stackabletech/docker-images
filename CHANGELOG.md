@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- spark-connect-client: A new image for Spark connect tests and demos ([#1034])
+
+### Changed
+
+- spark-k8s: Replace OpenJDK with Temurin JDK and some cleanup ([#1034])
+
 ## [25.3.0] - 2025-03-21
 
 ### Added
