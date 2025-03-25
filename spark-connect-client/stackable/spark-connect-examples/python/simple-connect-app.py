@@ -1,9 +1,12 @@
+import sys
+
 from pyspark.sql import SparkSession
 
 if __name__ == "__main__":
+    remote: str = sys.argv[1]
     spark = (
-        SparkSession.builder.appName("SampleConnectApp")
-        .remote("sc://localhost")
+        SparkSession.builder.appName("SimpleSparkConnectApp")
+        .remote(remote)
         .getOrCreate()
     )
 
