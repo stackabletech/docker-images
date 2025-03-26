@@ -86,10 +86,10 @@ EOF
 # Patch the hbase-connectors source code
 WORKDIR /stackable/hbase-connectors
 COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/hbase-connectors-patches/apply_patches.sh \
+    spark-k8s/hbase-connectors/apply_patches.sh \
     patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/hbase-connectors-patches/${HBASE_CONNECTOR} \
+    spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} \
     patches/${HBASE_CONNECTOR}
 RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
 

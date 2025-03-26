@@ -96,6 +96,8 @@ RUN microdnf update && \
     httpd-tools \
     python \
     tar \
+    # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
+    libstdc++ \
     zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
