@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
+
+[#1027]: https://github.com/stackabletech/docker-images/pull/1027
+
 ### Added
 
 - airflow: Add OPA support to Airflow ([#978]).
