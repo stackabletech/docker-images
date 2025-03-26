@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
+
+[#1039]: https://github.com/stackabletech/docker-images/pull/1039
+
 ## [25.3.0] - 2025-03-21
 
 ### Added

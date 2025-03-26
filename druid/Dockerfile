@@ -47,9 +47,9 @@ COPY --chown=stackable:0 druid/stackable/patches/${PRODUCT} /stackable/apache-dr
 # are still working in the cache directory.
 
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
-    --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
-    --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
-    <<EOF
+  --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
+  --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
+  <<EOF
 curl "https://repo.stackable.tech/repository/packages/druid/apache-druid-${PRODUCT}-src.tar.gz" | tar -xzC .
 cd apache-druid-${PRODUCT}-src
 ./patches/apply_patches.sh ${PRODUCT}
@@ -74,6 +74,9 @@ fi
 
 # Install OPA authorizer extension.
 curl "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+
+# change groups
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-base AS final
@@ -106,6 +109,7 @@ LABEL io.k8s.display-name="${NAME}"
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
 
@@ -113,21 +117,19 @@ RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid
-
+chmod -R g=u /stackable/bin
+ln -sf /stackable/apache-druid-${PRODUCT} /stackable/druid
+chown -h ${STACKABLE_USER_UID}:0 stackable/druid
 # Force to overwrite the existing 'run-druid'
 ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0
