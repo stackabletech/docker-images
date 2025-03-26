@@ -13,16 +13,9 @@ ARG STACKABLE_USER_UID
 
 WORKDIR /stackable/jmx
 
-# The symlink from JMX Exporter 0.16.1 to the versionless link exists because old HDFS Operators (up until and including 23.7) used to hardcode
-# the version of JMX Exporter like this: "-javaagent:/stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar"
-# This is a TEMPORARY fix which means that we can keep the hardcoded path in HDFS operator FOR NOW as it will still point to a newer version of JMX Exporter, despite the "0.16.1" in the name.
-# At the same time a new HDFS Operator will still work with older images which do not have the symlink to the versionless jar.
-# After one of our next releases (23.11 or 24.x) we should update the operator to point at the non-versioned symlink (jmx_prometheus_javaagent.jar)
-# And then we can also remove the symlink to 0.16.1 from this Dockerfile.
 RUN curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
-    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent.jar /stackable/jmx/jmx_prometheus_javaagent-0.16.1.jar
+    ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 WORKDIR /stackable
 
@@ -72,23 +65,6 @@ RUN curl "https://repo.stackable.tech/repository/packages/hadoop/hadoop-${PRODUC
     rm -rf /stackable/hadoop-${PRODUCT}-src && \
     # Set correct group
     chmod -R g=u /stackable
-
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
-# ===
 
 FROM stackable/image/java-devel AS hdfs-utils-builder
 
@@ -143,8 +119,10 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${P
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/licenses /licenses
 
 
 # fuse is required for fusermount (called by fuse_dfs)
@@ -188,10 +166,8 @@ find . -name 'hadoop-*tests.jar' -type f -delete
 echo "user_allow_other" > /etc/fuse.conf
 EOF
 
-COPY hadoop/licenses /licenses
-
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0
