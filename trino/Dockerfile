@@ -118,8 +118,7 @@ RUN <<EOF
 ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 
 curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-chmod g=u /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod g=u+x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chown ${STACKABLE_USER_UID}:0 /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 EOF
