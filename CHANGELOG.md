@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [25.3.0] - 2025-03-21
+
 ### Added
 
+- omid: Added 1.1.3-SNAPSHOT to allow for easier scanning pre-release
 - airflow: Add OPA support to Airflow ([#978]).
 - nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
@@ -29,7 +32,7 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Add version 470 ([#999]).
 - trino-storage-connector: Add version 470 ([#999]).
 - superset: Add version `4.1.1` ([#991]).
-- Add Patchable patch management tool ([#1003], [#1005], [#1007]).
+- Add Patchable patch management tool ([#1003], [#1005], [#1007], [#1026]).
 - nifi: Add 1.28.1, 2.2.0 ([#1006]).
 - airflow: Add 2.10.4 ([#1021]).
 - hadoop: Add 3.4.1, use jmx_export 1.1.0 ([#1021]).
@@ -39,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - omid: Use jmx_export 1.1.0 ([#1021]).
 - spark: Add 3.5.5 ([#1022]).
 - trino: Add libstdc++ package, needed by snappy and duckdb ([#1015]).
+- hive: Revert the removal of 4.0.0 ([#1031]).
 
 ### Changed
 
@@ -104,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#1015]: https://github.com/stackabletech/docker-images/pull/1015
 [#1021]: https://github.com/stackabletech/docker-images/pull/1021
 [#1022]: https://github.com/stackabletech/docker-images/pull/1022
+[#1026]: https://github.com/stackabletech/docker-images/pull/1026
 
 ## [24.11.1] - 2025-01-14
 
