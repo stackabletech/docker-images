@@ -97,9 +97,9 @@ rm -rf /stackable/hadoop/share/hadoop/tools/sources/
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar
-find / -name 'hadoop-minicluster-*.jar' -type f -delete
-find / -name 'hadoop-client-minicluster-*.jar' -type f -delete
-find / -name 'hadoop-*tests.jar' -type f -delete
+find /stackable -name 'hadoop-minicluster-*.jar' -type f -delete
+find /stackable -name 'hadoop-client-minicluster-*.jar' -type f -delete
+find /stackable -name 'hadoop-*tests.jar' -type f -delete
 rm -rf /stackable/.m2
 
 # Set correct groups; make sure only required artifacts for the final image are located in /stackable
