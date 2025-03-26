@@ -27,6 +27,8 @@ RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-ser
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /trino-storage-${PRODUCT}
+# do not copy patches -> .dockerignore?
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
@@ -49,7 +51,7 @@ git tag ${PRODUCT}
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
 
-# Delete the worst intermediate build products to free some space
+# Delete intermediate build products to free some space and keep runners happy
 rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
 
 # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
@@ -57,11 +59,11 @@ rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-se
 tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
 mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
 
-# Delete all intermediate build products to free some more space
+# Delete intermediate build products to free some space and keep runners happy
 rm -r /stackable/trino-server-${PRODUCT}-src
+rm -r /stackable/.m2
 
 # JMX Exporter
-mkdir /stackable/jmx
 curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 # Storage connector
@@ -70,8 +72,7 @@ mv /trino-storage-${PRODUCT}/ /stackable/trino-server-${PRODUCT}/plugin/trino-st
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 # We need to change groups here and not in the final image (file changes bloat images)
-chmod -R g=u /stackable/trino-server-${PRODUCT}
-chmod -R g=u /stackable/jmx
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-base
@@ -101,10 +102,11 @@ RUN microdnf update && \
 
 WORKDIR /stackable
 
-COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
-COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/jmx /stackable/jmx
-# do not copy patches -> .dockerignore?
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
+# If /stackable has any build artifacts / leftovers make sure its removed properly
+# or only copy what is actually required in the final image like:
+# COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/foo /stackable/foo 
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable /stackable
+
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
 # ----------------------------------------
