@@ -58,9 +58,6 @@ mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-co
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
 mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-druid-${PRODUCT}-src
-rm -rf /stackable/.m2
-
-ln -s /stackable/apache-druid-${PRODUCT} /stackable/druid
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -111,7 +108,7 @@ LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
 
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
@@ -120,11 +117,15 @@ RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown -h ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-chmod g=u /stackable/bin/run-druid 
+chmod -R g=u /stackable/bin
+ln -sf /stackable/apache-druid-${PRODUCT} /stackable/druid
+chown -h ${STACKABLE_USER_UID}:0 stackable/druid
 # Force to overwrite the existing 'run-druid'
 ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
+chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
 EOF
 
 # ----------------------------------------
