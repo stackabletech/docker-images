@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- trino: reduce docker image size by removingthe  recursive chown/chmods in the final image ([#1025]).
+
+[#1025]: https://github.com/stackabletech/docker-images/pull/1025
+
 ## [25.3.0] - 2025-03-21
 
 ### Added
