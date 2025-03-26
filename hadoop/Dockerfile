@@ -31,7 +31,7 @@ RUN <<EOF
 rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 microdnf update
 # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-microdnf install boost1.78-devel 
+microdnf install boost1.78-devel
 microdnf clean all
 rm -rf /var/cache/yum
 EOF
