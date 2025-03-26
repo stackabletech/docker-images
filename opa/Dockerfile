@@ -29,6 +29,8 @@ cd ./opa-bundle-builder
 . "$HOME/.cargo/env"
 rustup toolchain install
 cargo --quiet build --release
+# set correct groups
+chmod -R g=u /opa-bundle-builder/target/release/
 EOF
 
 FROM stackable/image/stackable-base AS multilog-builder
@@ -58,12 +60,15 @@ RUN patch < /daemontools/conf-cc.patch && \
 
 WORKDIR /daemontools/admin/daemontools-${DAEMONTOOLS_VERSION}
 
-RUN package/install
+RUN package/install && \
+    # set correct groups
+    chmod g=u /daemontools/admin/daemontools/command/multilog
 
 FROM stackable/image/stackable-base AS opa-builder
 
 ARG PRODUCT
 ARG RELEASE
+ARG STACKABLE_USER_UID
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -81,11 +86,15 @@ RUN microdnf update && \
     tar && \
     microdnf clean all
 
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
+
+RUN <<EOF
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
-RUN go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
-RUN curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz && \
-    tar -zxvf opa.tar.gz && \
-    mv "opa-${PRODUCT}" opa
+go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
+curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz
+tar -zxvf opa.tar.gz
+mv "opa-${PRODUCT}" opa
+EOF
 
 WORKDIR /opa
 
@@ -97,7 +106,12 @@ git config user.name "Fake commiter"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag "v${PRODUCT}"
 go build -o opa -buildmode=exe
-~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output "opa_${PRODUCT}.cdx.json" -packages -files
+# move artifact to /stackable/*/ to copy in final image
+~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output /stackable/opa/"opa_${PRODUCT}.cdx.json" -packages -files
+# move artifact to /stackable/* to copy in final image
+mv /opa/opa /stackable/opa/
+# set correct groups
+chmod -R g=u /stackable/opa
 EOF
 
 FROM stackable/image/vector
@@ -114,32 +128,23 @@ LABEL name="Open Policy Agent" \
       summary="The Stackable image for Open Policy Agent (OPA)." \
       description="This image is deployed by the Stackable Operator for OPA."
 
-COPY opa/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa /stackable/opa/opa
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /opa/opa_${PRODUCT}.cdx.json /stackable/opa/
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
 COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
-COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
-
 RUN <<EOF
 microdnf update
-
 # jq: Required for filtering logs
 microdnf install \
   jq
 microdnf clean all
 rm -rf /var/cache/yum
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0

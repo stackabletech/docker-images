@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
+
+[#1038]: https://github.com/stackabletech/docker-images/pull/1038
+
 ## [25.3.0] - 2025-03-21
 
 ### Added
