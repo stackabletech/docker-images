@@ -368,7 +368,7 @@ ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBA
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0
