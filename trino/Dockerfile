@@ -73,7 +73,6 @@ ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
 chmod -R g=u /stackable/trino-server-${PRODUCT}
 chmod -R g=u /stackable/jmx
 EOF
-# ===
 
 FROM stackable/image/java-base
 
