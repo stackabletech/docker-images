@@ -46,7 +46,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 ### HBase
 ###
-curl "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 
 chmod +x patches/apply_patches.sh
@@ -67,7 +67,7 @@ ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ### JMX Prometheus Exporter/Agent
 ###
 if [[ -n "${JMX_EXPORTER}" ]] ; then
-  curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+  curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 fi
@@ -77,7 +77,7 @@ fi
 ###
 cd /stackable
 export ARCH="${TARGETARCH/amd64/x64}"
-curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # We're removing these to make the intermediate layer smaller
@@ -89,6 +89,8 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
 chmod -R g=u /stackable
 EOF
 
@@ -102,7 +104,6 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-
 ###
 ### OPA Authorizer (only for 2.6 upwards)
 ###
@@ -120,10 +121,11 @@ else
   touch hbase-opa-authorizer/target/hbase-opa-authorizer.jar
 fi
 
-
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
 fi
+
+# set correct groups
 chmod -R g=u /stackable
 EOF
 
@@ -154,7 +156,7 @@ WORKDIR /stackable
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 
-curl "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 chmod +x patches/apply_patches.sh
 patches/apply_patches.sh ${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -191,6 +193,8 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
 chmod -R g=u /stackable
 EOF
 
@@ -223,6 +227,8 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
+
+# set correct groups
 chmod -R g=u /stackable
 EOF
 
@@ -246,7 +252,7 @@ WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd /stackable
-curl "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 
 chmod +x patches/apply_patches.sh
@@ -275,7 +281,6 @@ mv phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${
 rm -rf /stackable/phoenix-${PHOENIX}-src
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
-
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
 # and we are sometimes running into errors because we're out of space.
@@ -285,6 +290,8 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
 chmod -R g=u /stackable
 EOF
 
@@ -359,12 +366,17 @@ microdnf install \
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chmod g=u /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
+chown -h ${STACKABLE_USER_UID}:0 /stackable/hbase
+
 ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
+chown -h ${STACKABLE_USER_UID}:0 /stackable/hbase-operator-tools
+
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+chown -h ${STACKABLE_USER_UID}:0 "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 EOF
 
 # ----------------------------------------
