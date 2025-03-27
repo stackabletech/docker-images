@@ -199,8 +199,11 @@ RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
 # <<< Build spark
 
 # Get the correct `tini` binary for our architecture.
-RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
-    && chmod +x /usr/bin/tini
+RUN <<EOF
+curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
+  -o /usr/bin/tini
+chmod +x /usr/bin/tini
+EOF
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
@@ -241,15 +244,28 @@ COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
 
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
+COPY spark-k8s/stackable/jmx /stackable/jmx
+
+RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-RUN curl -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar
+curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
 
-WORKDIR /stackable/jmx
+# Get the correct `tini` binary for our architecture.
+curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
+  -o /usr/bin/tini
+chmod +x /usr/bin/tini
 
-RUN curl -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+# JMX Exporter
+curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+  -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
+chmod -R g=u /stackable/spark-${PRODUCT}/dist
+chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
+chmod -R g=u /stackable/jmx
+EOF
 
 FROM stackable/image/java-base AS final
 
@@ -274,13 +290,14 @@ ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/b
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
+
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
 
 RUN <<EOF
 microdnf update
@@ -299,20 +316,19 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 ln -s /usr/bin/python${PYTHON} /usr/bin/python
+chown -h ${STACKABLE_USER_UID}:0 /usr/bin/python
 ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
+chown -h ${STACKABLE_USER_UID}:0 /usr/bin/pip
 
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 # Symlink example jar, so that we can easily use it in tests
 ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
 
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+chmod -R g=u /stackable/run-spark.sh
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0
