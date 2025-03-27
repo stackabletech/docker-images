@@ -157,7 +157,7 @@ EOF
 
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT}/dist,
-# download additional JARs and perform checks, like log4shell check.
+# download additional JARs and perform checks
 FROM stackable/image/java-devel AS spark-builder
 
 ARG PRODUCT
@@ -202,7 +202,6 @@ RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
 RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
     && chmod +x /usr/bin/tini
 
-# We download these under dist so that log4shell checks them
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Copy modules required for s3a://
