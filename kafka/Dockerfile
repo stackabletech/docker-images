@@ -54,7 +54,7 @@ chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # change groups
-chmod -R g=u /stackable    
+chmod -R g=u /stackable
 EOF
 
 FROM stackable/image/java-base AS final
