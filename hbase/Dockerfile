@@ -3,8 +3,6 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
-RUN chmod -R g=u /stackable 
-
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
