@@ -189,12 +189,12 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
 RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     && ./dev/make-distribution.sh \
-      -Dhadoop.version="$HADOOP" \
-      -Dmaven.test.skip=true \
-      -DskipTests \
-      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
-      --no-transfer-progress \
-      --batch-mode
+    -Dhadoop.version="$HADOOP" \
+    -Dmaven.test.skip=true \
+    -DskipTests \
+    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+    --no-transfer-progress \
+    --batch-mode
 
 # <<< Build spark
 
@@ -251,25 +251,6 @@ WORKDIR /stackable/jmx
 
 RUN curl -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-#
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}/dist
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
-# ===
 
 FROM stackable/image/java-base AS final
 
