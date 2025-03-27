@@ -38,24 +38,6 @@ RUN curl "https://repo.stackable.tech/repository/packages/zookeeper/apache-zooke
     chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
     ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# ===
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/apache-zookeeper-${PRODUCT}-bin
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts
-# on SocketNode.class, which we do not remove with our scripts. Further
-# investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/apache-zookeeper-${PRODUCT}-bin
-# ===
-
 # END ZOOKEEPER BUILDER
 # ==============================================================================
 
@@ -69,12 +51,12 @@ ARG RELEASE
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache ZooKeeper" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache ZooKeeper." \
-      description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache ZooKeeper." \
+    description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 RUN microdnf update && \
     microdnf clean all && \
