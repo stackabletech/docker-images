@@ -23,6 +23,8 @@ ARG DELETE_CACHES="true"
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
 # Copy JMX config into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
+# Copy the start script into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin /stackable/bin
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
