@@ -45,7 +45,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF
-cd $(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
 
 # Building the hbase-connectors with JDK 17 is not yet supported, see
 # https://github.com/apache/hbase-connectors/pull/132.
@@ -89,7 +89,8 @@ mvn \
     --define skipTests \
     clean package
 
-ln -s hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}.jar
+mkdir -p /stackable/spark/jars
+ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}.jar
 
 cd /stackable/spark/jars
 
