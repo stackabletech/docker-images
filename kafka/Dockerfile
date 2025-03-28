@@ -11,26 +11,12 @@ ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/apply_patches.sh /stackable/kafka-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/kafka-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
 
-RUN curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC . && \
-    cd kafka-${PRODUCT}-src && \
-    ./patches/apply_patches.sh ${PRODUCT} && \
+RUN cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})" && \
     # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
     # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
     # it's a good idea to run the tests in this case.
