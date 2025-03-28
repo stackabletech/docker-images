@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
+- spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
+[#1042]: https://github.com/stackabletech/docker-images/pull/1042
 
 ## [25.3.0] - 2025-03-21
 
