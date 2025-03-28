@@ -267,9 +267,6 @@ curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_pr
   -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# Symlink example jar, so that we can easily use it in tests
-ln -s /stackable/spark-${PRODUCT}/dist/examples/jars/spark-examples_*.jar /stackable/spark-${PRODUCT}/dist/examples/jars/spark-examples.jar
-
 chmod -R g=u /stackable/spark-${PRODUCT}/dist
 chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
 chmod -R g=u /stackable/jmx
@@ -332,6 +329,10 @@ rm -rf /var/cache/yum
 
 ln -s /usr/bin/python${PYTHON} /usr/bin/python
 ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
+
+# Symlink example jar, so that we can easily use it in tests
+ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
 EOF
 
 
