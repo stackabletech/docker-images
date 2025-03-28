@@ -1,0 +1,41 @@
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index 56b942953f2..45c1c19ea75 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -194,7 +194,6 @@
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+       <item name="Rumen" href="hadoop-rumen/Rumen.html"/>
+-      <item name="Resource Estimator Service" href="hadoop-resourceestimator/ResourceEstimator.html"/>
+       <item name="Scheduler Load Simulator" href="hadoop-sls/SchedulerLoadSimulator.html"/>
+       <item name="Hadoop Benchmarking" href="hadoop-project-dist/hadoop-common/Benchmarking.html"/>
+     </menu>
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index a5dbad6cb7d..8781f0b9b42 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -83,12 +83,6 @@
+       <artifactId>hadoop-sls</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-resourceestimator</artifactId>
+-        <version>${project.version}</version>
+-        <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-azure-datalake</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 6ddcc96f82f..48920bab35b 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -36,7 +36,6 @@
+     <module>hadoop-rumen</module>
+     <module>hadoop-tools-dist</module>
+     <module>hadoop-sls</module>
+-    <module>hadoop-resourceestimator</module>
+     <module>hadoop-azure</module>
+     <module>hadoop-aws</module>
+     <module>hadoop-azure-datalake</module>

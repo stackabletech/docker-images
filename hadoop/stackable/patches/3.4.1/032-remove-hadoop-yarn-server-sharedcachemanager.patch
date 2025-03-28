@@ -1,0 +1,12 @@
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+index ca533269634..0dffcee97f9 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+@@ -38,7 +38,6 @@
+     <module>hadoop-yarn-server-nodemanager</module>
+     <module>hadoop-yarn-server-web-proxy</module>
+     <module>hadoop-yarn-server-resourcemanager</module>
+-    <module>hadoop-yarn-server-sharedcachemanager</module>
+     <module>hadoop-yarn-server-tests</module>
+     <module>hadoop-yarn-server-applicationhistoryservice</module>
+     <module>hadoop-yarn-server-timelineservice</module>

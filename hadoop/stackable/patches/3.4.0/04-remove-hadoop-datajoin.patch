@@ -1,0 +1,1631 @@
+Entirely remove hadoop-datajoin
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../src/main/resources/assemblies/hadoop-tools.xml |    7 -
+ hadoop-project/pom.xml                             |    5 
+ .../dev-support/findbugs-exclude.xml               |   29 --
+ hadoop-tools/hadoop-datajoin/pom.xml               |  169 --------------
+ .../utils/join/ArrayListBackedIterator.java        |   70 ------
+ .../hadoop/contrib/utils/join/DataJoinJob.java     |  174 ---------------
+ .../contrib/utils/join/DataJoinMapperBase.java     |  122 ----------
+ .../contrib/utils/join/DataJoinReducerBase.java    |  237 --------------------
+ .../apache/hadoop/contrib/utils/join/JobBase.java  |  173 ---------------
+ .../contrib/utils/join/ResetableIterator.java      |   35 ---
+ .../hadoop/contrib/utils/join/TaggedMapOutput.java |   56 -----
+ .../apache/hadoop/contrib/utils/join/README.txt    |   50 ----
+ .../contrib/utils/join/SampleDataJoinMapper.java   |   54 -----
+ .../contrib/utils/join/SampleDataJoinReducer.java  |   58 -----
+ .../contrib/utils/join/SampleTaggedMapOutput.java  |   60 -----
+ .../hadoop/contrib/utils/join/TestDataJoin.java    |  158 -------------
+ hadoop-tools/hadoop-tools-dist/pom.xml             |    5 
+ hadoop-tools/pom.xml                               |    1 
+ 18 files changed, 1463 deletions(-)
+ delete mode 100644 hadoop-tools/hadoop-datajoin/dev-support/findbugs-exclude.xml
+ delete mode 100644 hadoop-tools/hadoop-datajoin/pom.xml
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ArrayListBackedIterator.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinJob.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinMapperBase.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinReducerBase.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/JobBase.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ResetableIterator.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/TaggedMapOutput.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/README.txt
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinMapper.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinReducer.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleTaggedMapOutput.java
+ delete mode 100644 hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/TestDataJoin.java
+
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 67f1c9a4586..9121e90cdbd 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -75,13 +75,6 @@
+       </includes>
+       <outputDirectory>lib/native/examples</outputDirectory>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-datajoin/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-distcp/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 16d692848b0..2082412a131 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -663,11 +663,6 @@
+         <version>${hadoop.version}</version>
+         <type>test-jar</type>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-datajoin</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-rumen</artifactId>
+diff --git a/hadoop-tools/hadoop-datajoin/dev-support/findbugs-exclude.xml b/hadoop-tools/hadoop-datajoin/dev-support/findbugs-exclude.xml
+deleted file mode 100644
+index 3544581dba5..00000000000
+--- a/hadoop-tools/hadoop-datajoin/dev-support/findbugs-exclude.xml
++++ /dev/null
+@@ -1,29 +0,0 @@
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<FindBugsFilter>
+-  <!-- These fields are useful for MapReduce jobs, so leave them as-is. -->
+-  <Match>
+-    <Class name="org.apache.hadoop.contrib.utils.join.DataJoinMapperBase" />
+-    <Field name="inputTag" />
+-    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+-  </Match>
+-  <Match>
+-    <Class name="org.apache.hadoop.contrib.utils.join.DataJoinMapperBase" />
+-    <Field name="job" />
+-    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+-  </Match>
+-</FindBugsFilter>
+diff --git a/hadoop-tools/hadoop-datajoin/pom.xml b/hadoop-tools/hadoop-datajoin/pom.xml
+deleted file mode 100644
+index b527939cf6c..00000000000
+--- a/hadoop-tools/hadoop-datajoin/pom.xml
++++ /dev/null
+@@ -1,169 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <groupId>org.apache.hadoop</groupId>
+-    <artifactId>hadoop-project</artifactId>
+-    <version>3.4.0</version>
+-    <relativePath>../../hadoop-project</relativePath>
+-  </parent>
+-  <artifactId>hadoop-datajoin</artifactId>
+-  <version>3.4.0</version>
+-  <description>Apache Hadoop Data Join</description>
+-  <name>Apache Hadoop Data Join</name>
+-  <packaging>jar</packaging>
+-
+-  <properties>
+-    <hadoop.log.dir>${project.build.directory}/log</hadoop.log.dir>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-annotations</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-hs</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-core</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs-client</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>org.ow2.asm</groupId>
+-          <artifactId>asm-commons</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-tests</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-  </dependencies>
+-
+-  <build>
+-    <plugins>
+-      <plugin>
+-        <groupId>com.github.spotbugs</groupId>
+-        <artifactId>spotbugs-maven-plugin</artifactId>
+-        <configuration>
+-          <xmlOutput>true</xmlOutput>
+-          <excludeFilterFile>${basedir}/dev-support/findbugs-exclude.xml
+-          </excludeFilterFile>
+-          <effort>Max</effort>
+-        </configuration>
+-      </plugin>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-antrun-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>create-log-dir</id>
+-            <phase>process-test-resources</phase>
+-            <goals>
+-              <goal>run</goal>
+-            </goals>
+-            <configuration>
+-              <target>
+-                <delete dir="${test.build.data}"/>
+-                <mkdir dir="${test.build.data}"/>
+-                <mkdir dir="${hadoop.log.dir}"/>
+-              </target>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-jar-plugin</artifactId>
+-       </plugin>
+-       <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-dependency-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>deplist</id>
+-            <phase>compile</phase>
+-            <goals>
+-              <goal>list</goal>
+-            </goals>
+-            <configuration>
+-              <outputFile>${project.basedir}/../../hadoop-dist/target/hadoop-tools-deps/${project.artifactId}.txt</outputFile>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+-
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ArrayListBackedIterator.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ArrayListBackedIterator.java
+deleted file mode 100644
+index 1ffd4b5d3c1..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ArrayListBackedIterator.java
++++ /dev/null
+@@ -1,70 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Iterator;
+-
+-/**
+- * This class provides an implementation of ResetableIterator. The
+- * implementation will be based on ArrayList.
+- * 
+- * 
+- */
+-public class ArrayListBackedIterator implements ResetableIterator {
+-
+-  private Iterator iter;
+-
+-  private ArrayList<Object> data;
+-
+-  public ArrayListBackedIterator() {
+-    this(new ArrayList<Object>());
+-  }
+-
+-  public ArrayListBackedIterator(ArrayList<Object> data) {
+-    this.data = data;
+-    this.iter = this.data.iterator();
+-  }
+-
+-  public void add(Object item) {
+-    this.data.add(item);
+-  }
+-
+-  public boolean hasNext() {
+-    return this.iter.hasNext();
+-  }
+-
+-  public Object next() {
+-    return this.iter.next();
+-  }
+-
+-  public void remove() {
+-
+-  }
+-
+-  public void reset() {
+-    this.iter = this.data.iterator();
+-  }
+-
+-  public void close() throws IOException {
+-    this.iter = null;
+-    this.data = null;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinJob.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinJob.java
+deleted file mode 100644
+index 9a1b8f1b9a3..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinJob.java
++++ /dev/null
+@@ -1,174 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.SequenceFile;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.mapred.FileOutputFormat;
+-import org.apache.hadoop.mapred.JobClient;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.FileInputFormat;
+-import org.apache.hadoop.mapred.RunningJob;
+-import org.apache.hadoop.mapred.SequenceFileInputFormat;
+-import org.apache.hadoop.mapred.SequenceFileOutputFormat;
+-import org.apache.hadoop.mapred.TextInputFormat;
+-import org.apache.hadoop.mapred.TextOutputFormat;
+-import org.apache.hadoop.mapred.JobID;
+-
+-/**
+- * This class implements the main function for creating a map/reduce
+- * job to join data of different sources. To create sucn a job, the 
+- * user must implement a mapper class that extends DataJoinMapperBase class,
+- * and a reducer class that extends DataJoinReducerBase. 
+- * 
+- */
+-public class DataJoinJob {
+-
+-  public static Class getClassByName(String className) {
+-    Class retv = null;
+-    try {
+-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-      retv = Class.forName(className, true, classLoader);
+-    } catch (Exception e) {
+-      throw new RuntimeException(e);
+-    }
+-    return retv;
+-  }
+-
+-  public static JobConf createDataJoinJob(String args[]) throws IOException {
+-
+-    String inputDir = args[0];
+-    String outputDir = args[1];
+-    Class inputFormat = SequenceFileInputFormat.class;
+-    if (args[2].compareToIgnoreCase("text") != 0) {
+-      System.out.println("Using SequenceFileInputFormat: " + args[2]);
+-    } else {
+-      System.out.println("Using TextInputFormat: " + args[2]);
+-      inputFormat = TextInputFormat.class;
+-    }
+-    int numOfReducers = Integer.parseInt(args[3]);
+-    Class mapper = getClassByName(args[4]);
+-    Class reducer = getClassByName(args[5]);
+-    Class mapoutputValueClass = getClassByName(args[6]);
+-    Class outputFormat = TextOutputFormat.class;
+-    Class outputValueClass = Text.class;
+-    if (args[7].compareToIgnoreCase("text") != 0) {
+-      System.out.println("Using SequenceFileOutputFormat: " + args[7]);
+-      outputFormat = SequenceFileOutputFormat.class;
+-      outputValueClass = getClassByName(args[7]);
+-    } else {
+-      System.out.println("Using TextOutputFormat: " + args[7]);
+-    }
+-    long maxNumOfValuesPerGroup = 100;
+-    String jobName = "";
+-    if (args.length > 8) {
+-      maxNumOfValuesPerGroup = Long.parseLong(args[8]);
+-    }
+-    if (args.length > 9) {
+-      jobName = args[9];
+-    }
+-    Configuration defaults = new Configuration();
+-    JobConf job = new JobConf(defaults, DataJoinJob.class);
+-    job.setJobName("DataJoinJob: " + jobName);
+-
+-    FileSystem fs = FileSystem.get(defaults);
+-    fs.delete(new Path(outputDir), true);
+-    FileInputFormat.setInputPaths(job, inputDir);
+-
+-    job.setInputFormat(inputFormat);
+-
+-    job.setMapperClass(mapper);
+-    FileOutputFormat.setOutputPath(job, new Path(outputDir));
+-    job.setOutputFormat(outputFormat);
+-    SequenceFileOutputFormat.setOutputCompressionType(job,
+-            SequenceFile.CompressionType.BLOCK);
+-    job.setMapOutputKeyClass(Text.class);
+-    job.setMapOutputValueClass(mapoutputValueClass);
+-    job.setOutputKeyClass(Text.class);
+-    job.setOutputValueClass(outputValueClass);
+-    job.setReducerClass(reducer);
+-
+-    job.setNumMapTasks(1);
+-    job.setNumReduceTasks(numOfReducers);
+-    job.setLong("datajoin.maxNumOfValuesPerGroup", maxNumOfValuesPerGroup);
+-    return job;
+-  }
+-
+-  /**
+-   * Submit/run a map/reduce job.
+-   * 
+-   * @param job
+-   * @return true for success
+-   * @throws IOException
+-   */
+-  public static boolean runJob(JobConf job) throws IOException {
+-    JobClient jc = new JobClient(job);
+-    boolean sucess = true;
+-    RunningJob running = null;
+-    try {
+-      running = jc.submitJob(job);
+-      JobID jobId = running.getID();
+-      System.out.println("Job " + jobId + " is submitted");
+-      while (!running.isComplete()) {
+-        System.out.println("Job " + jobId + " is still running.");
+-        try {
+-          Thread.sleep(60000);
+-        } catch (InterruptedException e) {
+-        }
+-        running = jc.getJob(jobId);
+-      }
+-      sucess = running.isSuccessful();
+-    } finally {
+-      if (!sucess && (running != null)) {
+-        running.killJob();
+-      }
+-      jc.close();
+-    }
+-    return sucess;
+-  }
+-
+-  /**
+-   * @param args
+-   */
+-  public static void main(String[] args) {
+-    boolean success;
+-    if (args.length < 8 || args.length > 10) {
+-      System.out.println("usage: DataJoinJob " + "inputdirs outputdir map_input_file_format "
+-                         + "numofParts " + "mapper_class " + "reducer_class "
+-                         + "map_output_value_class "
+-                         + "output_value_class [maxNumOfValuesPerGroup [descriptionOfJob]]]");
+-      System.exit(-1);
+-    }
+-
+-    try {
+-      JobConf job = DataJoinJob.createDataJoinJob(args);
+-      success = DataJoinJob.runJob(job);
+-      if (!success) {
+-        System.out.println("Job failed");
+-      }
+-    } catch (IOException ioe) {
+-      ioe.printStackTrace();
+-    }
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinMapperBase.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinMapperBase.java
+deleted file mode 100644
+index 1e1296a7451..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinMapperBase.java
++++ /dev/null
+@@ -1,122 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-import java.util.Iterator;
+-
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.OutputCollector;
+-import org.apache.hadoop.mapred.Reporter;
+-import org.apache.hadoop.mapreduce.MRJobConfig;
+-
+-/**
+- * This abstract class serves as the base class for the mapper class of a data
+- * join job. This class expects its subclasses to implement methods for the
+- * following functionalities:
+- * 
+- * 1. Compute the source tag of input values 2. Compute the map output value
+- * object 3. Compute the map output key object
+- * 
+- * The source tag will be used by the reducer to determine from which source
+- * (which table in SQL terminology) a value comes. Computing the map output
+- * value object amounts to performing projecting/filtering work in a SQL
+- * statement (through the select/where clauses). Computing the map output key
+- * amounts to choosing the join key. This class provides the appropriate plugin
+- * points for the user defined subclasses to implement the appropriate logic.
+- * 
+- */
+-public abstract class DataJoinMapperBase extends JobBase {
+-
+-  protected String inputFile = null;
+-
+-  protected JobConf job = null;
+-
+-  protected Text inputTag = null;
+-
+-  protected Reporter reporter = null;
+-
+-  public void configure(JobConf job) {
+-    super.configure(job);
+-    this.job = job;
+-    this.inputFile = job.get(MRJobConfig.MAP_INPUT_FILE);
+-    this.inputTag = generateInputTag(this.inputFile);
+-  }
+-
+-  /**
+-   * Determine the source tag based on the input file name.
+-   * 
+-   * @param inputFile
+-   * @return the source tag computed from the given file name.
+-   */
+-  protected abstract Text generateInputTag(String inputFile);
+-
+-  /**
+-   * Generate a tagged map output value. The user code can also perform
+-   * projection/filtering. If it decides to discard the input record when
+-   * certain conditions are met,it can simply return a null.
+-   * 
+-   * @param value
+-   * @return an object of TaggedMapOutput computed from the given value.
+-   */
+-  protected abstract TaggedMapOutput generateTaggedMapOutput(Object value);
+-
+-  /**
+-   * Generate a map output key. The user code can compute the key
+-   * programmatically, not just selecting the values of some fields. In this
+-   * sense, it is more general than the joining capabilities of SQL.
+-   * 
+-   * @param aRecord
+-   * @return the group key for the given record
+-   */
+-  protected abstract Text generateGroupKey(TaggedMapOutput aRecord);
+-
+-  public void map(Object key, Object value,
+-                  OutputCollector output, Reporter reporter) throws IOException {
+-    if (this.reporter == null) {
+-      this.reporter = reporter;
+-    }
+-    addLongValue("totalCount", 1);
+-    TaggedMapOutput aRecord = generateTaggedMapOutput(value);
+-    if (aRecord == null) {
+-      addLongValue("discardedCount", 1);
+-      return;
+-    }
+-    Text groupKey = generateGroupKey(aRecord);
+-    if (groupKey == null) {
+-      addLongValue("nullGroupKeyCount", 1);
+-      return;
+-    }
+-    output.collect(groupKey, aRecord);
+-    addLongValue("collectedCount", 1);
+-  }
+-
+-  public void close() throws IOException {
+-    if (this.reporter != null) {
+-      this.reporter.setStatus(super.getReport());
+-    }
+-  }
+-
+-  public void reduce(Object arg0, Iterator arg1,
+-                     OutputCollector arg2, Reporter arg3) throws IOException {
+-    // TODO Auto-generated method stub
+-
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinReducerBase.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinReducerBase.java
+deleted file mode 100644
+index e340d79e141..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/DataJoinReducerBase.java
++++ /dev/null
+@@ -1,237 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-import java.util.Iterator;
+-import java.util.SortedMap;
+-import java.util.TreeMap;
+-
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.io.WritableUtils;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.OutputCollector;
+-import org.apache.hadoop.mapred.Reporter;
+-
+-/**
+- * This abstract class serves as the base class for the reducer class of a data
+- * join job. The reduce function will first group the values according to their
+- * input tags, and then compute the cross product of over the groups. For each
+- * tuple in the cross product, it calls the following method, which is expected
+- * to be implemented in a subclass.
+- * 
+- * protected abstract TaggedMapOutput combine(Object[] tags, Object[] values);
+- * 
+- * The above method is expected to produce one output value from an array of
+- * records of different sources. The user code can also perform filtering here.
+- * It can return null if it decides to the records do not meet certain
+- * conditions.
+- * 
+- */
+-public abstract class DataJoinReducerBase extends JobBase {
+-
+-  protected Reporter reporter = null;
+-
+-  private long maxNumOfValuesPerGroup = 100;
+-
+-  protected long largestNumOfValues = 0;
+-
+-  protected long numOfValues = 0;
+-
+-  protected long collected = 0;
+-
+-  protected JobConf job;
+-
+-  public void close() throws IOException {
+-    if (this.reporter != null) {
+-      this.reporter.setStatus(super.getReport());
+-    }
+-  }
+-
+-  public void configure(JobConf job) {
+-    super.configure(job);
+-    this.job = job;
+-    this.maxNumOfValuesPerGroup = job.getLong("datajoin.maxNumOfValuesPerGroup", 100);
+-  }
+-
+-  /**
+-   * The subclass can provide a different implementation on ResetableIterator.
+-   * This is necessary if the number of values in a reduce call is very high.
+-   * 
+-   * The default provided here uses ArrayListBackedIterator
+-   * 
+-   * @return an Object of ResetableIterator.
+-   */
+-  protected ResetableIterator createResetableIterator() {
+-    return new ArrayListBackedIterator();
+-  }
+-
+-  /**
+-   * This is the function that re-groups values for a key into sub-groups based
+-   * on a secondary key (input tag).
+-   * 
+-   * @param arg1
+-   * @return
+-   */
+-  private SortedMap<Object, ResetableIterator> regroup(Object key,
+-                                                       Iterator arg1, Reporter reporter) throws IOException {
+-    this.numOfValues = 0;
+-    SortedMap<Object, ResetableIterator> retv = new TreeMap<Object, ResetableIterator>();
+-    TaggedMapOutput aRecord = null;
+-    while (arg1.hasNext()) {
+-      this.numOfValues += 1;
+-      if (this.numOfValues % 100 == 0) {
+-        reporter.setStatus("key: " + key.toString() + " numOfValues: "
+-                           + this.numOfValues);
+-      }
+-      if (this.numOfValues > this.maxNumOfValuesPerGroup) {
+-        continue;
+-      }
+-      aRecord = ((TaggedMapOutput) arg1.next()).clone(job);
+-      Text tag = aRecord.getTag();
+-      ResetableIterator data = retv.get(tag);
+-      if (data == null) {
+-        data = createResetableIterator();
+-        retv.put(tag, data);
+-      }
+-      data.add(aRecord);
+-    }
+-    if (this.numOfValues > this.largestNumOfValues) {
+-      this.largestNumOfValues = numOfValues;
+-      LOG.info("key: " + key.toString() + " this.largestNumOfValues: "
+-               + this.largestNumOfValues);
+-    }
+-    return retv;
+-  }
+-
+-  public void reduce(Object key, Iterator values,
+-                     OutputCollector output, Reporter reporter) throws IOException {
+-    if (this.reporter == null) {
+-      this.reporter = reporter;
+-    }
+-
+-    SortedMap<Object, ResetableIterator> groups = regroup(key, values, reporter);
+-    Object[] tags = groups.keySet().toArray();
+-    ResetableIterator[] groupValues = new ResetableIterator[tags.length];
+-    for (int i = 0; i < tags.length; i++) {
+-      groupValues[i] = groups.get(tags[i]);
+-    }
+-    joinAndCollect(tags, groupValues, key, output, reporter);
+-    addLongValue("groupCount", 1);
+-    for (int i = 0; i < tags.length; i++) {
+-      groupValues[i].close();
+-    }
+-  }
+-
+-  /**
+-   * The subclass can overwrite this method to perform additional filtering
+-   * and/or other processing logic before a value is collected.
+-   * 
+-   * @param key
+-   * @param aRecord
+-   * @param output
+-   * @param reporter
+-   * @throws IOException
+-   */
+-  protected void collect(Object key, TaggedMapOutput aRecord,
+-                         OutputCollector output, Reporter reporter) throws IOException {
+-    this.collected += 1;
+-    addLongValue("collectedCount", 1);
+-    if (aRecord != null) {
+-      output.collect(key, aRecord.getData());
+-      reporter.setStatus("key: " + key.toString() + " collected: " + collected);
+-      addLongValue("actuallyCollectedCount", 1);
+-    }
+-  }
+-
+-  /**
+-   * join the list of the value lists, and collect the results.
+-   * 
+-   * @param tags
+-   *          a list of input tags
+-   * @param values
+-   *          a list of value lists, each corresponding to one input source
+-   * @param key
+-   * @param output
+-   * @throws IOException
+-   */
+-  private void joinAndCollect(Object[] tags, ResetableIterator[] values,
+-                              Object key, OutputCollector output, Reporter reporter)
+-    throws IOException {
+-    if (values.length < 1) {
+-      return;
+-    }
+-    Object[] partialList = new Object[values.length];
+-    joinAndCollect(tags, values, 0, partialList, key, output, reporter);
+-  }
+-
+-  /**
+-   * Perform the actual join recursively.
+-   * 
+-   * @param tags
+-   *          a list of input tags
+-   * @param values
+-   *          a list of value lists, each corresponding to one input source
+-   * @param pos
+-   *          indicating the next value list to be joined
+-   * @param partialList
+-   *          a list of values, each from one value list considered so far.
+-   * @param key
+-   * @param output
+-   * @throws IOException
+-   */
+-  private void joinAndCollect(Object[] tags, ResetableIterator[] values,
+-                              int pos, Object[] partialList, Object key,
+-                              OutputCollector output, Reporter reporter) throws IOException {
+-
+-    if (values.length == pos) {
+-      // get a value from each source. Combine them
+-      TaggedMapOutput combined = combine(tags, partialList);
+-      collect(key, combined, output, reporter);
+-      return;
+-    }
+-    ResetableIterator nextValues = values[pos];
+-    nextValues.reset();
+-    while (nextValues.hasNext()) {
+-      Object v = nextValues.next();
+-      partialList[pos] = v;
+-      joinAndCollect(tags, values, pos + 1, partialList, key, output, reporter);
+-    }
+-  }
+-
+-  public static Text SOURCE_TAGS_FIELD = new Text("SOURCE_TAGS");
+-
+-  public static Text NUM_OF_VALUES_FIELD = new Text("NUM_OF_VALUES");
+-
+-  /**
+-   * 
+-   * @param tags
+-   *          a list of source tags
+-   * @param values
+-   *          a value per source
+-   * @return combined value derived from values of the sources
+-   */
+-  protected abstract TaggedMapOutput combine(Object[] tags, Object[] values);
+-
+-  public void map(Object arg0, Object arg1, OutputCollector arg2,
+-                  Reporter arg3) throws IOException {
+-    // TODO Auto-generated method stub
+-
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/JobBase.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/JobBase.java
+deleted file mode 100644
+index 7267fdecac4..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/JobBase.java
++++ /dev/null
+@@ -1,173 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.util.SortedMap;
+-import java.util.TreeMap;
+-import java.util.Map.Entry;
+-import java.util.Iterator;
+-
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.Mapper;
+-import org.apache.hadoop.mapred.Reducer;
+-
+-/**
+- * A common base implementing some statics collecting mechanisms that are
+- * commonly used in a typical map/reduce job.
+- * 
+- */
+-public abstract class JobBase implements Mapper, Reducer {
+-
+-  public static final Logger LOG = LoggerFactory.getLogger("datajoin.job");
+-
+-  private SortedMap<Object, Long> longCounters = null;
+-
+-  private SortedMap<Object, Double> doubleCounters = null;
+-
+-  /**
+-   * Set the given counter to the given value
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @param value
+-   *          the value for the counter
+-   */
+-  protected void setLongValue(Object name, long value) {
+-    this.longCounters.put(name, Long.valueOf(value));
+-  }
+-
+-  /**
+-   * Set the given counter to the given value
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @param value
+-   *          the value for the counter
+-   */
+-  protected void setDoubleValue(Object name, double value) {
+-    this.doubleCounters.put(name, new Double(value));
+-  }
+-
+-  /**
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @return return the value of the given counter.
+-   */
+-  protected Long getLongValue(Object name) {
+-    return this.longCounters.get(name);
+-  }
+-
+-  /**
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @return return the value of the given counter.
+-   */
+-  protected Double getDoubleValue(Object name) {
+-    return this.doubleCounters.get(name);
+-  }
+-
+-  /**
+-   * Increment the given counter by the given incremental value If the counter
+-   * does not exist, one is created with value 0.
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @param inc
+-   *          the incremental value
+-   * @return the updated value.
+-   */
+-  protected Long addLongValue(Object name, long inc) {
+-    Long val = this.longCounters.get(name);
+-    Long retv = null;
+-    if (val == null) {
+-      retv = Long.valueOf(inc);
+-    } else {
+-      retv = Long.valueOf(val.longValue() + inc);
+-    }
+-    this.longCounters.put(name, retv);
+-    return retv;
+-  }
+-
+-  /**
+-   * Increment the given counter by the given incremental value If the counter
+-   * does not exist, one is created with value 0.
+-   * 
+-   * @param name
+-   *          the counter name
+-   * @param inc
+-   *          the incremental value
+-   * @return the updated value.
+-   */
+-  protected Double addDoubleValue(Object name, double inc) {
+-    Double val = this.doubleCounters.get(name);
+-    Double retv = null;
+-    if (val == null) {
+-      retv = new Double(inc);
+-    } else {
+-      retv = new Double(val.doubleValue() + inc);
+-    }
+-    this.doubleCounters.put(name, retv);
+-    return retv;
+-  }
+-
+-  /**
+-   * log the counters
+-   * 
+-   */
+-  protected void report() {
+-    LOG.info(getReport());
+-  }
+-
+-  /**
+-   * log the counters
+-   * 
+-   */
+-  protected String getReport() {
+-    StringBuffer sb = new StringBuffer();
+-
+-    Iterator iter = this.longCounters.entrySet().iterator();
+-    while (iter.hasNext()) {
+-      Entry e = (Entry) iter.next();
+-      sb.append(e.getKey().toString()).append("\t").append(e.getValue())
+-        .append("\n");
+-    }
+-    iter = this.doubleCounters.entrySet().iterator();
+-    while (iter.hasNext()) {
+-      Entry e = (Entry) iter.next();
+-      sb.append(e.getKey().toString()).append("\t").append(e.getValue())
+-        .append("\n");
+-    }
+-    return sb.toString();
+-  }
+-
+-  /**
+-   * Initializes a new instance from a {@link JobConf}.
+-   * 
+-   * @param job
+-   *          the configuration
+-   */
+-  public void configure(JobConf job) {
+-    this.longCounters = new TreeMap<Object, Long>();
+-    this.doubleCounters = new TreeMap<Object, Double>();
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ResetableIterator.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ResetableIterator.java
+deleted file mode 100644
+index f20f2e45ac8..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/ResetableIterator.java
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-import java.util.Iterator;
+-
+-/**
+- * This defines an iterator interface that will help the reducer class
+- * re-group its input by source tags. Once the values are re-grouped,
+- * the reducer will receive the cross product of values from different groups.
+- */
+-public interface ResetableIterator extends Iterator {
+-  public void reset();
+-
+-  public void add(Object item);
+-
+-  public void close() throws IOException;
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/TaggedMapOutput.java b/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/TaggedMapOutput.java
+deleted file mode 100644
+index 71a5d85bca0..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/main/java/org/apache/hadoop/contrib/utils/join/TaggedMapOutput.java
++++ /dev/null
+@@ -1,56 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.io.Writable;
+-import org.apache.hadoop.io.WritableUtils;
+-import org.apache.hadoop.mapred.JobConf;
+-
+-/**
+- * This abstract class serves as the base class for the values that 
+- * flow from the mappers to the reducers in a data join job. 
+- * Typically, in such a job, the mappers will compute the source
+- * tag of an input record based on its attributes or based on the 
+- * file name of the input file. This tag will be used by the reducers
+- * to re-group the values of a given key according to their source tags.
+- * 
+- */
+-public abstract class TaggedMapOutput implements Writable {
+-  protected Text tag;
+-
+-  public TaggedMapOutput() {
+-    this.tag = new Text("");
+-  }
+-
+-  public Text getTag() {
+-    return tag;
+-  }
+-
+-  public void setTag(Text tag) {
+-    this.tag = tag;
+-  }
+-
+-  public abstract Writable getData();
+-  
+-  public TaggedMapOutput clone(JobConf job) {
+-    return (TaggedMapOutput) WritableUtils.clone(this, job);
+-  }
+-
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/README.txt b/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/README.txt
+deleted file mode 100644
+index 47ef31c4677..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/README.txt
++++ /dev/null
+@@ -1,50 +0,0 @@
+-*************************************************
+-*** Input Files (Note: tab-separated columns) ***
+-*************************************************
+-[:~]$ cat datajoin/input/A
+-A.a11   A.a12
+-A.a21   A.a22
+-B.a21   A.a32
+-A.a31   A.a32
+-B.a31   A.a32
+-
+-[:~]$ cat datajoin/input/B
+-A.a11   B.a12
+-A.a11   B.a13
+-B.a11   B.a12
+-B.a21   B.a22
+-A.a31   B.a32
+-B.a31   B.a32
+-
+-
+-*****************************
+-*** Invoke SampleDataJoin ***
+-*****************************
+-[:~]$ $HADOOP_HOME/bin/hadoop jar hadoop-datajoin-examples.jar org.apache.hadoop.contrib.utils.join.DataJoinJob datajoin/input datajoin/output Text 1 org.apache.hadoop.contrib.utils.join.SampleDataJoinMapper org.apache.hadoop.contrib.utils.join.SampleDataJoinReducer org.apache.hadoop.contrib.utils.join.SampleTaggedMapOutput Text
+-Using TextInputFormat: Text
+-Using TextOutputFormat: Text
+-07/06/01 19:58:23 INFO mapred.FileInputFormat: Total input paths to process : 2
+-Job job_kkzk08 is submitted
+-Job job_kkzk08 is still running.
+-07/06/01 19:58:24 INFO mapred.LocalJobRunner: collectedCount    5
+-totalCount      5
+-
+-07/06/01 19:58:24 INFO mapred.LocalJobRunner: collectedCount    6
+-totalCount      6
+-
+-07/06/01 19:58:24 INFO datajoin.job: key: A.a11 this.largestNumOfValues: 3
+-07/06/01 19:58:24 INFO mapred.LocalJobRunner: actuallyCollectedCount    5
+-collectedCount  7
+-groupCount      6
+- > reduce
+-
+-
+-*******************
+-*** Output File ***
+-*******************
+-[:~]$ cat datajoin/output/part-00000  
+-A.a11   A.a12   B.a12
+-A.a11   A.a12   B.a13
+-A.a31   A.a32   B.a32
+-B.a21   A.a32   B.a22
+-B.a31   A.a32   B.a32
+diff --git a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinMapper.java b/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinMapper.java
+deleted file mode 100644
+index 3f1d4f0f1b2..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinMapper.java
++++ /dev/null
+@@ -1,54 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import org.apache.hadoop.io.Text;
+-
+-import org.apache.hadoop.contrib.utils.join.DataJoinMapperBase;
+-import org.apache.hadoop.contrib.utils.join.TaggedMapOutput;
+-import org.apache.hadoop.contrib.utils.join.SampleTaggedMapOutput;
+-
+-/**
+- * This is a subclass of DataJoinMapperBase that is used to
+- * demonstrate the functionality of INNER JOIN between 2 data
+- * sources (TAB separated text files) based on the first column.
+- */
+-public class SampleDataJoinMapper extends DataJoinMapperBase {
+-
+-
+-  protected Text generateInputTag(String inputFile) {
+-    // tag the row with input file name (data source)
+-    return new Text(inputFile);
+-  }
+-
+-  protected Text generateGroupKey(TaggedMapOutput aRecord) {
+-    // first column in the input tab separated files becomes the key (to perform the JOIN)
+-    String line = ((Text) aRecord.getData()).toString();
+-    String groupKey = "";
+-    String[] tokens = line.split("\\t", 2);
+-    groupKey = tokens[0];
+-    return new Text(groupKey);
+-  }
+-
+-  protected TaggedMapOutput generateTaggedMapOutput(Object value) {
+-    TaggedMapOutput retv = new SampleTaggedMapOutput((Text) value);
+-    retv.setTag(new Text(this.inputTag));
+-    return retv;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinReducer.java b/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinReducer.java
+deleted file mode 100644
+index f8eb00db49a..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleDataJoinReducer.java
++++ /dev/null
+@@ -1,58 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import org.apache.hadoop.io.Text;
+-
+-import org.apache.hadoop.contrib.utils.join.DataJoinReducerBase;
+-import org.apache.hadoop.contrib.utils.join.TaggedMapOutput;
+-
+-/**
+- * This is a subclass of DataJoinReducerBase that is used to
+- * demonstrate the functionality of INNER JOIN between 2 data
+- * sources (TAB separated text files) based on the first column.
+- */
+-public class SampleDataJoinReducer extends DataJoinReducerBase {
+-
+-  /**
+-   * 
+-   * @param tags
+-   *          a list of source tags
+-   * @param values
+-   *          a value per source
+-   * @return combined value derived from values of the sources
+-   */
+-  protected TaggedMapOutput combine(Object[] tags, Object[] values) {
+-    // eliminate rows which didnot match in one of the two tables (for INNER JOIN)
+-    if (tags.length < 2)
+-       return null;  
+-    String joinedStr = ""; 
+-    for (int i=0; i<tags.length; i++) {
+-      if (i > 0)
+-         joinedStr += "\t";
+-      // strip first column as it is the key on which we joined
+-      String line = ((Text) (((TaggedMapOutput) values[i]).getData())).toString();
+-      String[] tokens = line.split("\\t", 2);
+-      joinedStr += tokens[1];
+-    }
+-    TaggedMapOutput retv = new SampleTaggedMapOutput(new Text(joinedStr));
+-    retv.setTag((Text) tags[0]); 
+-    return retv;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleTaggedMapOutput.java b/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleTaggedMapOutput.java
+deleted file mode 100644
+index 59f1bd1adcd..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/SampleTaggedMapOutput.java
++++ /dev/null
+@@ -1,60 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.DataInput;
+-import java.io.DataOutput;
+-import java.io.IOException;
+-
+-import org.apache.hadoop.io.Writable;
+-import org.apache.hadoop.io.Text;
+-
+-import org.apache.hadoop.contrib.utils.join.TaggedMapOutput;
+-
+-/**
+- * This is a subclass of TaggedMapOutput that is used to
+- * demonstrate the functionality of INNER JOIN between 2 data
+- * sources (TAB separated text files) based on the first column.
+- */
+-public class SampleTaggedMapOutput extends TaggedMapOutput {
+-
+-  private Text data;
+-
+-  public SampleTaggedMapOutput() {
+-    this.data = new Text("");
+-  }
+-
+-  public SampleTaggedMapOutput(Text data) {
+-    this.data = data;
+-  }
+-
+-  public Writable getData() {
+-    return data;
+-  }
+-
+-  public void write(DataOutput out) throws IOException {
+-    this.tag.write(out);
+-    this.data.write(out);
+-  }
+-
+-  public void readFields(DataInput in) throws IOException {
+-    this.tag.readFields(in);
+-    this.data.readFields(in);
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/TestDataJoin.java b/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/TestDataJoin.java
+deleted file mode 100644
+index 2daae2e803b..00000000000
+--- a/hadoop-tools/hadoop-datajoin/src/test/java/org/apache/hadoop/contrib/utils/join/TestDataJoin.java
++++ /dev/null
+@@ -1,158 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.contrib.utils.join;
+-
+-import java.io.IOException;
+-
+-import org.junit.After;
+-import org.junit.Before;
+-import org.junit.Test;
+-import static org.junit.Assert.*;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.fs.FSDataInputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.LongWritable;
+-import org.apache.hadoop.io.SequenceFile;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.mapred.*;
+-
+-/**
+- * Class to test JOIN between 2 data
+- * sources.
+- */
+-public class TestDataJoin {
+-  private static MiniDFSCluster cluster = null;
+-
+-  @Before
+-  public void setUp() throws Exception {
+-    Configuration conf = new Configuration();
+-    cluster = new MiniDFSCluster.Builder(conf).numDataNodes(2).build();
+-  }
+-
+-  @After
+-  public void tearDown() throws Exception {
+-    if (cluster != null) {
+-      cluster.shutdown();
+-    }
+-  }
+-
+-  @Test
+-  public void testDataJoin() throws Exception {
+-    final int srcs = 4;
+-    JobConf job = new JobConf();
+-    job.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false);
+-    Path base = cluster.getFileSystem().makeQualified(new Path("/inner"));
+-    Path[] src = writeSimpleSrc(base, job, srcs);
+-    job.setInputFormat(SequenceFileInputFormat.class);
+-    Path outdir = new Path(base, "out");
+-    FileOutputFormat.setOutputPath(job, outdir);
+-
+-    job.setMapperClass(SampleDataJoinMapper.class);
+-    job.setReducerClass(SampleDataJoinReducer.class);
+-    job.setMapOutputKeyClass(Text.class);
+-    job.setMapOutputValueClass(SampleTaggedMapOutput.class);
+-    job.setOutputKeyClass(Text.class);
+-    job.setOutputValueClass(Text.class);
+-    job.setOutputFormat(TextOutputFormat.class);
+-    job.setNumMapTasks(1);
+-    job.setNumReduceTasks(1);
+-    FileInputFormat.setInputPaths(job, src);
+-    try {
+-      JobClient.runJob(job);
+-      confirmOutput(outdir, job, srcs);
+-    } finally {
+-      base.getFileSystem(job).delete(base, true);
+-    }
+-  }
+-
+-  private static void confirmOutput(Path out, JobConf job, int srcs)
+-      throws IOException {
+-    FileSystem fs = out.getFileSystem(job);
+-    FileStatus[] outlist = fs.listStatus(out);
+-    assertEquals(1, outlist.length);
+-    assertTrue(0 < outlist[0].getLen());
+-    FSDataInputStream in = fs.open(outlist[0].getPath());
+-    LineRecordReader rr = new LineRecordReader(in, 0, Integer.MAX_VALUE, job);
+-    LongWritable k = new LongWritable();
+-    Text v = new Text();
+-    int count = 0;
+-    while (rr.next(k, v)) {
+-      String[] vals = v.toString().split("\t");
+-      assertEquals(srcs + 1, vals.length);
+-      int[] ivals = new int[vals.length];
+-      for (int i = 0; i < vals.length; ++i)
+-        ivals[i] = Integer.parseInt(vals[i]);
+-      assertEquals(0, ivals[0] % (srcs * srcs));
+-      for (int i = 1; i < vals.length; ++i) {
+-        assertEquals((ivals[i] - (i - 1)) * srcs, 10 * ivals[0]);
+-      }
+-      ++count;
+-    }
+-    assertEquals(4, count);
+-  }
+-
+-  private static SequenceFile.Writer[] createWriters(Path testdir,
+-      JobConf conf, int srcs, Path[] src) throws IOException {
+-    for (int i = 0; i < srcs; ++i) {
+-      src[i] = new Path(testdir, Integer.toString(i + 10, 36));
+-    }
+-    SequenceFile.Writer out[] = new SequenceFile.Writer[srcs];
+-    for (int i = 0; i < srcs; ++i) {
+-      out[i] = new SequenceFile.Writer(testdir.getFileSystem(conf), conf,
+-          src[i], Text.class, Text.class);
+-    }
+-    return out;
+-  }
+-
+-  private static Path[] writeSimpleSrc(Path testdir, JobConf conf,
+-      int srcs) throws IOException {
+-    SequenceFile.Writer out[] = null;
+-    Path[] src = new Path[srcs];
+-    try {
+-      out = createWriters(testdir, conf, srcs, src);
+-      final int capacity = srcs * 2 + 1;
+-      Text key = new Text();
+-      key.set("ignored");
+-      Text val = new Text();
+-      for (int k = 0; k < capacity; ++k) {
+-        for (int i = 0; i < srcs; ++i) {
+-          val.set(Integer.toString(k % srcs == 0 ? k * srcs : k * srcs + i) +
+-              "\t" + Integer.toString(10 * k + i));
+-          out[i].append(key, val);
+-          if (i == k) {
+-            // add duplicate key
+-            out[i].append(key, val);
+-          }
+-        }
+-      }
+-    } finally {
+-      if (out != null) {
+-        for (int i = 0; i < srcs; ++i) {
+-          if (out[i] != null)
+-            out[i].close();
+-        }
+-      }
+-    }
+-    return src;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 7c232c158a2..4acf66c3b8c 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -60,11 +60,6 @@
+       <artifactId>hadoop-rumen</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-datajoin</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-extras</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index f3556a81351..6cb112b67b7 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -36,7 +36,6 @@
+     <module>hadoop-dynamometer</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+-    <module>hadoop-datajoin</module>
+     <module>hadoop-tools-dist</module>
+     <module>hadoop-extras</module>
+     <module>hadoop-pipes</module>

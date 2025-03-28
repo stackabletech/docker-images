@@ -1,0 +1,96 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+index 3c9cf4642ba..5e5af377854 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+@@ -79,31 +79,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-core/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-core/conf</directory>
+-      <outputDirectory>etc/hadoop</outputDirectory>
+-    </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-core/examples</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/yarn-service-examples</outputDirectory>
+-      <includes>
+-        <include>**/*</include>
+-      </includes>
+-    </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-api/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>hadoop-yarn/hadoop-yarn-client/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index cd9576b088f..ad056195706 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -580,25 +580,6 @@
+         <version>${project.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-services-core</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-services-core</artifactId>
+-        <version>${hadoop.version}</version>
+-        <type>test-jar</type>
+-      </dependency>
+-
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-services-api</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+index b1c38d02b86..32bdf55d1d7 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+@@ -33,10 +33,6 @@
+ 
+   <!-- Do not add dependencies here, add them to the POM of the leaf module -->
+ 
+-  <modules>
+-    <module>hadoop-yarn-services</module>
+-  </modules>
+-
+  <profiles>
+   <profile>
+     <id>clover</id>
+diff --git a/hadoop-yarn-project/pom.xml b/hadoop-yarn-project/pom.xml
+index 0a3f39e41bc..e79e643a7f1 100644
+--- a/hadoop-yarn-project/pom.xml
++++ b/hadoop-yarn-project/pom.xml
+@@ -81,10 +81,6 @@
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-yarn-server-globalpolicygenerator</artifactId>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-services-core</artifactId>
+-    </dependency>
+   </dependencies>
+ 
+   <build>
