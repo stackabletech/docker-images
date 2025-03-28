@@ -244,15 +244,18 @@ RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect
     && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
     && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar .
 
-WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
-
 COPY spark-k8s/stackable/jmx /stackable/jmx
+
+WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
-curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar
-curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/stax2-api-${STAX2_API}.jar
+curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
