@@ -198,13 +198,6 @@ RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
 
 # <<< Build spark
 
-# Get the correct `tini` binary for our architecture.
-RUN <<EOF
-curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
-  -o /usr/bin/tini
-chmod +x /usr/bin/tini
-EOF
-
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Copy modules required for s3a://
