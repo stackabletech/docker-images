@@ -44,7 +44,7 @@ chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
 
 # Delete all intermediate build products to free some more space
 cd ..
-rm -r ./${HBASE_OPERATOR_TOOLS}
+rm -r ./${PRODUCT}
 EOF
 
 COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
