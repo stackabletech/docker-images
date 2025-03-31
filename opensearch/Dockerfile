@@ -19,7 +19,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-USER ${STACKABLE_USER_UID}
+USER ${STACKABLE_USER_UID}:0
 WORKDIR /stackable
 
 COPY \
@@ -37,6 +37,10 @@ COPY \
     opensearch/patches/${PRODUCT}
 
 WORKDIR /stackable/opensearch
+
+RUN <<EOF
+echo y | bin/opensearch-plugin install repository-s3
+EOF
 
 RUN <<EOF
 patches/apply_patches.sh ${PRODUCT}
