@@ -37,6 +37,7 @@ testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
 statsd_exporter = importlib.import_module("statsd_exporter.versions")
+spark_connect_client = importlib.import_module("spark-connect-client.versions")
 
 products = [
     {"name": "airflow", "versions": airflow.versions},
@@ -66,6 +67,7 @@ products = [
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},
     {"name": "statsd_exporter", "versions": statsd_exporter.versions},
+    {"name": "spark-connect-client", "versions": spark_connect_client.versions},
 ]
 
 open_shift_projects = {

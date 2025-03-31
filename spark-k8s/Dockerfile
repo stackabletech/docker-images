@@ -107,7 +107,7 @@ EOF
 
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT}/dist,
-# download additional JARs and perform checks, like log4shell check.
+# download additional JARs and perform checks
 FROM stackable/image/java-devel AS spark-builder
 
 ARG PRODUCT
@@ -139,20 +139,15 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
 RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     && ./dev/make-distribution.sh \
-      -Dhadoop.version="$HADOOP" \
-      -Dmaven.test.skip=true \
-      -DskipTests \
-      -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
-      --no-transfer-progress \
-      --batch-mode
+    -Dhadoop.version="$HADOOP" \
+    -Dmaven.test.skip=true \
+    -DskipTests \
+    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+    --no-transfer-progress \
+    --batch-mode
 
 # <<< Build spark
 
-# Get the correct `tini` binary for our architecture.
-RUN curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
-    && chmod +x /usr/bin/tini
-
-# We download these under dist so that log4shell checks them
 WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 
 # Copy modules required for s3a://
@@ -190,37 +185,45 @@ COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
     ./
 
+WORKDIR /stackable/spark-${PRODUCT}/dist/connect
+
+# As of version 3.5.5, spark-connect jars are not included in the dist folder.
+# To avoid classpath conflicts with existing spark applications,
+# we create a new dist/connect folder, and copy them here.
+RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect_*-${PRODUCT}.jar . \
+    && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
+    && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar .
+
+COPY spark-k8s/stackable/jmx /stackable/jmx
+
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
+RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-RUN curl -O https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
-    && curl -O https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar
+curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/stax2-api-${STAX2_API}.jar
+curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar \
+  -o /stackable/spark-${PRODUCT}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar
 
-WORKDIR /stackable/jmx
+# Get the correct `tini` binary for our architecture.
+curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
+  -o /usr/bin/tini
+chmod +x /usr/bin/tini
 
-RUN curl -O "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+# JMX Exporter
+curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
+  -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
-# ===
-# Mitigation for CVE-2021-44228 (Log4Shell)
-#
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/spark-${PRODUCT}/dist
+chmod -R g=u /stackable/spark-${PRODUCT}/dist
+chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
+chmod -R g=u /stackable/jmx
+EOF
 
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/spark-${PRODUCT}/dist
-# ===
-
+# TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
+# To reduce the size of this image, the Adoptium repo could be moved to stackable-base instead.
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
@@ -240,49 +243,51 @@ LABEL name="Apache Spark" \
 
 ENV HOME=/stackable
 ENV SPARK_HOME=/stackable/spark
-ENV PATH=$SPARK_HOME:$PATH:/bin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$HOME/.local/bin
+# Override the java-base version of JAVA_HOME to point to the jdk.
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${JAVA_VERSION}-jdk"
+ENV PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
 ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
-COPY spark-k8s/stackable /stackable
-COPY spark-k8s/licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
+
 RUN <<EOF
 microdnf update
-# procps: required for spark startup scripts
-# java-*-openjdk-devel: This is needed by the Spark UI to display process information using jps and jmap
-#                       Copying just the binaries from the builder stage failed.
-microdnf install \
+
+# procps:
+#    Required for spark startup scripts.
+# temurin-{version}-jdk:
+#    Needed by the Spark UI to display process information using "jps" and "jmap".
+#    Spark-Connect needs "javac" to compile auto-generated classes on the fly.
+microdnf install --nodocs \
   gzip \
   hostname \
   procps \
   "python${PYTHON}" \
   "python${PYTHON}-pip" \
   zip \
-  "java-${JAVA_VERSION}-openjdk-devel"
+  "temurin-${JAVA_VERSION}-jdk"
 microdnf clean all
 rm -rf /var/cache/yum
 
 ln -s /usr/bin/python${PYTHON} /usr/bin/python
 ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 # Symlink example jar, so that we can easily use it in tests
 ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
 EOF
 
+
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
+# Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
 # chown ${STACKABLE_USER_UID}:0

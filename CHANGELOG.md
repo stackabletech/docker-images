@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- spark-connect-client: A new image for Spark connect tests and demos ([#1034])
+
+### Changed
+
+- spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
+
+### Fixed
+
+- spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
+
+[#1034]: https://github.com/stackabletech/docker-images/pull/1034
+[#1042]: https://github.com/stackabletech/docker-images/pull/1042
+
 ## [25.3.0] - 2025-03-21
 
 ### Added
