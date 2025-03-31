@@ -106,6 +106,9 @@ pip install --no-cache-dir \
 ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 EOF
 
+RUN chown -R ${STACKABLE_USER_UID}:0 /stackable
+RUN chmod -R g=u /stackable
+
 # ----------------------------------------
 # Attention:
 # If you do any file based actions (copying / creating etc.) below this comment you
