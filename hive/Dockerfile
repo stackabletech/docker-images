@@ -32,32 +32,34 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
+BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
+cd "$BUILD_SRC_DIR"
 
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
   mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable
   mv standalone-metastore/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
 else
-  # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
-  cd standalone-metastore
-  mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects metastore-server
+  (
+    # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
+    cd standalone-metastore
+    mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects metastore-server
 
-  # We only seem to get a .tar.gz archive, so let's extract that to the correct location
-  tar --extract --directory=/stackable -f metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
-  mv metastore-server/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
+    # We only seem to get a .tar.gz archive, so let's extract that to the correct location
+    tar --extract --directory=/stackable -f metastore-server/target/apache-hive-standalone-metastore-server-${PRODUCT}-bin.tar.gz
+    mv metastore-server/target/bom.json /stackable/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}.cdx.json
 
-  # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
-  # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
-  sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/ext/schemaTool.sh
-  cd ..
+    # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
+    # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
+    sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/ext/schemaTool.sh
+  )
 fi
 
-cp /stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
-
 # Remove sourcecode
-cd ..
-rm -rf ./${PRODUCT}
+cd /stackable
+rm -rf "$BUILD_SRC_DIR"
+
+cp bin/start-metastore apache-hive-metastore-${PRODUCT}-bin/bin
 
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
