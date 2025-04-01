@@ -15,9 +15,11 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
+- Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 
 [#1034]: https://github.com/stackabletech/docker-images/pull/1034
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
+[#1044]: https://github.com/stackabletech/docker-images/pull/1044
 
 ## [25.3.0] - 2025-03-21
 
