@@ -60,7 +60,7 @@ RUN curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackabl
     rm -rf /stackable/nifi-${PRODUCT}-src && \
     # Remove generated docs in binary
     rm -rf /stackable/nifi-${PRODUCT}/docs && \
-    # Set correct groups
+    # Set correct permissions
     chmod -R g=u /stackable
 
 FROM stackable/image/java-base AS final
@@ -83,10 +83,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bc
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
+COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership /tmp/check-permissions-ownership
 
 RUN <<EOF
-ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
-
 microdnf update
 
 # python-pip: Required to install Python packages
@@ -104,6 +103,19 @@ pip install --no-cache-dir \
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
 ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
+
+ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
+chown -h ${STACKABLE_USER_UID}:0 /stackable/nifi
+chmod -R g=u /stackable/python
+chmod -R g=u /stackable/bin
+chmod g=u /stackable/nifi-2.2.0
+EOF
+
+# Check that permissions are set correctly
+RUN <<EOF
+chmod +x /tmp/check-permissions-ownership
+/tmp/check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0
+rm /tmp/check-permissions-ownership
 EOF
 
 # ----------------------------------------
