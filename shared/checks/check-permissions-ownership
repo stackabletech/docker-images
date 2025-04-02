@@ -37,8 +37,8 @@ while IFS= read -r -d '' file; do
 done < <(find "$DIRECTORY" -print0)
 
 if [[ $error_flag -ne 0 ]]; then
-    echo "Permission and Ownership checks failed for $$DIRECTORY!"
+    echo "Permission and Ownership checks failed for $DIRECTORY!"
     exit 1
 fi
 
-echo "Permission and Ownership checks succeeded for $$DIRECTORY!"
+echo "Permission and Ownership checks succeeded for $DIRECTORY!"
