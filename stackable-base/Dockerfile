@@ -36,7 +36,7 @@ rm -rf /var/cache/yum
 
 # WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+. "$HOME/.cargo/env" && cargo --quiet install --locked cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
 
 FROM product-utils-builder AS config-utils
