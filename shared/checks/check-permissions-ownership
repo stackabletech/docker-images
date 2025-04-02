@@ -1,4 +1,19 @@
 #!/bin/bash
+#
+# Purpose
+#
+# Checks that permissions and ownership in the provided directory are set according to:
+#
+# chown -R ${STACKABLE_USER_UID}:0 /stackable
+# chmod -R g=u /stackable
+#
+# Will error out and print directories / files that do not match the reuired permissions or ownership.
+#
+# Usage:
+#
+# ./check-permissions-ownership <directory> <uid> <gid>
+# ./check-permissions-ownership /stackable 1000 0
+#
 
 if [[ $# -ne 3 ]]; then
     echo "Wrong number of parameters supplied. Usage:"
