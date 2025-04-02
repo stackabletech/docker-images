@@ -7,7 +7,7 @@
 # chown -R ${STACKABLE_USER_UID}:0 /stackable
 # chmod -R g=u /stackable
 #
-# Will error out and print directories / files that do not match the reuired permissions or ownership.
+# Will error out and print directories / files that do not match the required permissions or ownership.
 #
 # Usage:
 #
