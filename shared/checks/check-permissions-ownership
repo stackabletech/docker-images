@@ -7,7 +7,7 @@ if [ $# -ne 3 ]
     echo "$0 /stackable 1000 0"
 fi
 
-STACKABLE_DIR=$1
+DIRECTORY=$1
 EXPECTED_UID=$2
 EXPECTED_GID=$3
 
@@ -22,7 +22,7 @@ while IFS= read -r -d '' file; do
         echo "Ownership mismatch:  $file (Expected: $EXPECTED_UID:$EXPECTED_GID, Found: $uid:$gid)"
         error_flag=1
     fi
-done < <(find "$STACKABLE_DIR" -print0)
+done < <(find "$DIRECTORY" -print0)
 
 # Check permissions
 while IFS= read -r -d '' file; do
@@ -34,11 +34,11 @@ while IFS= read -r -d '' file; do
         echo "Permission mismatch: $file (Owner: $owner_perms, Group: $group_perms)"
         error_flag=1
     fi
-done < <(find "$STACKABLE_DIR" -print0)
+done < <(find "$DIRECTORY" -print0)
 
 if [[ $error_flag -ne 0 ]]; then
-    echo "Permission and Ownership checks failed!"
+    echo "Permission and Ownership checks failed for $$DIRECTORY!"
     exit 1
 fi
 
-echo "Permission and Ownership checks successful!"
+echo "Permission and Ownership checks succeeded for $$DIRECTORY!"
