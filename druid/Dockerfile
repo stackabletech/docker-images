@@ -25,8 +25,8 @@ microdnf update
 #
 # patch: Required for the apply-patches.sh script
 microdnf install \
-python-pyyaml \
-patch
+  python-pyyaml \
+  patch
 
 microdnf clean all
 rm -rf /var/cache/yum
@@ -118,22 +118,33 @@ microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-chmod -R g=u /stackable/bin
 ln -sf /stackable/apache-druid-${PRODUCT} /stackable/druid
 chown -h ${STACKABLE_USER_UID}:0 stackable/druid
+
 # Force to overwrite the existing 'run-druid'
 ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
 chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
+
+# fix missing permissions
+chmod -R g=u /stackable/bin
+chmod g=u /stackable/apache-druid-${PRODUCT}
 EOF
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
 # ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
 
 USER ${STACKABLE_USER_UID}
 ENV PATH="${PATH}":/stackable/druid/bin
