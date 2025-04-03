@@ -186,6 +186,9 @@ microdnf install \
   fuse-libs \
   tar
 microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 # Without this fuse_dfs does not work
@@ -194,11 +197,20 @@ echo "user_allow_other" > /etc/fuse.conf
 EOF
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
 # ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 
 USER ${STACKABLE_USER_UID}
 
