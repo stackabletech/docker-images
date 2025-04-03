@@ -127,13 +127,13 @@ ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
-chmod g=u /stackable/nifi-2.2.0
+chmod g=u /stackable/nifi-${PRODUCT}
 EOF
 
 # ----------------------------------------
 # Checks
 # This section is to run final checks to ensure the created final images
-# adere to several minimal requirements like:
+# adhere to several minimal requirements like:
 # - check file permissions and ownerships
 # ----------------------------------------
 
