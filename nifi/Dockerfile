@@ -131,7 +131,7 @@ EOF
 # Checks
 # This section is to run final checks to ensure the created final images
 # adere to several minimal requirements like:
-# - check file permissions and ownerships    
+# - check file permissions and ownerships
 # ----------------------------------------
 
 # Check that permissions and ownership in /stackable are set correctly
