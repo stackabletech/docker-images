@@ -16,10 +16,10 @@ LABEL maintainer="Stackable GmbH"
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.85.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
