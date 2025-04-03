@@ -100,7 +100,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bc
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
-COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership /tmp/check-permissions-ownership
 
 RUN <<EOF
 microdnf update
@@ -141,8 +140,7 @@ EOF
 # Check that permissions and ownership in /stackable are set correctly
 # This will fail and stop the build if any mismatches are found.
 RUN <<EOF
-/tmp/check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0
-rm /tmp/check-permissions-ownership
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
 # ----------------------------------------

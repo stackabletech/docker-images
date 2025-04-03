@@ -11,8 +11,8 @@
 #
 # Usage
 #
-# ./check-permissions-ownership <directory> <uid> <gid>
-# ./check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0
+# ./check-permissions-ownership.sh <directory> <uid> <gid>
+# ./check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 #
 
 if [[ $# -ne 3 ]]; then
