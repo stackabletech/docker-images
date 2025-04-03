@@ -147,6 +147,9 @@ microdnf install \
   jq
 microdnf clean all
 rm -rf /var/cache/yum
+
+# fix missing permissions
+chmod g=u /stackable/opa
 EOF
 
 # ----------------------------------------
