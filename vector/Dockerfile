@@ -15,7 +15,7 @@ ARG STACKABLE_USER_UID
 # See https://github.com/stackabletech/airflow-operator/blob/23.4.1/rust/operator-binary/src/airflow_db_controller.rs#L269 for an example
 # The Vector container waits for this file to appear and this waiting happens using `inotifywait` which comes from the `inotify-tools` package
 RUN <<EOF
-ARCH="${TARGETARCH/amd64/x86_64}" 
+ARCH="${TARGETARCH/amd64/x86_64}"
 ARCH="${ARCH/arm64/aarch64}"
 rpm --install \
     "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.${ARCH}.rpm" \
