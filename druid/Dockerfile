@@ -146,6 +146,9 @@ RUN <<EOF
 /bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+
 USER ${STACKABLE_USER_UID}
 ENV PATH="${PATH}":/stackable/druid/bin
 
