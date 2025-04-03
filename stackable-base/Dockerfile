@@ -204,6 +204,10 @@ COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-ut
 # Debug tool that logs generic system information.
 COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
 
+# **check-permissions-ownership.sh**
+# Bash script to check proper permissions and ownership requirements in the final Stackable images
+COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
+
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
