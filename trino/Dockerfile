@@ -94,12 +94,12 @@ LABEL \
 
 RUN <<EOF
 microdnf update
+# libstdc++ required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
 microdnf install \
     gzip \
     httpd-tools \
     python \
     tar \
-    # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
     libstdc++ \
     zip
 microdnf clean all
