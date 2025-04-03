@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
+- nifi: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 
 ### Changed
 
