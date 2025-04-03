@@ -27,7 +27,6 @@ RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-ser
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /trino-storage-${PRODUCT}
-# do not copy patches -> .dockerignore?
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
@@ -66,13 +65,16 @@ rm -r /stackable/.m2
 # JMX Exporter
 curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+
 # Storage connector
 mv /trino-storage-${PRODUCT}/ /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
+
 # Softlinks
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
 ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
-# We need to change groups here and not in the final image (file changes bloat images)
-chmod -R g=u /stackable
+
+# Set correct permissions
+chmod --recursive g=u /stackable
 EOF
 
 FROM stackable/image/java-base
@@ -90,33 +92,41 @@ LABEL \
     summary="The Stackable image for Trino." \
     description="This image is deployed by the Stackable Operator for Trino."
 
-RUN microdnf update && \
-    microdnf install \
+RUN <<EOF
+microdnf update
+microdnf install \
     gzip \
     httpd-tools \
     python \
     tar \
     # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
     libstdc++ \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
-
-WORKDIR /stackable
+    zip
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
 # If /stackable has any build artifacts / leftovers make sure its removed properly
 # or only copy what is actually required in the final image like:
 # COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/foo /stackable/foo
 COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable /stackable
-
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
 # ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/trino-server
