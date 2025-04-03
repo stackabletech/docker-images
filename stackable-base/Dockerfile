@@ -36,7 +36,7 @@ rm -rf /var/cache/yum
 
 # WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
+. "$HOME/.cargo/env" && cargo --quiet install --locked cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
 
 FROM product-utils-builder AS config-utils
@@ -203,6 +203,10 @@ COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-ut
 # **containerdebug**
 # Debug tool that logs generic system information.
 COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+
+# **check-permissions-ownership.sh**
+# Bash script to check proper permissions and ownership requirements in the final Stackable images
+COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
 
 ENV PATH="${PATH}:/stackable"
 
