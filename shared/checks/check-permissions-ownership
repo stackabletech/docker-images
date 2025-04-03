@@ -9,7 +9,7 @@
 #
 # Will error out and print directories / files that do not match the required permissions or ownership.
 #
-# Usage:
+# Usage
 #
 # ./check-permissions-ownership <directory> <uid> <gid>
 # ./check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0

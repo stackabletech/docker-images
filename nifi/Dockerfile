@@ -110,6 +110,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 # The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
+# This can be removed once the 1.x.x line is removed
 pip install --no-cache-dir \
     nipyapi==0.19.1
 
@@ -126,7 +127,15 @@ chmod -R g=u /stackable/bin
 chmod g=u /stackable/nifi-2.2.0
 EOF
 
-# Check that permissions are set correctly
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adere to several minimal requirements like:
+# - check file permissions and ownerships    
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
 RUN <<EOF
 chmod +x /tmp/check-permissions-ownership
 /tmp/check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0
