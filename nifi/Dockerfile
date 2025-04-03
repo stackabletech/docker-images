@@ -121,9 +121,9 @@ ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 
 # fix missing permissions / ownership
-chown -h ${STACKABLE_USER_UID}:0 /stackable/nifi
-chmod -R g=u /stackable/python
-chmod -R g=u /stackable/bin
+chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
+chmod --recursive g=u /stackable/python
+chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-2.2.0
 EOF
 
@@ -137,16 +137,12 @@ EOF
 # Check that permissions and ownership in /stackable are set correctly
 # This will fail and stop the build if any mismatches are found.
 RUN <<EOF
-chmod +x /tmp/check-permissions-ownership
 /tmp/check-permissions-ownership /stackable ${STACKABLE_USER_UID} 0
 rm /tmp/check-permissions-ownership
 EOF
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}

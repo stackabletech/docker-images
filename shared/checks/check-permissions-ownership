@@ -19,6 +19,7 @@ if [[ $# -ne 3 ]]; then
     echo "Wrong number of parameters supplied. Usage:"
     echo "$0 <directory> <uid> <gid>"
     echo "$0 /stackable 1000 0"
+    exit 1
 fi
 
 DIRECTORY=$1
