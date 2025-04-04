@@ -54,6 +54,10 @@ for BUILD_WORKFLOW_FILE in .github/workflows/build_*.yaml; do
     echo >> "$BADGES_TMP"
   fi
 done
+# This needs to add the remaning empty columns of the last row in the table
+# This is a hack to fix the status quo and make markdownlint happy.
+echo -n "| | | |" >> "$BADGES_TMP"
+echo >> "$BADGES_TMP"
 echo -n "<!-- end:badges -->" >> "$BADGES_TMP"
 
 # Print the image and link shortcuts. Eg:
