@@ -1,0 +1,12 @@
+diff --git a/hadoop-yarn-project/hadoop-yarn/pom.xml b/hadoop-yarn-project/hadoop-yarn/pom.xml
+index 40282e48a3b..21a01043990 100644
+--- a/hadoop-yarn-project/hadoop-yarn/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/pom.xml
+@@ -242,7 +242,6 @@
+     <module>hadoop-yarn-applications</module>
+     <module>hadoop-yarn-site</module>
+     <module>hadoop-yarn-client</module>
+-    <module>hadoop-yarn-registry</module>
+   </modules>
+   <!--  -->
+ </project>

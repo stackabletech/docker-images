@@ -1,0 +1,82 @@
+Entirely remove hadoop-yarn-applications
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../hadoop-yarn/hadoop-yarn-applications/pom.xml   |   53 --------------------
+ hadoop-yarn-project/hadoop-yarn/pom.xml            |    1 
+ 2 files changed, 54 deletions(-)
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+deleted file mode 100644
+index 65ea6f55f1d..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ /dev/null
+@@ -1,53 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <parent>
+-    <artifactId>hadoop-yarn</artifactId>
+-    <groupId>org.apache.hadoop</groupId>
+-    <version>3.4.0</version>
+-  </parent>
+-  <modelVersion>4.0.0</modelVersion>
+-  <artifactId>hadoop-yarn-applications</artifactId>
+-  <version>3.4.0</version>
+-  <name>Apache Hadoop YARN Applications</name>
+-  <packaging>pom</packaging>
+-
+-  <properties>
+-    <hadoop.common.build.dir>${basedir}/../../../../hadoop-common-project/hadoop-common/target</hadoop.common.build.dir>
+-  </properties>
+-
+-  <!-- Do not add dependencies here, add them to the POM of the leaf module -->
+-
+- <profiles>
+-  <profile>
+-    <id>clover</id>
+-    <activation>
+-      <activeByDefault>false</activeByDefault>
+-      <property>
+-        <name>clover</name>
+-      </property>
+-    </activation>
+-    <dependencies>
+-      <dependency>
+-        <groupId>com.cenqua.clover</groupId>
+-        <artifactId>clover</artifactId>
+-      </dependency>
+-    </dependencies>
+-  </profile>
+-</profiles>
+-</project>
+diff --git a/hadoop-yarn-project/hadoop-yarn/pom.xml b/hadoop-yarn-project/hadoop-yarn/pom.xml
+index 38b7a872619..200ff2cb770 100644
+--- a/hadoop-yarn-project/hadoop-yarn/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/pom.xml
+@@ -239,7 +239,6 @@
+     <module>hadoop-yarn-api</module>
+     <module>hadoop-yarn-common</module>
+     <module>hadoop-yarn-server</module>
+-    <module>hadoop-yarn-applications</module>
+     <module>hadoop-yarn-site</module>
+     <module>hadoop-yarn-client</module>
+   </modules>

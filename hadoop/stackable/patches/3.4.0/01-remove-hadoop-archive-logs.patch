@@ -1,0 +1,2194 @@
+Remove hadoop-archive-logs entirely
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../src/main/resources/assemblies/hadoop-tools.xml |   15 
+ hadoop-project/pom.xml                             |    5 
+ hadoop-project/src/site/site.xml                   |    7 
+ .../dev-support/findbugs-exclude.xml               |   32 -
+ hadoop-tools/hadoop-archive-logs/pom.xml           |  210 ------
+ .../org/apache/hadoop/tools/HadoopArchiveLogs.java |  708 --------------------
+ .../hadoop/tools/HadoopArchiveLogsRunner.java      |  240 -------
+ .../src/main/shellprofile.d/hadoop-archive-logs.sh |   37 -
+ .../src/site/markdown/HadoopArchiveLogs.md         |  102 ---
+ .../src/site/resources/css/site.css                |   30 -
+ .../apache/hadoop/tools/TestHadoopArchiveLogs.java |  441 ------------
+ .../hadoop/tools/TestHadoopArchiveLogsRunner.java  |  193 -----
+ hadoop-tools/hadoop-tools-dist/pom.xml             |    5 
+ hadoop-tools/pom.xml                               |    1 
+ 14 files changed, 3 insertions(+), 2023 deletions(-)
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/dev-support/findbugs-exclude.xml
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/pom.xml
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogs.java
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogsRunner.java
+ delete mode 100755 hadoop-tools/hadoop-archive-logs/src/main/shellprofile.d/hadoop-archive-logs.sh
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/site/markdown/HadoopArchiveLogs.md
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/site/resources/css/site.css
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogs.java
+ delete mode 100644 hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogsRunner.java
+
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index c01d9c42820..ee9e9040ec8 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -23,14 +23,6 @@
+   </formats>
+   <includeBaseDirectory>false</includeBaseDirectory>
+   <fileSets>
+-    <fileSet>
+-      <directory>../hadoop-archive-logs/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-archives/src/main/shellprofile.d</directory>
+       <includes>
+@@ -98,13 +90,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-archive-logs/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-datajoin/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 0ed96d087bc..f9255e5bdf3 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -646,11 +646,6 @@
+         <artifactId>hadoop-archives</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-archive-logs</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-distcp</artifactId>
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index 8e85f379ef7..a0a58657161 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -71,7 +71,7 @@
+       <item name="Registry" href="hadoop-project-dist/hadoop-common/registry/index.html"/>
+       <item name="Async Profiler" href="hadoop-project-dist/hadoop-common/AsyncProfilerServlet.html" />
+     </menu>
+-    
++
+     <menu name="HDFS" inherit="top">
+       <item name="Architecture" href="hadoop-project-dist/hadoop-hdfs/HdfsDesign.html"/>
+       <item name="User Guide" href="hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html"/>
+@@ -90,7 +90,7 @@
+       <item name="libhdfs (C API)" href="hadoop-project-dist/hadoop-hdfs/LibHdfs.html"/>
+       <item name="WebHDFS (REST API)" href="hadoop-project-dist/hadoop-hdfs/WebHDFS.html"/>
+       <item name="HttpFS" href="hadoop-hdfs-httpfs/index.html"/>
+-      <item name="Short Circuit Local Reads" 
++      <item name="Short Circuit Local Reads"
+           href="hadoop-project-dist/hadoop-hdfs/ShortCircuitLocalReads.html"/>
+       <item name="Centralized Cache Management" href="hadoop-project-dist/hadoop-hdfs/CentralizedCacheManagement.html"/>
+       <item name="NFS Gateway" href="hadoop-project-dist/hadoop-hdfs/HdfsNfsGateway.html"/>
+@@ -192,7 +192,6 @@
+     <menu name="Tools" inherit="top">
+       <item name="Hadoop Streaming" href="hadoop-streaming/HadoopStreaming.html"/>
+       <item name="Hadoop Archives" href="hadoop-archives/HadoopArchives.html"/>
+-      <item name="Hadoop Archive Logs" href="hadoop-archive-logs/HadoopArchiveLogs.html"/>
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+       <item name="GridMix" href="hadoop-gridmix/GridMix.html"/>
+@@ -209,7 +208,7 @@
+       <item name="Unix Shell API" href="hadoop-project-dist/hadoop-common/UnixShellAPI.html"/>
+       <item name="Metrics" href="hadoop-project-dist/hadoop-common/Metrics.html"/>
+     </menu>
+-    
++
+     <menu name="Configuration" inherit="top">
+       <item name="core-default.xml" href="hadoop-project-dist/hadoop-common/core-default.xml"/>
+       <item name="hdfs-default.xml" href="hadoop-project-dist/hadoop-hdfs/hdfs-default.xml"/>
+diff --git a/hadoop-tools/hadoop-archive-logs/dev-support/findbugs-exclude.xml b/hadoop-tools/hadoop-archive-logs/dev-support/findbugs-exclude.xml
+deleted file mode 100644
+index 7f2064ea24d..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/dev-support/findbugs-exclude.xml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<FindBugsFilter>
+-  <!--
+-   Ignore warnings for usage of System.exit. These are appropriate.
+-  -->
+-  <Match>
+-    <Class name="org.apache.hadoop.tools.HadoopArchiveLogs" />
+-    <Method name="handleOpts" />
+-    <Bug pattern="DM_EXIT" />
+-  </Match>
+-  <Match>
+-    <Class name="org.apache.hadoop.tools.HadoopArchiveLogs" />
+-    <Method name="run" />
+-    <Bug pattern="DM_EXIT" />
+-  </Match>
+-</FindBugsFilter>
+diff --git a/hadoop-tools/hadoop-archive-logs/pom.xml b/hadoop-tools/hadoop-archive-logs/pom.xml
+deleted file mode 100644
+index e0dfd280d62..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/pom.xml
++++ /dev/null
+@@ -1,210 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <groupId>org.apache.hadoop</groupId>
+-    <artifactId>hadoop-project</artifactId>
+-    <version>3.4.0</version>
+-    <relativePath>../../hadoop-project</relativePath>
+-  </parent>
+-  <artifactId>hadoop-archive-logs</artifactId>
+-  <version>3.4.0</version>
+-  <description>Apache Hadoop Archive Logs</description>
+-  <name>Apache Hadoop Archive Logs</name>
+-  <packaging>jar</packaging>
+-
+-  <properties>
+-    <hadoop.log.dir>${project.build.directory}/log</hadoop.log.dir>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-core</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-applications-distributedshell</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>org.ow2.asm</groupId>
+-          <artifactId>asm-commons</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs-client</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-tests</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-archives</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-common</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-api</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop.thirdparty</groupId>
+-      <artifactId>hadoop-shaded-guava</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>commons-io</groupId>
+-      <artifactId>commons-io</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>commons-cli</groupId>
+-      <artifactId>commons-cli</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-client</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-resourcemanager</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-  </dependencies>
+-
+-  <build>
+-    <plugins>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-antrun-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>create-log-dir</id>
+-            <phase>process-test-resources</phase>
+-            <goals>
+-              <goal>run</goal>
+-            </goals>
+-            <configuration>
+-              <target>
+-                <delete dir="${test.build.data}"/>
+-                <mkdir dir="${test.build.data}"/>
+-                <mkdir dir="${hadoop.log.dir}"/>
+-              </target>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-jar-plugin</artifactId>
+-         <configuration>
+-          <archive>
+-           <manifest>
+-            <mainClass>org.apache.hadoop.tools.HadoopArchiveLogs</mainClass>
+-           </manifest>
+-         </archive>
+-        </configuration>
+-       </plugin>
+-       <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-dependency-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>deplist</id>
+-            <phase>compile</phase>
+-            <goals>
+-              <goal>list</goal>
+-            </goals>
+-            <configuration>
+-              <!-- referenced by a built-in command -->
+-              <outputFile>${project.basedir}/target/hadoop-tools-deps/${project.artifactId}.tools-builtin.txt</outputFile>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-      <plugin>
+-        <groupId>com.github.spotbugs</groupId>
+-        <artifactId>spotbugs-maven-plugin</artifactId>
+-        <configuration>
+-          <xmlOutput>true</xmlOutput>
+-          <excludeFilterFile>
+-            ${basedir}/dev-support/findbugs-exclude.xml
+-          </excludeFilterFile>
+-          <effort>Max</effort>
+-        </configuration>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+diff --git a/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogs.java b/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogs.java
+deleted file mode 100644
+index 9b28ca406d6..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogs.java
++++ /dev/null
+@@ -1,708 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.apache.commons.cli.CommandLine;
+-import org.apache.commons.cli.CommandLineParser;
+-import org.apache.commons.cli.GnuParser;
+-import org.apache.commons.cli.HelpFormatter;
+-import org.apache.commons.cli.Option;
+-import org.apache.commons.cli.Options;
+-import org.apache.commons.cli.ParseException;
+-import org.apache.commons.io.output.FileWriterWithEncoding;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.RemoteIterator;
+-import org.apache.hadoop.fs.permission.FsAction;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.util.Tool;
+-import org.apache.hadoop.util.ToolRunner;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.ApplicationReport;
+-import org.apache.hadoop.yarn.api.records.LogAggregationStatus;
+-import org.apache.hadoop.yarn.applications.distributedshell.ApplicationMaster;
+-import org.apache.hadoop.yarn.applications.distributedshell.Client;
+-import org.apache.hadoop.yarn.client.api.YarnClient;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.logaggregation.filecontroller.LogAggregationFileController;
+-import org.apache.hadoop.yarn.logaggregation.filecontroller.LogAggregationFileControllerFactory;
+-import org.apache.hadoop.yarn.util.ConverterUtils;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.nio.charset.StandardCharsets;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.Comparator;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Set;
+-
+-
+-/**
+- * This tool moves Aggregated Log files into HAR archives using the
+- * {@link HadoopArchives} tool and the Distributed Shell via the
+- * {@link HadoopArchiveLogsRunner}.
+- */
+-public class HadoopArchiveLogs implements Tool {
+-  private static final Logger LOG = LoggerFactory.getLogger(HadoopArchiveLogs.class);
+-
+-  private static final String HELP_OPTION = "help";
+-  private static final String MAX_ELIGIBLE_APPS_OPTION = "maxEligibleApps";
+-  private static final String MIN_NUM_LOG_FILES_OPTION = "minNumberLogFiles";
+-  private static final String MAX_TOTAL_LOGS_SIZE_OPTION = "maxTotalLogsSize";
+-  private static final String MEMORY_OPTION = "memory";
+-  private static final String VERBOSE_OPTION = "verbose";
+-  private static final String FORCE_OPTION = "force";
+-  private static final String NO_PROXY_OPTION = "noProxy";
+-
+-  private static final int DEFAULT_MAX_ELIGIBLE = -1;
+-  private static final int DEFAULT_MIN_NUM_LOG_FILES = 20;
+-  private static final long DEFAULT_MAX_TOTAL_LOGS_SIZE = 1024L;
+-  private static final long DEFAULT_MEMORY = 1024L;
+-
+-  @VisibleForTesting
+-  int maxEligible = DEFAULT_MAX_ELIGIBLE;
+-  @VisibleForTesting
+-  int minNumLogFiles = DEFAULT_MIN_NUM_LOG_FILES;
+-  @VisibleForTesting
+-  long maxTotalLogsSize = DEFAULT_MAX_TOTAL_LOGS_SIZE * 1024L * 1024L;
+-  @VisibleForTesting
+-  long memory = DEFAULT_MEMORY;
+-  private boolean verbose = false;
+-  @VisibleForTesting
+-  boolean force = false;
+-  @VisibleForTesting
+-  boolean proxy = true;
+-
+-  @VisibleForTesting
+-  Set<AppInfo> eligibleApplications;
+-
+-  private Set<Path> workingDirs;
+-
+-  private JobConf conf;
+-
+-  public HadoopArchiveLogs(Configuration conf) {
+-    setConf(conf);
+-    eligibleApplications = new HashSet<>();
+-    workingDirs = new HashSet<>();
+-  }
+-
+-  public static void main(String[] args) {
+-    JobConf job = new JobConf(HadoopArchiveLogs.class);
+-
+-    HadoopArchiveLogs hal = new HadoopArchiveLogs(job);
+-    int ret = 0;
+-
+-    try{
+-      ret = ToolRunner.run(hal, args);
+-    } catch(Exception e) {
+-      LOG.debug("Exception", e);
+-      System.err.println(e.getClass().getSimpleName());
+-      final String s = e.getLocalizedMessage();
+-      if (s != null) {
+-        System.err.println(s);
+-      } else {
+-        e.printStackTrace(System.err);
+-      }
+-      System.exit(1);
+-    }
+-    System.exit(ret);
+-  }
+-
+-  @Override
+-  public int run(String[] args) throws Exception {
+-    int exitCode = 1;
+-
+-    handleOpts(args);
+-
+-    FileSystem fs = null;
+-
+-    LogAggregationFileControllerFactory factory =
+-        new LogAggregationFileControllerFactory(conf);
+-    List<LogAggregationFileController> fileControllers = factory
+-        .getConfiguredLogAggregationFileControllerList();
+-    if (fileControllers == null || fileControllers.isEmpty()) {
+-      LOG.info("Can not find any valid fileControllers.");
+-      if (verbose) {
+-        LOG.info("The configurated fileControllers:"
+-            + YarnConfiguration.LOG_AGGREGATION_FILE_FORMATS);
+-      }
+-      return 0;
+-    }
+-    try {
+-      fs = FileSystem.get(conf);
+-      // find eligibleApplications for all the fileControllers
+-      int previousTotal = 0;
+-      for (LogAggregationFileController fileController : fileControllers) {
+-        Path remoteRootLogDir = fileController.getRemoteRootLogDir();
+-        String suffix = fileController.getRemoteRootLogDirSuffix();
+-        Path workingDir = new Path(remoteRootLogDir, "archive-logs-work");
+-        if (verbose) {
+-          LOG.info("LogAggregationFileController:" + fileController
+-              .getClass().getName());
+-          LOG.info("Remote Log Dir Root: " + remoteRootLogDir);
+-          LOG.info("Log Suffix: " + suffix);
+-          LOG.info("Working Dir: " + workingDir);
+-        }
+-        checkFilesAndSeedApps(fs, remoteRootLogDir, suffix, workingDir);
+-
+-        filterAppsByAggregatedStatus();
+-
+-        if (eligibleApplications.size() > previousTotal) {
+-          workingDirs.add(workingDir);
+-          previousTotal = eligibleApplications.size();
+-        }
+-      }
+-      checkMaxEligible();
+-      if (workingDirs.isEmpty() || eligibleApplications.isEmpty()) {
+-        LOG.info("No eligible applications to process");
+-        return 0;
+-      }
+-      for (Path workingDir : workingDirs) {
+-        if (!prepareWorkingDir(fs, workingDir)) {
+-          LOG.error("Failed to create the workingDir:"
+-              + workingDir.toString());
+-          return 1;
+-        }
+-      }
+-      StringBuilder sb =
+-          new StringBuilder("Will process the following applications:");
+-      for (AppInfo app : eligibleApplications) {
+-        sb.append("\n\t").append(app.getAppId());
+-      }
+-      LOG.info(sb.toString());
+-      File localScript = File.createTempFile("hadoop-archive-logs-", ".sh");
+-      generateScript(localScript);
+-
+-      exitCode = runDistributedShell(localScript) ? 0 : 1;
+-    } finally {
+-      if (fs != null) {
+-        // Cleanup working directory
+-        for (Path workingDir : workingDirs) {
+-          fs.delete(workingDir, true);
+-        }
+-        fs.close();
+-      }
+-    }
+-    return exitCode;
+-  }
+-
+-  private void handleOpts(String[] args) throws ParseException {
+-    Options opts = new Options();
+-    Option helpOpt = new Option(HELP_OPTION, false, "Prints this message");
+-    Option maxEligibleOpt = new Option(MAX_ELIGIBLE_APPS_OPTION, true,
+-        "The maximum number of eligible apps to process (default: "
+-            + DEFAULT_MAX_ELIGIBLE + " (all))");
+-    maxEligibleOpt.setArgName("n");
+-    Option minNumLogFilesOpt = new Option(MIN_NUM_LOG_FILES_OPTION, true,
+-        "The minimum number of log files required to be eligible (default: "
+-            + DEFAULT_MIN_NUM_LOG_FILES + ")");
+-    minNumLogFilesOpt.setArgName("n");
+-    Option maxTotalLogsSizeOpt = new Option(MAX_TOTAL_LOGS_SIZE_OPTION, true,
+-        "The maximum total logs size (in megabytes) required to be eligible" +
+-            " (default: " + DEFAULT_MAX_TOTAL_LOGS_SIZE + ")");
+-    maxTotalLogsSizeOpt.setArgName("megabytes");
+-    Option memoryOpt = new Option(MEMORY_OPTION, true,
+-        "The amount of memory (in megabytes) for each container (default: "
+-            + DEFAULT_MEMORY + ")");
+-    memoryOpt.setArgName("megabytes");
+-    Option verboseOpt = new Option(VERBOSE_OPTION, false,
+-        "Print more details.");
+-    Option forceOpt = new Option(FORCE_OPTION, false,
+-        "Force recreating the working directory if an existing one is found. " +
+-            "This should only be used if you know that another instance is " +
+-            "not currently running");
+-    Option noProxyOpt = new Option(NO_PROXY_OPTION, false,
+-        "When specified, all processing will be done as the user running this" +
+-            " command (or the Yarn user if DefaultContainerExecutor is in " +
+-            "use). When not specified, all processing will be done as the " +
+-            "user who owns that application; if the user running this command" +
+-            " is not allowed to impersonate that user, it will fail");
+-    opts.addOption(helpOpt);
+-    opts.addOption(maxEligibleOpt);
+-    opts.addOption(minNumLogFilesOpt);
+-    opts.addOption(maxTotalLogsSizeOpt);
+-    opts.addOption(memoryOpt);
+-    opts.addOption(verboseOpt);
+-    opts.addOption(forceOpt);
+-    opts.addOption(noProxyOpt);
+-
+-    try {
+-      CommandLineParser parser = new GnuParser();
+-      CommandLine commandLine = parser.parse(opts, args);
+-      if (commandLine.hasOption(HELP_OPTION)) {
+-        HelpFormatter formatter = new HelpFormatter();
+-        formatter.printHelp("mapred archive-logs", opts);
+-        System.exit(0);
+-      }
+-      if (commandLine.hasOption(MAX_ELIGIBLE_APPS_OPTION)) {
+-        maxEligible = Integer.parseInt(
+-            commandLine.getOptionValue(MAX_ELIGIBLE_APPS_OPTION));
+-        if (maxEligible == 0) {
+-          LOG.info("Setting " + MAX_ELIGIBLE_APPS_OPTION + " to 0 accomplishes "
+-              + "nothing. Please either set it to a negative value "
+-              + "(default, all) or a more reasonable value.");
+-          System.exit(0);
+-        }
+-      }
+-      if (commandLine.hasOption(MIN_NUM_LOG_FILES_OPTION)) {
+-        minNumLogFiles = Integer.parseInt(
+-            commandLine.getOptionValue(MIN_NUM_LOG_FILES_OPTION));
+-      }
+-      if (commandLine.hasOption(MAX_TOTAL_LOGS_SIZE_OPTION)) {
+-        maxTotalLogsSize = Long.parseLong(
+-            commandLine.getOptionValue(MAX_TOTAL_LOGS_SIZE_OPTION));
+-        maxTotalLogsSize *= 1024L * 1024L;
+-      }
+-      if (commandLine.hasOption(MEMORY_OPTION)) {
+-        memory = Long.parseLong(commandLine.getOptionValue(MEMORY_OPTION));
+-      }
+-      if (commandLine.hasOption(VERBOSE_OPTION)) {
+-        verbose = true;
+-      }
+-      if (commandLine.hasOption(FORCE_OPTION)) {
+-        force = true;
+-      }
+-      if (commandLine.hasOption(NO_PROXY_OPTION)) {
+-        proxy = false;
+-      }
+-    } catch (ParseException pe) {
+-      HelpFormatter formatter = new HelpFormatter();
+-      formatter.printHelp("mapred archive-logs", opts);
+-      throw pe;
+-    }
+-  }
+-
+-  @VisibleForTesting
+-  boolean prepareWorkingDir(FileSystem fs, Path workingDir) throws IOException {
+-    if (fs.exists(workingDir)) {
+-      if (force) {
+-        LOG.info("Existing Working Dir detected: -" + FORCE_OPTION +
+-            " specified -> recreating Working Dir");
+-        fs.delete(workingDir, true);
+-      } else {
+-        LOG.info("Existing Working Dir detected: -" + FORCE_OPTION +
+-            " not specified -> exiting");
+-        return false;
+-      }
+-    }
+-    fs.mkdirs(workingDir);
+-    fs.setPermission(workingDir,
+-        new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL, true));
+-    return true;
+-  }
+-
+-  @VisibleForTesting
+-  void filterAppsByAggregatedStatus() throws IOException, YarnException {
+-    YarnClient client = YarnClient.createYarnClient();
+-    try {
+-      client.init(getConf());
+-      client.start();
+-      for (Iterator<AppInfo> it = eligibleApplications
+-          .iterator(); it.hasNext();) {
+-        AppInfo app = it.next();
+-        try {
+-          ApplicationReport report = client.getApplicationReport(
+-              ApplicationId.fromString(app.getAppId()));
+-          LogAggregationStatus aggStatus = report.getLogAggregationStatus();
+-          if (aggStatus.equals(LogAggregationStatus.RUNNING) ||
+-              aggStatus.equals(LogAggregationStatus.RUNNING_WITH_FAILURE) ||
+-              aggStatus.equals(LogAggregationStatus.NOT_START) ||
+-              aggStatus.equals(LogAggregationStatus.DISABLED) ||
+-              aggStatus.equals(LogAggregationStatus.FAILED)) {
+-            if (verbose) {
+-              LOG.info("Skipping " + app.getAppId() +
+-                  " due to aggregation status being " + aggStatus);
+-            }
+-            it.remove();
+-          } else {
+-            if (verbose) {
+-              LOG.info(app.getAppId() + " has aggregation status " + aggStatus);
+-            }
+-            app.setFinishTime(report.getFinishTime());
+-          }
+-        } catch (ApplicationNotFoundException e) {
+-          // Assume the aggregation has finished
+-          if (verbose) {
+-            LOG.info(app.getAppId() + " not in the ResourceManager");
+-          }
+-        }
+-      }
+-    } finally {
+-      if (client != null) {
+-        client.stop();
+-      }
+-    }
+-  }
+-
+-  @VisibleForTesting
+-  void checkFilesAndSeedApps(FileSystem fs, Path remoteRootLogDir,
+-       String suffix, Path workingDir) throws IOException {
+-    for (RemoteIterator<FileStatus> userIt =
+-         fs.listStatusIterator(remoteRootLogDir); userIt.hasNext();) {
+-      Path userLogPath = userIt.next().getPath();
+-      try {
+-        for (RemoteIterator<FileStatus> appIt =
+-             fs.listStatusIterator(new Path(userLogPath, suffix));
+-             appIt.hasNext();) {
+-          Path appLogPath = appIt.next().getPath();
+-          try {
+-            FileStatus[] files = fs.listStatus(appLogPath);
+-            if (files.length >= minNumLogFiles) {
+-              boolean eligible = true;
+-              long totalFileSize = 0L;
+-              for (FileStatus file : files) {
+-                if (file.getPath().getName().equals(appLogPath.getName()
+-                    + ".har")) {
+-                  eligible = false;
+-                  if (verbose) {
+-                    LOG.info("Skipping " + appLogPath.getName() +
+-                        " due to existing .har file");
+-                  }
+-                  break;
+-                }
+-                totalFileSize += file.getLen();
+-                if (totalFileSize > maxTotalLogsSize) {
+-                  eligible = false;
+-                  if (verbose) {
+-                    LOG.info("Skipping " + appLogPath.getName() + " due to " +
+-                        "total file size being too large (" + totalFileSize +
+-                        " > " + maxTotalLogsSize + ")");
+-                  }
+-                  break;
+-                }
+-              }
+-              if (eligible) {
+-                if (verbose) {
+-                  LOG.info("Adding " + appLogPath.getName() + " for user " +
+-                      userLogPath.getName());
+-                }
+-                AppInfo context = new AppInfo();
+-                context.setAppId(appLogPath.getName());
+-                context.setUser(userLogPath.getName());
+-                context.setSuffix(suffix);
+-                context.setRemoteRootLogDir(remoteRootLogDir);
+-                context.setWorkingDir(workingDir);
+-                eligibleApplications.add(context);
+-              }
+-            } else {
+-              if (verbose) {
+-                LOG.info("Skipping " + appLogPath.getName() + " due to not " +
+-                    "having enough log files (" + files.length + " < " +
+-                    minNumLogFiles + ")");
+-              }
+-            }
+-          } catch (IOException ioe) {
+-            // Ignore any apps we can't read
+-            if (verbose) {
+-              LOG.info("Skipping logs under " + appLogPath + " due to " +
+-                  ioe.getMessage());
+-            }
+-          }
+-        }
+-      } catch (IOException ioe) {
+-        // Ignore any apps we can't read
+-        if (verbose) {
+-          LOG.info("Skipping all logs under " + userLogPath + " due to " +
+-              ioe.getMessage());
+-        }
+-      }
+-    }
+-  }
+-
+-  @VisibleForTesting
+-  void checkMaxEligible() {
+-    // If we have too many eligible apps, remove the newest ones first
+-    if (maxEligible > 0 && eligibleApplications.size()
+-        > maxEligible) {
+-      if (verbose) {
+-        LOG.info("Too many applications (" + eligibleApplications
+-            .size() +
+-            " > " + maxEligible + ")");
+-      }
+-      List<AppInfo> sortedApplications =
+-          new ArrayList<AppInfo>(eligibleApplications);
+-      Collections.sort(sortedApplications, new Comparator<
+-          AppInfo>() {
+-        @Override
+-        public int compare(AppInfo o1, AppInfo o2) {
+-          int lCompare = Long.compare(o1.getFinishTime(), o2.getFinishTime());
+-          if (lCompare == 0) {
+-            return o1.getAppId().compareTo(o2.getAppId());
+-          }
+-          return lCompare;
+-        }
+-      });
+-      for (int i = maxEligible; i < sortedApplications.size(); i++) {
+-        if (verbose) {
+-          LOG.info("Removing " + sortedApplications.get(i));
+-        }
+-        eligibleApplications.remove(sortedApplications.get(i));
+-      }
+-    }
+-  }
+-
+-  /*
+-  The generated script looks like this:
+-  #!/bin/bash
+-  set -e
+-  set -x
+-  if [ "$YARN_SHELL_ID" == "1" ]; then
+-        appId="application_1440448768987_0001"
+-        user="rkanter"
+-        workingDir="/tmp/logs/archive-logs-work"
+-        remoteRootLogDir="/tmp/logs"
+-        suffix="logs"
+-  elif [ "$YARN_SHELL_ID" == "2" ]; then
+-        appId="application_1440448768987_0002"
+-        user="rkanter"
+-        workingDir="/tmp/logs/archive-logs-work"
+-        remoteRootLogDir="/tmp/logs"
+-        suffix="logs"
+-  else
+-        echo "Unknown Mapping!"
+-        exit 1
+-  fi
+-  export HADOOP_CLIENT_OPTS="-Xmx1024m"
+-  export HADOOP_CLASSPATH=/dist/share/hadoop/tools/lib/hadoop-archive-logs-2.8.0-SNAPSHOT.jar:/dist/share/hadoop/tools/lib/hadoop-archives-2.8.0-SNAPSHOT.jar
+-  "$HADOOP_HOME"/bin/hadoop org.apache.hadoop.tools.HadoopArchiveLogsRunner -appId "$appId" -user "$user" -workingDir "$workingDir" -remoteRootLogDir "$remoteRootLogDir" -suffix "$suffix"
+-   */
+-  @VisibleForTesting
+-  void generateScript(File localScript) throws IOException {
+-    if (verbose) {
+-      LOG.info("Generating script at: " + localScript.getAbsolutePath());
+-    }
+-    String halrJarPath = HadoopArchiveLogsRunner.class.getProtectionDomain()
+-        .getCodeSource().getLocation().getPath();
+-    String harJarPath = HadoopArchives.class.getProtectionDomain()
+-        .getCodeSource().getLocation().getPath();
+-    String classpath = halrJarPath + File.pathSeparator + harJarPath;
+-    FileWriterWithEncoding fw = null;
+-    try {
+-      fw = FileWriterWithEncoding.builder()
+-              .setFile(localScript)
+-              .setCharset(StandardCharsets.UTF_8)
+-              .get();
+-      fw.write("#!/bin/bash\nset -e\nset -x\n");
+-      int containerCount = 1;
+-      for (AppInfo context : eligibleApplications) {
+-        fw.write("if [ \"$YARN_SHELL_ID\" == \"");
+-        fw.write(Integer.toString(containerCount));
+-        fw.write("\" ]; then\n\tappId=\"");
+-        fw.write(context.getAppId());
+-        fw.write("\"\n\tuser=\"");
+-        fw.write(context.getUser());
+-        fw.write("\"\n\tworkingDir=\"");
+-        fw.write(context.getWorkingDir().toString());
+-        fw.write("\"\n\tremoteRootLogDir=\"");
+-        fw.write(context.getRemoteRootLogDir().toString());
+-        fw.write("\"\n\tsuffix=\"");
+-        fw.write(context.getSuffix());
+-        fw.write("\"\nel");
+-        containerCount++;
+-      }
+-      fw.write("se\n\techo \"Unknown Mapping!\"\n\texit 1\nfi\n");
+-      fw.write("export HADOOP_CLIENT_OPTS=\"-Xmx");
+-      fw.write(Long.toString(memory));
+-      fw.write("m\"\n");
+-      fw.write("export HADOOP_CLASSPATH=");
+-      fw.write(classpath);
+-      fw.write("\n\"$HADOOP_HOME\"/bin/hadoop ");
+-      fw.write(HadoopArchiveLogsRunner.class.getName());
+-      fw.write(" -appId \"$appId\" -user \"$user\" -workingDir ");
+-      fw.write("\"$workingDir\"");
+-      fw.write(" -remoteRootLogDir ");
+-      fw.write("\"$remoteRootLogDir\"");
+-      fw.write(" -suffix ");
+-      fw.write("\"$suffix\"");
+-      if (!proxy) {
+-        fw.write(" -noProxy\n");
+-      }
+-      fw.write("\n");
+-    } finally {
+-      if (fw != null) {
+-        fw.close();
+-      }
+-    }
+-  }
+-
+-  private boolean runDistributedShell(File localScript) throws Exception {
+-    String[] dsArgs = {
+-        "--appname",
+-        "ArchiveLogs",
+-        "--jar",
+-        ApplicationMaster.class.getProtectionDomain().getCodeSource()
+-            .getLocation().getPath(),
+-        "--num_containers",
+-        Integer.toString(eligibleApplications.size()),
+-        "--container_memory",
+-        Long.toString(memory),
+-        "--shell_script",
+-        localScript.getAbsolutePath()
+-    };
+-    if (verbose) {
+-      LOG.info("Running Distributed Shell with arguments: " +
+-          Arrays.toString(dsArgs));
+-    }
+-    final Client dsClient = new Client(new Configuration(conf));
+-    dsClient.init(dsArgs);
+-    return dsClient.run();
+-  }
+-
+-  @Override
+-  public void setConf(Configuration conf) {
+-    if (conf instanceof JobConf) {
+-      this.conf = (JobConf) conf;
+-    } else {
+-      this.conf = new JobConf(conf, HadoopArchiveLogs.class);
+-    }
+-  }
+-
+-  @Override
+-  public Configuration getConf() {
+-    return this.conf;
+-  }
+-
+-  @VisibleForTesting
+-  static class AppInfo {
+-    private String appId;
+-    private Path remoteRootLogDir;
+-    private String suffix;
+-    private Path workingDir;
+-    private String user;
+-    private long finishTime;
+-
+-    AppInfo() {}
+-
+-    AppInfo(String appId, String user) {
+-      this.setAppId(appId);
+-      this.setUser(user);
+-    }
+-
+-    public String getAppId() {
+-      return appId;
+-    }
+-
+-    public void setAppId(String appId) {
+-      this.appId = appId;
+-    }
+-
+-    public Path getRemoteRootLogDir() {
+-      return remoteRootLogDir;
+-    }
+-
+-    public void setRemoteRootLogDir(Path remoteRootLogDir) {
+-      this.remoteRootLogDir = remoteRootLogDir;
+-    }
+-
+-    public String getSuffix() {
+-      return suffix;
+-    }
+-
+-    public void setSuffix(String suffix) {
+-      this.suffix = suffix;
+-    }
+-
+-    public Path getWorkingDir() {
+-      return workingDir;
+-    }
+-
+-    public void setWorkingDir(Path workingDir) {
+-      this.workingDir = workingDir;
+-    }
+-
+-    public String getUser() {
+-      return user;
+-    }
+-
+-    public void setUser(String user) {
+-      this.user = user;
+-    }
+-
+-    public long getFinishTime() {
+-      return finishTime;
+-    }
+-
+-    public void setFinishTime(long finishTime) {
+-      this.finishTime = finishTime;
+-    }
+-
+-    @Override
+-    public boolean equals(Object o) {
+-      if (this == o) {
+-        return true;
+-      }
+-      if (o == null || getClass() != o.getClass()) {
+-        return false;
+-      }
+-
+-      AppInfo appInfo = (AppInfo) o;
+-
+-      if (appId != null
+-          ? !appId.equals(appInfo.appId) : appInfo.appId != null) {
+-        return false;
+-      }
+-
+-      if (user != null
+-          ? !user.equals(appInfo.user) : appInfo.user != null) {
+-        return false;
+-      }
+-
+-      if (suffix != null
+-          ? !suffix.equals(appInfo.suffix) : appInfo.suffix != null) {
+-        return false;
+-      }
+-
+-      if (workingDir != null ? !workingDir.equals(
+-          appInfo.workingDir) : appInfo.workingDir != null) {
+-        return false;
+-      }
+-
+-      if (remoteRootLogDir != null ? !remoteRootLogDir.equals(
+-          appInfo.remoteRootLogDir) : appInfo.remoteRootLogDir != null) {
+-        return false;
+-      }
+-
+-      return Long.compare(finishTime, appInfo.finishTime) == 0;
+-    }
+-
+-    @Override
+-    public int hashCode() {
+-      int result = appId != null ? appId.hashCode() : 0;
+-      result = 31 * result + (user != null ? user.hashCode() : 0);
+-      result = 31 * result + (suffix != null ? suffix.hashCode() : 0);
+-      result = 31 * result + (workingDir != null ? workingDir.hashCode() : 0);
+-      result = 31 * result + (remoteRootLogDir != null ?
+-          remoteRootLogDir.hashCode() : 0);
+-      result = 31 * result + Long.valueOf(finishTime).hashCode();
+-      return result;
+-    }
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogsRunner.java b/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogsRunner.java
+deleted file mode 100644
+index 4191d216878..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/main/java/org/apache/hadoop/tools/HadoopArchiveLogsRunner.java
++++ /dev/null
+@@ -1,240 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.apache.commons.cli.CommandLine;
+-import org.apache.commons.cli.CommandLineParser;
+-import org.apache.commons.cli.GnuParser;
+-import org.apache.commons.cli.Option;
+-import org.apache.commons.cli.Options;
+-import org.apache.commons.cli.ParseException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.PathFilter;
+-import org.apache.hadoop.fs.permission.FsAction;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.util.Tool;
+-import org.apache.hadoop.util.ToolRunner;
+-
+-import java.io.File;
+-import java.security.PrivilegedExceptionAction;
+-
+-/**
+- * This is a child program designed to be used by the {@link HadoopArchiveLogs}
+- * tool via the Distributed Shell.  It's not meant to be run directly.
+- */
+-public class HadoopArchiveLogsRunner implements Tool {
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(HadoopArchiveLogsRunner.class);
+-
+-  private static final String APP_ID_OPTION = "appId";
+-  private static final String USER_OPTION = "user";
+-  private static final String WORKING_DIR_OPTION = "workingDir";
+-  private static final String REMOTE_ROOT_LOG_DIR_OPTION = "remoteRootLogDir";
+-  private static final String SUFFIX_OPTION = "suffix";
+-  private static final String NO_PROXY_OPTION = "noProxy";
+-
+-  private String appId;
+-  private String user;
+-  private String workingDir;
+-  private String remoteLogDir;
+-  private String suffix;
+-  private boolean proxy;
+-
+-  private JobConf conf;
+-
+-  @VisibleForTesting
+-  HadoopArchives hadoopArchives;
+-
+-  private static final FsPermission HAR_DIR_PERM =
+-      new FsPermission(FsAction.ALL, FsAction.READ_EXECUTE, FsAction.NONE);
+-  private static final FsPermission HAR_INNER_FILES_PERM =
+-      new FsPermission(FsAction.READ_WRITE, FsAction.READ, FsAction.NONE);
+-
+-  public HadoopArchiveLogsRunner(Configuration conf) {
+-    setConf(conf);
+-    hadoopArchives = new HadoopArchives(conf);
+-  }
+-
+-  public static void main(String[] args) {
+-    JobConf job = new JobConf(HadoopArchiveLogsRunner.class);
+-
+-    HadoopArchiveLogsRunner halr = new HadoopArchiveLogsRunner(job);
+-    int ret = 0;
+-
+-    try{
+-      ret = ToolRunner.run(halr, args);
+-    } catch(Exception e) {
+-      LOG.debug("Exception", e);
+-      System.err.println(e.getClass().getSimpleName());
+-      final String s = e.getLocalizedMessage();
+-      if (s != null) {
+-        System.err.println(s);
+-      } else {
+-        e.printStackTrace(System.err);
+-      }
+-      System.exit(1);
+-    }
+-    System.exit(ret);
+-  }
+-
+-  @Override
+-  public int run(String[] args) throws Exception {
+-    handleOpts(args);
+-
+-    Integer exitCode = 1;
+-    UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
+-    // If we're running as the user, then no need to impersonate
+-    // (which might fail if user is not a proxyuser for themselves)
+-    // Also if !proxy is set
+-    if (!proxy || loginUser.getShortUserName().equals(user)) {
+-      LOG.info("Running as " + user);
+-      exitCode = runInternal();
+-    } else {
+-      // Otherwise impersonate user.  If we're not allowed to, then this will
+-      // fail with an Exception
+-      LOG.info("Running as " + loginUser.getShortUserName() + " but will " +
+-          "impersonate " + user);
+-      UserGroupInformation proxyUser =
+-          UserGroupInformation.createProxyUser(user, loginUser);
+-      exitCode = proxyUser.doAs(new PrivilegedExceptionAction<Integer>() {
+-        @Override
+-        public Integer run() throws Exception {
+-          return runInternal();
+-        }
+-      });
+-    }
+-    return exitCode;
+-  }
+-
+-  private int runInternal() throws Exception {
+-    String remoteAppLogDir = remoteLogDir + File.separator + user
+-        + File.separator + suffix + File.separator + appId;
+-    // Run 'hadoop archives' command in local mode
+-    conf.set("mapreduce.framework.name", "local");
+-    // Set the umask so we get 640 files and 750 dirs
+-    conf.set("fs.permissions.umask-mode", "027");
+-    String harName = appId + ".har";
+-    String[] haArgs = {
+-        "-archiveName",
+-        harName,
+-        "-p",
+-        remoteAppLogDir,
+-        "*",
+-        workingDir
+-    };
+-    StringBuilder sb = new StringBuilder("Executing 'hadoop archives'");
+-    for (String haArg : haArgs) {
+-      sb.append("\n\t").append(haArg);
+-    }
+-    LOG.info(sb.toString());
+-    int exitCode = hadoopArchives.run(haArgs);
+-    if (exitCode != 0) {
+-      LOG.warn("Failed to create archives for " + appId);
+-      return -1;
+-    }
+-
+-    FileSystem fs = null;
+-    // Move har file to correct location and delete original logs
+-    try {
+-      fs = FileSystem.get(conf);
+-      Path harPath = new Path(workingDir, harName);
+-      if (!fs.exists(harPath) ||
+-          fs.listStatus(harPath).length == 0) {
+-        LOG.warn("The created archive \"" + harName +
+-            "\" is missing or empty.");
+-        return -1;
+-      }
+-      Path harDest = new Path(remoteAppLogDir, harName);
+-      LOG.info("Moving har to original location");
+-      fs.rename(harPath, harDest);
+-      LOG.info("Deleting original logs");
+-      for (FileStatus original : fs.listStatus(new Path(remoteAppLogDir),
+-          new PathFilter() {
+-            @Override
+-            public boolean accept(Path path) {
+-              return !path.getName().endsWith(".har");
+-            }
+-          })) {
+-        fs.delete(original.getPath(), false);
+-      }
+-    } finally {
+-      if (fs != null) {
+-        fs.close();
+-      }
+-    }
+-    return 0;
+-  }
+-
+-  private void handleOpts(String[] args) throws ParseException {
+-    Options opts = new Options();
+-    Option appIdOpt = new Option(APP_ID_OPTION, true, "Application ID");
+-    appIdOpt.setRequired(true);
+-    Option userOpt = new Option(USER_OPTION, true, "User");
+-    userOpt.setRequired(true);
+-    Option workingDirOpt = new Option(WORKING_DIR_OPTION, true,
+-        "Working Directory");
+-    workingDirOpt.setRequired(true);
+-    Option remoteLogDirOpt = new Option(REMOTE_ROOT_LOG_DIR_OPTION, true,
+-        "Remote Root Log Directory");
+-    remoteLogDirOpt.setRequired(true);
+-    Option suffixOpt = new Option(SUFFIX_OPTION, true, "Suffix");
+-    suffixOpt.setRequired(true);
+-    Option useProxyOpt = new Option(NO_PROXY_OPTION, false, "Use Proxy");
+-    opts.addOption(appIdOpt);
+-    opts.addOption(userOpt);
+-    opts.addOption(workingDirOpt);
+-    opts.addOption(remoteLogDirOpt);
+-    opts.addOption(suffixOpt);
+-    opts.addOption(useProxyOpt);
+-
+-    CommandLineParser parser = new GnuParser();
+-    CommandLine commandLine = parser.parse(opts, args);
+-    appId = commandLine.getOptionValue(APP_ID_OPTION);
+-    user = commandLine.getOptionValue(USER_OPTION);
+-    workingDir = commandLine.getOptionValue(WORKING_DIR_OPTION);
+-    remoteLogDir = commandLine.getOptionValue(REMOTE_ROOT_LOG_DIR_OPTION);
+-    suffix = commandLine.getOptionValue(SUFFIX_OPTION);
+-    proxy = true;
+-    if (commandLine.hasOption(NO_PROXY_OPTION)) {
+-      proxy = false;
+-    }
+-  }
+-
+-  @Override
+-  public void setConf(Configuration conf) {
+-    if (conf instanceof JobConf) {
+-      this.conf = (JobConf) conf;
+-    } else {
+-      this.conf = new JobConf(conf, HadoopArchiveLogsRunner.class);
+-    }
+-  }
+-
+-  @Override
+-  public Configuration getConf() {
+-    return this.conf;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-archive-logs/src/main/shellprofile.d/hadoop-archive-logs.sh b/hadoop-tools/hadoop-archive-logs/src/main/shellprofile.d/hadoop-archive-logs.sh
+deleted file mode 100755
+index 278a0895f2c..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/main/shellprofile.d/hadoop-archive-logs.sh
++++ /dev/null
+@@ -1,37 +0,0 @@
+-#!/usr/bin/env bash
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-if ! declare -f mapred_subcommand_archive-logs >/dev/null 2>/dev/null; then
+-
+-  if [[ "${HADOOP_SHELL_EXECNAME}" = mapred ]]; then
+-    hadoop_add_subcommand "archive-logs" client "combine aggregated logs into hadoop archives"
+-  fi
+-
+-  # this can't be indented otherwise shelldocs won't get it
+-
+-## @description  archive-logs command for mapred
+-## @audience     public
+-## @stability    stable
+-## @replaceable  yes
+-function mapred_subcommand_archive-logs
+-{
+-  # shellcheck disable=SC2034
+-  HADOOP_CLASSNAME=org.apache.hadoop.tools.HadoopArchiveLogs
+-  hadoop_add_to_classpath_tools hadoop-archive-logs
+-}
+-
+-fi
+diff --git a/hadoop-tools/hadoop-archive-logs/src/site/markdown/HadoopArchiveLogs.md b/hadoop-tools/hadoop-archive-logs/src/site/markdown/HadoopArchiveLogs.md
+deleted file mode 100644
+index 406c2d5adec..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/site/markdown/HadoopArchiveLogs.md
++++ /dev/null
+@@ -1,102 +0,0 @@
+-<!---
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-
+-Hadoop Archive Logs Guide
+-=========================
+-
+- - [Overview](#Overview)
+- - [How to Archive Logs](#How_to_Archive_Logs)
+-
+-Overview
+---------
+-
+-For clusters with a lot of YARN aggregated logs, it can be helpful to combine
+-them into hadoop archives in order to reduce the number of small files, and
+-hence the stress on the NameNode.  This tool provides an easy way to do this.
+-Aggregated logs in hadoop archives can still be read by the Job History Server
+-and by the `yarn logs` command.
+-
+-For more on hadoop archives, see
+-[Hadoop Archives Guide](../hadoop-archives/HadoopArchives.html).
+-
+-How to Archive Logs
+--------------------
+-
+-    usage: mapred archive-logs
+-    -force                         Force recreating the working directory if
+-                                   an existing one is found. This should
+-                                   only be used if you know that another
+-                                   instance is not currently running
+-    -help                          Prints this message
+-    -maxEligibleApps <n>           The maximum number of eligible apps to
+-                                   process (default: -1 (all))
+-    -maxTotalLogsSize <megabytes>  The maximum total logs size (in
+-                                   megabytes) required to be eligible
+-                                   (default: 1024)
+-    -memory <megabytes>            The amount of memory (in megabytes) for
+-                                   each container (default: 1024)
+-    -minNumberLogFiles <n>         The minimum number of log files required
+-                                   to be eligible (default: 20)
+-    -noProxy                       When specified, all processing will be
+-                                   done as the user running this command (or
+-                                   the YARN user if DefaultContainerExecutor
+-                                   is in use). When not specified, all
+-                                   processing will be done as the user who
+-                                   owns that application; if the user
+-                                   running this command is not allowed to
+-                                   impersonate that user, it will fail
+-    -verbose                       Print more details.
+-
+-The tool only supports running one instance on a cluster at a time in order
+-to prevent conflicts. It does this by checking for the existence of a
+-directory named ``archive-logs-work`` under
+-``yarn.nodemanager.remote-app-log-dir`` in HDFS
+-(default: ``/tmp/logs/archive-logs-work``). If for some reason that
+-directory was not cleaned up properly, and the tool refuses to run, you can
+-force it with the ``-force`` option.
+-
+-The ``-help`` option prints out the usage information.
+-
+-The tool works by performing the following procedure:
+-
+- 1. Determine the list of eligible applications, based on the following
+-    criteria:
+-    - is not already archived
+-    - its aggregation status has successfully completed
+-    - has at least ``-minNumberLogFiles`` log files
+-    - the sum of its log files size is less than ``-maxTotalLogsSize`` megabytes
+- 2. If there are more than ``-maxEligibleApps`` applications found, the
+-    newest applications are dropped. They can be processed next time.
+- 3. A shell script is generated based on the eligible applications
+- 4. The Distributed Shell program is run with the aformentioned script. It
+-    will run with ``-maxEligibleApps`` containers, one to process each
+-    application, and with ``-memory`` megabytes of memory. Each container runs
+-    the ``hadoop archives`` command for a single application and replaces
+-    its aggregated log files with the resulting archive.
+-
+-The ``-noProxy`` option makes the tool process everything as the user who is
+-currently running it, or the YARN user if DefaultContainerExecutor is in use.
+-When not specified, all processing will be done by the user who owns that
+-application; if the user running this command is not allowed to impersonate that
+-user, it will fail.  This is useful if you want an admin user to handle all
+-aggregation without enabling impersonation.  With ``-noProxy`` the resulting
+-HAR files will be owned by whoever ran the tool, instead of whoever originally
+-owned the logs.
+-
+-The ``-verbose`` option makes the tool print more details about what it's
+-doing.
+-
+-The end result of running the tool is that the original aggregated log files for
+-a processed application will be replaced by a hadoop archive containing all of
+-those logs.
+diff --git a/hadoop-tools/hadoop-archive-logs/src/site/resources/css/site.css b/hadoop-tools/hadoop-archive-logs/src/site/resources/css/site.css
+deleted file mode 100644
+index f830baafa8c..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/site/resources/css/site.css
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+-* Licensed to the Apache Software Foundation (ASF) under one or more
+-* contributor license agreements.  See the NOTICE file distributed with
+-* this work for additional information regarding copyright ownership.
+-* The ASF licenses this file to You under the Apache License, Version 2.0
+-* (the "License"); you may not use this file except in compliance with
+-* the License.  You may obtain a copy of the License at
+-*
+-*     http://www.apache.org/licenses/LICENSE-2.0
+-*
+-* Unless required by applicable law or agreed to in writing, software
+-* distributed under the License is distributed on an "AS IS" BASIS,
+-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-* See the License for the specific language governing permissions and
+-* limitations under the License.
+-*/
+-#banner {
+-  height: 93px;
+-  background: none;
+-}
+-
+-#bannerLeft img {
+-  margin-left: 30px;
+-  margin-top: 10px;
+-}
+-
+-#bannerRight img {
+-  margin: 17px;
+-}
+-
+diff --git a/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogs.java b/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogs.java
+deleted file mode 100644
+index b475cc25e8e..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogs.java
++++ /dev/null
+@@ -1,441 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import org.apache.commons.io.IOUtils;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsAction;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.util.Shell;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.ApplicationReport;
+-import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
+-import org.apache.hadoop.yarn.api.records.LogAggregationStatus;
+-import org.apache.hadoop.yarn.api.records.Priority;
+-import org.apache.hadoop.yarn.api.records.Resource;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.MiniYARNCluster;
+-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+-import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
+-import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl;
+-import org.junit.Assert;
+-import org.junit.Test;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.nio.charset.StandardCharsets;
+-import java.util.Random;
+-
+-public class TestHadoopArchiveLogs {
+-
+-  private static final long CLUSTER_TIMESTAMP = System.currentTimeMillis();
+-  private static final String USER = System.getProperty("user.name");
+-  private static final int FILE_SIZE_INCREMENT = 4096;
+-  private static final byte[] DUMMY_DATA = new byte[FILE_SIZE_INCREMENT];
+-  static {
+-    new Random().nextBytes(DUMMY_DATA);
+-  }
+-
+-  @Test(timeout = 10000)
+-  public void testCheckFilesAndSeedApps() throws Exception {
+-    Configuration conf = new Configuration();
+-    HadoopArchiveLogs hal = new HadoopArchiveLogs(conf);
+-    FileSystem fs = FileSystem.getLocal(conf);
+-    Path rootLogDir = new Path("target", "logs");
+-    String suffix = "logs";
+-    Path logDir = new Path(rootLogDir, new Path(USER, suffix));
+-    fs.delete(logDir, true);
+-    Assert.assertFalse(fs.exists(logDir));
+-    fs.mkdirs(logDir);
+-
+-    // no files found
+-    ApplicationId appId1 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 1);
+-    Path app1Path = new Path(logDir, appId1.toString());
+-    fs.mkdirs(app1Path);
+-    // too few files
+-    ApplicationId appId2 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 2);
+-    Path app2Path = new Path(logDir, appId2.toString());
+-    fs.mkdirs(app2Path);
+-    createFile(fs, new Path(app2Path, "file1"), 1);
+-    hal.minNumLogFiles = 2;
+-    // too large
+-    ApplicationId appId3 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 3);
+-    Path app3Path = new Path(logDir, appId3.toString());
+-    fs.mkdirs(app3Path);
+-    createFile(fs, new Path(app3Path, "file1"), 2);
+-    createFile(fs, new Path(app3Path, "file2"), 5);
+-    hal.maxTotalLogsSize = FILE_SIZE_INCREMENT * 6;
+-    // has har already
+-    ApplicationId appId4 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 4);
+-    Path app4Path = new Path(logDir, appId4.toString());
+-    fs.mkdirs(app4Path);
+-    createFile(fs, new Path(app4Path, appId4 + ".har"), 1);
+-    // just right
+-    ApplicationId appId5 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 5);
+-    Path app5Path = new Path(logDir, appId5.toString());
+-    fs.mkdirs(app5Path);
+-    createFile(fs, new Path(app5Path, "file1"), 2);
+-    createFile(fs, new Path(app5Path, "file2"), 3);
+-
+-    Assert.assertEquals(0, hal.eligibleApplications.size());
+-    hal.checkFilesAndSeedApps(fs, rootLogDir, suffix, new Path(rootLogDir,
+-        "archive-logs-work"));
+-    Assert.assertEquals(1, hal.eligibleApplications.size());
+-    Assert.assertEquals(appId5.toString(),
+-        hal.eligibleApplications.iterator().next().getAppId());
+-  }
+-
+-  @Test(timeout = 10000)
+-  public void testCheckMaxEligible() throws Exception {
+-    Configuration conf = new Configuration();
+-    HadoopArchiveLogs.AppInfo app1 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 1).toString(), USER);
+-    app1.setFinishTime(CLUSTER_TIMESTAMP - 5);
+-    HadoopArchiveLogs.AppInfo app2 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 2).toString(), USER);
+-    app2.setFinishTime(CLUSTER_TIMESTAMP - 10);
+-    HadoopArchiveLogs.AppInfo app3 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 3).toString(), USER);
+-    // app3 has no finish time set
+-    HadoopArchiveLogs.AppInfo app4 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 4).toString(), USER);
+-    app4.setFinishTime(CLUSTER_TIMESTAMP + 5);
+-    HadoopArchiveLogs.AppInfo app5 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 5).toString(), USER);
+-    app5.setFinishTime(CLUSTER_TIMESTAMP + 10);
+-    HadoopArchiveLogs.AppInfo app6 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 6).toString(), USER);
+-    // app6 has no finish time set
+-    HadoopArchiveLogs.AppInfo app7 = new HadoopArchiveLogs.AppInfo(
+-        ApplicationId.newInstance(CLUSTER_TIMESTAMP, 7).toString(), USER);
+-    app7.setFinishTime(CLUSTER_TIMESTAMP);
+-    HadoopArchiveLogs hal = new HadoopArchiveLogs(conf);
+-    Assert.assertEquals(0, hal.eligibleApplications.size());
+-    hal.eligibleApplications.add(app1);
+-    hal.eligibleApplications.add(app2);
+-    hal.eligibleApplications.add(app3);
+-    hal.eligibleApplications.add(app4);
+-    hal.eligibleApplications.add(app5);
+-    hal.eligibleApplications.add(app6);
+-    hal.eligibleApplications.add(app7);
+-    Assert.assertEquals(7, hal.eligibleApplications.size());
+-    hal.maxEligible = -1;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(7, hal.eligibleApplications.size());
+-    hal.maxEligible = 6;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(6, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app5));
+-    hal.maxEligible = 5;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(5, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app4));
+-    hal.maxEligible = 4;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(4, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app7));
+-    hal.maxEligible = 3;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(3, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app1));
+-    hal.maxEligible = 2;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(2, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app2));
+-    hal.maxEligible = 1;
+-    hal.checkMaxEligible();
+-    Assert.assertEquals(1, hal.eligibleApplications.size());
+-    Assert.assertFalse(hal.eligibleApplications.contains(app6));
+-    Assert.assertTrue(hal.eligibleApplications.contains(app3));
+-  }
+-
+-  @Test(timeout = 30000)
+-  public void testFilterAppsByAggregatedStatus() throws Exception {
+-    try (MiniYARNCluster yarnCluster =
+-        new MiniYARNCluster(TestHadoopArchiveLogs.class.getSimpleName(),
+-            1, 1, 1, 1)) {
+-      Configuration conf = new Configuration();
+-      conf.setBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED, true);
+-      yarnCluster.init(conf);
+-      yarnCluster.start();
+-      conf = yarnCluster.getConfig();
+-
+-      RMContext rmContext = yarnCluster.getResourceManager().getRMContext();
+-      RMAppImpl appImpl1 = (RMAppImpl)createRMApp(1, conf, rmContext,
+-          LogAggregationStatus.DISABLED);
+-      RMAppImpl appImpl2 = (RMAppImpl)createRMApp(2, conf, rmContext,
+-          LogAggregationStatus.FAILED);
+-      RMAppImpl appImpl3 = (RMAppImpl)createRMApp(3, conf, rmContext,
+-          LogAggregationStatus.NOT_START);
+-      RMAppImpl appImpl4 = (RMAppImpl)createRMApp(4, conf, rmContext,
+-          LogAggregationStatus.SUCCEEDED);
+-      RMAppImpl appImpl5 = (RMAppImpl)createRMApp(5, conf, rmContext,
+-          LogAggregationStatus.RUNNING);
+-      RMAppImpl appImpl6 = (RMAppImpl)createRMApp(6, conf, rmContext,
+-          LogAggregationStatus.RUNNING_WITH_FAILURE);
+-      RMAppImpl appImpl7 = (RMAppImpl)createRMApp(7, conf, rmContext,
+-          LogAggregationStatus.TIME_OUT);
+-      RMAppImpl appImpl8 = (RMAppImpl)createRMApp(8, conf, rmContext,
+-          LogAggregationStatus.SUCCEEDED);
+-      rmContext.getRMApps().put(appImpl1.getApplicationId(), appImpl1);
+-      rmContext.getRMApps().put(appImpl2.getApplicationId(), appImpl2);
+-      rmContext.getRMApps().put(appImpl3.getApplicationId(), appImpl3);
+-      rmContext.getRMApps().put(appImpl4.getApplicationId(), appImpl4);
+-      rmContext.getRMApps().put(appImpl5.getApplicationId(), appImpl5);
+-      rmContext.getRMApps().put(appImpl6.getApplicationId(), appImpl6);
+-      rmContext.getRMApps().put(appImpl7.getApplicationId(), appImpl7);
+-      // appImpl8 is not in the RM
+-
+-      HadoopArchiveLogs hal = new HadoopArchiveLogs(conf);
+-      Assert.assertEquals(0, hal.eligibleApplications.size());
+-      hal.eligibleApplications.add(
+-          new HadoopArchiveLogs.AppInfo(appImpl1.getApplicationId().toString(),
+-              USER));
+-      hal.eligibleApplications.add(
+-          new HadoopArchiveLogs.AppInfo(appImpl2.getApplicationId().toString(),
+-              USER));
+-      hal.eligibleApplications.add(
+-          new HadoopArchiveLogs.AppInfo(appImpl3.getApplicationId().toString(),
+-              USER));
+-      HadoopArchiveLogs.AppInfo app4 =
+-          new HadoopArchiveLogs.AppInfo(appImpl4.getApplicationId().toString(),
+-              USER);
+-      hal.eligibleApplications.add(app4);
+-      hal.eligibleApplications.add(
+-          new HadoopArchiveLogs.AppInfo(appImpl5.getApplicationId().toString(),
+-              USER));
+-      hal.eligibleApplications.add(
+-          new HadoopArchiveLogs.AppInfo(appImpl6.getApplicationId().toString(),
+-              USER));
+-      HadoopArchiveLogs.AppInfo app7 =
+-          new HadoopArchiveLogs.AppInfo(appImpl7.getApplicationId().toString(),
+-              USER);
+-      hal.eligibleApplications.add(app7);
+-      HadoopArchiveLogs.AppInfo app8 =
+-          new HadoopArchiveLogs.AppInfo(appImpl8.getApplicationId().toString(),
+-              USER);
+-      hal.eligibleApplications.add(app8);
+-      Assert.assertEquals(8, hal.eligibleApplications.size());
+-      hal.filterAppsByAggregatedStatus();
+-      Assert.assertEquals(3, hal.eligibleApplications.size());
+-      Assert.assertTrue(hal.eligibleApplications.contains(app4));
+-      Assert.assertTrue(hal.eligibleApplications.contains(app7));
+-      Assert.assertTrue(hal.eligibleApplications.contains(app8));
+-    }
+-  }
+-
+-  @Test(timeout = 10000)
+-  public void testGenerateScript() throws Exception {
+-    _testGenerateScript(false);
+-    _testGenerateScript(true);
+-  }
+-
+-  private void _testGenerateScript(boolean proxy) throws Exception {
+-    Configuration conf = new Configuration();
+-    HadoopArchiveLogs hal = new HadoopArchiveLogs(conf);
+-    Path workingDir = new Path("/tmp", "working");
+-    Path remoteRootLogDir = new Path("/tmp", "logs");
+-    String suffix = "logs";
+-    ApplicationId app1 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 1);
+-    HadoopArchiveLogs.AppInfo appInfo1 = new HadoopArchiveLogs.AppInfo(
+-        app1.toString(), USER);
+-    appInfo1.setSuffix(suffix);
+-    appInfo1.setRemoteRootLogDir(remoteRootLogDir);
+-    appInfo1.setWorkingDir(workingDir);
+-    hal.eligibleApplications.add(appInfo1);
+-    ApplicationId app2 = ApplicationId.newInstance(CLUSTER_TIMESTAMP, 2);
+-    Path workingDir2 = new Path("/tmp", "working2");
+-    Path remoteRootLogDir2 = new Path("/tmp", "logs2");
+-    String suffix2 = "logs2";
+-    HadoopArchiveLogs.AppInfo appInfo2 = new HadoopArchiveLogs.AppInfo(
+-        app2.toString(), USER);
+-    appInfo2.setSuffix(suffix2);
+-    appInfo2.setRemoteRootLogDir(remoteRootLogDir2);
+-    appInfo2.setWorkingDir(workingDir2);
+-    hal.eligibleApplications.add(appInfo2);
+-    hal.proxy = proxy;
+-
+-    File localScript = new File("target", "script.sh");
+-    localScript.delete();
+-    Assert.assertFalse(localScript.exists());
+-    hal.generateScript(localScript);
+-    Assert.assertTrue(localScript.exists());
+-    String script = IOUtils.toString(localScript.toURI(), StandardCharsets.UTF_8);
+-    String[] lines = script.split("\n");
+-    Assert.assertEquals(22, lines.length);
+-    Assert.assertEquals("#!/bin/bash", lines[0]);
+-    Assert.assertEquals("set -e", lines[1]);
+-    Assert.assertEquals("set -x", lines[2]);
+-    Assert.assertEquals("if [ \"$YARN_SHELL_ID\" == \"1\" ]; then", lines[3]);
+-    boolean oneBefore = true;
+-    if (lines[4].contains(app1.toString())) {
+-      Assert.assertEquals("\tappId=\"" + app1.toString() + "\"", lines[4]);
+-      Assert.assertEquals("\tappId=\"" + app2.toString() + "\"", lines[10]);
+-    } else {
+-      oneBefore = false;
+-      Assert.assertEquals("\tappId=\"" + app2.toString() + "\"", lines[4]);
+-      Assert.assertEquals("\tappId=\"" + app1.toString() + "\"", lines[10]);
+-    }
+-    Assert.assertEquals("\tuser=\"" + USER + "\"", lines[5]);
+-    Assert.assertEquals("\tworkingDir=\"" + (oneBefore ? workingDir.toString()
+-        : workingDir2.toString()) + "\"", lines[6]);
+-    Assert.assertEquals("\tremoteRootLogDir=\"" + (oneBefore
+-        ? remoteRootLogDir.toString() : remoteRootLogDir2.toString())
+-        + "\"", lines[7]);
+-    Assert.assertEquals("\tsuffix=\"" + (oneBefore ? suffix : suffix2)
+-        + "\"", lines[8]);
+-    Assert.assertEquals("elif [ \"$YARN_SHELL_ID\" == \"2\" ]; then",
+-        lines[9]);
+-    Assert.assertEquals("\tuser=\"" + USER + "\"", lines[11]);
+-    Assert.assertEquals("\tworkingDir=\"" + (oneBefore
+-        ? workingDir2.toString() : workingDir.toString()) + "\"",
+-        lines[12]);
+-    Assert.assertEquals("\tremoteRootLogDir=\"" + (oneBefore
+-        ? remoteRootLogDir2.toString() : remoteRootLogDir.toString())
+-        + "\"", lines[13]);
+-    Assert.assertEquals("\tsuffix=\"" + (oneBefore ? suffix2 : suffix)
+-        + "\"", lines[14]);
+-    Assert.assertEquals("else", lines[15]);
+-    Assert.assertEquals("\techo \"Unknown Mapping!\"", lines[16]);
+-    Assert.assertEquals("\texit 1", lines[17]);
+-    Assert.assertEquals("fi", lines[18]);
+-    Assert.assertEquals("export HADOOP_CLIENT_OPTS=\"-Xmx1024m\"", lines[19]);
+-    Assert.assertTrue(lines[20].startsWith("export HADOOP_CLASSPATH="));
+-    if (proxy) {
+-      Assert.assertEquals(
+-          "\"$HADOOP_HOME\"/bin/hadoop org.apache.hadoop.tools." +
+-              "HadoopArchiveLogsRunner -appId \"$appId\" -user \"$user\" " +
+-              "-workingDir \"$workingDir\" -remoteRootLogDir " +
+-              "\"$remoteRootLogDir\" -suffix \"$suffix\"",
+-          lines[21]);
+-    } else {
+-      Assert.assertEquals(
+-          "\"$HADOOP_HOME\"/bin/hadoop org.apache.hadoop.tools." +
+-              "HadoopArchiveLogsRunner -appId \"$appId\" -user \"$user\" " +
+-              "-workingDir \"$workingDir\" -remoteRootLogDir " +
+-              "\"$remoteRootLogDir\" -suffix \"$suffix\" -noProxy",
+-          lines[21]);
+-    }
+-  }
+-
+-  /**
+-   * If this test failes, then a new Log Aggregation Status was added.  Make
+-   * sure that {@link HadoopArchiveLogs#filterAppsByAggregatedStatus()} and this test
+-   * are updated as well, if necessary.
+-   * @throws Exception
+-   */
+-  @Test(timeout = 5000)
+-  public void testStatuses() throws Exception {
+-    LogAggregationStatus[] statuses = new LogAggregationStatus[7];
+-    statuses[0] = LogAggregationStatus.DISABLED;
+-    statuses[1] = LogAggregationStatus.NOT_START;
+-    statuses[2] = LogAggregationStatus.RUNNING;
+-    statuses[3] = LogAggregationStatus.RUNNING_WITH_FAILURE;
+-    statuses[4] = LogAggregationStatus.SUCCEEDED;
+-    statuses[5] = LogAggregationStatus.FAILED;
+-    statuses[6] = LogAggregationStatus.TIME_OUT;
+-    Assert.assertArrayEquals(statuses, LogAggregationStatus.values());
+-  }
+-
+-  @Test(timeout = 5000)
+-  public void testPrepareWorkingDir() throws Exception {
+-    Configuration conf = new Configuration();
+-    HadoopArchiveLogs hal = new HadoopArchiveLogs(conf);
+-    FileSystem fs = FileSystem.getLocal(conf);
+-    Path workingDir = new Path("target", "testPrepareWorkingDir");
+-    fs.delete(workingDir, true);
+-    Assert.assertFalse(fs.exists(workingDir));
+-    // -force is false and the dir doesn't exist so it will create one
+-    hal.force = false;
+-    boolean dirPrepared = hal.prepareWorkingDir(fs, workingDir);
+-    Assert.assertTrue(dirPrepared);
+-    Assert.assertTrue(fs.exists(workingDir));
+-    Assert.assertEquals(
+-        new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL,
+-            !Shell.WINDOWS),
+-        fs.getFileStatus(workingDir).getPermission());
+-    // Throw a file in the dir
+-    Path dummyFile = new Path(workingDir, "dummy.txt");
+-    fs.createNewFile(dummyFile);
+-    Assert.assertTrue(fs.exists(dummyFile));
+-    // -force is false and the dir exists, so nothing will happen and the dummy
+-    // still exists
+-    dirPrepared = hal.prepareWorkingDir(fs, workingDir);
+-    Assert.assertFalse(dirPrepared);
+-    Assert.assertTrue(fs.exists(workingDir));
+-    Assert.assertTrue(fs.exists(dummyFile));
+-    Assert.assertEquals(
+-        new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL,
+-            !Shell.WINDOWS),
+-        fs.getFileStatus(workingDir).getPermission());
+-    // -force is true and the dir exists, so it will recreate it and the dummy
+-    // won't exist anymore
+-    hal.force = true;
+-    dirPrepared = hal.prepareWorkingDir(fs, workingDir);
+-    Assert.assertTrue(dirPrepared);
+-    Assert.assertTrue(fs.exists(workingDir));
+-    Assert.assertEquals(
+-        new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL,
+-            !Shell.WINDOWS),
+-        fs.getFileStatus(workingDir).getPermission());
+-    Assert.assertFalse(fs.exists(dummyFile));
+-  }
+-
+-  private static void createFile(FileSystem fs, Path p, long sizeMultiple)
+-      throws IOException {
+-    FSDataOutputStream out = null;
+-    try {
+-      out = fs.create(p);
+-      for (int i = 0 ; i < sizeMultiple; i++) {
+-        out.write(DUMMY_DATA);
+-      }
+-    } finally {
+-      if (out != null) {
+-        out.close();
+-      }
+-    }
+-    Assert.assertTrue(fs.exists(p));
+-  }
+-
+-  private static RMApp createRMApp(int id, Configuration conf, RMContext rmContext,
+-       final LogAggregationStatus aggStatus) {
+-    ApplicationId appId = ApplicationId.newInstance(CLUSTER_TIMESTAMP, id);
+-    ApplicationSubmissionContext submissionContext =
+-        ApplicationSubmissionContext.newInstance(appId, "test", "default",
+-            Priority.newInstance(0), null, true, true,
+-            2, Resource.newInstance(10, 2), "test");
+-    return new RMAppImpl(appId, rmContext, conf, "test",
+-        USER, "default", submissionContext, rmContext.getScheduler(),
+-        rmContext.getApplicationMasterService(),
+-        System.currentTimeMillis(), "test",
+-        null, null) {
+-      @Override
+-      public ApplicationReport createAndGetApplicationReport(
+-          String clientUserName, boolean allowAccess) {
+-        ApplicationReport report =
+-            super.createAndGetApplicationReport(clientUserName, allowAccess);
+-        report.setLogAggregationStatus(aggStatus);
+-        return report;
+-      }
+-    };
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogsRunner.java b/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogsRunner.java
+deleted file mode 100644
+index 5369338d486..00000000000
+--- a/hadoop-tools/hadoop-archive-logs/src/test/java/org/apache/hadoop/tools/TestHadoopArchiveLogsRunner.java
++++ /dev/null
+@@ -1,193 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.tools;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.HarFs;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsAction;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.util.ToolRunner;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.MiniYARNCluster;
+-import org.junit.After;
+-import org.junit.Assert;
+-import org.junit.Before;
+-import org.junit.Rule;
+-import org.junit.Test;
+-import org.junit.rules.Timeout;
+-import org.mockito.Mockito;
+-
+-import java.io.IOException;
+-import java.util.Arrays;
+-import java.util.Comparator;
+-import java.util.Random;
+-
+-import static org.junit.Assert.*;
+-import static org.mockito.Mockito.*;
+-
+-public class TestHadoopArchiveLogsRunner {
+-
+-  private static final int FILE_SIZE_INCREMENT = 4096;
+-  private static final int[] FILE_SIZES = {3, 4, 2};
+-  private static final int FILE_COUNT = FILE_SIZES.length;
+-  private static final byte[] DUMMY_DATA = new byte[FILE_SIZE_INCREMENT];
+-  static {
+-    new Random().nextBytes(DUMMY_DATA);
+-  }
+-
+-  private Configuration conf;
+-  private MiniDFSCluster dfsCluster;
+-  private MiniYARNCluster yarnCluster;
+-  private FileSystem fs;
+-  private ApplicationId app1;
+-  private Path app1Path;
+-  private Path workingDir;
+-  private Path remoteRootLogDir;
+-  private String suffix;
+-
+-  @Rule
+-  public Timeout globalTimeout = new Timeout(50000);
+-
+-  @Before
+-  public void setup() throws Exception {
+-    yarnCluster = new MiniYARNCluster(
+-        TestHadoopArchiveLogsRunner.class.getSimpleName(), 1, 2, 1, 1);
+-    conf = new YarnConfiguration();
+-    conf.setBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED, true);
+-    conf.setBoolean(YarnConfiguration.YARN_MINICLUSTER_FIXED_PORTS, true);
+-    yarnCluster.init(conf);
+-    yarnCluster.start();
+-    conf = yarnCluster.getConfig();
+-    dfsCluster = new MiniDFSCluster.Builder(conf).numDataNodes(1).build();
+-    conf = new JobConf(conf);
+-
+-    app1 = ApplicationId.newInstance(System.currentTimeMillis(), 1);
+-    fs = FileSystem.get(conf);
+-    remoteRootLogDir = new Path(conf.get(
+-        YarnConfiguration.NM_REMOTE_APP_LOG_DIR,
+-        YarnConfiguration.DEFAULT_NM_REMOTE_APP_LOG_DIR));
+-    workingDir = new Path(remoteRootLogDir, "archive-logs-work");
+-    suffix = "logs";
+-    Path logDir = new Path(remoteRootLogDir,
+-        new Path(System.getProperty("user.name"), suffix));
+-    fs.mkdirs(logDir);
+-    app1Path = new Path(logDir, app1.toString());
+-    fs.mkdirs(app1Path);
+-    for (int i = 0; i < FILE_COUNT; i++) {
+-      createFile(fs, new Path(app1Path, "log" + (i + 1)), FILE_SIZES[i]);
+-    }
+-    FileStatus[] app1Files = fs.listStatus(app1Path);
+-    Assert.assertEquals(FILE_COUNT, app1Files.length);
+-  }
+-
+-  @After
+-  public void teardown() throws IOException {
+-    if (fs != null) {
+-      fs.close();
+-    }
+-    if (yarnCluster != null) {
+-      yarnCluster.close();
+-    }
+-    if (dfsCluster != null) {
+-      dfsCluster.shutdown();
+-    }
+-  }
+-
+-  @Test
+-  public void testHadoopArchiveLogs() throws Exception {
+-    String[] args = getArgs();
+-    final HadoopArchiveLogsRunner halr = new HadoopArchiveLogsRunner(conf);
+-    assertEquals(0, ToolRunner.run(halr, args));
+-
+-    fs = FileSystem.get(conf);
+-    FileStatus[] app1Files = fs.listStatus(app1Path);
+-    Assert.assertEquals(1, app1Files.length);
+-    FileStatus harFile = app1Files[0];
+-    Assert.assertEquals(app1.toString() + ".har", harFile.getPath().getName());
+-    Path harPath = new Path("har:///" + harFile.getPath().toUri().getRawPath());
+-    FileStatus[] harLogs = HarFs.get(harPath.toUri(), conf).listStatus(harPath);
+-    Assert.assertEquals(FILE_COUNT, harLogs.length);
+-    Arrays.sort(harLogs, new Comparator<FileStatus>() {
+-      @Override
+-      public int compare(FileStatus o1, FileStatus o2) {
+-        return o1.getPath().getName().compareTo(o2.getPath().getName());
+-      }
+-    });
+-    for (int i = 0; i < FILE_COUNT; i++) {
+-      FileStatus harLog = harLogs[i];
+-      Assert.assertEquals("log" + (i + 1), harLog.getPath().getName());
+-      Assert.assertEquals(FILE_SIZES[i] * FILE_SIZE_INCREMENT, harLog.getLen());
+-      Assert.assertEquals(
+-          new FsPermission(FsAction.READ_WRITE, FsAction.READ, FsAction.NONE),
+-          harLog.getPermission());
+-      Assert.assertEquals(System.getProperty("user.name"),
+-          harLog.getOwner());
+-    }
+-    Assert.assertEquals(0, fs.listStatus(workingDir).length);
+-  }
+-
+-  @Test
+-  public void testHadoopArchiveLogsWithArchiveError() throws Exception {
+-    String[] args = getArgs();
+-    final HadoopArchiveLogsRunner halr = new HadoopArchiveLogsRunner(conf);
+-    HadoopArchives mockHadoopArchives = mock(HadoopArchives.class);
+-    when(mockHadoopArchives.run(Mockito.<String[]>any())).thenReturn(-1);
+-    halr.hadoopArchives = mockHadoopArchives;
+-    assertNotEquals(0, ToolRunner.run(halr, args));
+-
+-    // Make sure the original log files are intact
+-    FileStatus[] app1Files = fs.listStatus(app1Path);
+-    assertEquals(FILE_COUNT, app1Files.length);
+-    for (int i = 0; i < FILE_COUNT; i++) {
+-      Assert.assertEquals(FILE_SIZES[i] * FILE_SIZE_INCREMENT,
+-          app1Files[i].getLen());
+-    }
+-  }
+-
+-  private String[] getArgs() {
+-    return new String[]{
+-        "-appId", app1.toString(),
+-        "-user", System.getProperty("user.name"),
+-        "-workingDir", workingDir.toString(),
+-        "-remoteRootLogDir", remoteRootLogDir.toString(),
+-        "-suffix", suffix};
+-  }
+-
+-  private static void createFile(FileSystem fs, Path p, long sizeMultiple)
+-      throws IOException {
+-    FSDataOutputStream out = null;
+-    try {
+-      out = fs.create(p);
+-      for (int i = 0 ; i < sizeMultiple; i++) {
+-        out.write(DUMMY_DATA);
+-      }
+-    } finally {
+-      if (out != null) {
+-        out.close();
+-      }
+-    }
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index dd6aaaf2741..583506a7278 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -60,11 +60,6 @@
+       <artifactId>hadoop-archives</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-archive-logs</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-rumen</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 030bd8bd759..6e5f06e6fae 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -35,7 +35,6 @@
+     <module>hadoop-federation-balance</module>
+     <module>hadoop-dynamometer</module>
+     <module>hadoop-archives</module>
+-    <module>hadoop-archive-logs</module>
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+     <module>hadoop-datajoin</module>

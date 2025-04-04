@@ -3,5 +3,21 @@
   "extends": [
     "github>stackabletech/.github:renovate-config",
     "docker:pinDigests"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "registryUrls": [
+        "https://registry.access.redhat.com"
+      ],
+      "packagePatterns": [
+        "^ubi9/ubi-minimal$"
+      ],
+      "updateTypes": [
+        "version"
+      ]
+    }
   ]
 }

@@ -1,0 +1,47 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+index 9230f0c7a75..7b0bf7219cc 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+@@ -79,13 +79,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-distributedshell/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-services/hadoop-yarn-services-core/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 9dea7400edb..cd9576b088f 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -555,12 +555,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-yarn-applications-distributedshell</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+-
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-yarn-server-timeline-pluginstorage</artifactId>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+index f453d0dadcf..b550bf83deb 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-applications/pom.xml
+@@ -34,7 +34,6 @@
+   <!-- Do not add dependencies here, add them to the POM of the leaf module -->
+ 
+   <modules>
+-    <module>hadoop-yarn-applications-distributedshell</module>
+     <module>hadoop-yarn-applications-unmanaged-am-launcher</module>
+     <module>hadoop-yarn-services</module>
+     <module>hadoop-yarn-applications-mawo</module>

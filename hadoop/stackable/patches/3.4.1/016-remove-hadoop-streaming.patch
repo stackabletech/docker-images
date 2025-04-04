@@ -1,0 +1,88 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 89b474f9afc..d5ff61d9ffd 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -53,21 +53,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-streaming/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-streaming/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-resourceestimator/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 31d6da673ae..3b6a3c97f9b 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -631,11 +631,6 @@
+         <version>${hadoop.version}</version>
+       </dependency>
+ 
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-streaming</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-distcp</artifactId>
+diff --git a/hadoop-project/src/site/site.xml b/hadoop-project/src/site/site.xml
+index 8be5e704e86..10202de9d17 100644
+--- a/hadoop-project/src/site/site.xml
++++ b/hadoop-project/src/site/site.xml
+@@ -190,7 +190,6 @@
+     </menu>
+ 
+     <menu name="Tools" inherit="top">
+-      <item name="Hadoop Streaming" href="hadoop-streaming/HadoopStreaming.html"/>
+       <item name="DistCp" href="hadoop-distcp/DistCp.html"/>
+       <item name="HDFS Federation Balance" href="hadoop-federation-balance/HDFSFederationBalance.html"/>
+       <item name="Hadoop Benchmarking" href="hadoop-project-dist/hadoop-common/Benchmarking.html"/>
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 35f9b0be70f..04033969353 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -34,17 +34,6 @@
+   </properties>
+ 
+   <dependencies>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-streaming</artifactId>
+-      <scope>compile</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>org.projectlombok</groupId>
+-          <artifactId>lombok</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-distcp</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 5b3ebd13a42..10fc262e242 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -30,7 +30,6 @@
+   <packaging>pom</packaging>
+ 
+   <modules>
+-    <module>hadoop-streaming</module>
+     <module>hadoop-distcp</module>
+     <module>hadoop-federation-balance</module>
+     <module>hadoop-tools-dist</module>

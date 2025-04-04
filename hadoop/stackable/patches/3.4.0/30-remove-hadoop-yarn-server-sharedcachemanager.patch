@@ -1,0 +1,4544 @@
+Entirely remove hadoop-yarn-server-sharedcachemanager
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../hadoop-yarn-server-sharedcachemanager/pom.xml  |  103 ----
+ .../yarn/server/sharedcachemanager/AppChecker.java |   65 --
+ .../server/sharedcachemanager/CleanerService.java  |  219 --------
+ .../server/sharedcachemanager/CleanerTask.java     |  309 ------------
+ .../sharedcachemanager/ClientProtocolService.java  |  193 -------
+ .../sharedcachemanager/RemoteAppChecker.java       |  102 ----
+ .../SCMAdminProtocolService.java                   |  144 -----
+ .../sharedcachemanager/SharedCacheManager.java     |  164 ------
+ .../SharedCacheUploaderService.java                |  140 -----
+ .../sharedcachemanager/metrics/CleanerMetrics.java |  151 ------
+ .../metrics/ClientSCMMetrics.java                  |   91 ---
+ .../metrics/SharedCacheUploaderMetrics.java        |   82 ---
+ .../sharedcachemanager/store/InMemorySCMStore.java |  525 --------------------
+ .../server/sharedcachemanager/store/SCMStore.java  |  213 --------
+ .../store/SharedCacheResource.java                 |   64 --
+ .../store/SharedCacheResourceReference.java        |   86 ---
+ .../sharedcachemanager/webapp/SCMController.java   |   43 --
+ .../sharedcachemanager/webapp/SCMMetricsInfo.java  |   70 ---
+ .../sharedcachemanager/webapp/SCMOverviewPage.java |   95 ----
+ .../sharedcachemanager/webapp/SCMWebServer.java    |   92 ----
+ .../server/sharedcachemanager/DummyAppChecker.java |   43 --
+ .../server/sharedcachemanager/TestCleanerTask.java |  152 ------
+ .../TestClientSCMProtocolService.java              |  281 -----------
+ .../sharedcachemanager/TestRemoteAppChecker.java   |  108 ----
+ .../TestSCMAdminProtocolService.java               |  136 -----
+ .../TestSharedCacheUploaderService.java            |  192 -------
+ .../metrics/TestCleanerMetrics.java                |   65 --
+ .../sharedcachemanager/store/SCMStoreBaseTest.java |   42 --
+ .../store/TestInMemorySCMStore.java                |  318 ------------
+ .../hadoop-yarn/hadoop-yarn-server/pom.xml         |    1 
+ 30 files changed, 4289 deletions(-)
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/pom.xml
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/AppChecker.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerTask.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/ClientProtocolService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/RemoteAppChecker.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SCMAdminProtocolService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheManager.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheUploaderService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/CleanerMetrics.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/ClientSCMMetrics.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/SharedCacheUploaderMetrics.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/InMemorySCMStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStore.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResource.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResourceReference.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMController.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMMetricsInfo.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMOverviewPage.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMWebServer.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/DummyAppChecker.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestCleanerTask.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestClientSCMProtocolService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestRemoteAppChecker.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSCMAdminProtocolService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSharedCacheUploaderService.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/TestCleanerMetrics.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStoreBaseTest.java
+ delete mode 100644 hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/TestInMemorySCMStore.java
+
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/pom.xml
+deleted file mode 100644
+index 823073631ee..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/pom.xml
++++ /dev/null
+@@ -1,103 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns:pom="http://maven.apache.org/POM/4.0.0">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <artifactId>hadoop-yarn-server</artifactId>
+-    <groupId>org.apache.hadoop</groupId>
+-    <version>3.4.0</version>
+-  </parent>
+-  <artifactId>hadoop-yarn-server-sharedcachemanager</artifactId>
+-  <version>3.4.0</version>
+-  <name>Apache Hadoop YARN SharedCacheManager</name>
+-
+-  <properties>
+-    <!-- Needed for generating FindBugs warnings using parent pom -->
+-    <yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-api</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-common</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-common</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-client</artifactId>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-tests</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.jupiter</groupId>
+-      <artifactId>junit-jupiter-api</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.jupiter</groupId>
+-      <artifactId>junit-jupiter-engine</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.junit.platform</groupId>
+-      <artifactId>junit-platform-launcher</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-  </dependencies>
+-  
+-  <build>
+-      <plugins>
+-
+-      <!-- Publish tests jar -->
+-      <plugin>
+-        <artifactId>maven-jar-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <goals>
+-              <goal>test-jar</goal>
+-            </goals>
+-            <phase>test-compile</phase>
+-          </execution>
+-        </executions>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/AppChecker.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/AppChecker.java
+deleted file mode 100644
+index 4ac94106700..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/AppChecker.java
++++ /dev/null
+@@ -1,65 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.util.Collection;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.service.CompositeService;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-
+-/**
+- * An interface for checking whether an app is running so that the cleaner
+- * service may determine if it can safely remove a cached entry.
+- */
+-@Private
+-@Evolving
+-public abstract class AppChecker extends CompositeService {
+-
+-  public AppChecker() {
+-    super("AppChecker");
+-  }
+-
+-  public AppChecker(String name) {
+-    super(name);
+-  }
+-
+-  /**
+-   * Returns whether the app is in an active state.
+-   * 
+-   * @return true if the app is found and is not in one of the completed states;
+-   *         false otherwise
+-   * @throws YarnException if there is an error in determining the app state
+-   */
+-  @Private
+-  public abstract boolean isApplicationActive(ApplicationId id)
+-      throws YarnException;
+-
+-  /**
+-   * Returns the list of all active apps at the given time.
+-   * 
+-   * @return the list of active apps, or an empty list if there is none
+-   * @throws YarnException if there is an error in obtaining the list
+-   */
+-  @Private
+-  public abstract Collection<ApplicationId> getActiveApplications()
+-      throws YarnException;
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerService.java
+deleted file mode 100644
+index f93b81e385c..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerService.java
++++ /dev/null
+@@ -1,219 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.lang.management.ManagementFactory;
+-import java.util.concurrent.ScheduledExecutorService;
+-import java.util.concurrent.ThreadFactory;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.locks.Lock;
+-import java.util.concurrent.locks.ReentrantLock;
+-
+-import org.apache.hadoop.HadoopIllegalArgumentException;
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FSDataOutputStream;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.service.CompositeService;
+-import org.apache.hadoop.util.concurrent.HadoopExecutors;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.CleanerMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-
+-import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.ThreadFactoryBuilder;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * The cleaner service that maintains the shared cache area, and cleans up stale
+- * entries on a regular basis.
+- */
+-@Private
+-@Evolving
+-public class CleanerService extends CompositeService {
+-  /**
+-   * The name of the global cleaner lock that the cleaner creates to indicate
+-   * that a cleaning process is in progress.
+-   */
+-  public static final String GLOBAL_CLEANER_PID = ".cleaner_pid";
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(CleanerService.class);
+-
+-  private Configuration conf;
+-  private CleanerMetrics metrics;
+-  private ScheduledExecutorService scheduledExecutor;
+-  private final SCMStore store;
+-  private final Lock cleanerTaskLock;
+-
+-  public CleanerService(SCMStore store) {
+-    super("CleanerService");
+-    this.store = store;
+-    this.cleanerTaskLock = new ReentrantLock();
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    this.conf = conf;
+-
+-    // create scheduler executor service that services the cleaner tasks
+-    // use 2 threads to accommodate the on-demand tasks and reduce the chance of
+-    // back-to-back runs
+-    ThreadFactory tf =
+-        new ThreadFactoryBuilder().setNameFormat("Shared cache cleaner").build();
+-    scheduledExecutor = HadoopExecutors.newScheduledThreadPool(2, tf);
+-    super.serviceInit(conf);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    if (!writeGlobalCleanerPidFile()) {
+-      throw new YarnException("The global cleaner pid file already exists! " +
+-          "It appears there is another CleanerService running in the cluster");
+-    }
+-
+-    this.metrics = CleanerMetrics.getInstance();
+-
+-    // Start dependent services (i.e. AppChecker)
+-    super.serviceStart();
+-
+-    Runnable task =
+-        CleanerTask.create(conf, store, metrics, cleanerTaskLock);
+-    long periodInMinutes = getPeriod(conf);
+-    scheduledExecutor.scheduleAtFixedRate(task, getInitialDelay(conf),
+-        periodInMinutes, TimeUnit.MINUTES);
+-    LOG.info("Scheduled the shared cache cleaner task to run every "
+-        + periodInMinutes + " minutes.");
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    LOG.info("Shutting down the background thread.");
+-    scheduledExecutor.shutdownNow();
+-    try {
+-      if (scheduledExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+-        LOG.info("The background thread stopped.");
+-      } else {
+-        LOG.warn("Gave up waiting for the cleaner task to shutdown.");
+-      }
+-    } catch (InterruptedException e) {
+-      LOG.warn("The cleaner service was interrupted while shutting down the task.",
+-          e);
+-    }
+-
+-    removeGlobalCleanerPidFile();
+-
+-    super.serviceStop();
+-  }
+-
+-  /**
+-   * Execute an on-demand cleaner task.
+-   */
+-  protected void runCleanerTask() {
+-    Runnable task =
+-        CleanerTask.create(conf, store, metrics, cleanerTaskLock);
+-    // this is a non-blocking call (it simply submits the task to the executor
+-    // queue and returns)
+-    this.scheduledExecutor.execute(task);
+-  }
+-
+-  /**
+-   * To ensure there are not multiple instances of the SCM running on a given
+-   * cluster, a global pid file is used. This file contains the hostname of the
+-   * machine that owns the pid file.
+-   *
+-   * @return true if the pid file was written, false otherwise
+-   * @throws YarnException
+-   */
+-  private boolean writeGlobalCleanerPidFile() throws YarnException {
+-    String root =
+-        conf.get(YarnConfiguration.SHARED_CACHE_ROOT,
+-            YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT);
+-    Path pidPath = new Path(root, GLOBAL_CLEANER_PID);
+-    try {
+-      FileSystem fs = FileSystem.get(this.conf);
+-
+-      if (fs.exists(pidPath)) {
+-        return false;
+-      }
+-
+-      FSDataOutputStream os = fs.create(pidPath, false);
+-      // write the hostname and the process id in the global cleaner pid file
+-      final String ID = ManagementFactory.getRuntimeMXBean().getName();
+-      os.writeUTF(ID);
+-      os.close();
+-      // add it to the delete-on-exit to ensure it gets deleted when the JVM
+-      // exits
+-      fs.deleteOnExit(pidPath);
+-    } catch (IOException e) {
+-      throw new YarnException(e);
+-    }
+-    LOG.info("Created the global cleaner pid file at " + pidPath.toString());
+-    return true;
+-  }
+-
+-  private void removeGlobalCleanerPidFile() {
+-    try {
+-      FileSystem fs = FileSystem.get(this.conf);
+-      String root =
+-          conf.get(YarnConfiguration.SHARED_CACHE_ROOT,
+-              YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT);
+-
+-      Path pidPath = new Path(root, GLOBAL_CLEANER_PID);
+-
+-
+-      fs.delete(pidPath, false);
+-      LOG.info("Removed the global cleaner pid file at " + pidPath.toString());
+-    } catch (IOException e) {
+-      LOG.error(
+-          "Unable to remove the global cleaner pid file! The file may need "
+-              + "to be removed manually.", e);
+-    }
+-  }
+-
+-  private static int getInitialDelay(Configuration conf) {
+-    int initialDelayInMinutes =
+-        conf.getInt(YarnConfiguration.SCM_CLEANER_INITIAL_DELAY_MINS,
+-            YarnConfiguration.DEFAULT_SCM_CLEANER_INITIAL_DELAY_MINS);
+-    // negative value is invalid; use the default
+-    if (initialDelayInMinutes < 0) {
+-      throw new HadoopIllegalArgumentException("Negative initial delay value: "
+-          + initialDelayInMinutes
+-          + ". The initial delay must be greater than zero.");
+-    }
+-    return initialDelayInMinutes;
+-  }
+-
+-  private static int getPeriod(Configuration conf) {
+-    int periodInMinutes =
+-        conf.getInt(YarnConfiguration.SCM_CLEANER_PERIOD_MINS,
+-            YarnConfiguration.DEFAULT_SCM_CLEANER_PERIOD_MINS);
+-    // non-positive value is invalid; use the default
+-    if (periodInMinutes <= 0) {
+-      throw new HadoopIllegalArgumentException("Non-positive period value: "
+-          + periodInMinutes
+-          + ". The cleaner period must be greater than or equal to zero.");
+-    }
+-    return periodInMinutes;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerTask.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerTask.java
+deleted file mode 100644
+index 3e0a62b63a1..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/CleanerTask.java
++++ /dev/null
+@@ -1,309 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.util.concurrent.locks.Lock;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.server.sharedcache.SharedCacheUtil;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.CleanerMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * The task that runs and cleans up the shared cache area for stale entries and
+- * orphaned files. It is expected that only one cleaner task runs at any given
+- * point in time.
+- */
+-@Private
+-@Evolving
+-class CleanerTask implements Runnable {
+-  private static final String RENAMED_SUFFIX = "-renamed";
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(CleanerTask.class);
+-
+-  private final String location;
+-  private final long sleepTime;
+-  private final int nestedLevel;
+-  private final Path root;
+-  private final FileSystem fs;
+-  private final SCMStore store;
+-  private final CleanerMetrics metrics;
+-  private final Lock cleanerTaskLock;
+-
+-  /**
+-   * Creates a cleaner task based on the configuration. This is provided for
+-   * convenience.
+-   *
+-   * @param conf
+-   * @param store
+-   * @param metrics
+-   * @param cleanerTaskLock lock that ensures a serial execution of cleaner
+-   *                        task
+-   * @return an instance of a CleanerTask
+-   */
+-  public static CleanerTask create(Configuration conf, SCMStore store,
+-      CleanerMetrics metrics, Lock cleanerTaskLock) {
+-    try {
+-      // get the root directory for the shared cache
+-      String location =
+-          conf.get(YarnConfiguration.SHARED_CACHE_ROOT,
+-              YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT);
+-
+-      long sleepTime =
+-          conf.getLong(YarnConfiguration.SCM_CLEANER_RESOURCE_SLEEP_MS,
+-              YarnConfiguration.DEFAULT_SCM_CLEANER_RESOURCE_SLEEP_MS);
+-      int nestedLevel = SharedCacheUtil.getCacheDepth(conf);
+-      FileSystem fs = FileSystem.get(conf);
+-
+-      return new CleanerTask(location, sleepTime, nestedLevel, fs, store,
+-          metrics, cleanerTaskLock);
+-    } catch (IOException e) {
+-      LOG.error("Unable to obtain the filesystem for the cleaner service", e);
+-      throw new ExceptionInInitializerError(e);
+-    }
+-  }
+-
+-  /**
+-   * Creates a cleaner task based on the root directory location and the
+-   * filesystem.
+-   */
+-  CleanerTask(String location, long sleepTime, int nestedLevel, FileSystem fs,
+-      SCMStore store, CleanerMetrics metrics, Lock cleanerTaskLock) {
+-    this.location = location;
+-    this.sleepTime = sleepTime;
+-    this.nestedLevel = nestedLevel;
+-    this.root = new Path(location);
+-    this.fs = fs;
+-    this.store = store;
+-    this.metrics = metrics;
+-    this.cleanerTaskLock = cleanerTaskLock;
+-  }
+-
+-  @Override
+-  public void run() {
+-    if (!this.cleanerTaskLock.tryLock()) {
+-      // there is already another task running
+-      LOG.warn("A cleaner task is already running. "
+-          + "This scheduled cleaner task will do nothing.");
+-      return;
+-    }
+-
+-    try {
+-      if (!fs.exists(root)) {
+-        LOG.error("The shared cache root " + location + " was not found. "
+-            + "The cleaner task will do nothing.");
+-        return;
+-      }
+-
+-      // we're now ready to process the shared cache area
+-      process();
+-    } catch (Throwable e) {
+-      LOG.error("Unexpected exception while initializing the cleaner task. "
+-          + "This task will do nothing,", e);
+-    } finally {
+-      // this is set to false regardless of if it is a scheduled or on-demand
+-      // task
+-      this.cleanerTaskLock.unlock();
+-    }
+-  }
+-
+-  /**
+-   * Sweeps and processes the shared cache area to clean up stale and orphaned
+-   * files.
+-   */
+-  void process() {
+-    // mark the beginning of the run in the metrics
+-    metrics.reportCleaningStart();
+-    try {
+-      // now traverse individual directories and process them
+-      // the directory structure is specified by the nested level parameter
+-      // (e.g. 9/c/d/<checksum>)
+-      String pattern = SharedCacheUtil.getCacheEntryGlobPattern(nestedLevel);
+-      FileStatus[] resources =
+-          fs.globStatus(new Path(root, pattern));
+-      int numResources = resources == null ? 0 : resources.length;
+-      LOG.info("Processing " + numResources + " resources in the shared cache");
+-      long beginMs = System.currentTimeMillis();
+-      if (resources != null) {
+-        for (FileStatus resource : resources) {
+-          // check for interruption so it can abort in a timely manner in case
+-          // of shutdown
+-          if (Thread.currentThread().isInterrupted()) {
+-            LOG.warn("The cleaner task was interrupted. Aborting.");
+-            break;
+-          }
+-
+-          if (resource.isDirectory()) {
+-            processSingleResource(resource);
+-          } else {
+-            LOG.warn("Invalid file at path " + resource.getPath().toString()
+-                +
+-                " when a directory was expected");
+-          }
+-          // add sleep time between cleaning each directory if it is non-zero
+-          if (sleepTime > 0) {
+-            Thread.sleep(sleepTime);
+-          }
+-        }
+-      }
+-      long endMs = System.currentTimeMillis();
+-      long durationMs = endMs - beginMs;
+-      LOG.info("Processed " + numResources + " resource(s) in " + durationMs +
+-          " ms.");
+-    } catch (IOException e1) {
+-      LOG.error("Unable to complete the cleaner task", e1);
+-    } catch (InterruptedException e2) {
+-      Thread.currentThread().interrupt(); // restore the interrupt
+-    }
+-  }
+-
+-  /**
+-   * Returns a path for the root directory for the shared cache.
+-   */
+-  Path getRootPath() {
+-    return root;
+-  }
+-
+-  /**
+-   * Processes a single shared cache resource directory.
+-   */
+-  void processSingleResource(FileStatus resource) {
+-    Path path = resource.getPath();
+-    // indicates the processing status of the resource
+-    ResourceStatus resourceStatus = ResourceStatus.INIT;
+-
+-    // first, if the path ends with the renamed suffix, it indicates the
+-    // directory was moved (as stale) but somehow not deleted (probably due to
+-    // SCM failure); delete the directory
+-    if (path.toString().endsWith(RENAMED_SUFFIX)) {
+-      LOG.info("Found a renamed directory that was left undeleted at " +
+-          path.toString() + ". Deleting.");
+-      try {
+-        if (fs.delete(path, true)) {
+-          resourceStatus = ResourceStatus.DELETED;
+-        }
+-      } catch (IOException e) {
+-        LOG.error("Error while processing a shared cache resource: " + path, e);
+-      }
+-    } else {
+-      // this is the path to the cache resource directory
+-      // the directory name is the resource key (i.e. a unique identifier)
+-      String key = path.getName();
+-
+-      try {
+-        store.cleanResourceReferences(key);
+-      } catch (YarnException e) {
+-        LOG.error("Exception thrown while removing dead appIds.", e);
+-      }
+-
+-      if (store.isResourceEvictable(key, resource)) {
+-        try {
+-          /*
+-           * TODO See YARN-2663: There is a race condition between
+-           * store.removeResource(key) and
+-           * removeResourceFromCacheFileSystem(path) operations because they do
+-           * not happen atomically and resources can be uploaded with different
+-           * file names by the node managers.
+-           */
+-          // remove the resource from scm (checks for appIds as well)
+-          if (store.removeResource(key)) {
+-            // remove the resource from the file system
+-            boolean deleted = removeResourceFromCacheFileSystem(path);
+-            if (deleted) {
+-              resourceStatus = ResourceStatus.DELETED;
+-            } else {
+-              LOG.error("Failed to remove path from the file system."
+-                  + " Skipping this resource: " + path);
+-              resourceStatus = ResourceStatus.ERROR;
+-            }
+-          } else {
+-            // we did not delete the resource because it contained application
+-            // ids
+-            resourceStatus = ResourceStatus.PROCESSED;
+-          }
+-        } catch (IOException e) {
+-          LOG.error(
+-              "Failed to remove path from the file system. Skipping this resource: "
+-                  + path, e);
+-          resourceStatus = ResourceStatus.ERROR;
+-        }
+-      } else {
+-        resourceStatus = ResourceStatus.PROCESSED;
+-      }
+-    }
+-
+-    // record the processing
+-    switch (resourceStatus) {
+-    case DELETED:
+-      metrics.reportAFileDelete();
+-      break;
+-    case PROCESSED:
+-      metrics.reportAFileProcess();
+-      break;
+-    case ERROR:
+-      metrics.reportAFileError();
+-      break;
+-    default:
+-      LOG.error("Cleaner encountered an invalid status (" + resourceStatus
+-          + ") while processing resource: " + path.getName());
+-    }
+-  }
+-
+-  private boolean removeResourceFromCacheFileSystem(Path path)
+-      throws IOException {
+-    // rename the directory to make the delete atomic
+-    Path renamedPath = new Path(path.toString() + RENAMED_SUFFIX);
+-    if (fs.rename(path, renamedPath)) {
+-      // the directory can be removed safely now
+-      // log the original path
+-      LOG.info("Deleting " + path.toString());
+-      return fs.delete(renamedPath, true);
+-    } else {
+-      // we were unable to remove it for some reason: it's best to leave
+-      // it at that
+-      LOG.error("We were not able to rename the directory to "
+-          + renamedPath.toString() + ". We will leave it intact.");
+-    }
+-    return false;
+-  }
+-
+-  /**
+-   * A status indicating what happened with the processing of a given cache
+-   * resource.
+-   */
+-  private enum ResourceStatus {
+-    INIT,
+-    /** Resource was successfully processed, but not deleted **/
+-    PROCESSED,
+-    /** Resource was successfully deleted **/
+-    DELETED,
+-    /** The cleaner task ran into an error while processing the resource **/
+-    ERROR
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/ClientProtocolService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/ClientProtocolService.java
+deleted file mode 100644
+index 4275674aa47..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/ClientProtocolService.java
++++ /dev/null
+@@ -1,193 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.ipc.Server;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.service.AbstractService;
+-import org.apache.hadoop.yarn.api.ClientSCMProtocol;
+-import org.apache.hadoop.yarn.api.protocolrecords.ReleaseSharedCacheResourceRequest;
+-import org.apache.hadoop.yarn.api.protocolrecords.ReleaseSharedCacheResourceResponse;
+-import org.apache.hadoop.yarn.api.protocolrecords.UseSharedCacheResourceRequest;
+-import org.apache.hadoop.yarn.api.protocolrecords.UseSharedCacheResourceResponse;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.RPCUtil;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.apache.hadoop.yarn.server.sharedcache.SharedCacheUtil;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.ClientSCMMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SharedCacheResourceReference;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This service handles all rpc calls from the client to the shared cache
+- * manager.
+- */
+-@Private
+-@Evolving
+-public class ClientProtocolService extends AbstractService implements
+-    ClientSCMProtocol {
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(ClientProtocolService.class);
+-
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  private Server server;
+-  InetSocketAddress clientBindAddress;
+-  private final SCMStore store;
+-  private int cacheDepth;
+-  private String cacheRoot;
+-  private ClientSCMMetrics metrics;
+-
+-  public ClientProtocolService(SCMStore store) {
+-    super(ClientProtocolService.class.getName());
+-    this.store = store;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    this.clientBindAddress = getBindAddress(conf);
+-
+-    this.cacheDepth = SharedCacheUtil.getCacheDepth(conf);
+-
+-    this.cacheRoot =
+-        conf.get(YarnConfiguration.SHARED_CACHE_ROOT,
+-            YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT);
+-
+-    super.serviceInit(conf);
+-  }
+-
+-  InetSocketAddress getBindAddress(Configuration conf) {
+-    return conf.getSocketAddr(YarnConfiguration.SCM_CLIENT_SERVER_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_CLIENT_SERVER_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_CLIENT_SERVER_PORT);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    Configuration conf = getConfig();
+-    this.metrics = ClientSCMMetrics.getInstance();
+-
+-    YarnRPC rpc = YarnRPC.create(conf);
+-    this.server =
+-        rpc.getServer(ClientSCMProtocol.class, this,
+-            clientBindAddress,
+-            conf, null, // Secret manager null for now (security not supported)
+-            conf.getInt(YarnConfiguration.SCM_CLIENT_SERVER_THREAD_COUNT,
+-                YarnConfiguration.DEFAULT_SCM_CLIENT_SERVER_THREAD_COUNT));
+-
+-    // TODO (YARN-2774): Enable service authorization
+-
+-    this.server.start();
+-    clientBindAddress =
+-        conf.updateConnectAddr(YarnConfiguration.SCM_CLIENT_SERVER_ADDRESS,
+-            server.getListenerAddress());
+-
+-    super.serviceStart();
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    if (this.server != null) {
+-      this.server.stop();
+-    }
+-
+-    super.serviceStop();
+-  }
+-
+-  @Override
+-  public UseSharedCacheResourceResponse use(
+-      UseSharedCacheResourceRequest request) throws YarnException,
+-      IOException {
+-
+-    UseSharedCacheResourceResponse response =
+-        recordFactory.newRecordInstance(UseSharedCacheResourceResponse.class);
+-
+-    UserGroupInformation callerUGI;
+-    try {
+-      callerUGI = UserGroupInformation.getCurrentUser();
+-    } catch (IOException ie) {
+-      LOG.info("Error getting UGI ", ie);
+-      throw RPCUtil.getRemoteException(ie);
+-    }
+-
+-    String fileName =
+-        this.store.addResourceReference(request.getResourceKey(),
+-            new SharedCacheResourceReference(request.getAppId(),
+-                callerUGI.getShortUserName()));
+-
+-    if (fileName != null) {
+-      response
+-          .setPath(getCacheEntryFilePath(request.getResourceKey(), fileName));
+-      this.metrics.incCacheHitCount();
+-    } else {
+-      this.metrics.incCacheMissCount();
+-    }
+-
+-    return response;
+-  }
+-
+-  @Override
+-  public ReleaseSharedCacheResourceResponse release(
+-      ReleaseSharedCacheResourceRequest request) throws YarnException,
+-      IOException {
+-
+-    ReleaseSharedCacheResourceResponse response =
+-        recordFactory
+-            .newRecordInstance(ReleaseSharedCacheResourceResponse.class);
+-
+-    UserGroupInformation callerUGI;
+-    try {
+-      callerUGI = UserGroupInformation.getCurrentUser();
+-    } catch (IOException ie) {
+-      LOG.info("Error getting UGI ", ie);
+-      throw RPCUtil.getRemoteException(ie);
+-    }
+-
+-    boolean removed =
+-        this.store.removeResourceReference(
+-            request.getResourceKey(),
+-            new SharedCacheResourceReference(request.getAppId(), callerUGI
+-                .getShortUserName()), true);
+-
+-    if (removed) {
+-      this.metrics.incCacheRelease();
+-    }
+-
+-    return response;
+-  }
+-
+-  private String getCacheEntryFilePath(String checksum, String filename) {
+-    return SharedCacheUtil.getCacheEntryPath(this.cacheDepth,
+-        this.cacheRoot, checksum) + Path.SEPARATOR_CHAR + filename;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/RemoteAppChecker.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/RemoteAppChecker.java
+deleted file mode 100644
+index 2bf3a896355..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/RemoteAppChecker.java
++++ /dev/null
+@@ -1,102 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.EnumSet;
+-import java.util.List;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.ApplicationReport;
+-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+-import org.apache.hadoop.yarn.client.api.YarnClient;
+-import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-
+-/**
+- * An implementation of AppChecker that queries the resource manager remotely to
+- * determine whether the app is running.
+- */
+-@Private
+-@Unstable
+-public class RemoteAppChecker extends AppChecker {
+-
+-  private static final EnumSet<YarnApplicationState> ACTIVE_STATES = EnumSet
+-      .of(YarnApplicationState.NEW, YarnApplicationState.ACCEPTED,
+-          YarnApplicationState.NEW_SAVING, YarnApplicationState.SUBMITTED,
+-          YarnApplicationState.RUNNING);
+-
+-  private final YarnClient client;
+-
+-  public RemoteAppChecker() {
+-    this(YarnClient.createYarnClient());
+-  }
+-
+-  RemoteAppChecker(YarnClient client) {
+-    super("RemoteAppChecker");
+-    this.client = client;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    addService(client);
+-    super.serviceInit(conf);
+-  }
+-
+-  @Override
+-  @Private
+-  public boolean isApplicationActive(ApplicationId id) throws YarnException {
+-    ApplicationReport report = null;
+-    try {
+-      report = client.getApplicationReport(id);
+-    } catch (ApplicationNotFoundException e) {
+-      // the app does not exist
+-      return false;
+-    } catch (IOException e) {
+-      throw new YarnException(e);
+-    }
+-
+-    if (report == null) {
+-      // the app does not exist
+-      return false;
+-    }
+-
+-    return ACTIVE_STATES.contains(report.getYarnApplicationState());
+-  }
+-
+-  @Override
+-  @Private
+-  public Collection<ApplicationId> getActiveApplications() throws YarnException {
+-    try {
+-      List<ApplicationId> activeApps = new ArrayList<ApplicationId>();
+-      List<ApplicationReport> apps = client.getApplications(ACTIVE_STATES);
+-      for (ApplicationReport app: apps) {
+-        activeApps.add(app.getApplicationId());
+-      }
+-      return activeApps;
+-    } catch (IOException e) {
+-      throw new YarnException(e);
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SCMAdminProtocolService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SCMAdminProtocolService.java
+deleted file mode 100644
+index e6a885bff5e..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SCMAdminProtocolService.java
++++ /dev/null
+@@ -1,144 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.ipc.Server;
+-import org.apache.hadoop.security.AccessControlException;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.service.AbstractService;
+-import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
+-import org.apache.hadoop.yarn.server.api.SCMAdminProtocol;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.RunSharedCacheCleanerTaskRequest;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.RunSharedCacheCleanerTaskResponse;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.RPCUtil;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This service handles all SCMAdminProtocol rpc calls from administrators
+- * to the shared cache manager.
+- */
+-@Private
+-@Unstable
+-public class SCMAdminProtocolService extends AbstractService implements
+-    SCMAdminProtocol {
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(SCMAdminProtocolService.class);
+-
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  private Server server;
+-  InetSocketAddress clientBindAddress;
+-  private final CleanerService cleanerService;
+-  private YarnAuthorizationProvider authorizer;
+-  public SCMAdminProtocolService(CleanerService cleanerService) {
+-    super(SCMAdminProtocolService.class.getName());
+-    this.cleanerService = cleanerService;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    this.clientBindAddress = getBindAddress(conf);
+-    authorizer = YarnAuthorizationProvider.getInstance(conf);
+-    super.serviceInit(conf);
+-  }
+-
+-  InetSocketAddress getBindAddress(Configuration conf) {
+-    return conf.getSocketAddr(YarnConfiguration.SCM_ADMIN_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_ADMIN_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_ADMIN_PORT);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    Configuration conf = getConfig();
+-    YarnRPC rpc = YarnRPC.create(conf);
+-    this.server =
+-        rpc.getServer(SCMAdminProtocol.class, this,
+-            clientBindAddress,
+-            conf, null, // Secret manager null for now (security not supported)
+-            conf.getInt(YarnConfiguration.SCM_ADMIN_CLIENT_THREAD_COUNT,
+-                YarnConfiguration.DEFAULT_SCM_ADMIN_CLIENT_THREAD_COUNT));
+-
+-    // TODO: Enable service authorization (see YARN-2774)
+-
+-    this.server.start();
+-    clientBindAddress =
+-        conf.updateConnectAddr(YarnConfiguration.SCM_ADMIN_ADDRESS,
+-            server.getListenerAddress());
+-
+-    super.serviceStart();
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    if (this.server != null) {
+-      this.server.stop();
+-    }
+-
+-    super.serviceStop();
+-  }
+-
+-  private void checkAcls(String method) throws YarnException {
+-    UserGroupInformation user;
+-    try {
+-      user = UserGroupInformation.getCurrentUser();
+-    } catch (IOException ioe) {
+-      LOG.warn("Couldn't get current user", ioe);
+-      throw RPCUtil.getRemoteException(ioe);
+-    }
+-
+-    if (!authorizer.isAdmin(user)) {
+-      LOG.warn("User " + user.getShortUserName() + " doesn't have permission" +
+-          " to call '" + method + "'");
+-
+-      throw RPCUtil.getRemoteException(
+-          new AccessControlException("User " + user.getShortUserName() +
+-          " doesn't have permission" + " to call '" + method + "'"));
+-    }
+-    LOG.info("SCM Admin: " + method + " invoked by user " +
+-        user.getShortUserName());
+-  }
+-
+-  @Override
+-  public RunSharedCacheCleanerTaskResponse runCleanerTask(
+-      RunSharedCacheCleanerTaskRequest request) throws YarnException {
+-    checkAcls("runCleanerTask");
+-    RunSharedCacheCleanerTaskResponse response =
+-        recordFactory.newRecordInstance(RunSharedCacheCleanerTaskResponse.class);
+-    this.cleanerService.runCleanerTask();
+-    // if we are here, then we have submitted the request to the cleaner
+-    // service, ack the request to the admin client
+-    response.setAccepted(true);
+-    return response;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheManager.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheManager.java
+deleted file mode 100644
+index 6eefd75613e..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheManager.java
++++ /dev/null
+@@ -1,164 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
+-import org.apache.hadoop.metrics2.source.JvmMetrics;
+-import org.apache.hadoop.service.CompositeService;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.apache.hadoop.util.ShutdownHookManager;
+-import org.apache.hadoop.util.StringUtils;
+-import org.apache.hadoop.yarn.YarnUncaughtExceptionHandler;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.webapp.SCMWebServer;
+-
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This service maintains the shared cache meta data. It handles claiming and
+- * releasing of resources, all rpc calls from the client to the shared cache
+- * manager, and administrative commands. It also persists the shared cache meta
+- * data to a backend store, and cleans up stale entries on a regular basis.
+- */
+-@Private
+-@Unstable
+-public class SharedCacheManager extends CompositeService {
+-  /**
+-   * Priority of the SharedCacheManager shutdown hook.
+-   */
+-  public static final int SHUTDOWN_HOOK_PRIORITY = 30;
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(SharedCacheManager.class);
+-
+-  private SCMStore store;
+-
+-  public SharedCacheManager() {
+-    super("SharedCacheManager");
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-
+-    this.store = createSCMStoreService(conf);
+-    addService(store);
+-
+-    CleanerService cs = createCleanerService(store);
+-    addService(cs);
+-
+-    SharedCacheUploaderService nms =
+-        createNMCacheUploaderSCMProtocolService(store);
+-    addService(nms);
+-
+-    ClientProtocolService cps = createClientProtocolService(store);
+-    addService(cps);
+-
+-    SCMAdminProtocolService saps = createSCMAdminProtocolService(cs);
+-    addService(saps);
+-
+-    SCMWebServer webUI = createSCMWebServer(this);
+-    addService(webUI);
+-
+-    // init metrics
+-    DefaultMetricsSystem.initialize("SharedCacheManager");
+-    JvmMetrics.initSingleton("SharedCacheManager", null);
+-
+-    super.serviceInit(conf);
+-  }
+-
+-  @SuppressWarnings("unchecked")
+-  private static SCMStore createSCMStoreService(Configuration conf) {
+-    Class<? extends SCMStore> defaultStoreClass;
+-    try {
+-      defaultStoreClass =
+-          (Class<? extends SCMStore>) Class
+-              .forName(YarnConfiguration.DEFAULT_SCM_STORE_CLASS);
+-    } catch (Exception e) {
+-      throw new YarnRuntimeException("Invalid default scm store class"
+-          + YarnConfiguration.DEFAULT_SCM_STORE_CLASS, e);
+-    }
+-
+-    SCMStore store =
+-        ReflectionUtils.newInstance(conf.getClass(
+-            YarnConfiguration.SCM_STORE_CLASS,
+-            defaultStoreClass, SCMStore.class), conf);
+-    return store;
+-  }
+-
+-  private CleanerService createCleanerService(SCMStore store) {
+-    return new CleanerService(store);
+-  }
+-
+-  private SharedCacheUploaderService
+-      createNMCacheUploaderSCMProtocolService(SCMStore store) {
+-    return new SharedCacheUploaderService(store);
+-  }
+-
+-  private ClientProtocolService createClientProtocolService(SCMStore store) {
+-    return new ClientProtocolService(store);
+-  }
+-
+-  private SCMAdminProtocolService createSCMAdminProtocolService(
+-      CleanerService cleanerService) {
+-    return new SCMAdminProtocolService(cleanerService);
+-  }
+-
+-  private SCMWebServer createSCMWebServer(SharedCacheManager scm) {
+-    return new SCMWebServer(scm);
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-
+-    DefaultMetricsSystem.shutdown();
+-    super.serviceStop();
+-  }
+-
+-  /**
+-   * For testing purposes only.
+-   */
+-  @VisibleForTesting
+-  SCMStore getSCMStore() {
+-    return this.store;
+-  }
+-
+-  public static void main(String[] args) {
+-    Thread.setDefaultUncaughtExceptionHandler(new YarnUncaughtExceptionHandler());
+-    StringUtils.startupShutdownMessage(SharedCacheManager.class, args, LOG);
+-    try {
+-      Configuration conf = new YarnConfiguration();
+-      SharedCacheManager sharedCacheManager = new SharedCacheManager();
+-      ShutdownHookManager.get().addShutdownHook(
+-          new CompositeServiceShutdownHook(sharedCacheManager),
+-          SHUTDOWN_HOOK_PRIORITY);
+-      sharedCacheManager.init(conf);
+-      sharedCacheManager.start();
+-    } catch (Throwable t) {
+-      LOG.error("Error starting SharedCacheManager", t);
+-      System.exit(-1);
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheUploaderService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheUploaderService.java
+deleted file mode 100644
+index dd87b679cb4..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/SharedCacheUploaderService.java
++++ /dev/null
+@@ -1,140 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.ipc.Server;
+-import org.apache.hadoop.service.AbstractService;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.apache.hadoop.yarn.server.api.SCMUploaderProtocol;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.SCMUploaderCanUploadRequest;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.SCMUploaderCanUploadResponse;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.SCMUploaderNotifyRequest;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.SCMUploaderNotifyResponse;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.SharedCacheUploaderMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-
+-/**
+- * This service handles all rpc calls from the NodeManager uploader to the
+- * shared cache manager.
+- */
+-public class SharedCacheUploaderService extends AbstractService
+-    implements SCMUploaderProtocol {
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  private Server server;
+-  InetSocketAddress bindAddress;
+-  private final SCMStore store;
+-  private SharedCacheUploaderMetrics metrics;
+-
+-  public SharedCacheUploaderService(SCMStore store) {
+-    super(SharedCacheUploaderService.class.getName());
+-    this.store = store;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    this.bindAddress = getBindAddress(conf);
+-
+-    super.serviceInit(conf);
+-  }
+-
+-  InetSocketAddress getBindAddress(Configuration conf) {
+-    return conf.getSocketAddr(YarnConfiguration.SCM_UPLOADER_SERVER_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_UPLOADER_SERVER_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_UPLOADER_SERVER_PORT);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    Configuration conf = getConfig();
+-    this.metrics = SharedCacheUploaderMetrics.getInstance();
+-
+-    YarnRPC rpc = YarnRPC.create(conf);
+-    this.server =
+-        rpc.getServer(SCMUploaderProtocol.class, this, bindAddress,
+-            conf, null, // Secret manager null for now (security not supported)
+-            conf.getInt(YarnConfiguration.SCM_UPLOADER_SERVER_THREAD_COUNT,
+-                YarnConfiguration.DEFAULT_SCM_UPLOADER_SERVER_THREAD_COUNT));
+-
+-    // TODO (YARN-2774): Enable service authorization
+-
+-    this.server.start();
+-    bindAddress =
+-        conf.updateConnectAddr(YarnConfiguration.SCM_UPLOADER_SERVER_ADDRESS,
+-            server.getListenerAddress());
+-
+-    super.serviceStart();
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    if (this.server != null) {
+-      this.server.stop();
+-      this.server = null;
+-    }
+-
+-    super.serviceStop();
+-  }
+-
+-  @Override
+-  public SCMUploaderNotifyResponse notify(SCMUploaderNotifyRequest request)
+-      throws YarnException, IOException {
+-    SCMUploaderNotifyResponse response =
+-        recordFactory.newRecordInstance(SCMUploaderNotifyResponse.class);
+-
+-    // TODO (YARN-2774): proper security/authorization needs to be implemented
+-
+-    String filename =
+-        store.addResource(request.getResourceKey(), request.getFileName());
+-
+-    boolean accepted = filename.equals(request.getFileName());
+-
+-    if (accepted) {
+-      this.metrics.incAcceptedUploads();
+-    } else {
+-      this.metrics.incRejectedUploads();
+-    }
+-
+-    response.setAccepted(accepted);
+-
+-    return response;
+-  }
+-
+-  @Override
+-  public SCMUploaderCanUploadResponse canUpload(
+-      SCMUploaderCanUploadRequest request) throws YarnException, IOException {
+-    // TODO (YARN-2781): we may want to have a more flexible policy of
+-    // instructing the node manager to upload only if it meets a certain
+-    // criteria
+-    // until then we return true for now
+-    SCMUploaderCanUploadResponse response =
+-        recordFactory.newRecordInstance(SCMUploaderCanUploadResponse.class);
+-    response.setUploadable(true);
+-    return response;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/CleanerMetrics.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/CleanerMetrics.java
+deleted file mode 100644
+index 55cb074f7a0..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/CleanerMetrics.java
++++ /dev/null
+@@ -1,151 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.sharedcachemanager.metrics;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.metrics2.MetricsSource;
+-import org.apache.hadoop.metrics2.MetricsSystem;
+-import org.apache.hadoop.metrics2.annotation.Metric;
+-import org.apache.hadoop.metrics2.annotation.Metrics;
+-import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
+-import org.apache.hadoop.metrics2.lib.MetricsAnnotations;
+-import org.apache.hadoop.metrics2.lib.MetricsRegistry;
+-import org.apache.hadoop.metrics2.lib.MetricsSourceBuilder;
+-import org.apache.hadoop.metrics2.lib.MutableCounterLong;
+-import org.apache.hadoop.metrics2.lib.MutableGaugeLong;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This class is for maintaining the various Cleaner activity statistics and
+- * publishing them through the metrics interfaces.
+- */
+-@Private
+-@Evolving
+-@Metrics(name = "CleanerActivity", about = "Cleaner service metrics", context = "yarn")
+-public class CleanerMetrics {
+-  public static final Logger LOG =
+-      LoggerFactory.getLogger(CleanerMetrics.class);
+-  private final MetricsRegistry registry = new MetricsRegistry("cleaner");
+-  private final static CleanerMetrics INSTANCE = create();
+-  
+-  public static CleanerMetrics getInstance() {
+-    return INSTANCE;
+-  }
+-
+-  @Metric("number of deleted files over all runs")
+-  private MutableCounterLong totalDeletedFiles;
+-
+-  public long getTotalDeletedFiles() {
+-    return totalDeletedFiles.value();
+-  }
+-
+-  private @Metric("number of deleted files in the last run")
+-  MutableGaugeLong deletedFiles;
+-
+-  public long getDeletedFiles() {
+-    return deletedFiles.value();
+-  }
+-
+-  private @Metric("number of processed files over all runs")
+-  MutableCounterLong totalProcessedFiles;
+-
+-  public long getTotalProcessedFiles() {
+-    return totalProcessedFiles.value();
+-  }
+-
+-  private @Metric("number of processed files in the last run")
+-  MutableGaugeLong processedFiles;
+-
+-  public long getProcessedFiles() {
+-    return processedFiles.value();
+-  }
+-
+-  @Metric("number of file errors over all runs")
+-  private MutableCounterLong totalFileErrors;
+-
+-  public long getTotalFileErrors() {
+-    return totalFileErrors.value();
+-  }
+-
+-  private @Metric("number of file errors in the last run")
+-  MutableGaugeLong fileErrors;
+-
+-  public long getFileErrors() {
+-    return fileErrors.value();
+-  }
+-
+-  private CleanerMetrics() {
+-  }
+-
+-  /**
+-   * The metric source obtained after parsing the annotations
+-   */
+-  MetricsSource metricSource;
+-
+-  static CleanerMetrics create() {
+-    MetricsSystem ms = DefaultMetricsSystem.instance();
+-
+-    CleanerMetrics metricObject = new CleanerMetrics();
+-    MetricsSourceBuilder sb = MetricsAnnotations.newSourceBuilder(metricObject);
+-    final MetricsSource s = sb.build();
+-    ms.register("cleaner", "The cleaner service of truly shared cache", s);
+-    metricObject.metricSource = s;
+-    return metricObject;
+-  }
+-
+-  /**
+-   * Report a delete operation at the current system time
+-   */
+-  public void reportAFileDelete() {
+-    totalProcessedFiles.incr();
+-    processedFiles.incr();
+-    totalDeletedFiles.incr();
+-    deletedFiles.incr();
+-  }
+-
+-  /**
+-   * Report a process operation at the current system time
+-   */
+-  public void reportAFileProcess() {
+-    totalProcessedFiles.incr();
+-    processedFiles.incr();
+-  }
+-
+-  /**
+-   * Report a process operation error at the current system time
+-   */
+-  public void reportAFileError() {
+-    totalProcessedFiles.incr();
+-    processedFiles.incr();
+-    totalFileErrors.incr();
+-    fileErrors.incr();
+-  }
+-
+-  /**
+-   * Report the start a new run of the cleaner.
+-   *
+-   */
+-  public void reportCleaningStart() {
+-    processedFiles.set(0);
+-    deletedFiles.set(0);
+-    fileErrors.set(0);
+-  }
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/ClientSCMMetrics.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/ClientSCMMetrics.java
+deleted file mode 100644
+index a69efaf1501..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/ClientSCMMetrics.java
++++ /dev/null
+@@ -1,91 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.sharedcachemanager.metrics;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.metrics2.MetricsSystem;
+-import org.apache.hadoop.metrics2.annotation.Metric;
+-import org.apache.hadoop.metrics2.annotation.Metrics;
+-import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
+-import org.apache.hadoop.metrics2.lib.MetricsRegistry;
+-import org.apache.hadoop.metrics2.lib.MutableCounterLong;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This class is for maintaining  client requests metrics
+- * and publishing them through the metrics interfaces.
+- */
+-@Private
+-@Unstable
+-@Metrics(about="Client SCM metrics", context="yarn")
+-public class ClientSCMMetrics {
+-
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(ClientSCMMetrics.class);
+-  final MetricsRegistry registry;
+-  private final static ClientSCMMetrics INSTANCE = create();
+-
+-  private ClientSCMMetrics() {
+-    registry = new MetricsRegistry("clientRequests");
+-    LOG.debug("Initialized {}", registry);
+-  }
+-  
+-  public static ClientSCMMetrics getInstance() {
+-    return INSTANCE;
+-  }
+-
+-  static ClientSCMMetrics create() {
+-    MetricsSystem ms = DefaultMetricsSystem.instance();
+-
+-    ClientSCMMetrics metrics = new ClientSCMMetrics();
+-    ms.register("clientRequests", null, metrics);
+-    return metrics;
+-  }
+-
+-  @Metric("Number of cache hits") MutableCounterLong cacheHits;
+-  @Metric("Number of cache misses") MutableCounterLong cacheMisses;
+-  @Metric("Number of cache releases") MutableCounterLong cacheReleases;
+-
+-  /**
+-   * One cache hit event
+-   */
+-  public void incCacheHitCount() {
+-    cacheHits.incr();
+-  }
+-
+-  /**
+-   * One cache miss event
+-   */
+-  public void incCacheMissCount() {
+-    cacheMisses.incr();
+-  }
+-
+-  /**
+-   * One cache release event
+-   */
+-  public void incCacheRelease() {
+-    cacheReleases.incr();
+-  }
+-
+-  public long getCacheHits() { return cacheHits.value(); }
+-  public long getCacheMisses() { return cacheMisses.value(); }
+-  public long getCacheReleases() { return cacheReleases.value(); }
+-
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/SharedCacheUploaderMetrics.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/SharedCacheUploaderMetrics.java
+deleted file mode 100644
+index b86620d1734..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/SharedCacheUploaderMetrics.java
++++ /dev/null
+@@ -1,82 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.sharedcachemanager.metrics;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.metrics2.MetricsSystem;
+-import org.apache.hadoop.metrics2.annotation.Metric;
+-import org.apache.hadoop.metrics2.annotation.Metrics;
+-import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
+-import org.apache.hadoop.metrics2.lib.MetricsRegistry;
+-import org.apache.hadoop.metrics2.lib.MutableCounterLong;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * This class is for maintaining shared cache uploader requests metrics
+- * and publishing them through the metrics interfaces.
+- */
+-@Private
+-@Evolving
+-@Metrics(about="shared cache upload metrics", context="yarn")
+-public class SharedCacheUploaderMetrics {
+-
+-  static final Logger LOG =
+-      LoggerFactory.getLogger(SharedCacheUploaderMetrics.class);
+-  final MetricsRegistry registry;
+-  private final static SharedCacheUploaderMetrics INSTANCE = create();
+-
+-  private SharedCacheUploaderMetrics() {
+-    registry = new MetricsRegistry("SharedCacheUploaderRequests");
+-    LOG.debug("Initialized {}", registry);
+-  }
+-
+-  public static SharedCacheUploaderMetrics getInstance() {
+-    return INSTANCE;
+-  }
+-
+-  static SharedCacheUploaderMetrics create() {
+-    MetricsSystem ms = DefaultMetricsSystem.instance();
+-
+-    SharedCacheUploaderMetrics metrics =
+-        new SharedCacheUploaderMetrics();
+-    ms.register("SharedCacheUploaderRequests", null, metrics);
+-    return metrics;
+-  }
+-
+-  @Metric("Number of accepted uploads") MutableCounterLong acceptedUploads;
+-  @Metric("Number of rejected uploads") MutableCounterLong rejectedUploads;
+-
+-  /**
+-   * One accepted upload event
+-   */
+-  public void incAcceptedUploads() {
+-    acceptedUploads.incr();
+-  }
+-
+-  /**
+-   * One rejected upload event
+-   */
+-  public void incRejectedUploads() {
+-    rejectedUploads.incr();
+-  }
+-
+-  public long getAcceptedUploads() { return acceptedUploads.value(); }
+-  public long getRejectUploads() { return rejectedUploads.value(); }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/InMemorySCMStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/InMemorySCMStore.java
+deleted file mode 100644
+index 760ba7481ae..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/InMemorySCMStore.java
++++ /dev/null
+@@ -1,525 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import java.io.FileNotFoundException;
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.concurrent.ConcurrentHashMap;
+-import java.util.concurrent.ScheduledExecutorService;
+-import java.util.concurrent.ThreadFactory;
+-import java.util.concurrent.TimeUnit;
+-
+-import org.apache.hadoop.HadoopIllegalArgumentException;
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.util.StringInterner;
+-import org.apache.hadoop.util.concurrent.HadoopExecutors;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.server.sharedcache.SharedCacheUtil;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.AppChecker;
+-
+-import org.apache.hadoop.classification.VisibleForTesting;
+-import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.ThreadFactoryBuilder;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * A thread safe version of an in-memory SCM store. The thread safety is
+- * implemented with two key pieces: (1) at the mapping level a ConcurrentHashMap
+- * is used to allow concurrency to resources and their associated references,
+- * and (2) a key level lock is used to ensure mutual exclusion between any
+- * operation that accesses a resource with the same key. <br>
+- * <br>
+- * To ensure safe key-level locking, we use the original string key and intern
+- * it weakly using hadoop's <code>StringInterner</code>. It avoids the pitfalls
+- * of using built-in String interning. The interned strings are also weakly
+- * referenced, so it can be garbage collected once it is done. And there is
+- * little risk of keys being available for other parts of the code so they can
+- * be used as locks accidentally. <br>
+- * <br>
+- * Resources in the in-memory store are evicted based on a time staleness
+- * criteria. If a resource is not referenced (i.e. used) for a given period, it
+- * is designated as a stale resource and is considered evictable.
+- */
+-@Private
+-@Evolving
+-public class InMemorySCMStore extends SCMStore {
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(InMemorySCMStore.class);
+-
+-  private final Map<String, SharedCacheResource> cachedResources =
+-      new ConcurrentHashMap<String, SharedCacheResource>();
+-  private Collection<ApplicationId> initialApps =
+-      new ArrayList<ApplicationId>();
+-  private final Object initialAppsLock = new Object();
+-  private long startTime;
+-  private int stalenessMinutes;
+-  private ScheduledExecutorService scheduler;
+-  private int initialDelayMin;
+-  private int checkPeriodMin;
+-
+-  public InMemorySCMStore() {
+-    super(InMemorySCMStore.class.getName());
+-  }
+-
+-  @VisibleForTesting
+-  public InMemorySCMStore(AppChecker appChecker) {
+-    super(InMemorySCMStore.class.getName(), appChecker);
+-  }
+-
+-  private String intern(String key) {
+-    return StringInterner.weakIntern(key);
+-  }
+-
+-  /**
+-   * The in-memory store bootstraps itself from the shared cache entries that
+-   * exist in HDFS.
+-   */
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-
+-    this.startTime = System.currentTimeMillis();
+-    this.initialDelayMin = getInitialDelay(conf);
+-    this.checkPeriodMin = getCheckPeriod(conf);
+-    this.stalenessMinutes = getStalenessPeriod(conf);
+-
+-    bootstrap(conf);
+-
+-    ThreadFactory tf =
+-        new ThreadFactoryBuilder().setNameFormat("InMemorySCMStore")
+-            .build();
+-    scheduler = HadoopExecutors.newSingleThreadScheduledExecutor(tf);
+-
+-    super.serviceInit(conf);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    // start composed services first
+-    super.serviceStart();
+-
+-    // Get initial list of running applications
+-    LOG.info("Getting the active app list to initialize the in-memory scm store");
+-    synchronized (initialAppsLock) {
+-      initialApps = appChecker.getActiveApplications();
+-    }
+-    LOG.info(initialApps.size() + " apps recorded as active at this time");
+-
+-    Runnable task = new AppCheckTask(appChecker);
+-    scheduler.scheduleAtFixedRate(task, initialDelayMin, checkPeriodMin,
+-        TimeUnit.MINUTES);
+-    LOG.info("Scheduled the in-memory scm store app check task to run every "
+-        + checkPeriodMin + " minutes.");
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    LOG.info("Stopping the " + InMemorySCMStore.class.getSimpleName()
+-        + " service.");
+-    if (scheduler != null) {
+-      LOG.info("Shutting down the background thread.");
+-      scheduler.shutdownNow();
+-      try {
+-        if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+-          LOG.warn("Gave up waiting for the app check task to shutdown.");
+-        }
+-      } catch (InterruptedException e) {
+-        LOG.warn(
+-            "The InMemorySCMStore was interrupted while shutting down the "
+-                + "app check task.", e);
+-      }
+-      LOG.info("The background thread stopped.");
+-    }
+-    super.serviceStop();
+-  }
+-
+-  private void bootstrap(Configuration conf) throws IOException {
+-    Map<String, String> initialCachedResources =
+-        getInitialCachedResources(FileSystem.get(conf), conf);
+-    LOG.info("Bootstrapping from " + initialCachedResources.size()
+-        + " cache resources located in the file system");
+-    Iterator<Map.Entry<String, String>> it =
+-        initialCachedResources.entrySet().iterator();
+-    while (it.hasNext()) {
+-      Map.Entry<String, String> e = it.next();
+-      String key = intern(e.getKey());
+-      String fileName = e.getValue();
+-      SharedCacheResource resource = new SharedCacheResource(fileName);
+-      // we don't hold the lock for this as it is done as part of serviceInit
+-      cachedResources.put(key, resource);
+-      // clear out the initial resource to reduce the footprint
+-      it.remove();
+-    }
+-    LOG.info("Bootstrapping complete");
+-  }
+-
+-  @VisibleForTesting
+-  Map<String, String> getInitialCachedResources(FileSystem fs,
+-      Configuration conf) throws IOException {
+-    // get the root directory for the shared cache
+-    String location =
+-        conf.get(YarnConfiguration.SHARED_CACHE_ROOT,
+-            YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT);
+-    Path root = new Path(location);
+-    try {
+-      fs.getFileStatus(root);
+-    } catch (FileNotFoundException e) {
+-      String message =
+-          "The shared cache root directory " + location + " was not found";
+-      LOG.error(message);
+-      throw (IOException)new FileNotFoundException(message)
+-          .initCause(e);
+-    }
+-
+-    int nestedLevel = SharedCacheUtil.getCacheDepth(conf);
+-    // now traverse individual directories and process them
+-    // the directory structure is specified by the nested level parameter
+-    // (e.g. 9/c/d/<checksum>/file)
+-    String pattern = SharedCacheUtil.getCacheEntryGlobPattern(nestedLevel+1);
+-
+-    LOG.info("Querying for all individual cached resource files");
+-    FileStatus[] entries = fs.globStatus(new Path(root, pattern));
+-    int numEntries = entries == null ? 0 : entries.length;
+-    LOG.info("Found " + numEntries + " files: processing for one resource per "
+-        + "key");
+-
+-    Map<String, String> initialCachedEntries = new HashMap<String, String>();
+-    if (entries != null) {
+-      for (FileStatus entry : entries) {
+-        Path file = entry.getPath();
+-        String fileName = file.getName();
+-        if (entry.isFile()) {
+-          // get the parent to get the checksum
+-          Path parent = file.getParent();
+-          if (parent != null) {
+-            // the name of the immediate parent directory is the checksum
+-            String key = parent.getName();
+-            // make sure we insert only one file per checksum whichever comes
+-            // first
+-            if (initialCachedEntries.containsKey(key)) {
+-              LOG.warn("Key " + key + " is already mapped to file "
+-                  + initialCachedEntries.get(key) + "; file " + fileName
+-                  + " will not be added");
+-            } else {
+-              initialCachedEntries.put(key, fileName);
+-            }
+-          }
+-        }
+-      }
+-    }
+-    LOG.info("A total of " + initialCachedEntries.size()
+-        + " files are now mapped");
+-    return initialCachedEntries;
+-  }
+-
+-  /**
+-   * Adds the given resource to the store under the key and the filename. If the
+-   * entry is already found, it returns the existing filename. It represents the
+-   * state of the store at the time of this query. The entry may change or even
+-   * be removed once this method returns. The caller should be prepared to
+-   * handle that situation.
+-   * 
+-   * @return the filename of the newly inserted resource or that of the existing
+-   *         resource
+-   */
+-  @Override
+-  public String addResource(String key, String fileName) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource == null) {
+-        resource = new SharedCacheResource(fileName);
+-        cachedResources.put(interned, resource);
+-      }
+-      return resource.getFileName();
+-    }
+-  }
+-
+-  /**
+-   * Adds the provided resource reference to the cache resource under the key,
+-   * and updates the access time. If it returns a non-null value, the caller may
+-   * safely assume that the resource will not be removed at least until the app
+-   * in this resource reference has terminated.
+-   * 
+-   * @return the filename of the resource, or null if the resource is not found
+-   */
+-  @Override
+-  public String addResourceReference(String key,
+-      SharedCacheResourceReference ref) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource == null) { // it's not mapped
+-        return null;
+-      }
+-      resource.addReference(ref);
+-      resource.updateAccessTime();
+-      return resource.getFileName();
+-    }
+-  }
+-
+-  /**
+-   * Returns the list of resource references currently registered under the
+-   * cache entry. If the list is empty, it returns an empty collection. The
+-   * returned collection is unmodifiable and a snapshot of the information at
+-   * the time of the query. The state may change after this query returns. The
+-   * caller should handle the situation that some or all of these resource
+-   * references are no longer relevant.
+-   * 
+-   * @return the collection that contains the resource references associated
+-   *         with the resource; or an empty collection if no resource references
+-   *         are registered under this resource
+-   */
+-  @Override
+-  public Collection<SharedCacheResourceReference> getResourceReferences(String key) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource == null) {
+-        return Collections.emptySet();
+-      }
+-      Set<SharedCacheResourceReference> refs =
+-          new HashSet<SharedCacheResourceReference>(
+-              resource.getResourceReferences());
+-      return Collections.unmodifiableSet(refs);
+-    }
+-  }
+-
+-  /**
+-   * Removes the provided resource reference from the resource. If the resource
+-   * does not exist, nothing will be done.
+-   */
+-  @Override
+-  public boolean removeResourceReference(String key, SharedCacheResourceReference ref,
+-      boolean updateAccessTime) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      boolean removed = false;
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource != null) {
+-        Set<SharedCacheResourceReference> resourceRefs =
+-            resource.getResourceReferences();
+-        removed = resourceRefs.remove(ref);
+-        if (updateAccessTime) {
+-          resource.updateAccessTime();
+-        }
+-      }
+-      return removed;
+-    }
+-  }
+-
+-  /**
+-   * Removes the provided collection of resource references from the resource.
+-   * If the resource does not exist, nothing will be done.
+-   */
+-  @Override
+-  public void removeResourceReferences(String key,
+-      Collection<SharedCacheResourceReference> refs, boolean updateAccessTime) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource != null) {
+-        Set<SharedCacheResourceReference> resourceRefs =
+-            resource.getResourceReferences();
+-        resourceRefs.removeAll(refs);
+-        if (updateAccessTime) {
+-          resource.updateAccessTime();
+-        }
+-      }
+-    }
+-  }
+-
+-  /**
+-   * Provides atomicity for the method.
+-   */
+-  @Override
+-  public void cleanResourceReferences(String key) throws YarnException {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      super.cleanResourceReferences(key);
+-    }
+-  }
+-
+-  /**
+-   * Removes the given resource from the store. Returns true if the resource is
+-   * found and removed or if the resource is not found. Returns false if it was
+-   * unable to remove the resource because the resource reference list was not
+-   * empty.
+-   */
+-  @Override
+-  public boolean removeResource(String key) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      if (resource == null) {
+-        return true;
+-      }
+-
+-      if (!resource.getResourceReferences().isEmpty()) {
+-        return false;
+-      }
+-      // no users
+-      cachedResources.remove(interned);
+-      return true;
+-    }
+-  }
+-
+-  /**
+-   * Obtains the access time for a resource. It represents the view of the
+-   * resource at the time of the query. The value may have been updated at a
+-   * later point.
+-   * 
+-   * @return the access time of the resource if found; -1 if the resource is not
+-   *         found
+-   */
+-  @VisibleForTesting
+-  long getAccessTime(String key) {
+-    String interned = intern(key);
+-    synchronized (interned) {
+-      SharedCacheResource resource = cachedResources.get(interned);
+-      return resource == null ? -1 : resource.getAccessTime();
+-    }
+-  }
+-
+-  @Override
+-  public boolean isResourceEvictable(String key, FileStatus file) {
+-    synchronized (initialAppsLock) {
+-      if (initialApps.size() > 0) {
+-        return false;
+-      }
+-    }
+-
+-    long staleTime =
+-        System.currentTimeMillis()
+-            - TimeUnit.MINUTES.toMillis(this.stalenessMinutes);
+-    long accessTime = getAccessTime(key);
+-    if (accessTime == -1) {
+-      // check modification time
+-      long modTime = file.getModificationTime();
+-      // if modification time is older then the store startup time, we need to
+-      // just use the store startup time as the last point of certainty
+-      long lastUse = modTime < this.startTime ? this.startTime : modTime;
+-      return lastUse < staleTime;
+-    } else {
+-      // check access time
+-      return accessTime < staleTime;
+-    }
+-  }
+-
+-  private static int getStalenessPeriod(Configuration conf) {
+-    int stalenessMinutes =
+-        conf.getInt(YarnConfiguration.IN_MEMORY_STALENESS_PERIOD_MINS,
+-            YarnConfiguration.DEFAULT_IN_MEMORY_STALENESS_PERIOD_MINS);
+-    // non-positive value is invalid; use the default
+-    if (stalenessMinutes <= 0) {
+-      throw new HadoopIllegalArgumentException("Non-positive staleness value: "
+-          + stalenessMinutes
+-          + ". The staleness value must be greater than zero.");
+-    }
+-    return stalenessMinutes;
+-  }
+-
+-  private static int getInitialDelay(Configuration conf) {
+-    int initialMinutes =
+-        conf.getInt(YarnConfiguration.IN_MEMORY_INITIAL_DELAY_MINS,
+-            YarnConfiguration.DEFAULT_IN_MEMORY_INITIAL_DELAY_MINS);
+-    // non-positive value is invalid; use the default
+-    if (initialMinutes <= 0) {
+-      throw new HadoopIllegalArgumentException(
+-          "Non-positive initial delay value: " + initialMinutes
+-              + ". The initial delay value must be greater than zero.");
+-    }
+-    return initialMinutes;
+-  }
+-
+-  private static int getCheckPeriod(Configuration conf) {
+-    int checkMinutes =
+-        conf.getInt(YarnConfiguration.IN_MEMORY_CHECK_PERIOD_MINS,
+-            YarnConfiguration.DEFAULT_IN_MEMORY_CHECK_PERIOD_MINS);
+-    // non-positive value is invalid; use the default
+-    if (checkMinutes <= 0) {
+-      throw new HadoopIllegalArgumentException(
+-          "Non-positive check period value: " + checkMinutes
+-              + ". The check period value must be greater than zero.");
+-    }
+-    return checkMinutes;
+-  }
+-
+-  @Private
+-  @Evolving
+-  class AppCheckTask implements Runnable {
+-
+-    private final AppChecker taskAppChecker;
+-
+-    public AppCheckTask(AppChecker appChecker) {
+-      this.taskAppChecker = appChecker;
+-    }
+-
+-    @Override
+-    public void run() {
+-      try {
+-        LOG.info("Checking the initial app list for finished applications.");
+-        synchronized (initialAppsLock) {
+-          if (initialApps.isEmpty()) {
+-            // we're fine, no-op; there are no active apps that were running at
+-            // the time of the service start
+-          } else {
+-            LOG.info("Looking into " + initialApps.size()
+-                + " apps to see if they are still active");
+-            Iterator<ApplicationId> it = initialApps.iterator();
+-            while (it.hasNext()) {
+-              ApplicationId id = it.next();
+-              try {
+-                if (!taskAppChecker.isApplicationActive(id)) {
+-                  // remove it from the list
+-                  it.remove();
+-                }
+-              } catch (YarnException e) {
+-                LOG.warn("Exception while checking the app status;"
+-                    + " will leave the entry in the list", e);
+-                // continue
+-              }
+-            }
+-          }
+-          LOG.info("There are now " + initialApps.size()
+-              + " entries in the list");
+-        }
+-      } catch (Throwable e) {
+-        LOG.error(
+-            "Unexpected exception thrown during in-memory store app check task."
+-                + " Rescheduling task.", e);
+-      }
+-
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStore.java
+deleted file mode 100644
+index 685b86ca367..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStore.java
++++ /dev/null
+@@ -1,213 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import java.util.Collection;
+-import java.util.HashSet;
+-import java.util.Set;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.service.CompositeService;
+-import org.apache.hadoop.util.ReflectionUtils;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.AppChecker;
+-
+-import org.apache.hadoop.classification.VisibleForTesting;
+-
+-
+-/**
+- * An abstract class for the data store used by the shared cache manager
+- * service. All implementations of methods in this interface need to be thread
+- * safe and atomic.
+- */
+-@Private
+-@Evolving
+-public abstract class SCMStore extends CompositeService {
+-
+-  protected AppChecker appChecker;
+-
+-  protected SCMStore(String name) {
+-    super(name);
+-  }
+-
+-  @VisibleForTesting
+-  SCMStore(String name, AppChecker appChecker) {
+-    super(name);
+-    this.appChecker = appChecker;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    if (this.appChecker == null) {
+-      this.appChecker = createAppCheckerService(conf);
+-    }
+-    addService(appChecker);
+-    super.serviceInit(conf);
+-  }
+-
+-  /**
+-   * Add a resource to the shared cache and it's associated filename. The
+-   * resource is identified by a unique key. If the key already exists no action
+-   * is taken and the filename of the existing resource is returned. If the key
+-   * does not exist, the resource is added, it's access time is set, and the
+-   * filename of the resource is returned.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @param fileName the filename of the resource
+-   * @return the filename of the resource as represented by the cache
+-   */
+-  @Private
+-  public abstract String addResource(String key, String fileName);
+-
+-  /**
+-   * Remove a resource from the shared cache.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @return true if the resource was removed or did not exist, false if the
+-   *         resource existed, contained at least one
+-   *         <code>SharedCacheResourceReference</code> and was not removed.
+-   */
+-  @Private
+-  public abstract boolean removeResource(String key);
+-
+-  /**
+-   * Add a <code>SharedCacheResourceReference</code> to a resource and update
+-   * the resource access time.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @param ref the <code>SharedCacheResourceReference</code> to add
+-   * @return String the filename of the resource if the
+-   *         <code>SharedCacheResourceReference</code> was added or already
+-   *         existed. null if the resource did not exist
+-   */
+-  @Private
+-  public abstract String addResourceReference(String key,
+-      SharedCacheResourceReference ref);
+-
+-  /**
+-   * Get the <code>SharedCacheResourceReference</code>(s) associated with the
+-   * resource.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @return an unmodifiable collection of
+-   *         <code>SharedCacheResourceReferences</code>. If the resource does
+-   *         not exist, an empty set is returned.
+-   */
+-  @Private
+-  public abstract Collection<SharedCacheResourceReference> getResourceReferences(
+-      String key);
+-
+-  /**
+-   * Remove a <code>SharedCacheResourceReference</code> from a resource.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @param ref the <code>SharedCacheResourceReference</code> to remove
+-   * @param updateAccessTime true if the call should update the access time for
+-   *          the resource
+-   * @return true if the reference was removed, false otherwise
+-   */
+-  @Private
+-  public abstract boolean removeResourceReference(String key,
+-      SharedCacheResourceReference ref, boolean updateAccessTime);
+-
+-  /**
+-   * Remove a collection of <code>SharedCacheResourceReferences</code> from a
+-   * resource.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @param refs the collection of <code>SharedCacheResourceReference</code>s to
+-   *          remove
+-   * @param updateAccessTime true if the call should update the access time for
+-   *          the resource
+-   */
+-  @Private
+-  public abstract void removeResourceReferences(String key,
+-      Collection<SharedCacheResourceReference> refs, boolean updateAccessTime);
+-
+-  /**
+-   * Clean all resource references to a cache resource that contain application
+-   * ids pointing to finished applications. If the resource key does not exist,
+-   * do nothing.
+-   *
+-   * @param key a unique identifier for a resource
+-   * @throws YarnException
+-   */
+-  @Private
+-  public void cleanResourceReferences(String key) throws YarnException {
+-    Collection<SharedCacheResourceReference> refs = getResourceReferences(key);
+-    if (!refs.isEmpty()) {
+-      Set<SharedCacheResourceReference> refsToRemove =
+-          new HashSet<SharedCacheResourceReference>();
+-      for (SharedCacheResourceReference r : refs) {
+-        if (!appChecker.isApplicationActive(r.getAppId())) {
+-          // application in resource reference is dead, it is safe to remove the
+-          // reference
+-          refsToRemove.add(r);
+-        }
+-      }
+-      if (refsToRemove.size() > 0) {
+-        removeResourceReferences(key, refsToRemove, false);
+-      }
+-    }
+-  }
+-
+-  /**
+-   * Check if a specific resource is evictable according to the store's enabled
+-   * cache eviction policies.
+-   * 
+-   * @param key a unique identifier for a resource
+-   * @param file the <code>FileStatus</code> object for the resource file in the
+-   *          file system.
+-   * @return true if the resource is evicatble, false otherwise
+-   */
+-  @Private
+-  public abstract boolean isResourceEvictable(String key, FileStatus file);
+-
+-  /**
+-   * Create an instance of the AppChecker service via reflection based on the
+-   * {@link YarnConfiguration#SCM_APP_CHECKER_CLASS} parameter.
+-   * 
+-   * @param conf
+-   * @return an instance of the AppChecker class
+-   */
+-  @Private
+-  @SuppressWarnings("unchecked")
+-  public static AppChecker createAppCheckerService(Configuration conf) {
+-    Class<? extends AppChecker> defaultCheckerClass;
+-    try {
+-      defaultCheckerClass =
+-          (Class<? extends AppChecker>) Class
+-              .forName(YarnConfiguration.DEFAULT_SCM_APP_CHECKER_CLASS);
+-    } catch (Exception e) {
+-      throw new YarnRuntimeException("Invalid default scm app checker class"
+-          + YarnConfiguration.DEFAULT_SCM_APP_CHECKER_CLASS, e);
+-    }
+-
+-    AppChecker checker =
+-        ReflectionUtils.newInstance(conf.getClass(
+-            YarnConfiguration.SCM_APP_CHECKER_CLASS, defaultCheckerClass,
+-            AppChecker.class), conf);
+-    return checker;
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResource.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResource.java
+deleted file mode 100644
+index cb0df541b1d..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResource.java
++++ /dev/null
+@@ -1,64 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import java.util.HashSet;
+-import java.util.Set;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-
+-/**
+- * Class that encapsulates the cache resource. The instances are not thread
+- * safe. Any operation that uses the resource must use thread-safe mechanisms to
+- * ensure safe access with the only exception of the filename.
+- */
+-@Private
+-@Evolving
+-class SharedCacheResource {
+-  private long accessTime;
+-  private final Set<SharedCacheResourceReference> refs;
+-  private final String fileName;
+-
+-  SharedCacheResource(String fileName) {
+-    this.accessTime = System.currentTimeMillis();
+-    this.refs = new HashSet<SharedCacheResourceReference>();
+-    this.fileName = fileName;
+-  }
+-
+-  long getAccessTime() {
+-    return accessTime;
+-  }
+-
+-  void updateAccessTime() {
+-    accessTime = System.currentTimeMillis();
+-  }
+-
+-  String getFileName() {
+-    return this.fileName;
+-  }
+-
+-  Set<SharedCacheResourceReference> getResourceReferences() {
+-    return this.refs;
+-  }
+-
+-  boolean addReference(SharedCacheResourceReference ref) {
+-    return this.refs.add(ref);
+-  }
+-}
+\ No newline at end of file
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResourceReference.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResourceReference.java
+deleted file mode 100644
+index d595d9708b8..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SharedCacheResourceReference.java
++++ /dev/null
+@@ -1,86 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Evolving;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-
+-/**
+- * This is an object that represents a reference to a shared cache resource.
+- */
+-@Private
+-@Evolving
+-public class SharedCacheResourceReference {
+-  private final ApplicationId appId;
+-  private final String shortUserName;
+-
+-  /**
+-   * Create a resource reference.
+-   * 
+-   * @param appId <code>ApplicationId</code> that is referencing a resource.
+-   * @param shortUserName <code>ShortUserName</code> of the user that created
+-   *          the reference.
+-   */
+-  public SharedCacheResourceReference(ApplicationId appId, String shortUserName) {
+-    this.appId = appId;
+-    this.shortUserName = shortUserName;
+-  }
+-
+-  public ApplicationId getAppId() {
+-    return this.appId;
+-  }
+-
+-  public String getShortUserName() {
+-    return this.shortUserName;
+-  }
+-
+-  @Override
+-  public int hashCode() {
+-    final int prime = 31;
+-    int result = 1;
+-    result = prime * result + ((appId == null) ? 0 : appId.hashCode());
+-    result =
+-        prime * result
+-            + ((shortUserName == null) ? 0 : shortUserName.hashCode());
+-    return result;
+-  }
+-
+-  @Override
+-  public boolean equals(Object obj) {
+-    if (this == obj)
+-      return true;
+-    if (obj == null)
+-      return false;
+-    if (getClass() != obj.getClass())
+-      return false;
+-    SharedCacheResourceReference other = (SharedCacheResourceReference) obj;
+-    if (appId == null) {
+-      if (other.appId != null)
+-        return false;
+-    } else if (!appId.equals(other.appId))
+-      return false;
+-    if (shortUserName == null) {
+-      if (other.shortUserName != null)
+-        return false;
+-    } else if (!shortUserName.equals(other.shortUserName))
+-      return false;
+-    return true;
+-  }
+-}
+\ No newline at end of file
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMController.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMController.java
+deleted file mode 100644
+index f597d14bf4e..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMController.java
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.webapp;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.yarn.webapp.Controller;
+-
+-/**
+- * The controller class for the shared cache manager web app.
+- */
+-@Private
+-@Unstable
+-public class SCMController extends Controller {
+-  @Override
+-  public void index() {
+-    setTitle("Shared Cache Manager");
+-  }
+-
+-  /**
+-   * It is referenced in SCMWebServer.SCMWebApp.setup()
+-   */
+-  @SuppressWarnings("unused")
+-  public void overview() {
+-    render(SCMOverviewPage.class);
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMMetricsInfo.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMMetricsInfo.java
+deleted file mode 100644
+index 24aa1452a67..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMMetricsInfo.java
++++ /dev/null
+@@ -1,70 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.webapp;
+-
+-import javax.xml.bind.annotation.XmlAccessType;
+-import javax.xml.bind.annotation.XmlAccessorType;
+-import javax.xml.bind.annotation.XmlRootElement;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.CleanerMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.ClientSCMMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.SharedCacheUploaderMetrics;
+-
+-/**
+- * This class is used to summarize useful shared cache manager metrics for the
+- * webUI display.
+- */
+-@XmlRootElement(name = "SCMMetrics")
+-@XmlAccessorType(XmlAccessType.FIELD)
+-@Private
+-@Unstable
+-public class SCMMetricsInfo {
+-  protected long totalDeletedFiles;
+-  protected long totalProcessedFiles;
+-  protected long cacheHits;
+-  protected long cacheMisses;
+-  protected long cacheReleases;
+-  protected long acceptedUploads;
+-  protected long rejectedUploads;
+-
+-  public SCMMetricsInfo() {
+-  }
+-  
+-  public SCMMetricsInfo(CleanerMetrics cleanerMetrics,
+-      ClientSCMMetrics clientSCMMetrics,
+-      SharedCacheUploaderMetrics scmUploaderMetrics) {
+-    totalDeletedFiles = cleanerMetrics.getTotalDeletedFiles();
+-    totalProcessedFiles = cleanerMetrics.getTotalProcessedFiles();
+-    cacheHits = clientSCMMetrics.getCacheHits();
+-    cacheMisses = clientSCMMetrics.getCacheMisses();
+-    cacheReleases = clientSCMMetrics.getCacheReleases();
+-    acceptedUploads = scmUploaderMetrics.getAcceptedUploads();
+-    rejectedUploads = scmUploaderMetrics.getRejectUploads();
+-  }
+-
+-  public long getTotalDeletedFiles() { return totalDeletedFiles; }
+-  public long getTotalProcessedFiles() { return totalProcessedFiles; }
+-  public long getCacheHits() { return cacheHits; }
+-  public long getCacheMisses() { return cacheMisses; }
+-  public long getCacheReleases() { return cacheReleases; }
+-  public long getAcceptedUploads() { return acceptedUploads; }
+-  public long getRejectUploads() { return rejectedUploads; }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMOverviewPage.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMOverviewPage.java
+deleted file mode 100644
+index cec085b3191..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMOverviewPage.java
++++ /dev/null
+@@ -1,95 +0,0 @@
+-/**
+-* Licensed to the Apache Software Foundation (ASF) under one
+-* or more contributor license agreements.  See the NOTICE file
+-* distributed with this work for additional information
+-* regarding copyright ownership.  The ASF licenses this file
+-* to you under the Apache License, Version 2.0 (the
+-* "License"); you may not use this file except in compliance
+-* with the License.  You may obtain a copy of the License at
+-*
+-*     http://www.apache.org/licenses/LICENSE-2.0
+-*
+-* Unless required by applicable law or agreed to in writing, software
+-* distributed under the License is distributed on an "AS IS" BASIS,
+-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-* See the License for the specific language governing permissions and
+-* limitations under the License.
+-*/
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.webapp;
+-
+-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.ACCORDION;
+-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.ACCORDION_ID;
+-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.initID;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.SharedCacheManager;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.CleanerMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.ClientSCMMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.SharedCacheUploaderMetrics;
+-import org.apache.hadoop.yarn.util.Times;
+-import org.apache.hadoop.yarn.webapp.SubView;
+-import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
+-import org.apache.hadoop.yarn.webapp.view.InfoBlock;
+-import org.apache.hadoop.yarn.webapp.view.TwoColumnLayout;
+-
+-import com.google.inject.Inject;
+-
+-/**
+- * This class is to render the shared cache manager web ui overview page.
+- */
+-@Private
+-@Unstable
+-public class SCMOverviewPage extends TwoColumnLayout {
+-
+-  @Override protected void preHead(Page.HTML<__> html) {
+-    set(ACCORDION_ID, "nav");
+-    set(initID(ACCORDION, "nav"), "{autoHeight:false, active:0}");
+-  }
+-
+-  @Override protected Class<? extends SubView> content() {
+-    return SCMOverviewBlock.class;
+-  }
+-
+-  @Override
+-  protected Class<? extends SubView> nav() {
+-    return SCMOverviewNavBlock.class;
+-  }
+-
+-  static private class SCMOverviewNavBlock extends HtmlBlock {
+-    @Override
+-    protected void render(Block html) {
+-      html.div("#nav").h3("Tools").ul().li().a("/conf", "Configuration").__()
+-          .li().a("/stacks", "Thread dump").__().li().a("/logs", "Logs").__()
+-          .li().a("/metrics", "Metrics").__().__().__();
+-    }
+-  }
+-
+-  static private class SCMOverviewBlock extends HtmlBlock {
+-    final SharedCacheManager scm;
+-
+-    @Inject
+-    SCMOverviewBlock(SharedCacheManager scm, ViewContext ctx) {
+-      super(ctx);
+-      this.scm = scm;
+-    }
+-
+-    @Override
+-    protected void render(Block html) {
+-      SCMMetricsInfo metricsInfo = new SCMMetricsInfo(
+-          CleanerMetrics.getInstance(), ClientSCMMetrics.getInstance(),
+-              SharedCacheUploaderMetrics.getInstance());
+-      info("Shared Cache Manager overview").
+-          __("Started on:", Times.format(scm.getStartTime())).
+-          __("Cache hits: ", metricsInfo.getCacheHits()).
+-          __("Cache misses: ", metricsInfo.getCacheMisses()).
+-          __("Cache releases: ", metricsInfo.getCacheReleases()).
+-          __("Accepted uploads: ", metricsInfo.getAcceptedUploads()).
+-          __("Rejected uploads: ", metricsInfo.getRejectUploads()).
+-          __("Deleted files by the cleaner: ", metricsInfo.getTotalDeletedFiles()).
+-          __("Processed files by the cleaner: ", metricsInfo.getTotalProcessedFiles());
+-      html.__(InfoBlock.class);
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMWebServer.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMWebServer.java
+deleted file mode 100644
+index 7984090fdce..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/main/java/org/apache/hadoop/yarn/server/sharedcachemanager/webapp/SCMWebServer.java
++++ /dev/null
+@@ -1,92 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.webapp;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.classification.InterfaceStability.Unstable;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.service.AbstractService;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.SharedCacheManager;
+-import org.apache.hadoop.yarn.webapp.WebApp;
+-import org.apache.hadoop.yarn.webapp.WebApps;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-/**
+- * A very simple web interface for the metrics reported by
+- * {@link org.apache.hadoop.yarn.server.sharedcachemanager.SharedCacheManager}
+- * TODO: Security for web ui (See YARN-2774)
+- */
+-@Private
+-@Unstable
+-public class SCMWebServer extends AbstractService {
+-  private static final Logger LOG =
+-      LoggerFactory.getLogger(SCMWebServer.class);
+-
+-  private final SharedCacheManager scm;
+-  private WebApp webApp;
+-  private String bindAddress;
+-
+-  public SCMWebServer(SharedCacheManager scm) {
+-    super(SCMWebServer.class.getName());
+-    this.scm = scm;
+-  }
+-
+-  @Override
+-  protected void serviceInit(Configuration conf) throws Exception {
+-    this.bindAddress = getBindAddress(conf);
+-    super.serviceInit(conf);
+-  }
+-
+-  private String getBindAddress(Configuration conf) {
+-    return conf.get(YarnConfiguration.SCM_WEBAPP_ADDRESS,
+-        YarnConfiguration.DEFAULT_SCM_WEBAPP_ADDRESS);
+-  }
+-
+-  @Override
+-  protected void serviceStart() throws Exception {
+-    SCMWebApp scmWebApp = new SCMWebApp(scm);
+-    this.webApp = WebApps.$for("sharedcache").at(bindAddress).start(scmWebApp);
+-    LOG.info("Instantiated " + SCMWebApp.class.getName() + " at " + bindAddress);
+-  }
+-
+-  @Override
+-  protected void serviceStop() throws Exception {
+-    if (this.webApp != null) {
+-      this.webApp.stop();
+-    }
+-  }
+-
+-  private class SCMWebApp extends WebApp {
+-    private final SharedCacheManager scm;
+-
+-    public SCMWebApp(SharedCacheManager scm) {
+-      this.scm = scm;
+-    }
+-
+-    @Override
+-    public void setup() {
+-      if (scm != null) {
+-        bind(SharedCacheManager.class).toInstance(scm);
+-      }
+-      route("/", SCMController.class, "overview");
+-    }
+-  }
+-}
+\ No newline at end of file
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/DummyAppChecker.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/DummyAppChecker.java
+deleted file mode 100644
+index 2b7c72cf283..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/DummyAppChecker.java
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.util.ArrayList;
+-import java.util.Collection;
+-
+-import org.apache.hadoop.classification.InterfaceAudience.Private;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.exceptions.YarnException;
+-
+-/**
+- * A dummy app checker class for testing only.
+- */
+-public class DummyAppChecker extends AppChecker {
+-  @Override
+-  @Private
+-  public boolean isApplicationActive(ApplicationId id) throws YarnException {
+-    return false;
+-  }
+-
+-  @Override
+-  @Private
+-  public Collection<ApplicationId> getActiveApplications() throws YarnException {
+-    return new ArrayList<ApplicationId>();
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestCleanerTask.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestCleanerTask.java
+deleted file mode 100644
+index 019ef67bd6a..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestCleanerTask.java
++++ /dev/null
+@@ -1,152 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.util.concurrent.locks.Lock;
+-import java.util.concurrent.locks.ReentrantLock;
+-
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.CleanerMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-
+-import static org.mockito.ArgumentMatchers.anyBoolean;
+-import static org.mockito.ArgumentMatchers.eq;
+-import static org.mockito.ArgumentMatchers.isA;
+-import static org.mockito.Mockito.mock;
+-import static org.mockito.Mockito.never;
+-import static org.mockito.Mockito.spy;
+-import static org.mockito.Mockito.verify;
+-import static org.mockito.Mockito.when;
+-
+-public class TestCleanerTask {
+-  private static final String ROOT =
+-      YarnConfiguration.DEFAULT_SHARED_CACHE_ROOT;
+-  private static final long SLEEP_TIME =
+-      YarnConfiguration.DEFAULT_SCM_CLEANER_RESOURCE_SLEEP_MS;
+-  private static final int NESTED_LEVEL =
+-      YarnConfiguration.DEFAULT_SHARED_CACHE_NESTED_LEVEL;
+-
+-  @Test
+-  void testNonExistentRoot() throws Exception {
+-    FileSystem fs = mock(FileSystem.class);
+-    CleanerMetrics metrics = mock(CleanerMetrics.class);
+-    SCMStore store = mock(SCMStore.class);
+-
+-    CleanerTask task =
+-        createSpiedTask(fs, store, metrics, new ReentrantLock());
+-    // the shared cache root does not exist
+-    when(fs.exists(task.getRootPath())).thenReturn(false);
+-
+-    task.run();
+-
+-    // process() should not be called
+-    verify(task, never()).process();
+-  }
+-
+-  @Test
+-  void testProcessFreshResource() throws Exception {
+-    FileSystem fs = mock(FileSystem.class);
+-    CleanerMetrics metrics = mock(CleanerMetrics.class);
+-    SCMStore store = mock(SCMStore.class);
+-
+-    CleanerTask task =
+-        createSpiedTask(fs, store, metrics, new ReentrantLock());
+-
+-    // mock a resource that is not evictable
+-    when(store.isResourceEvictable(isA(String.class), isA(FileStatus.class)))
+-        .thenReturn(false);
+-    FileStatus status = mock(FileStatus.class);
+-    when(status.getPath()).thenReturn(new Path(ROOT + "/a/b/c/abc"));
+-
+-    // process the resource
+-    task.processSingleResource(status);
+-
+-    // the directory should not be renamed
+-    verify(fs, never()).rename(eq(status.getPath()), isA(Path.class));
+-    // metrics should record a processed file (but not delete)
+-    verify(metrics).reportAFileProcess();
+-    verify(metrics, never()).reportAFileDelete();
+-  }
+-
+-  @Test
+-  void testProcessEvictableResource() throws Exception {
+-    FileSystem fs = mock(FileSystem.class);
+-    CleanerMetrics metrics = mock(CleanerMetrics.class);
+-    SCMStore store = mock(SCMStore.class);
+-
+-    CleanerTask task =
+-        createSpiedTask(fs, store, metrics, new ReentrantLock());
+-
+-    // mock an evictable resource
+-    when(store.isResourceEvictable(isA(String.class), isA(FileStatus.class)))
+-        .thenReturn(true);
+-    FileStatus status = mock(FileStatus.class);
+-    when(status.getPath()).thenReturn(new Path(ROOT + "/a/b/c/abc"));
+-    when(store.removeResource(isA(String.class))).thenReturn(true);
+-    // rename succeeds
+-    when(fs.rename(isA(Path.class), isA(Path.class))).thenReturn(true);
+-    // delete returns true
+-    when(fs.delete(isA(Path.class), anyBoolean())).thenReturn(true);
+-
+-    // process the resource
+-    task.processSingleResource(status);
+-
+-    // the directory should be renamed
+-    verify(fs).rename(eq(status.getPath()), isA(Path.class));
+-    // metrics should record a deleted file
+-    verify(metrics).reportAFileDelete();
+-    verify(metrics, never()).reportAFileProcess();
+-  }
+-
+-  private CleanerTask createSpiedTask(FileSystem fs, SCMStore store,
+-      CleanerMetrics metrics, Lock isCleanerRunning) {
+-    return spy(new CleanerTask(ROOT, SLEEP_TIME, NESTED_LEVEL, fs, store,
+-        metrics, isCleanerRunning));
+-  }
+-
+-  @Test
+-  void testResourceIsInUseHasAnActiveApp() throws Exception {
+-    FileSystem fs = mock(FileSystem.class);
+-    CleanerMetrics metrics = mock(CleanerMetrics.class);
+-    SCMStore store = mock(SCMStore.class);
+-
+-    FileStatus resource = mock(FileStatus.class);
+-    when(resource.getPath()).thenReturn(new Path(ROOT + "/a/b/c/abc"));
+-    // resource is stale
+-    when(store.isResourceEvictable(isA(String.class), isA(FileStatus.class)))
+-        .thenReturn(true);
+-    // but still has appIds
+-    when(store.removeResource(isA(String.class))).thenReturn(false);
+-
+-    CleanerTask task =
+-        createSpiedTask(fs, store, metrics, new ReentrantLock());
+-
+-    // process the resource
+-    task.processSingleResource(resource);
+-
+-    // metrics should record a processed file (but not delete)
+-    verify(metrics).reportAFileProcess();
+-    verify(metrics, never()).reportAFileDelete();
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestClientSCMProtocolService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestClientSCMProtocolService.java
+deleted file mode 100644
+index 314332798ab..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestClientSCMProtocolService.java
++++ /dev/null
+@@ -1,281 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-
+-import org.junit.jupiter.api.AfterAll;
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeAll;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.ipc.RPC;
+-import org.apache.hadoop.security.UserGroupInformation;
+-import org.apache.hadoop.yarn.api.ClientSCMProtocol;
+-import org.apache.hadoop.yarn.api.protocolrecords.ReleaseSharedCacheResourceRequest;
+-import org.apache.hadoop.yarn.api.protocolrecords.UseSharedCacheResourceRequest;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.ClientSCMMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.InMemorySCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SharedCacheResourceReference;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-import static org.junit.jupiter.api.Assertions.assertNull;
+-import static org.mockito.Mockito.spy;
+-
+-
+-/**
+- * Basic unit tests for the Client to SCM Protocol Service.
+- */
+-public class TestClientSCMProtocolService {
+-  private static File testDir = null;
+-
+-  @BeforeAll
+-  public static void setupTestDirs() throws IOException {
+-    testDir = new File("target",
+-        TestSharedCacheUploaderService.class.getCanonicalName());
+-    testDir.delete();
+-    testDir.mkdirs();
+-    testDir = testDir.getAbsoluteFile();
+-  }
+-
+-  @AfterAll
+-  public static void cleanupTestDirs() throws IOException {
+-    if (testDir != null) {
+-      testDir.delete();
+-    }
+-  }
+-
+-
+-  private ClientProtocolService service;
+-  private ClientSCMProtocol clientSCMProxy;
+-  private SCMStore store;
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  @BeforeEach
+-  public void startUp() {
+-    Configuration conf = new Configuration();
+-    conf.set(YarnConfiguration.SCM_STORE_CLASS,
+-        InMemorySCMStore.class.getName());
+-    conf.set(YarnConfiguration.SHARED_CACHE_ROOT, testDir.getPath());
+-    AppChecker appChecker = spy(new DummyAppChecker());
+-    store = new InMemorySCMStore(appChecker);
+-    store.init(conf);
+-    store.start();
+-
+-    service = new ClientProtocolService(store);
+-    service.init(conf);
+-    service.start();
+-
+-    YarnRPC rpc = YarnRPC.create(new Configuration());
+-
+-    InetSocketAddress scmAddress =
+-        conf.getSocketAddr(YarnConfiguration.SCM_CLIENT_SERVER_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_CLIENT_SERVER_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_CLIENT_SERVER_PORT);
+-
+-    clientSCMProxy =
+-        (ClientSCMProtocol) rpc.getProxy(ClientSCMProtocol.class, scmAddress,
+-            conf);
+-  }
+-
+-  @AfterEach
+-  public void cleanUp() {
+-    if (store != null) {
+-      store.stop();
+-      store = null;
+-    }
+-
+-    if (service != null) {
+-      service.stop();
+-      service = null;
+-    }
+-
+-    if (clientSCMProxy != null) {
+-      RPC.stopProxy(clientSCMProxy);
+-      clientSCMProxy = null;
+-    }
+-  }
+-
+-  @Test
+-  void testUse_MissingEntry() throws Exception {
+-    long misses = ClientSCMMetrics.getInstance().getCacheMisses();
+-    UseSharedCacheResourceRequest request =
+-        recordFactory.newRecordInstance(UseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(1, 1L));
+-    assertNull(clientSCMProxy.use(request).getPath());
+-    assertEquals(1, ClientSCMMetrics
+-        .getInstance().getCacheMisses() - misses, "Client SCM metrics aren't updated.");
+-  }
+-
+-  @Test
+-  void testUse_ExistingEntry_NoAppIds() throws Exception {
+-    // Pre-populate the SCM with one cache entry
+-    store.addResource("key1", "foo.jar");
+-
+-    long hits = ClientSCMMetrics.getInstance().getCacheHits();
+-
+-    UseSharedCacheResourceRequest request =
+-        recordFactory.newRecordInstance(UseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(2, 2L));
+-    // Expecting default depth of 3 and under the shared cache root dir
+-    String expectedPath = testDir.getAbsolutePath() + "/k/e/y/key1/foo.jar";
+-    assertEquals(expectedPath, clientSCMProxy.use(request).getPath());
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-    assertEquals(1, ClientSCMMetrics
+-        .getInstance().getCacheHits() - hits, "Client SCM metrics aren't updated.");
+-
+-  }
+-
+-  @Test
+-  void testUse_ExistingEntry_OneId() throws Exception {
+-    // Pre-populate the SCM with one cache entry
+-    store.addResource("key1", "foo.jar");
+-    store.addResourceReference("key1",
+-        new SharedCacheResourceReference(createAppId(1, 1L), "user"));
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-    long hits = ClientSCMMetrics.getInstance().getCacheHits();
+-
+-    // Add a new distinct appId
+-    UseSharedCacheResourceRequest request =
+-        recordFactory.newRecordInstance(UseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(2, 2L));
+-
+-    // Expecting default depth of 3 under the shared cache root dir
+-    String expectedPath = testDir.getAbsolutePath() + "/k/e/y/key1/foo.jar";
+-    assertEquals(expectedPath, clientSCMProxy.use(request).getPath());
+-    assertEquals(2, store.getResourceReferences("key1").size());
+-    assertEquals(1, ClientSCMMetrics
+-        .getInstance().getCacheHits() - hits, "Client SCM metrics aren't updated.");
+-  }
+-
+-  @Test
+-  void testUse_ExistingEntry_DupId() throws Exception {
+-    // Pre-populate the SCM with one cache entry
+-    store.addResource("key1", "foo.jar");
+-    UserGroupInformation testUGI = UserGroupInformation.getCurrentUser();
+-    store.addResourceReference("key1",
+-        new SharedCacheResourceReference(createAppId(1, 1L),
+-            testUGI.getShortUserName()));
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-
+-    long hits = ClientSCMMetrics.getInstance().getCacheHits();
+-
+-    // Add a new duplicate appId
+-    UseSharedCacheResourceRequest request =
+-        recordFactory.newRecordInstance(UseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(1, 1L));
+-
+-    // Expecting default depth of 3 under the shared cache root dir
+-    String expectedPath = testDir.getAbsolutePath() + "/k/e/y/key1/foo.jar";
+-    assertEquals(expectedPath, clientSCMProxy.use(request).getPath());
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-
+-    assertEquals(1, ClientSCMMetrics
+-        .getInstance().getCacheHits() - hits, "Client SCM metrics aren't updated.");
+-  }
+-
+-  @Test
+-  void testRelease_ExistingEntry_NonExistantAppId() throws Exception {
+-    // Pre-populate the SCM with one cache entry
+-    store.addResource("key1", "foo.jar");
+-    store.addResourceReference("key1",
+-        new SharedCacheResourceReference(createAppId(1, 1L), "user"));
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-
+-    long releases = ClientSCMMetrics.getInstance().getCacheReleases();
+-
+-    ReleaseSharedCacheResourceRequest request =
+-        recordFactory
+-            .newRecordInstance(ReleaseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(2, 2L));
+-    clientSCMProxy.release(request);
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-
+-    assertEquals(
+-        0,
+-        ClientSCMMetrics.getInstance().getCacheReleases() - releases,
+-        "Client SCM metrics were updated when a release did not happen");
+-
+-  }
+-
+-  @Test
+-  void testRelease_ExistingEntry_WithAppId() throws Exception {
+-    // Pre-populate the SCM with one cache entry
+-    store.addResource("key1", "foo.jar");
+-    UserGroupInformation testUGI = UserGroupInformation.getCurrentUser();
+-    store.addResourceReference("key1",
+-        new SharedCacheResourceReference(createAppId(1, 1L),
+-            testUGI.getShortUserName()));
+-    assertEquals(1, store.getResourceReferences("key1").size());
+-
+-    long releases = ClientSCMMetrics.getInstance().getCacheReleases();
+-
+-    ReleaseSharedCacheResourceRequest request =
+-        recordFactory
+-            .newRecordInstance(ReleaseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key1");
+-    request.setAppId(createAppId(1, 1L));
+-    clientSCMProxy.release(request);
+-    assertEquals(0, store.getResourceReferences("key1").size());
+-
+-    assertEquals(1, ClientSCMMetrics
+-        .getInstance().getCacheReleases() - releases, "Client SCM metrics aren't updated.");
+-
+-  }
+-
+-  @Test
+-  void testRelease_MissingEntry() throws Exception {
+-
+-    long releases = ClientSCMMetrics.getInstance().getCacheReleases();
+-
+-    ReleaseSharedCacheResourceRequest request =
+-        recordFactory
+-            .newRecordInstance(ReleaseSharedCacheResourceRequest.class);
+-    request.setResourceKey("key2");
+-    request.setAppId(createAppId(2, 2L));
+-    clientSCMProxy.release(request);
+-    assertNotNull(store.getResourceReferences("key2"));
+-    assertEquals(0, store.getResourceReferences("key2").size());
+-    assertEquals(
+-        0,
+-        ClientSCMMetrics.getInstance().getCacheReleases() - releases,
+-        "Client SCM metrics were updated when a release did not happen.");
+-  }
+-
+-  private ApplicationId createAppId(int id, long timestamp) {
+-    return ApplicationId.newInstance(timestamp, id);
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestRemoteAppChecker.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestRemoteAppChecker.java
+deleted file mode 100644
+index 29a4291dac6..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestRemoteAppChecker.java
++++ /dev/null
+@@ -1,108 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.api.records.ApplicationReport;
+-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+-import org.apache.hadoop.yarn.api.records.impl.pb.ApplicationReportPBImpl;
+-import org.apache.hadoop.yarn.client.api.YarnClient;
+-import org.apache.hadoop.yarn.client.api.impl.YarnClientImpl;
+-import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
+-
+-import static org.junit.jupiter.api.Assertions.assertFalse;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-import static org.mockito.Mockito.doReturn;
+-import static org.mockito.Mockito.doThrow;
+-import static org.mockito.Mockito.spy;
+-
+-public class TestRemoteAppChecker {
+-
+-  private RemoteAppChecker checker;
+-
+-  @AfterEach
+-  public void cleanup() {
+-    if (checker != null) {
+-      checker.stop();
+-    }
+-  }
+-
+-  /**
+-   * Creates/initializes/starts a RemoteAppChecker with a spied
+-   * DummyYarnClientImpl.
+-   * 
+-   * @return the spied DummyYarnClientImpl in the created AppChecker
+-   */
+-  private YarnClient createCheckerWithMockedClient() {
+-    YarnClient client = spy(new DummyYarnClientImpl());
+-    checker = new RemoteAppChecker(client);
+-    checker.init(new Configuration());
+-    checker.start();
+-    return client;
+-  }
+-
+-  @Test
+-  void testNonExistentApp() throws Exception {
+-    YarnClient client = createCheckerWithMockedClient();
+-    ApplicationId id = ApplicationId.newInstance(1, 1);
+-
+-    // test for null
+-    doReturn(null).when(client).getApplicationReport(id);
+-    assertFalse(checker.isApplicationActive(id));
+-
+-    // test for ApplicationNotFoundException
+-    doThrow(new ApplicationNotFoundException("Throw!")).when(client)
+-        .getApplicationReport(id);
+-    assertFalse(checker.isApplicationActive(id));
+-  }
+-
+-  @Test
+-  void testRunningApp() throws Exception {
+-    YarnClient client = createCheckerWithMockedClient();
+-    ApplicationId id = ApplicationId.newInstance(1, 1);
+-
+-    // create a report and set the state to an active one
+-    ApplicationReport report = new ApplicationReportPBImpl();
+-    report.setYarnApplicationState(YarnApplicationState.ACCEPTED);
+-    doReturn(report).when(client).getApplicationReport(id);
+-
+-    assertTrue(checker.isApplicationActive(id));
+-  }
+-
+-  class DummyYarnClientImpl extends YarnClientImpl {
+-    @Override
+-    protected void serviceInit(Configuration conf) throws Exception {
+-      // do nothing
+-    }
+-
+-    @Override
+-    protected void serviceStart() {
+-      // do nothing
+-    }
+-
+-    @Override
+-    protected void serviceStop() {
+-      // do nothing
+-    }
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSCMAdminProtocolService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSCMAdminProtocolService.java
+deleted file mode 100644
+index 9c55452a7f7..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSCMAdminProtocolService.java
++++ /dev/null
+@@ -1,136 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.ipc.RPC;
+-import org.apache.hadoop.yarn.client.SCMAdmin;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.apache.hadoop.yarn.server.api.SCMAdminProtocol;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.RunSharedCacheCleanerTaskRequest;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.RunSharedCacheCleanerTaskResponse;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.impl.pb.RunSharedCacheCleanerTaskResponsePBImpl;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.InMemorySCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-import static org.mockito.ArgumentMatchers.any;
+-import static org.mockito.ArgumentMatchers.isA;
+-import static org.mockito.Mockito.doNothing;
+-import static org.mockito.Mockito.mock;
+-import static org.mockito.Mockito.spy;
+-import static org.mockito.Mockito.times;
+-import static org.mockito.Mockito.verify;
+-import static org.mockito.Mockito.when;
+-
+-/**
+- * Basic unit tests for the SCM Admin Protocol Service and SCMAdmin.
+- */
+-public class TestSCMAdminProtocolService {
+-
+-  static SCMAdminProtocolService service;
+-  static SCMAdminProtocol SCMAdminProxy;
+-  static SCMAdminProtocol mockAdmin;
+-  static SCMAdmin adminCLI;
+-  static SCMStore store;
+-  static CleanerService cleaner;
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  @BeforeEach
+-  public void startUp() {
+-    Configuration conf = new Configuration();
+-    conf.set(YarnConfiguration.SCM_STORE_CLASS,
+-        InMemorySCMStore.class.getName());
+-
+-    cleaner = mock(CleanerService.class);
+-
+-    service = spy(new SCMAdminProtocolService(cleaner));
+-    service.init(conf);
+-    service.start();
+-
+-    YarnRPC rpc = YarnRPC.create(new Configuration());
+-
+-    InetSocketAddress scmAddress =
+-        conf.getSocketAddr(YarnConfiguration.SCM_ADMIN_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_ADMIN_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_ADMIN_PORT);
+-
+-    SCMAdminProxy =
+-        (SCMAdminProtocol) rpc.getProxy(SCMAdminProtocol.class, scmAddress,
+-            conf);
+-
+-    mockAdmin = mock(SCMAdminProtocol.class);
+-    adminCLI = new SCMAdmin(new Configuration()) {
+-      @Override
+-      protected SCMAdminProtocol createSCMAdminProtocol() throws IOException {
+-        return mockAdmin;
+-      }
+-    };
+-  }
+-
+-  @AfterEach
+-  public void cleanUpTest() {
+-    if (service != null) {
+-      service.stop();
+-    }
+-
+-    if (SCMAdminProxy != null) {
+-      RPC.stopProxy(SCMAdminProxy);
+-    }
+-  }
+-
+-  @Test
+-  void testRunCleanerTask() throws Exception {
+-    doNothing().when(cleaner).runCleanerTask();
+-    RunSharedCacheCleanerTaskRequest request =
+-        recordFactory.newRecordInstance(RunSharedCacheCleanerTaskRequest.class);
+-    RunSharedCacheCleanerTaskResponse response = SCMAdminProxy.runCleanerTask(request);
+-    assertTrue(response.getAccepted(), "cleaner task request isn't accepted");
+-    verify(service, times(1)).runCleanerTask(any(RunSharedCacheCleanerTaskRequest.class));
+-  }
+-
+-  @Test
+-  void testRunCleanerTaskCLI() throws Exception {
+-    String[] args = {"-runCleanerTask"};
+-    RunSharedCacheCleanerTaskResponse rp =
+-        new RunSharedCacheCleanerTaskResponsePBImpl();
+-    rp.setAccepted(true);
+-    when(mockAdmin.runCleanerTask(isA(RunSharedCacheCleanerTaskRequest.class)))
+-        .thenReturn(rp);
+-    assertEquals(0, adminCLI.run(args));
+-    rp.setAccepted(false);
+-    when(mockAdmin.runCleanerTask(isA(RunSharedCacheCleanerTaskRequest.class)))
+-        .thenReturn(rp);
+-    assertEquals(1, adminCLI.run(args));
+-    verify(mockAdmin, times(2)).runCleanerTask(
+-        any(RunSharedCacheCleanerTaskRequest.class));
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSharedCacheUploaderService.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSharedCacheUploaderService.java
+deleted file mode 100644
+index 38833680f69..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/TestSharedCacheUploaderService.java
++++ /dev/null
+@@ -1,192 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager;
+-
+-import java.io.File;
+-import java.io.IOException;
+-import java.net.InetSocketAddress;
+-import java.util.Collection;
+-
+-import org.junit.jupiter.api.AfterAll;
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeAll;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.ipc.RPC;
+-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+-import org.apache.hadoop.yarn.factories.RecordFactory;
+-import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+-import org.apache.hadoop.yarn.ipc.YarnRPC;
+-import org.apache.hadoop.yarn.server.api.SCMUploaderProtocol;
+-import org.apache.hadoop.yarn.server.api.protocolrecords.SCMUploaderNotifyRequest;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.metrics.SharedCacheUploaderMetrics;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.InMemorySCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SCMStore;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.store.SharedCacheResourceReference;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertFalse;
+-import static org.junit.jupiter.api.Assertions.assertNotNull;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-import static org.mockito.Mockito.spy;
+-
+-
+-/**
+- * Basic unit tests for the NodeManger to SCM Protocol Service.
+- */
+-public class TestSharedCacheUploaderService {
+-  private static File testDir = null;
+-
+-  @BeforeAll
+-  public static void setupTestDirs() throws IOException {
+-    testDir = new File("target",
+-        TestSharedCacheUploaderService.class.getCanonicalName());
+-    testDir.delete();
+-    testDir.mkdirs();
+-    testDir = testDir.getAbsoluteFile();
+-  }
+-
+-  @AfterAll
+-  public static void cleanupTestDirs() throws IOException {
+-    if (testDir != null) {
+-      testDir.delete();
+-    }
+-  }
+-
+-  private SharedCacheUploaderService service;
+-  private SCMUploaderProtocol proxy;
+-  private SCMStore store;
+-  private final RecordFactory recordFactory = RecordFactoryProvider
+-      .getRecordFactory(null);
+-
+-  @BeforeEach
+-  public void startUp() {
+-    Configuration conf = new Configuration();
+-    conf.set(YarnConfiguration.SCM_STORE_CLASS,
+-        InMemorySCMStore.class.getName());
+-    conf.set(YarnConfiguration.SHARED_CACHE_ROOT, testDir.getPath());
+-    AppChecker appChecker = spy(new DummyAppChecker());
+-    store = new InMemorySCMStore(appChecker);
+-    store.init(conf);
+-    store.start();
+-
+-    service = new SharedCacheUploaderService(store);
+-    service.init(conf);
+-    service.start();
+-
+-    YarnRPC rpc = YarnRPC.create(new Configuration());
+-
+-    InetSocketAddress scmAddress =
+-        conf.getSocketAddr(YarnConfiguration.SCM_UPLOADER_SERVER_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_UPLOADER_SERVER_ADDRESS,
+-            YarnConfiguration.DEFAULT_SCM_UPLOADER_SERVER_PORT);
+-
+-    proxy =
+-        (SCMUploaderProtocol) rpc.getProxy(
+-            SCMUploaderProtocol.class, scmAddress, conf);
+-  }
+-
+-  @AfterEach
+-  public void cleanUp() {
+-    if (store != null) {
+-      store.stop();
+-    }
+-
+-    if (service != null) {
+-      service.stop();
+-    }
+-
+-    if (proxy != null) {
+-      RPC.stopProxy(proxy);
+-    }
+-  }
+-
+-  @Test
+-  void testNotify_noEntry() throws Exception {
+-    long accepted =
+-        SharedCacheUploaderMetrics.getInstance().getAcceptedUploads();
+-
+-    SCMUploaderNotifyRequest request =
+-        recordFactory.newRecordInstance(SCMUploaderNotifyRequest.class);
+-    request.setResourceKey("key1");
+-    request.setFilename("foo.jar");
+-    assertTrue(proxy.notify(request).getAccepted());
+-    Collection<SharedCacheResourceReference> set =
+-        store.getResourceReferences("key1");
+-    assertNotNull(set);
+-    assertEquals(0, set.size());
+-
+-    assertEquals(
+-        1,
+-        SharedCacheUploaderMetrics.getInstance().getAcceptedUploads() -
+-            accepted,
+-        "NM upload metrics aren't updated.");
+-
+-  }
+-
+-  @Test
+-  void testNotify_entryExists_differentName() throws Exception {
+-
+-    long rejected =
+-        SharedCacheUploaderMetrics.getInstance().getRejectUploads();
+-
+-    store.addResource("key1", "foo.jar");
+-    SCMUploaderNotifyRequest request =
+-        recordFactory.newRecordInstance(SCMUploaderNotifyRequest.class);
+-    request.setResourceKey("key1");
+-    request.setFilename("foobar.jar");
+-    assertFalse(proxy.notify(request).getAccepted());
+-    Collection<SharedCacheResourceReference> set =
+-        store.getResourceReferences("key1");
+-    assertNotNull(set);
+-    assertEquals(0, set.size());
+-    assertEquals(
+-        1,
+-        SharedCacheUploaderMetrics.getInstance().getRejectUploads() -
+-            rejected,
+-        "NM upload metrics aren't updated.");
+-
+-  }
+-
+-  @Test
+-  void testNotify_entryExists_sameName() throws Exception {
+-
+-    long accepted =
+-        SharedCacheUploaderMetrics.getInstance().getAcceptedUploads();
+-
+-    store.addResource("key1", "foo.jar");
+-    SCMUploaderNotifyRequest request =
+-        recordFactory.newRecordInstance(SCMUploaderNotifyRequest.class);
+-    request.setResourceKey("key1");
+-    request.setFilename("foo.jar");
+-    assertTrue(proxy.notify(request).getAccepted());
+-    Collection<SharedCacheResourceReference> set =
+-        store.getResourceReferences("key1");
+-    assertNotNull(set);
+-    assertEquals(0, set.size());
+-    assertEquals(
+-        1,
+-        SharedCacheUploaderMetrics.getInstance().getAcceptedUploads() -
+-            accepted,
+-        "NM upload metrics aren't updated.");
+-
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/TestCleanerMetrics.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/TestCleanerMetrics.java
+deleted file mode 100644
+index 6829d9a6347..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/metrics/TestCleanerMetrics.java
++++ /dev/null
+@@ -1,65 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.yarn.server.sharedcachemanager.metrics;
+-
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-
+-public class TestCleanerMetrics {
+-
+-  Configuration conf = new Configuration();
+-  CleanerMetrics cleanerMetrics;
+-
+-  @BeforeEach
+-  public void init() {
+-    cleanerMetrics = CleanerMetrics.getInstance();
+-  }
+-
+-  @Test
+-  void testMetricsOverMultiplePeriods() {
+-    simulateACleanerRun();
+-    assertMetrics(4, 4, 1, 1);
+-    simulateACleanerRun();
+-    assertMetrics(4, 8, 1, 2);
+-  }
+-
+-  public void simulateACleanerRun() {
+-    cleanerMetrics.reportCleaningStart();
+-    cleanerMetrics.reportAFileProcess();
+-    cleanerMetrics.reportAFileDelete();
+-    cleanerMetrics.reportAFileProcess();
+-    cleanerMetrics.reportAFileProcess();
+-  }
+-
+-  void assertMetrics(int proc, int totalProc, int del, int totalDel) {
+-    assertEquals(
+-        proc,
+-        cleanerMetrics.getProcessedFiles(),
+-        "Processed files in the last period are not measured correctly");
+-    assertEquals(totalProc, cleanerMetrics.getTotalProcessedFiles(),
+-        "Total processed files are not measured correctly");
+-    assertEquals(del, cleanerMetrics.getDeletedFiles(),
+-        "Deleted files in the last period are not measured correctly");
+-    assertEquals(totalDel, cleanerMetrics.getTotalDeletedFiles(),
+-        "Total deleted files are not measured correctly");
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStoreBaseTest.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStoreBaseTest.java
+deleted file mode 100644
+index 2374bf3fdbe..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/SCMStoreBaseTest.java
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.util.ReflectionUtils;
+-
+-/**
+- * All test classes that test an SCMStore implementation must extend this class.
+- */
+-public abstract class SCMStoreBaseTest {
+-
+-  /**
+-   * Get the SCMStore implementation class associated with this test class.
+-   */
+-  abstract Class<? extends SCMStore> getStoreClass();
+-
+-  @Test
+-  void TestZeroArgConstructor() throws Exception {
+-    // Test that the SCMStore implementation class is compatible with
+-    // ReflectionUtils#newInstance
+-    ReflectionUtils.newInstance(getStoreClass(), new Configuration());
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/TestInMemorySCMStore.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/TestInMemorySCMStore.java
+deleted file mode 100644
+index 5cb5332be41..00000000000
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/src/test/java/org/apache/hadoop/yarn/server/sharedcachemanager/store/TestInMemorySCMStore.java
++++ /dev/null
+@@ -1,318 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package org.apache.hadoop.yarn.server.sharedcachemanager.store;
+-
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.CountDownLatch;
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.Future;
+-
+-import org.junit.jupiter.api.AfterEach;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.util.concurrent.HadoopExecutors;
+-import org.apache.hadoop.yarn.api.records.ApplicationId;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.AppChecker;
+-import org.apache.hadoop.yarn.server.sharedcachemanager.DummyAppChecker;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.junit.jupiter.api.Assertions.assertFalse;
+-import static org.junit.jupiter.api.Assertions.assertNull;
+-import static org.junit.jupiter.api.Assertions.assertSame;
+-import static org.junit.jupiter.api.Assertions.assertTrue;
+-import static org.mockito.ArgumentMatchers.isA;
+-import static org.mockito.Mockito.doReturn;
+-import static org.mockito.Mockito.mock;
+-import static org.mockito.Mockito.spy;
+-
+-public class TestInMemorySCMStore extends SCMStoreBaseTest {
+-
+-  private InMemorySCMStore store;
+-  private AppChecker checker;
+-
+-  @Override
+-  Class<? extends SCMStore> getStoreClass() {
+-    return InMemorySCMStore.class;
+-  }
+-
+-  @BeforeEach
+-  public void setup() {
+-    this.checker = spy(new DummyAppChecker());
+-    this.store = spy(new InMemorySCMStore(checker));
+-  }
+-
+-  @AfterEach
+-  public void cleanup() {
+-    if (this.store != null) {
+-      this.store.stop();
+-    }
+-  }
+-
+-  private void startEmptyStore() throws Exception {
+-    doReturn(new ArrayList<ApplicationId>()).when(checker)
+-        .getActiveApplications();
+-    doReturn(new HashMap<String, String>()).when(store)
+-        .getInitialCachedResources(isA(FileSystem.class),
+-            isA(Configuration.class));
+-    this.store.init(new Configuration());
+-    this.store.start();
+-  }
+-
+-  private Map<String, String> startStoreWithResources() throws Exception {
+-    Map<String, String> initialCachedResources = new HashMap<String, String>();
+-    int count = 10;
+-    for (int i = 0; i < count; i++) {
+-      String key = String.valueOf(i);
+-      String fileName = key + ".jar";
+-      initialCachedResources.put(key, fileName);
+-    }
+-    doReturn(new ArrayList<ApplicationId>()).when(checker)
+-        .getActiveApplications();
+-    doReturn(initialCachedResources).when(store).getInitialCachedResources(
+-        isA(FileSystem.class), isA(Configuration.class));
+-    this.store.init(new Configuration());
+-    this.store.start();
+-    return initialCachedResources;
+-  }
+-
+-  private void startStoreWithApps() throws Exception {
+-    ArrayList<ApplicationId> list = new ArrayList<ApplicationId>();
+-    int count = 5;
+-    for (int i = 0; i < count; i++) {
+-      list.add(createAppId(i, i));
+-    }
+-    doReturn(list).when(checker).getActiveApplications();
+-    doReturn(new HashMap<String, String>()).when(store)
+-        .getInitialCachedResources(isA(FileSystem.class),
+-            isA(Configuration.class));
+-    this.store.init(new Configuration());
+-    this.store.start();
+-  }
+-
+-  @Test
+-  void testAddResourceConcurrency() throws Exception {
+-    startEmptyStore();
+-    final String key = "key1";
+-    int count = 5;
+-    ExecutorService exec = HadoopExecutors.newFixedThreadPool(count);
+-    List<Future<String>> futures = new ArrayList<Future<String>>(count);
+-    final CountDownLatch start = new CountDownLatch(1);
+-    for (int i = 0; i < count; i++) {
+-      final String fileName = "foo-" + i + ".jar";
+-      Callable<String> task = new Callable<String>() {
+-        public String call() throws Exception {
+-          start.await();
+-          String result = store.addResource(key, fileName);
+-          System.out.println("fileName: " + fileName + ", result: " + result);
+-          return result;
+-        }
+-      };
+-      futures.add(exec.submit(task));
+-    }
+-    // start them all at the same time
+-    start.countDown();
+-    // check the result; they should all agree with the value
+-    Set<String> results = new HashSet<String>();
+-    for (Future<String> future : futures) {
+-      results.add(future.get());
+-    }
+-    assertSame(1, results.size());
+-    exec.shutdown();
+-  }
+-
+-  @Test
+-  void testAddResourceRefNonExistentResource() throws Exception {
+-    startEmptyStore();
+-    String key = "key1";
+-    ApplicationId id = createAppId(1, 1L);
+-    // try adding an app id without adding the key first
+-    assertNull(store.addResourceReference(key,
+-        new SharedCacheResourceReference(id, "user")));
+-  }
+-
+-  @Test
+-  void testRemoveResourceEmptyRefs() throws Exception {
+-    startEmptyStore();
+-    String key = "key1";
+-    String fileName = "foo.jar";
+-    // first add resource
+-    store.addResource(key, fileName);
+-    // try removing the resource; it should return true
+-    assertTrue(store.removeResource(key));
+-  }
+-
+-  @Test
+-  void testAddResourceRefRemoveResource() throws Exception {
+-    startEmptyStore();
+-    String key = "key1";
+-    ApplicationId id = createAppId(1, 1L);
+-    String user = "user";
+-    // add the resource, and then add a resource ref
+-    store.addResource(key, "foo.jar");
+-    store.addResourceReference(key, new SharedCacheResourceReference(id, user));
+-    // removeResource should return false
+-    assertTrue(!store.removeResource(key));
+-    // the resource and the ref should be intact
+-    Collection<SharedCacheResourceReference> refs = store.getResourceReferences(key);
+-    assertTrue(refs != null);
+-    assertEquals(Collections.singleton(new SharedCacheResourceReference(id, user)), refs);
+-  }
+-
+-  @Test
+-  void testAddResourceRefConcurrency() throws Exception {
+-    startEmptyStore();
+-    final String key = "key1";
+-    final String user = "user";
+-    String fileName = "foo.jar";
+-
+-    // first add the resource
+-    store.addResource(key, fileName);
+-
+-    // make concurrent addResourceRef calls (clients)
+-    int count = 5;
+-    ExecutorService exec = HadoopExecutors.newFixedThreadPool(count);
+-    List<Future<String>> futures = new ArrayList<Future<String>>(count);
+-    final CountDownLatch start = new CountDownLatch(1);
+-    for (int i = 0; i < count; i++) {
+-      final ApplicationId id = createAppId(i, i);
+-      Callable<String> task = new Callable<String>() {
+-        public String call() throws Exception {
+-          start.await();
+-          return store.addResourceReference(key,
+-              new SharedCacheResourceReference(id, user));
+-        }
+-      };
+-      futures.add(exec.submit(task));
+-    }
+-    // start them all at the same time
+-    start.countDown();
+-    // check the result
+-    Set<String> results = new HashSet<String>();
+-    for (Future<String> future : futures) {
+-      results.add(future.get());
+-    }
+-    // they should all have the same file name
+-    assertSame(1, results.size());
+-    assertEquals(Collections.singleton(fileName), results);
+-    // there should be 5 refs as a result
+-    Collection<SharedCacheResourceReference> refs = store.getResourceReferences(key);
+-    assertSame(count, refs.size());
+-    exec.shutdown();
+-  }
+-
+-  @Test
+-  void testAddResourceRefAddResourceConcurrency() throws Exception {
+-    startEmptyStore();
+-    final String key = "key1";
+-    final String fileName = "foo.jar";
+-    final String user = "user";
+-    final ApplicationId id = createAppId(1, 1L);
+-    // add the resource and add the resource ref at the same time
+-    ExecutorService exec = HadoopExecutors.newFixedThreadPool(2);
+-    final CountDownLatch start = new CountDownLatch(1);
+-    Callable<String> addKeyTask = new Callable<String>() {
+-      public String call() throws Exception {
+-        start.await();
+-        return store.addResource(key, fileName);
+-      }
+-    };
+-    Callable<String> addAppIdTask = new Callable<String>() {
+-      public String call() throws Exception {
+-        start.await();
+-        return store.addResourceReference(key,
+-            new SharedCacheResourceReference(id, user));
+-      }
+-    };
+-    Future<String> addAppIdFuture = exec.submit(addAppIdTask);
+-    Future<String> addKeyFuture = exec.submit(addKeyTask);
+-    // start them at the same time
+-    start.countDown();
+-    // get the results
+-    String addKeyResult = addKeyFuture.get();
+-    String addAppIdResult = addAppIdFuture.get();
+-    assertEquals(fileName, addKeyResult);
+-    System.out.println("addAppId() result: " + addAppIdResult);
+-    // it may be null or the fileName depending on the timing
+-    assertTrue(addAppIdResult == null || addAppIdResult.equals(fileName));
+-    exec.shutdown();
+-  }
+-
+-  @Test
+-  void testRemoveRef() throws Exception {
+-    startEmptyStore();
+-    String key = "key1";
+-    String fileName = "foo.jar";
+-    String user = "user";
+-    // first add the resource
+-    store.addResource(key, fileName);
+-    // add a ref
+-    ApplicationId id = createAppId(1, 1L);
+-    SharedCacheResourceReference myRef = new SharedCacheResourceReference(id, user);
+-    String result = store.addResourceReference(key, myRef);
+-    assertEquals(fileName, result);
+-    Collection<SharedCacheResourceReference> refs = store.getResourceReferences(key);
+-    assertSame(1, refs.size());
+-    assertEquals(Collections.singleton(myRef), refs);
+-    // remove the same ref
+-    store.removeResourceReferences(key, Collections.singleton(myRef), true);
+-    Collection<SharedCacheResourceReference> newRefs = store.getResourceReferences(key);
+-    assertTrue(newRefs == null || newRefs.isEmpty());
+-  }
+-
+-  @Test
+-  void testBootstrapping() throws Exception {
+-    Map<String, String> initialCachedResources = startStoreWithResources();
+-    int count = initialCachedResources.size();
+-    ApplicationId id = createAppId(1, 1L);
+-    // the entries from the cached entries should now exist
+-    for (int i = 0; i < count; i++) {
+-      String key = String.valueOf(i);
+-      String fileName = key + ".jar";
+-      String result =
+-          store.addResourceReference(key, new SharedCacheResourceReference(id,
+-              "user"));
+-      // the value should not be null (i.e. it has the key) and the filename should match
+-      assertEquals(fileName, result);
+-      // the initial input should be emptied
+-      assertTrue(initialCachedResources.isEmpty());
+-    }
+-  }
+-
+-  @Test
+-  void testEvictableWithInitialApps() throws Exception {
+-    startStoreWithApps();
+-    assertFalse(store.isResourceEvictable("key", mock(FileStatus.class)));
+-  }
+-
+-  private ApplicationId createAppId(int id, long timestamp) {
+-    return ApplicationId.newInstance(timestamp, id);
+-  }
+-}
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+index d6e27fafc36..d4702b11a57 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/pom.xml
+@@ -38,7 +38,6 @@
+     <module>hadoop-yarn-server-nodemanager</module>
+     <module>hadoop-yarn-server-web-proxy</module>
+     <module>hadoop-yarn-server-resourcemanager</module>
+-    <module>hadoop-yarn-server-sharedcachemanager</module>
+     <module>hadoop-yarn-server-tests</module>
+     <module>hadoop-yarn-server-applicationhistoryservice</module>
+     <module>hadoop-yarn-server-timelineservice</module>

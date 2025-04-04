@@ -1,0 +1,30 @@
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+index 71031593c3c..9230f0c7a75 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-yarn-dist.xml
+@@ -203,13 +203,6 @@
+     <fileSet>
+       <directory>${project.build.directory}/site</directory>
+       <outputDirectory>/share/doc/hadoop/${hadoop.component}</outputDirectory>
+-    </fileSet>
+-      <fileSet>
+-      <directory>hadoop-yarn/hadoop-yarn-ui/target/hadoop-yarn-ui-${project.version}</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/webapps/ui2</outputDirectory>
+-      <includes>
+-        <include>**/*</include>
+-      </includes>
+     </fileSet>
+     <!-- Copy dependecies from hadoop-yarn-server-timelineservice as well -->
+     <fileSet>
+diff --git a/hadoop-yarn-project/hadoop-yarn/pom.xml b/hadoop-yarn-project/hadoop-yarn/pom.xml
+index 239afc8daf6..40282e48a3b 100644
+--- a/hadoop-yarn-project/hadoop-yarn/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/pom.xml
+@@ -243,7 +243,6 @@
+     <module>hadoop-yarn-site</module>
+     <module>hadoop-yarn-client</module>
+     <module>hadoop-yarn-registry</module>
+-    <module>hadoop-yarn-ui</module>
+   </modules>
+   <!--  -->
+ </project>

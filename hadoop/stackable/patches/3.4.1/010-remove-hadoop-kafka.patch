@@ -1,0 +1,29 @@
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 01301855fcc..fd38216ef5a 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -73,12 +73,6 @@
+       <scope>compile</scope>
+       <version>${project.version}</version>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-kafka</artifactId>
+-      <scope>compile</scope>
+-      <version>${project.version}</version>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-azure</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index ff98d837a7e..74fc141ddf7 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -41,7 +41,6 @@
+     <module>hadoop-resourceestimator</module>
+     <module>hadoop-azure</module>
+     <module>hadoop-aws</module>
+-    <module>hadoop-kafka</module>
+     <module>hadoop-azure-datalake</module>
+     <module>hadoop-aliyun</module>
+     <module>hadoop-fs2img</module>

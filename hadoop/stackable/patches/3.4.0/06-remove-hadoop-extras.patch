@@ -1,0 +1,1420 @@
+Entirely remove hadoop-extras
+
+From: Lars Francke <git@lars-francke.de>
+
+
+---
+ .../src/main/resources/assemblies/hadoop-tools.xml |   15 -
+ hadoop-project/pom.xml                             |    5 
+ hadoop-tools/hadoop-extras/pom.xml                 |  185 -------
+ .../org/apache/hadoop/mapred/tools/GetGroups.java  |   57 --
+ .../apache/hadoop/mapred/tools/package-info.java   |   22 -
+ .../main/java/org/apache/hadoop/tools/DistCh.java  |  510 --------------------
+ .../apache/hadoop/tools/DistCp_Counter.properties  |   22 -
+ .../java/org/apache/hadoop/tools/DistTool.java     |  114 ----
+ .../java/org/apache/hadoop/tools/package-info.java |   22 -
+ .../src/main/shellprofile.d/hadoop-extras.sh       |   37 -
+ .../apache/hadoop/mapred/tools/TestGetGroups.java  |   55 --
+ .../java/org/apache/hadoop/tools/TestDistCh.java   |  226 ---------
+ hadoop-tools/hadoop-tools-dist/pom.xml             |    5 
+ hadoop-tools/pom.xml                               |    1 
+ 14 files changed, 1276 deletions(-)
+ delete mode 100644 hadoop-tools/hadoop-extras/pom.xml
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/GetGroups.java
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/package-info.java
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCh.java
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCp_Counter.properties
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistTool.java
+ delete mode 100644 hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/package-info.java
+ delete mode 100755 hadoop-tools/hadoop-extras/src/main/shellprofile.d/hadoop-extras.sh
+ delete mode 100644 hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/mapred/tools/TestGetGroups.java
+ delete mode 100644 hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/tools/TestDistCh.java
+
+diff --git a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+index 9121e90cdbd..5d59374cbf0 100644
+--- a/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
++++ b/hadoop-assemblies/src/main/resources/assemblies/hadoop-tools.xml
+@@ -39,14 +39,6 @@
+       <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+       <fileMode>0755</fileMode>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-extras/src/main/shellprofile.d</directory>
+-      <includes>
+-        <include>*</include>
+-      </includes>
+-      <outputDirectory>/libexec/shellprofile.d</outputDirectory>
+-      <fileMode>0755</fileMode>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-pipes/src/main/native/pipes/api/hadoop</directory>
+       <includes>
+@@ -89,13 +81,6 @@
+         <include>*-sources.jar</include>
+       </includes>
+     </fileSet>
+-    <fileSet>
+-      <directory>../hadoop-extras/target</directory>
+-      <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+-      <includes>
+-        <include>*-sources.jar</include>
+-      </includes>
+-    </fileSet>
+     <fileSet>
+       <directory>../hadoop-gridmix/target</directory>
+       <outputDirectory>/share/hadoop/${hadoop.component}/sources</outputDirectory>
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 2082412a131..9d6f373a9a8 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -668,11 +668,6 @@
+         <artifactId>hadoop-rumen</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
+-        <groupId>org.apache.hadoop</groupId>
+-        <artifactId>hadoop-extras</artifactId>
+-        <version>${hadoop.version}</version>
+-      </dependency>
+ 
+       <dependency>
+         <groupId>org.apache.hadoop</groupId>
+diff --git a/hadoop-tools/hadoop-extras/pom.xml b/hadoop-tools/hadoop-extras/pom.xml
+deleted file mode 100644
+index d3346f7a2b0..00000000000
+--- a/hadoop-tools/hadoop-extras/pom.xml
++++ /dev/null
+@@ -1,185 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!--
+-  Licensed under the Apache License, Version 2.0 (the "License");
+-  you may not use this file except in compliance with the License.
+-  You may obtain a copy of the License at
+-
+-    http://www.apache.org/licenses/LICENSE-2.0
+-
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License. See accompanying LICENSE file.
+--->
+-<project xmlns="http://maven.apache.org/POM/4.0.0"
+-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+-                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-  <modelVersion>4.0.0</modelVersion>
+-  <parent>
+-    <groupId>org.apache.hadoop</groupId>
+-    <artifactId>hadoop-project</artifactId>
+-    <version>3.4.0</version>
+-    <relativePath>../../hadoop-project</relativePath>
+-  </parent>
+-  <artifactId>hadoop-extras</artifactId>
+-  <version>3.4.0</version>
+-  <description>Apache Hadoop Extras</description>
+-  <name>Apache Hadoop Extras</name>
+-  <packaging>jar</packaging>
+-
+-  <properties>
+-    <hadoop.log.dir>${project.build.directory}/log</hadoop.log.dir>
+-  </properties>
+-
+-  <dependencies>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-core</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-annotations</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-hs</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-core</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>provided</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>javax.servlet</groupId>
+-          <artifactId>servlet-api</artifactId>
+-        </exclusion>
+-        <exclusion>
+-          <groupId>javax.enterprise</groupId>
+-          <artifactId>cdi-api</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs-client</artifactId>
+-      <scope>provided</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-common</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <exclusions>
+-        <exclusion>
+-          <groupId>org.ow2.asm</groupId>
+-          <artifactId>asm-commons</artifactId>
+-        </exclusion>
+-      </exclusions>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-hdfs</artifactId>
+-      <scope>test</scope>
+-      <type>test-jar</type>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-yarn-server-tests</artifactId>
+-      <type>test-jar</type>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-       <groupId>cglib</groupId>
+-       <artifactId>cglib</artifactId>
+-       <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.bouncycastle</groupId>
+-      <artifactId>bcprov-jdk15on</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+-      <groupId>org.bouncycastle</groupId>
+-      <artifactId>bcpkix-jdk15on</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-  </dependencies>
+-
+-  <build>
+-    <plugins>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-antrun-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>create-log-dir</id>
+-            <phase>process-test-resources</phase>
+-            <goals>
+-              <goal>run</goal>
+-            </goals>
+-            <configuration>
+-              <target>
+-                <delete dir="${test.build.data}"/>
+-                <mkdir dir="${test.build.data}"/>
+-                <mkdir dir="${hadoop.log.dir}"/>
+-              </target>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-      <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-jar-plugin</artifactId>
+-       </plugin>
+-       <plugin>
+-        <groupId>org.apache.maven.plugins</groupId>
+-        <artifactId>maven-dependency-plugin</artifactId>
+-        <executions>
+-          <execution>
+-            <id>deplist</id>
+-            <phase>compile</phase>
+-            <goals>
+-              <goal>list</goal>
+-            </goals>
+-            <configuration>
+-              <!-- referenced by a built-in command -->
+-              <outputFile>${project.basedir}/target/hadoop-tools-deps/${project.artifactId}.tools-builtin.txt</outputFile>
+-            </configuration>
+-          </execution>
+-        </executions>
+-      </plugin>
+-    </plugins>
+-  </build>
+-</project>
+-
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/GetGroups.java b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/GetGroups.java
+deleted file mode 100644
+index 3793749a9cd..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/GetGroups.java
++++ /dev/null
+@@ -1,57 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.mapred.tools;
+-
+-import java.io.IOException;
+-import java.io.PrintStream;
+-import java.net.InetSocketAddress;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.tools.GetGroupsBase;
+-import org.apache.hadoop.util.ToolRunner;
+-
+-/**
+- * MR implementation of a tool for getting the groups which a given user
+- * belongs to.
+- */
+-public class GetGroups extends GetGroupsBase {
+-
+-  static {
+-    Configuration.addDefaultResource("mapred-default.xml");
+-    Configuration.addDefaultResource("mapred-site.xml");
+-  }
+-  
+-  GetGroups(Configuration conf) {
+-    super(conf);
+-  }
+-  
+-  GetGroups(Configuration conf, PrintStream out) {
+-    super(conf, out);
+-  }
+-
+-  @Override
+-  protected InetSocketAddress getProtocolAddress(Configuration conf)
+-      throws IOException {
+-    throw new UnsupportedOperationException();
+-  }
+-
+-  public static void main(String[] argv) throws Exception {
+-    int res = ToolRunner.run(new GetGroups(new Configuration()), argv);
+-    System.exit(res);
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/package-info.java b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/package-info.java
+deleted file mode 100644
+index ead265c2a6c..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/mapred/tools/package-info.java
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-/**
+- * Command-line tools associated with MapReduce.
+- */
+-package org.apache.hadoop.mapred.tools;
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCh.java b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCh.java
+deleted file mode 100644
+index ed081396235..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCh.java
++++ /dev/null
+@@ -1,510 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.tools;
+-
+-import java.io.DataInput;
+-import java.io.DataOutput;
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Stack;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.io.SequenceFile;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.io.Writable;
+-import org.apache.hadoop.io.WritableComparable;
+-import org.apache.hadoop.mapred.FileOutputFormat;
+-import org.apache.hadoop.mapred.FileSplit;
+-import org.apache.hadoop.mapred.InputFormat;
+-import org.apache.hadoop.mapred.InputSplit;
+-import org.apache.hadoop.mapred.InvalidInputException;
+-import org.apache.hadoop.mapred.JobClient;
+-import org.apache.hadoop.mapred.JobConf;
+-import org.apache.hadoop.mapred.Mapper;
+-import org.apache.hadoop.mapred.OutputCollector;
+-import org.apache.hadoop.mapred.RecordReader;
+-import org.apache.hadoop.mapred.Reporter;
+-import org.apache.hadoop.mapred.SequenceFileRecordReader;
+-import org.apache.hadoop.mapreduce.JobSubmissionFiles;
+-import org.apache.hadoop.util.StringUtils;
+-import org.apache.hadoop.util.ToolRunner;
+-
+-/**
+- * A Map-reduce program to recursively change files properties
+- * such as owner, group and permission.
+- */
+-public class DistCh extends DistTool {
+-  static final String NAME = "distch";
+-  static final String JOB_DIR_LABEL = NAME + ".job.dir";
+-  static final String OP_LIST_LABEL = NAME + ".op.list";
+-  static final String OP_COUNT_LABEL = NAME + ".op.count";
+-
+-  static final String USAGE = "java " + DistCh.class.getName() 
+-      + " [OPTIONS] <path:owner:group:permission>+ "
+-
+-      + "\n\nThe values of owner, group and permission can be empty."
+-      + "\nPermission is a octal number."
+-
+-      + "\n\nOPTIONS:"
+-      + "\n-f <urilist_uri>       Use list at <urilist_uri> as src list"
+-      + "\n-i                     Ignore failures"
+-      + "\n-log <logdir>          Write logs to <logdir>"
+-      ;
+-
+-  private static final long OP_PER_MAP =  1000;
+-  private static final int MAX_MAPS_PER_NODE = 20;
+-  private static final int SYNC_FILE_MAX = 10;
+-
+-  static enum Counter { SUCCEED, FAIL }
+-
+-  static enum Option {
+-    IGNORE_FAILURES("-i", NAME + ".ignore.failures");
+-
+-    final String cmd, propertyname;
+-
+-    private Option(String cmd, String propertyname) {
+-      this.cmd = cmd;
+-      this.propertyname = propertyname;
+-    }
+-  }
+-
+-  DistCh(Configuration conf) {
+-    super(createJobConf(conf));
+-  }
+-
+-  private static JobConf createJobConf(Configuration conf) {
+-    JobConf jobconf = new JobConf(conf, DistCh.class);
+-    jobconf.setJobName(NAME);
+-    jobconf.setMapSpeculativeExecution(false);
+-
+-    jobconf.setInputFormat(ChangeInputFormat.class);
+-    jobconf.setOutputKeyClass(Text.class);
+-    jobconf.setOutputValueClass(Text.class);
+-
+-    jobconf.setMapperClass(ChangeFilesMapper.class);
+-    jobconf.setNumReduceTasks(0);
+-    return jobconf;
+-  }
+-
+-  /** File operations. */
+-  static class FileOperation implements Writable {
+-    private Path src;
+-    private String owner;
+-    private String group;
+-    private FsPermission permission;
+-
+-    FileOperation() {}
+-
+-    FileOperation(Path src, FileOperation that) {
+-      this.src = src;
+-      this.owner = that.owner;
+-      this.group = that.group;
+-      this.permission = that.permission;
+-      checkState();
+-    }
+-
+-    /**
+-     * path:owner:group:permission
+-     * e.g.
+-     * /user/foo:foo:bar:700 
+-     */
+-    FileOperation(String line) {
+-      try {
+-        String[] t = line.split(":", 4);
+-        for(int i = 0; i < t.length; i++) {
+-          if ("".equals(t[i])) {
+-            t[i] = null;
+-          }
+-        }
+-
+-        src = new Path(t[0]);
+-        owner = t[1];
+-        group = t[2];
+-        permission = t[3] == null? null:
+-          new FsPermission(Short.parseShort(t[3], 8));
+-
+-        checkState();
+-      }
+-      catch(Exception e) {
+-        throw (IllegalArgumentException)new IllegalArgumentException(
+-            "line=" + line).initCause(e);
+-      }
+-    }
+-
+-    private void checkState() throws IllegalStateException {
+-      if (owner == null && group == null && permission == null) {
+-        throw new IllegalStateException(
+-            "owner == null && group == null && permission == null");
+-      }
+-    }
+-
+-    static final FsPermission FILE_UMASK
+-        = FsPermission.createImmutable((short)0111);
+-
+-    private boolean isDifferent(FileStatus original) {
+-      if (owner != null && !owner.equals(original.getOwner())) {
+-        return true;
+-      }
+-      if (group != null && !group.equals(original.getGroup())) {
+-        return true;
+-      }
+-      if (permission != null) {
+-        FsPermission orig = original.getPermission();
+-        return original.isDirectory()? !permission.equals(orig):
+-          !permission.applyUMask(FILE_UMASK).equals(orig);
+-      }
+-      return false;
+-    }
+-
+-    void run(Configuration conf) throws IOException {
+-      FileSystem fs = src.getFileSystem(conf);
+-      if (permission != null) {
+-        fs.setPermission(src, permission);
+-      }
+-      if (owner != null || group != null) {
+-        fs.setOwner(src, owner, group);
+-      }
+-    }
+-
+-    /** {@inheritDoc} */
+-    public void readFields(DataInput in) throws IOException {
+-      this.src = new Path(Text.readString(in));
+-      owner = DistTool.readString(in);
+-      group = DistTool.readString(in);
+-      permission = in.readBoolean()? FsPermission.read(in): null;
+-    }
+-
+-    /** {@inheritDoc} */
+-    public void write(DataOutput out) throws IOException {
+-      Text.writeString(out, src.toString());
+-      DistTool.writeString(out, owner);
+-      DistTool.writeString(out, group);
+-
+-      boolean b = permission != null;
+-      out.writeBoolean(b);
+-      if (b) {permission.write(out);}
+-    }
+-
+-    /** {@inheritDoc} */
+-    public String toString() {
+-      return src + ":" + owner + ":" + group + ":" + permission; 
+-    }
+-  }
+-
+-  /** Responsible for generating splits of the src file list. */
+-  static class ChangeInputFormat implements InputFormat<Text, FileOperation> {
+-    /** Do nothing. */
+-    public void validateInput(JobConf job) {}
+-
+-    /**
+-     * Produce splits such that each is no greater than the quotient of the
+-     * total size and the number of splits requested.
+-     * @param job The handle to the JobConf object
+-     * @param numSplits Number of splits requested
+-     */
+-    public InputSplit[] getSplits(JobConf job, int numSplits
+-        ) throws IOException {
+-      final int srcCount = job.getInt(OP_COUNT_LABEL, -1);
+-      final int targetcount = srcCount / numSplits;
+-      String srclist = job.get(OP_LIST_LABEL, "");
+-      if (srcCount < 0 || "".equals(srclist)) {
+-        throw new RuntimeException("Invalid metadata: #files(" + srcCount +
+-                                   ") listuri(" + srclist + ")");
+-      }
+-      Path srcs = new Path(srclist);
+-      FileSystem fs = srcs.getFileSystem(job);
+-
+-      List<FileSplit> splits = new ArrayList<FileSplit>(numSplits);
+-
+-      Text key = new Text();
+-      FileOperation value = new FileOperation();
+-      long prev = 0L;
+-      int count = 0; //count src
+-      try (SequenceFile.Reader in = new SequenceFile.Reader(fs, srcs, job)) {
+-        for ( ; in.next(key, value); ) {
+-          long curr = in.getPosition();
+-          long delta = curr - prev;
+-          if (++count > targetcount) {
+-            count = 0;
+-            splits.add(new FileSplit(srcs, prev, delta, (String[])null));
+-            prev = curr;
+-          }
+-        }
+-      }
+-      long remaining = fs.getFileStatus(srcs).getLen() - prev;
+-      if (remaining != 0) {
+-        splits.add(new FileSplit(srcs, prev, remaining, (String[])null));
+-      }
+-      LOG.info("numSplits="  + numSplits + ", splits.size()=" + splits.size());
+-      return splits.toArray(new FileSplit[splits.size()]);
+-    }
+-
+-    /** {@inheritDoc} */
+-    public RecordReader<Text, FileOperation> getRecordReader(InputSplit split,
+-        JobConf job, Reporter reporter) throws IOException {
+-      return new SequenceFileRecordReader<Text, FileOperation>(job,
+-          (FileSplit)split);
+-    }
+-  }
+-
+-  /** The mapper for changing files. */
+-  static class ChangeFilesMapper 
+-      implements Mapper<Text, FileOperation, WritableComparable<?>, Text> {
+-    private JobConf jobconf;
+-    private boolean ignoreFailures;
+-
+-    private int failcount = 0;
+-    private int succeedcount = 0;
+-
+-    private String getCountString() {
+-      return "Succeeded: " + succeedcount + " Failed: " + failcount;
+-    }
+-
+-    /** {@inheritDoc} */
+-    public void configure(JobConf job) {
+-      this.jobconf = job;
+-      ignoreFailures=job.getBoolean(Option.IGNORE_FAILURES.propertyname,false);
+-    }
+-
+-    /** Run a FileOperation */
+-    public void map(Text key, FileOperation value,
+-        OutputCollector<WritableComparable<?>, Text> out, Reporter reporter
+-        ) throws IOException {
+-      try {
+-        value.run(jobconf);
+-        ++succeedcount;
+-        reporter.incrCounter(Counter.SUCCEED, 1);
+-      } catch (IOException e) {
+-        ++failcount;
+-        reporter.incrCounter(Counter.FAIL, 1);
+-
+-        String s = "FAIL: " + value + ", " + StringUtils.stringifyException(e);
+-        out.collect(null, new Text(s));
+-        LOG.info(s);
+-      } finally {
+-        reporter.setStatus(getCountString());
+-      }
+-    }
+-
+-    /** {@inheritDoc} */
+-    public void close() throws IOException {
+-      if (failcount == 0 || ignoreFailures) {
+-        return;
+-      }
+-      throw new IOException(getCountString());
+-    }
+-  }
+-
+-  private static void check(Configuration conf, List<FileOperation> ops
+-      ) throws InvalidInputException {
+-    List<Path> srcs = new ArrayList<Path>();
+-    for(FileOperation op : ops) {
+-      srcs.add(op.src);
+-    }
+-    DistTool.checkSource(conf, srcs);
+-  }
+-
+-  private static List<FileOperation> fetchList(Configuration conf, Path inputfile
+-      ) throws IOException {
+-    List<FileOperation> result = new ArrayList<FileOperation>();
+-    for(String line : readFile(conf, inputfile)) {
+-      result.add(new FileOperation(line));
+-    }
+-    return result;
+-  }
+-
+-  /** This is the main driver for recursively changing files properties. */
+-  public int run(String[] args) throws Exception {
+-    List<FileOperation> ops = new ArrayList<FileOperation>();
+-    Path logpath = null;
+-    boolean isIgnoreFailures = false;
+-
+-    try {
+-      for (int idx = 0; idx < args.length; idx++) {
+-        if ("-f".equals(args[idx])) {
+-          if (++idx ==  args.length) {
+-            System.out.println("urilist_uri not specified");
+-            System.out.println(USAGE);
+-            return -1;
+-          }
+-          ops.addAll(fetchList(jobconf, new Path(args[idx])));
+-        } else if (Option.IGNORE_FAILURES.cmd.equals(args[idx])) {
+-          isIgnoreFailures = true;
+-        } else if ("-log".equals(args[idx])) {
+-          if (++idx ==  args.length) {
+-            System.out.println("logdir not specified");
+-            System.out.println(USAGE);
+-            return -1;
+-          }
+-          logpath = new Path(args[idx]);
+-        } else if ('-' == args[idx].codePointAt(0)) {
+-          System.out.println("Invalid switch " + args[idx]);
+-          System.out.println(USAGE);
+-          ToolRunner.printGenericCommandUsage(System.out);
+-          return -1;
+-        } else {
+-          ops.add(new FileOperation(args[idx]));
+-        }
+-      }
+-      // mandatory command-line parameters
+-      if (ops.isEmpty()) {
+-        throw new IllegalStateException("Operation is empty");
+-      }
+-      LOG.info("ops=" + ops);
+-      LOG.info("isIgnoreFailures=" + isIgnoreFailures);
+-      jobconf.setBoolean(Option.IGNORE_FAILURES.propertyname, isIgnoreFailures);
+-      check(jobconf, ops);
+-
+-      try {
+-        if (setup(ops, logpath)) {
+-          JobClient.runJob(jobconf);
+-        }
+-      } finally {
+-        try {
+-          if (logpath == null) {
+-            //delete log directory
+-            final Path logdir = FileOutputFormat.getOutputPath(jobconf);
+-            if (logdir != null) {
+-              logdir.getFileSystem(jobconf).delete(logdir, true);
+-            }
+-          }
+-        }
+-        finally {
+-          //delete job directory
+-          final String jobdir = jobconf.get(JOB_DIR_LABEL);
+-          if (jobdir != null) {
+-            final Path jobpath = new Path(jobdir);
+-            jobpath.getFileSystem(jobconf).delete(jobpath, true);
+-          }
+-        }
+-      }
+-    } catch(DuplicationException e) {
+-      LOG.error("Input error:", e);
+-      return DuplicationException.ERROR_CODE;
+-    } catch(Exception e) {
+-      LOG.error(NAME + " failed: ", e);
+-      System.out.println(USAGE);
+-      ToolRunner.printGenericCommandUsage(System.out);
+-      return -1;
+-    }
+-    return 0;
+-  }
+-
+-  /** Calculate how many maps to run. */
+-  private static int getMapCount(int srcCount, int numNodes) {
+-    int numMaps = (int)(srcCount / OP_PER_MAP);
+-    numMaps = Math.min(numMaps, numNodes * MAX_MAPS_PER_NODE);
+-    return Math.max(numMaps, 1);
+-  }
+-
+-  private boolean setup(List<FileOperation> ops, Path log) 
+-  throws IOException {
+-    final String randomId = getRandomId();
+-    JobClient jClient = new JobClient(jobconf);
+-    Path stagingArea;
+-    try {
+-      stagingArea = JobSubmissionFiles.getStagingDir(
+-                       jClient.getClusterHandle(), jobconf);
+-    } catch (InterruptedException ie){
+-      throw new IOException(ie);
+-    }
+-    Path jobdir = new Path(stagingArea + NAME + "_" + randomId);
+-    FsPermission mapredSysPerms = 
+-      new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+-    FileSystem.mkdirs(jClient.getFs(), jobdir, mapredSysPerms);
+-    LOG.info(JOB_DIR_LABEL + "=" + jobdir);
+-
+-    if (log == null) {
+-      log = new Path(jobdir, "_logs");
+-    }
+-    FileOutputFormat.setOutputPath(jobconf, log);
+-    LOG.info("log=" + log);
+-
+-    //create operation list
+-    FileSystem fs = jobdir.getFileSystem(jobconf);
+-    Path opList = new Path(jobdir, "_" + OP_LIST_LABEL);
+-    jobconf.set(OP_LIST_LABEL, opList.toString());
+-    int opCount = 0, synCount = 0;
+-    try (SequenceFile.Writer opWriter = SequenceFile.createWriter(fs, jobconf, opList, Text.class,
+-            FileOperation.class, SequenceFile.CompressionType.NONE)) {
+-      for(FileOperation op : ops) {
+-        FileStatus srcstat = fs.getFileStatus(op.src); 
+-        if (srcstat.isDirectory() && op.isDifferent(srcstat)) {
+-          ++opCount;
+-          opWriter.append(new Text(op.src.toString()), op);
+-        }
+-
+-        Stack<Path> pathstack = new Stack<Path>();
+-        for(pathstack.push(op.src); !pathstack.empty(); ) {
+-          for(FileStatus stat : fs.listStatus(pathstack.pop())) {
+-            if (stat.isDirectory()) {
+-              pathstack.push(stat.getPath());
+-            }
+-
+-            if (op.isDifferent(stat)) {              
+-              ++opCount;
+-              if (++synCount > SYNC_FILE_MAX) {
+-                opWriter.sync();
+-                synCount = 0;
+-              }
+-              Path f = stat.getPath();
+-              opWriter.append(new Text(f.toString()), new FileOperation(f, op));
+-            }
+-          }
+-        }
+-      }
+-    }
+-
+-    checkDuplication(fs, opList, new Path(jobdir, "_sorted"), jobconf);
+-    jobconf.setInt(OP_COUNT_LABEL, opCount);
+-    LOG.info(OP_COUNT_LABEL + "=" + opCount);
+-    jobconf.setNumMapTasks(getMapCount(opCount,
+-        new JobClient(jobconf).getClusterStatus().getTaskTrackers()));
+-    return opCount != 0;    
+-  }
+-
+-  private static void checkDuplication(FileSystem fs, Path file, Path sorted,
+-    Configuration conf) throws IOException {
+-    SequenceFile.Sorter sorter = new SequenceFile.Sorter(fs,
+-        new Text.Comparator(), Text.class, FileOperation.class, conf);
+-    sorter.sort(file, sorted);
+-    try (SequenceFile.Reader in = new SequenceFile.Reader(fs, sorted, conf)) {
+-      FileOperation curop = new FileOperation();
+-      Text prevsrc = null, cursrc = new Text(); 
+-      for(; in.next(cursrc, curop); ) {
+-        if (prevsrc != null && cursrc.equals(prevsrc)) {
+-          throw new DuplicationException(
+-            "Invalid input, there are duplicated files in the sources: "
+-            + prevsrc + ", " + cursrc);
+-        }
+-        prevsrc = cursrc;
+-        cursrc = new Text();
+-        curop = new FileOperation();
+-      }
+-    }
+-  } 
+-
+-  public static void main(String[] args) throws Exception {
+-    System.exit(ToolRunner.run(new DistCh(new Configuration()), args));
+-  }
+-}
+\ No newline at end of file
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCp_Counter.properties b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCp_Counter.properties
+deleted file mode 100644
+index 77f6c02e6bd..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistCp_Counter.properties
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#   Licensed under the Apache License, Version 2.0 (the "License");
+-#   you may not use this file except in compliance with the License.
+-#   You may obtain a copy of the License at
+-#
+-#       http://www.apache.org/licenses/LICENSE-2.0
+-#
+-#   Unless required by applicable law or agreed to in writing, software
+-#   distributed under the License is distributed on an "AS IS" BASIS,
+-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-#   See the License for the specific language governing permissions and
+-#   limitations under the License.
+-
+-# ResourceBundle properties file for distcp counters
+-
+-CounterGroupName=       distcp
+-
+-COPY.name=              Files copied
+-DIR_COPY.name=          Directories copied
+-SKIP.name=              Files skipped
+-FAIL.name=              Files failed
+-BYTESCOPIED.name=       Bytes copied
+-BYTESEXPECTED.name=     Bytes expected
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistTool.java b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistTool.java
+deleted file mode 100644
+index 7e5b7154790..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/DistTool.java
++++ /dev/null
+@@ -1,114 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.tools;
+-
+-import java.io.BufferedReader;
+-import java.io.DataInput;
+-import java.io.DataOutput;
+-import java.io.IOException;
+-import java.io.InputStreamReader;
+-import java.nio.charset.StandardCharsets;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Random;
+-
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.io.Text;
+-import org.apache.hadoop.mapred.InvalidInputException;
+-import org.apache.hadoop.mapred.JobConf;
+-
+-/**
+- * An abstract class for distributed tool for file related operations.
+- */
+-abstract class DistTool implements org.apache.hadoop.util.Tool {
+-  protected static final Logger LOG = LoggerFactory.getLogger(DistTool.class);
+-
+-  protected JobConf jobconf;
+-
+-  /** {@inheritDoc} */
+-  public void setConf(Configuration conf) {
+-    if (jobconf != conf) {
+-      jobconf = conf instanceof JobConf? (JobConf)conf: new JobConf(conf);
+-    }
+-  }
+-
+-  /** {@inheritDoc} */
+-  public JobConf getConf() {return jobconf;}
+-
+-  protected DistTool(Configuration conf) {setConf(conf);}
+-
+-  private static final Random RANDOM = new Random();
+-  protected static String getRandomId() {
+-    return Integer.toString(RANDOM.nextInt(Integer.MAX_VALUE), 36);
+-  }
+-
+-  /** Sanity check for source */
+-  protected static void checkSource(Configuration conf, List<Path> srcs
+-      ) throws InvalidInputException {
+-    List<IOException> ioes = new ArrayList<IOException>();
+-    for(Path p : srcs) {
+-      try {
+-        p.getFileSystem(conf).getFileStatus(p);
+-      } catch(IOException e) {
+-        ioes.add(e);
+-      }
+-    }
+-    if (!ioes.isEmpty()) {
+-      throw new InvalidInputException(ioes);
+-    }
+-  }
+-
+-  protected static String readString(DataInput in) throws IOException {
+-    if (in.readBoolean()) {
+-      return Text.readString(in);
+-    }
+-    return null;
+-  }
+-
+-  protected static void writeString(DataOutput out, String s
+-      ) throws IOException {
+-    boolean b = s != null;
+-    out.writeBoolean(b);
+-    if (b) {Text.writeString(out, s);}
+-  }
+-
+-  protected static List<String> readFile(Configuration conf, Path inputfile
+-      ) throws IOException {
+-    List<String> result = new ArrayList<String>();
+-    FileSystem fs = inputfile.getFileSystem(conf);
+-    try (BufferedReader input = new BufferedReader(new InputStreamReader(fs.open(inputfile),
+-            StandardCharsets.UTF_8))) {
+-      for(String line; (line = input.readLine()) != null;) {
+-        result.add(line);
+-      }
+-    }
+-    return result;
+-  }
+-
+-  /** An exception class for duplicated source files. */
+-  public static class DuplicationException extends IOException {
+-    private static final long serialVersionUID = 1L;
+-    /** Error code for this exception */
+-    public static final int ERROR_CODE = -2;
+-    DuplicationException(String message) {super(message);}
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/package-info.java b/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/package-info.java
+deleted file mode 100644
+index 44f533e2f75..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/java/org/apache/hadoop/tools/package-info.java
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-/**
+- * Command-line tools for MapReduce.
+- */
+-package org.apache.hadoop.tools;
+diff --git a/hadoop-tools/hadoop-extras/src/main/shellprofile.d/hadoop-extras.sh b/hadoop-tools/hadoop-extras/src/main/shellprofile.d/hadoop-extras.sh
+deleted file mode 100755
+index 364c950c466..00000000000
+--- a/hadoop-tools/hadoop-extras/src/main/shellprofile.d/hadoop-extras.sh
++++ /dev/null
+@@ -1,37 +0,0 @@
+-#!/usr/bin/env bash
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-if ! declare -f hadoop_subcommand_distch >/dev/null 2>/dev/null; then
+-
+-  if [[ "${HADOOP_SHELL_EXECNAME}" = hadoop ]]; then
+-    hadoop_add_subcommand "distch" client "distributed metadata changer"
+-  fi
+-
+-  # this can't be indented otherwise shelldocs won't get it
+-
+-## @description  distch command for hadoop
+-## @audience     public
+-## @stability    stable
+-## @replaceable  yes
+-function hadoop_subcommand_distch
+-{
+-  # shellcheck disable=SC2034
+-  HADOOP_CLASSNAME=org.apache.hadoop.tools.DistCh
+-  hadoop_add_to_classpath_tools hadoop-extras
+-}
+-
+-fi
+diff --git a/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/mapred/tools/TestGetGroups.java b/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/mapred/tools/TestGetGroups.java
+deleted file mode 100644
+index ed7b8aa8632..00000000000
+--- a/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/mapred/tools/TestGetGroups.java
++++ /dev/null
+@@ -1,55 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.mapred.tools;
+-
+-import java.io.IOException;
+-import java.io.PrintStream;
+-
+-import org.apache.hadoop.mapred.MiniMRCluster;
+-import org.apache.hadoop.mapred.tools.GetGroups;
+-import org.apache.hadoop.tools.GetGroupsTestBase;
+-import org.apache.hadoop.util.Tool;
+-import org.junit.After;
+-import org.junit.Before;
+-import org.junit.Ignore;
+-
+-/**
+- * Tests for the MR implementation of {@link GetGroups}
+- */
+-@Ignore
+-public class TestGetGroups extends GetGroupsTestBase {
+-  
+-  private MiniMRCluster cluster;
+-
+-  @Before
+-  public void setUpJobTracker() throws IOException, InterruptedException {
+-    cluster = new MiniMRCluster(0, "file:///", 1);
+-    conf = cluster.createJobConf();
+-  }
+-  
+-  @After
+-  public void tearDownJobTracker() throws IOException {
+-    cluster.shutdown();
+-  }
+-
+-  @Override
+-  protected Tool getTool(PrintStream o) {
+-    return new GetGroups(conf, o);
+-  }
+-
+-}
+diff --git a/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/tools/TestDistCh.java b/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/tools/TestDistCh.java
+deleted file mode 100644
+index 3e52b3cb6d1..00000000000
+--- a/hadoop-tools/hadoop-extras/src/test/java/org/apache/hadoop/tools/TestDistCh.java
++++ /dev/null
+@@ -1,226 +0,0 @@
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.hadoop.tools;
+-
+-import java.io.ByteArrayOutputStream;
+-import java.io.DataOutputStream;
+-import java.io.IOException;
+-import java.io.PrintStream;
+-import java.util.Arrays;
+-import java.util.Random;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileStatus;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.FsShell;
+-import org.apache.hadoop.fs.Path;
+-import org.apache.hadoop.fs.permission.FsPermission;
+-import org.apache.hadoop.fs.permission.PermissionStatus;
+-import org.apache.hadoop.hdfs.MiniDFSCluster;
+-import org.apache.hadoop.hdfs.server.datanode.DataNode;
+-import org.apache.hadoop.hdfs.server.namenode.FSNamesystem;
+-import org.apache.hadoop.io.IOUtils;
+-import org.apache.hadoop.mapred.MiniMRClientClusterFactory;
+-import org.apache.hadoop.test.GenericTestUtils;
+-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
+-import org.junit.Assert;
+-import org.junit.Test;
+-import org.slf4j.event.Level;
+-
+-import static org.slf4j.LoggerFactory.getLogger;
+-
+-public class TestDistCh {
+-  {
+-    GenericTestUtils.setLogLevel(
+-        getLogger("org.apache.hadoop.hdfs.StateChange"), Level.ERROR);
+-    GenericTestUtils.setLogLevel(DataNode.LOG, Level.ERROR);
+-    GenericTestUtils.setLogLevel(getLogger(FSNamesystem.class), Level.ERROR);
+-  }
+-
+-  static final Long RANDOM_NUMBER_GENERATOR_SEED = null;
+-  static final FsPermission UMASK = FsPermission.createImmutable((short)0111);
+-  
+-  private static final Random RANDOM = new Random();
+-  static {
+-    final long seed = RANDOM_NUMBER_GENERATOR_SEED == null?
+-        RANDOM.nextLong(): RANDOM_NUMBER_GENERATOR_SEED;
+-    System.out.println("seed=" + seed);
+-    RANDOM.setSeed(seed);
+-  }
+-
+-  static final String TEST_ROOT_DIR =
+-    new Path(System.getProperty("test.build.data","/tmp")
+-        ).toString().replace(' ', '+');
+-
+-  static final int NUN_SUBS = 7;
+-
+-  static class FileTree {
+-    private final FileSystem fs;
+-    private final String root;
+-    private final Path rootdir;
+-    private int fcount = 0;
+-
+-    Path createSmallFile(Path dir) throws IOException {
+-      final Path f = new Path(dir, "f" + ++fcount);
+-      Assert.assertTrue(!fs.exists(f));
+-      final DataOutputStream out = fs.create(f);
+-      try {
+-        out.writeBytes("createSmallFile: f=" + f);
+-      } finally {
+-        out.close();
+-      }
+-      Assert.assertTrue(fs.exists(f));
+-      return f;
+-    }
+-
+-    Path mkdir(Path dir) throws IOException {
+-      Assert.assertTrue(fs.mkdirs(dir));
+-      Assert.assertTrue(fs.getFileStatus(dir).isDirectory());
+-      return dir;
+-    }
+-    
+-    FileTree(FileSystem fs, String name) throws IOException {
+-      this.fs = fs;
+-      this.root = "/test/" + name;
+-      this.rootdir = mkdir(new Path(root));
+-  
+-      for(int i = 0; i < 3; i++) {
+-        createSmallFile(rootdir);
+-      }
+-      
+-      for(int i = 0; i < NUN_SUBS; i++) {
+-        final Path sub = mkdir(new Path(root, "sub" + i));
+-        int num_files = RANDOM.nextInt(3);
+-        for(int j = 0; j < num_files; j++) {
+-          createSmallFile(sub);
+-        }
+-      }
+-      
+-      System.out.println("rootdir = " + rootdir);
+-    }
+-  }
+-
+-  static class ChPermissionStatus extends PermissionStatus {
+-    private final boolean defaultPerm;
+-    
+-    ChPermissionStatus(FileStatus filestatus) {
+-      this(filestatus, "", "", "");
+-    }
+-
+-    ChPermissionStatus(FileStatus filestatus, String owner, String group, String permission) {
+-      super("".equals(owner)? filestatus.getOwner(): owner, 
+-          "".equals(group)? filestatus.getGroup(): group,
+-          "".equals(permission)? filestatus.getPermission(): new FsPermission(Short.parseShort(permission, 8)));
+-      defaultPerm = permission == null || "".equals(permission);
+-    }
+-  }
+-
+-  @Test
+-  public void testDistCh() throws Exception {
+-    final Configuration conf = new Configuration();
+-
+-    conf.set(CapacitySchedulerConfiguration.PREFIX+CapacitySchedulerConfiguration.ROOT+"."+CapacitySchedulerConfiguration.QUEUES, "default");
+-    conf.set(CapacitySchedulerConfiguration.PREFIX+CapacitySchedulerConfiguration.ROOT+".default."+CapacitySchedulerConfiguration.CAPACITY, "100");
+-    final MiniDFSCluster cluster=  new MiniDFSCluster.Builder(conf).numDataNodes(2).format(true).build();
+-    
+-    final FileSystem fs = cluster.getFileSystem();
+-    final FsShell shell = new FsShell(conf);
+-    
+-    try {
+-      final FileTree tree = new FileTree(fs, "testDistCh");
+-      final FileStatus rootstatus = fs.getFileStatus(tree.rootdir);
+-
+-      runLsr(shell, tree.root, 0);
+-
+-      final String[] args = new String[NUN_SUBS];
+-      final ChPermissionStatus[] newstatus = new ChPermissionStatus[NUN_SUBS];
+-
+-      
+-      args[0]="/test/testDistCh/sub0:sub1::";
+-      newstatus[0] = new ChPermissionStatus(rootstatus, "sub1", "", "");
+-
+-      args[1]="/test/testDistCh/sub1::sub2:";
+-      newstatus[1] = new ChPermissionStatus(rootstatus, "", "sub2", "");
+-
+-      args[2]="/test/testDistCh/sub2:::437";
+-      newstatus[2] = new ChPermissionStatus(rootstatus, "", "", "437");
+-
+-      args[3]="/test/testDistCh/sub3:sub1:sub2:447";
+-      newstatus[3] = new ChPermissionStatus(rootstatus, "sub1", "sub2", "447");
+- 
+-      args[4]="/test/testDistCh/sub4::sub5:437";
+-      newstatus[4] = new ChPermissionStatus(rootstatus, "", "sub5", "437");
+-
+-      args[5]="/test/testDistCh/sub5:sub1:sub5:";
+-      newstatus[5] = new ChPermissionStatus(rootstatus, "sub1", "sub5", "");
+-
+-      args[6]="/test/testDistCh/sub6:sub3::437";
+-      newstatus[6] = new ChPermissionStatus(rootstatus, "sub3", "", "437");
+-      
+-      System.out.println("args=" + Arrays.asList(args).toString().replace(",", ",\n  "));
+-      System.out.println("newstatus=" + Arrays.asList(newstatus).toString().replace(",", ",\n  "));
+-
+-      //run DistCh
+-      new DistCh(MiniMRClientClusterFactory.create(this.getClass(), 2, conf).getConfig()).run(args);
+-      runLsr(shell, tree.root, 0);
+-
+-      //check results
+-      for(int i = 0; i < NUN_SUBS; i++) {
+-        Path sub = new Path(tree.root + "/sub" + i);
+-        checkFileStatus(newstatus[i], fs.getFileStatus(sub));
+-        for(FileStatus status : fs.listStatus(sub)) {
+-          checkFileStatus(newstatus[i], status);
+-        }
+-      }
+-    } finally {
+-      cluster.shutdown();
+-    }
+-  }
+-
+-  static void checkFileStatus(ChPermissionStatus expected, FileStatus actual) {
+-    Assert.assertEquals(expected.getUserName(), actual.getOwner());
+-    Assert.assertEquals(expected.getGroupName(), actual.getGroup());
+-    FsPermission perm = expected.getPermission();
+-    if (actual.isFile() && expected.defaultPerm) {
+-      perm = perm.applyUMask(UMASK);
+-    }
+-    Assert.assertEquals(perm, actual.getPermission());
+-  }
+-
+-  private static String runLsr(final FsShell shell, String root, int returnvalue
+-      ) throws Exception {
+-    System.out.println("root=" + root + ", returnvalue=" + returnvalue);
+-    final ByteArrayOutputStream bytes = new ByteArrayOutputStream(); 
+-    final PrintStream out = new PrintStream(bytes);
+-    final PrintStream oldOut = System.out;
+-    final PrintStream oldErr = System.err;
+-    System.setOut(out);
+-    System.setErr(out);
+-    final String results;
+-    try {
+-      Assert.assertEquals(returnvalue, shell.run(new String[]{"-lsr", root}));
+-      results = bytes.toString();
+-    } finally {
+-      IOUtils.closeStream(out);
+-      System.setOut(oldOut);
+-      System.setErr(oldErr);
+-    }
+-    System.out.println("results:\n" + results);
+-    return results;
+-  }
+-}
+diff --git a/hadoop-tools/hadoop-tools-dist/pom.xml b/hadoop-tools/hadoop-tools-dist/pom.xml
+index 4acf66c3b8c..1a78cc5cc0f 100644
+--- a/hadoop-tools/hadoop-tools-dist/pom.xml
++++ b/hadoop-tools/hadoop-tools-dist/pom.xml
+@@ -60,11 +60,6 @@
+       <artifactId>hadoop-rumen</artifactId>
+       <scope>compile</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.hadoop</groupId>
+-      <artifactId>hadoop-extras</artifactId>
+-      <scope>compile</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>
+       <artifactId>hadoop-gridmix</artifactId>
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index c4ee6f7375f..eab1d560d97 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -36,7 +36,6 @@
+     <module>hadoop-rumen</module>
+     <module>hadoop-gridmix</module>
+     <module>hadoop-tools-dist</module>
+-    <module>hadoop-extras</module>
+     <module>hadoop-pipes</module>
+     <module>hadoop-openstack</module>
+     <module>hadoop-sls</module>
