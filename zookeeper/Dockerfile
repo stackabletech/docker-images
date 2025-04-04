@@ -60,39 +60,52 @@ ARG RELEASE
 ARG STACKABLE_USER_UID
 
 LABEL  \
-    name="Apache ZooKeeper" \
-    maintainer="info@stackable.tech" \
-    vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
-    summary="The Stackable image for Apache ZooKeeper." \
-    description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
-
-RUN <<EOF
-microdnf update
-microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
-rm -rf /var/cache/yum
-EOF
+  name="Apache ZooKeeper" \
+  maintainer="info@stackable.tech" \
+  vendor="Stackable GmbH" \
+  version="${PRODUCT}" \
+  release="${RELEASE}" \
+  summary="The Stackable image for Apache ZooKeeper." \
+  description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # Copy over the ZooKeeper binary folder
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
+RUN <<EOF
+microdnf update
+microdnf clean all
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
+rm -rf /var/cache/yum
+
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
 # to preserve the folder name with the version.
-RUN <<EOF
 ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
 chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
+
+# fix missing permissions
+chmod g=u /stackable/jmx
+chmod g=u /stackable/apache-zookeeper-${PRODUCT}-bin/ 
 EOF
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
