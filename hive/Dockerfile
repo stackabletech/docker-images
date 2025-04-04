@@ -136,12 +136,18 @@ microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hive-metastore
+chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
+chmod g=u /stackable/hadoop
+
+# fix missing permissions
+chmod --recursive g=u /stackable/jmx
 EOF
 
 # ----------------------------------------
@@ -159,6 +165,7 @@ EOF
 
 # ----------------------------------------
 # Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+# ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 
