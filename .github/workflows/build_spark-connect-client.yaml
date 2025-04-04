@@ -17,16 +17,12 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - hadoop/**
-      - hbase/**
       - spark-k8s/**
       - spark-connect-client/**
-      - vector/**
       - stackable-base/**
       - java-base/**
-      - java-devel/**
       - .github/actions/**
-      - .github/workflows/build_spark-k8s.yaml
+      - .github/workflows/build_spark-connect-client.yaml
 
 jobs:
   generate_matrix:
