@@ -7,6 +7,7 @@
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
@@ -20,16 +21,21 @@ WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
 RUN cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})" && \
+    ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) && \
+    NEW_VERSION="${PRODUCT}-stackable${RELEASE}" && \
+    mvn versions:set -DnewVersion=$NEW_VERSION && \
     # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
     # that created all kinds of issues for the build container
     mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build && \
-    mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable && \
     # Unpack the archive which contains the build artifacts from above. Remove some
     # unused files to shrink the final image size.
-    tar -C /stackable -xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz && \
-    mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json && \
-    rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs && \
-    rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md && \
+    tar -C /stackable -xvzf zookeeper-assembly/target/apache-zookeeper-$NEW_VERSION-bin.tar.gz && \
+    # Replace NEW_VERSION with ORIGINAL_VERSION in the SBOM to make vulnerability scanners detect vulnerabilities in the original version
+    sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" zookeeper-assembly/target/bom.json && \
+    mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-$NEW_VERSION-bin/apache-zookeeper-$NEW_VERSION.cdx.json && \
+    rm -rf /stackable/apache-zookeeper-$NEW_VERSION-bin/docs && \
+    rm /stackable/apache-zookeeper-$NEW_VERSION-bin/README_packaging.md && \
+    cd .. && rm -r ${PRODUCT} && \
     # Download the JMX exporter jar from our own repo
     curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
     -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" && \
@@ -42,7 +48,7 @@ RUN cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODU
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/apache-zookeeper-${PRODUCT}-bin
+RUN /bin/log4shell.sh /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts
@@ -51,7 +57,7 @@ RUN /bin/log4shell.sh /stackable/apache-zookeeper-${PRODUCT}-bin
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/apache-zookeeper-${PRODUCT}-bin
+RUN /bin/log4shell_scanner s /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin
 # ===
 
 # END ZOOKEEPER BUILDER
@@ -82,14 +88,14 @@ RUN microdnf update && \
 WORKDIR /stackable
 
 # Copy over the ZooKeeper binary folder
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
-# Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
+# Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
 # to preserve the folder name with the version.
 RUN <<EOF
-ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+ln -s /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/ /stackable/zookeeper
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).

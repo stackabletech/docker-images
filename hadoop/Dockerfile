@@ -4,6 +4,7 @@
 FROM stackable/image/java-devel AS hadoop-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
@@ -62,12 +63,15 @@ COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /stacka
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
 RUN cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT})" && \
+    ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) && \
+    NEW_VERSION="${PRODUCT}-stackable${RELEASE}" && \
+    mvn versions:set -DnewVersion=$NEW_VERSION && \
     mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
-    cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
-    mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
+    cp -r hadoop-dist/target/hadoop-$NEW_VERSION /stackable/hadoop-$NEW_VERSION && \
+    sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hadoop-dist/target/bom.json && \
+    mv hadoop-dist/target/bom.json /stackable/hadoop-$NEW_VERSION/hadoop-$NEW_VERSION.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
-    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
-    (cd .. && rm -r ${PRODUCT})
+    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-$NEW_VERSION/bin
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.

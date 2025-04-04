@@ -6,6 +6,7 @@ FROM stackable/image/kcat AS kcat
 FROM stackable/image/java-devel AS kafka-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG SCALA
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
@@ -20,7 +21,7 @@ RUN cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})
     # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
     # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
     # it's a good idea to run the tests in this case.
-    ./gradlew clean releaseTarGz && \
+    ./gradlew clean releaseTarGz -Pversion=${PRODUCT}-stackable${RELEASE} && \
     ./gradlew cyclonedxBom && \
     tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable && \
     cp build/reports/bom.json /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json && \

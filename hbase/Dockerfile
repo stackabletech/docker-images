@@ -6,6 +6,7 @@ FROM stackable/image/hadoop AS hadoop-builder
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
@@ -29,6 +30,8 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/custom-hadoop
+
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 # And every cache needs its own id, we can't share them between stages because we might delete the caches
@@ -46,17 +49,20 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+mvn clean install -Dmaven.repo.local=/stackable/custom-hadoop
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
-tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
-mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} clean install -DskipTests
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+tar -xzf hbase-assembly/target/hbase-$NEW_VERSION-bin.tar.gz -C /stackable/
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-assembly/target/bom.json
+mv hbase-assembly/target/bom.json /stackable/hbase-$NEW_VERSION/hbase-$NEW_VERSION.cdx.json
 
-# Remove sources
-(cd .. && rm -r ${PRODUCT})
-
-ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
+ln -s "/stackable/hbase-$NEW_VERSION" /stackable/hbase
 
 ###
 ### JMX Prometheus Exporter/Agent
