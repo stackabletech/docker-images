@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
 ### Fixed
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 [#1034]: https://github.com/stackabletech/docker-images/pull/1034
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
+[#1050]: https://github.com/stackabletech/docker-images/pull/1050
 
 ## [25.3.0] - 2025-03-21
 
