@@ -8,9 +8,10 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 | [![Build Airflow]][build_airflow.yaml] | [![Build Druid]][build_druid.yaml] | [![Build Hadoop]][build_hadoop.yaml] | [![Build HBase]][build_hbase.yaml] |
 | [![Build Hello-World]][build_hello-world.yaml] | [![Build Hive]][build_hive.yaml] | [![Build Java Base]][build_java-base.yaml] | [![Build Java Development]][build_java-devel.yaml] |
 | [![Build Kafka Testing Tools]][build_kafka-testing-tools.yaml] | [![Build Kafka]][build_kafka.yaml] | [![Build kcat]][build_kcat.yaml] | [![Build Krb5]][build_krb5.yaml] |
-| [![Build NiFi]][build_nifi.yaml] | [![Build Omid]][build_omid.yaml] | [![Build OPA]][build_opa.yaml] | [![Build Spark K8s]][build_spark-k8s.yaml] |
-| [![Build Stackable Base]][build_stackable-base.yaml] | [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] | [![Build Tools]][build_tools.yaml] |
-| [![Build Trino CLI]][build_trino-cli.yaml] | [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] | [![Build ZooKeeper]][build_zookeeper.yaml] |
+| [![Build NiFi]][build_nifi.yaml] | [![Build Omid]][build_omid.yaml] | [![Build OPA]][build_opa.yaml] | [![Build Spark Connect Client]][build_spark-connect-client.yaml] |
+| [![Build Spark K8s]][build_spark-k8s.yaml] | [![Build Stackable Base]][build_stackable-base.yaml] | [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] |
+| [![Build Tools]][build_tools.yaml] | [![Build Trino CLI]][build_trino-cli.yaml] | [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] |
+| [![Build ZooKeeper]][build_zookeeper.yaml] | | | |
 <!-- end:badges -->
 
 ## Prerequisites
@@ -243,6 +244,8 @@ ENTRYPOINT ["/stackable-zookeeper-operator"]
 [build_omid.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_omid.yaml
 [Build OPA]: https://github.com/stackabletech/docker-images/actions/workflows/build_opa.yaml/badge.svg
 [build_opa.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_opa.yaml
+[Build Spark Connect Client]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-connect-client.yaml/badge.svg
+[build_spark-connect-client.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-connect-client.yaml
 [Build Spark K8s]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-k8s.yaml/badge.svg
 [build_spark-k8s.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-k8s.yaml
 [Build Stackable Base]: https://github.com/stackabletech/docker-images/actions/workflows/build_stackable-base.yaml/badge.svg
