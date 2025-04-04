@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
+- zookeeper: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 
 ### Changed
 
@@ -17,13 +19,15 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
-- Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
+- zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1034]: https://github.com/stackabletech/docker-images/pull/1034
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
+[#1043]: https://github.com/stackabletech/docker-images/pull/1043
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
 
