@@ -6,6 +6,7 @@ FROM stackable/image/hadoop AS hadoop-builder
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
@@ -29,6 +30,8 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/custom-hadoop
+
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 # And every cache needs its own id, we can't share them between stages because we might delete the caches
@@ -46,17 +49,20 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+mvn clean install -Dmaven.repo.local=/stackable/custom-hadoop
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
-tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
-mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} clean install -DskipTests
+mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+tar -xzf hbase-assembly/target/hbase-$NEW_VERSION-bin.tar.gz -C /stackable/
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-assembly/target/bom.json
+mv hbase-assembly/target/bom.json /stackable/hbase-$NEW_VERSION/hbase-$NEW_VERSION.cdx.json
 
-# Remove sources
-(cd .. && rm -r ${PRODUCT})
-
-ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
+ln -s "/stackable/hbase-$NEW_VERSION" /stackable/hbase
 
 ###
 ### JMX Prometheus Exporter/Agent
@@ -151,8 +157,13 @@ git init
 git config user.email "fake.commiter@stackable.tech"
 git config user.name "Fake commiter"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${HBASE_OPERATOR_TOOLS}
+git tag ${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}
 cd ..
+
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
 
 mvn \
   --batch-mode \
@@ -164,12 +175,12 @@ mvn \
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}
+mkdir /stackable/hbase-operator-tools-$NEW_VERSION
 tar -xz \
   -f hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
-  -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
+  -C /stackable/hbase-operator-tools-$NEW_VERSION/ \
   --strip-components=1
-mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
+mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-$NEW_VERSION/hbase-operator-tools-$NEW_VERSION.cdx.json
 (cd .. && rm -r ${HBASE_OPERATOR_TOOLS})
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
@@ -238,6 +249,11 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PHOENIX}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \
@@ -253,13 +269,11 @@ mvn \
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
-tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
-mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
+mkdir /stackable/phoenix-${HBASE_PROFILE}-$NEW_VERSION-bin
+tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-$NEW_VERSION-bin/ --strip-components=1
+mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-$NEW_VERSION-bin/phoenix-${HBASE_PROFILE}-$NEW_VERSION.cdx.json
 
-# Remove sources
-(cd .. && rm -r ${PHOENIX})
-ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
+ln -s "/stackable/phoenix-${HBASE_PROFILE}-$NEW_VERSION-bin" /stackable/phoenix
 
 
 # We're removing these to make the intermediate layer smaller
@@ -311,7 +325,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRO
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stackable/jmx/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-stackable${RELEASE} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
@@ -346,8 +360,8 @@ microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
-ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
+ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}-stackable${RELEASE}" /stackable/hbase
+ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}" /stackable/hbase-operator-tools
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 
 # All files and folders owned by root group to support running as arbitrary users.

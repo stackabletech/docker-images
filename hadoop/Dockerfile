@@ -4,6 +4,7 @@
 FROM stackable/image/java-devel AS hadoop-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG ASYNC_PROFILER
 ARG JMX_EXPORTER
 ARG PROTOBUF
@@ -62,19 +63,22 @@ COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /stacka
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
 RUN cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT})" && \
+    ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) && \
+    NEW_VERSION="${PRODUCT}-stackable${RELEASE}" && \
+    mvn versions:set -DnewVersion=$NEW_VERSION && \
     mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
-    cp -r hadoop-dist/target/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT} && \
-    mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
+    cp -r hadoop-dist/target/hadoop-$NEW_VERSION /stackable/hadoop-$NEW_VERSION && \
+    sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hadoop-dist/target/bom.json && \
+    mv hadoop-dist/target/bom.json /stackable/hadoop-$NEW_VERSION/hadoop-$NEW_VERSION.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
-    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
-    (cd .. && rm -r ${PRODUCT})
+    cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-$NEW_VERSION/bin
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
+RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}"
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -83,7 +87,7 @@ RUN /bin/log4shell.sh "/stackable/hadoop-${PRODUCT}"
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}"
+RUN /bin/log4shell_scanner s "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}"
 # ===
 
 FROM stackable/image/java-devel AS hdfs-utils-builder
@@ -114,8 +118,8 @@ WORKDIR /stackable
 RUN curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC . && \
     cd hdfs-utils-${HDFS_UTILS} && \
     mvn --batch-mode --no-transfer-progress clean package -P hadoop-${PRODUCT} -DskipTests -Dmaven.javadoc.skip=true && \
-    mkdir -p /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib && \
-    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
+    mkdir -p /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib && \
+    cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar && \
     rm -rf /stackable/hdfs-utils-main
 
 FROM stackable/image/java-base AS final
@@ -133,10 +137,10 @@ LABEL name="Apache Hadoop" \
       summary="The Stackable image for Apache Hadoop." \
       description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT} /stackable/hadoop-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 
@@ -156,7 +160,7 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-ln -s /stackable/hadoop-${PRODUCT} /stackable/hadoop
+ln -s /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop
 mv /stackable/fuse_dfs_wrapper /stackable/hadoop/bin
 
 # Remove unneeded binaries:
