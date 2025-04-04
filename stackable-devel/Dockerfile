@@ -109,4 +109,6 @@ cd /patchable
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 mv /patchable/target/release/patchable /stackable/patchable
 microdnf clean all
+chown ${STACKABLE_USER_UID}:0 /stackable/patchable
+rm -rf /patchable
 EOF
