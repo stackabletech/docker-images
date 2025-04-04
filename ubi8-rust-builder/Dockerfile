@@ -13,13 +13,13 @@ LABEL maintainer="Stackable GmbH"
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.84.1
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.85.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
@@ -80,7 +80,7 @@ WORKDIR /
 RUN <<EOF
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env"
-cargo --quiet install "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
+cargo --quiet install --locked "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
 
 # Build artifacts will be available in /app.

@@ -67,7 +67,7 @@ RUN cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT}
     mv hadoop-dist/target/bom.json /stackable/hadoop-${PRODUCT}/hadoop-${PRODUCT}.cdx.json && \
     # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
     cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${PRODUCT}/bin && \
-    rm -rf /stackable/hadoop-${PRODUCT}-src
+    (cd .. && rm -r ${PRODUCT})
 
 # For earlier versions this script removes the .class file that contains the
 # vulnerable code.

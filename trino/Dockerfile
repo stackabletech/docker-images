@@ -15,8 +15,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackab
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
-cd "$BUILD_SRC_DIR"
+cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
@@ -44,8 +43,7 @@ mv core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-se
 chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
 
 # Delete all intermediate build products to free some more space
-cd /stackable
-rm -r "$BUILD_SRC_DIR"
+(cd .. && rm -r ${PRODUCT})
 EOF
 
 COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}

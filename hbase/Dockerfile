@@ -52,8 +52,10 @@ mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.vers
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
-cd ..
-rm -r ${PRODUCT}
+
+# Remove sources
+(cd .. && rm -r ${PRODUCT})
+
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
 ###
@@ -168,8 +170,7 @@ tar -xz \
   -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
   --strip-components=1
 mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
-cd ..
-rm -r ./${HBASE_OPERATOR_TOOLS}
+(cd .. && rm -r ${HBASE_OPERATOR_TOOLS})
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
 chmod +x /stackable/bin/hbck2
@@ -235,7 +236,7 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})" && \
+cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
@@ -255,7 +256,9 @@ mvn \
 mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
 tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
 mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
-rm -rf /stackable/phoenix-${PHOENIX}-src
+
+# Remove sources
+(cd .. && rm -r ${PHOENIX})
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
 
