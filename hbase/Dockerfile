@@ -44,7 +44,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 ### HBase
 ###
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})" && \
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
@@ -52,7 +52,8 @@ mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.vers
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
-rm -rf /stackable/hbase-${PRODUCT}-src
+cd ..
+rm -r ${PRODUCT}
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
 ###
