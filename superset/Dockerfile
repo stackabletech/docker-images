@@ -103,14 +103,14 @@ RUN python3 -m venv /stackable/app \
     # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
     && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
-    then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
-    && pip install gunicorn==22.0.0; \
+        then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
+        && pip install gunicorn==22.0.0; \
     fi \
     && pip install \
-    --no-cache-dir \
-    --upgrade \
-    python-json-logger \
-    cyclonedx-bom \
+        --no-cache-dir \
+        --upgrade \
+        python-json-logger \
+        cyclonedx-bom \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
     pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
