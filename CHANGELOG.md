@@ -6,28 +6,38 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- hadoop: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1028]).
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
+- opa: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
 
 ### Changed
 
+- ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
 ### Fixed
 
+- hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
+- opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 - Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
+[#1029]: https://github.com/stackabletech/docker-images/pull/1029
 [#1034]: https://github.com/stackabletech/docker-images/pull/1034
+[#1038]: https://github.com/stackabletech/docker-images/pull/1038
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
+[#1050]: https://github.com/stackabletech/docker-images/pull/1050
 
 ## [25.3.0] - 2025-03-21
 
