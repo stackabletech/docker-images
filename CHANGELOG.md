@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+- trino: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 
 ### Changed
 
@@ -28,8 +30,10 @@ All notable changes to this project will be documented in this file.
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
+- trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 
+[#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
 [#1029]: https://github.com/stackabletech/docker-images/pull/1029
