@@ -26,7 +26,8 @@ RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-ser
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /trino-storage-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} \
+    /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
@@ -65,9 +66,6 @@ rm -r /stackable/.m2
 # JMX Exporter
 curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-
-# Storage connector
-mv /trino-storage-${PRODUCT}/ /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
 
 # Softlinks
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
