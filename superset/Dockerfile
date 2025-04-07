@@ -78,7 +78,7 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         setuptools==75.2.0 \
         pip \
-        && pip install \
+    && pip install \
         --no-cache-dir \
         --upgrade \
         --constraint /tmp/constraints.txt \
