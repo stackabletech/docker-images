@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
-`check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
 
 ### Changed
 
