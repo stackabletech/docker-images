@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
+- superset: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
 
 ### Changed
 
@@ -26,6 +28,7 @@ All notable changes to this project will be documented in this file.
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
+[#1053]: https://github.com/stackabletech/docker-images/pull/1053
 
 ## [25.3.0] - 2025-03-21
 
