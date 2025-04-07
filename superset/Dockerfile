@@ -46,25 +46,25 @@ COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0
 
 RUN microdnf update \
     && microdnf install \
-    cyrus-sasl-devel \
-    # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
-    diffutils \
-    # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
-    # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
-    # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
-    # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
-    make \
-    gcc \
-    gcc-c++ \
-    libffi-devel \
-    openldap-devel \
-    openssl-devel \
-    patch \
-    python${PYTHON} \
-    python${PYTHON}-devel \
-    python${PYTHON}-pip \
-    python${PYTHON}-wheel \
-    libpq-devel \
+        cyrus-sasl-devel \
+        # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
+        diffutils \
+        # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
+        # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
+        # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
+        # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
+        make \
+        gcc \
+        gcc-c++ \
+        libffi-devel \
+        openldap-devel \
+        openssl-devel \
+        patch \
+        python${PYTHON} \
+        python${PYTHON}-devel \
+        python${PYTHON}-pip \
+        python${PYTHON}-wheel \
+        libpq-devel \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -74,31 +74,31 @@ RUN microdnf update \
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
-    --no-cache-dir \
-    --upgrade \
-    setuptools==75.2.0 \
-    pip \
-    && pip install \
-    --no-cache-dir \
-    --upgrade \
-    --constraint /tmp/constraints.txt \
-    apache-superset==${PRODUCT} \
-    gevent \
-    psycopg2-binary \
-    statsd \
-    pydruid \
-    python-ldap \
-    'trino[sqlalchemy]' \
-    # Add optional dependencies for use in custom Superset configurations.
-    # Since https://github.com/stackabletech/superset-operator/pull/530
-    # admins can add custom configuration to superset_conf.py.
-    Flask_OIDC==2.2.0 \
-    Flask-OpenID==1.3.1 \
-    # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
-    # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
-    # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
-    # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
-    tzdata \
+        --no-cache-dir \
+        --upgrade \
+        setuptools==75.2.0 \
+        pip \
+        && pip install \
+        --no-cache-dir \
+        --upgrade \
+        --constraint /tmp/constraints.txt \
+        apache-superset==${PRODUCT} \
+        gevent \
+        psycopg2-binary \
+        statsd \
+        pydruid \
+        python-ldap \
+        'trino[sqlalchemy]' \
+        # Add optional dependencies for use in custom Superset configurations.
+        # Since https://github.com/stackabletech/superset-operator/pull/530
+        # admins can add custom configuration to superset_conf.py.
+        Flask_OIDC==2.2.0 \
+        Flask-OpenID==1.3.1 \
+        # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
+        # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
+        # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
+        # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
+        tzdata \
     # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
     # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
