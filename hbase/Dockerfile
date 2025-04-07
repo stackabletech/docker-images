@@ -44,7 +44,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 ### HBase
 ###
-curl --fail "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
 mv hbase-${PRODUCT} hbase-${PRODUCT}-src
 
 chmod +x patches/apply_patches.sh
