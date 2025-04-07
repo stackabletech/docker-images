@@ -124,6 +124,7 @@ EOF
 
 # ----------------------------------------
 # Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+# ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/trino-server
