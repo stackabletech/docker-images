@@ -169,7 +169,7 @@ EOF
 # - check file permissions and ownerships
 # ----------------------------------------
 
-# Check that permissions and ownership in /stackable are set correctly
+# Check that permissions and ownership in ${HOME} are set correctly
 # This will fail and stop the build if any mismatches are found.
 RUN <<EOF
 /bin/check-permissions-ownership.sh ${HOME} ${STACKABLE_USER_UID} 0
