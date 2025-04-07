@@ -1,0 +1,32 @@
+From 51b81f8758225fc82a929be9442ddbabc863a98f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 7 Apr 2025 18:28:54 +0200
+Subject: Add exclusion for parquet-avro to iceberg processor and pull in the
+ fixed version specifically.
+
+---
+ .../nifi-iceberg-bundle/nifi-iceberg-common/pom.xml   | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/nifi-nar-bundles/nifi-iceberg-bundle/nifi-iceberg-common/pom.xml b/nifi-nar-bundles/nifi-iceberg-bundle/nifi-iceberg-common/pom.xml
+index 1522a07caf..73aa7772e7 100644
+--- a/nifi-nar-bundles/nifi-iceberg-bundle/nifi-iceberg-common/pom.xml
++++ b/nifi-nar-bundles/nifi-iceberg-bundle/nifi-iceberg-common/pom.xml
+@@ -84,6 +84,17 @@
+             <groupId>org.apache.iceberg</groupId>
+             <artifactId>iceberg-parquet</artifactId>
+             <version>${iceberg.version}</version>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.apache.parquet</groupId>
++                    <artifactId>parquet-avro</artifactId>
++                </exclusion>
++            </exclusions>
++        </dependency>
++        <dependency>
++            <groupId>org.apache.parquet</groupId>
++            <artifactId>parquet-avro</artifactId>
++            <version>1.15.1</version>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.iceberg</groupId>
