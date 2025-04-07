@@ -39,24 +39,24 @@ ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch
 
 RUN microdnf update && \
     microdnf install \
-    cyrus-sasl-devel \
-    # Needed by ./configure to build gevent, see snippet [1] at the end of file
-    diffutils \
-    # Needed to build gevent, see snippet [1] at the end of file
-    make \
-    gcc \
-    gcc-c++ \
-    libpq-devel \
-    openldap-devel \
-    openssl-devel \
-    python${PYTHON} \
-    python${PYTHON}-devel \
-    python${PYTHON}-pip \
-    python${PYTHON}-wheel \
-    # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
-    unixODBC \
-    # Needed to modify the SBOM
-    jq && \
+        cyrus-sasl-devel \
+        # Needed by ./configure to build gevent, see snippet [1] at the end of file
+        diffutils \
+        # Needed to build gevent, see snippet [1] at the end of file
+        make \
+        gcc \
+        gcc-c++ \
+        libpq-devel \
+        openldap-devel \
+        openssl-devel \
+        python${PYTHON} \
+        python${PYTHON}-devel \
+        python${PYTHON}-pip \
+        python${PYTHON}-wheel \
+        # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
+        unixODBC \
+        # Needed to modify the SBOM
+        jq && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
