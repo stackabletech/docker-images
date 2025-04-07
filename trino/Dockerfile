@@ -106,9 +106,6 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-# If /stackable has any build artifacts / leftovers make sure its removed properly
-# or only copy what is actually required in the final image like:
-# COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/foo /stackable/foo
 COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
