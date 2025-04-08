@@ -1,0 +1,33 @@
+From 1131c9a9eb26aeb619d1780d530979e419d77fa8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Tue, 8 Apr 2025 14:33:02 +0200
+Subject: Sorted pom
+
+---
+ plugin/trino-iceberg/pom.xml | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/plugin/trino-iceberg/pom.xml b/plugin/trino-iceberg/pom.xml
+index 5a2da9bd86..f20a28f770 100644
+--- a/plugin/trino-iceberg/pom.xml
++++ b/plugin/trino-iceberg/pom.xml
+@@ -240,14 +240,14 @@
+             </exclusions>
+         </dependency>
+         <dependency>
+-            <groupId>org.apache.parquet</groupId>
+-            <artifactId>parquet-avro</artifactId>
+-            <version>1.15.1</version>
++            <groupId>org.apache.iceberg</groupId>
++            <artifactId>iceberg-snowflake</artifactId>
+         </dependency>
+ 
+         <dependency>
+-            <groupId>org.apache.iceberg</groupId>
+-            <artifactId>iceberg-snowflake</artifactId>
++            <groupId>org.apache.parquet</groupId>
++            <artifactId>parquet-avro</artifactId>
++            <version>1.15.1</version>
+         </dependency>
+ 
+         <dependency>
