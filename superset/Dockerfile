@@ -114,10 +114,8 @@ RUN python3 -m venv /stackable/app \
     pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY superset/stackable/patches /patches
 
 RUN <<EOF
-/patches/apply_patches.sh ${PRODUCT}
 cd /stackable
 source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
 chmod --recursive g=u /stackable

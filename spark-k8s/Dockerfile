@@ -283,17 +283,31 @@ ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 # Symlink example jar, so that we can easily use it in tests
 ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
 chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
+
+# fix permissions
+chmod g=u /stackable/spark
+chmod g=u /stackable/jmx
+chmod g=u /stackable/run-spark.sh
 EOF
 
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
 
 # ----------------------------------------
-# Attention:
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 
-WORKDIR /stackable/spark
+WORKDIR ${SPARK_HOME}
 ENTRYPOINT [ "/stackable/run-spark.sh" ]

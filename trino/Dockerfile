@@ -38,15 +38,15 @@ git tag ${PRODUCT}
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
 
 # Delete intermediate build products to free some space and keep runners happy
-rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
+rm -r plugin/*/target core/trino-server/target/trino-server-${PRODUCT}
 
 # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
 # while the raw output folder does not
-tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
-mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
+tar -xzf core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
+mv core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
 
 # Delete intermediate build products to free some space and keep runners happy
-rm -r /stackable/trino-server-${PRODUCT}-src
+(cd .. && rm -r ${PRODUCT})
 rm -r /stackable/.m2
 
 # JMX Exporter

@@ -13,6 +13,9 @@ FROM stackable/image/java-devel AS hive-builder
 ARG PRODUCT
 ARG HADOOP
 ARG JMX_EXPORTER
+ARG AWS_JAVA_SDK_BUNDLE
+ARG AZURE_STORAGE
+ARG AZURE_KEYVAULT_CORE
 ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
@@ -25,6 +28,10 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackabl
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 # Copy the start script into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin /stackable/bin
+# It is useful to see which version of Hadoop is used at a glance
+# Therefore the use of the full name here
+# TODO: Do we really need all of Hadoop in here?
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -64,6 +71,18 @@ cp bin/start-metastore apache-hive-metastore-${PRODUCT}-bin/bin
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
+# The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
+# This way the build will fail should one of the files not be available anymore in a later Hadoop version!
+
+# Add S3 Support for Hive (support for s3a://)
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+
+# Add Azure ABFS support (support for abfs://)
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
 # and we are sometimes running into errors because we're out of space.
@@ -73,6 +92,9 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# change groups
+chmod --recursive g=u /stackable
 EOF
 
 
@@ -81,9 +103,6 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG HADOOP
 ARG RELEASE
-ARG AWS_JAVA_SDK_BUNDLE
-ARG AZURE_STORAGE
-ARG AZURE_KEYVAULT_CORE
 ARG STACKABLE_USER_UID
 
 
@@ -112,47 +131,45 @@ LABEL io.k8s.display-name="${NAME}"
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP} /stackable/hadoop-${HADOOP}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 
-# It is useful to see which version of Hadoop is used at a glance
-# Therefore the use of the full name here
-# TODO: Do we really need all of Hadoop in here?
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}
+COPY hive/licenses /licenses
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
+chown -h ${STACKABLE_USER_UID}:0 /stackable/hive-metastore
+chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
+chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
+chmod g=u /stackable/hadoop
 
-# The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
-# This way the build will fail should one of the files not be available anymore in a later Hadoop version!
-
-# Add S3 Support for Hive (support for s3a://)
-cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/hive-metastore/lib/
-cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/hive-metastore/lib/
-
-# Add Azure ABFS support (support for abfs://)
-cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/hive-metastore/lib/
-cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/hive-metastore/lib/
-cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/hive-metastore/lib/
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+# fix missing permissions
+chmod --recursive g=u /stackable/jmx
 EOF
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
-COPY hive/licenses /licenses
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
