@@ -94,6 +94,7 @@ FROM stackable/image/java-devel AS hdfs-utils-builder
 
 ARG HDFS_UTILS
 ARG PRODUCT
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
 # Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.

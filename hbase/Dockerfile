@@ -131,6 +131,7 @@ FROM stackable/image/java-devel AS hbase-operator-tools-builder
 ARG HBASE_OPERATOR_TOOLS
 ARG HBASE_THIRDPARTY
 ARG PRODUCT
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
@@ -232,6 +233,7 @@ EOF
 FROM stackable/image/java-devel AS phoenix-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG ASYNC_PROFILER
 ARG PHOENIX
 ARG HBASE_PROFILE
