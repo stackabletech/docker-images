@@ -28,6 +28,7 @@ ARG PRODUCT
 ARG STATSD_EXPORTER
 ARG PYTHON
 ARG TARGETARCH
+ARG STACKABLE_USER_UID
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
@@ -85,9 +86,17 @@ else
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
 EOF
 
-WORKDIR /stackable
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${STATSD_EXPORTER}.cdx.json
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
+
+RUN <<EOF
+mkdir -pv /stackable/airflow
+mkdir -pv /stackable/airflow/dags
+mkdir -pv /stackable/airflow/logs
+chmod --recursive g=u /stackable
+EOF
+
 
 FROM stackable/image/vector AS airflow-main-image
 
@@ -99,21 +108,25 @@ ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Airflow." \
-      description="This image is deployed by the Stackable Operator for Apache Airflow."
-
-COPY airflow/licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
-COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Airflow." \
+    description="This image is deployed by the Stackable Operator for Apache Airflow."
 
 ENV HOME=/stackable
 ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
+
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/git-sync ${HOME}/git-sync
+
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+
+COPY airflow/licenses /licenses
 
 # Update image and install needed packages
 RUN <<EOF
@@ -142,32 +155,32 @@ rm -rf /var/cache/yum
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
 curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+
+# fix missing permissions
 chmod a+x /entrypoint.sh
 chmod a+x /run-airflow.sh
 chmod +x /usr/bin/tini
-
-mkdir -pv ${AIRFLOW_HOME}
-mkdir -pv ${AIRFLOW_HOME}/dags
-mkdir -pv ${AIRFLOW_HOME}/logs
-
-# All files and folders owned by root to support running as arbitrary users
-# This is best practice as all container users will belong to the root group (0)
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in ${HOME} are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh ${HOME} ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
-
-COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
-COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/run-airflow.sh"]
 CMD []
