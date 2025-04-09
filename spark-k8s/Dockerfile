@@ -337,6 +337,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 # fix permissions
 chmod g=u /stackable/spark
 chmod g=u /stackable/jmx
+chmod g=u /stackable/run-spark.sh
 EOF
 
 # ----------------------------------------
