@@ -7,6 +7,7 @@ FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG JMX_EXPORTER
 
 RUN <<EOF
 microdnf update
@@ -25,6 +26,9 @@ RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-ser
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} \
+    /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
@@ -47,89 +51,77 @@ git tag ${PRODUCT}
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
 
-# Delete the worst intermediate build products to free some space
+# Delete intermediate build products to free some space and keep runners happy
 rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
 
 # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
 # while the raw output folder does not
 tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
 mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
 
-# Delete all intermediate build products to free some more space
+# Delete intermediate build products to free some space and keep runners happy
 rm -r /stackable/trino-server-${PRODUCT}-src
+rm -r /stackable/.m2
+
+# JMX Exporter
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+
+# Softlinks
+ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
+
+# Set correct permissions
+chmod --recursive g=u /stackable
 EOF
 
-COPY --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/trino-server-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
-# ===
-
-FROM stackable/image/java-base AS final
+FROM stackable/image/java-base
 
 ARG PRODUCT
-ARG JMX_EXPORTER
 ARG RELEASE
 ARG STACKABLE_USER_UID
 
-LABEL name="Trino" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Trino." \
-      description="This image is deployed by the Stackable Operator for Trino."
+LABEL \
+    name="Trino" \
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Trino." \
+    description="This image is deployed by the Stackable Operator for Trino."
 
-RUN microdnf update && \
-    microdnf install \
+RUN <<EOF
+microdnf update
+# libstdc++ required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
+microdnf install \
     gzip \
     httpd-tools \
     python \
     tar \
-    # Required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
     libstdc++ \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+    zip
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable /stackable
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=trino-builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
 
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
 RUN <<EOF
-ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
-
-curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
