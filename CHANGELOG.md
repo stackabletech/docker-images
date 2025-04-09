@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+- spark-k8s: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1055]).
 - superset: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
 - trino: check for correct permissions and ownerships in /stackable folder via
@@ -64,6 +66,7 @@ All notable changes to this project will be documented in this file.
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
 [#1053]: https://github.com/stackabletech/docker-images/pull/1053
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
+[#1055]: https://github.com/stackabletech/docker-images/pull/1055
 
 ## [25.3.0] - 2025-03-21
 
