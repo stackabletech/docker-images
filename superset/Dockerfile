@@ -113,10 +113,15 @@ RUN python3 -m venv /stackable/app \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
     pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
-WORKDIR /stackable
-RUN source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
-
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY superset/stackable/patches /patches
+
+RUN <<EOF
+/patches/apply_patches.sh ${PRODUCT}
+cd /stackable
+source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
+chmod --recursive g=u /stackable
+EOF
 
 # Final image
 FROM stackable/image/vector
@@ -127,12 +132,12 @@ ARG RELEASE
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Superset" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Superset." \
-      description="This image is deployed by the Stackable Operator for Apache Superset."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Superset." \
+    description="This image is deployed by the Stackable Operator for Apache Superset."
 
 ENV FLASK_APP="superset.app:create_app()" \
     FLASK_ENV="production" \
@@ -140,6 +145,10 @@ ENV FLASK_APP="superset.app:create_app()" \
     SUPERSET_PORT="8088"
 ENV PATH="${HOME}/app/bin:${PATH}" \
     PYTHONPATH="${HOME}/app/pythonpath"
+
+COPY superset/licenses /licenses
+
+COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
 RUN <<EOF
 microdnf update
@@ -153,22 +162,23 @@ microdnf install \
 
 microdnf clean all
 rm -rf /var/cache/yum
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R "${STACKABLE_USER_UID}:0" /stackable
-chmod -R g=u /stackable
 EOF
 
-COPY superset/licenses /licenses
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
 
-COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+# Check that permissions and ownership in ${HOME} are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh ${HOME} ${STACKABLE_USER_UID} 0
+EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
