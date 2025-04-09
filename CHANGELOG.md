@@ -47,7 +47,6 @@ All notable changes to this project will be documented in this file.
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
-- Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
