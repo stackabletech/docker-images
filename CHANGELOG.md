@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
@@ -46,6 +48,7 @@ All notable changes to this project will be documented in this file.
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
+[#1054]: https://github.com/stackabletech/docker-images/pull/1054
 
 ## [25.3.0] - 2025-03-21
 
