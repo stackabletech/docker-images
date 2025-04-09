@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - hive: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1040]).
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
+- kafka: check for correct permissions and ownerships in /stackable folder via
+  `check-permissions-ownership.sh` provided in stackable-base image ([#1041]).
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
@@ -37,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
 - hive: reduce docker image size by removing the recursive chown/chmods in the final image ([#1040]).
+- kafka: reduce docker image size by removing the recursive chown/chmods in the final image ([#1041]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
@@ -51,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#1038]: https://github.com/stackabletech/docker-images/pull/1038
 [#1039]: https://github.com/stackabletech/docker-images/pull/1039
 [#1040]: https://github.com/stackabletech/docker-images/pull/1040
+[#1041]: https://github.com/stackabletech/docker-images/pull/1041
 [#1042]: https://github.com/stackabletech/docker-images/pull/1042
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
