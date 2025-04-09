@@ -9,8 +9,9 @@ FROM stackable/image/java-base AS builder
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
-RUN microdnf update \
-    && microdnf install \
+RUN <<EOF
+microdnf update
+microdnf install \
     cmake \
     cyrus-sasl-devel \
     gcc-c++ \
@@ -22,16 +23,21 @@ RUN microdnf update \
     wget \
     which \
     zlib \
-    zlib-devel && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+    zlib-devel
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
 WORKDIR /stackable
 
-RUN curl -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz \
-    && tar xvfz kcat-${PRODUCT}.tar.gz \
-    && cd kcat-${PRODUCT} \
-    && ./bootstrap.sh
+RUN <<EOF
+curl -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz
+tar xvfz kcat-${PRODUCT}.tar.gz
+cd kcat-${PRODUCT}
+./bootstrap.sh
+# set correct permissions
+chmod --recursive g=u /stackable/kcat-${PRODUCT}
+EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 kcat/licenses /licenses
 

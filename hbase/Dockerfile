@@ -65,7 +65,7 @@ ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 ### JMX Prometheus Exporter/Agent
 ###
 if [[ -n "${JMX_EXPORTER}" ]] ; then
-  curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
+  curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
   ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 fi
@@ -75,7 +75,7 @@ fi
 ###
 cd /stackable
 export ARCH="${TARGETARCH/amd64/x64}"
-curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # We're removing these to make the intermediate layer smaller
@@ -87,7 +87,11 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
+chmod --recursive g=u /stackable
 EOF
+
 
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
@@ -99,7 +103,6 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-
 ###
 ### OPA Authorizer (only for 2.6 upwards)
 ###
@@ -117,11 +120,14 @@ else
   touch hbase-opa-authorizer/target/hbase-opa-authorizer.jar
 fi
 
-
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
 fi
+
+# set correct groups
+chmod --recursive g=u /stackable
 EOF
+
 
 FROM stackable/image/java-devel AS hbase-operator-tools-builder
 
@@ -141,7 +147,7 @@ ARG DELETE_CACHES="true"
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches /stackable/patches
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/apply_patches.sh /stackable/patches
-COPY --chown=${STACKABLE_USER_UID}:0 --chmod=755 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -150,7 +156,7 @@ WORKDIR /stackable
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 
-curl "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
 mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
 chmod +x patches/apply_patches.sh
 patches/apply_patches.sh ${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
@@ -187,6 +193,9 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
+chmod --recursive g=u /stackable
 EOF
 
 
@@ -202,9 +211,9 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/
+  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
@@ -218,7 +227,11 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 envsubst '${PRODUCT}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
+
+# set correct groups
+chmod --recursive g=u /stackable
 EOF
+
 
 FROM stackable/image/java-devel AS phoenix-builder
 
@@ -240,7 +253,7 @@ WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd /stackable
-curl "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
+curl --fail "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
 mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
 
 chmod +x patches/apply_patches.sh
@@ -269,7 +282,6 @@ mv phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${
 rm -rf /stackable/phoenix-${PHOENIX}-src
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
-
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
 # and we are sometimes running into errors because we're out of space.
@@ -279,6 +291,9 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+# set correct groups
+chmod --recursive g=u /stackable
 EOF
 
 
@@ -333,8 +348,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
-    /stackable/hbase-${PRODUCT}/lib/
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+  /stackable/hbase-${PRODUCT}/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
@@ -352,24 +367,46 @@ microdnf install \
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
-ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
-ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase
+chmod g=u /stackable/hbase
 
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
+chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase-operator-tools
+chmod g=u /stackable/hbase-operator-tools
+
+ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+chown --no-dereference ${STACKABLE_USER_UID}:0 "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+
+# fix missing permissions
+chmod g=u /stackable/async-profiler
+chmod g=u /stackable/bin
+chmod g=u /stackable/jmx
+chmod g=u /stackable/phoenix
+# the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
+find /stackable/hadoop -type d -exec chmod g=u {} +
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
 # ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 
 USER ${STACKABLE_USER_UID}
 ENV HBASE_CONF_DIR=/stackable/hbase/conf

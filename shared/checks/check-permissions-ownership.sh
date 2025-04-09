@@ -29,27 +29,29 @@ EXPECTED_GID=$3
 error_flag=0
 
 # Check ownership
-while IFS= read -r -d '' file; do
-    uid=$(stat -c "%u" "$file")
-    gid=$(stat -c "%g" "$file")
+while IFS= read -r -d '' entry; do
+    uid=${entry%% *}
+    remainder=${entry#* }
+    gid=${remainder%% *}
 
     if [[ "$uid" -ne "$EXPECTED_UID" || "$gid" -ne "$EXPECTED_GID" ]]; then
+        file=${remainder#* }
         echo "Ownership mismatch:  $file (Expected: $EXPECTED_UID:$EXPECTED_GID, Found: $uid:$gid)"
         error_flag=1
     fi
-done < <(find "$DIRECTORY" -print0)
+done < <(find "$DIRECTORY" -printf "%U %G %p\0")
 
 # Check permissions
-while IFS= read -r -d '' file; do
-    perms=$(stat -c "%A" "$file")
-    owner_perms="${perms:1:3}"
-    group_perms="${perms:4:3}"
+while IFS= read -r -d '' entry; do
+    owner_perms="${entry:1:3}"
+    group_perms="${entry:4:3}"
 
     if [[ "$owner_perms" != "$group_perms" ]]; then
+        file="${entry:11}"
         echo "Permission mismatch: $file (Owner: $owner_perms, Group: $group_perms)"
         error_flag=1
     fi
-done < <(find "$DIRECTORY" -print0)
+done < <(find "$DIRECTORY" -printf "%M %p\0")
 
 if [[ $error_flag -ne 0 ]]; then
     echo "Permission and Ownership checks failed for $DIRECTORY!"
