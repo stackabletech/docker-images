@@ -8,6 +8,7 @@
 FROM stackable/image/stackable-base
 
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
@@ -59,7 +60,7 @@ RUN microdnf update && \
 
 ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jdk"
 
-COPY --chown=stackable:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
+COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and

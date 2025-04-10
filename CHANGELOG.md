@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
+- Fixed two hardcoded username references ([#1052]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -64,6 +65,7 @@ All notable changes to this project will be documented in this file.
 [#1043]: https://github.com/stackabletech/docker-images/pull/1043
 [#1044]: https://github.com/stackabletech/docker-images/pull/1044
 [#1050]: https://github.com/stackabletech/docker-images/pull/1050
+[#1052]: https://github.com/stackabletech/docker-images/pull/1052
 [#1053]: https://github.com/stackabletech/docker-images/pull/1053
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
