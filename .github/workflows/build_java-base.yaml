@@ -67,16 +67,6 @@ jobs:
           build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
           sdp-version: ${{ env.SDP_VERSION }}
 
-      - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: docker.stackable.tech
-          image-registry-username: github
-          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
-          image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
-
       - name: Publish Container Image on oci.stackable.tech
         uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
         with:
@@ -102,15 +92,6 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           persist-credentials: false
-
-      - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: docker.stackable.tech
-          image-registry-username: github
-          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
-          image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0

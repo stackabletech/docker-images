@@ -37,6 +37,10 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
+### Removed
+
+- Remove Nexus steps from build, mirror and release workflows ([#1056]).
+
 ### Fixed
 
 - druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
@@ -69,6 +73,7 @@ All notable changes to this project will be documented in this file.
 [#1053]: https://github.com/stackabletech/docker-images/pull/1053
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
+[#1056]: https://github.com/stackabletech/docker-images/pull/1056
 
 ## [25.3.0] - 2025-03-21
 
