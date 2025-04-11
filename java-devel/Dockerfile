@@ -2,10 +2,10 @@
 # check=error=true
 
 #
-# Base imaege for builder stages
+# Base image for builder stages in Java based products
 #
 
-FROM stackable/image/stackable-base
+FROM stackable/image/stackable-devel
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID

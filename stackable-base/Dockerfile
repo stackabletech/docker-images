@@ -1,61 +1,29 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS product-utils-builder
+FROM stackable/image/stackable-devel AS config-utils
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
 # renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
-# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
-# renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.1.1
-# This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
-# renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.84.1
-# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
-# renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
-# Find the latest version here: https://crates.io/crates/cargo-auditable
-# renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
-
-RUN <<EOF
-microdnf update --assumeyes
-
-# git: Needed to fetch source
-# gcc: Needed for compilation
-microdnf --assumeyes install \
-  gcc \
-  git
-microdnf clean all
-rm -rf /var/cache/yum
-
-# WARNING (@NickLarsenNZ): We should pin the rustup version
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install --locked cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
-EOF
-
-FROM product-utils-builder AS config-utils
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
-rustup toolchain install
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
-FROM product-utils-builder AS containerdebug
+FROM stackable/image/stackable-devel AS containerdebug
+
+# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
+# renovate: datasource=github-tags packageName=stackabletech/containerdebug
+ENV CONTAINERDEBUG_VERSION=0.1.1
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
 cd ./containerdebug
 . "$HOME/.cargo/env"
-rustup toolchain install
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
