@@ -27,7 +27,8 @@ cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
 # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
 # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
 # smoke test checks that "select version()" is working.
-rm -rf .git
+# Also, we need to initialize a new Git repo because `git-commit-id-maven-plugin` has a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
+rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
 git config user.name "Fake commiter"

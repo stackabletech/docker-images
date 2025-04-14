@@ -152,13 +152,10 @@ WORKDIR /stackable
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
-cd hbase-hbck2
-git init
-git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
-git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${HBASE_OPERATOR_TOOLS}
-cd ..
+
+# Remove the Git repo because `git-commit-id-maven-plugin` tries to get the latest commit if a Git repo is present,
+# which fails due to a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
+rm .git
 
 mvn \
   --batch-mode \
