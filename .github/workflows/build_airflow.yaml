@@ -22,7 +22,7 @@ on:
 
 jobs:
   build_image:
-    name: Build image using reusable workflow
+    name: Reusable Workflow
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}

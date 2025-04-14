@@ -3,10 +3,6 @@ name: Build Krb5
 run-name: |
   Build Krb5 (attempt #${{ github.run_attempt }})
 
-env:
-  PRODUCT_NAME: krb5
-  SDP_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
-
 on:
   workflow_dispatch:
   schedule:
@@ -20,148 +16,15 @@ on:
       - krb5/**
       - .github/actions/**
       - .github/workflows/build_krb5.yaml
+      - .github/workflows/reusable_build_image.yaml
 
 jobs:
-  generate_matrix:
-    name: Generate Version List
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          persist-credentials: false
-      - id: shard
-        uses: stackabletech/actions/shard@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          product-name: ${{ env.PRODUCT_NAME }}
-    outputs:
-      versions: ${{ steps.shard.outputs.versions }}
-
-  build:
-    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Image
-    needs: [generate_matrix]
-    permissions:
-      id-token: write
-    runs-on: ${{ matrix.runner.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - {name: "ubuntu-latest", arch: "amd64"}
-          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
-        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          persist-credentials: false
-
-      - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-
-      - name: Build Product Image
-        id: build
-        uses: stackabletech/actions/build-product-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          product-name: ${{ env.PRODUCT_NAME }}
-          product-version: ${{ matrix.versions }}
-          sdp-version: ${{ env.SDP_VERSION }}
-
-      - name: Publish Container Image on docker.stackable.tech
-        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: docker.stackable.tech
-          image-registry-username: github
-          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
-          image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
-
-      - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: oci.stackable.tech
-          image-registry-username: robot$sdp+github-action-build
-          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
-          image-repository: sdp/${{ env.PRODUCT_NAME }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ env.PRODUCT_NAME }}:${{ steps.build.outputs.image-manifest-tag }}
-
-  publish_manifests:
-    name: Build/Publish ${{ matrix.versions }} Manifests
-    needs: [generate_matrix, build]
-    permissions:
-      id-token: write
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          persist-credentials: false
-
-      - name: Publish and Sign Image Index Manifest to docker.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: docker.stackable.tech
-          image-registry-username: github
-          image-registry-password: ${{ secrets.NEXUS_PASSWORD }}
-          image-repository: stackable/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
-
-      - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
-        with:
-          image-registry-uri: oci.stackable.tech
-          image-registry-username: robot$sdp+github-action-build
-          image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
-          image-repository: sdp/${{ env.PRODUCT_NAME }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ env.SDP_VERSION }}
-
-  notify:
-    name: Failure Notification
-    needs: [generate_matrix, build, publish_manifests]
-    runs-on: ubuntu-latest
-    if: failure()
-    steps:
-      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
-        with:
-          channel-id: "C07UG6JH44F" # notifications-container-images
-          payload: |
-            {
-              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
-              "attachments": [
-                {
-                  "pretext": "See the details below for a summary of which job(s) failed.",
-                  "color": "#aa0000",
-                  "fields": [
-                    {
-                      "title": "Generate Version List",
-                      "short": true,
-                      "value": "${{ needs.generate_matrix.result }}"
-                    },
-                    {
-                      "title": "Build/Publish Image",
-                      "short": true,
-                      "value": "${{ needs.build.result }}"
-                    },
-                    {
-                      "title": "Build/Publish Manifests",
-                      "short": true,
-                      "value": "${{ needs.publish_manifests.result }}"
-                    }
-                  ],
-                  "actions": [
-                    {
-                      "type": "button",
-                      "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+  build_image:
+    name: Reusable Workflow
+    uses: ./.github/workflows/reusable_build_image.yaml
+    secrets:
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    with:
+      product-name: krb5
+      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
