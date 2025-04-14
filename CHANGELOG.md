@@ -52,6 +52,11 @@ All notable changes to this project will be documented in this file.
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
 
+### Removed
+
+- ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
+  Also remove the old release workflow.
+
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
@@ -69,6 +74,7 @@ All notable changes to this project will be documented in this file.
 [#1053]: https://github.com/stackabletech/docker-images/pull/1053
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
+[#1056]: https://github.com/stackabletech/docker-images/pull/1056
 
 ## [25.3.0] - 2025-03-21
 
