@@ -70,7 +70,6 @@ jobs:
         with:
           product-name: ${{ env.PRODUCT_NAME }}
           product-version: ${{ matrix.versions }}
-          build-cache-password: ${{ secrets.BUILD_CACHE_NEXUS_PASSWORD }}
           sdp-version: ${{ env.SDP_VERSION }}
 
       - name: Publish Container Image on docker.stackable.tech
