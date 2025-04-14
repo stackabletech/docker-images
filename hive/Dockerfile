@@ -24,10 +24,6 @@ ARG DELETE_CACHES="true"
 
 # Copy patches into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
-# Copy JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
-# Copy the start script into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin /stackable/bin
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
@@ -66,8 +62,7 @@ fi
 cd /stackable
 rm -rf "$BUILD_SRC_DIR"
 
-cp bin/start-metastore apache-hive-metastore-${PRODUCT}-bin/bin
-
+mkdir /stackable/jmx
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
@@ -133,6 +128,8 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP} /stackable/hadoop-${HADOOP}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
 
 COPY hive/licenses /licenses
 
@@ -143,6 +140,8 @@ rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manif
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
+
+chmod g=u /stackable/apache-hive-metastore-${PRODUCT}-bin/bin/start-metastore
 
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/hive-metastore
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hive-metastore
