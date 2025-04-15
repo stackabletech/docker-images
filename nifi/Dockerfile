@@ -80,6 +80,28 @@ rm -rf /stackable/nifi-${PRODUCT}/docs
 chmod -R g=u /stackable
 EOF
 
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG STACKABLE_USER_UID
+ARG PRODUCT
+
+USER ${STACKABLE_USER_UID}
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/opa-authorizer/nifi-framework-api-version.patch /stackable/nifi-framework-api-version.patch
+
+# TODO: Set to tag after new release of nifi-opa-plugin
+RUN git clone --depth 1 https://github.com/DavidGitter/nifi-opa-plugin.git && \
+    cd nifi-opa-plugin && \
+    git reset --hard cdf8c36 && \
+    git apply /stackable/nifi-framework-api-version.patch && \
+    cd authorizer && \
+    mvn \
+    --batch-mode \
+    --no-transfer-progress \
+    install \
+    -DskipTests
+
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
@@ -96,6 +118,8 @@ LABEL name="Apache NiFi" \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin/authorizer/target/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
@@ -127,7 +151,7 @@ ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
-chmod g=u /stackable/nifi-${PRODUCT}
+chmod --recursive g=u /stackable/nifi-${PRODUCT}
 EOF
 
 # ----------------------------------------
