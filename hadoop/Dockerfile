@@ -66,7 +66,11 @@ RUN cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT}
     ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout) && \
     NEW_VERSION="${PRODUCT}-stackable${RELEASE}" && \
     mvn versions:set -DnewVersion=$NEW_VERSION && \
-    mvn --batch-mode --no-transfer-progress clean package -Pdist,native -pl '!hadoop-tools/hadoop-pipes,!hadoop-yarn-project,!hadoop-mapreduce-project,!hadoop-minicluster' -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    sed -e '/<artifactId>hadoop-pipes<\/artifactId>/,/<\/dependency>/ {\
+    s/<version>.*<\/version>/<version>'"$ORIGINAL_VERSION"'<\/version>/\
+    }' -i hadoop-tools/hadoop-tools-dist/pom.xml && \
+    mvn --batch-mode --no-transfer-progress clean package install -Pdist,native -pl '!hadoop-tools/hadoop-pipes' -Dhadoop.version=$NEW_VERSION -Drequire.fuse=true -DskipTests -Dmaven.javadoc.skip=true && \
+    cp -r /root/.m2/repository/org/apache/hadoop /stackable/patched-hadoop-libs && \
     cp -r hadoop-dist/target/hadoop-$NEW_VERSION /stackable/hadoop-$NEW_VERSION && \
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hadoop-dist/target/bom.json && \
     mv hadoop-dist/target/bom.json /stackable/hadoop-$NEW_VERSION/hadoop-$NEW_VERSION.cdx.json && \
@@ -141,6 +145,7 @@ LABEL name="Apache Hadoop" \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /stackable/
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
@@ -175,9 +180,9 @@ rm -rf /stackable/hadoop/share/hadoop/tools/sources/
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar
-find . -name 'hadoop-minicluster-*.jar' -type f -delete
-find . -name 'hadoop-client-minicluster-*.jar' -type f -delete
-find . -name 'hadoop-*tests.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-minicluster-*.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-client-minicluster-*.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-*tests.jar' -type f -delete
 
 # Without this fuse_dfs does not work
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it

@@ -30,7 +30,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/custom-hadoop
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
@@ -47,13 +47,14 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 ### HBase
 ###
+mkdir -p /stackable/.m2/repository/org/apache/hadoop
+cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
-mvn clean install -Dmaven.repo.local=/stackable/custom-hadoop
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} clean install -DskipTests
@@ -63,6 +64,8 @@ sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-assembly/target/bom.json
 mv hbase-assembly/target/bom.json /stackable/hbase-$NEW_VERSION/hbase-$NEW_VERSION.cdx.json
 
 ln -s "/stackable/hbase-$NEW_VERSION" /stackable/hbase
+
+cp -r /stackable/.m2/repository/org/apache/hbase /stackable/patched-hbase-libs
 
 ###
 ### JMX Prometheus Exporter/Agent
@@ -151,38 +154,34 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hbase-libs /stackable/patched-hbase-libs
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
-cd hbase-hbck2
-git init
-git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
-git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}
-cd ..
+mkdir -p /stackable/.m2/repository/org/apache/{hadoop,hbase}
+cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+cp -r /stackable/patched-hbase-libs/* /stackable/.m2/repository/org/apache/hbase
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
+rm .git
 
 mvn \
   --batch-mode \
   --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
+  -Dhbase.version=${PRODUCT}-stackable${RELEASE} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/hbase-operator-tools-$NEW_VERSION
+mkdir "/stackable/hbase-operator-tools-$NEW_VERSION"
 tar -xz \
   -f hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
-  -C /stackable/hbase-operator-tools-$NEW_VERSION/ \
+  -C "/stackable/hbase-operator-tools-$NEW_VERSION/" \
   --strip-components=1
-mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-$NEW_VERSION/hbase-operator-tools-$NEW_VERSION.cdx.json
-(cd .. && rm -r ${HBASE_OPERATOR_TOOLS})
+mv hbase-operator-tools-assembly/target/bom.json "/stackable/hbase-operator-tools-$NEW_VERSION/hbase-operator-tools-$NEW_VERSION.cdx.json"
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
 chmod +x /stackable/bin/hbck2
@@ -206,6 +205,7 @@ FROM stackable/image/java-devel AS hadoop-s3-builder
 
 ARG PRODUCT
 ARG HADOOP
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
@@ -213,7 +213,7 @@ WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
@@ -245,10 +245,17 @@ ARG STACKABLE_USER_UID
 ARG DELETE_CACHES="true"
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} /stackable/src/phoenix/stackable/patches/${PHOENIX}
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hbase-libs /stackable/patched-hbase-libs
+
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+mkdir -p /stackable/.m2/repository/org/apache/{hadoop,hbase}
+cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+cp -r /stackable/patched-hbase-libs/* /stackable/.m2/repository/org/apache/hbase
+
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -261,9 +268,9 @@ mvn versions:set -DnewVersion=$NEW_VERSION
 mvn \
   --batch-mode \
   --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
+  -Dhbase.version=${PRODUCT}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP} \
+  -Dhadoop.version=${HADOOP}-stackable${RELEASE} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   clean \
@@ -323,13 +330,13 @@ LABEL io.openshift.tags="ubi9,stackable,hbase,sdp,nosql"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT}-stackable${RELEASE} /stackable/hbase-${PRODUCT}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stackable/jmx/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-stackable${RELEASE} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}-stackable${RELEASE}/bin/hbase-entrypoint.sh
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
 
@@ -337,14 +344,14 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/exp
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
 # Copy the dependencies from Hadoop which are required for the Azure Data Lake
-# Storage (ADLS) to /stackable/hbase-${PRODUCT}/lib which is on the classpath.
+# Storage (ADLS) to /stackable/hbase-${PRODUCT}-stackable${RELEASE}/lib which is on the classpath.
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
-    /stackable/hbase-${PRODUCT}/lib/
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar \
+  /stackable/hbase-${PRODUCT}-stackable${RELEASE}/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}-stackable${RELEASE}/lib
 
 RUN <<EOF
 microdnf update

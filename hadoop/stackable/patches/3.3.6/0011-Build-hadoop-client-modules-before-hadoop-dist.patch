@@ -1,0 +1,25 @@
+From 412964aabf46c315ec5b161621fad18afe66cae1 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 10 Apr 2025 11:11:44 +0200
+Subject: Build hadoop-client-modules before hadoop-dist
+
+This is needed, because dist depends on parts of client-modules. At least when specifying a custom version when building Hadoop, Maven for some reason does not build the client-modules before dist and the build fails.
+---
+ pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pom.xml b/pom.xml
+index e4249dfe95..6fea5b74eb 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -133,9 +133,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+     <module>hadoop-yarn-project</module>
+     <module>hadoop-mapreduce-project</module>
+     <module>hadoop-tools</module>
++    <module>hadoop-client-modules</module>
+     <module>hadoop-dist</module>
+     <module>hadoop-minicluster</module>
+-    <module>hadoop-client-modules</module>
+     <module>hadoop-build-tools</module>
+     <module>hadoop-cloud-storage-project</module>
+   </modules>

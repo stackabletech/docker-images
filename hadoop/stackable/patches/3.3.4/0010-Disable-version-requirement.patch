@@ -1,0 +1,38 @@
+From cc02cdf25d307cc103e654a169b62b35e4de9a38 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 9 Apr 2025 14:22:49 +0200
+Subject: Disable version requirement
+
+This is needed since we specify a custom Stackable version when building Hadoop
+---
+ pom.xml | 17 -----------------
+ 1 file changed, 17 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index f0502184a2..bfc4c620cc 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -415,23 +415,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+             </goals>
+             <phase>pre-site</phase>
+           </execution>
+-          <execution>
+-            <id>enforce-property</id>
+-            <goals>
+-              <goal>enforce</goal>
+-            </goals>
+-            <configuration>
+-              <rules>
+-                <requireProperty>
+-                  <property>hadoop.version</property>
+-                  <message>You must set a hadoop.version to be the same as ${project.version}</message>
+-                  <regex>${project.version}</regex>
+-                  <regexMessage>The hadoop.version property should be set and should be ${project.version}.</regexMessage>
+-                </requireProperty>
+-              </rules>
+-              <fail>true</fail>
+-              </configuration>
+-          </execution>
+         </executions>
+       </plugin>
+       <plugin>
