@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- spark-k8s: add entrypoint script for Connect servers ([#1059]).
 
 ### Changed
 
@@ -75,6 +76,7 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1059]: https://github.com/stackabletech/docker-images/pull/1059
 
 ## [25.3.0] - 2025-03-21
 
