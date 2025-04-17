@@ -306,6 +306,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stacka
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark-connect.sh /stackable/run-spark-connect.sh
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
 
 RUN <<EOF
@@ -338,6 +339,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 chmod g=u /stackable/spark
 chmod g=u /stackable/jmx
 chmod g=u /stackable/run-spark.sh
+chmod g=u /stackable/run-spark-connect.sh
 EOF
 
 # ----------------------------------------
