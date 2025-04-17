@@ -80,6 +80,46 @@ rm -rf /stackable/nifi-${PRODUCT}/docs
 chmod -R g=u /stackable
 EOF
 
+FROM stackable/image/java-devel AS nifi-iceberg-bundle-builder
+
+ARG NIFI_ICEBERG_BUNDLE
+ARG PRODUCT
+ARG STACKABLE_USER_UID
+
+USER ${STACKABLE_USER_UID}
+WORKDIR /build
+
+RUN <<EOF
+mkdir -p /stackable
+
+if [[ "${PRODUCT}" != 1.* ]] ; then
+    # curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/v${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
+    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/heads/main.tar.gz" | tar -xzC .
+    # cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}
+    cd nifi-iceberg-bundle-main
+
+    mvn \
+        --batch-mode \
+        --no-transfer-progress\
+        clean package \
+        -D nifi.version=${PRODUCT} \
+        -Dmaven.javadoc.skip=true \
+        -Denforcer.skip=true
+    # We need "-Denforcer.skip=true", as the Maven version is too old
+
+    cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
+    cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
+    cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
+
+    cd ..
+    # Save disk space, even for intermediate images
+    rm -rf nifi-iceberg-bundle-main
+
+# Set correct groups
+chmod g=u /stackable/*.nar
+fi
+EOF
+
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
@@ -96,6 +136,7 @@ LABEL name="Apache NiFi" \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
