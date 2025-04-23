@@ -5,6 +5,11 @@ set -euo pipefail
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
+# We prefer fast downloads...
+BASE_DOWNLOAD_URL="https://dlcdn.apache.org/hive"
+# However, if the version is not available, use the slow archive instead:
+# BASE_DOWNLOAD_URL="https://archive.apache.org/dist/hive"
+
 read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
 
@@ -34,15 +39,15 @@ cd "$WORK_DIR" || exit
 bin_file="apache-hive-${VERSION}-bin.tar.gz"
 src_file="apache-hive-$VERSION-src.tar.gz"
 
-echo "Downloading Hive (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${bin_file}"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${bin_file}.asc"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${bin_file}.sha256"
+echo "Downloading Hive (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.asc"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.sha256"
 
-echo "Downloading Hive (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${src_file}"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${src_file}.asc"
-curl --fail -LOs "https://dlcdn.apache.org/hive/hive-${VERSION}/${src_file}.sha256"
+echo "Downloading Hive (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.asc"
+curl --fail -LOs "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.sha256"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
@@ -53,8 +58,7 @@ if ! (sha256sum "${bin_file}" | diff - "${bin_file}.sha256" && sha256sum "${src_
 fi
 
 echo "Validating signatures"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://dlcdn.apache.org/hive/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://dlcdn.apache.org/hive/KEYS | gpg --import")'
-
+echo "--> NOTE: Make sure you have downloaded and added the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\")"
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null &&  gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: Signature could not be verified"
   exit 1
