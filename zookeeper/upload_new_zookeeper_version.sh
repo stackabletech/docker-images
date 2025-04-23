@@ -82,13 +82,13 @@ echo "Uploading everything to Nexus"
 EXIT_STATUS=0
 repo_url=https://repo.stackable.tech/repository/packages/zookeeper/
 
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file" "$repo_url" || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.asc" "$repo_url" || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.sha512" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.asc" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.sha512" "$repo_url" || EXIT_STATUS=$?
 
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" "$repo_url" || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" "$repo_url" || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" "$repo_url" || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" "$repo_url" || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"

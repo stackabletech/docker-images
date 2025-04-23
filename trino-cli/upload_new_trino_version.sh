@@ -89,9 +89,9 @@ fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"

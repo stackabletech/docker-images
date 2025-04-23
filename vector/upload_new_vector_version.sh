@@ -53,7 +53,7 @@ rpmkeys --import --dbpath $RPM_PACKAGE_DB_PATH DATADOG_APT_KEY_CURRENT.public"
     fi
 
     echo "Uploading $file to Nexus"
-    curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+    curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" \
         --upload-file "$file" \
         'https://repo.stackable.tech/repository/packages/vector/'
 

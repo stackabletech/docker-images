@@ -63,9 +63,9 @@ fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" 'https://repo.stackable.tech/repository/packages/hbase-operator-tools/' || EXIT_STATUS=$?
 
 
 if [ $EXIT_STATUS -ne 0 ]; then
