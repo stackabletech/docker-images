@@ -40,13 +40,13 @@ bin_file=kafka_2.13-$VERSION.tgz
 src_file=kafka-$VERSION-src.tgz
 
 echo "Downloading Kafka (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file.asc"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file.sha512"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$bin_file.sha512"
 
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$src_file"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$src_file.asc"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/$VERSION/$src_file.sha512"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$src_file"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$src_file.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/$VERSION/$src_file.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksum"

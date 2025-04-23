@@ -32,7 +32,7 @@ trap cleanup EXIT
 cd "$WORK_DIR" || exit
 
 echo "Downloading STATSD EXPORTER source code"
-curl --fail -LOs "https://github.com/prometheus/statsd_exporter/archive/refs/tags/v$VERSION.tar.gz" && mv "v$VERSION.tar.gz" "statsd_exporter-$VERSION.src.tar.gz"
+curl --fail -LO --progress-bar "https://github.com/prometheus/statsd_exporter/archive/refs/tags/v$VERSION.tar.gz" && mv "v$VERSION.tar.gz" "statsd_exporter-$VERSION.src.tar.gz"
 
 echo "Uploading to Nexus"
 curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "statsd_exporter-$VERSION.src.tar.gz" 'https://repo.stackable.tech/repository/packages/statsd_exporter/'

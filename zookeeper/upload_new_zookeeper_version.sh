@@ -40,14 +40,14 @@ bin_file=apache-zookeeper-$VERSION-bin.tar.gz
 src_file=apache-zookeeper-$VERSION.tar.gz
 
 echo "Downloading ZooKeeper (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file.asc"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file.sha512"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$bin_file.sha512"
 
 echo "Downloading ZooKeeper sources (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file.asc"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file.sha512"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/zookeeper-$VERSION/$src_file.sha512"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not

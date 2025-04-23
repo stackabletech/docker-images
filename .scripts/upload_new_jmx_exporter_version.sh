@@ -35,8 +35,8 @@ JAR_FILE="jmx_prometheus_javaagent-$VERSION.jar"
 SUM_FILE="$JAR_FILE.sha256"
 
 echo "Downloading JMX Exporter"
-curl --fail -LOs "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$JAR_FILE"
-curl --fail -LOs "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$SUM_FILE"
+curl --fail -LO --progress-bar "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$JAR_FILE"
+curl --fail -LO --progress-bar "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$SUM_FILE"
 
 # Check that sha256 sum matches before uploading
 sha256sum --check --status "$SUM_FILE" && echo "SHA256 Sum matches"

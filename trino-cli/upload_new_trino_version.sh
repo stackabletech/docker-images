@@ -34,9 +34,9 @@ cd "$WORK_DIR" || exit
 bin_file=trino-cli-${VERSION}-executable.jar
 
 echo "Downloading Trino (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.asc"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.sha1"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.asc"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.sha1"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA1 Checksum"

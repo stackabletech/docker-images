@@ -38,9 +38,9 @@ cd "$WORK_DIR" || exit
 src_file=phoenix-omid-$VERSION-src.tar.gz
 
 echo "Downloading Omid (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/phoenix-omid-${VERSION}/${src_file}"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/phoenix-omid-$VERSION/$src_file.asc"
-curl --fail -LOs "${BASE_DOWNLOAD_URL}/phoenix-omid-$VERSION/$src_file.sha512"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/phoenix-omid-${VERSION}/${src_file}"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/phoenix-omid-$VERSION/$src_file.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/phoenix-omid-$VERSION/$src_file.sha512"
 
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
