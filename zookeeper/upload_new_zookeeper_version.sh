@@ -63,17 +63,19 @@ if ! (sha512sum "$src_file" | diff -Z - "$src_file.sha512"); then
 fi
 
 echo "Validating signatures for binary releases"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://archive.apache.org/dist/zookeeper/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/zookeeper/KEYS | gpg --import")'
-
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified for a binary release"
+  echo "--> Make sure you have imported the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) into GPG: https://www.apache.org/info/verification.html"
+  echo "--> e.g. \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\""
   exit 1
 fi
 
 echo "Validating signatures for source releases"
 if ! (gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
-   echo "ERROR: One of the signatures could not be verified for a source release"
-   exit 1
+  echo "ERROR: One of the signatures could not be verified for a source release"
+  echo "--> Make sure you have imported the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) into GPG: https://www.apache.org/info/verification.html"
+  echo "--> e.g. \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\""
+  exit 1
 fi
 
 echo "Uploading everything to Nexus"
