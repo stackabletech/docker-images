@@ -38,7 +38,7 @@ cd "$WORK_DIR" || exit
 
 src_file="apache-druid-${VERSION}-src.tar.gz"
 
-echo "Downloading Druid (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Druid source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}.sha512"

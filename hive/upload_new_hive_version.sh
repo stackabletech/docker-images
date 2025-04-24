@@ -39,16 +39,15 @@ cd "$WORK_DIR" || exit
 bin_file="apache-hive-${VERSION}-bin.tar.gz"
 src_file="apache-hive-$VERSION-src.tar.gz"
 
-echo "Downloading Hive Binary (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hive binary (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.sha256"
 
-echo "Downloading Hive Source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hive source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.sha256"
-
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA256 Checksums"

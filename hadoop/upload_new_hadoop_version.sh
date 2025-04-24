@@ -39,15 +39,15 @@ cd "$WORK_DIR" || exit
 bin_file=hadoop-$VERSION.tar.gz
 src_file=hadoop-$VERSION-src.tar.gz
 
-echo "Downloading Hadoop (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hadoop binary (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file.sha512"
 
+echo "Downloading Hadoop source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file.sha512"
-
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksums"

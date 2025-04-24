@@ -38,7 +38,7 @@ cd "$WORK_DIR" || exit
 
 src_file="spark-${VERSION}.tgz"
 
-echo "Downloading Spark (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Spark source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/spark-${VERSION}/${src_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/spark-${VERSION}/${src_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/spark-${VERSION}/${src_file}.sha512"
