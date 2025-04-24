@@ -1,5 +1,14 @@
+From 9bc39c677cb825c4ddae900005e41420bb63a48c Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 24 Apr 2025 17:24:47 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
 diff --git a/build.gradle b/build.gradle
-index 92082fe..e3d6c72 100644
+index 92082fe7cf..e3d6c722b6 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,6 +48,48 @@ plugins {
