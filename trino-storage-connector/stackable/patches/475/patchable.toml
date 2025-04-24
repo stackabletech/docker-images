@@ -1,0 +1,2 @@
+upstream = "https://github.com/snowlift/trino-storage.git"
+base = "976514ad62ed5e147fbc63a31803a268a1d240c4"
