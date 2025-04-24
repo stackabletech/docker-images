@@ -6,6 +6,7 @@ FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
 FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
+ARG TRINO_STORAGE_CONNECTOR
 ARG STACKABLE_USER_UID
 ARG JMX_EXPORTER
 
@@ -26,8 +27,8 @@ RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-ser
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} \
-    /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${TRINO_STORAGE_CONNECTOR}-src/target/trino-storage-${TRINO_STORAGE_CONNECTOR} \
+    /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${TRINO_STORAGE_CONNECTOR}/
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
@@ -49,7 +50,12 @@ git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${PRODUCT}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
+# trino-server-rpm was removed at some point of time
+if [[ "$PRODUCT" == "451" || "$PRODUCT" == "455" || "$PRODUCT" == "470" ]]; then
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
+else
+./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs"
+fi
 
 # Delete intermediate build products to free some space and keep runners happy
 rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
