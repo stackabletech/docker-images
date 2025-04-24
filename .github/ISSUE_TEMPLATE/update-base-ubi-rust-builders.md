@@ -31,31 +31,30 @@ Add/Change/Remove anything that isn't applicable anymore
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
-```[tasklist]
-### Update tasks
+## Update tasks
+
 - [ ] Update UBI version hash in the Dockerfile (`FROM`)
 - [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
 - [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
 - [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
 - [ ] Update `PROTOC_VERSION`
-```
 
-```[tasklist]
-### Related Pull Requests
+## Related Pull Requests
+
 - [ ] _Link to the docker-images PR (product update)_
 - [ ] _Bump rust toolchain in operator-rs_
 - [ ] _Bump rust toolchain in operator-templating_
-```
 
-This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+## Acceptance
 
-```[tasklist]
-### Acceptance
+> [!TIP]
+> This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been
+> checked, the issue can be moved into _Development: Done_.
+
 - Done for [ubi8-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi8-rust-builder/Dockerfile)
 - Done for [ubi9-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi9-rust-builder/Dockerfile)
 - [ ] Can build the image locally
 - [ ] Can build an operator image
-```
 
 <details>
 <summary>Testing instructions</summary>
