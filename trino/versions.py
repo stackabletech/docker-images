@@ -28,6 +28,8 @@ versions = [
         "java-base": "23",
         "java-devel": "23",
         "jmx_exporter": "1.1.0",
+        # FIXME: 475 has not been release yet. Very likely everything will work fine, but it's not
+        # ideal
         "trino-storage-connector": "474",
         "trino_storage_connector": "474",
     },
