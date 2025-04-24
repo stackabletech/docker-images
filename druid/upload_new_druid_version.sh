@@ -5,6 +5,11 @@ set -euo pipefail
 VERSION=${1:?"Missing version number argument (arg 1)"}
 NEXUS_USER=${2:?"Missing Nexus username argument (arg 2)"}
 
+# We prefer fast downloads...
+BASE_DOWNLOAD_URL="https://dlcdn.apache.org/druid"
+# However, if the version is not available, use the slow archive instead:
+# BASE_DOWNLOAD_URL="https://archive.apache.org/dist/druid"
+
 read -r -s -p "Nexus Password: " NEXUS_PASSWORD
 echo ""
 
@@ -33,10 +38,10 @@ cd "$WORK_DIR" || exit
 
 src_file="apache-druid-${VERSION}-src.tar.gz"
 
-echo "Downloading Druid (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://archive.apache.org/dist/druid/${VERSION}/${src_file}"
-curl --fail -LOs "https://archive.apache.org/dist/druid/${VERSION}/${src_file}.asc"
-curl --fail -LOs "https://archive.apache.org/dist/druid/${VERSION}/${src_file}.sha512"
+echo "Downloading Druid source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}.asc"
+curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/${VERSION}/${src_file}.sha512"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksum"
@@ -46,18 +51,18 @@ if ! (sha512sum "${src_file}" | cut -d " " -f 1 | diff -Z - "${src_file}.sha512"
 fi
 
 echo "Validating signature"
-echo '--> NOTE: Make sure you have downloaded and added the KEYS file (https://www.apache.org/dist/druid/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using "curl https://archive.apache.org/dist/druid/KEYS | gpg --import")'
-
 if ! (gpg --verify "${src_file}.asc" "${src_file}" 2> /dev/null); then
   echo "ERROR: The signature could not be verified"
+  echo "--> Make sure you have imported the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) into GPG: https://www.apache.org/info/verification.html"
+  echo "--> e.g. \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\""
   exit 1
 fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.asc" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha512" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.asc" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha512" 'https://repo.stackable.tech/repository/packages/druid/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"

@@ -43,8 +43,8 @@ sha256sum "${src_file}" | cut --delimiter=' ' --field=1 > "${src_file}.sha256"
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/trino-storage/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha256" 'https://repo.stackable.tech/repository/packages/trino-storage/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}" 'https://repo.stackable.tech/repository/packages/trino-storage/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${src_file}.sha256" 'https://repo.stackable.tech/repository/packages/trino-storage/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"
