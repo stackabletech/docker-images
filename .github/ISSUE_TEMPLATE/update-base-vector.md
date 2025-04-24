@@ -4,7 +4,7 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(vector): Update container images ahead of Stackable Release XX.(X)X
+  chore(vector): Update container images ahead of Stackable Release YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
@@ -31,8 +31,8 @@ Add/Change/Remove anything that isn't applicable anymore
 > - Uses [stackable-base](https://github.com/stackabletech/docker-images/blob/main/stackable-base/Dockerfile).
 > - Used as a base for [java-base](https://github.com/stackabletech/docker-images/blob/main/java-base/Dockerfile).
 
-```[tasklist]
-### Update tasks
+## Update tasks
+
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update all `versions.py` files which reference vector.
 - [ ] Upload new version (see `vector/upload_new_vector_version.sh`).
@@ -40,31 +40,30 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
-```
 
-```[tasklist]
-### Related Pull Requests
-- [ ] _Link to the docker-images PR (product update)_
-- [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
-- [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `main` branch)_
-- [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
-```
+## Related Pull Requests
 
 > [!TIP]
 > Delete any items that do not apply so that all applicable items can be checked.
 > For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
 
-This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+- [ ] _Link to the docker-images PR (product update)_
+- [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
+- [ ] _Link to any other operator PRs (getting_started / kuttl)_
+- [ ] _Link to demo PR (raise against the `main` branch)_
+- [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 
-```[tasklist]
-### Acceptance
+## Acceptance
+
+> [!TIP]
+> This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been
+> checked, the issue can be moved into _Development: Done_.
+
 - [ ] Can build image (either locally, or in CI)
 - [ ] Kuttl smoke tests passes (either locally, or in CI)
 - [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
-```
 
 <details>
 <summary>Testing instructions</summary>

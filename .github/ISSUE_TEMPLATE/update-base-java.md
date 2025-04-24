@@ -4,7 +4,7 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(java-bases): Update container images ahead of Stackable Release XX.(X)X
+  chore(java-bases): Update container images ahead of Stackable Release YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
@@ -39,25 +39,24 @@ we should also make new versions of Java available for use.
 > term `openjdk-headless`.
 > _It isn't perfect, as it will depend on what is available via microdnf._
 
-```[tasklist]
-### Update tasks
+## Update tasks
+
 - [ ] Add any new versions of java to both `java-base/versions.py` and `java-devel/versions.py`
 - [ ] Remove versions when there are no long any references (eg: `grep java- **/versions.py | grep "1.8.0"`)
-```
 
-```[tasklist]
-### Related Pull Requests
+## Related Pull Requests
+
 - [ ] _Link to the docker-images PR (product update)_
-```
 
-This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+## Acceptance
 
-```[tasklist]
-### Acceptance
+> [!TIP]
+> This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been
+> checked, the issue can be moved into _Development: Done_.
+
 - [ ] Can build a product image that uses the new version(s)
 - [ ] Both `java-base` and `java-devel` have the same Java versions in `versions.py`
 - [ ] Kuttl smoke test passes locally for a product using the new Java version
-```
 
 <details>
 <summary>Testing instructions</summary>

@@ -4,7 +4,7 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(stackable-base): Update container images ahead of Stackable Release XX.(X)X
+  chore(stackable-base): Update container images ahead of Stackable Release YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
@@ -25,28 +25,27 @@ Add/Change/Remove anything that isn't applicable anymore
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
-```[tasklist]
-### Update tasks
+## Update tasks
+
 - [ ] Update UBI version hash in the Dockerfile (`FROM`)
 - [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
 - [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
 - [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
 - [ ] Update `PROTOC_VERSION`
 - [ ] Update `CONFIG_UTILS_VERSION`
-```
 
-```[tasklist]
-### Related Pull Requests
+## Related Pull Requests
+
 - [ ] _Link to the docker-images PR (product update)_
-```
 
-This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been checked, the issue can be moved into _Development: Done_.
+## Acceptance
 
-```[tasklist]
-### Acceptance
+> [!TIP]
+> This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been
+> checked, the issue can be moved into _Development: Done_.
+
 - [ ] Can build the image locally
 - [ ] Can build the vector image
-```
 
 <details>
 <summary>Testing instructions</summary>
