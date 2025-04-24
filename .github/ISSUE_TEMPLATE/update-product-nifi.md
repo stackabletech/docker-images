@@ -4,7 +4,7 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(nifi): Update container images ahead of Stackable Release XX.(X)X
+  chore(nifi): Update container images ahead of Stackable Release YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
