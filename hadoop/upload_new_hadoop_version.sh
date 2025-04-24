@@ -39,15 +39,15 @@ cd "$WORK_DIR" || exit
 bin_file=hadoop-$VERSION.tar.gz
 src_file=hadoop-$VERSION-src.tar.gz
 
-echo "Downloading Hadoop (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hadoop binary (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$bin_file.sha512"
 
+echo "Downloading Hadoop source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hadoop-$VERSION/$src_file.sha512"
-
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA512 Checksums"
@@ -58,22 +58,22 @@ if ! (sha512sum --tag "$bin_file" | diff - "$bin_file.sha512" && sha512sum --tag
 fi
 
 echo "Validating signatures"
-echo "--> NOTE: Make sure you have downloaded and added the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) to GPG: https://www.apache.org/info/verification.html (e.g. by using \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\")"
-
 if ! (gpg --verify "$bin_file.asc" "$bin_file" 2> /dev/null && gpg --verify "$src_file.asc" "$src_file" 2> /dev/null); then
   echo "ERROR: One of the signatures could not be verified"
+  echo "--> Make sure you have imported the KEYS file (${BASE_DOWNLOAD_URL}/KEYS) into GPG: https://www.apache.org/info/verification.html"
+  echo "--> e.g. \"curl ${BASE_DOWNLOAD_URL}/KEYS | gpg --import\""
   exit 1
 fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.asc" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.sha512" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.asc" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$bin_file.sha512" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
 
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.asc" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$src_file.sha512" 'https://repo.stackable.tech/repository/packages/hadoop/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"

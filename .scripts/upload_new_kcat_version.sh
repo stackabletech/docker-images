@@ -38,7 +38,7 @@ echo "Downloading kcat"
 curl --fail -Ls -o "kcat-$VERSION.tar.gz" "https://github.com/edenhill/kcat/archive/refs/tags/$VERSION.tar.gz"
 
 echo "Uploading to Nexus"
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "kcat-$VERSION.tar.gz" 'https://repo.stackable.tech/repository/packages/kcat/'
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "kcat-$VERSION.tar.gz" 'https://repo.stackable.tech/repository/packages/kcat/'
 
 
 echo "Successfully uploaded new version of kcat ($VERSION) to Nexus"

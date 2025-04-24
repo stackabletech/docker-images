@@ -34,9 +34,9 @@ cd "$WORK_DIR" || exit
 bin_file=trino-cli-${VERSION}-executable.jar
 
 echo "Downloading Trino (this can take a while, it is intentionally downloading from a slow mirror that contains all old versions)"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.asc"
-curl --fail -LOs "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.sha1"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.asc"
+curl --fail -LO --progress-bar "https://repo1.maven.org/maven2/io/trino/trino-cli/${VERSION}/${bin_file}.sha1"
 
 # It is probably redundant to check both the checksum and the signature but it's cheap and why not
 echo "Validating SHA1 Checksum"
@@ -89,9 +89,9 @@ fi
 
 echo "Uploading everything to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.asc" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${bin_file}.sha1" 'https://repo.stackable.tech/repository/packages/trino-cli/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"
