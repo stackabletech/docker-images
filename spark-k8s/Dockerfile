@@ -7,43 +7,17 @@ FROM stackable/image/hadoop AS hadoop-builder
 # hbase-builder: Provides HBase libraries
 FROM stackable/image/hbase AS hbase-builder
 
-# spark-source-builder: Download the Spark source code into
-# /stackable/spark and apply the patches
+# spark-source-builder: Clone the Spark source code and apply patches
 FROM stackable/image/java-devel AS spark-source-builder
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
-RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz \
-    | tar xz
-ln -s spark-${PRODUCT} spark
-EOF
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
 
-WORKDIR /stackable/spark
-
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/patches/apply_patches.sh \
-    patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/patches/${PRODUCT} \
-    patches/${PRODUCT}
-
-RUN patches/apply_patches.sh ${PRODUCT}
-
+RUN /stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT}
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
 # required JARs into /stackable/spark/jars
@@ -55,17 +29,6 @@ ARG HBASE
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
 # Copy the pom.xml file from the patched Spark source code to read the
@@ -73,29 +36,17 @@ WORKDIR /stackable
 # not required and not copied, therefore mvn must be called with the
 # parameter --non-recursive.
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
-    /stackable/spark/pom.xml \
+    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT}/pom.xml \
     spark/
 
-# Download the hbase-connectors source code
-RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
-    | tar xz
-ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
-EOF
-
 # Patch the hbase-connectors source code
-WORKDIR /stackable/hbase-connectors
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/hbase-connectors/apply_patches.sh \
-    patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} \
-    patches/${HBASE_CONNECTOR}
-RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
+WORKDIR /stackable
 
-WORKDIR /stackable/hbase-connectors/spark
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
+
 # Building the hbase-connectors with JDK 17 is not yet supported, see
 # https://github.com/apache/hbase-connectors/pull/132.
 # As there are no JDK profiles, access to the non-public elements must
@@ -137,12 +88,11 @@ mvn \
     --define hbase.version="${HBASE}" \
     --define skipTests \
     clean package
-EOF
 
-WORKDIR /stackable/spark/jars
+mkdir -p /stackable/spark/jars
+ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}.jar
 
-RUN <<EOF
-ln -s /stackable/hbase-connectors/spark/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar
+cd /stackable/spark/jars
 
 # Download log4j-slf4j-impl-x.x.x.jar containing the StaticLoggerBinder
 # which is required by the connector.
@@ -177,7 +127,7 @@ ARG STACKABLE_USER_UID
 WORKDIR /stackable/spark-${PRODUCT}
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
-    /stackable/spark/ \
+    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT} \
     ./
 
 # >>> Build spark
