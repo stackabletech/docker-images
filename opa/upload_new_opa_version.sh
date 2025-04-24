@@ -40,7 +40,7 @@ curl --fail -L -o "${tar_gz_file}" "${download_url}"
 
 echo "Uploading OPA source to Nexus"
 EXIT_STATUS=0
-curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${tar_gz_file}" 'https://repo.stackable.tech/repository/packages/opa/' || EXIT_STATUS=$?
+curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "${tar_gz_file}" 'https://repo.stackable.tech/repository/packages/opa/' || EXIT_STATUS=$?
 
 if [ $EXIT_STATUS -ne 0 ]; then
   echo "ERROR: Upload failed"
