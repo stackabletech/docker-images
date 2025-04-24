@@ -39,12 +39,12 @@ cd "$WORK_DIR" || exit
 bin_file="apache-hive-${VERSION}-bin.tar.gz"
 src_file="apache-hive-$VERSION-src.tar.gz"
 
-echo "Downloading Hive (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hive Binary (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${bin_file}.sha256"
 
-echo "Downloading Hive (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
+echo "Downloading Hive Source (if this fails, try switching the BASE_DOWNLOAD_URL to the archive)"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.asc"
 curl --fail -LO --progress-bar "${BASE_DOWNLOAD_URL}/hive-${VERSION}/${src_file}.sha256"
