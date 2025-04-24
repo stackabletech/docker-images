@@ -58,3 +58,6 @@ Part of stackabletech/issues#xxx.
 - [ ] tools
 - [ ] testing-tools
 - [ ] statsd_exporter
+- [ ] cyclonedx-bom (pip)
+- [ ] cargo-cyclonedx (Look for: `CARGO_CYCLONEDX_CRATE_VERSION`)
+- [ ] cargo-auditable (Look for: `CARGO_AUDITABLE_CRATE_VERSION`)
