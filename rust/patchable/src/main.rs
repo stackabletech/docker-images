@@ -9,8 +9,8 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
-use snafu::{OptionExt, ResultExt as _, Snafu};
-use tracing_indicatif::IndicatifLayer;
+use snafu::{ensure, OptionExt, ResultExt as _, Snafu};
+use tracing_indicatif::{span_ext::IndicatifSpanExt, IndicatifLayer};
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
@@ -149,6 +149,11 @@ enum Cmd {
         /// Refs (such as tags and branches) will be resolved to commit IDs.
         #[clap(long)]
         base: String,
+
+        /// Assume a fork exists at stackabletech/<repo_name> and push the base ref to it.
+        /// The fork URL will be stored in patchable.toml instead of the original upstream.
+        #[clap(long)]
+        forked: bool,
     },
 
     /// Shows the patch directory for a given product version
@@ -195,6 +200,23 @@ pub enum Error {
     SaveConfig {
         source: std::io::Error,
         path: PathBuf,
+    },
+
+    #[snafu(display("failed to parse upstream URL {url:?} to extract repository name"))]
+    ParseUpstreamUrl { url: String },
+    #[snafu(display("failed to add temporary fork remote for {url:?}"))]
+    AddForkRemote { source: git2::Error, url: String },
+    #[snafu(display("failed to push commit {commit} (as {refspec}) to fork {url:?}"))]
+    PushToFork {
+        source: git2::Error,
+        url: String,
+        refspec: String,
+        commit: Oid,
+    },
+    #[snafu(display("failed to delete remote {name}"))]
+    DeleteRemote {
+        source: git2::Error,
+        name: String,
     },
 
     #[snafu(display("failed to find images repository"))]
@@ -287,7 +309,7 @@ fn main() -> Result<()> {
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &config.base.to_string(),
-                &config.upstream,
+                &config.upstream
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -397,7 +419,12 @@ fn main() -> Result<()> {
             );
         }
 
-        Cmd::Init { pv, upstream, base } => {
+        Cmd::Init {
+            pv,
+            upstream,
+            base,
+            forked,
+        } => {
             let ctx = ProductVersionContext {
                 pv,
                 images_repo_root,
@@ -414,8 +441,94 @@ fn main() -> Result<()> {
             // --base can be a reference, but patchable.toml should always have a resolved commit id,
             // so that it cannot be changed under our feet (without us knowing so, anyway...).
             tracing::info!(?base, "resolving base commit-ish");
-            let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream)
+
+            let (base_commit, upstream) = if forked {
+                // Parse e.g. "https://github.com/apache/druid.git" into "druid"
+                let repo_name = upstream.split('/').last().map(|repo| repo.trim_end_matches(".git")).context(ParseUpstreamUrlSnafu { url: &upstream })?;
+
+                ensure!(!repo_name.is_empty(), ParseUpstreamUrlSnafu { url: &upstream });
+
+                let fork_url = format!("https://github.com/stackabletech/{}.git", repo_name);
+                tracing::info!(%fork_url, "using fork repository");
+
+                // Fetch from original upstream using a temporary remote name
+                tracing::info!(upstream = upstream, %base, "fetching base ref from original upstream");
+                let base_commit_oid = repo::resolve_and_fetch_commitish(
+                    &product_repo,
+                    &base,
+                    &upstream
+                )
                 .context(FetchBaseCommitSnafu)?;
+
+                tracing::info!(commit = %base_commit_oid, "fetched base commit OID");
+
+                // Add fork remote
+                let temp_fork_remote = "patchable_fork_push";
+                let mut fork_remote = product_repo
+                    .remote(temp_fork_remote, &fork_url)
+                    .context(AddForkRemoteSnafu { url: fork_url.clone() })?;
+
+                // Push the base commit to the fork
+                tracing::info!(commit = %base_commit_oid, base = base, url = fork_url, "pushing commit to fork");
+                let mut callbacks = git2::RemoteCallbacks::new();
+                callbacks.credentials(|_url, username_from_url, _allowed_types| {
+                    git2::Cred::credential_helper(
+                        &git2::Config::open_default().unwrap(), // Use default git config
+                        _url,
+                        username_from_url,
+                    )
+                });
+
+                // Add progress tracking for push operation
+                let span_push = tracing::info_span!("pushing");
+                span_push.pb_set_style(&utils::progress_bar_style());
+                let _ = span_push.enter();
+                let mut quant_push = utils::Quantizer::percent();
+                callbacks.push_transfer_progress(move |current, total, _| {
+                    if total > 0 {
+                        quant_push.update_span_progress(current, total, &span_push);
+                    }
+                });
+
+                let mut push_options = git2::PushOptions::new();
+                push_options.remote_callbacks(callbacks);
+
+                // Check if the reference is a tag or branch by inspecting the git repository
+                let refspec = {
+                    let tag_ref = format!("refs/tags/{}", base);
+                    let is_tag = product_repo
+                        .find_reference(&tag_ref)
+                        .is_ok();
+
+                    if is_tag {
+                        // It's a tag
+                        format!("{}:refs/tags/{}", base_commit_oid, base)
+                    } else {
+                        // Assume it's a branch as default behavior
+                        format!("{}:refs/heads/{}", base_commit_oid, base)
+                    }
+                };
+
+                tracing::info!(refspec = refspec, "constructed push refspec");
+
+                fork_remote
+                    .push(&[&refspec], Some(&mut push_options))
+                    .context(PushToForkSnafu {
+                        url: fork_url.clone(),
+                        refspec: &refspec,
+                        commit: base_commit_oid,
+                    })?;
+
+                product_repo.remote_delete(temp_fork_remote)
+                    .context(DeleteRemoteSnafu { name: temp_fork_remote.to_string() })?;
+
+                tracing::info!("successfully pushed base ref to fork");
+
+                (base_commit_oid, fork_url)
+            } else {
+                (repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream).context(FetchBaseCommitSnafu)?, upstream)
+            };
+
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             tracing::info!("saving configuration");

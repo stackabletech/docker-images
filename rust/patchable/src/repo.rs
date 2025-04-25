@@ -181,6 +181,8 @@ pub fn resolve_and_fetch_commitish(
                     Some(
                         FetchOptions::new()
                             .update_fetchhead(true)
+                            // download_tags is needed to later determine whether `commitish` is a tag or not
+                            .download_tags(git2::AutotagOption::Auto)
                             .remote_callbacks(callbacks)
                             // TODO: could be 1, CLI option maybe?
                             .depth(0),
