@@ -26,7 +26,7 @@ COPY hbase/licenses /licenses
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
@@ -44,13 +44,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 ### HBase
 ###
-curl "https://repo.stackable.tech/repository/packages/hbase/hbase-${PRODUCT}-src.tar.gz" | tar -xzC .
-mv hbase-${PRODUCT} hbase-${PRODUCT}-src
-
-chmod +x patches/apply_patches.sh
-patches/apply_patches.sh ${PRODUCT}
-
-cd /stackable/hbase-${PRODUCT}-src/
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
@@ -58,7 +52,10 @@ mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.vers
 mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
-rm -rf /stackable/hbase-${PRODUCT}-src
+
+# Remove sources
+(cd .. && rm -r ${PRODUCT})
+
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
 
 ###
@@ -145,8 +142,7 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches /stackable/patches
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/apply_patches.sh /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS} /stackable/src/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
@@ -155,11 +151,11 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
 
-curl --fail "https://repo.stackable.tech/repository/packages/hbase-operator-tools/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src.tar.gz" | tar -xzC .
-mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
-chmod +x patches/apply_patches.sh
-patches/apply_patches.sh ${HBASE_OPERATOR_TOOLS} hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+# Remove the Git repo because `git-commit-id-maven-plugin` tries to get the latest commit if a Git repo is present,
+# which fails due to a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
+rm .git
 
 mvn \
   --batch-mode \
@@ -167,18 +163,17 @@ mvn \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \
-  -fhbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
 mkdir /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}
 tar -xz \
-  -f hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
+  -f hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
   -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
   --strip-components=1
-mv hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src/hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
-rm -rf /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}-src
+mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
+(cd .. && rm -r ${HBASE_OPERATOR_TOOLS})
 
 envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
 chmod +x /stackable/bin/hbck2
@@ -246,20 +241,13 @@ ARG STACKABLE_USER_UID
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches /stackable/patches
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/apply_patches.sh /stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} /stackable/src/phoenix/stackable/patches/${PHOENIX}
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd /stackable
-curl --fail "https://repo.stackable.tech/repository/packages/phoenix/phoenix-${PHOENIX}-src.tar.gz" | tar -xzC .
-mv phoenix-${PHOENIX} phoenix-${PHOENIX}-src
+cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
-chmod +x patches/apply_patches.sh
-patches/apply_patches.sh ${PHOENIX} phoenix-${PHOENIX}-src
-
-# Passing "-f" means it'll build in the phoenix source directory without cding into it
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \
@@ -270,16 +258,17 @@ mvn \
   -Dhadoop.version=${HADOOP} \
   -DskipTests \
   -Dcheckstyle.skip=true \
-  -fphoenix-${PHOENIX}-src \
   clean \
   package
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
 mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
-tar -xz -f phoenix-${PHOENIX}-src/phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
-mv phoenix-${PHOENIX}-src/phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
-rm -rf /stackable/phoenix-${PHOENIX}-src
+tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
+mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
+
+# Remove sources
+(cd .. && rm -r ${PHOENIX})
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
 
 # We're removing these to make the intermediate layer smaller

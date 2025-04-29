@@ -26,6 +26,7 @@ omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
+stackable_devel = importlib.import_module("stackable-devel.versions")
 superset = importlib.import_module("superset.versions")
 trino_cli = importlib.import_module("trino-cli.versions")
 trino = importlib.import_module("trino.versions")
@@ -55,6 +56,7 @@ products = [
     {"name": "opa", "versions": opa.versions},
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
+    {"name": "stackable-devel", "versions": stackable_devel.versions},
     {"name": "superset", "versions": superset.versions},
     {"name": "trino-cli", "versions": trino_cli.versions},
     {"name": "trino", "versions": trino.versions},

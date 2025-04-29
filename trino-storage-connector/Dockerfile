@@ -6,28 +6,14 @@ FROM stackable/image/java-devel AS storage-connector-builder
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino-storage-connector/stackable/patches/apply_patches.sh /stackable/trino-storage-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino-storage-connector/stackable/patches/${PRODUCT} /stackable/trino-storage-${PRODUCT}-src/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 trino-storage-connector/stackable/patches/${PRODUCT} /stackable/src/trino-storage-connector/stackable/patches/${PRODUCT}
 
-RUN curl "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${PRODUCT}-src.tar.gz" | tar -xzC .
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-cd trino-storage-${PRODUCT}-src
-./patches/apply_patches.sh ${PRODUCT}
+cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT})"
 
 # Upstream builds are marked as -SNAPSHOT, even for release builds
 mvn versions:set -DnewVersion=${PRODUCT}
