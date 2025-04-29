@@ -92,11 +92,10 @@ WORKDIR /build
 RUN <<EOF
 mkdir -p /stackable
 
+# NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    # curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/v${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
-    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/heads/main.tar.gz" | tar -xzC .
-    # cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}
-    cd nifi-iceberg-bundle-main
+    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
+    cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}
 
     mvn \
         --batch-mode \
