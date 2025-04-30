@@ -181,7 +181,7 @@ pub fn resolve_and_fetch_commitish(
                     Some(
                         FetchOptions::new()
                             // Tags need to be present to later determine whether `commitish` is a tag or not
-                            // Patchable needs to know this when initializing a repository with the `--forked` option (to construct the refspec)
+                            // Patchable needs to know this when initializing a repository with the `--mirrored` option (to construct the refspec)
                             .download_tags(git2::AutotagOption::Auto)
                             .remote_callbacks(callbacks)
                             // TODO: could be 1, CLI option maybe?

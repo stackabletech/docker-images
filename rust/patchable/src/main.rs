@@ -150,10 +150,10 @@ enum Cmd {
         #[clap(long)]
         base: String,
 
-        /// Assume a fork exists at stackabletech/<repo_name> and push the base ref to it.
-        /// The fork URL will be stored in patchable.toml instead of the original upstream.
+        /// Assume a mirror exists at stackabletech/<repo_name> and push the base ref to it.
+        /// The mirror URL will be stored in patchable.toml instead of the original upstream.
         #[clap(long)]
-        forked: bool,
+        mirrored: bool,
     },
 
     /// Shows the patch directory for a given product version
@@ -204,10 +204,10 @@ pub enum Error {
 
     #[snafu(display("failed to parse upstream URL {url:?} to extract repository name"))]
     ParseUpstreamUrl { url: String },
-    #[snafu(display("failed to add temporary fork remote for {url:?}"))]
-    AddForkRemote { source: git2::Error, url: String },
-    #[snafu(display("failed to push commit {commit} (as {refspec}) to fork {url:?}"))]
-    PushToFork {
+    #[snafu(display("failed to add temporary mirror remote for {url:?}"))]
+    AddMirrorRemote { source: git2::Error, url: String },
+    #[snafu(display("failed to push commit {commit} (as {refspec}) to mirror {url:?}"))]
+    PushToMirror {
         source: git2::Error,
         url: String,
         refspec: String,
@@ -423,7 +423,7 @@ fn main() -> Result<()> {
             pv,
             upstream,
             base,
-            forked,
+            mirrored,
         } => {
             let ctx = ProductVersionContext {
                 pv,
@@ -442,14 +442,14 @@ fn main() -> Result<()> {
             // so that it cannot be changed under our feet (without us knowing so, anyway...).
             tracing::info!(?base, "resolving base commit-ish");
 
-            let (base_commit, upstream) = if forked {
+            let (base_commit, upstream) = if mirrored {
                 // Parse e.g. "https://github.com/apache/druid.git" into "druid"
                 let repo_name = upstream.split('/').last().map(|repo| repo.trim_end_matches(".git")).context(ParseUpstreamUrlSnafu { url: &upstream })?;
 
                 ensure!(!repo_name.is_empty(), ParseUpstreamUrlSnafu { url: &upstream });
 
-                let fork_url = format!("https://github.com/stackabletech/{}.git", repo_name);
-                tracing::info!(%fork_url, "using fork repository");
+                let mirror_url = format!("https://github.com/stackabletech/{}.git", repo_name);
+                tracing::info!(%mirror_url, "using mirror repository");
 
                 // Fetch from original upstream using a temporary remote name
                 tracing::info!(upstream = upstream, %base, "fetching base ref from original upstream");
@@ -462,14 +462,14 @@ fn main() -> Result<()> {
 
                 tracing::info!(commit = %base_commit_oid, "fetched base commit OID");
 
-                // Add fork remote
-                let temp_fork_remote = "patchable_fork_push";
-                let mut fork_remote = product_repo
-                    .remote(temp_fork_remote, &fork_url)
-                    .context(AddForkRemoteSnafu { url: fork_url.clone() })?;
+                // Add mirror remote
+                let temp_mirror_remote = "patchable_mirror_push";
+                let mut mirror_remote = product_repo
+                    .remote(temp_mirror_remote, &mirror_url)
+                    .context(AddMirrorRemoteSnafu { url: mirror_url.clone() })?;
 
-                // Push the base commit to the fork
-                tracing::info!(commit = %base_commit_oid, base = base, url = fork_url, "pushing commit to fork");
+                // Push the base commit to the mirror
+                tracing::info!(commit = %base_commit_oid, base = base, url = mirror_url, "pushing commit to mirror");
                 let mut callbacks = git2::RemoteCallbacks::new();
                 callbacks.credentials(|_url, username_from_url, _allowed_types| {
                     git2::Cred::credential_helper(
@@ -510,20 +510,20 @@ fn main() -> Result<()> {
 
                 tracing::info!(refspec = refspec, "constructed push refspec");
 
-                fork_remote
+                mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
-                    .context(PushToForkSnafu {
-                        url: fork_url.clone(),
+                    .context(PushToMirrorSnafu {
+                        url: mirror_url.clone(),
                         refspec: &refspec,
                         commit: base_commit_oid,
                     })?;
 
-                product_repo.remote_delete(temp_fork_remote)
-                    .context(DeleteRemoteSnafu { name: temp_fork_remote.to_string() })?;
+                product_repo.remote_delete(temp_mirror_remote)
+                    .context(DeleteRemoteSnafu { name: temp_mirror_remote.to_string() })?;
 
-                tracing::info!("successfully pushed base ref to fork");
+                tracing::info!("successfully pushed base ref to mirror");
 
-                (base_commit_oid, fork_url)
+                (base_commit_oid, mirror_url)
             } else {
                 (repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream).context(FetchBaseCommitSnafu)?, upstream)
             };
