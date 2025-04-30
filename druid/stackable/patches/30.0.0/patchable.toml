@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/druid.git"
+upstream = "https://github.com/stackabletech/druid.git"
 base = "09d36ee324747f1407705c27618b6d415c3fa8a9"

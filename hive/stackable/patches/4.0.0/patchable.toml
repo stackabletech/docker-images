@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/hive.git"
+upstream = "https://github.com/stackabletech/hive.git"
 base = "183f8cb41d3dbed961ffd27999876468ff06690c"

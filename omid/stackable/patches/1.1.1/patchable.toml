@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/phoenix-omid.git"
+upstream = "https://github.com/stackabletech/phoenix-omid.git"
 base = "cd546d58d93f380fec9bf65dbfa618f53493f662"

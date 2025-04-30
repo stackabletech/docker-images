@@ -1,2 +1,2 @@
-upstream = "https://github.com/snowlift/trino-storage.git"
+upstream = "https://github.com/stackabletech/trino-storage.git"
 base = "b6e5825bb84a4f1a3f89ff45ea39ce349313f60a"

@@ -309,7 +309,7 @@ fn main() -> Result<()> {
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &config.base.to_string(),
-                &config.upstream
+                &config.upstream,
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -501,7 +501,6 @@ fn main() -> Result<()> {
                         .is_ok();
 
                     if is_tag {
-                        // It's a tag
                         format!("{}:refs/tags/{}", base_commit_oid, base)
                     } else {
                         // Assume it's a branch as default behavior
