@@ -1,2 +1,3 @@
-upstream = "https://github.com/stackabletech/hive.git"
+upstream = "https://github.com/apache/hive.git"
 base = "4df4d75bf1e16fe0af75aad0b4179c34c07fc975"
+mirror = "https://github.com/stackabletech/hive.git"

@@ -29,6 +29,7 @@ struct ProductVersionConfig {
     upstream: String,
     #[serde(with = "utils::oid_serde")]
     base: Oid,
+    mirror: Option<String>,
 }
 
 struct ProductVersionContext {
@@ -213,11 +214,6 @@ pub enum Error {
         refspec: String,
         commit: Oid,
     },
-    #[snafu(display("failed to delete remote {name}"))]
-    DeleteRemote {
-        source: git2::Error,
-        name: String,
-    },
 
     #[snafu(display("failed to find images repository"))]
     FindImagesRepo { source: repo::Error },
@@ -309,7 +305,7 @@ fn main() -> Result<()> {
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &config.base.to_string(),
-                &config.upstream,
+                config.mirror.as_deref().unwrap_or(&config.upstream),
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -441,8 +437,10 @@ fn main() -> Result<()> {
             // --base can be a reference, but patchable.toml should always have a resolved commit id,
             // so that it cannot be changed under our feet (without us knowing so, anyway...).
             tracing::info!(?base, "resolving base commit-ish");
+            let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream).context(FetchBaseCommitSnafu)?;
+            let mut upstream_mirror = None;
 
-            let (base_commit, upstream) = if mirrored {
+            if mirrored {
                 // Parse e.g. "https://github.com/apache/druid.git" into "druid"
                 let repo_name = upstream.split('/').last().map(|repo| repo.trim_end_matches(".git")).context(ParseUpstreamUrlSnafu { url: &upstream })?;
 
@@ -451,25 +449,13 @@ fn main() -> Result<()> {
                 let mirror_url = format!("https://github.com/stackabletech/{}.git", repo_name);
                 tracing::info!(%mirror_url, "using mirror repository");
 
-                // Fetch from original upstream using a temporary remote name
-                tracing::info!(upstream = upstream, %base, "fetching base ref from original upstream");
-                let base_commit_oid = repo::resolve_and_fetch_commitish(
-                    &product_repo,
-                    &base,
-                    &upstream
-                )
-                .context(FetchBaseCommitSnafu)?;
-
-                tracing::info!(commit = %base_commit_oid, "fetched base commit OID");
-
                 // Add mirror remote
-                let temp_mirror_remote = "patchable_mirror_push";
                 let mut mirror_remote = product_repo
-                    .remote(temp_mirror_remote, &mirror_url)
+                    .remote_anonymous(&mirror_url)
                     .context(AddMirrorRemoteSnafu { url: mirror_url.clone() })?;
 
                 // Push the base commit to the mirror
-                tracing::info!(commit = %base_commit_oid, base = base, url = mirror_url, "pushing commit to mirror");
+                tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
                 let mut callbacks = git2::RemoteCallbacks::new();
                 callbacks.credentials(|_url, username_from_url, _allowed_types| {
                     git2::Cred::credential_helper(
@@ -501,10 +487,10 @@ fn main() -> Result<()> {
                         .is_ok();
 
                     if is_tag {
-                        format!("{}:refs/tags/{}", base_commit_oid, base)
+                        format!("{}:refs/tags/{}", base_commit, base)
                     } else {
                         // Assume it's a branch as default behavior
-                        format!("{}:refs/heads/{}", base_commit_oid, base)
+                        format!("{}:refs/heads/{}", base_commit, base)
                     }
                 };
 
@@ -515,17 +501,12 @@ fn main() -> Result<()> {
                     .context(PushToMirrorSnafu {
                         url: mirror_url.clone(),
                         refspec: &refspec,
-                        commit: base_commit_oid,
+                        commit: base_commit,
                     })?;
-
-                product_repo.remote_delete(temp_mirror_remote)
-                    .context(DeleteRemoteSnafu { name: temp_mirror_remote.to_string() })?;
 
                 tracing::info!("successfully pushed base ref to mirror");
 
-                (base_commit_oid, mirror_url)
-            } else {
-                (repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream).context(FetchBaseCommitSnafu)?, upstream)
+                upstream_mirror = Some(mirror_url);
             };
 
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
@@ -533,6 +514,7 @@ fn main() -> Result<()> {
             tracing::info!("saving configuration");
             let config = ProductVersionConfig {
                 upstream,
+                mirror: upstream_mirror,
                 base: base_commit,
             };
             let config_path = ctx.config_path();

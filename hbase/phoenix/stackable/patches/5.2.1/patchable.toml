@@ -1,2 +1,3 @@
 upstream = "https://github.com/apache/phoenix.git"
 base = "b738d66cb5863b759bb98eaa417b3b5731d41f95"
+mirror = "https://github.com/stackabletech/phoenix.git"
