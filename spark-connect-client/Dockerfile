@@ -21,7 +21,8 @@ LABEL name="Stackable Spark Connect Examples" \
 
 ENV HOME=/stackable
 
-COPY spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
+COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
+COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/.jupyter /stackable/.jupyter
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark/connect /stackable/spark/connect
 
 RUN <<EOF
@@ -37,10 +38,6 @@ rm -rf /var/cache/yum
 ln -s /usr/bin/python${PYTHON} /usr/bin/python
 ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 
-# Install python libraries for the spark connect client
-# shellcheck disable=SC2102
-pip install --no-cache-dir pyspark[connect]==${PRODUCT}
-
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 /stackable
@@ -55,5 +52,15 @@ EOF
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}
+
+# Install python packages.
+# Packages are intentionally installed in "user mode" to reduce the container attack surface.
+# - pyspark[connect] = spark connect client libs
+# - jupyterlab = notebook client used in demos
+# shellcheck disable=SC2102
+RUN pip install --no-cache-dir --user \
+  pyspark[connect]==${PRODUCT} \
+  jupyterlab==4.4.1 \
+  scikit-learn==1.3.1
 
 WORKDIR /stackable/spark-connect-examples/python
