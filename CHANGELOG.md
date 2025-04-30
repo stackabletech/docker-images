@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
+- spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071])
 
 ### Fixed
 
