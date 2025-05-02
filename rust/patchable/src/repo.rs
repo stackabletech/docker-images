@@ -5,11 +5,10 @@ use git2::{
     WorktreeAddOptions,
 };
 use snafu::{ResultExt, Snafu};
-use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use crate::{
     error::{self, CommitRef},
-    utils::{progress_bar_style, Quantizer},
+    utils::setup_progress_tracking,
 };
 
 #[derive(Debug, Snafu)]
@@ -149,15 +148,11 @@ pub fn resolve_and_fetch_commitish(
                 error = &err as &dyn std::error::Error,
                 "base commit not found locally, fetching from upstream"
             );
-            let span_recv = tracing::info_span!("receiving");
-            let span_index = tracing::info_span!("indexing");
-            span_recv.pb_set_style(&progress_bar_style());
-            span_index.pb_set_style(&progress_bar_style());
-            let _ = span_recv.enter();
-            let _ = span_index.enter();
+
+            let (span_recv, mut quant_recv) = setup_progress_tracking(tracing::info_span!("receiving"));
+            let (span_index, mut quant_index) = setup_progress_tracking(tracing::info_span!("indexing"));
+
             let mut callbacks = RemoteCallbacks::new();
-            let mut quant_recv = Quantizer::percent();
-            let mut quant_index = Quantizer::percent();
             callbacks.transfer_progress(move |progress| {
                 quant_recv.update_span_progress(
                     progress.received_objects(),
@@ -171,6 +166,7 @@ pub fn resolve_and_fetch_commitish(
                 );
                 true
             });
+
             repo.remote_anonymous(upstream_url)
                 .context(CreateRemoteSnafu {
                     repo,

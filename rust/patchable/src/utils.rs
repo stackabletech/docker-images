@@ -4,13 +4,6 @@ use git2::Repository;
 use tracing::Span;
 use tracing_indicatif::{span_ext::IndicatifSpanExt, style::ProgressStyle};
 
-pub fn progress_bar_style() -> ProgressStyle {
-    ProgressStyle::with_template(
-        "{span_child_prefix}{spinner} {span_name}{{{span_fields}}} {wide_msg} {bar:40} {percent:>3}%",
-    )
-    .expect("hard-coded template should be valid")
-}
-
 /// Runs a function whenever a `value` changes "enough".
 ///
 /// See [`Self::update`], and especially [`Self::update_span_progress`].
@@ -93,4 +86,15 @@ pub mod oid_serde {
         String::deserialize(de)
             .and_then(|oid| Oid::from_str(&oid).map_err(<D::Error as serde::de::Error>::custom))
     }
+}
+
+/// Sets up progress tracking for Git operations with a progress bar.
+pub fn setup_progress_tracking(span: tracing::Span) -> (tracing::Span, Quantizer) {
+    span.pb_set_style(&ProgressStyle::with_template(
+        "{span_child_prefix}{spinner} {span_name}{{{span_fields}}} {wide_msg} {bar:40} {percent:>3}%",
+    )
+    .expect("hard-coded template should be valid"));
+    let _ = span.enter();
+    let quantizer = Quantizer::percent();
+    (span, quantizer)
 }

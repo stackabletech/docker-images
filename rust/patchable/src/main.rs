@@ -10,7 +10,7 @@ use std::{fs::File, io::Write, path::PathBuf};
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
 use snafu::{ensure, OptionExt, ResultExt as _, Snafu};
-use tracing_indicatif::{span_ext::IndicatifSpanExt, IndicatifLayer};
+use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 #[derive(clap::Parser)]
@@ -466,13 +466,14 @@ fn main() -> Result<()> {
                 });
 
                 // Add progress tracking for push operation
-                let span_push = tracing::info_span!("pushing");
-                span_push.pb_set_style(&utils::progress_bar_style());
-                let _ = span_push.enter();
-                let mut quant_push = utils::Quantizer::percent();
+                let (span_push, mut quant_push) = utils::setup_progress_tracking(tracing::info_span!("pushing"));
                 callbacks.push_transfer_progress(move |current, total, _| {
                     if total > 0 {
-                        quant_push.update_span_progress(current, total, &span_push);
+                        quant_push.update_span_progress(
+                            current,
+                            total,
+                            &span_push,
+                        );
                     }
                 });
 
