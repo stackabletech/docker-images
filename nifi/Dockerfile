@@ -88,19 +88,18 @@ ARG PRODUCT
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/opa-authorizer/nifi-framework-api-version.patch /stackable/nifi-framework-api-version.patch
-
 # TODO: Set to tag after new release of nifi-opa-plugin
-RUN git clone --depth 1 https://github.com/DavidGitter/nifi-opa-plugin.git && \
-    cd nifi-opa-plugin && \
-    git reset --hard cdf8c36 && \
-    git apply /stackable/nifi-framework-api-version.patch && \
-    cd authorizer && \
+RUN git clone --depth 1 --branch feat/reworked-opa-response https://github.com/DavidGitter/nifi-opa-plugin.git && \
+    cd nifi-opa-plugin/authorizer && \
     mvn \
     --batch-mode \
     --no-transfer-progress \
     install \
-    -DskipTests
+    -DskipTests \
+    -Pnifi-${PRODUCT}
+
+# Set correct permissions
+RUN chmod g=u /stackable/nifi-opa-plugin/authorizer/target/opa-authorizer.nar
 
 FROM stackable/image/java-base AS final
 
@@ -151,7 +150,7 @@ ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
-chmod --recursive g=u /stackable/nifi-${PRODUCT}
+chmod g=u /stackable/nifi-${PRODUCT}
 EOF
 
 # ----------------------------------------
