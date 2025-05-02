@@ -30,3 +30,4 @@ jobs:
     with:
       product-name: superset
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp
