@@ -42,11 +42,10 @@ USER ${STACKABLE_USER_UID}
 # Packages are intentionally installed in "user mode" to reduce the container attack surface.
 # - pyspark[connect] = spark connect client libs
 # - jupyterlab = notebook client used in demos
-# shellcheck disable=SC2102
 RUN pip install --no-cache-dir --user \
-  pyspark[connect]==${PRODUCT} \
-  jupyterlab==4.4.1 \
-  scikit-learn==1.3.1 \
-  matplotlib==3.10.1
+  "pyspark[connect]==${PRODUCT}" \
+  "jupyterlab==4.4.1" \
+  "scikit-learn==1.3.1" \
+  "matplotlib==3.10.1"
 
 WORKDIR /stackable/spark-connect-examples/python
