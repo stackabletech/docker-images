@@ -31,3 +31,4 @@ jobs:
     with:
       product-name: trino-cli
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp
