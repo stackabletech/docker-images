@@ -7,9 +7,9 @@ on:
       sdp-version:
         required: true
         type: string
-      image-namespace:
+      registry-namespace:
+        required: true
         type: string
-        default: "sdp"
     secrets:
       harbor-robot-secret:
         description: The secret for the Harbor robot user used to push images and manifest
@@ -69,7 +69,7 @@ jobs:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
-          image-repository: ${{ inputs.image-namespace }}/${{ inputs.product-name }}
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
           image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
           source-image-uri: localhost/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
 
@@ -95,7 +95,7 @@ jobs:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
-          image-repository: ${{ inputs.image-namespace }}/${{ inputs.product-name }}
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
   notify:
