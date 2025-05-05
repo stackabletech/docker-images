@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - jmx_exporter: Bump products to use `1.2.0` ([#xxx]).
 - kubectl: Bump products to use `1.33.0` ([#xxx]).
 - yq: Bump products to use `4.45.2` ([#xxx]).
+- cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#xxx]).
 
 ### Fixed
 
