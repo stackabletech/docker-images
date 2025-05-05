@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
+- hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -90,6 +91,7 @@ All notable changes to this project will be documented in this file.
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1099]: https://github.com/stackabletech/docker-images/pull/1099
 
 ## [25.3.0] - 2025-03-21
 
