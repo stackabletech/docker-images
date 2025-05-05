@@ -446,8 +446,8 @@ fn main() -> Result<()> {
 
                 ensure!(!repo_name.is_empty(), ParseUpstreamUrlSnafu { url: &upstream });
 
-                let mirror_url = format!("https://github.com/stackabletech/{}.git", repo_name);
-                tracing::info!(%mirror_url, "using mirror repository");
+                let mirror_url = format!("https://github.com/stackabletech/{repo_name}.git");
+                tracing::info!(mirror_url, "using mirror repository");
 
                 // Add mirror remote
                 let mut mirror_remote = product_repo
