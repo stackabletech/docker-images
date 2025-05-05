@@ -154,7 +154,7 @@ enum Cmd {
         /// Assume a mirror exists at stackabletech/<repo_name> and push the base ref to it.
         /// The mirror URL will be stored in patchable.toml, and used instead of the original upstream.
         #[clap(long)]
-        mirrored: bool,
+        mirror: bool,
     },
 
     /// Shows the patch directory for a given product version
