@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file.
 
 - ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
   Also remove the old release workflow.
+- spark: remove 3.5.2 and update dependencies for 3.5.5 ([#1094])
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -76,6 +77,7 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1094]: https://github.com/stackabletech/docker-images/pull/1094
 
 ## [25.3.0] - 2025-03-21
 
