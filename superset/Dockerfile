@@ -40,6 +40,7 @@ ARG PYTHON
 ARG AUTHLIB
 ARG TARGETARCH
 ARG TARGETOS
+ARG CYCLONEDX_BOM
 
 COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
 COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
@@ -109,7 +110,7 @@ RUN python3 -m venv /stackable/app \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-        cyclonedx-bom \
+        cyclonedx-bom==${CYCLONEDX_BOM} \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
     pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
