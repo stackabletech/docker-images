@@ -176,9 +176,7 @@ pub fn resolve_and_fetch_commitish(
                     &[commitish],
                     Some(
                         FetchOptions::new()
-                            // Tags need to be present to later determine whether `commitish` is a tag or not
-                            // Patchable needs to know this when initializing a repository with the `--mirrored` option (to construct the refspec)
-                            .download_tags(git2::AutotagOption::Auto)
+                            .update_fetchhead(true)
                             .remote_callbacks(callbacks)
                             // TODO: could be 1, CLI option maybe?
                             .depth(0),
@@ -191,7 +189,8 @@ pub fn resolve_and_fetch_commitish(
                     refs: vec![commitish.to_string()],
                 })?;
             tracing::info!("fetched base commit");
-            repo.revparse_single(commitish)
+            // FETCH_HEAD is written by Remote::fetch to be the last reference fetched
+            repo.revparse_single("FETCH_HEAD")
                 .and_then(|obj| obj.peel_to_commit())
         }
         Err(err) => Err(err),

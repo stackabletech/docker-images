@@ -480,21 +480,7 @@ fn main() -> Result<()> {
                 let mut push_options = git2::PushOptions::new();
                 push_options.remote_callbacks(callbacks);
 
-                // Check if the reference is a tag or branch by inspecting the git repository
-                let refspec = {
-                    let tag_ref = format!("refs/tags/{}", base);
-                    let is_tag = product_repo
-                        .find_reference(&tag_ref)
-                        .is_ok();
-
-                    if is_tag {
-                        format!("{}:refs/tags/{}", base_commit, base)
-                    } else {
-                        // Assume it's a branch as default behavior
-                        format!("{}:refs/heads/{}", base_commit, base)
-                    }
-                };
-
+                let refspec = format!("{}:refs/tags/{}", base_commit, base);
                 tracing::info!(refspec = refspec, "constructed push refspec");
 
                 mirror_remote
