@@ -9,7 +9,7 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
-use snafu::{ensure, OptionExt, ResultExt as _, Snafu};
+use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
@@ -419,7 +419,7 @@ fn main() -> Result<()> {
             pv,
             upstream,
             base,
-            mirrored,
+            mirror,
         } => {
             let ctx = ProductVersionContext {
                 pv,
@@ -440,11 +440,9 @@ fn main() -> Result<()> {
             let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream).context(FetchBaseCommitSnafu)?;
             let mut upstream_mirror = None;
 
-            if mirrored {
+            if mirror {
                 // Parse e.g. "https://github.com/apache/druid.git" into "druid"
-                let repo_name = upstream.split('/').last().map(|repo| repo.trim_end_matches(".git")).context(ParseUpstreamUrlSnafu { url: &upstream })?;
-
-                ensure!(!repo_name.is_empty(), ParseUpstreamUrlSnafu { url: &upstream });
+                let repo_name = upstream.split('/').last().map(|repo| repo.trim_end_matches(".git")).filter(|name| !name.is_empty()).context(ParseUpstreamUrlSnafu { url: &upstream })?;
 
                 let mirror_url = format!("https://github.com/stackabletech/{repo_name}.git");
                 tracing::info!(mirror_url, "using mirror repository");
@@ -457,16 +455,18 @@ fn main() -> Result<()> {
                 // Push the base commit to the mirror
                 tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
                 let mut callbacks = git2::RemoteCallbacks::new();
-                callbacks.credentials(|_url, username_from_url, _allowed_types| {
+                callbacks.credentials(|url, username_from_url, _allowed_types| {
                     git2::Cred::credential_helper(
                         &git2::Config::open_default().unwrap(), // Use default git config
-                        _url,
+                        url,
                         username_from_url,
                     )
                 });
 
                 // Add progress tracking for push operation
                 let (span_push, mut quant_push) = utils::setup_progress_tracking(tracing::info_span!("pushing"));
+                let _ = span_push.enter();
+
                 callbacks.push_transfer_progress(move |current, total, _| {
                     if total > 0 {
                         quant_push.update_span_progress(

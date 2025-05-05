@@ -152,6 +152,9 @@ pub fn resolve_and_fetch_commitish(
             let (span_recv, mut quant_recv) = setup_progress_tracking(tracing::info_span!("receiving"));
             let (span_index, mut quant_index) = setup_progress_tracking(tracing::info_span!("indexing"));
 
+            let _ = span_recv.enter();
+            let _ = span_index.enter();
+
             let mut callbacks = RemoteCallbacks::new();
             callbacks.transfer_progress(move |progress| {
                 quant_recv.update_span_progress(

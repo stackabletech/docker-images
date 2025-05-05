@@ -94,7 +94,6 @@ pub fn setup_progress_tracking(span: tracing::Span) -> (tracing::Span, Quantizer
         "{span_child_prefix}{spinner} {span_name}{{{span_fields}}} {wide_msg} {bar:40} {percent:>3}%",
     )
     .expect("hard-coded template should be valid"));
-    let _ = span.enter();
     let quantizer = Quantizer::percent();
     (span, quantizer)
 }
