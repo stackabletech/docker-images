@@ -61,7 +61,7 @@ All notable changes to this project will be documented in this file.
 
 - ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
   Also remove the old release workflow.
-- zookeeper: Remove 2.9.2 ([#1093]).
+- zookeeper: Remove 3.9.2 ([#1093]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
