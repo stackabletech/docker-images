@@ -486,7 +486,7 @@ fn main() -> Result<()> {
                 mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
                     .context(PushToMirrorSnafu {
-                        url: mirror_url.clone(),
+                        url: &mirror_url,
                         refspec: &refspec,
                         commit: base_commit,
                     })?;
