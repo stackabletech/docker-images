@@ -7,7 +7,7 @@ versions = [
         "cyclonedx_bom": "6.0.0",
         "statsd_exporter": "0.28.0",
         "tini": "0.19.0",
-        "vector": "0.43.1",
+        "vector": "0.46.1",
     },
     {
         "product": "2.10.4",
@@ -17,6 +17,6 @@ versions = [
         "cyclonedx_bom": "6.0.0",
         "statsd_exporter": "0.28.0",
         "tini": "0.19.0",
-        "vector": "0.43.1",
+        "vector": "0.46.1",
     },
 ]

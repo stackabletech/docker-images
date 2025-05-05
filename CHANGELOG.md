@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- java: Add JDK 24 ([#1097]).
 
 ### Changed
 
@@ -41,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - kubectl: Bump products to use `1.33.0` ([#1090]).
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
+- vector: Bump to `0.46.1` ([#1098]).
 
 ### Fixed
 
@@ -83,6 +85,8 @@ All notable changes to this project will be documented in this file.
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
+[#1097]: https://github.com/stackabletech/docker-images/pull/1097
+[#1098]: https://github.com/stackabletech/docker-images/pull/1098
 
 ## [25.3.0] - 2025-03-21
 
