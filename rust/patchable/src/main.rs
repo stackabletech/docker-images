@@ -480,7 +480,7 @@ fn main() -> Result<()> {
                 let mut push_options = git2::PushOptions::new();
                 push_options.remote_callbacks(callbacks);
 
-                let refspec = format!("{}:refs/tags/{}", base_commit, base);
+                let refspec = format!("{base_commit}:refs/tags/{base}");
                 tracing::info!(refspec = refspec, "constructed push refspec");
 
                 mirror_remote
