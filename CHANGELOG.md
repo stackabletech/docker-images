@@ -61,6 +61,8 @@ All notable changes to this project will be documented in this file.
 
 - ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
   Also remove the old release workflow.
+- trino: Remove `455` ([#1095]).
+- trino-storage-connector: Remove `455` ([#1095]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -81,6 +83,7 @@ All notable changes to this project will be documented in this file.
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
+[#1095]: https://github.com/stackabletech/docker-images/pull/1095
 
 ## [25.3.0] - 2025-03-21
 
