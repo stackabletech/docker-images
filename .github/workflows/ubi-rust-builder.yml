@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
