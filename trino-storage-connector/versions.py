@@ -7,4 +7,8 @@ versions = [
         "product": "470",
         "java-devel": "23",
     },
+    {
+        "product": "476",
+        "java-devel": "24",
+    },
 ]

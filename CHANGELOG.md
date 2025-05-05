@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
+- trino: Add `476` ([#1095]).
+- trino-storage-connector: Add `476` ([#1095]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 
@@ -41,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - kubectl: Bump products to use `1.33.0` ([#1090]).
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
+- trino-cli: Bump to `476` ([#1095]).
 
 ### Fixed
 
