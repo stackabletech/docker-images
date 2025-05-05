@@ -1,7 +1,7 @@
 ---
 name: Mirror Container Image
 run-name: |
-  Mirror Container Image (attempt #${{ github.run_attempt }})
+  Mirror Container Image (${{ inputs.image-repository-uri }}, ${{ inputs.image-index-manifest-tag }}, attempt #${{ github.run_attempt }})
 
 on:
   workflow_dispatch:
