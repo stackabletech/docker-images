@@ -35,7 +35,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
-- ubi-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
+- ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
 
 ### Fixed
@@ -57,7 +57,7 @@ All notable changes to this project will be documented in this file.
 
 - ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
   Also remove the old release workflow.
-- ubi8-rust-builder ([#1091]).
+- Remove ubi8-rust-builder image ([#1091]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
