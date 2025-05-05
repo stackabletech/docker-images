@@ -33,3 +33,4 @@ jobs:
     with:
       product-name: spark-k8s
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp

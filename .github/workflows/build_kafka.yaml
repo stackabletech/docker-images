@@ -34,3 +34,4 @@ jobs:
     with:
       product-name: kafka
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp
