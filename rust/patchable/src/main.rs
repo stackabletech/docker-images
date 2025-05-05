@@ -481,7 +481,7 @@ fn main() -> Result<()> {
                 push_options.remote_callbacks(callbacks);
 
                 let refspec = format!("{base_commit}:refs/tags/{base}");
-                tracing::info!(refspec = refspec, "constructed push refspec");
+                tracing::info!(refspec, "constructed push refspec");
 
                 mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
