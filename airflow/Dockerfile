@@ -29,6 +29,8 @@ ARG STATSD_EXPORTER
 ARG PYTHON
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
+ARG S3FS
+ARG CYCLONEDX_BOM
 
 COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
 COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
@@ -68,7 +70,7 @@ source /stackable/app/bin/activate
 pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
+pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
 # Needed for OIDC
 pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 

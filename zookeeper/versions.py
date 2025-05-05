@@ -7,7 +7,7 @@ versions = [
         # zookeeper: Execution spotbugs of goal com.github.spotbugs:spotbugs-maven-plugin:4.0.0:spotbugs failed: Java
         # returned: 1 -> [Help 1]
         "java-devel": "11",
-        "jmx_exporter": "1.1.0",
+        "jmx_exporter": "1.2.0",
     },
     {
         "product": "3.9.3",
@@ -17,6 +17,6 @@ versions = [
         # zookeeper: Execution spotbugs of goal com.github.spotbugs:spotbugs-maven-plugin:4.0.0:spotbugs failed: Java
         # returned: 1 -> [Help 1]
         "java-devel": "11",
-        "jmx_exporter": "1.1.0",
+        "jmx_exporter": "1.2.0",
     },
 ]
