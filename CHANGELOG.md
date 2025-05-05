@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 - nifi: Add OPA authorizer plugin with workaround ([#1058]).
+- java: Add JDK 24 ([#1097]).
 
 ### Changed
 
@@ -83,6 +84,7 @@ All notable changes to this project will be documented in this file.
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
 [#1058]: https://github.com/stackabletech/docker-images/pull/1058
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
+[#1097]: https://github.com/stackabletech/docker-images/pull/1097
 
 ## [25.3.0] - 2025-03-21
 
