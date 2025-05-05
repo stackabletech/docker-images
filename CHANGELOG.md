@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
+- trino: Add 476 ([#1095]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 
