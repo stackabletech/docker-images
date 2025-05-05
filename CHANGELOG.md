@@ -37,6 +37,8 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034]).
 - jmx_exporter: Bump products to use `1.2.0` ([#xxx]).
+- kubectl: Bump products to use `1.33.0` ([#xxx]).
+- yq: Bump products to use `4.45.2` ([#xxx]).
 
 ### Fixed
 
