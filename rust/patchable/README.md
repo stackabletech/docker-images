@@ -31,19 +31,35 @@ For more details, run `cargo patchable --help`.
 
 ## Configuration
 
-Patchable stores a per-version file in `docker-images/<PRODUCT>/stackable/patches/<VERSION>/patchable.toml`.
-It currently recognizes the following keys:
+Patchable uses a two-level configuration system:
 
+1. A product-level config file at `docker-images/<PRODUCT>/stackable/patches/patchable.toml`
+2. A version-level config file at `docker-images/<PRODUCT>/stackable/patches/<VERSION>/patchable.toml`
+
+The product-level config typically contains:
 - `upstream` - the URL of the upstream repository (such as `https://github.com/apache/druid.git`)
-- `base` - the commit hash of the upstream base commit (such as `7cffb81a8e124d5f218f9af16ad685acf5e9c67c`)
+- `mirror` - optional URL of a mirror repository (such as `https://github.com/stackabletech/druid.git`)
+
+The version-level config typically contains:
+- `base` - the commit hash of the upstream base commit
+
+Fields in the version-level config override those in the product-level config if both are specified.
 
 ### Template
 
-Instead of creating this manually, run `patchable init`:
-
+If you're adding a completely new product, you need to create the product-level config once:
 ```toml
-cargo patchable init druid 28.0.0 --upstream=https://github.com/apache/druid.git --base=druid-28.0.0
+# docker-images/druid/stackable/patches/patchable.toml
+upstream = "https://github.com/apache/druid.git"
+mirror = "https://github.com/stackabletech/druid.git"
 ```
+
+If you just want to add a new version, simply initiatilize it with patchable:
+```
+cargo patchable init druid 28.0.0 --base=druid-28.0.0 --mirror
+```
+
+Using the `--mirror` flag will push the base ref to the mirror URL specified in the product-level config.
 
 ## Glossary
 
