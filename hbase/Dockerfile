@@ -206,7 +206,10 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+  # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
+  # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
+  # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
+  /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
 
