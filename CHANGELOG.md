@@ -44,6 +44,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- hive: Bump Hadoop to 3.4.1, and AWS bundle to 2.24.6 ([#1100]).
 
 ### Fixed
 
@@ -90,6 +91,7 @@ All notable changes to this project will be documented in this file.
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1100]: https://github.com/stackabletech/docker-images/pull/1100
 
 ## [25.3.0] - 2025-03-21
 

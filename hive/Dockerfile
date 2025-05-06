@@ -71,7 +71,9 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 
 # Add S3 Support for Hive (support for s3a://)
 cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
-cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+# According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
+# aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar to bundle-${AWS_JAVA_SDK_BUNDLE}.jar
+cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
 
 # Add Azure ABFS support (support for abfs://)
 cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/

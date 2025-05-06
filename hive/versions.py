@@ -5,9 +5,9 @@ versions = [
         # Hive 3 must be built with Java 8 but will run on Java 11
         "java-base": "11",
         "java-devel": "8",
-        "hadoop": "3.3.6",
-        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
-        "aws_java_sdk_bundle": "1.12.367",
+        "hadoop": "3.4.1",
+        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.1
+        "aws_java_sdk_bundle": "2.24.6",
         "azure_storage": "7.0.1",
         "azure_keyvault_core": "1.0.0",
     },
@@ -17,9 +17,9 @@ versions = [
         # Hive 4 must be built with Java 8 (according to GitHub README) but seems to run on Java 11
         "java-base": "11",
         "java-devel": "8",
-        "hadoop": "3.3.6",
-        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
-        "aws_java_sdk_bundle": "1.12.367",
+        "hadoop": "3.4.1",
+        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.1
+        "aws_java_sdk_bundle": "2.24.6",
         "azure_storage": "7.0.1",
         "azure_keyvault_core": "1.0.0",
     },
@@ -29,9 +29,9 @@ versions = [
         # Hive 4 must be built with Java 8 (according to GitHub README) but seems to run on Java 11
         "java-base": "11",
         "java-devel": "8",
-        "hadoop": "3.3.6",
-        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
-        "aws_java_sdk_bundle": "1.12.367",
+        "hadoop": "3.4.1",
+        # Keep consistent with the dependency from Hadoop: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.1
+        "aws_java_sdk_bundle": "2.24.6",
         "azure_storage": "7.0.1",
         "azure_keyvault_core": "1.0.0",
     },
