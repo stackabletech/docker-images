@@ -161,7 +161,7 @@ mvn \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-  -DskipTests \
+  -Dmaven.tests.skip=true \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
