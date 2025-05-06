@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+- opa: Add `1.4.2` ([#1103]).
 - spark-k8s: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1055]).
 - superset: check for correct permissions and ownerships in /stackable folder via
@@ -66,6 +67,8 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
+- opa: Remove `0.67.1` ([#1103]).
+- opa: Remove legacy bundle-builder from container build ([#1103]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -90,6 +93,7 @@ All notable changes to this project will be documented in this file.
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1103]: https://github.com/stackabletech/docker-images/pull/1103
 
 ## [25.3.0] - 2025-03-21
 
