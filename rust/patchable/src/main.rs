@@ -32,16 +32,8 @@ struct ProductConfig {
 
 #[derive(Deserialize, Serialize)]
 struct ProductVersionConfig {
-    upstream: Option<String>,
     #[serde(with = "utils::oid_serde")]
     base: Oid,
-    mirror: Option<String>,
-}
-
-struct MergedProductVersionConfig {
-    upstream: String,
-    base: Oid,
-    mirror: Option<String>,
 }
 
 struct ProductVersionContext {
@@ -50,47 +42,30 @@ struct ProductVersionContext {
 }
 
 impl ProductVersionContext {
-    fn load_product_config(&self) -> Result<ProductConfig> {
-        let product_config_path = &self.product_config_path();
-
+    fn load_config<T: for<'de> Deserialize<'de>>(&self, path: &PathBuf) -> Result<T> {
         tracing::info!(
-            config.path = ?product_config_path,
-            "loading product-level config"
+            config.path = ?path,
+            "loading config"
         );
 
-        toml::from_str::<ProductConfig>(&std::fs::read_to_string(product_config_path).context(
+        toml::from_str::<T>(&std::fs::read_to_string(path).context(
             LoadConfigSnafu {
-                path: product_config_path,
+                path,
             },
         )?)
         .context(ParseConfigSnafu {
-            path: product_config_path,
+            path,
         })
     }
 
-    fn load_version_config(&self) -> Result<MergedProductVersionConfig> {
-        // Load product-level config (required)
-        let product_config = self.load_product_config()?;
+    fn load_product_config(&self) -> Result<ProductConfig> {
+        let path = self.product_config_path();
+        self.load_config(&path)
+    }
 
-        // Load version-level config (optional)
-        let version_config_path = &self.version_config_path();
-        let loaded_version_config = toml::from_str::<ProductVersionConfig>(
-            &std::fs::read_to_string(version_config_path).context(LoadConfigSnafu {
-                path: version_config_path,
-            })?,
-        )
-        .context(ParseConfigSnafu {
-            path: version_config_path,
-        })?;
-
-        // Inherit `upstream` and `mirror` from product-level config if not set in loaded version-level config
-        Ok(MergedProductVersionConfig {
-            upstream: loaded_version_config
-                .upstream
-                .unwrap_or(product_config.upstream),
-            base: loaded_version_config.base,
-            mirror: loaded_version_config.mirror.or(product_config.mirror),
-        })
+    fn load_version_config(&self) -> Result<ProductVersionConfig> {
+        let path = self.version_config_path();
+        self.load_config(&path)
     }
 
     /// The root directory for files related to the product (across all versions).
@@ -334,18 +309,19 @@ fn main() -> Result<()> {
                 pv,
                 images_repo_root,
             };
-            let config = ctx.load_version_config()?;
+            let product_config = ctx.load_product_config()?;
+            let version_config = ctx.load_version_config()?;
             let product_repo_root = ctx.product_repo();
             let product_repo = repo::ensure_bare_repo(&product_repo_root)
                 .context(OpenProductRepoForCheckoutSnafu)?;
 
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
-                &config.base.to_string(),
-                config
+                &version_config.base.to_string(),
+                product_config
                     .mirror
                     .as_deref()
-                    .unwrap_or(&config.upstream),
+                    .unwrap_or(&product_config.upstream),
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -532,8 +508,6 @@ fn main() -> Result<()> {
 
             tracing::info!("saving version-level configuration");
             let config = ProductVersionConfig {
-                upstream: None,
-                mirror: None,
                 base: base_commit,
             };
             let config_path = ctx.version_config_path();
