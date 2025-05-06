@@ -6,7 +6,6 @@ FROM stackable/image/hadoop AS hadoop-builder
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
-ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
