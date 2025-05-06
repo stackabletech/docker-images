@@ -44,6 +44,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- spark: update dependencies for 3.5.5 ([#1094])
 
 ### Fixed
 
@@ -66,7 +67,7 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
-- spark: remove 3.5.2 and update dependencies for 3.5.5 ([#1094])
+- spark: remove 3.5.2 ([#1094])
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
