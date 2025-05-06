@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/hbase.git"
+base = "6b3b36b429cf9a9d74110de79eb3b327b29ebf17"

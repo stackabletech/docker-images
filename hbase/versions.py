@@ -15,4 +15,18 @@ versions = [
         "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
+    {
+        "product": "2.6.2",
+        "hbase_thirdparty": "4.1.10",
+        "hbase_operator_tools": "1.3.0-fd5a5fb",
+        "java-base": "11",
+        "java-devel": "11",
+        "async_profiler": "2.9",
+        "phoenix": "5.2.1",
+        "hbase_profile": "2.6",
+        "hadoop": "3.4.1",
+        "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
+        "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
+        "delete_caches": "true",
+    },
 ]
