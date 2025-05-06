@@ -3,6 +3,12 @@ versions = [
     # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
     {
         "product": "2.6.1",
+        # TODO: what is this argument for exactly? The current version of hbase_thirdparty is 4.1.10
+        # See: https://central.sonatype.com/artifact/org.apache.hbase.thirdparty/hbase-shaded-miscellaneous
+        #
+        # But that breaks the build of hbase-operator-tools with:
+        #
+        #   Could not find artifact org.apache.directory.jdbm:apacheds-jdbm1:bundle:2.0.0-M2
         "hbase_thirdparty": "4.1.9",
         "hbase_operator_tools": "1.3.0-fd5a5fb",
         "java-base": "11",
@@ -17,7 +23,7 @@ versions = [
     },
     {
         "product": "2.6.2",
-        "hbase_thirdparty": "4.1.10",
+        "hbase_thirdparty": "4.1.9",
         "hbase_operator_tools": "1.3.0-fd5a5fb",
         "java-base": "11",
         "java-devel": "11",
