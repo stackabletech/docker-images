@@ -13,5 +13,6 @@ versions = [
         "product": "2.2.0",
         "java-base": "21",
         "java-devel": "21",
+        "nifi_iceberg_bundle": "0.0.3",
     },
 ]

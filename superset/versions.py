@@ -17,4 +17,13 @@ versions = [
         "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
         "stackable-base": "1.0.0",
     },
+    {
+        "product": "4.1.2",
+        "python": "3.9",
+        "cyclonedx_bom": "6.0.0",
+        "vector": "0.46.1",
+        "statsd_exporter": "0.28.0",
+        "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
+        "stackable-base": "1.0.0",
+    },
 ]

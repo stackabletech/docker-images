@@ -23,20 +23,25 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+- opa: Add `1.4.2` ([#1103]).
 - spark-k8s: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1055]).
 - superset: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
+- superset: Add version `4.1.2` ([#1102]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060], [#1106]).
 - java: Add JDK 24 ([#1097]).
+- ci: Add golang image to mirror workflow ([#1103]).
 
 ### Changed
 
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
+- stackable-devel: Bump ubi9 base image ([#1103]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
 - jmx_exporter: Bump products to use `1.2.0` ([#1090]).
@@ -56,6 +61,7 @@ All notable changes to this project will be documented in this file.
 - Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
+- opa: Manually install Go 1.23.9 ([#1103]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
@@ -68,6 +74,8 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
 - spark: remove 3.5.2 ([#1094])
+- opa: Remove `0.67.1` ([#1103]).
+- opa: Remove legacy bundle-builder from container build ([#1103]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -87,12 +95,16 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1060]: https://github.com/stackabletech/docker-images/pull/1060
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1094]: https://github.com/stackabletech/docker-images/pull/1094
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1102]: https://github.com/stackabletech/docker-images/pull/1102
+[#1103]: https://github.com/stackabletech/docker-images/pull/1103
+[#1106]: https://github.com/stackabletech/docker-images/pull/1106
 
 ## [25.3.0] - 2025-03-21
 
