@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
-# check=error=true
+# check=error=true;skip=InvalidDefaultArgInFrom
+
+ARG GOLANG
+
+FROM oci.stackable.tech/sdp/library/golang:${GOLANG} AS golang-image
 
 FROM stackable/image/stackable-base AS multilog-builder
 
@@ -59,7 +63,7 @@ EOF
 COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
 
 # Manually install Go since the dnf package is sometimes not recent enough
-COPY --from=oci.stackable.tech/sdp/library/golang:1.23.9 /usr/local/go/ /usr/local/go/
+COPY --from=golang-image /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN <<EOF
