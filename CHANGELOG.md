@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- opa: Bump ubi9 base image ([#1103]).
 
 ### Fixed
 
