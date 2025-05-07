@@ -1,20 +1,20 @@
-From 058c598a2729a9f16a5229b9e50ebb6734ede082 Mon Sep 17 00:00:00 2001
-From: Lukas Voetmand <lukas.voetmand@stackable.tech>
-Date: Sun, 8 Sep 2024 15:50:23 +0200
+From 92704fc8ae1615d6b4fb6958c08d691089f21186 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Tue, 18 Mar 2025 21:37:35 +0100
 Subject: Add CycloneDX plugin
 
 ---
- pom.xml | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ pom.xml | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index f9dc9e602..f2ab95317 100644
+index a63c2505..51555d30 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -498,6 +498,24 @@
+@@ -556,6 +556,23 @@
+                    </excludes>
                  </configuration>
              </plugin>
- 
 +            <plugin>
 +                <groupId>org.cyclonedx</groupId>
 +                <artifactId>cyclonedx-maven-plugin</artifactId>
@@ -32,7 +32,6 @@ index f9dc9e602..f2ab95317 100644
 +                    </execution>
 +                </executions>
 +            </plugin>
-+
+ 
          </plugins>
  
-         <extensions>
