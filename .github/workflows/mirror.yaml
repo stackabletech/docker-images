@@ -14,6 +14,7 @@ on:
           - registry.k8s.io/sig-storage/csi-node-driver-registrar
           - registry.k8s.io/sig-storage/csi-provisioner
           - registry.k8s.io/git-sync/git-sync
+          - registry-1.docker.io/library/golang
       image-index-manifest-tag:
         description: |
           The image index manifest tag, like 1.0.14 or v1.0.14
