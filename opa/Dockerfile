@@ -1,40 +1,6 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/stackable-base AS opa-bundle-builder
-
-ARG BUNDLE_BUILDER_VERSION
-
-# Update image and install everything needed for Rustup & Rust
-RUN <<EOF
-microdnf update
-microdnf install \
-  cmake \
-  gcc \
-  gcc-c++ \
-  git \
-  make \
-  openssl-devel \
-  pkg-config \
-  systemd-devel \
-  unzip
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /
-
-# WARNING (@NickLarsenNZ): We should pin the rustup version
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
-RUN <<EOF
-cd ./opa-bundle-builder
-. "$HOME/.cargo/env"
-rustup toolchain install
-cargo --quiet build --release
-# set correct groups
-chmod -R g=u /opa-bundle-builder/target/release/
-EOF
-
 FROM stackable/image/stackable-base AS multilog-builder
 
 ARG DAEMONTOOLS_VERSION=0.76
@@ -137,7 +103,6 @@ LABEL name="Open Policy Agent" \
 COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 
 COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
-COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 RUN <<EOF
