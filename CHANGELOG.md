@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
+- hbase: add 2.6.2 and upgrade dependencies ([#1101])
 
 ### Changed
 
@@ -72,6 +73,7 @@ All notable changes to this project will be documented in this file.
 - Remove ubi8-rust-builder image ([#1091]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
+- hbase: Remove 2.4.18 ([#1101])
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -96,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1101]: https://github.com/stackabletech/docker-images/pull/1101
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 
 ## [25.3.0] - 2025-03-21

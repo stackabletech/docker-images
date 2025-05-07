@@ -6,7 +6,6 @@ FROM stackable/image/hadoop AS hadoop-builder
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
-ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
@@ -153,16 +152,13 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
 
-# Remove the Git repo because `git-commit-id-maven-plugin` tries to get the latest commit if a Git repo is present,
-# which fails due to a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
-rm .git
-
 mvn \
   --batch-mode \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \
+  -Dmaven.test.skip=true \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
@@ -206,7 +202,10 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
+  # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
+  # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
+  # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
+  /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
 

@@ -1,4 +1,4 @@
-From 5e26329f7b75e2ee2aa797f7bdcf3524bd45e491 Mon Sep 17 00:00:00 2001
+From 3f32872b0c49ed7125803fd599e7f1318ce8c00a Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Tue, 6 Feb 2024 16:10:54 +0100
 Subject: HBASE-28242: Updates async-profiler support
@@ -8,10 +8,10 @@ Subject: HBASE-28242: Updates async-profiler support
  1 file changed, 121 insertions(+), 84 deletions(-)
 
 diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
-index df8d009282..6139114717 100644
+index e92b4f9ae0..521ad7c380 100644
 --- a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
 +++ b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
-@@ -25,9 +25,11 @@ import java.util.concurrent.TimeUnit;
+@@ -28,9 +28,11 @@ import java.util.concurrent.TimeUnit;
  import java.util.concurrent.atomic.AtomicInteger;
  import java.util.concurrent.locks.Lock;
  import java.util.concurrent.locks.ReentrantLock;
@@ -23,7 +23,7 @@ index df8d009282..6139114717 100644
  import org.apache.hadoop.hbase.util.ProcessUtils;
  import org.apache.yetus.audience.InterfaceAudience;
  import org.slf4j.Logger;
-@@ -37,23 +39,60 @@ import org.apache.hbase.thirdparty.com.google.common.base.Joiner;
+@@ -40,23 +42,60 @@ import org.apache.hbase.thirdparty.com.google.common.base.Joiner;
  
  /**
   * Servlet that runs async-profiler as web-endpoint. Following options from async-profiler can be
@@ -101,7 +101,7 @@ index df8d009282..6139114717 100644
   */
  @InterfaceAudience.Private
  public class ProfileServlet extends HttpServlet {
-@@ -77,19 +116,20 @@ public class ProfileServlet extends HttpServlet {
+@@ -81,19 +120,20 @@ public class ProfileServlet extends HttpServlet {
      WALL("wall"),
      ALLOC("alloc"),
      LOCK("lock"),
@@ -129,7 +129,7 @@ index df8d009282..6139114717 100644
      TRACE_TRACEPOINT("trace:tracepoint"),;
  
      private final String internalName;
-@@ -98,11 +138,11 @@ public class ProfileServlet extends HttpServlet {
+@@ -102,11 +142,11 @@ public class ProfileServlet extends HttpServlet {
        this.internalName = internalName;
      }
  
@@ -143,7 +143,7 @@ index df8d009282..6139114717 100644
        for (Event event : values()) {
          if (event.getInternalName().equalsIgnoreCase(name)) {
            return event;
-@@ -113,30 +153,26 @@ public class ProfileServlet extends HttpServlet {
+@@ -117,30 +157,26 @@ public class ProfileServlet extends HttpServlet {
      }
    }
  
@@ -182,7 +182,7 @@ index df8d009282..6139114717 100644
    }
  
    @Override
-@@ -155,9 +191,9 @@ public class ProfileServlet extends HttpServlet {
+@@ -159,9 +195,9 @@ public class ProfileServlet extends HttpServlet {
        setResponseHeader(resp);
        resp.getWriter()
          .write("ASYNC_PROFILER_HOME env is not set.\n\n"
@@ -194,7 +194,7 @@ index df8d009282..6139114717 100644
        return;
      }
  
-@@ -173,18 +209,18 @@ public class ProfileServlet extends HttpServlet {
+@@ -177,18 +213,18 @@ public class ProfileServlet extends HttpServlet {
        return;
      }
  
@@ -225,7 +225,7 @@ index df8d009282..6139114717 100644
  
      if (process == null || !process.isAlive()) {
        try {
-@@ -199,11 +235,7 @@ public class ProfileServlet extends HttpServlet {
+@@ -208,11 +244,7 @@ public class ProfileServlet extends HttpServlet {
              cmd.add("-e");
              cmd.add(event.getInternalName());
              cmd.add("-d");
@@ -238,7 +238,7 @@ index df8d009282..6139114717 100644
              if (interval != null) {
                cmd.add("-i");
                cmd.add(interval.toString());
-@@ -212,24 +244,25 @@ public class ProfileServlet extends HttpServlet {
+@@ -221,24 +253,25 @@ public class ProfileServlet extends HttpServlet {
                cmd.add("-j");
                cmd.add(jstackDepth.toString());
              }
@@ -274,7 +274,7 @@ index df8d009282..6139114717 100644
              if (minwidth != null) {
                cmd.add("--minwidth");
                cmd.add(minwidth.toString());
-@@ -237,6 +270,7 @@ public class ProfileServlet extends HttpServlet {
+@@ -246,6 +279,7 @@ public class ProfileServlet extends HttpServlet {
              if (reverse) {
                cmd.add("--reverse");
              }
@@ -282,7 +282,7 @@ index df8d009282..6139114717 100644
              cmd.add(pid.toString());
              process = ProcessUtils.runCmdAsync(cmd);
  
-@@ -247,7 +281,10 @@ public class ProfileServlet extends HttpServlet {
+@@ -256,7 +290,10 @@ public class ProfileServlet extends HttpServlet {
              resp.getWriter()
                .write("Started [" + event.getInternalName()
                  + "] profiling. This page will automatically redirect to " + relativeUrl + " after "
@@ -294,7 +294,7 @@ index df8d009282..6139114717 100644
  
              // to avoid auto-refresh by ProfileOutputServlet, refreshDelay can be specified
              // via url param
-@@ -265,8 +302,9 @@ public class ProfileServlet extends HttpServlet {
+@@ -274,8 +311,9 @@ public class ProfileServlet extends HttpServlet {
            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
            resp.getWriter()
              .write("Unable to acquire lock. Another instance of profiler might be running.");
@@ -306,7 +306,7 @@ index df8d009282..6139114717 100644
          }
        } catch (InterruptedException e) {
          LOG.warn("Interrupted while acquiring profile lock.", e);
-@@ -279,9 +317,9 @@ public class ProfileServlet extends HttpServlet {
+@@ -288,9 +326,9 @@ public class ProfileServlet extends HttpServlet {
      }
    }
  
@@ -318,7 +318,7 @@ index df8d009282..6139114717 100644
      if (value != null) {
        try {
          return Integer.valueOf(value);
-@@ -292,8 +330,8 @@ public class ProfileServlet extends HttpServlet {
+@@ -301,8 +339,8 @@ public class ProfileServlet extends HttpServlet {
      return defaultValue;
    }
  
@@ -329,7 +329,7 @@ index df8d009282..6139114717 100644
      if (value != null) {
        try {
          return Long.valueOf(value);
-@@ -304,8 +342,8 @@ public class ProfileServlet extends HttpServlet {
+@@ -313,8 +351,8 @@ public class ProfileServlet extends HttpServlet {
      return null;
    }
  
@@ -340,7 +340,7 @@ index df8d009282..6139114717 100644
      if (value != null) {
        try {
          return Double.valueOf(value);
-@@ -316,8 +354,8 @@ public class ProfileServlet extends HttpServlet {
+@@ -325,8 +363,8 @@ public class ProfileServlet extends HttpServlet {
      return null;
    }
  
@@ -351,7 +351,7 @@ index df8d009282..6139114717 100644
      if (eventArg != null) {
        Event event = Event.fromInternalName(eventArg);
        return event == null ? Event.CPU : event;
-@@ -325,16 +363,16 @@ public class ProfileServlet extends HttpServlet {
+@@ -334,16 +372,16 @@ public class ProfileServlet extends HttpServlet {
      return Event.CPU;
    }
  
@@ -363,16 +363,16 @@ index df8d009282..6139114717 100644
        try {
          return Output.valueOf(outputArg.trim().toUpperCase());
        } catch (IllegalArgumentException e) {
--        return Output.SVG;
+-        return Output.HTML;
 +        return Output.FLAMEGRAPH;
        }
      }
--    return Output.SVG;
+-    return Output.HTML;
 +    return Output.FLAMEGRAPH;
    }
  
    static void setResponseHeader(final HttpServletResponse response) {
-@@ -366,8 +404,7 @@ public class ProfileServlet extends HttpServlet {
+@@ -375,8 +413,7 @@ public class ProfileServlet extends HttpServlet {
          .write("The profiler servlet was disabled at startup.\n\n"
            + "Please ensure the prerequisites for the Profiler Servlet have been installed and the\n"
            + "environment is properly configured. For more information please see\n"

@@ -1,0 +1,29 @@
+From 187db522edc569def2aea3f9453ecb1a674592fe Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 7 May 2025 10:26:37 +0200
+Subject: Configure git-commit-id-plugin to use native git
+
+This fixes the problem that jgit cannot handle worktrees and the build
+fails.
+
+See
+https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
+---
+ hbase-hbck2/pom.xml | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/hbase-hbck2/pom.xml b/hbase-hbck2/pom.xml
+index fd0018c..f00bd18 100644
+--- a/hbase-hbck2/pom.xml
++++ b/hbase-hbck2/pom.xml
+@@ -215,8 +215,9 @@
+       <plugin>
+         <groupId>pl.project13.maven</groupId>
+         <artifactId>git-commit-id-plugin</artifactId>
+-        <version>2.2.5</version>
++        <version>4.9.10</version>
+         <configuration>
++          <useNativeGit>true</useNativeGit>
+           <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+           <commitIdGenerationMode>flat</commitIdGenerationMode>
+           <failOnNoGitDirectory>false</failOnNoGitDirectory>
