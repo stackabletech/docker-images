@@ -54,7 +54,7 @@ mirror = "https://github.com/stackabletech/druid.git"
 
 If you just want to add a new version, initiatilize the version-level config with patchable:
 ```
-cargo patchable init druid 28.0.0 --base=druid-28.0.0 --mirror
+cargo patchable init druid 28.0.0 --base=druid-28.0.0
 ```
 
 ## Glossary
