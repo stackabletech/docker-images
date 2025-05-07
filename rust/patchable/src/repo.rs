@@ -169,7 +169,6 @@ pub fn resolve_and_fetch_commitish(
                 );
                 true
             });
-
             repo.remote_anonymous(upstream_url)
                 .context(CreateRemoteSnafu {
                     repo,

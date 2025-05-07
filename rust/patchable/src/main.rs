@@ -48,14 +48,8 @@ impl ProductVersionContext {
             "loading config"
         );
 
-        toml::from_str::<T>(&std::fs::read_to_string(path).context(
-            LoadConfigSnafu {
-                path,
-            },
-        )?)
-        .context(ParseConfigSnafu {
-            path,
-        })
+        toml::from_str::<T>(&std::fs::read_to_string(path).context(LoadConfigSnafu { path })?)
+            .context(ParseConfigSnafu { path })
     }
 
     fn load_product_config(&self) -> Result<ProductConfig> {
@@ -496,7 +490,7 @@ fn main() -> Result<()> {
                 mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
                     .context(PushToMirrorSnafu {
-                        url: mirror_url.clone(),
+                        url: mirror_url,
                         refspec: &refspec,
                         commit: base_commit,
                     })?;
@@ -507,9 +501,7 @@ fn main() -> Result<()> {
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             tracing::info!("saving version-level configuration");
-            let config = ProductVersionConfig {
-                base: base_commit,
-            };
+            let config = ProductVersionConfig { base: base_commit };
             let config_path = ctx.version_config_path();
             if let Some(config_dir) = config_path.parent() {
                 std::fs::create_dir_all(config_dir)
