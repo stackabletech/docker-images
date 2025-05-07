@@ -447,6 +447,7 @@ fn main() -> Result<()> {
             tracing::info!(?base, "resolving base commit-ish");
             let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream)
                 .context(FetchBaseCommitSnafu)?;
+            tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             if let Some(mirror_url) = config.mirror {
                 // Add mirror remote
@@ -497,8 +498,6 @@ fn main() -> Result<()> {
 
                 tracing::info!("successfully pushed base ref to mirror");
             };
-
-            tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             tracing::info!("saving version-level configuration");
             let config = ProductVersionConfig { base: base_commit };
