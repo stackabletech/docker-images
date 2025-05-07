@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
+- stackable-devel: Bump ubi9 base image ([#1103]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
 - jmx_exporter: Bump products to use `1.2.0` ([#1090]).
@@ -46,7 +47,6 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
-- opa: Bump ubi9 base image ([#1103]).
 
 ### Fixed
 
