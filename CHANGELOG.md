@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
 
@@ -92,6 +93,7 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1060]: https://github.com/stackabletech/docker-images/pull/1060
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
