@@ -59,7 +59,7 @@ EOF
 COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
 
 # Manually install Go since the dnf package is sometimes not recent enough
-COPY --from=registry-1.docker.io/library/golang:1.23.9 /usr/local/go/ /usr/local/go/
+COPY --from=oci.stackable.tech/sdp/library/golang:1.23.9 /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN <<EOF
