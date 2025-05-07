@@ -152,16 +152,13 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
 
-# Remove the Git repo because `git-commit-id-maven-plugin` tries to get the latest commit if a Git repo is present,
-# which fails due to a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
-rm .git
-
 mvn \
   --batch-mode \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-  -Dmaven.tests.skip=true \
+  -DskipTests \
+  -Dmaven.test.skip=true \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
