@@ -47,18 +47,20 @@ ENV GOOS=$TARGETOS
 
 # gzip, tar - used to unpack the OPA source
 # git - needed by the cyclonedx-gomod tool to determine the version of OPA
-# golang - used to build OPA
 RUN <<EOF
 microdnf update
 microdnf install \
   git \
-  golang \
   gzip \
   tar
 microdnf clean all
 EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
+
+# Manually install Go since the dnf package is sometimes not recent enough
+COPY --from=registry-1.docker.io/library/golang:1.23.9 /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN <<EOF
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)

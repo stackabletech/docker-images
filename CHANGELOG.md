@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
+- opa: Manually install Go 1.23.9 ([#1103]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
