@@ -28,3 +28,4 @@ jobs:
     with:
       product-name: java-base
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp
