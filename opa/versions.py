@@ -1,14 +1,14 @@
 versions = [
     {
-        "product": "1.0.1",
+        "product": "1.4.2",
         "vector": "0.46.1",
-        "bundle_builder_version": "1.1.2",
+        "golang": "1.23.9",
         "stackable-base": "1.0.0",
     },
     {
-        "product": "0.67.1",
+        "product": "1.0.1",
         "vector": "0.46.1",
-        "bundle_builder_version": "1.1.2",
+        "golang": "1.23.9",
         "stackable-base": "1.0.0",
     },
 ]
