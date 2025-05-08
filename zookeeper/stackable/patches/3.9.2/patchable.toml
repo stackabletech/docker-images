@@ -1,3 +1,0 @@
-upstream = "https://github.com/apache/zookeeper.git"
-base = "e454e8c7283100c7caec6dcae2bc82aaecb63023"
-mirror = "https://github.com/stackabletech/zookeeper.git"

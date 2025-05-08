@@ -26,8 +26,9 @@ jobs:
     name: Reusable Workflow
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
-      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     with:
       product-name: spark-connect-client
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: stackable
