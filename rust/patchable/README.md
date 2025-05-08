@@ -38,10 +38,11 @@ Patchable uses a two-level configuration system:
 
 The product-level config contains:
 - `upstream` - the URL of the upstream repository (such as `https://github.com/apache/druid.git`)
-- `mirror` - optional URL of a mirror repository (such as `https://github.com/stackabletech/druid.git`)
+- `default_mirror` - optional: default URL of a mirror repository (such as `https://github.com/stackabletech/druid.git`)
 
 The version-level config contains:
 - `base` - the commit hash of the upstream base commit
+- `mirror` - optional: URL of the mirror repository for this version, if mirroring is enabled
 
 ### Template
 
@@ -52,10 +53,13 @@ upstream = "https://github.com/apache/druid.git"
 mirror = "https://github.com/stackabletech/druid.git"
 ```
 
-If you just want to add a new version, initiatilize the version-level config with patchable:
+If you just want to add a new version, initialize the version-level config with patchable:
+```sh
+cargo patchable init druid 28.0.0 --base=druid-28.0.0 --mirror
 ```
-cargo patchable init druid 28.0.0 --base=druid-28.0.0
-```
+
+This will initialize the version-level config with the base commit hash and the default mirror URL from the product-level config.
+You can optionally provide the `--ssh` flag to use SSH instead of HTTPS for Git operations.
 
 ## Glossary
 
