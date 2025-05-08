@@ -14,4 +14,3 @@ toml.workspace = true
 tracing.workspace = true
 tracing-indicatif.workspace = true
 tracing-subscriber.workspace = true
-url.workspace = true

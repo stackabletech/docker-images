@@ -596,7 +596,6 @@ dependencies = [
  "tracing",
  "tracing-indicatif",
  "tracing-subscriber",
- "url",
 ]
 
 [[package]]

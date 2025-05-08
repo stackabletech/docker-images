@@ -1,35 +1,25 @@
 use std::path::Path;
 
 use git2::Repository;
-use snafu::{OptionExt as _, ResultExt as _, Snafu};
+use snafu::{OptionExt as _, Snafu};
 use tracing::Span;
 use tracing_indicatif::{span_ext::IndicatifSpanExt, style::ProgressStyle};
-use url::Url;
 
-/// Errors that can occur during URL rewriting.
 #[derive(Debug, Snafu)]
 pub enum UrlRewriteError {
-    #[snafu(display("Failed to parse URL {url:?}: {source}"))]
-    ParseUrl { source: url::ParseError, url: String },
-    #[snafu(display("URL {url:?} has no host component"))]
-    NoHostInUrl { url: String },
+    #[snafu(display("URL does not have https schema: {}", url))]
+    NoHttpsSchema { url: String },
 }
 
 /// Rewrites a given URL to an SSH-style Git URL
 /// For example, `https://github.com/user/repo.git` becomes `git@github.com:user/repo.git`.
-pub fn rewrite_git_https_url_to_ssh(
-    original_url: &str,
-) -> Result<String, UrlRewriteError> {
-    let parsed_url = Url::parse(original_url).context(ParseUrlSnafu {
-        url: original_url,
-    })?;
-
-    let host = parsed_url.host_str().context(NoHostInUrlSnafu {
-        url: original_url,
-    })?;
-    let path = parsed_url.path().trim_start_matches('/');
-
-    Ok(format!("git@{}:{}", host, path))
+pub fn rewrite_git_https_url_to_ssh(original_url: &str) -> Result<String, UrlRewriteError> {
+    let schemaless = original_url
+        .strip_prefix("https://")
+        .context(NoHttpsSchemaSnafu {
+            url: original_url.to_string(),
+        })?;
+    Ok(format!("ssh://git@{schemaless}"))
 }
 
 /// Runs a function whenever a `value` changes "enough".
