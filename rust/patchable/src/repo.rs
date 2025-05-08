@@ -149,8 +149,10 @@ pub fn resolve_and_fetch_commitish(
                 "base commit not found locally, fetching from upstream"
             );
 
-            let (span_recv, mut quant_recv) = setup_progress_tracking(tracing::info_span!("receiving"));
-            let (span_index, mut quant_index) = setup_progress_tracking(tracing::info_span!("indexing"));
+            let (span_recv, mut quant_recv) =
+                setup_progress_tracking(tracing::info_span!("receiving"));
+            let (span_index, mut quant_index) =
+                setup_progress_tracking(tracing::info_span!("indexing"));
 
             let _ = span_recv.enter();
             let _ = span_index.enter();

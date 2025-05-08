@@ -24,14 +24,35 @@ struct ProductVersion {
     version: String,
 }
 
+/// Configuration that applies to all versions of a product, located at $ROOT/$product/stackable/patches/patchable.toml
+///
+/// Must be created by hand (for now).
 #[derive(Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
 struct ProductConfig {
+    /// The upstream repository URL
     upstream: String,
-    mirror: Option<String>,
+
+    /// The repository that commits are mirrored to by `init --mirror`, typically `https://github.com/stackabletech/$product.git`
+    ///
+    /// This value is _not_ used by `checkout`, that uses [`ProductVersionConfig::mirror`] instead.
+    /// `init --mirror` copies this value into [`ProductVersionConfig::mirror`].
+    default_mirror: Option<String>,
 }
 
+/// Configuration that applies to an individual version of a product, located at $ROOT/$product/stackable/patches/$version/patchable.toml
+///
+/// Typically created by `patchable init`.
 #[derive(Deserialize, Serialize)]
 struct ProductVersionConfig {
+    /// The mirror repository that this version can be fetched from
+    ///
+    /// Copied from [`ProductConfig::default_mirror`] by `init --mirror`.
+    mirror: Option<String>,
+
+    /// The upstream base commit for this version
+    ///
+    /// Must be a commit ID, not a generic commitish (branch, tag, or anotherother ref), those are resolved by `init`.
     #[serde(with = "utils::oid_serde")]
     base: Oid,
 }
@@ -163,6 +184,9 @@ enum Cmd {
         /// Refs (such as tags and branches) will be resolved to commit IDs.
         #[clap(long)]
         base: String,
+
+        #[clap(long)]
+        mirror: bool,
     },
 
     /// Shows the patch directory for a given product version
@@ -211,6 +235,10 @@ pub enum Error {
         path: PathBuf,
     },
 
+    #[snafu(display(
+        "mirroring requested, but default-mirror is not configured in product configuration"
+    ))]
+    InitMirrorNotConfigured,
     #[snafu(display("failed to add temporary mirror remote for {url:?}"))]
     AddMirrorRemote { source: git2::Error, url: String },
     #[snafu(display("failed to push commit {commit} (as {refspec}) to mirror {url:?}"))]
@@ -312,10 +340,10 @@ fn main() -> Result<()> {
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &version_config.base.to_string(),
-                product_config
-                    .mirror
-                    .as_deref()
-                    .unwrap_or(&product_config.upstream),
+                version_config.mirror.as_deref().unwrap_or_else(|| {
+                    tracing::warn!("this product version is not mirrored, re-init it with --mirror before merging it");
+                    &product_config.upstream
+                }),
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -425,7 +453,7 @@ fn main() -> Result<()> {
             );
         }
 
-        Cmd::Init { pv, base } => {
+        Cmd::Init { pv, base, mirror } => {
             let ctx = ProductVersionContext {
                 pv,
                 images_repo_root,
@@ -449,7 +477,11 @@ fn main() -> Result<()> {
                 .context(FetchBaseCommitSnafu)?;
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
-            if let Some(mirror_url) = config.mirror {
+            let mirror_url = if mirror {
+                let mirror_url = config
+                    .default_mirror
+                    .context(InitMirrorNotConfiguredSnafu)?;
+
                 // Add mirror remote
                 let mut mirror_remote =
                     product_repo
@@ -491,16 +523,25 @@ fn main() -> Result<()> {
                 mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
                     .context(PushToMirrorSnafu {
-                        url: mirror_url,
+                        url: &mirror_url,
                         refspec: &refspec,
                         commit: base_commit,
                     })?;
 
                 tracing::info!("successfully pushed base ref to mirror");
+                Some(mirror_url)
+            } else {
+                tracing::warn!(
+                    "this version is not mirrored, re-run with --mirror before merging into main"
+                );
+                None
             };
 
             tracing::info!("saving version-level configuration");
-            let config = ProductVersionConfig { base: base_commit };
+            let config = ProductVersionConfig {
+                base: base_commit,
+                mirror: mirror_url,
+            };
             let config_path = ctx.version_config_path();
             if let Some(config_dir) = config_path.parent() {
                 std::fs::create_dir_all(config_dir)
