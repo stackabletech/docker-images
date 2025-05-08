@@ -119,7 +119,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin/authorizer/target/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
-
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
