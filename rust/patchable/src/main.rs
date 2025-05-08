@@ -13,6 +13,8 @@ use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
+use crate::utils::setup_git_credentials;
+
 #[derive(clap::Parser)]
 struct ProductVersion {
     /// The product name slug (such as druid)
@@ -164,6 +166,10 @@ enum Cmd {
         /// Check out the base commit, without applying patches
         #[clap(long)]
         base_only: bool,
+
+        /// Use SSH for git operations
+        #[clap(long)]
+        ssh: bool,
     },
 
     /// Export the patches from the source tree at docker-images/<PRODUCT>/patchable-work/worktree/<VERSION>
@@ -185,8 +191,13 @@ enum Cmd {
         #[clap(long)]
         base: String,
 
+        /// Mirror the product version to the default mirror repository
         #[clap(long)]
         mirror: bool,
+
+        /// Use SSH for git operations
+        #[clap(long)]
+        ssh: bool,
     },
 
     /// Shows the patch directory for a given product version
@@ -234,6 +245,9 @@ pub enum Error {
         source: std::io::Error,
         path: PathBuf,
     },
+
+    #[snafu(display("failed to rewrite URL for SSH: {source}"))]
+    UrlRewrite { source: utils::UrlRewriteError },
 
     #[snafu(display(
         "mirroring requested, but default-mirror is not configured in product configuration"
@@ -326,7 +340,7 @@ fn main() -> Result<()> {
         }
     };
     match opts.cmd {
-        Cmd::Checkout { pv, base_only } => {
+        Cmd::Checkout { pv, base_only, ssh } => {
             let ctx = ProductVersionContext {
                 pv,
                 images_repo_root,
@@ -337,13 +351,20 @@ fn main() -> Result<()> {
             let product_repo = repo::ensure_bare_repo(&product_repo_root)
                 .context(OpenProductRepoForCheckoutSnafu)?;
 
+            let mut upstream = version_config.mirror.unwrap_or_else(|| {
+                    tracing::warn!("this product version is not mirrored, re-init it with --mirror before merging it");
+                    product_config.upstream
+                });
+
+            if ssh {
+                upstream =
+                    utils::rewrite_git_https_url_to_ssh(&upstream).context(UrlRewriteSnafu)?;
+            }
+
             let base_commit = repo::resolve_and_fetch_commitish(
                 &product_repo,
                 &version_config.base.to_string(),
-                version_config.mirror.as_deref().unwrap_or_else(|| {
-                    tracing::warn!("this product version is not mirrored, re-init it with --mirror before merging it");
-                    &product_config.upstream
-                }),
+                &upstream,
             )
             .context(FetchBaseCommitSnafu)?;
             let base_branch = ctx.base_branch();
@@ -453,7 +474,12 @@ fn main() -> Result<()> {
             );
         }
 
-        Cmd::Init { pv, base, mirror } => {
+        Cmd::Init {
+            pv,
+            base,
+            mirror,
+            ssh,
+        } => {
             let ctx = ProductVersionContext {
                 pv,
                 images_repo_root,
@@ -468,7 +494,11 @@ fn main() -> Result<()> {
             .context(OpenProductRepoForCheckoutSnafu)?;
 
             let config = ctx.load_product_config()?;
-            let upstream = config.upstream;
+            let upstream = if ssh {
+                utils::rewrite_git_https_url_to_ssh(&config.upstream).context(UrlRewriteSnafu)?
+            } else {
+                config.upstream
+            };
 
             // --base can be a reference, but patchable.toml should always have a resolved commit id,
             // so that it cannot be changed under our feet (without us knowing so, anyway...).
@@ -478,10 +508,13 @@ fn main() -> Result<()> {
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             let mirror_url = if mirror {
-                let mirror_url = config
+                let mut mirror_url = config
                     .default_mirror
                     .context(InitMirrorNotConfiguredSnafu)?;
-
+                if ssh {
+                    mirror_url =
+                        utils::rewrite_git_https_url_to_ssh(&mirror_url).context(UrlRewriteSnafu)?
+                };
                 // Add mirror remote
                 let mut mirror_remote =
                     product_repo
@@ -492,15 +525,7 @@ fn main() -> Result<()> {
 
                 // Push the base commit to the mirror
                 tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
-                let mut callbacks = git2::RemoteCallbacks::new();
-                callbacks.credentials(|url, username_from_url, _allowed_types| {
-                    git2::Cred::credential_helper(
-                        &git2::Config::open_default()
-                            .expect("failed to open default Git configuration"), // Use default git config,
-                        url,
-                        username_from_url,
-                    )
-                });
+                let mut callbacks = setup_git_credentials();
 
                 // Add progress tracking for push operation
                 let (span_push, mut quant_push) =

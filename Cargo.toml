@@ -13,3 +13,4 @@ toml = "0.8.19"
 tracing = "0.1.41"
 tracing-indicatif = "0.3.9"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+url = "2.5.4"
