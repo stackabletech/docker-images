@@ -96,7 +96,7 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
 
     cd ..
     # Save disk space, even for intermediate images
-    rm -rf nifi-iceberg-bundle-main
+    rm -rf nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}
 
 # Set correct groups
 chmod g=u /stackable/*.nar
