@@ -246,7 +246,7 @@ pub enum Error {
         path: PathBuf,
     },
 
-    #[snafu(display("failed to rewrite URL for SSH: {source}"))]
+    #[snafu(display("failed to rewrite URL for SSH"))]
     UrlRewrite { source: utils::UrlRewriteError },
 
     #[snafu(display(
