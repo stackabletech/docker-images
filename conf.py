@@ -98,7 +98,7 @@ cache = [
 
 args = {
     "STACKABLE_USER_NAME": "stackable",
-    "STACKABLE_USER_UID": "782252253",
-    "STACKABLE_USER_GID": "574654813",
+    "STACKABLE_USER_UID": "782252253", # This is a random high id to not conflict with any existing user
+    "STACKABLE_USER_GID": "574654813", # This is a random high id to not conflict with any existing group
     "DELETE_CACHES": "true",
 }
