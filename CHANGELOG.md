@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#916])
 
 ### Fixed
 
@@ -76,6 +77,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
 
+[#916]: https://github.com/stackabletech/docker-images/pull/916
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
