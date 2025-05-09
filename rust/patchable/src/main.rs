@@ -39,6 +39,7 @@ struct ProductConfig {
     ///
     /// This value is _not_ used by `checkout`, that uses [`ProductVersionConfig::mirror`] instead.
     /// `init --mirror` copies this value into [`ProductVersionConfig::mirror`].
+    #[serde(skip_serializing_if = "Option::is_none")]
     default_mirror: Option<String>,
 }
 
@@ -180,24 +181,10 @@ enum Cmd {
         pv: ProductVersion,
     },
 
-    /// Creates a patchable.toml for a given product version
+    /// Creates patchable.toml configuration files
     Init {
-        #[clap(flatten)]
-        pv: ProductVersion,
-
-        /// The upstream commit-ish (such as druid-28.0.0) that the patch series applies to
-        ///
-        /// Refs (such as tags and branches) will be resolved to commit IDs.
-        #[clap(long)]
-        base: String,
-
-        /// Mirror the product version to the default mirror repository
-        #[clap(long)]
-        mirror: bool,
-
-        /// Use SSH for git operations
-        #[clap(long)]
-        ssh: bool,
+        #[clap(subcommand)]
+        init_type: InitType,
     },
 
     /// Shows the patch directory for a given product version
@@ -216,6 +203,41 @@ enum Cmd {
 
     /// Shows the images repository root
     ImagesDir,
+}
+
+#[derive(clap::Parser)]
+enum InitType {
+    /// Creates a patchable.toml for a given product
+    Product {
+        /// The product name slug (such as druid)
+        product: String,
+        /// The upstream repository URL (e.g. https://github.com/apache/druid.git)
+        #[clap(long)]
+        upstream: String,
+        /// The default mirror repository URL (e.g. https://github.com/stackabletech/druid.git)
+        #[clap(long)]
+        default_mirror: Option<String>,
+    },
+
+    /// Creates a patchable.toml for a given product version
+    Version {
+        #[clap(flatten)]
+        pv: ProductVersion,
+
+        /// The upstream commit-ish (such as druid-28.0.0) that the patch series applies to
+        ///
+        /// Refs (such as tags and branches) will be resolved to commit IDs.
+        #[clap(long)]
+        base: String,
+
+        /// Mirror the product version to the default mirror repository
+        #[clap(long)]
+        mirror: bool,
+
+        /// Use SSH for git operations
+        #[clap(long)]
+        ssh: bool,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -474,116 +496,167 @@ fn main() -> Result<()> {
             );
         }
 
-        Cmd::Init {
-            pv,
-            base,
-            mirror,
-            ssh,
-        } => {
-            let ctx = ProductVersionContext {
-                pv,
-                images_repo_root,
-            };
+        Cmd::Init { init_type } => match init_type {
+            InitType::Product {
+                product,
+                upstream,
+                default_mirror,
+            } => {
+                let product_config_path = ProductVersionContext {
+                    pv: ProductVersion {
+                        product: product.clone(),
+                        version: "".to_string(),
+                    },
+                    images_repo_root,
+                }
+                .product_config_path();
 
-            let product_repo_root = ctx.product_repo();
-            let product_repo = tracing::info_span!(
-                "finding product repository",
-                product.repository = ?product_repo_root,
-            )
-            .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
-            .context(OpenProductRepoForCheckoutSnafu)?;
+                tracing::info!(
+                    path = ?product_config_path,
+                    "creating product configuration directory and file"
+                );
 
-            let config = ctx.load_product_config()?;
-            let upstream = if ssh {
-                utils::rewrite_git_https_url_to_ssh(&config.upstream).context(UrlRewriteSnafu)?
-            } else {
-                config.upstream
-            };
+                let product_config_dir = product_config_path
+                    .parent()
+                    .expect("product config should have a hard-coded parent");
 
-            // --base can be a reference, but patchable.toml should always have a resolved commit id,
-            // so that it cannot be changed under our feet (without us knowing so, anyway...).
-            tracing::info!(?base, "resolving base commit-ish");
-            let base_commit = repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream)
-                .context(FetchBaseCommitSnafu)?;
-            tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
+                std::fs::create_dir_all(product_config_dir).context(CreatePatchDirSnafu {
+                    path: product_config_dir,
+                })?;
 
-            let mirror_url = if mirror {
-                let mut mirror_url = config
-                    .default_mirror
-                    .context(InitMirrorNotConfiguredSnafu)?;
-                if ssh {
-                    mirror_url =
-                        utils::rewrite_git_https_url_to_ssh(&mirror_url).context(UrlRewriteSnafu)?
+                let product_config = ProductConfig {
+                    upstream,
+                    default_mirror,
                 };
-                // Add mirror remote
-                let mut mirror_remote =
-                    product_repo
-                        .remote_anonymous(&mirror_url)
-                        .context(AddMirrorRemoteSnafu {
-                            url: mirror_url.clone(),
-                        })?;
 
-                // Push the base commit to the mirror
-                tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
-                let mut callbacks = setup_git_credentials();
-
-                // Add progress tracking for push operation
-                let (span_push, mut quant_push) =
-                    utils::setup_progress_tracking(tracing::info_span!("pushing"));
-                let _ = span_push.enter();
-
-                callbacks.push_transfer_progress(move |current, total, _| {
-                    if total > 0 {
-                        quant_push.update_span_progress(current, total, &span_push);
-                    }
-                });
-
-                let mut push_options = git2::PushOptions::new();
-                push_options.remote_callbacks(callbacks);
-
-                // Always push the commit as a Git tag named like the value of `base`
-                let refspec = format!("{base_commit}:refs/tags/{base}");
-                tracing::info!(refspec, "constructed push refspec");
-
-                mirror_remote
-                    .push(&[&refspec], Some(&mut push_options))
-                    .context(PushToMirrorSnafu {
-                        url: &mirror_url,
-                        refspec: &refspec,
-                        commit: base_commit,
+                let config_toml =
+                    toml::to_string_pretty(&product_config).context(SerializeConfigSnafu)?;
+                File::create_new(&product_config_path)
+                    .and_then(|mut f| f.write_all(config_toml.as_bytes()))
+                    .context(SaveConfigSnafu {
+                        path: &product_config_path,
                     })?;
 
-                tracing::info!("successfully pushed base ref to mirror");
-                Some(mirror_url)
-            } else {
-                tracing::warn!(
-                    "this version is not mirrored, re-run with --mirror before merging into main"
+                tracing::info!(
+                    config.path = ?product_config_path,
+                    product = product,
+                    "created configuration for product"
                 );
-                None
-            };
-
-            tracing::info!("saving version-level configuration");
-            let config = ProductVersionConfig {
-                base: base_commit,
-                mirror: mirror_url,
-            };
-            let config_path = ctx.version_config_path();
-            if let Some(config_dir) = config_path.parent() {
-                std::fs::create_dir_all(config_dir)
-                    .context(CreatePatchDirSnafu { path: config_dir })?;
             }
-            let config_toml = toml::to_string_pretty(&config).context(SerializeConfigSnafu)?;
-            File::create_new(&config_path)
-                .and_then(|mut f| f.write_all(config_toml.as_bytes()))
-                .context(SaveConfigSnafu { path: &config_path })?;
 
-            tracing::info!(
-                config.path = ?config_path,
-                product = ctx.pv.product,
-                version = ctx.pv.version,
-                "created configuration for product version"
-            );
-        }
+            InitType::Version {
+                pv,
+                base,
+                mirror,
+                ssh,
+            } => {
+                let ctx = ProductVersionContext {
+                    pv,
+                    images_repo_root,
+                };
+
+                let product_repo_root = ctx.product_repo();
+                let product_repo = tracing::info_span!(
+                    "finding product repository",
+                    product.repository = ?product_repo_root,
+                )
+                .in_scope(|| repo::ensure_bare_repo(&product_repo_root))
+                .context(OpenProductRepoForCheckoutSnafu)?;
+
+                let config = ctx.load_product_config()?;
+                let upstream = if ssh {
+                    utils::rewrite_git_https_url_to_ssh(&config.upstream)
+                        .context(UrlRewriteSnafu)?
+                } else {
+                    config.upstream
+                };
+
+                // --base can be a reference, but patchable.toml should always have a resolved commit id,
+                // so that it cannot be changed under our feet (without us knowing so, anyway...).
+                tracing::info!(?base, "resolving base commit-ish");
+                let base_commit =
+                    repo::resolve_and_fetch_commitish(&product_repo, &base, &upstream)
+                        .context(FetchBaseCommitSnafu)?;
+                tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
+
+                let mirror_url = if mirror {
+                    let mut mirror_url = config
+                        .default_mirror
+                        .context(InitMirrorNotConfiguredSnafu)?;
+                    if ssh {
+                        mirror_url = utils::rewrite_git_https_url_to_ssh(&mirror_url)
+                            .context(UrlRewriteSnafu)?
+                    };
+                    // Add mirror remote
+                    let mut mirror_remote = product_repo.remote_anonymous(&mirror_url).context(
+                        AddMirrorRemoteSnafu {
+                            url: mirror_url.clone(),
+                        },
+                    )?;
+
+                    // Push the base commit to the mirror
+                    tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
+                    let mut callbacks = setup_git_credentials();
+
+                    // Add progress tracking for push operation
+                    let (span_push, mut quant_push) =
+                        utils::setup_progress_tracking(tracing::info_span!("pushing"));
+                    let _ = span_push.enter();
+
+                    callbacks.push_transfer_progress(move |current, total, _| {
+                        if total > 0 {
+                            quant_push.update_span_progress(current, total, &span_push);
+                        }
+                    });
+
+                    let mut push_options = git2::PushOptions::new();
+                    push_options.remote_callbacks(callbacks);
+
+                    // Always push the commit as a Git tag named like the value of `base`
+                    let refspec = format!("{base_commit}:refs/tags/{base}");
+                    tracing::info!(refspec, "constructed push refspec");
+
+                    mirror_remote
+                        .push(&[&refspec], Some(&mut push_options))
+                        .context(PushToMirrorSnafu {
+                            url: &mirror_url,
+                            refspec: &refspec,
+                            commit: base_commit,
+                        })?;
+
+                    tracing::info!("successfully pushed base ref to mirror");
+                    Some(mirror_url)
+                } else {
+                    tracing::warn!(
+                        "this version is not mirrored, re-run with --mirror before merging into main"
+                    );
+                    None
+                };
+
+                tracing::info!("saving version-level configuration");
+                let config = ProductVersionConfig {
+                    base: base_commit,
+                    mirror: mirror_url,
+                };
+                let config_path = ctx.version_config_path();
+                if let Some(config_dir) = config_path.parent() {
+                    std::fs::create_dir_all(config_dir)
+                        .context(CreatePatchDirSnafu { path: config_dir })?;
+                }
+
+                let config_toml = toml::to_string_pretty(&config).context(SerializeConfigSnafu)?;
+                File::create_new(&config_path)
+                    .and_then(|mut f| f.write_all(config_toml.as_bytes()))
+                    .context(SaveConfigSnafu { path: &config_path })?;
+
+                tracing::info!(
+                    config.path = ?config_path,
+                    product = ctx.pv.product,
+                    version = ctx.pv.version,
+                    "created configuration for product version"
+                );
+            }
+        },
 
         Cmd::PatchDir { pv } => {
             let ctx = ProductVersionContext {
