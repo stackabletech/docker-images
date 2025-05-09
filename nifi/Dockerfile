@@ -30,7 +30,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches /stackable/src/nifi/stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.

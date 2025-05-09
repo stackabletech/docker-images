@@ -21,7 +21,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches /stackable/src/omid/stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x

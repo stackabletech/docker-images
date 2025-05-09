@@ -11,7 +11,7 @@ ARG JMX_EXPORTER
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches /stackable/src/trino/stackable/patches
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/src/trino/stackable/patches/${PRODUCT}
 
 COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
