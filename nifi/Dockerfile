@@ -77,7 +77,7 @@ mkdir -p /stackable
 
 # NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
+    curl -L "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
     cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
 
     mvn \
@@ -106,24 +106,33 @@ EOF
 
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
+ARG NIFI_OPA_AUTHORIZER_PLUGIN
 ARG STACKABLE_USER_UID
 ARG PRODUCT
 
 USER ${STACKABLE_USER_UID}
-WORKDIR /stackable
+WORKDIR /build
 
-# TODO: Set to tag after new release of nifi-opa-plugin
-RUN git clone --depth 1 --branch feat/reworked-opa-response https://github.com/DavidGitter/nifi-opa-plugin.git && \
-    cd nifi-opa-plugin/authorizer && \
-    mvn \
+RUN <<EOF
+mkdir -p /stackable
+
+curl -L "https://github.com/DavidGitter/nifi-opa-plugin/archive/refs/tags/v${NIFI_OPA_AUTHORIZER_PLUGIN}.tar.gz" | tar -xzC .
+cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer
+
+mvn \
     --batch-mode \
     --no-transfer-progress \
-    install \
+    clean package \
     -DskipTests \
     -Pnifi-${PRODUCT}
 
+cd ..
+cp ./authorizer/target/opa-authorizer.nar /stackable/opa-authorizer.nar
+cp ./LICENSE /stackable/LICENSE
+
 # Set correct permissions
-RUN chmod g=u /stackable/nifi-opa-plugin/authorizer/target/opa-authorizer.nar
+chmod g=u /stackable/opa-authorizer.nar
+EOF
 
 FROM stackable/image/java-base AS final
 
@@ -144,8 +153,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bc
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin/authorizer/target/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable//LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
