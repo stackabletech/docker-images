@@ -30,6 +30,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
 
 RUN <<EOF

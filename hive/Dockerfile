@@ -23,6 +23,7 @@ ARG STACKABLE_USER_UID
 ARG DELETE_CACHES="true"
 
 # Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/patchable.toml /stackable/src/hive/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here

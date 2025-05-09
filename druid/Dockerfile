@@ -32,6 +32,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
 # Cache mounts are owned by root by default

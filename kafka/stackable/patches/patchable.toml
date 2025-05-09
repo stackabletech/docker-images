@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/kafka.git"
+default-mirror = "https://github.com/stackabletech/kafka.git"

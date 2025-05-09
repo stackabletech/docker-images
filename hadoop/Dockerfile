@@ -51,6 +51,7 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 EOF
 
 WORKDIR /build
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/patchable.toml /build/src/hadoop/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /build
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
