@@ -57,7 +57,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
+        uses: stackabletech/actions/publish-image@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -84,7 +84,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@320eae677555385b3d40e1c3a81d9263b72742e4 # 0.6.0
+        uses: stackabletech/actions/publish-index-manifest@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -92,6 +92,9 @@ jobs:
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
+  # NOTE (@Techassi) It is currently not possible to use our own action here, because the inputs
+  # assume it is used to report on image build results, not mirror results. The action needs to be
+  # adjusted to support other use-cases.
   notify:
     name: Failure Notification
     needs: [mirror-image, publish_manifests]

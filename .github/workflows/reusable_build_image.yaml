@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/shard@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -53,18 +53,18 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/free-disk-space@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/build-product-image@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/publish-image@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -90,7 +90,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/publish-index-manifest@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # 0.8.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
