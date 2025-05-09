@@ -34,6 +34,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Ensure prerequisites are up to date (required-external-components.adoc)
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 
 ## Related Pull Requests
