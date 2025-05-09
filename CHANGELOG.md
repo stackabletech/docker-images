@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
+- airflow: Add `2.10.5` ([#1108]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
@@ -50,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094])
+- Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#916])
 
 ### Fixed
 
@@ -77,6 +79,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
 
+[#916]: https://github.com/stackabletech/docker-images/pull/916
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
@@ -105,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
+[#1108]: https://github.com/stackabletech/docker-images/pull/1108
 
 ## [25.3.0] - 2025-03-21
 
