@@ -1,3 +1,2 @@
-upstream = "https://github.com/apache/kafka.git"
 base = "771b9576b00ecf5b64ab6e8bedf04156fbdb5cd6"
 mirror = "https://github.com/stackabletech/kafka.git"

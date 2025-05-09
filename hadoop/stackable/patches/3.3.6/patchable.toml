@@ -1,3 +1,2 @@
-upstream = "https://github.com/apache/hadoop.git"
 base = "1be78238728da9266a4f88195058f08fd012bf9c"
 mirror = "https://github.com/stackabletech/hadoop.git"

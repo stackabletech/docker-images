@@ -1,3 +1,2 @@
-upstream = "https://github.com/apache/phoenix-omid.git"
 base = "88812c9e127063f3b3016262f81ea3e8b48ec157"
 mirror = "https://github.com/stackabletech/phoenix-omid.git"

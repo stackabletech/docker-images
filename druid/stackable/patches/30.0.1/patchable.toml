@@ -1,3 +1,2 @@
-upstream = "https://github.com/apache/druid.git"
 base = "a30af7a91d528e5c3a90356a5592abc7119191c6"
 mirror = "https://github.com/stackabletech/druid.git"
