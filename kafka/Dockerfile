@@ -15,7 +15,7 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches /stackable/src/kafka/stackable/patches
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"

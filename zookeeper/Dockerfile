@@ -11,7 +11,7 @@ ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
 # Copy patches into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches /stackable/src/zookeeper/stackable/patches
 # Copy JMX config into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
 

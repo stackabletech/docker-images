@@ -8,7 +8,7 @@ ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino-storage-connector/stackable/patches/${PRODUCT} /stackable/src/trino-storage-connector/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 trino-storage-connector/stackable/patches /stackable/src/trino-storage-connector/stackable/patches
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215

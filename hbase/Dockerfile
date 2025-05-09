@@ -26,7 +26,7 @@ COPY hbase/licenses /licenses
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches /stackable/src/hbase/stackable/patches
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
@@ -142,7 +142,7 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS} /stackable/src/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches /stackable/src/hbase-operator-tools/stackable/patches
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
@@ -241,7 +241,7 @@ ARG STACKABLE_USER_UID
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} /stackable/src/phoenix/stackable/patches/${PHOENIX}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches /stackable/src/phoenix/stackable/patches
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 

@@ -51,7 +51,7 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 EOF
 
 WORKDIR /build
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches /build/src/hadoop/stackable/patches
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /build
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
