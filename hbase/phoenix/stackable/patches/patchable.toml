@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/phoenix.git"
+default-mirror = "https://github.com/stackabletech/phoenix.git"
