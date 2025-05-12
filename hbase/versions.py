@@ -10,7 +10,7 @@ versions = [
         "async_profiler": "2.9",
         "phoenix": "5.2.1",
         "hbase_profile": "2.6",
-        "hadoop": "3.4.1",
+        "hadoop": "3.3.6",
         "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
