@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/nifi.git"
 base = "e0c4461d90bd4f6e5f2b81765bcff5cd97ed3e18"
+mirror = "https://github.com/stackabletech/nifi.git"

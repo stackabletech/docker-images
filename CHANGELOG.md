@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
+- airflow: Add `2.10.5` ([#1108]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
@@ -28,10 +29,12 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1055]).
 - superset: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
+- superset: Add version `4.1.2` ([#1102]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060], [#1106]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
@@ -48,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#916])
 
 ### Fixed
 
@@ -75,6 +79,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove legacy bundle-builder from container build ([#1103]).
 - hbase: Remove 2.4.18 ([#1101])
 
+[#916]: https://github.com/stackabletech/docker-images/pull/916
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
@@ -93,13 +98,17 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1060]: https://github.com/stackabletech/docker-images/pull/1060
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1101]: https://github.com/stackabletech/docker-images/pull/1101
+[#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
+[#1106]: https://github.com/stackabletech/docker-images/pull/1106
+[#1108]: https://github.com/stackabletech/docker-images/pull/1108
 
 ## [25.3.0] - 2025-03-21
 
