@@ -10,7 +10,6 @@ ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
 ARG HBASE_PROFILE
-ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
@@ -27,7 +26,6 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/patchable.toml /stackable/src/hbase/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
@@ -57,15 +55,6 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.c
 (cd .. && rm -r ${PRODUCT})
 
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
-
-###
-### JMX Prometheus Exporter/Agent
-###
-if [[ -n "${JMX_EXPORTER}" ]] ; then
-  curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-  chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-  ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
-fi
 
 ###
 ### Async Profiler
@@ -323,7 +312,6 @@ LABEL io.k8s.display-name="${NAME}"
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stackable/jmx/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
@@ -377,7 +365,6 @@ chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 # fix missing permissions
 chmod g=u /stackable/async-profiler
 chmod g=u /stackable/bin
-chmod g=u /stackable/jmx
 chmod g=u /stackable/phoenix
 # the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
 find /stackable/hadoop -type d -exec chmod g=u {} +

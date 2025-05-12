@@ -11,7 +11,6 @@ versions = [
         "phoenix": "5.2.1",
         "hbase_profile": "2.6",
         "hadoop": "3.4.1",
-        "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
         "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
@@ -25,7 +24,6 @@ versions = [
         "phoenix": "5.2.1",
         "hbase_profile": "2.6",
         "hadoop": "3.4.1",
-        "jmx_exporter": "",  # 2.6 exports jmx and prometheus metrics by default
         "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
         "delete_caches": "true",
     },
