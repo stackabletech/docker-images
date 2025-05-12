@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/hbase-connectors.git"
+default-mirror = "https://github.com/stackabletech/hbase-connectors.git"
