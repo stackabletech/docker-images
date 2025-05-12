@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add `2.10.5` ([#1108]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
+- druid: Add `33.0.0` ([#1110]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via

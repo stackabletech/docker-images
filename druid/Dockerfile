@@ -48,7 +48,15 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/sta
   <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout druid ${PRODUCT})"
 
-mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  clean install \
+  -Pdist,stackable-bundle-contrib-exts \
+  -DskipTests \
+  -Dmaven.javadoc.skip=true \
+  -Dmaven.gitcommitid.skip=true
+
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
 mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-druid-${PRODUCT}-src
@@ -58,9 +66,9 @@ rm -rf /stackable/apache-druid-${PRODUCT}-src
 # and we are sometimes running into errors because we're out of space.
 # Therefore, we try to clean up all layers as much as possible.
 if [ "${DELETE_CACHES}" = "true" ] ; then
-  rm -rf /stackable/.m2/repository/*
-  rm -rf /stackable/.npm/*
-  rm -rf /stackable/.cache/*
+rm -rf /stackable/.m2/repository/*
+rm -rf /stackable/.npm/*
+rm -rf /stackable/.cache/*
 fi
 
 # Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
