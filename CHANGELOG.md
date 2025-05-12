@@ -76,6 +76,7 @@ All notable changes to this project will be documented in this file.
 - Remove ubi8-rust-builder image ([#1091]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
+- nifi: Remove `2.2.0` ([#1114]).
 
 [#916]: https://github.com/stackabletech/docker-images/pull/916
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -106,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
+[#1114]: https://github.com/stackabletech/docker-images/pull/1114
 
 ## [25.3.0] - 2025-03-21
 
