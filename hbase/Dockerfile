@@ -196,7 +196,9 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
   # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
   # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
   # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
+  # So we try to copy both and if one of them doesn't exist buildx will just ignore it :)
   /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
 
