@@ -31,9 +31,7 @@ ARG TARGETARCH
 ARG STACKABLE_USER_UID
 ARG S3FS
 ARG CYCLONEDX_BOM
-
-COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
-COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
+ARG UV
 
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
@@ -62,19 +60,27 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY airflow/stackable/constraints/${PRODUCT}/constraints-python${PYTHON}.txt /tmp/constraints.txt
+COPY airflow/stackable/constraints/${PRODUCT}/build-constraints-python${PYTHON}.txt /tmp/build-constraints.txt
+COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
+
 RUN <<EOF
 python${PYTHON} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
 
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
 pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
-# Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
-# Needed for OIDC
-pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+pip install --no-cache-dir uv==${UV}
 
-pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
+uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+# Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
+uv pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
+# Needed for OIDC
+uv pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
+uv pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete

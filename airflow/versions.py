@@ -8,6 +8,7 @@ versions = [
         "statsd_exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
+        "uv": "0.7.3",
     },
     {
         "product": "2.10.4",
@@ -18,6 +19,7 @@ versions = [
         "statsd_exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
+        "uv": "0.7.3",
     },
     {
         "product": "2.10.5",
@@ -28,5 +30,6 @@ versions = [
         "statsd_exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
+        "uv": "0.7.3",
     },
 ]
