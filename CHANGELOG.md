@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add `2.10.5` ([#1108]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
+- druid: Add `33.0.0` ([#1110]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
@@ -78,6 +79,7 @@ All notable changes to this project will be documented in this file.
 - Remove ubi8-rust-builder image ([#1091]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
+- druid: Remove `30.0.0` ([#1110]).
 
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
@@ -107,6 +109,7 @@ All notable changes to this project will be documented in this file.
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
+[#1110]: https://github.com/stackabletech/docker-images/pull/1110
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
 
 ## [25.3.0] - 2025-03-21
