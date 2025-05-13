@@ -41,9 +41,7 @@ ARG AUTHLIB
 ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM
-
-COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
-COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+ARG UV
 
 RUN microdnf update \
     && microdnf install \
@@ -68,6 +66,12 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY superset/stackable/constraints/${PRODUCT}/constraints.txt /tmp/constraints.txt
+COPY superset/stackable/constraints/${PRODUCT}/build-constraints.txt /tmp/build-constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
 # DL3042 false-positive, --no-chache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
@@ -78,10 +82,12 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         setuptools==75.2.0 \
         pip \
-    && pip install \
+        uv==${UV} \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
-        --constraint /tmp/constraints.txt \
+        --constraints /tmp/constraints.txt \
+        --build-constraints /tmp/build-constraints.txt \
         apache-superset==${PRODUCT} \
         gevent \
         psycopg2-binary \
@@ -104,15 +110,15 @@ RUN python3 -m venv /stackable/app \
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
     && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
         then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
-        && pip install gunicorn==22.0.0; \
+        && uv pip install gunicorn==22.0.0; \
     fi \
-    && pip install \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
         cyclonedx-bom==${CYCLONEDX_BOM} \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
-    pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
+    uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 

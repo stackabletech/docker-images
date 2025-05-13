@@ -1,4 +1,4 @@
-From f6634ac02aa2fab11811915283e92c7b9ae1af5e Mon Sep 17 00:00:00 2001
+From 2f29d7ec5588eea232f964f0601ce2039efbbb13 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Thu, 12 Dec 2024 06:35:21 +0100
 Subject: Update FMPP version
@@ -12,10 +12,10 @@ which we don't want.
  1 file changed, 7 insertions(+)
 
 diff --git a/sql/pom.xml b/sql/pom.xml
-index 6669d43e52..1d02e4ef58 100644
+index 2304c14e26..d78b06029a 100644
 --- a/sql/pom.xml
 +++ b/sql/pom.xml
-@@ -384,6 +384,13 @@
+@@ -361,6 +361,13 @@
        <plugin>
          <groupId>com.googlecode.fmpp-maven-plugin</groupId>
          <artifactId>fmpp-maven-plugin</artifactId>
