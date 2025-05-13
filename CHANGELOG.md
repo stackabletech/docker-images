@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- airflow,superset: Use `uv` to build the product ([#1116]).
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
 - stackable-devel: Bump ubi9 base image ([#1103]).
@@ -54,6 +55,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- airflow: Pin Cython version ([#1116]).
 - druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
 - hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
@@ -64,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
 - opa: Manually install Go 1.23.9 ([#1103]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
+- superset: Pin Cython version ([#1116]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
@@ -107,6 +110,7 @@ All notable changes to this project will be documented in this file.
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
 [#1110]: https://github.com/stackabletech/docker-images/pull/1110
+[#1116]: https://github.com/stackabletech/docker-images/pull/1116
 
 ## [25.3.0] - 2025-03-21
 
