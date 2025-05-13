@@ -44,8 +44,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackab
 # are still working in the cache directory.
 
 # Let's have patchable as a dedicated step, as it fetches the druid sourcecode over the network,
-# thus taking a bit (which is annoying while development). We can re-run the same command later,
-# it just takes not so long on the second invocation.
+# thus taking a bit (which is annoying while development)
 RUN /stackable/patchable --images-repo-root=src checkout druid ${PRODUCT} > /tmp/DRUID_SOURCE_DIR
 
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
