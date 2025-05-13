@@ -76,9 +76,9 @@ rm -rf /stackable/apache-druid-${PRODUCT}-src
 # and we are sometimes running into errors because we're out of space.
 # Therefore, we try to clean up all layers as much as possible.
 if [ "${DELETE_CACHES}" = "true" ] ; then
-rm -rf /stackable/.m2/repository/*
-rm -rf /stackable/.npm/*
-rm -rf /stackable/.cache/*
+  rm -rf /stackable/.m2/repository/*
+  rm -rf /stackable/.npm/*
+  rm -rf /stackable/.cache/*
 fi
 
 # Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
