@@ -39,7 +39,6 @@ struct ProductConfig {
     ///
     /// This value is _not_ used by `checkout`, that uses [`ProductVersionConfig::mirror`] instead.
     /// `init --mirror` copies this value into [`ProductVersionConfig::mirror`].
-    #[serde(skip_serializing_if = "Option::is_none")]
     default_mirror: Option<String>,
 }
 
@@ -583,6 +582,7 @@ fn main() -> Result<()> {
             let mirror_url = if mirror {
                 let mut mirror_url = config
                     .default_mirror
+                    .filter(|s| !s.is_empty())
                     .context(InitMirrorNotConfiguredSnafu)?;
                 if ssh {
                     mirror_url =
