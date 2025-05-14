@@ -1,14 +1,25 @@
 use std::path::Path;
 
 use git2::Repository;
+use snafu::{OptionExt as _, Snafu};
 use tracing::Span;
 use tracing_indicatif::{span_ext::IndicatifSpanExt, style::ProgressStyle};
 
-pub fn progress_bar_style() -> ProgressStyle {
-    ProgressStyle::with_template(
-        "{span_child_prefix}{spinner} {span_name}{{{span_fields}}} {wide_msg} {bar:40} {percent:>3}%",
-    )
-    .expect("hard-coded template should be valid")
+#[derive(Debug, Snafu)]
+pub enum UrlRewriteError {
+    #[snafu(display("URL does not have https schema: {}", url))]
+    NoHttpsSchema { url: String },
+}
+
+/// Rewrites a given URL to an SSH-style Git URL
+/// For example, `https://github.com/user/repo.git` becomes `git@github.com:user/repo.git`.
+pub fn rewrite_git_https_url_to_ssh(original_url: &str) -> Result<String, UrlRewriteError> {
+    let schemaless = original_url
+        .strip_prefix("https://")
+        .context(NoHttpsSchemaSnafu {
+            url: original_url.to_string(),
+        })?;
+    Ok(format!("ssh://git@{schemaless}"))
 }
 
 /// Runs a function whenever a `value` changes "enough".
@@ -93,4 +104,31 @@ pub mod oid_serde {
         String::deserialize(de)
             .and_then(|oid| Oid::from_str(&oid).map_err(<D::Error as serde::de::Error>::custom))
     }
+}
+
+/// Sets up progress tracking for Git operations with a progress bar.
+pub fn setup_progress_tracking(span: tracing::Span) -> (tracing::Span, Quantizer) {
+    span.pb_set_style(&ProgressStyle::with_template(
+        "{span_child_prefix}{spinner} {span_name}{{{span_fields}}} {wide_msg} {bar:40} {percent:>3}%",
+    )
+    .expect("hard-coded template should be valid"));
+    let quantizer = Quantizer::percent();
+    (span, quantizer)
+}
+
+/// Basic configuration of credentials for Git operations.
+pub fn setup_git_credentials<'a>() -> git2::RemoteCallbacks<'a> {
+    let mut callbacks = git2::RemoteCallbacks::new();
+    callbacks.credentials(|url, username_from_url, allowed_types| {
+        if allowed_types.contains(git2::CredentialType::SSH_KEY) {
+            git2::Cred::ssh_key_from_agent(username_from_url.unwrap_or("git"))
+        } else {
+            git2::Cred::credential_helper(
+                &git2::Config::open_default().expect("failed to open default Git configuration"),
+                url,
+                username_from_url,
+            )
+        }
+    });
+    callbacks
 }

@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/phoenix-omid.git"
+default-mirror = "https://github.com/stackabletech/phoenix-omid.git"
