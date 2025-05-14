@@ -15,6 +15,7 @@ ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
 
 RUN /stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT}
@@ -42,6 +43,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 # Patch the hbase-connectors source code
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF

@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/zookeeper.git"
+default-mirror = "https://github.com/stackabletech/zookeeper.git"
