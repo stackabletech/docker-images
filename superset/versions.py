@@ -7,6 +7,7 @@ versions = [
         "statsd_exporter": "0.28.0",
         "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.4.1/requirements/extra.txt#L7
         "stackable-base": "1.0.0",
+        "uv": "0.7.3",
     },
     {
         "product": "4.1.1",
@@ -16,6 +17,7 @@ versions = [
         "statsd_exporter": "0.28.0",
         "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
         "stackable-base": "1.0.0",
+        "uv": "0.7.3",
     },
     {
         "product": "4.1.2",
@@ -25,5 +27,6 @@ versions = [
         "statsd_exporter": "0.28.0",
         "authlib": "1.2.1",  # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
         "stackable-base": "1.0.0",
+        "uv": "0.7.3",
     },
 ]
