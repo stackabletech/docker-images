@@ -84,7 +84,6 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
-[#916]: https://github.com/stackabletech/docker-images/pull/916
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
