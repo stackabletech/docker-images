@@ -1,2 +1,65 @@
 <settings>
+  <mirrors>
+    <mirror>
+      <id>nexus</id>
+      <mirrorOf>*</mirrorOf>
+      <url>https://build-repo.stackable.tech/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+
+  <profiles>
+    <profile>
+      <id>stackable</id>
+
+      <!--Enable snapshots for the built-in central repo to direct -->
+      <!--all requests to nexus via the mirror -->
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+
+      <properties>
+        <!--
+        This is to work around an issue where Maven builds in Github Actions would randomly fail.
+        There is some evidence that points at Azure networking as the root cause where it closes idle connections (silently) after 4 minutes.
+        Maven would then sometimes reuse an "old" connection from its connection pool and would encounter issues due to these connection closures.
+        This patch changes the TTL for the connections to a lower value than 4 minutes (240s), the default is 300s (5min).
+
+        There are two properties here because sometimes in November 2023 the name was changed.
+        The new name will only take effect as of Maven 4, but it doesn't hurt to add it here already, therefore, we just add both properties here.
+        https://issues.apache.org/jira/browse/MRESOLVER-440
+        -->
+
+        <!-- Old name: maven-resolver 1.x, Maven 3.x -->
+        <aether.connector.http.connectionMaxTtl>30</aether.connector.http.connectionMaxTtl>
+
+        <!-- New name: maven-resolver 2.x, as of Maven 4.x -->
+        <aether.transport.http.connectionMaxTtl>30</aether.transport.http.connectionMaxTtl>
+      </properties>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <!--make the stackable profile active all the time -->
+    <activeProfile>stackable</activeProfile>
+  </activeProfiles>
 </settings>
