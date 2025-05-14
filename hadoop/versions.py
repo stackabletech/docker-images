@@ -1,5 +1,6 @@
 versions = [
     {
+        # Not part of SDP 25.7.0, but still required for hbase, hive, spark-k8s
         "product": "3.3.6",
         "java-base": "11",
         "java-devel": "11",
