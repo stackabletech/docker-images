@@ -516,13 +516,11 @@ fn main() -> Result<()> {
                     "creating product configuration directory and file"
                 );
 
-                let product_config_dir = product_config_path
-                    .parent()
-                    .expect("product config should have a hard-coded parent");
-
-                std::fs::create_dir_all(product_config_dir).context(CreatePatchDirSnafu {
-                    path: product_config_dir,
-                })?;
+                if let Some(product_config_dir) = product_config_path.parent() {
+                    std::fs::create_dir_all(product_config_dir).context(CreatePatchDirSnafu {
+                        path: product_config_dir,
+                    })?;
+                }
 
                 let product_config = ProductConfig {
                     upstream,
