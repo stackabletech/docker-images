@@ -78,6 +78,7 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
+- hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
 - druid: Remove `30.0.0` ([#1110]).
@@ -108,6 +109,7 @@ All notable changes to this project will be documented in this file.
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1099]: https://github.com/stackabletech/docker-images/pull/1099
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
