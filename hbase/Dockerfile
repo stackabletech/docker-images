@@ -46,8 +46,25 @@ cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+# Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  -Dhadoop.profile=3.0 \
+  -Dhadoop-three.version=${HADOOP} \
+  -DskipTests \
+  clean install
+
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  -Dhadoop.profile=3.0 \
+  -Dhadoop-three.version=${HADOOP} \
+  -DskipTests \
+  -Dcheckstyle.skip=true \
+  -Prelease \
+  install assembly:single
+
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
 
@@ -81,6 +98,7 @@ EOF
 
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
+ARG PRODUCT
 ARG OPA_AUTHORIZER
 ARG DELETE_CACHES
 ARG STACKABLE_USER_UID
@@ -88,7 +106,9 @@ ARG STACKABLE_USER_UID
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+# Use the product version as cache id "maven-opa-${PRODUCT}" to avoid the "rm -rf" problem described above.
+# Using the OPA_AUTHORIZER arg is not unique if the same version is used for multiple products.
+RUN --mount=type=cache,id=maven-opa-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 ###
 ### OPA Authorizer (only for 2.6 upwards)
 ###
@@ -97,9 +117,10 @@ if [[ -n "$OPA_AUTHORIZER" ]]; then
     mvn \
       --batch-mode \
       --no-transfer-progress \
-      package \
       -DskipTests \
-      -fhbase-opa-authorizer
+      -Dmaven.test.skip=true \
+      -fhbase-opa-authorizer \
+      package
 else
   # Create a dummy jar to avoid errors when copying it the final image
   mkdir -p hbase-opa-authorizer/target
@@ -238,7 +259,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-phoenix-${PHOENIX}-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
@@ -250,6 +271,7 @@ mvn \
   -Dhbase.profile=${HBASE_PROFILE} \
   -Dhadoop.version=${HADOOP} \
   -DskipTests \
+  -Dmaven.test.skip=true \
   -Dcheckstyle.skip=true \
   clean \
   package
