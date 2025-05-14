@@ -184,7 +184,7 @@ enum Cmd {
     /// Creates patchable.toml configuration files
     Init {
         #[clap(subcommand)]
-        init_type: InitType,
+        init_type: InitCmd,
     },
 
     /// Shows the patch directory for a given product version
@@ -206,7 +206,7 @@ enum Cmd {
 }
 
 #[derive(clap::Parser)]
-enum InitType {
+enum InitCmd {
     /// Creates a patchable.toml for a given product
     Product {
         /// The product name slug (such as druid)
@@ -498,7 +498,7 @@ fn main() -> Result<()> {
 
         Cmd::Init {
             init_type:
-                InitType::Product {
+                InitCmd::Product {
                     product,
                     upstream,
                     default_mirror,
@@ -546,7 +546,7 @@ fn main() -> Result<()> {
 
         Cmd::Init {
             init_type:
-                InitType::Version {
+                InitCmd::Version {
                     pv,
                     base,
                     mirror,
