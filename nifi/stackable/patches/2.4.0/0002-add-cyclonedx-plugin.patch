@@ -1,17 +1,17 @@
-From 5fb37840eb45dc2b159089e75e2d0ef3054ac03d Mon Sep 17 00:00:00 2001
-From: Lukas Voetmand <lukas.voetmand@stackable.tech>
-Date: Fri, 6 Sep 2024 17:53:52 +0200
-Subject: Add CycloneDX plugin
+From a9fc3a2eea5add80ca03e8fba97d83d2952f2e5d Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 17 Feb 2025 17:31:17 +0100
+Subject: add cyclonedx plugin
 
 ---
  pom.xml | 18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index 7885e6c208..07e03e66cd 100644
+index 78f53a9aab..fdcc97cd51 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1007,6 +1007,24 @@
+@@ -1013,6 +1013,24 @@
                      </rulesets>
                  </configuration>
              </plugin>
