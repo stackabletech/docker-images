@@ -1,24 +1,25 @@
-From 6f9e3cae1bd74e7feeca428d34f078c5542dfc2c Mon Sep 17 00:00:00 2001
+From 958fd8f17dd203329b1da058e4714762412b4c57 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Wed, 16 Apr 2025 16:43:33 +0200
 Subject: extend servername with external host and port
 
 ---
- .../hbase/shaded/protobuf/ProtobufUtil.java   | 15 ++++++--
- .../org/apache/hadoop/hbase/ServerName.java   | 35 ++++++++++++++++++-
- .../src/main/protobuf/HBase.proto             |  2 ++
+ .../hbase/shaded/protobuf/ProtobufUtil.java   | 15 ++++++-
+ .../org/apache/hadoop/hbase/ServerName.java   | 43 ++++++++++++++++++-
+ .../src/main/protobuf/HBase.proto             |  2 +
  .../main/protobuf/RegionServerStatus.proto    |  3 ++
- hbase-protocol/src/main/protobuf/HBase.proto  |  2 ++
- .../src/main/protobuf/ZooKeeper.proto         |  2 ++
+ hbase-protocol/src/main/protobuf/HBase.proto  |  2 +
+ .../src/main/protobuf/ZooKeeper.proto         |  2 +
  .../tmpl/master/RegionServerListTmpl.jamon    |  2 +-
- .../apache/hadoop/hbase/master/HMaster.java   |  7 ++++
- .../hadoop/hbase/master/ServerManager.java    |  4 ++-
- .../hbase/regionserver/HRegionServer.java     | 16 ++++++++-
- .../resources/hbase-webapps/master/hbck.jsp   |  4 +--
- .../hbase-webapps/master/rsgroup.jsp          | 15 +++-----
- .../resources/hbase-webapps/master/table.jsp  | 30 ++++++++--------
+ .../tmpl/regionserver/RSStatusTmpl.jamon      |  2 +-
+ .../apache/hadoop/hbase/master/HMaster.java   |  7 +++
+ .../hadoop/hbase/master/ServerManager.java    |  4 +-
+ .../hbase/regionserver/HRegionServer.java     | 16 ++++++-
+ .../resources/hbase-webapps/master/hbck.jsp   |  4 +-
+ .../hbase-webapps/master/rsgroup.jsp          | 15 +++----
+ .../resources/hbase-webapps/master/table.jsp  | 30 ++++++-------
  .../hbase/zookeeper/MasterAddressTracker.java |  3 ++
- 14 files changed, 107 insertions(+), 33 deletions(-)
+ 15 files changed, 116 insertions(+), 34 deletions(-)
 
 diff --git a/hbase-client/src/main/java/org/apache/hadoop/hbase/shaded/protobuf/ProtobufUtil.java b/hbase-client/src/main/java/org/apache/hadoop/hbase/shaded/protobuf/ProtobufUtil.java
 index 0fe181b503..be121ea641 100644
@@ -68,7 +69,7 @@ index 0fe181b503..be121ea641 100644
          // A failed parse of the znode is pretty catastrophic. Rather than loop
          // retrying hoping the bad bytes will changes, and rather than change
 diff --git a/hbase-common/src/main/java/org/apache/hadoop/hbase/ServerName.java b/hbase-common/src/main/java/org/apache/hadoop/hbase/ServerName.java
-index 5223bac3e5..932865ca69 100644
+index 5223bac3e5..979eb4c6ae 100644
 --- a/hbase-common/src/main/java/org/apache/hadoop/hbase/ServerName.java
 +++ b/hbase-common/src/main/java/org/apache/hadoop/hbase/ServerName.java
 @@ -85,6 +85,8 @@ public class ServerName implements Comparable<ServerName>, Serializable {
@@ -115,7 +116,7 @@ index 5223bac3e5..932865ca69 100644
    /**
     * Retrieve an instance of ServerName. Callers should use the equals method to compare returned
     * instances, though we may return a shared immutable object as an internal optimization.
-@@ -253,6 +270,22 @@ public class ServerName implements Comparable<ServerName>, Serializable {
+@@ -253,6 +270,30 @@ public class ServerName implements Comparable<ServerName>, Serializable {
      return this.address.getPort();
    }
  
@@ -125,6 +126,14 @@ index 5223bac3e5..932865ca69 100644
 +
 +  public Integer getExternalPort() {
 +    return this.externalPort;
++  }
++
++  public String getDisplayHostname() {
++    return this.externalHostname != null && !this.externalHostname.isEmpty() ? this.externalHostname: this.getHostname();
++  }
++
++  public Integer getDisplayPort() {
++    return this.externalPort != null && this.externalPort > 0 ? this.externalPort: this.getPort();
 +  }
 +
 +  public void setAddress(Address address) {
@@ -192,7 +201,7 @@ index c0f40e970e..bddadf4d30 100644
  
  /**
 diff --git a/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/master/RegionServerListTmpl.jamon b/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/master/RegionServerListTmpl.jamon
-index 4c9140470b..604ecd7b2a 100644
+index 4c9140470b..641f558d87 100644
 --- a/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/master/RegionServerListTmpl.jamon
 +++ b/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/master/RegionServerListTmpl.jamon
 @@ -500,7 +500,7 @@ if  (totalCompactingCells > 0) {
@@ -200,10 +209,23 @@ index 4c9140470b..604ecd7b2a 100644
          <%java>
          int infoPort = master.getRegionServerInfoPort(serverName);
 -        String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";
-+        String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";
++        String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";
          </%java>
  
          <%if infoPort > 0%>
+diff --git a/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/regionserver/RSStatusTmpl.jamon b/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/regionserver/RSStatusTmpl.jamon
+index 23330096cf..3abe5d617d 100644
+--- a/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/regionserver/RSStatusTmpl.jamon
++++ b/hbase-server/src/main/jamon/org/apache/hadoop/hbase/tmpl/regionserver/RSStatusTmpl.jamon
+@@ -245,7 +245,7 @@ org.apache.hadoop.hbase.zookeeper.MasterAddressTracker;
+                 No master found
+                 <%else>
+                 <%java>
+-                String host = masterServerName.getHostname() + ":" + infoPort;
++                String host = masterServerName.getDisplayHostname() + ":" + masterServerName.getDisplayPort();
+                 String url = "//" + host + "/master-status";
+                 </%java>
+                 <a href="<% url %>"><% host %></a>
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
 index 3fe5abac27..652c709ab5 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
@@ -279,7 +301,7 @@ index 27bcef2f06..8438378059 100644
      } catch (ServiceException se) {
        IOException ioe = ProtobufUtil.getRemoteException(se);
 diff --git a/hbase-server/src/main/resources/hbase-webapps/master/hbck.jsp b/hbase-server/src/main/resources/hbase-webapps/master/hbck.jsp
-index 38e16ca8e2..c30fd7753e 100644
+index 38e16ca8e2..61e4cf2b17 100644
 --- a/hbase-server/src/main/resources/hbase-webapps/master/hbck.jsp
 +++ b/hbase-server/src/main/resources/hbase-webapps/master/hbck.jsp
 @@ -364,9 +364,9 @@ private static String formatServerName(HMaster master,
@@ -287,15 +309,15 @@ index 38e16ca8e2..c30fd7753e 100644
    String sn = serverName.toString();
    if (serverManager.isServerOnline(serverName)) {
 -    int infoPort = master.getRegionServerInfoPort(serverName);
-+    int infoPort = serverName.getExternalPort();
++    int infoPort = serverName.getDisplayPort();
      if (infoPort > 0) {
 -      return "<a href=" + "//" + serverName.getHostname() + ":" +
-+      return "<a href=" + "//" + serverName.getExternalHostname() + ":" +
++      return "<a href=" + "//" + serverName.getDisplayHostname() + ":" +
          infoPort + "/rs-status>" + sn + "</a>";
      } else {
        return "<b>" + sn + "</b>";
 diff --git a/hbase-server/src/main/resources/hbase-webapps/master/rsgroup.jsp b/hbase-server/src/main/resources/hbase-webapps/master/rsgroup.jsp
-index 6ba6f78a27..f3275b9165 100644
+index 6ba6f78a27..d05e1bc8f0 100644
 --- a/hbase-server/src/main/resources/hbase-webapps/master/rsgroup.jsp
 +++ b/hbase-server/src/main/resources/hbase-webapps/master/rsgroup.jsp
 @@ -170,8 +170,7 @@
@@ -304,7 +326,7 @@ index 6ba6f78a27..f3275b9165 100644
                     long startcode = serverName.getStartcode();
 -                   int infoPort = master.getRegionServerInfoPort(serverName);
 -                   String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";%>
-+                   String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";%>
++                   String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";%>
                     <tr>
                       <td><a href="<%= url %>"><%= serverName.getServerName() %></a></td>
                       <td><%= new Date(startcode) %></td>
@@ -314,7 +336,7 @@ index 6ba6f78a27..f3275b9165 100644
                             .sum();
 -                   int infoPort = master.getRegionServerInfoPort(serverName);
 -                   String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";
-+                   String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";
++                   String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";
  
                     if (memStoreSizeMB > 0) {
                       memStoreSizeMBStr = TraditionalBinaryPrefix.long2String(
@@ -330,7 +352,7 @@ index 6ba6f78a27..f3275b9165 100644
                       writeRequestCount += rm.getWriteRequestCount();
                     }
 -                   String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";
-+                   String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";
++                   String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";
              %>
                     <tr>
                       <td><a href="<%= url %>"><%= serverName.getServerName() %></a></td>
@@ -340,7 +362,7 @@ index 6ba6f78a27..f3275b9165 100644
                      }
 -                    int infoPort = master.getRegionServerInfoPort(serverName);
 -                    String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";
-+                    String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";
++                    String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";
                      if (storeUncompressedSizeMB > 0) {
                        storeUncompressedSizeMBStr = TraditionalBinaryPrefix.long2String(
                        (long) storeUncompressedSizeMB * TraditionalBinaryPrefix.MEGA.value, "B", 1);
@@ -350,12 +372,12 @@ index 6ba6f78a27..f3275b9165 100644
                      }
 -                    int infoPort = master.getRegionServerInfoPort(serverName);
 -                    String url = "//" + serverName.getHostname() + ":" + infoPort + "/rs-status";
-+                    String url = "//" + serverName.getExternalHostname() + ":" + serverName.getExternalPort() + "/rs-status";
++                    String url = "//" + serverName.getDisplayHostname() + ":" + serverName.getDisplayPort() + "/rs-status";
              %>
                      <tr>
                        <td><a href="<%= url %>"><%= serverName.getServerName() %></a></td>
 diff --git a/hbase-server/src/main/resources/hbase-webapps/master/table.jsp b/hbase-server/src/main/resources/hbase-webapps/master/table.jsp
-index 56a0c8096d..49c8a69c60 100644
+index 56a0c8096d..01fbde1b18 100644
 --- a/hbase-server/src/main/resources/hbase-webapps/master/table.jsp
 +++ b/hbase-server/src/main/resources/hbase-webapps/master/table.jsp
 @@ -93,8 +93,8 @@
@@ -374,7 +396,7 @@ index 56a0c8096d..49c8a69c60 100644
      }
  
 -    final String socketAddress = serverName.getHostname() + ":" + rsInfoPort;
-+    final String socketAddress = serverName.getExternalHostname() + ":" + serverName.getExternalPort();
++    final String socketAddress = serverName.getDisplayHostname() + ":" + serverName.getDisplayPort();
      final String URI = "//" + socketAddress + "/region.jsp"
        + "?name=" + regionInfo.getEncodedName();
      return "<a href=\"" + URI + "\">" + serverName.getServerName() + "</a>";
@@ -383,7 +405,7 @@ index 56a0c8096d..49c8a69c60 100644
                      ServerMetrics sl = master.getServerManager().getLoad(metaLocation);
                      // The host name portion should be safe, but I don't know how we handle IDNs so err on the side of failing safely.
 -                    hostAndPort = URLEncoder.encode(metaLocation.getHostname()) + ":" + master.getRegionServerInfoPort(metaLocation);
-+                    hostAndPort = URLEncoder.encode(metaLocation.getExternalHostname()) + ":" + metaLocation.getExternalPort().toString();
++                    hostAndPort = URLEncoder.encode(metaLocation.getDisplayHostname()) + ":" + metaLocation.getDisplayPort().toString();
                      if (sl != null) {
                        Map<byte[], RegionMetrics> map = sl.getRegionMetrics();
                        if (map.containsKey(meta.getRegionName())) {
@@ -392,7 +414,7 @@ index 56a0c8096d..49c8a69c60 100644
                     if (metaLocation != null) {
                       ServerMetrics sl = master.getServerManager().getLoad(metaLocation);
 -                     hostAndPort = URLEncoder.encode(metaLocation.getHostname()) + ":" + master.getRegionServerInfoPort(metaLocation);
-+                     hostAndPort = URLEncoder.encode(metaLocation.getExternalHostname()) + ":" + metaLocation.getExternalPort().toString();
++                     hostAndPort = URLEncoder.encode(metaLocation.getDisplayHostname()) + ":" + metaLocation.getDisplayPort().toString();
                       if (sl != null) {
                         Map<byte[], RegionMetrics> map = sl.getRegionMetrics();
                         if (map.containsKey(meta.getRegionName())) {
@@ -401,7 +423,7 @@ index 56a0c8096d..49c8a69c60 100644
                    if (metaLocation != null) {
                      ServerMetrics sl = master.getServerManager().getLoad(metaLocation);
 -                    hostAndPort = URLEncoder.encode(metaLocation.getHostname()) + ":" + master.getRegionServerInfoPort(metaLocation);
-+                    hostAndPort = URLEncoder.encode(metaLocation.getExternalHostname()) + ":" + metaLocation.getExternalPort().toString();
++                    hostAndPort = URLEncoder.encode(metaLocation.getDisplayHostname()) + ":" + metaLocation.getDisplayPort().toString();
                      if (sl != null) {
                        Map<byte[], RegionMetrics> map = sl.getRegionMetrics();
                        if (map.containsKey(meta.getRegionName())) {
@@ -419,7 +441,7 @@ index 56a0c8096d..49c8a69c60 100644
                    // This port might be wrong if RS actually ended up using something else.
                    urlRegionServer =
 -                          "//" + URLEncoder.encode(addr.getHostname()) + ":" + master.getRegionServerInfoPort(addr) + "/rs-status";
-+                          "//" + URLEncoder.encode(addr.getExternalHostname()) + ":" + addr.getExternalPort().toString() + "/rs-status";
++                          "//" + URLEncoder.encode(addr.getDisplayHostname()) + ":" + addr.getDisplayPort().toString() + "/rs-status";
                    if(sl != null) {
                      Integer i = regDistribution.get(addr);
                      if (null == i) i = Integer.valueOf(0);
@@ -428,7 +450,7 @@ index 56a0c8096d..49c8a69c60 100644
                %>
                <td>
 -                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getHostname().toString()) + ":" + master.getRegionServerInfoPort(addr) %></a>
-+                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getExternalHostname().toString()) + ":" + addr.getExternalPort().toString() %></a>
++                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getDisplayHostname().toString()) + ":" + addr.getDisplayPort().toString() %></a>
                </td>
                <%
                } else {
@@ -437,7 +459,7 @@ index 56a0c8096d..49c8a69c60 100644
                    // This port might be wrong if RS actually ended up using something else.
                    urlRegionServer =
 -                    "//" + URLEncoder.encode(addr.getHostname()) + ":" + master.getRegionServerInfoPort(addr) + "/rs-status";
-+                    "//" + URLEncoder.encode(addr.getExternalHostname()) + ":" + addr.getExternalPort().toString() + "/rs-status";
++                    "//" + URLEncoder.encode(addr.getDisplayHostname()) + ":" + addr.getDisplayPort().toString() + "/rs-status";
                  }
                  if (numRegionsRendered < numRegionsToRender) {
                    numRegionsRendered++;
@@ -446,7 +468,7 @@ index 56a0c8096d..49c8a69c60 100644
                %>
                <td>
 -                 <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getHostname().toString()) + ":" + master.getRegionServerInfoPort(addr) %></a>
-+                 <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getExternalHostname().toString()) + ":" + addr.getExternalPort().toString() %></a>
++                 <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getDisplayHostname().toString()) + ":" + addr.getDisplayPort().toString() %></a>
                </td>
                <%
                } else {
@@ -455,7 +477,7 @@ index 56a0c8096d..49c8a69c60 100644
                    // This port might be wrong if RS actually ended up using something else.
                    urlRegionServer =
 -                          "//" + URLEncoder.encode(addr.getHostname()) + ":" + master.getRegionServerInfoPort(addr) + "/rs-status";
-+                          "//" + URLEncoder.encode(addr.getExternalHostname()) + ":" + addr.getExternalPort().toString() + "/rs-status";
++                          "//" + URLEncoder.encode(addr.getDisplayHostname()) + ":" + addr.getDisplayPort().toString() + "/rs-status";
                  }
                  if (numRegionsRendered < numRegionsToRender) {
                    numRegionsRendered++;
@@ -464,7 +486,7 @@ index 56a0c8096d..49c8a69c60 100644
                %>
                <td>
 -                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getHostname().toString()) + ":" + master.getRegionServerInfoPort(addr) %></a>
-+                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getExternalHostname().toString()) + ":" + addr.getExternalPort().toString() %></a>
++                <a href="<%= urlRegionServer %>"><%= addr == null? "-": StringEscapeUtils.escapeHtml4(addr.getDisplayHostname().toString()) + ":" + addr.getDisplayPort().toString() %></a>
                </td>
                <%
                } else {
@@ -473,11 +495,11 @@ index 56a0c8096d..49c8a69c60 100644
            for (Map.Entry<ServerName, Integer> rdEntry : regDistribution.entrySet()) {
              ServerName addr = rdEntry.getKey();
 -            String url = "//" + URLEncoder.encode(addr.getHostname()) + ":" + master.getRegionServerInfoPort(addr) + "/rs-status";
-+            String url = "//" + URLEncoder.encode(addr.getExternalHostname()) + ":" + addr.getExternalPort().toString() + "/rs-status";
++            String url = "//" + URLEncoder.encode(addr.getDisplayHostname()) + ":" + addr.getDisplayPort().toString() + "/rs-status";
          %>
          <tr>
 -          <td><a href="<%= url %>"><%= StringEscapeUtils.escapeHtml4(addr.getHostname().toString()) + ":" + master.getRegionServerInfoPort(addr) %></a></td>
-+          <td><a href="<%= url %>"><%= StringEscapeUtils.escapeHtml4(addr.getExternalHostname().toString()) + ":" + addr.getExternalPort().toString() %></a></td>
++          <td><a href="<%= url %>"><%= StringEscapeUtils.escapeHtml4(addr.getDisplayHostname().toString()) + ":" + addr.getDisplayPort().toString() %></a></td>
            <td><%= rdEntry.getValue()%></td>
            <%
              if (withReplica) {
