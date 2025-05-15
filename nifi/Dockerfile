@@ -81,6 +81,8 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
     curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
     cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
 
+    sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
+
     mvn \
         --batch-mode \
         --no-transfer-progress\
