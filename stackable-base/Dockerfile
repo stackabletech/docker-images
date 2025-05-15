@@ -30,7 +30,7 @@ EOF
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS final
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:653248684b69964d22876ab95ed379d1bda894c682fa6c058f26bd7e23cea232 AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -147,8 +147,10 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
 # Until they are removed by default from ca-certificates, we should remove them manually
-if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch" ]; then
-  echo "The ca-certificates package was updated. Please check if the e-Tugra root certificates are present. \
+CA_CERTIFICATES_PACKAGE_VERSION=$(rpm -qa ca-certificates)
+if [ "$CA_CERTIFICATES_PACKAGE_VERSION" != "ca-certificates-2024.2.69_v8.0.303-102.3.el10.noarch" ]; then
+  echo "The ca-certificates package was updated to $CA_CERTIFICATES_PACKAGE_VERSION. \
+Please check if the e-Tugra root certificates are present. \
 When they have been removed, manually blacklisting them should be removed"
   echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'"
   trust list --filter=ca-anchors | grep 'E-Tugra'
