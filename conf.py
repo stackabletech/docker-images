@@ -22,6 +22,7 @@ kafka = importlib.import_module("kafka.versions")
 krb5 = importlib.import_module("krb5.versions")
 vector = importlib.import_module("vector.versions")
 nifi = importlib.import_module("nifi.versions")
+nifi_iceberg_bundle = importlib.import_module("nifi.iceberg-bundle.versions")
 omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
 spark_k8s = importlib.import_module("spark-k8s.versions")
@@ -30,13 +31,13 @@ stackable_devel = importlib.import_module("stackable-devel.versions")
 superset = importlib.import_module("superset.versions")
 trino_cli = importlib.import_module("trino-cli.versions")
 trino = importlib.import_module("trino.versions")
-trino_storage_connector = importlib.import_module("trino-storage-connector.versions")
+trino_storage_connector = importlib.import_module("trino.storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
-kcat = importlib.import_module("kcat.versions")
+kcat = importlib.import_module("kafka.kcat.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
-statsd_exporter = importlib.import_module("statsd_exporter.versions")
+statsd_exporter = importlib.import_module("shared.statsd-exporter.versions")
 spark_connect_client = importlib.import_module("spark-connect-client.versions")
 
 products = [
@@ -52,6 +53,7 @@ products = [
     {"name": "krb5", "versions": krb5.versions},
     {"name": "vector", "versions": vector.versions},
     {"name": "nifi", "versions": nifi.versions},
+    {"name": "nifi/iceberg-bundle", "versions": nifi_iceberg_bundle.versions},
     {"name": "omid", "versions": omid.versions},
     {"name": "opa", "versions": opa.versions},
     {"name": "spark-k8s", "versions": spark_k8s.versions},
@@ -60,13 +62,13 @@ products = [
     {"name": "superset", "versions": superset.versions},
     {"name": "trino-cli", "versions": trino_cli.versions},
     {"name": "trino", "versions": trino.versions},
-    {"name": "trino-storage-connector", "versions": trino_storage_connector.versions},
+    {"name": "trino/storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
-    {"name": "kcat", "versions": kcat.versions},
+    {"name": "kafka/kcat", "versions": kcat.versions},
     {"name": "testing-tools", "versions": testing_tools.versions},
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},
-    {"name": "statsd_exporter", "versions": statsd_exporter.versions},
+    {"name": "shared/statsd-exporter", "versions": statsd_exporter.versions},
     {"name": "spark-connect-client", "versions": spark_connect_client.versions},
 ]
 

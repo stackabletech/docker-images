@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/statsd_exporter AS statsd_exporter-builder
-
 FROM stackable/image/stackable-base AS opa-authorizer-builder
 
 ARG PYTHON
@@ -36,6 +34,7 @@ EOF
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
+ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG AUTHLIB
 ARG TARGETARCH
@@ -120,7 +119,8 @@ RUN python3 -m venv /stackable/app \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
     uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=stackable/image/shared/statsd-exporter /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=stackable/image/shared/statsd-exporter /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
 
 RUN <<EOF
 cd /stackable

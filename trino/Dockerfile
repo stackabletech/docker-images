@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
-
 FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
@@ -14,7 +12,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/patchable.toml /stackable/src/trino/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/src/trino/stackable/patches/${PRODUCT}
 
-COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
+COPY --from=stackable/image/trino/storage-connector /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
