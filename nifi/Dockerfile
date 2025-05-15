@@ -54,6 +54,20 @@ mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PR
 # Copy the SBOM as well
 mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json
 
+# Get a list of NARs
+export NARS=$(ls nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT}/lib/*.nar | awk -F '/' '{ print $6 }' | sed "s/\-${PRODUCT}.nar\$//g")
+# Get a list of SBOMs
+find . -name bom.json > bomlist.txt
+
+for nar in $NARS; do
+    # Try to find the NAR in the list of SBOMs
+    match=$(grep "\/$nar\/target\/bom.json" bomlist.txt || true)
+    if [[ -n "$match" ]]; then
+        # Copy the SBOM of the NAR
+        cp "$match" "/stackable/$nar.cdx.json"
+    fi
+done
+
 # Remove sources
 (cd .. && rm -r ${PRODUCT})
 
