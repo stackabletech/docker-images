@@ -35,7 +35,7 @@ COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager
 
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
-ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
+ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf-kubernetes,docker,elasticsearch,fab,ftp,grpc,hashicorp,http,ldap,google,microsoft-azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,trino
 
 RUN microdnf update && \
     microdnf install \
