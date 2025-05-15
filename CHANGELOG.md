@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
+- kafka: Add `4.0.0` ([#1117])
 
 ### Changed
 
@@ -85,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove 2.4.18 ([#1101])
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
+- kafka: Remove `3.7.1` and `3.8.0` ([#1117])
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -120,6 +122,7 @@ All notable changes to this project will be documented in this file.
 [#1110]: https://github.com/stackabletech/docker-images/pull/1110
 [#1114]: https://github.com/stackabletech/docker-images/pull/1114
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
+[#1117]: https://github.com/stackabletech/docker-images/pull/1117
 
 ## [25.3.0] - 2025-03-21
 
