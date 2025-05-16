@@ -120,7 +120,7 @@ RUN <<EOF
 mkdir -p /stackable
 
 curl -L "https://github.com/DavidGitter/nifi-opa-plugin/archive/refs/tags/v${NIFI_OPA_AUTHORIZER_PLUGIN}.tar.gz" | tar -xzC .
-cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer
+cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer || exit
 
 mvn \
     --batch-mode \
@@ -129,9 +129,8 @@ mvn \
     -DskipTests \
     -Pnifi-${PRODUCT}
 
-cd ..
-cp ./authorizer/target/opa-authorizer.nar /stackable/opa-authorizer.nar
-cp ./LICENSE /stackable/LICENSE
+cp ./target/opa-authorizer.nar /stackable/opa-authorizer.nar
+cp ../LICENSE /stackable/LICENSE
 
 # Set correct permissions
 chmod g=u /stackable/opa-authorizer.nar
