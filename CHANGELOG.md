@@ -55,7 +55,6 @@ All notable changes to this project will be documented in this file.
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094])
-- Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#916])
 
 ### Fixed
 
