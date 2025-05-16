@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
 - nifi: Add `2.4.0` ([#1114]).
+- nifi: Add git-sync ([#1107]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
 - opa: Add `1.4.2` ([#1103]).
@@ -119,6 +120,7 @@ All notable changes to this project will be documented in this file.
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
+[#1107]: https://github.com/stackabletech/docker-images/pull/1107
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
 [#1110]: https://github.com/stackabletech/docker-images/pull/1110
 [#1114]: https://github.com/stackabletech/docker-images/pull/1114
