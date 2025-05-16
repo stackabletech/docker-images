@@ -180,24 +180,10 @@ enum Cmd {
         pv: ProductVersion,
     },
 
-    /// Creates a patchable.toml for a given product version
+    /// Creates patchable.toml configuration files
     Init {
-        #[clap(flatten)]
-        pv: ProductVersion,
-
-        /// The upstream commit-ish (such as druid-28.0.0) that the patch series applies to
-        ///
-        /// Refs (such as tags and branches) will be resolved to commit IDs.
-        #[clap(long)]
-        base: String,
-
-        /// Mirror the product version to the default mirror repository
-        #[clap(long)]
-        mirror: bool,
-
-        /// Use SSH for git operations
-        #[clap(long)]
-        ssh: bool,
+        #[clap(subcommand)]
+        init_type: InitCmd,
     },
 
     /// Shows the patch directory for a given product version
@@ -216,6 +202,41 @@ enum Cmd {
 
     /// Shows the images repository root
     ImagesDir,
+}
+
+#[derive(clap::Parser)]
+enum InitCmd {
+    /// Creates a patchable.toml for a given product
+    Product {
+        /// The product name slug (such as druid)
+        product: String,
+        /// The upstream repository URL (e.g. https://github.com/apache/druid.git)
+        #[clap(long)]
+        upstream: String,
+        /// The default mirror repository URL (e.g. https://github.com/stackabletech/druid.git)
+        #[clap(long)]
+        default_mirror: Option<String>,
+    },
+
+    /// Creates a patchable.toml for a given product version
+    Version {
+        #[clap(flatten)]
+        pv: ProductVersion,
+
+        /// The upstream commit-ish (such as druid-28.0.0) that the patch series applies to
+        ///
+        /// Refs (such as tags and branches) will be resolved to commit IDs.
+        #[clap(long)]
+        base: String,
+
+        /// Mirror the product version to the default mirror repository
+        #[clap(long)]
+        mirror: bool,
+
+        /// Use SSH for git operations
+        #[clap(long)]
+        ssh: bool,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -475,10 +496,61 @@ fn main() -> Result<()> {
         }
 
         Cmd::Init {
-            pv,
-            base,
-            mirror,
-            ssh,
+            init_type:
+                InitCmd::Product {
+                    product,
+                    upstream,
+                    default_mirror,
+                },
+        } => {
+            let product_config_path = ProductVersionContext {
+                pv: ProductVersion {
+                    product: product.clone(),
+                    version: "".to_string(),
+                },
+                images_repo_root,
+            }
+            .product_config_path();
+
+            tracing::info!(
+                path = ?product_config_path,
+                "creating product configuration directory and file"
+            );
+
+            if let Some(product_config_dir) = product_config_path.parent() {
+                std::fs::create_dir_all(product_config_dir).context(CreatePatchDirSnafu {
+                    path: product_config_dir,
+                })?;
+            }
+
+            let product_config = ProductConfig {
+                upstream,
+                default_mirror,
+            };
+
+            let config_toml =
+                toml::to_string_pretty(&product_config).context(SerializeConfigSnafu)?;
+            File::create_new(&product_config_path)
+                .and_then(|mut f| f.write_all(config_toml.as_bytes()))
+                .context(SaveConfigSnafu {
+                    path: &product_config_path,
+                })?;
+
+            tracing::info!(
+                config.path = ?product_config_path,
+                product = product,
+                "created configuration for product"
+            );
+        }
+
+        Cmd::Init {
+            init_type:
+                InitCmd::Version {
+                    pv,
+                    base,
+                    mirror,
+                    ssh,
+                },
         } => {
             let ctx = ProductVersionContext {
                 pv,
@@ -510,6 +582,7 @@ fn main() -> Result<()> {
             let mirror_url = if mirror {
                 let mut mirror_url = config
                     .default_mirror
+                    .filter(|s| !s.is_empty())
                     .context(InitMirrorNotConfiguredSnafu)?;
                 if ssh {
                     mirror_url =
@@ -572,6 +645,7 @@ fn main() -> Result<()> {
                 std::fs::create_dir_all(config_dir)
                     .context(CreatePatchDirSnafu { path: config_dir })?;
             }
+
             let config_toml = toml::to_string_pretty(&config).context(SerializeConfigSnafu)?;
             File::create_new(&config_path)
                 .and_then(|mut f| f.write_all(config_toml.as_bytes()))

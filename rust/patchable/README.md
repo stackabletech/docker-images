@@ -48,21 +48,21 @@ The version-level config contains:
 
 ### Template
 
-If you're adding a completely new product, you need to create the product-level config once:
+If you're adding a completely new product, you need to initialize the product-level config once using patchable:
 
-```toml
-# docker-images/druid/stackable/patches/patchable.toml
-upstream = "https://github.com/apache/druid.git"
-mirror = "https://github.com/stackabletech/druid.git"
+```sh
+cargo patchable init product druid --upstream https://github.com/apache/druid.git --default-mirror https://github.com/stackabletech/druid.git
 ```
+
+This will create the product-level configuration in `docker-images/druid/stackable/patches/patchable.toml`.
 
 If you just want to add a new version, initialize the version-level config with patchable:
 
 ```sh
-cargo patchable init druid 28.0.0 --base=druid-28.0.0 --mirror
+cargo patchable init version druid 28.0.0 --base druid-28.0.0 --mirror
 ```
 
-This will initialize the version-level config with the base commit hash and the default mirror URL from the product-level config.
+This will initialize the version-level config in `docker-images/druid/stackable/patches/28.0.0/patchable.toml` with the base commit hash and the default mirror URL from the product-level config.
 You can optionally provide the `--ssh` flag to use SSH instead of HTTPS for Git operations.
 
 ## Glossary
