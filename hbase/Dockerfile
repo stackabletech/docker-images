@@ -6,12 +6,10 @@ FROM stackable/image/hadoop AS hadoop-builder
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
-ARG HBASE_THIRDPARTY
 ARG HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
 ARG PHOENIX
 ARG HBASE_PROFILE
-ARG JMX_EXPORTER
 ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
@@ -26,8 +24,8 @@ COPY hbase/licenses /licenses
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/patchable.toml /stackable/src/hbase/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/jmx/config${JMX_EXPORTER} /stackable/jmx
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
@@ -48,8 +46,25 @@ cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} clean install -DskipTests
-mvn --batch-mode --no-transfer-progress -Dhadoop.profile=3.0 -Dhadoop-three.version=${HADOOP} install assembly:single -DskipTests -Dcheckstyle.skip=true -Prelease
+# Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  -Dhadoop.profile=3.0 \
+  -Dhadoop-three.version=${HADOOP} \
+  -DskipTests \
+  clean install
+
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  -Dhadoop.profile=3.0 \
+  -Dhadoop-three.version=${HADOOP} \
+  -DskipTests \
+  -Dcheckstyle.skip=true \
+  -Prelease \
+  install assembly:single
+
 tar -xzf hbase-assembly/target/hbase-${PRODUCT}-bin.tar.gz -C /stackable/
 mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.cdx.json
 
@@ -57,15 +72,6 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${PRODUCT}/hbase-${PRODUCT}.c
 (cd .. && rm -r ${PRODUCT})
 
 ln -s "/stackable/hbase-${PRODUCT}" /stackable/hbase
-
-###
-### JMX Prometheus Exporter/Agent
-###
-if [[ -n "${JMX_EXPORTER}" ]] ; then
-  curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-  chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-  ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
-fi
 
 ###
 ### Async Profiler
@@ -92,6 +98,7 @@ EOF
 
 FROM stackable/image/java-devel AS opa-authorizer-builder
 
+ARG PRODUCT
 ARG OPA_AUTHORIZER
 ARG DELETE_CACHES
 ARG STACKABLE_USER_UID
@@ -99,7 +106,9 @@ ARG STACKABLE_USER_UID
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+# Use the product version as cache id "maven-opa-${PRODUCT}" to avoid the "rm -rf" problem described above.
+# Using the OPA_AUTHORIZER arg is not unique if the same version is used for multiple products.
+RUN --mount=type=cache,id=maven-opa-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 ###
 ### OPA Authorizer (only for 2.6 upwards)
 ###
@@ -108,9 +117,10 @@ if [[ -n "$OPA_AUTHORIZER" ]]; then
     mvn \
       --batch-mode \
       --no-transfer-progress \
-      package \
       -DskipTests \
-      -fhbase-opa-authorizer
+      -Dmaven.test.skip=true \
+      -fhbase-opa-authorizer \
+      package
 else
   # Create a dummy jar to avoid errors when copying it the final image
   mkdir -p hbase-opa-authorizer/target
@@ -142,6 +152,7 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase-operator-tools/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS} /stackable/src/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
@@ -153,16 +164,13 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
 
-# Remove the Git repo because `git-commit-id-maven-plugin` tries to get the latest commit if a Git repo is present,
-# which fails due to a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
-rm .git
-
 mvn \
   --batch-mode \
   --no-transfer-progress \
   -Dhbase.version=${PRODUCT} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \
+  -Dmaven.test.skip=true \
   package assembly:single
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
@@ -206,6 +214,11 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+  # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
+  # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
+  # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
+  # So we try to copy both and if one of them doesn't exist buildx will just ignore it :)
+  /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
@@ -241,11 +254,12 @@ ARG STACKABLE_USER_UID
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} /stackable/src/phoenix/stackable/patches/${PHOENIX}
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-phoenix-${PHOENIX},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-phoenix-${PHOENIX}-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
@@ -257,6 +271,7 @@ mvn \
   -Dhbase.profile=${HBASE_PROFILE} \
   -Dhadoop.version=${HADOOP} \
   -DskipTests \
+  -Dmaven.test.skip=true \
   -Dcheckstyle.skip=true \
   clean \
   package
@@ -321,7 +336,6 @@ LABEL io.k8s.display-name="${NAME}"
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/jmx /stackable/jmx/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
@@ -375,7 +389,6 @@ chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 # fix missing permissions
 chmod g=u /stackable/async-profiler
 chmod g=u /stackable/bin
-chmod g=u /stackable/jmx
 chmod g=u /stackable/phoenix
 # the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
 find /stackable/hadoop -type d -exec chmod g=u {} +

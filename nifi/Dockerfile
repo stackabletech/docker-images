@@ -34,6 +34,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=git-sync-image /git-sync /stackable/git-sync
 
@@ -84,6 +85,8 @@ mkdir -p /stackable
 if [[ "${PRODUCT}" != 1.* ]] ; then
     curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
     cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
+
+    sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
 
     mvn \
         --batch-mode \

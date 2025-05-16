@@ -12,10 +12,10 @@ versions = [
         "git_sync": "v4.4.0",
     },
     {
-        "product": "2.2.0",
+        "product": "2.4.0",
         "java-base": "21",
         "java-devel": "21",
         "git_sync": "v4.4.0",
-        "nifi_iceberg_bundle": "0.0.3",
+        "nifi_iceberg_bundle": "0.0.4",
     },
 ]
