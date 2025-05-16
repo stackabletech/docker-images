@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- spark: update dependencies for 3.5.5 ([#1094])
 
 ### Fixed
 
@@ -80,6 +81,7 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
+- spark: remove 3.5.2 ([#1094])
 - hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
@@ -110,6 +112,7 @@ All notable changes to this project will be documented in this file.
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
+[#1094]: https://github.com/stackabletech/docker-images/pull/1094
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1099]: https://github.com/stackabletech/docker-images/pull/1099
