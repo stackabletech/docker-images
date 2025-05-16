@@ -19,8 +19,8 @@ versions = [
     },
     {
         "product": "4.0.0",
-        "java-base": "21",
-        "java-devel": "21",
+        "java-base": "23",
+        "java-devel": "23",
         "scala": "2.13",
         "kcat": "1.7.0",
         "opa_authorizer": "1.5.1",
