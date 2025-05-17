@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
+- omid: bump version to 1.1.3 ([#1105])
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
 
 ### Changed
@@ -85,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
+- omid: Remove 1.1.3-SNAPSHOT ([#1105]).
 - hbase: Remove 2.4.18 ([#1101])
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
@@ -119,6 +121,7 @@ All notable changes to this project will be documented in this file.
 [#1101]: https://github.com/stackabletech/docker-images/pull/1101
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
+[#1105]: https://github.com/stackabletech/docker-images/pull/1105
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
 [#1107]: https://github.com/stackabletech/docker-images/pull/1107
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
