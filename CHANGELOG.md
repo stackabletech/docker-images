@@ -43,7 +43,6 @@ All notable changes to this project will be documented in this file.
 - omid: bump version to 1.1.3 ([#1105])
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
 
-
 ### Changed
 
 - airflow,superset: Use `uv` to build the product ([#1116]).
