@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094])
+- nifi: include NAR SBOMs ([#1119])
 
 ### Fixed
 
@@ -128,6 +129,7 @@ All notable changes to this project will be documented in this file.
 [#1110]: https://github.com/stackabletech/docker-images/pull/1110
 [#1114]: https://github.com/stackabletech/docker-images/pull/1114
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
+[#1119]: https://github.com/stackabletech/docker-images/pull/1119
 
 ## [25.3.0] - 2025-03-21
 

@@ -59,6 +59,20 @@ mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PR
 # Copy the SBOM as well
 mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json
 
+# Get a list of NARs
+export NARS=$(ls /stackable/nifi-${PRODUCT}/lib/*.nar | awk -F '/' '{ print $5 }' | sed "s/\-${PRODUCT}.nar\$//g")
+# Get a list of SBOMs
+find . -name bom.json > bomlist.txt
+
+for nar in $NARS; do
+    # Try to find the NAR in the list of SBOMs
+    match=$(grep "\/$nar\/target\/bom.json" bomlist.txt || true)
+    if [[ -n "$match" ]]; then
+        # Copy the SBOM of the NAR
+        cp "$match" "/stackable/nifi-${PRODUCT}/$nar.cdx.json"
+    fi
+done
+
 # Remove sources
 (cd .. && rm -r ${PRODUCT})
 
@@ -100,7 +114,7 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
     cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
-    cp ./target/bom.json /stackable/nifi-iceberg-bundle.sbom.json
+    cp ./target/bom.json /stackable/nifi-iceberg-bundle.cdx.json
 
     cd ..
     # Save disk space, even for intermediate images
@@ -108,7 +122,7 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
 
 # Set correct groups
 chmod g=u /stackable/*.nar
-chmod g=u /stackable/*.sbom.json
+chmod g=u /stackable/*.cdx.json
 fi
 EOF
 
@@ -129,7 +143,7 @@ LABEL name="Apache NiFi" \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
