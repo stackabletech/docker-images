@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
+FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
 FROM stackable/image/java-devel AS trino-builder
 

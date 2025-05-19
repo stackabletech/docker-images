@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
 - nifi: Add `2.4.0` ([#1114]).
+- nifi: Add git-sync ([#1107]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
 - opa: Add `1.4.2` ([#1103]).
@@ -37,8 +38,11 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- nifi: Build and add OPA authorizer plugin nar ([#1058]).
+- nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060], [#1106]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
+- omid: bump version to 1.1.3 ([#1105])
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
 - kafka: Add `4.0.0` ([#1117])
 
@@ -55,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - vector: Bump to `0.46.1` ([#1098]).
+- spark: update dependencies for 3.5.5 ([#1094])
+- nifi: include NAR SBOMs ([#1119])
 
 ### Fixed
 
@@ -80,9 +86,11 @@ All notable changes to this project will be documented in this file.
   Also remove the old release workflow.
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
+- spark: remove 3.5.2 ([#1094])
 - hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
+- omid: Remove 1.1.3-SNAPSHOT ([#1105]).
 - hbase: Remove 2.4.18 ([#1101])
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
@@ -107,22 +115,27 @@ All notable changes to this project will be documented in this file.
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1058]: https://github.com/stackabletech/docker-images/pull/1058
 [#1060]: https://github.com/stackabletech/docker-images/pull/1060
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
+[#1094]: https://github.com/stackabletech/docker-images/pull/1094
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1099]: https://github.com/stackabletech/docker-images/pull/1099
 [#1101]: https://github.com/stackabletech/docker-images/pull/1101
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
+[#1105]: https://github.com/stackabletech/docker-images/pull/1105
 [#1106]: https://github.com/stackabletech/docker-images/pull/1106
+[#1107]: https://github.com/stackabletech/docker-images/pull/1107
 [#1108]: https://github.com/stackabletech/docker-images/pull/1108
 [#1110]: https://github.com/stackabletech/docker-images/pull/1110
 [#1114]: https://github.com/stackabletech/docker-images/pull/1114
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
 [#1117]: https://github.com/stackabletech/docker-images/pull/1117
+[#1119]: https://github.com/stackabletech/docker-images/pull/1119
 
 ## [25.3.0] - 2025-03-21
 

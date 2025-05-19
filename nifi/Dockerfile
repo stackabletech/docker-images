@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
-# check=error=true
+# check=error=true;skip=InvalidDefaultArgInFrom
+
+ARG GIT_SYNC
+
+FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS git-sync-image
 
 FROM stackable/image/java-devel AS nifi-builder
 
@@ -32,6 +36,7 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=git-sync-image /git-sync /stackable/git-sync
 
 RUN <<EOF
 # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
@@ -53,6 +58,20 @@ mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PR
 
 # Copy the SBOM as well
 mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json
+
+# Get a list of NARs
+export NARS=$(ls /stackable/nifi-${PRODUCT}/lib/*.nar | awk -F '/' '{ print $5 }' | sed "s/\-${PRODUCT}.nar\$//g")
+# Get a list of SBOMs
+find . -name bom.json > bomlist.txt
+
+for nar in $NARS; do
+    # Try to find the NAR in the list of SBOMs
+    match=$(grep "\/$nar\/target\/bom.json" bomlist.txt || true)
+    if [[ -n "$match" ]]; then
+        # Copy the SBOM of the NAR
+        cp "$match" "/stackable/nifi-${PRODUCT}/$nar.cdx.json"
+    fi
+done
 
 # Remove sources
 (cd .. && rm -r ${PRODUCT})
@@ -78,7 +97,7 @@ mkdir -p /stackable
 
 # NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
+    curl -L "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
     cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
 
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
@@ -95,7 +114,7 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
     cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
-    cp ./target/bom.json /stackable/nifi-iceberg-bundle.sbom.json
+    cp ./target/bom.json /stackable/nifi-iceberg-bundle.cdx.json
 
     cd ..
     # Save disk space, even for intermediate images
@@ -103,8 +122,37 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
 
 # Set correct groups
 chmod g=u /stackable/*.nar
-chmod g=u /stackable/*.sbom.json
+chmod g=u /stackable/*.cdx.json
 fi
+EOF
+
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG NIFI_OPA_AUTHORIZER_PLUGIN
+ARG STACKABLE_USER_UID
+ARG PRODUCT
+
+USER ${STACKABLE_USER_UID}
+WORKDIR /build
+
+RUN <<EOF
+mkdir -p /stackable
+
+curl -L "https://github.com/DavidGitter/nifi-opa-plugin/archive/refs/tags/v${NIFI_OPA_AUTHORIZER_PLUGIN}.tar.gz" | tar -xzC .
+cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer || exit
+
+mvn \
+    --batch-mode \
+    --no-transfer-progress \
+    clean package \
+    -DskipTests \
+    -Pnifi-${PRODUCT}
+
+cp ./target/opa-authorizer.nar /stackable/opa-authorizer.nar
+cp ../LICENSE /stackable/LICENSE
+
+# Set correct permissions
+chmod g=u /stackable/opa-authorizer.nar
 EOF
 
 FROM stackable/image/java-base AS final
@@ -124,8 +172,11 @@ LABEL name="Apache NiFi" \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
@@ -133,9 +184,11 @@ COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
 RUN <<EOF
 microdnf update
 
+# git: Required for git-sync
 # python-pip: Required to install Python packages
 # Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
 microdnf install \
+  git \
   python-pip
 
 microdnf clean all
