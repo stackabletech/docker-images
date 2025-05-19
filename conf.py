@@ -25,7 +25,6 @@ kafka = importlib.import_module("kafka.versions")
 krb5 = importlib.import_module("krb5.versions")
 vector = importlib.import_module("vector.versions")
 nifi = importlib.import_module("nifi.versions")
-nifi_iceberg_bundle = importlib.import_module("nifi.iceberg-bundle.versions")
 omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
 spark_k8s = importlib.import_module("spark-k8s.versions")
@@ -59,7 +58,6 @@ products = [
     {"name": "krb5", "versions": krb5.versions},
     {"name": "vector", "versions": vector.versions},
     {"name": "nifi", "versions": nifi.versions},
-    {"name": "nifi/iceberg-bundle", "versions": nifi_iceberg_bundle.versions},
     {"name": "omid", "versions": omid.versions},
     {"name": "opa", "versions": opa.versions},
     {"name": "spark-k8s", "versions": spark_k8s.versions},
