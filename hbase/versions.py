@@ -3,28 +3,26 @@ versions = [
     # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
     {
         "product": "2.6.1",
-        "hbase_thirdparty": "4.1.9",
-        "hbase_operator_tools": "1.3.0-fd5a5fb",
+        "hbase/hbase-operator-tools": "1.3.0-fd5a5fb",
+        "hbase/phoenix": "5.2.1",
+        "hbase/hbase-opa-authorizer": "0.1.0",  # only for HBase 2.6.1
+        "hadoop": "3.3.6",
         "java-base": "11",
         "java-devel": "11",
-        "async_profiler": "2.9",
-        "phoenix": "5.2.1",
         "hbase_profile": "2.6",
-        "hadoop": "3.3.6",
-        "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
+        "async_profiler": "2.9",
         "delete_caches": "true",
     },
     {
         "product": "2.6.2",
-        "hbase_thirdparty": "4.1.10",
-        "hbase_operator_tools": "1.3.0-fd5a5fb",
+        "hbase/hbase-operator-tools": "1.3.0-fd5a5fb",
+        "hbase/phoenix": "5.2.1",
+        "hbase/hbase-opa-authorizer": "0.1.0",  # only for HBase 2.6.1
+        "hadoop": "3.4.1",
         "java-base": "11",
         "java-devel": "11",
-        "async_profiler": "2.9",
-        "phoenix": "5.2.1",
         "hbase_profile": "2.6",
-        "hadoop": "3.4.1",
-        "opa_authorizer": "0.1.0",  # only for HBase 2.6.1
+        "async_profiler": "2.9",
         "delete_caches": "true",
     },
 ]
