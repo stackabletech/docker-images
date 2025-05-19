@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
-# check=error=true
+# check=error=true;skip=InvalidDefaultArgInFrom
+
+ARG GIT_SYNC
+
+FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS git-sync-image
 
 FROM stackable/image/java-devel AS nifi-builder
 
@@ -32,6 +36,7 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=git-sync-image /git-sync /stackable/git-sync
 
 RUN <<EOF
 # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
@@ -82,6 +87,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/nifi/iceberg-bundle /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/nifi/iceberg-bundle /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
@@ -90,9 +96,11 @@ COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
 RUN <<EOF
 microdnf update
 
+# git: Required for git-sync
 # python-pip: Required to install Python packages
 # Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
 microdnf install \
+  git \
   python-pip
 
 microdnf clean all
