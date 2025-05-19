@@ -61,6 +61,20 @@ mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PR
 # Copy the SBOM as well
 mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json
 
+# Get a list of NARs
+export NARS=$(ls /stackable/nifi-${PRODUCT}/lib/*.nar | awk -F '/' '{ print $5 }' | sed "s/\-${PRODUCT}.nar\$//g")
+# Get a list of SBOMs
+find . -name bom.json > bomlist.txt
+
+for nar in $NARS; do
+    # Try to find the NAR in the list of SBOMs
+    match=$(grep "\/$nar\/target\/bom.json" bomlist.txt || true)
+    if [[ -n "$match" ]]; then
+        # Copy the SBOM of the NAR
+        cp "$match" "/stackable/nifi-${PRODUCT}/$nar.cdx.json"
+    fi
+done
+
 # Remove sources
 (cd .. && rm -r ${PRODUCT})
 
@@ -89,6 +103,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=iceberg-bundle-builder /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
+
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
