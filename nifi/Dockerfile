@@ -5,6 +5,8 @@ ARG GIT_SYNC
 
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS git-sync-image
 
+FROM stackable/image/nifi/iceberg-bundle AS iceberg-bundle-builder
+
 FROM stackable/image/java-devel AS nifi-builder
 
 ARG PRODUCT
@@ -85,8 +87,8 @@ LABEL name="Apache NiFi" \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/nifi/iceberg-bundle /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/nifi/iceberg-bundle /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=iceberg-bundle-builder /stackable/*.sbom.json /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin

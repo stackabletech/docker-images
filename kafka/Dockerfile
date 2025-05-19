@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
+FROM stackable/image/kafka/kcat AS kcat
+
 FROM stackable/image/java-devel AS kafka-builder
 
 ARG PRODUCT
@@ -63,8 +65,8 @@ LABEL \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/kafka/kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/bin/kcat-${KAFKA_KCAT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/kafka/kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/bin/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
 

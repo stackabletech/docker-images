@@ -7,6 +7,8 @@ ARG GIT_SYNC
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
 
+FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
+
 FROM python:3.12-bookworm AS opa-auth-manager-builder
 
 COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
@@ -92,8 +94,8 @@ else
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
 EOF
 
-COPY --from=stackable/image/shared/statsd-exporter /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=stackable/image/shared/statsd-exporter /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
 COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 RUN <<EOF

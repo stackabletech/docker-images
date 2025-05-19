@@ -1,6 +1,14 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
+FROM stackable/image/hadoop AS hadoop-builder
+
+FROM stackable/image/hbase/phoenix AS phoenix
+
+FROM stackable/image/hbase/hbase-operator-tools AS hbase-operator-tools
+
+FROM stackable/image/hbase/hbase-opa-authorizer AS hbase-opa-authorizer
+
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
@@ -103,7 +111,7 @@ ARG STACKABLE_USER_UID
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --from=stackable/image/hadoop --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
   # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
   # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
   # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
@@ -165,11 +173,11 @@ LABEL io.k8s.display-name="${NAME}"
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hbase/hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hbase/hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hbase/hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hbase/phoenix /stackable/phoenix /stackable/phoenix/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
@@ -178,11 +186,11 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/
 # Storage (ADLS) to /stackable/hbase-${PRODUCT}/lib which is on the classpath.
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hadoop \
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
   /stackable/hbase-${PRODUCT}/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=stackable/image/hbase/hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
 microdnf update
