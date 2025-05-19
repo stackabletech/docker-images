@@ -97,7 +97,7 @@ mkdir -p /stackable
 
 # NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    curl "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
+    curl -L "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
     cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
 
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
@@ -126,6 +126,35 @@ chmod g=u /stackable/*.cdx.json
 fi
 EOF
 
+FROM stackable/image/java-devel AS opa-authorizer-builder
+
+ARG NIFI_OPA_AUTHORIZER_PLUGIN
+ARG STACKABLE_USER_UID
+ARG PRODUCT
+
+USER ${STACKABLE_USER_UID}
+WORKDIR /build
+
+RUN <<EOF
+mkdir -p /stackable
+
+curl -L "https://github.com/DavidGitter/nifi-opa-plugin/archive/refs/tags/v${NIFI_OPA_AUTHORIZER_PLUGIN}.tar.gz" | tar -xzC .
+cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer || exit
+
+mvn \
+    --batch-mode \
+    --no-transfer-progress \
+    clean package \
+    -DskipTests \
+    -Pnifi-${PRODUCT}
+
+cp ./target/opa-authorizer.nar /stackable/opa-authorizer.nar
+cp ../LICENSE /stackable/LICENSE
+
+# Set correct permissions
+chmod g=u /stackable/opa-authorizer.nar
+EOF
+
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
@@ -146,6 +175,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackab
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
