@@ -52,7 +52,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.13
+pip install image-tools-stackabletech==0.0.16
 
 bake --product vector=x.y.z # where x.y.z is a valid version
 ```

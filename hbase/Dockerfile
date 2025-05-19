@@ -3,12 +3,17 @@
 
 FROM stackable/image/hadoop AS hadoop-builder
 
+FROM stackable/image/hbase/phoenix AS phoenix
+
+FROM stackable/image/hbase/hbase-operator-tools AS hbase-operator-tools
+
+FROM stackable/image/hbase/hbase-opa-authorizer AS hbase-opa-authorizer
+
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
-ARG HBASE_OPERATOR_TOOLS
+ARG HBASE_HBASE_OPERATOR_TOOLS
 ARG ASYNC_PROFILER
-ARG PHOENIX
 ARG HBASE_PROFILE
 ARG HADOOP
 ARG TARGETARCH
@@ -95,113 +100,6 @@ fi
 chmod --recursive g=u /stackable
 EOF
 
-
-FROM stackable/image/java-devel AS opa-authorizer-builder
-
-ARG PRODUCT
-ARG OPA_AUTHORIZER
-ARG DELETE_CACHES
-ARG STACKABLE_USER_UID
-
-USER ${STACKABLE_USER_UID}
-WORKDIR /stackable
-
-# Use the product version as cache id "maven-opa-${PRODUCT}" to avoid the "rm -rf" problem described above.
-# Using the OPA_AUTHORIZER arg is not unique if the same version is used for multiple products.
-RUN --mount=type=cache,id=maven-opa-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-###
-### OPA Authorizer (only for 2.6 upwards)
-###
-if [[ -n "$OPA_AUTHORIZER" ]]; then
-    git clone --depth 1 --branch "$OPA_AUTHORIZER" https://github.com/stackabletech/hbase-opa-authorizer.git
-    mvn \
-      --batch-mode \
-      --no-transfer-progress \
-      -DskipTests \
-      -Dmaven.test.skip=true \
-      -fhbase-opa-authorizer \
-      package
-else
-  # Create a dummy jar to avoid errors when copying it the final image
-  mkdir -p hbase-opa-authorizer/target
-  touch hbase-opa-authorizer/target/hbase-opa-authorizer.jar
-fi
-
-if [ "${DELETE_CACHES}" = "true" ] ; then
-  rm -rf /stackable/.m2/repository/*
-fi
-
-# set correct groups
-chmod --recursive g=u /stackable
-EOF
-
-
-FROM stackable/image/java-devel AS hbase-operator-tools-builder
-
-ARG HBASE_OPERATOR_TOOLS
-ARG HBASE_THIRDPARTY
-ARG PRODUCT
-ARG STACKABLE_USER_UID
-
-# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
-# This can be used to speed up builds when disk space is of no concern.
-ARG DELETE_CACHES="true"
-
-# Resolve paths in bin/hbck2
-# The variable names are intentionally passed to envsubst in single-quotes,
-# so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
-# does not work, so please ignore the according warning (SC2016).
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase-operator-tools/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS} /stackable/src/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS}
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
-
-USER ${STACKABLE_USER_UID}
-WORKDIR /stackable
-
-# Cache mounts are owned by root by default
-# We need to explicitly give the uid to use
-RUN --mount=type=cache,id=maven-hbase-operator-tools-${HBASE_OPERATOR_TOOLS},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${HBASE_OPERATOR_TOOLS})"
-
-mvn \
-  --batch-mode \
-  --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
-  -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
-  -DskipTests \
-  -Dmaven.test.skip=true \
-  package assembly:single
-
-# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
-# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}
-tar -xz \
-  -f hbase-operator-tools-assembly/target/hbase-operator-tools-*-bin.tar.gz \
-  -C /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/ \
-  --strip-components=1
-mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}.cdx.json
-(cd .. && rm -r ${HBASE_OPERATOR_TOOLS})
-
-envsubst '${PRODUCT}:${HBASE_OPERATOR_TOOLS}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
-chmod +x /stackable/bin/hbck2
-rm /stackable/bin/hbck2.env
-
-# We're removing these to make the intermediate layer smaller
-# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
-# and we are sometimes running into errors because we're out of space.
-# Therefore, we try to clean up all layers as much as possible.
-if [ "${DELETE_CACHES}" = "true" ] ; then
-  rm -rf /stackable/.m2/repository/*
-  rm -rf /stackable/.npm/*
-  rm -rf /stackable/.cache/*
-fi
-
-# set correct groups
-chmod --recursive g=u /stackable
-EOF
-
-
 # Splitting this out into its own builder so that Hadoop & HBase can be built in parallel
 # envsubst is only available in java-devel which is why we don't just do this in the final image
 FROM stackable/image/java-devel AS hadoop-s3-builder
@@ -240,76 +138,14 @@ rm /stackable/bin/export-snapshot-to-s3.env
 chmod --recursive g=u /stackable
 EOF
 
-
-FROM stackable/image/java-devel AS phoenix-builder
-
-ARG PRODUCT
-ARG ASYNC_PROFILER
-ARG PHOENIX
-ARG HBASE_PROFILE
-ARG HADOOP
-ARG STACKABLE_USER_UID
-
-# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
-# This can be used to speed up builds when disk space is of no concern.
-ARG DELETE_CACHES="true"
-
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX} /stackable/src/phoenix/stackable/patches/${PHOENIX}
-USER ${STACKABLE_USER_UID}
-WORKDIR /stackable
-
-RUN --mount=type=cache,id=maven-phoenix-${PHOENIX}-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX})"
-
-# The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
-# https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
-mvn \
-  --batch-mode \
-  --no-transfer-progress \
-  -Dhbase.version=${PRODUCT} \
-  -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP} \
-  -DskipTests \
-  -Dmaven.test.skip=true \
-  -Dcheckstyle.skip=true \
-  clean \
-  package
-
-# We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
-# And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin
-tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/ --strip-components=1
-mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin/phoenix-${HBASE_PROFILE}-${PHOENIX}.cdx.json
-
-# Remove sources
-(cd .. && rm -r ${PHOENIX})
-ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PHOENIX}-bin" /stackable/phoenix
-
-# We're removing these to make the intermediate layer smaller
-# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
-# and we are sometimes running into errors because we're out of space.
-# Therefore, we try to clean up all layers as much as possible.
-if [ "${DELETE_CACHES}" = "true" ] ; then
-  rm -rf /stackable/.m2/repository/*
-  rm -rf /stackable/.npm/*
-  rm -rf /stackable/.cache/*
-fi
-
-# set correct groups
-chmod --recursive g=u /stackable
-EOF
-
-
 # Final Image
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
 ARG HADOOP
-ARG PHOENIX
 ARG HBASE_PROFILE
-ARG HBASE_OPERATOR_TOOLS
+ARG HBASE_HBASE_OPERATOR_TOOLS
 ARG STACKABLE_USER_UID
 
 ARG NAME="Apache HBase"
@@ -337,11 +173,11 @@ LABEL io.k8s.display-name="${NAME}"
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbck2 /stackable/bin/hbck2
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools-builder /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix-builder /stackable/phoenix /stackable/phoenix/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
@@ -354,7 +190,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
   /stackable/hbase-${PRODUCT}/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
 microdnf update
@@ -378,7 +214,7 @@ ln --symbolic --logical --verbose "/stackable/hbase-${PRODUCT}" /stackable/hbase
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase
 chmod g=u /stackable/hbase
 
-ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
+ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}" /stackable/hbase-operator-tools
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase-operator-tools
 chmod g=u /stackable/hbase-operator-tools
 

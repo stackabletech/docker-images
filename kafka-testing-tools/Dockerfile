@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/kcat AS kcat
+FROM stackable/image/kafka/kcat AS kcat
 
 FROM stackable/image/stackable-base AS final
 
 ARG PRODUCT
-ARG KCAT
+ARG KAFKA_KCAT
 ARG RELEASE
 ARG STACKABLE_USER_UID
 
@@ -30,8 +30,8 @@ RUN microdnf install  \
     && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/kcat-${KCAT}
-RUN ln -s /stackable/kcat-${KCAT} /stackable/kcat
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/kcat-${KAFKA_KCAT}
+RUN ln -s /stackable/kcat-${KAFKA_KCAT} /stackable/kcat
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka-testing-tools/licenses /licenses
