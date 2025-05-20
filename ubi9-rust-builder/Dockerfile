@@ -7,6 +7,11 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:e1c4703364c5cb58f5462575
 
 LABEL maintainer="Stackable GmbH"
 
+# Pin the rustup version to avoid unexpected breaking changes.
+# See https://github.com/rust-lang/rustup/blob/4514d36fcc9c42416176111cd841c86f7ec44b2c/rustup-init.sh#L91
+# Find the latest version here: https://github.com/rust-lang/rustup/blob/master/CHANGELOG.md
+# renovate: datasource=github-tags packageName=rust-lang/rustup
+ENV RUSTUP_VERSION=1.28.1
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
@@ -77,7 +82,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 RUN <<EOF
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | RUSTUP_VERSION="$RUSTUP_VERSION" sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env"
 cargo install --quiet --locked "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
