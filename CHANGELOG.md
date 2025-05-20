@@ -78,6 +78,7 @@ All notable changes to this project will be documented in this file.
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
+- ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
 
 ### Removed
 
@@ -133,6 +134,7 @@ All notable changes to this project will be documented in this file.
 [#1114]: https://github.com/stackabletech/docker-images/pull/1114
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
 [#1119]: https://github.com/stackabletech/docker-images/pull/1119
+[#1121]: https://github.com/stackabletech/docker-images/pull/1121
 
 ## [25.3.0] - 2025-03-21
 
