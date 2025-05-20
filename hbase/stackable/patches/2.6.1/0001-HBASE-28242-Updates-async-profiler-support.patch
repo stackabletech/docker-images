@@ -4,8 +4,8 @@ Date: Tue, 6 Feb 2024 16:10:54 +0100
 Subject: HBASE-28242: Updates async-profiler support
 
 ---
- .../hadoop/hbase/http/ProfileServlet.java     | 207 +++++++++++-------
- 1 file changed, 122 insertions(+), 85 deletions(-)
+ .../hadoop/hbase/http/ProfileServlet.java     | 205 +++++++++++-------
+ 1 file changed, 121 insertions(+), 84 deletions(-)
 
 diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
 index 83087dbed3..6139114717 100644
@@ -106,22 +106,21 @@ index 83087dbed3..6139114717 100644
      ALLOC("alloc"),
      LOCK("lock"),
 -    PAGE_FAULTS("page-faults"),
--    CONTEXT_SWITCHES("context-switches"),
--    CYCLES("cycles"),
--    INSTRUCTIONS("instructions"),
++    ITIMER("itimer"),
++    BRANCH_INSTRUCTIONS("branch-instructions"),
++    BRANCH_MISSES("branch-misses"),
++    BUS_CYCLES("bus-cycles"),
++    CACHE_MISSES("cache-misses"),
++    CACHE_REFERENCES("cache-references"),
+     CONTEXT_SWITCHES("context-switches"),
+     CYCLES("cycles"),
++    DTLB_LOAD_MISSES("dTLB-load-misses"),
+     INSTRUCTIONS("instructions"),
 -    CACHE_REFERENCES("cache-references"),
 -    CACHE_MISSES("cache-misses"),
 -    BRANCHES("branches"),
-+    ITIMER("itimer"),
-+    BRANCH_INSTRUCTIONS("branch-instructions"),
-     BRANCH_MISSES("branch-misses"),
-     BUS_CYCLES("bus-cycles"),
-+    CACHE_MISSES("cache-misses"),
-+    CACHE_REFERENCES("cache-references"),
-+    CONTEXT_SWITCHES("context-switches"),
-+    CYCLES("cycles"),
-+    DTLB_LOAD_MISSES("dTLB-load-misses"),
-+    INSTRUCTIONS("instructions"),
+-    BRANCH_MISSES("branch-misses"),
+-    BUS_CYCLES("bus-cycles"),
      L1_DCACHE_LOAD_MISSES("L1-dcache-load-misses"),
      LLC_LOAD_MISSES("LLC-load-misses"),
 -    DTLB_LOAD_MISSES("dTLB-load-misses"),
