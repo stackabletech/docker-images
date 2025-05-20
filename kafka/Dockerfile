@@ -21,6 +21,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackab
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/kafka-${PRODUCT}-src.tar.gz .
+
 # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
 # it's a good idea to run the tests in this case.
@@ -64,8 +67,10 @@ LABEL \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/bin/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
@@ -96,6 +101,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
 chmod g=u /stackable/bin
 chmod g=u /stackable/jmx
 chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------

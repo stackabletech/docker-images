@@ -27,6 +27,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackabl
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
   cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT})"
+  # Create snapshot of the source code including custom patches
+  tar -czf /stackable/omid-${PRODUCT}-src.tar.gz .
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
   mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
@@ -76,6 +78,7 @@ COPY omid/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-src.tar.gz /stackable
 
 RUN <<EOF
 microdnf update

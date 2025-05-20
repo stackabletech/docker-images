@@ -18,7 +18,12 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
 
-RUN /stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT}
+RUN <<EOF
+cd $(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
+EOF
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
 # required JARs into /stackable/spark/jars
@@ -48,6 +53,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patche
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
 
 # Building the hbase-connectors with JDK 17 is not yet supported, see
 # https://github.com/apache/hbase-connectors/pull/132.
@@ -232,6 +240,7 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG JMX_EXPORTER
+ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Spark" \
@@ -253,6 +262,8 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
@@ -290,6 +301,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 chmod g=u /stackable/spark
 chmod g=u /stackable/jmx
 chmod g=u /stackable/run-spark.sh
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------
