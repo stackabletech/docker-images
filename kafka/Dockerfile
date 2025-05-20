@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
 # check=error=true
 
-FROM stackable/image/kcat AS kcat
+FROM stackable/image/kafka/kcat AS kcat
 
 FROM stackable/image/java-devel AS kafka-builder
 
@@ -11,28 +11,16 @@ ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/apply_patches.sh /stackable/kafka-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/kafka-${PRODUCT}-src/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/patchable.toml /stackable/src/kafka/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
 
 RUN <<EOF
-curl "https://repo.stackable.tech/repository/packages/kafka/kafka-${PRODUCT}-src.tgz" | tar -xzC .
-cd kafka-${PRODUCT}-src
-./patches/apply_patches.sh ${PRODUCT}
+cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
+
 # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
 # it's a good idea to run the tests in this case.
@@ -41,7 +29,7 @@ cd kafka-${PRODUCT}-src
 tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable
 cp build/reports/bom.json /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json
 rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/
-rm -rf /stackable/kafka-${PRODUCT}-src
+(cd .. && rm -rf ${PRODUCT})
 
 # TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
 curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
@@ -62,7 +50,7 @@ FROM stackable/image/java-base AS final
 ARG RELEASE
 ARG PRODUCT
 ARG SCALA
-ARG KCAT
+ARG KAFKA_KCAT
 ARG STACKABLE_USER_UID
 
 LABEL \
@@ -77,7 +65,7 @@ LABEL \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/bin/kcat-${KAFKA_KCAT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
@@ -96,7 +84,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat
+ln -s /stackable/bin/kcat-${KAFKA_KCAT} /stackable/bin/kcat
 chown -h ${STACKABLE_USER_UID}:0 /stackable/bin/kcat
 # kcat was located in /stackable/kcat - legacy
 ln -s /stackable/bin/kcat /stackable/kcat

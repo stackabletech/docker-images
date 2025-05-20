@@ -7,7 +7,7 @@ ARG GIT_SYNC
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
 
-FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 
 FROM python:3.12-bookworm AS opa-auth-manager-builder
 
@@ -25,13 +25,13 @@ EOF
 FROM stackable/image/vector AS airflow-build-image
 
 ARG PRODUCT
-ARG STATSD_EXPORTER
+ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
-
-COPY airflow/constraints-${PRODUCT}-python${PYTHON}.txt /tmp/constraints.txt
-COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
+ARG S3FS
+ARG CYCLONEDX_BOM
+ARG UV
 
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
@@ -60,19 +60,27 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY airflow/stackable/constraints/${PRODUCT}/constraints-python${PYTHON}.txt /tmp/constraints.txt
+COPY airflow/stackable/constraints/${PRODUCT}/build-constraints-python${PYTHON}.txt /tmp/build-constraints.txt
+COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
+
 RUN <<EOF
 python${PYTHON} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
 
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
 pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt
-# Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-pip install --no-cache-dir s3fs==2024.9.0 cyclonedx-bom==5.0.0
-# Needed for OIDC
-pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+pip install --no-cache-dir uv==${UV}
 
-pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
+uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+# Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
+uv pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
+# Needed for OIDC
+uv pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+
+uv pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
@@ -87,7 +95,7 @@ end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
 EOF
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${STATSD_EXPORTER}.cdx.json
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
 COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 RUN <<EOF
