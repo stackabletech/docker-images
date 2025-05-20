@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - airflow: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
 - airflow: Add `2.10.5` ([#1108]).
+- airflow: Add `3.0.1` ([#1122]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
 - druid: Add `33.0.0` ([#1110]).
@@ -135,6 +136,7 @@ All notable changes to this project will be documented in this file.
 [#1116]: https://github.com/stackabletech/docker-images/pull/1116
 [#1119]: https://github.com/stackabletech/docker-images/pull/1119
 [#1121]: https://github.com/stackabletech/docker-images/pull/1121
+[#1122]: https://github.com/stackabletech/docker-images/pull/1122
 
 ## [25.3.0] - 2025-03-21
 
