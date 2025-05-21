@@ -22,7 +22,7 @@ versions = [
         "java-base": "23",
         "java-devel": "23",
         "scala": "2.13",
-        "kcat": "1.7.0",
+        "kafka/kcat": "1.7.0",
         "opa_authorizer": "1.5.1",
         "jmx_exporter": "1.2.0",
     },
