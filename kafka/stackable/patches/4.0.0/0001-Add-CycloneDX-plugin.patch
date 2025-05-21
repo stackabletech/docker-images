@@ -1,6 +1,6 @@
-From 55bcff9a298c339bd7eb10cdd733e600f671861b Mon Sep 17 00:00:00 2001
-From: Lukas Voetmand <lukas.voetmand@stackable.tech>
-Date: Thu, 17 Oct 2024 11:01:40 +0200
+From 5adf2efcf9f91e66aea16cbbf49e0a9c059b2be9 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Thu, 15 May 2025 18:15:16 +0200
 Subject: Add CycloneDX plugin
 
 ---
@@ -8,13 +8,13 @@ Subject: Add CycloneDX plugin
  1 file changed, 41 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 32e6e8fdca..13a0deffec 100644
+index 388a85aa85..fb0015e49a 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,47 @@ plugins {
+@@ -45,6 +45,47 @@ plugins {
    // artifacts - see https://github.com/johnrengelman/shadow/issues/901
    id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
-   id 'com.diffplug.spotless' version '6.14.0' apply false // 6.14.1 and newer require Java 11 at compile time, so we can't upgrade until AK 4.0
+   id 'com.diffplug.spotless' version "6.25.0"
 +  id 'org.cyclonedx.bom' version '1.10.0'
 +}
 +
@@ -33,9 +33,6 @@ index 32e6e8fdca..13a0deffec 100644
 +    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
 +    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
 +    skipProjects = [
-+      'upgrade-system-tests-0100',
-+      'upgrade-system-tests-0101',
-+      'upgrade-system-tests-0102',
 +      'upgrade-system-tests-0110',
 +      'upgrade-system-tests-10',
 +      'upgrade-system-tests-11',
@@ -54,7 +51,10 @@ index 32e6e8fdca..13a0deffec 100644
 +      'upgrade-system-tests-33',
 +      'upgrade-system-tests-34',
 +      'upgrade-system-tests-35',
-+      'upgrade-system-tests-36'
++      'upgrade-system-tests-36',
++      'upgrade-system-tests-37',
++      'upgrade-system-tests-38',
++      'upgrade-system-tests-39',
 +    ]
  }
  
