@@ -2,19 +2,23 @@
 Custom Auth manager for Airflow
 """
 
-from airflow.auth.managers.base_auth_manager import ResourceMethod
-from airflow.auth.managers.models.base_user import BaseUser
-from airflow.auth.managers.models.resource_details import (
+from airflow.providers.fab.auth_manager.models import User
+from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
+
+from airflow.api_fastapi.auth.managers.base_auth_manager import ResourceMethod
+from airflow.configuration import conf
+from airflow.api_fastapi.auth.managers.models.resource_details import (
     AccessView,
+    AssetDetails,
+    AssetAliasDetails,
+    BackfillDetails,
     ConfigurationDetails,
     ConnectionDetails,
     DagAccessEntity,
     DagDetails,
-    DatasetDetails,
     PoolDetails,
     VariableDetails,
 )
-from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.stats import Stats
 from airflow.utils.log.logging_mixin import LoggingMixin
 from cachetools import TTLCache, cachedmethod
@@ -70,22 +74,26 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     AUTH_OPA_REQUEST_URL_DEFAULT = "http://opa:8081/v1/data/airflow"
     AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
 
-    def init(self) -> None:
+    @override
+    def init_flask_resources(self) -> None:
         """
         Run operations when Airflow is initializing.
         """
 
-        super().init()
+        super().init_flask_resources()
 
         Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED, count=0)
 
-        config = self.appbuilder.get_app.config
         self.opa_cache = Cache(
-            maxsize=config.get(
-                "AUTH_OPA_CACHE_MAXSIZE", self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT
+            maxsize=conf.getint(
+                "core",
+                "AUTH_OPA_CACHE_MAXSIZE",
+                fallback=self.AUTH_OPA_CACHE_MAXSIZE_DEFAULT,
             ),
-            ttl=config.get(
-                "AUTH_OPA_CACHE_TTL_IN_SEC", self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT
+            ttl=conf.getint(
+                "core",
+                "AUTH_OPA_CACHE_TTL_IN_SEC",
+                fallback=self.AUTH_OPA_CACHE_TTL_IN_SEC_DEFAULT,
             ),
         )
         self.opa_session = requests.Session()
@@ -113,14 +121,17 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.debug("Forward authorization request to OPA")
 
-        config = self.appbuilder.get_app.config
-        opa_url = config.get("AUTH_OPA_REQUEST_URL", self.AUTH_OPA_REQUEST_URL_DEFAULT)
+        opa_url = conf.get(
+            "core", "AUTH_OPA_REQUEST_URL", fallback=self.AUTH_OPA_REQUEST_URL_DEFAULT
+        )
         try:
             response = self.call_opa(
                 f"{opa_url}/{endpoint}",
                 json=input.to_dict(),
-                timeout=config.get(
-                    "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
+                timeout=conf.getint(
+                    "core",
+                    "AUTH_OPA_REQUEST_TIMEOUT",
+                    fallback=self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT,
                 ),
             )
             return response.json().get("result")
@@ -134,7 +145,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         method: ResourceMethod,
         details: Optional[ConfigurationDetails] = None,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on
@@ -147,9 +158,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_configuration")
-
-        if not user:
-            user = self.get_user()
 
         if not details:
             section = None
@@ -180,7 +188,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         method: ResourceMethod,
         details: Optional[ConnectionDetails] = None,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a connection.
@@ -192,9 +200,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_connection")
-
-        if not user:
-            user = self.get_user()
 
         if not details:
             conn_id = None
@@ -226,7 +231,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         method: ResourceMethod,
         access_entity: Optional[DagAccessEntity] = None,
         details: Optional[DagDetails] = None,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a DAG.
@@ -240,9 +245,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_dag")
-
-        if not user:
-            user = self.get_user()
 
         if not access_entity:
             entity = None
@@ -274,48 +276,39 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         )
 
     @override
-    def is_authorized_dataset(
+    def is_authorized_backfill(
         self,
         *,
         method: ResourceMethod,
-        details: Optional[DatasetDetails] = None,
-        user: Optional[BaseUser] = None,
+        details: Optional[BackfillDetails] = None,
+        user: User,
     ) -> bool:
-        """
-        Return whether the user is authorized to perform a given action on a dataset.
+        raise NotImplementedError(
+            "Backfill authorization is not implemented in OPA auth manager. "
+        )
 
-        :param method: the method to perform
-        :param details: optional details about the dataset
-        :param user: the user to perform the action on. If not provided (or None), it uses the
-            current user
-        """
+    @override
+    def is_authorized_asset(
+        self,
+        *,
+        method: ResourceMethod,
+        user: User,
+        details: Optional[AssetDetails] = None,
+    ) -> bool:
+        raise NotImplementedError(
+            "Asset authorization is not implemented in OPA auth manager. "
+        )
 
-        self.log.debug("Check is_authorized_dataset")
-
-        if not user:
-            user = self.get_user()
-
-        if not details:
-            uri = None
-        else:
-            uri = details.uri
-
-        return self._is_authorized_in_opa(
-            "is_authorized_dataset",
-            OpaInput(
-                {
-                    "input": {
-                        "method": method,
-                        "details": {
-                            "uri": uri,
-                        },
-                        "user": {
-                            "id": user.get_id(),
-                            "name": user.get_name(),
-                        },
-                    }
-                }
-            ),
+    @override
+    def is_authorized_asset_alias(
+        self,
+        *,
+        method: ResourceMethod,
+        user: User,
+        details: Optional[AssetAliasDetails] = None,
+    ) -> bool:
+        raise NotImplementedError(
+            "Asset alias authorization is not implemented in OPA auth manager. "
         )
 
     @override
@@ -324,7 +317,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         method: ResourceMethod,
         details: Optional[PoolDetails] = None,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a pool.
@@ -336,9 +329,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_pool")
-
-        if not user:
-            user = self.get_user()
 
         if not details:
             name = None
@@ -369,7 +359,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         method: ResourceMethod,
         details: Optional[VariableDetails] = None,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a variable.
@@ -381,9 +371,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_variable")
-
-        if not user:
-            user = self.get_user()
 
         if not details:
             key = None
@@ -413,7 +400,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         self,
         *,
         access_view: AccessView,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to access a read-only state of the installation.
@@ -424,9 +411,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
 
         self.log.debug("Check is_authorized_view")
-
-        if not user:
-            user = self.get_user()
 
         return self._is_authorized_in_opa(
             "is_authorized_view",
@@ -449,7 +433,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         method: Union[ResourceMethod, str],
         resource_name: str,
-        user: Optional[BaseUser] = None,
+        user: User,
     ) -> bool:
         """
         Return whether the user is authorized to perform a given action on a custom view.

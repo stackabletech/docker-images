@@ -7,13 +7,14 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.13"
-requests = "^2.32.3"
-cachetools = "^5.5.0"
+requests = "^2.32"
+cachetools = "^5.5"
 overrides = "^7.7.0"
 
 [tool.poetry.group.dev.dependencies]
-apache-airflow = "^2.10.3"
+apache-airflow = "^3.0"
 pylint = "^3.3.1"
+apache-airflow-providers-fab = "^2.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.3"
