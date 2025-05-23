@@ -32,10 +32,13 @@ ARG STACKABLE_USER_UID
 ARG S3FS
 ARG CYCLONEDX_BOM
 ARG UV
+ARG EXTRAS
 
+# Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
+# They evolve over time and thus belong to the version-specific arguments.
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
-ENV AIRFLOW_EXTRAS=async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino
+ENV AIRFLOW_EXTRAS=${EXTRAS}
 
 RUN microdnf update && \
     microdnf install \
