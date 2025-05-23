@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094])
 - nifi: include NAR SBOMs ([#1119])
+- nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
 
 ### Fixed
@@ -140,6 +141,7 @@ All notable changes to this project will be documented in this file.
 [#1119]: https://github.com/stackabletech/docker-images/pull/1119
 [#1121]: https://github.com/stackabletech/docker-images/pull/1121
 [#1124]: https://github.com/stackabletech/docker-images/pull/1124
+[#1125]: https://github.com/stackabletech/docker-images/pull/1125
 
 ## [25.3.0] - 2025-03-21
 
