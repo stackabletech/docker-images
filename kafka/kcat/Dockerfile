@@ -4,7 +4,7 @@
 # Normally we would use stackable/image/stackable-base here, *but* we fail to link kcat at the end with error messages
 # shown in Snippet 1, which we were not able to solve.
 
-FROM stackable/image/java-base AS builder
+FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
@@ -30,13 +30,20 @@ EOF
 
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/patchable.toml /stackable/src/kafka/kcat/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/${PRODUCT} /stackable/src/kafka/kcat/stackable/patches/${PRODUCT}
+
 RUN <<EOF
-curl -O https://repo.stackable.tech/repository/packages/kcat/kcat-${PRODUCT}.tar.gz
-tar xvfz kcat-${PRODUCT}.tar.gz
-cd kcat-${PRODUCT}
+cd "$(/stackable/patchable --images-repo-root=src checkout kafka/kcat ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/kcat-${PRODUCT}-src.tar.gz .
+
 ./bootstrap.sh
+mv kcat /stackable/kcat
 # set correct permissions
-chmod --recursive g=u /stackable/kcat-${PRODUCT}
+chmod --recursive g=u /stackable/kcat
+chmod g=u /stackable/kcat-${PRODUCT}-src.tar.gz
 EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/licenses /licenses

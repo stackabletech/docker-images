@@ -16,6 +16,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 trino/storage-connector/stackable/patches/$
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/trino-storage-connector-${PRODUCT}-src.tar.gz .
+
 # Upstream builds are marked as -SNAPSHOT, even for release builds
 mvn versions:set -DnewVersion=${PRODUCT}
 

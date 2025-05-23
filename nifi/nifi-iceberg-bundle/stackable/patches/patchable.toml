@@ -1,0 +1,1 @@
+upstream = "https://github.com/stackabletech/nifi-iceberg-bundle.git"

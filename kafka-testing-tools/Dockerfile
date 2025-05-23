@@ -30,7 +30,8 @@ RUN microdnf install  \
     && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}/kcat /stackable/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 RUN ln -s /stackable/kcat-${KAFKA_KCAT} /stackable/kcat
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 

@@ -14,8 +14,8 @@ ARG DELETE_CACHES="true"
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase-operator-tools/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${PRODUCT} /stackable/src/hbase-operator-tools/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 USER ${STACKABLE_USER_UID}
@@ -24,7 +24,10 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase-operator-tools ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-tools ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hbase-operator-tools-$PRODUCT-src.tar.gz .
 
 mvn \
   --batch-mode \

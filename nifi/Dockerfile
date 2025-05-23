@@ -45,6 +45,9 @@ curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bc
 
 cd "$(/stackable/patchable --images-repo-root=src checkout nifi ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/nifi-${PRODUCT}-src.tar.gz .
+
 # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
 # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
 if [[ "${PRODUCT}" != 1.* ]] ; then
@@ -90,15 +93,20 @@ ARG PRODUCT
 ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
-WORKDIR /build
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE} /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE}
 
 RUN <<EOF
 mkdir -p /stackable
 
 # NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    curl -L "https://github.com/stackabletech/nifi-iceberg-bundle/archive/refs/tags/${NIFI_ICEBERG_BUNDLE}.tar.gz" | tar -xzC .
-    cd nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE} || exit
+    cd "$(/stackable/patchable --images-repo-root=src checkout nifi/nifi-iceberg-bundle ${NIFI_ICEBERG_BUNDLE})"
+
+    # Create snapshot of the source code including custom patches
+    tar -czf /stackable/nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}-src.tar.gz .
 
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
 
@@ -114,11 +122,10 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
     cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
     cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE}.nar /stackable
-    cp ./target/bom.json /stackable/nifi-iceberg-bundle.cdx.json
+    cp ./target/bom.json /stackable/nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}.cdx.json
 
-    cd ..
     # Save disk space, even for intermediate images
-    rm -rf nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE}
+    (cd .. && rm -r ${NIFI_ICEBERG_BUNDLE})
 
 # Set correct groups
 chmod g=u /stackable/*.nar
@@ -133,13 +140,18 @@ ARG STACKABLE_USER_UID
 ARG PRODUCT
 
 USER ${STACKABLE_USER_UID}
-WORKDIR /build
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/opa-plugin/stackable/patches/patchable.toml /stackable/src/nifi/opa-plugin/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN} /stackable/src/nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN}
 
 RUN <<EOF
 mkdir -p /stackable
 
-curl -L "https://github.com/DavidGitter/nifi-opa-plugin/archive/refs/tags/v${NIFI_OPA_AUTHORIZER_PLUGIN}.tar.gz" | tar -xzC .
-cd nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}/authorizer || exit
+cd "$(/stackable/patchable --images-repo-root=src checkout nifi/opa-plugin ${NIFI_OPA_AUTHORIZER_PLUGIN})/authorizer"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz .
 
 mvn \
     --batch-mode \
@@ -160,6 +172,7 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG NIFI_OPA_AUTHORIZER_PLUGIN
 
 LABEL name="Apache NiFi" \
     maintainer="info@stackable.tech" \
@@ -170,12 +183,15 @@ LABEL name="Apache NiFi" \
     description="This image is deployed by the Stackable Operator for Apache NiFi."
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
@@ -210,6 +226,7 @@ chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-${PRODUCT}
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------

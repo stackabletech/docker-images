@@ -49,6 +49,9 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 ###
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hbase-${PRODUCT}-src.tar.gz .
+
 # The release scripts of HBase also run the build twice (three times in fact, once again to build the site which we skip here).
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 # Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
@@ -146,6 +149,8 @@ ARG RELEASE
 ARG HADOOP
 ARG HBASE_PROFILE
 ARG HBASE_HBASE_OPERATOR_TOOLS
+ARG HBASE_HBASE_OPA_AUTHORIZER
+ARG HBASE_PHOENIX
 ARG STACKABLE_USER_UID
 
 ARG NAME="Apache HBase"
@@ -171,13 +176,16 @@ LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT} /stackable/hbase-${PRODUCT}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${PRODUCT}/bin/hbase-entrypoint.sh
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_PHOENIX}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
@@ -190,6 +198,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
   /stackable/hbase-${PRODUCT}/lib/
 
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${PRODUCT}/lib
 
 RUN <<EOF
@@ -226,6 +235,7 @@ chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 chmod g=u /stackable/async-profiler
 chmod g=u /stackable/bin
 chmod g=u /stackable/phoenix
+chmod g=u /stackable/*-src.tar.gz
 # the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
 find /stackable/hadoop -type d -exec chmod g=u {} +
 EOF

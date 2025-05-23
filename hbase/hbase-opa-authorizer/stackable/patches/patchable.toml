@@ -1,0 +1,1 @@
+upstream = "https://github.com/stackabletech/hbase-opa-authorizer.git"
