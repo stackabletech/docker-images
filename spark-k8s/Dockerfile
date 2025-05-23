@@ -19,7 +19,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml 
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
 
 RUN <<EOF
-cd $(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})"
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
