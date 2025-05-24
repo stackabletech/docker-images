@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
-# check=error=true;skip=InvalidDefaultArgInFrom
+# Disabled error checks:
+# - SecretsUsedInArgOrEnv : OPA_AUTH_MANAGER is a false positive and breaks the build.
+# check=error=true;skip=InvalidDefaultArgInFrom,SecretsUsedInArgOrEnv
 
 ARG GIT_SYNC
 
@@ -11,7 +13,9 @@ FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 
 FROM python:3.12-bookworm AS opa-auth-manager-builder
 
-COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
+ARG OPA_AUTH_MANAGER
+
+COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
 WORKDIR /tmp/opa-auth-manager
 
