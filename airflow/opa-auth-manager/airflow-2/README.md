@@ -1,12 +1,12 @@
-# Airflow OPA auth manager
+# Airflow 2 OPA auth manager
 
-Auth manager for Airflow which delegates the authorization to an Open Policy
+Auth manager for Airflow 2 which delegates the authorization to an Open Policy
 Agent
 
-[Poetry](https://python-poetry.org/) is used to build the project:
+[uv](https://docs.astral.sh/uv/) is used to build the project:
 
-    poetry build
+    uv build
 
 The unit tests can be run as follows:
 
-    poetry run pytest
+    uv run pytest

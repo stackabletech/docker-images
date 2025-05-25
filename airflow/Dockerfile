@@ -14,16 +14,16 @@ FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 FROM python:3.12-bookworm AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
+ARG UV
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
 WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
-pip install --no-cache-dir poetry
-poetry build
-poetry install
-poetry run pytest
+pip install --no-cache-dir uv==${UV}
+uv run pytest
+uv build
 EOF
 
 FROM stackable/image/vector AS airflow-build-image
