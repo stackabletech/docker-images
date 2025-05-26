@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - airflow: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
 - airflow: Add `2.10.5` ([#1108]).
+- airflow: Add `3.0.1` ([#1122]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
 - druid: Add `33.0.0` ([#1110]).
@@ -62,6 +63,7 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094])
 - nifi: include NAR SBOMs ([#1119])
+- nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
 
 ### Fixed
@@ -140,7 +142,9 @@ All notable changes to this project will be documented in this file.
 [#1117]: https://github.com/stackabletech/docker-images/pull/1117
 [#1119]: https://github.com/stackabletech/docker-images/pull/1119
 [#1121]: https://github.com/stackabletech/docker-images/pull/1121
+[#1122]: https://github.com/stackabletech/docker-images/pull/1122
 [#1124]: https://github.com/stackabletech/docker-images/pull/1124
+[#1125]: https://github.com/stackabletech/docker-images/pull/1125
 [#1126]: https://github.com/stackabletech/docker-images/pull/1126
 
 ## [25.3.0] - 2025-03-21
