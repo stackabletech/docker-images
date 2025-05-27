@@ -23,6 +23,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
+chmod g=u /stackable/spark-${PRODUCT}-src.tar.gz
 EOF
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
@@ -113,6 +114,7 @@ mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackabl
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=./jars
+chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
 EOF
 
 
@@ -230,7 +232,6 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 chmod -R g=u /stackable/spark-${PRODUCT}/dist
 chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
 chmod -R g=u /stackable/jmx
-chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
