@@ -11,9 +11,10 @@ FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 
-FROM python:3.12-bookworm AS opa-auth-manager-builder
+FROM stackable/image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
+ARG PYTHON
 ARG UV
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
@@ -21,8 +22,18 @@ COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
-pip install --no-cache-dir uv==${UV}
-uv run pytest
+microdnf update
+microdnf install python${PYTHON}-pip
+microdnf clean all
+
+pip${PYTHON} install --no-cache-dir uv==${UV}
+
+# This folder is required by the tests to set up an sqlite database
+mkdir /root/airflow
+
+# Warnings are disabled because they come from various third party testing libraries
+# that we have no control over.
+uv run pytest --disable-warnings
 uv build
 EOF
 

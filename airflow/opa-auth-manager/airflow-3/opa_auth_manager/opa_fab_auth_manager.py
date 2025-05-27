@@ -2,15 +2,15 @@
 Custom Auth manager for Airflow
 """
 
-from airflow.providers.fab.auth_manager.models import User
-from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
+import json
+from typing import Optional, Union
 
+import requests
 from airflow.api_fastapi.auth.managers.base_auth_manager import ResourceMethod
-from airflow.configuration import conf
 from airflow.api_fastapi.auth.managers.models.resource_details import (
     AccessView,
-    AssetDetails,
     AssetAliasDetails,
+    AssetDetails,
     BackfillDetails,
     ConfigurationDetails,
     ConnectionDetails,
@@ -19,13 +19,13 @@ from airflow.api_fastapi.auth.managers.models.resource_details import (
     PoolDetails,
     VariableDetails,
 )
+from airflow.configuration import conf
+from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
+from airflow.providers.fab.auth_manager.models import User
 from airflow.stats import Stats
 from airflow.utils.log.logging_mixin import LoggingMixin
 from cachetools import TTLCache, cachedmethod
-from typing import Optional, Union
 from overrides import override
-import json
-import requests
 
 METRIC_NAME_OPA_CACHE_LIMIT_REACHED = "opa_cache_limit_reached"
 
@@ -246,7 +246,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         :param user: the user to perform the action on. If not provided (or None), it uses the
             current user
         """
-
         self.log.debug("Check is_authorized_dag")
 
         if not access_entity:
@@ -259,6 +258,23 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         else:
             dag_id = details.id
 
+        print(
+            OpaInput(
+                {
+                    "input": {
+                        "method": method,
+                        "access_entity": entity,
+                        "details": {
+                            "id": dag_id,
+                        },
+                        "user": {
+                            "id": user.get_id(),
+                            "name": user.get_name(),
+                        },
+                    }
+                }
+            ).to_dict()
+        )
         return self._is_authorized_in_opa(
             "is_authorized_dag",
             OpaInput(
