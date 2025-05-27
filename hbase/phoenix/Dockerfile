@@ -19,6 +19,9 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-phoenix-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/phoenix-$PRODUCT-src.tar.gz .
+
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \

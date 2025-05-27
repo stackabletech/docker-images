@@ -23,6 +23,9 @@ WORKDIR /stackable
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/zookeeper-${PRODUCT}-src.tar.gz .
+
 # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
 # that created all kinds of issues for the build container
 mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build
@@ -68,6 +71,7 @@ LABEL  \
 
 # Copy over the ZooKeeper binary folder
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
