@@ -54,6 +54,9 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/sta
 cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
 rm /tmp/DRUID_SOURCE_DIR
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/druid-${PRODUCT}-src.tar.gz .
+
 mvn \
   --batch-mode \
   --no-transfer-progress \
@@ -120,6 +123,7 @@ LABEL io.k8s.display-name="${NAME}"
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/druid-${PRODUCT}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses

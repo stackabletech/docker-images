@@ -39,6 +39,9 @@ RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target
 BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
 cd "$BUILD_SRC_DIR"
 
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hive-${PRODUCT}-src.tar.gz .
+
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
   mv standalone-metastore/target/apache-hive-metastore-${PRODUCT}-bin/apache-hive-metastore-${PRODUCT}-bin /stackable
@@ -127,7 +130,9 @@ LABEL io.k8s.display-name="${NAME}"
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP} /stackable/hadoop-${HADOOP}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
@@ -150,6 +155,7 @@ chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
 chmod g=u /stackable/hadoop
+chmod g=u /stackable/*-src.tar.gz
 
 # fix missing permissions
 chmod --recursive g=u /stackable/jmx
