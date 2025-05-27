@@ -1,17 +1,17 @@
-From 6af1b7fa0f62a4413f1fc072a46ce1be3594d7bc Mon Sep 17 00:00:00 2001
+From c14ba9cd92451a2c8a7ad7da2ff2e3f5cdbf2201 Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Fri, 6 Sep 2024 17:53:52 +0200
 Subject: Add CycloneDX plugin
 
 ---
- pom.xml | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ pom.xml | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index 7304dac..5ba854d 100644
+index 7304dac..d73dacf 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -544,6 +544,23 @@
+@@ -544,6 +544,24 @@
                      </dependency>
                  </dependencies>
              </plugin>
@@ -22,6 +22,7 @@ index 7304dac..5ba854d 100644
 +                <configuration>
 +                    <projectType>application</projectType>
 +                    <schemaVersion>1.5</schemaVersion>
++                    <skipNotDeployed>false</skipNotDeployed>
 +                </configuration>
 +                <executions>
 +                    <execution>
