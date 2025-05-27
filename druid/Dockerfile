@@ -145,7 +145,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
 
 # fix missing permissions
 chmod -R g=u /stackable/bin
-chmod g=u /stackable/apache-druid-${PRODUCT} /stackable/druid-${PRODUCT}-src.tar.gz
+chmod g=u /stackable/apache-druid-${PRODUCT}
 EOF
 
 # ----------------------------------------

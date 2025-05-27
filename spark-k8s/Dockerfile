@@ -230,6 +230,7 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 chmod -R g=u /stackable/spark-${PRODUCT}/dist
 chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
 chmod -R g=u /stackable/jmx
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
@@ -301,7 +302,6 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 chmod g=u /stackable/spark
 chmod g=u /stackable/jmx
 chmod g=u /stackable/run-spark.sh
-chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------

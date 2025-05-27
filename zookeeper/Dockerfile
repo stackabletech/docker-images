@@ -91,7 +91,6 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
 # fix missing permissions
 chmod g=u /stackable/jmx
 chmod g=u /stackable/apache-zookeeper-${PRODUCT}-bin/
-chmod g=u /stackable/zookeeper-${PRODUCT}-src.tar.gz
 EOF
 
 # ----------------------------------------
