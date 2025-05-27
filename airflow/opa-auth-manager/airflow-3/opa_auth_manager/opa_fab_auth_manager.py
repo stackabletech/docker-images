@@ -258,23 +258,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         else:
             dag_id = details.id
 
-        print(
-            OpaInput(
-                {
-                    "input": {
-                        "method": method,
-                        "access_entity": entity,
-                        "details": {
-                            "id": dag_id,
-                        },
-                        "user": {
-                            "id": user.get_id(),
-                            "name": user.get_name(),
-                        },
-                    }
-                }
-            ).to_dict()
-        )
         return self._is_authorized_in_opa(
             "is_authorized_dag",
             OpaInput(
