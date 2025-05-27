@@ -18,7 +18,7 @@ FROM stackable/image/stackable-devel AS containerdebug
 
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.1.1
+ENV CONTAINERDEBUG_VERSION=0.2.0
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
