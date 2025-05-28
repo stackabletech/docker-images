@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "stackabletech",
         "repo": "image-tools",
-        "rev": "3795a8727a724a59edf17a3f4061b734302ea7cd",
-        "sha256": "1x0n8cqsri7612asamk8ncfhh0xrk3khjjnfd80mzdhl9zk081nn",
+        "rev": "bdaf1f13d53231ed903efa0a50a595d9d2c6d06e",
+        "sha256": "0d0vqrhscra3p1mfqdbc0d5hkvrfcw8skav8snfp74p2mqdgsyz1",
         "type": "tarball",
-        "url": "https://github.com/stackabletech/image-tools/archive/3795a8727a724a59edf17a3f4061b734302ea7cd.tar.gz",
+        "url": "https://github.com/stackabletech/image-tools/archive/bdaf1f13d53231ed903efa0a50a595d9d2c6d06e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
