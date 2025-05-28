@@ -66,6 +66,7 @@ All notable changes to this project will be documented in this file.
 - nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
 - containerdebug updated to 0.2.0 ([#1128])
+- patchable: The base branch is now configured as the git upstream branch ([#1131]).
 
 ### Fixed
 
@@ -148,6 +149,7 @@ All notable changes to this project will be documented in this file.
 [#1125]: https://github.com/stackabletech/docker-images/pull/1125
 [#1126]: https://github.com/stackabletech/docker-images/pull/1126
 [#1128]: https://github.com/stackabletech/docker-images/pull/1128
+[#1131]: https://github.com/stackabletech/docker-images/pull/1131
 
 ## [25.3.0] - 2025-03-21
 
