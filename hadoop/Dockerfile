@@ -24,8 +24,11 @@ microdnf update
 microdnf install boost1.78-devel automake libtool
 microdnf clean all
 rm -rf /var/cache/yum
+mkdir /opt/protobuf
+chown ${STACKABLE_USER_UID}:0 /opt/protobuf
 EOF
 
+USER ${STACKABLE_USER_UID}
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile
 # See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
 # (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
@@ -58,7 +61,6 @@ chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 EOF
 
-USER ${STACKABLE_USER_UID}
 WORKDIR /build
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/patchable.toml /build/src/hadoop/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
