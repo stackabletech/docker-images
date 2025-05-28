@@ -9,4 +9,7 @@ Agent
 
 The unit tests can be run as follows:
 
+    # Create directory for an SQLite database used by the test suite
+    mkdir ~/airflow
+
     uv run pytest
