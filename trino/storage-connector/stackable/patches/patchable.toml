@@ -1,0 +1,2 @@
+upstream = "https://github.com/snowlift/trino-storage.git"
+default-mirror = "https://github.com/stackabletech/trino-storage.git"

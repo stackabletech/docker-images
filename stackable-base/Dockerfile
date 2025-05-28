@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 FROM stackable/image/stackable-devel AS config-utils
@@ -18,7 +18,7 @@ FROM stackable/image/stackable-devel AS containerdebug
 
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.1.1
+ENV CONTAINERDEBUG_VERSION=0.2.0
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug

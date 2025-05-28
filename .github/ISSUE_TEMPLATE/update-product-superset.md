@@ -33,6 +33,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Delete old constraint files and patch directories.
 - [ ] Update other dependencies if applicable (eg: python, auth_lib, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 
 ## Related Pull Requests
@@ -64,7 +65,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.13
+pip install image-tools-stackabletech==0.0.16
 
 bake --product superset=x.y.z # where x.y.z is the new version added in this PR
 

@@ -1,2 +1,2 @@
-upstream = "https://github.com/apache/hbase-operator-tools.git"
 base = "fd5a5fb90755949a90c502c76de8313130403fa3"
+mirror = "https://github.com/stackabletech/hbase-operator-tools.git"

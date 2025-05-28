@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 FROM stackable/image/hadoop AS hadoop-builder
@@ -23,6 +23,7 @@ ARG STACKABLE_USER_UID
 ARG DELETE_CACHES="true"
 
 # Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/patchable.toml /stackable/src/hive/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
@@ -37,6 +38,9 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
 cd "$BUILD_SRC_DIR"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hive-${PRODUCT}-src.tar.gz .
 
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
@@ -128,7 +132,9 @@ LABEL io.k8s.display-name="${NAME}"
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP} /stackable/hadoop-${HADOOP}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
@@ -151,6 +157,7 @@ chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
 chmod g=u /stackable/hadoop
+chmod g=u /stackable/*-src.tar.gz
 
 # fix missing permissions
 chmod --recursive g=u /stackable/jmx

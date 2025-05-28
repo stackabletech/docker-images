@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 FROM stackable/image/java-devel AS druid-builder
@@ -32,6 +32,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
 # Cache mounts are owned by root by default
@@ -42,13 +43,32 @@ COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackab
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
 
+# Let's have patchable as a dedicated step, as it fetches the druid sourcecode over the network,
+# thus taking a bit (which is annoying while development)
+RUN /stackable/patchable --images-repo-root=src checkout druid ${PRODUCT} > /tmp/DRUID_SOURCE_DIR
+
 RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
   --mount=type=cache,id=npm-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
   --mount=type=cache,id=cache-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.cache \
   <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout druid ${PRODUCT})"
+cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
+rm /tmp/DRUID_SOURCE_DIR
 
-mvn --batch-mode --no-transfer-progress clean install -Pdist,stackable-bundle-contrib-exts -DskipTests -Dmaven.javadoc.skip=true
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/druid-${PRODUCT}-src.tar.gz .
+
+mvn \
+  --batch-mode \
+  --no-transfer-progress \
+  clean install \
+  -Pdist,stackable-bundle-contrib-exts \
+  -Dmaven.test.skip `# Skip test compilation` \
+  -DskipTests `# Skip test execution` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)` \
+  $(if [[ ${PRODUCT} != 30.* ]]; then echo --projects '!quidem-ut'; fi) `# This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:0.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...`
+
 mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
 mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-druid-${PRODUCT}-src
@@ -103,6 +123,7 @@ LABEL io.k8s.display-name="${NAME}"
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/druid-${PRODUCT}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses

@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
-FROM stackable/image/kcat AS kcat
+FROM stackable/image/kafka/kcat AS kcat
 
 FROM stackable/image/java-devel AS kafka-builder
 
@@ -15,10 +15,14 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/patchable.toml /stackable/src/kafka/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/kafka-${PRODUCT}-src.tar.gz .
 
 # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
@@ -49,7 +53,7 @@ FROM stackable/image/java-base AS final
 ARG RELEASE
 ARG PRODUCT
 ARG SCALA
-ARG KCAT
+ARG KAFKA_KCAT
 ARG STACKABLE_USER_UID
 
 LABEL \
@@ -63,8 +67,10 @@ LABEL \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KCAT}/kcat /stackable/bin/kcat-${KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
@@ -83,7 +89,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln -s /stackable/bin/kcat-${KCAT} /stackable/bin/kcat
+ln -s /stackable/bin/kcat-${KAFKA_KCAT} /stackable/bin/kcat
 chown -h ${STACKABLE_USER_UID}:0 /stackable/bin/kcat
 # kcat was located in /stackable/kcat - legacy
 ln -s /stackable/bin/kcat /stackable/kcat
@@ -95,6 +101,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
 chmod g=u /stackable/bin
 chmod g=u /stackable/jmx
 chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------

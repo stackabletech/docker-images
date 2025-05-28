@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 # ==============================================================================
@@ -11,6 +11,7 @@ ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
 # Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
 # Copy JMX config into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
@@ -21,6 +22,9 @@ WORKDIR /stackable
 # Download ZooKeeper sources from our own repo
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/zookeeper-${PRODUCT}-src.tar.gz .
 
 # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
 # that created all kinds of issues for the build container
@@ -67,6 +71,7 @@ LABEL  \
 
 # Copy over the ZooKeeper binary folder
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 

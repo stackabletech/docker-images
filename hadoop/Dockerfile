@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 FROM stackable/image/java-devel AS hadoop-builder
@@ -11,32 +11,40 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
 
-# This Protobuf version is the exact version as used in the Hadoop Dockerfile
-# See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
-# (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
-WORKDIR /opt/protobuf-src
-RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/protobuf/protobuf-java-${PROTOBUF}.tar.gz -o /opt/protobuf.tar.gz
-    tar xzf /opt/protobuf.tar.gz --strip-components 1 --no-same-owner
-    ./configure --prefix=/opt/protobuf
-    make "-j$(nproc)"
-    make install
-    rm -rf /opt/protobuf-src
-EOF
+WORKDIR /stackable
 
-ENV PROTOBUF_HOME=/opt/protobuf
-ENV PATH="${PATH}:/opt/protobuf/bin"
+COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/patchable.toml /stackable/src/shared/protobuf/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/${PROTOBUF} /stackable/src/shared/protobuf/stackable/patches/${PROTOBUF}
 
 RUN <<EOF
 rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 microdnf update
 # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-microdnf install boost1.78-devel
+# automake and libtool are required to build protobuf
+microdnf install boost1.78-devel automake libtool
 microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-WORKDIR /stackable
+# This Protobuf version is the exact version as used in the Hadoop Dockerfile
+# See https://github.com/apache/hadoop/blob/trunk/dev-support/docker/pkg-resolver/install-protobuf.sh
+# (this was hardcoded in the Dockerfile in earlier versions of Hadoop, make sure to look at the exact version in Github)
+RUN <<EOF
+    cd "$(/stackable/patchable --images-repo-root=src checkout shared/protobuf ${PROTOBUF})"
+
+    # Create snapshot of the source code including custom patches
+    tar -czf /stackable/protobuf-${PROTOBUF}-src.tar.gz .
+
+    ./autogen.sh
+    ./configure --prefix=/opt/protobuf
+    make "-j$(nproc)"
+    make install
+    (cd .. && rm -r ${PROTOBUF})
+EOF
+
+ENV PROTOBUF_HOME=/opt/protobuf
+ENV PATH="${PATH}:/opt/protobuf/bin"
+
 RUN <<EOF
 # async-profiler
 ARCH="${TARGETARCH/amd64/x64}"
@@ -51,6 +59,7 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 EOF
 
 WORKDIR /build
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/patchable.toml /build/src/hadoop/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /build
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
@@ -61,6 +70,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hadoop-${PRODUCT}-src.tar.gz .
 
 mvn \
     --batch-mode \
@@ -124,14 +136,20 @@ EOF
 ENV JAVA_HOME="/usr/lib/jvm/temurin-17-jdk"
 
 USER ${STACKABLE_USER_UID}
-WORKDIR /build
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/patchable.toml /stackable/src/hadoop/hdfs-utils/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS} /stackable/src/hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS}
+
 # The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
 # labels to build a rackID from.
 # Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
 RUN <<EOF
-curl "https://github.com/stackabletech/hdfs-utils/archive/refs/tags/v${HDFS_UTILS}.tar.gz" | tar -xzC .
-cd hdfs-utils-${HDFS_UTILS}
+cd "$(/stackable/patchable --images-repo-root=src checkout hadoop/hdfs-utils ${HDFS_UTILS})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz .
 
 mvn \
     --batch-mode \
@@ -146,7 +164,7 @@ cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hdfs-utils-${HDFS_UTILS}.jar
 rm -rf hdfs-utils-main
 
 # Set correct groups
-chmod g=u /stackable/hdfs-utils-${HDFS_UTILS}.jar
+chmod g=u /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz
 EOF
 
 FROM stackable/image/java-base AS final
@@ -167,6 +185,7 @@ LABEL \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/licenses /licenses
 
