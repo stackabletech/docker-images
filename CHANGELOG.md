@@ -66,7 +66,6 @@ All notable changes to this project will be documented in this file.
 - nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
 - containerdebug updated to 0.2.0 ([#1128])
-- hive: Bump Hadoop to 3.4.1, and AWS bundle to 2.24.6 ([#1100]).
 
 ### Fixed
 
@@ -86,6 +85,8 @@ All notable changes to this project will be documented in this file.
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
 - ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
+- hive: Patch for postgres CVE-2024-1597 ([#1100]).
+- bump image-tools (for `bake`) and nixpkgs (for `nodejs_20`, used by pre-commit) ([#1100]).
 
 ### Removed
 
