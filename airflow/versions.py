@@ -8,8 +8,9 @@ versions = [
         "shared/statsd-exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
-        "uv": "0.7.3",
+        "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino",
+        "opa_auth_manager": "airflow-2",
     },
     {
         "product": "2.10.4",
@@ -20,8 +21,9 @@ versions = [
         "shared/statsd-exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
-        "uv": "0.7.3",
+        "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino",
+        "opa_auth_manager": "airflow-2",
     },
     {
         "product": "2.10.5",
@@ -32,8 +34,9 @@ versions = [
         "shared/statsd-exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
-        "uv": "0.7.3",
+        "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino",
+        "opa_auth_manager": "airflow-2",
     },
     {
         "product": "3.0.1",
@@ -44,7 +47,8 @@ versions = [
         "shared/statsd-exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.46.1",
-        "uv": "0.7.3",
+        "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf-kubernetes,docker,elasticsearch,fab,ftp,grpc,hashicorp,http,ldap,google,microsoft-azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,trino",
+        "opa_auth_manager": "airflow-3",
     },
 ]
