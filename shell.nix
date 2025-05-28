@@ -1,6 +1,7 @@
-{ sources ? import ./nix/sources.nix
-, nixpkgs ? sources.nixpkgs
-, pkgs ? import nixpkgs { }
+{
+  sources ? import ./nix/sources.nix,
+  nixpkgs ? sources.nixpkgs,
+  pkgs ? import nixpkgs { },
 }:
 
 let
@@ -9,6 +10,7 @@ in
 pkgs.mkShell {
   packages = [
     bake
+    pkgs.nodejs_20
   ];
 
   buildInputs = [
