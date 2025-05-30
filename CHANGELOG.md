@@ -8,8 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - airflow: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1054]).
+- airflow: Add `2.10.5` ([#1108]).
+- airflow: Add `3.0.1` ([#1122]).
 - druid: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1039]).
+- druid: Add `33.0.0` ([#1110]).
 - hadoop: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
@@ -21,24 +24,54 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1041]).
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
+- nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
+- nifi: Add `2.4.0` ([#1114]).
+- nifi: Add git-sync ([#1107]).
 - opa: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1038]).
+- opa: Add `1.4.2` ([#1103]).
 - spark-k8s: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1055]).
 - superset: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1053]).
+- superset: Add version `4.1.2` ([#1102]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
+- nifi: Build and add OPA authorizer plugin nar ([#1058]).
+- nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060], [#1106]).
+- java: Add JDK 24 ([#1097]).
+- ci: Add golang image to mirror workflow ([#1103]).
+- omid: bump version to 1.1.3 ([#1105])
+- hbase: add 2.6.2 and upgrade dependencies ([#1101])
+- kafka: Add `4.0.0` ([#1117])
+- Include `.tar.gz` snapshots of the product source code in container images ([#1126])
+- airflow: OPA authorizer for Airflow 3.x ([#1127])
 
 ### Changed
 
+- airflow,superset: Use `uv` to build the product ([#1116]).
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
-- spark-k8s: Include spark-connect jars. Replace OpenJDK with Temurin JDK. Cleanup. ([#1034])
+- ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
+- stackable-devel: Bump ubi9 base image ([#1103]).
+- spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
+- spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
+- jmx_exporter: Bump products to use `1.2.0` ([#1090]).
+- kubectl: Bump products to use `1.33.0` ([#1090]).
+- yq: Bump products to use `4.45.2` ([#1090]).
+- cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
+- vector: Bump to `0.46.1` ([#1098]).
+- spark: update dependencies for 3.5.5 ([#1094])
+- nifi: include NAR SBOMs ([#1119])
+- nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
+- BREAKING: kcat: Stop building kcat image ([#1124]).
+- containerdebug updated to 0.2.0 ([#1128])
+- Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
 
 ### Fixed
 
+- airflow: Pin Cython version ([#1116]).
 - druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
 - hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
@@ -47,11 +80,31 @@ All notable changes to this project will be documented in this file.
 - Add `--locked` flag to `cargo install` commands for reproducible builds ([#1044]).
 - nifi: reduce docker image size by removing the recursive chown/chmods in the final image ([#1027]).
 - opa: reduce docker image size by removing the recursive chown/chmods in the final image ([#1038]).
+- opa: Manually install Go 1.23.9 ([#1103]).
 - spark-k8s: reduce docker image size by removing the recursive chown/chmods in the final image ([#1042]).
+- superset: Pin Cython version ([#1116]).
 - trino: reduce docker image size by removing the recursive chown/chmods in the final image ([#1025]).
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
+- ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
 
+### Removed
+
+- ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
+  Also remove the old release workflow.
+- zookeeper: Remove 3.9.2 ([#1093]).
+- Remove ubi8-rust-builder image ([#1091]).
+- spark: remove 3.5.2 ([#1094])
+- hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
+- opa: Remove `0.67.1` ([#1103]).
+- opa: Remove legacy bundle-builder from container build ([#1103]).
+- omid: Remove 1.1.3-SNAPSHOT ([#1105]).
+- hbase: Remove 2.4.18 ([#1101])
+- druid: Remove `30.0.0` ([#1110]).
+- nifi: Remove `2.2.0` ([#1114]).
+- kafka: Remove `3.7.1` and `3.8.0` ([#1117])
+
+[nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
 [#1027]: https://github.com/stackabletech/docker-images/pull/1027
 [#1028]: https://github.com/stackabletech/docker-images/pull/1028
@@ -69,6 +122,36 @@ All notable changes to this project will be documented in this file.
 [#1053]: https://github.com/stackabletech/docker-images/pull/1053
 [#1054]: https://github.com/stackabletech/docker-images/pull/1054
 [#1055]: https://github.com/stackabletech/docker-images/pull/1055
+[#1056]: https://github.com/stackabletech/docker-images/pull/1056
+[#1058]: https://github.com/stackabletech/docker-images/pull/1058
+[#1060]: https://github.com/stackabletech/docker-images/pull/1060
+[#1090]: https://github.com/stackabletech/docker-images/pull/1090
+[#1091]: https://github.com/stackabletech/docker-images/pull/1091
+[#1093]: https://github.com/stackabletech/docker-images/pull/1093
+[#1094]: https://github.com/stackabletech/docker-images/pull/1094
+[#1097]: https://github.com/stackabletech/docker-images/pull/1097
+[#1098]: https://github.com/stackabletech/docker-images/pull/1098
+[#1099]: https://github.com/stackabletech/docker-images/pull/1099
+[#1101]: https://github.com/stackabletech/docker-images/pull/1101
+[#1102]: https://github.com/stackabletech/docker-images/pull/1102
+[#1103]: https://github.com/stackabletech/docker-images/pull/1103
+[#1105]: https://github.com/stackabletech/docker-images/pull/1105
+[#1106]: https://github.com/stackabletech/docker-images/pull/1106
+[#1107]: https://github.com/stackabletech/docker-images/pull/1107
+[#1108]: https://github.com/stackabletech/docker-images/pull/1108
+[#1110]: https://github.com/stackabletech/docker-images/pull/1110
+[#1114]: https://github.com/stackabletech/docker-images/pull/1114
+[#1116]: https://github.com/stackabletech/docker-images/pull/1116
+[#1117]: https://github.com/stackabletech/docker-images/pull/1117
+[#1119]: https://github.com/stackabletech/docker-images/pull/1119
+[#1121]: https://github.com/stackabletech/docker-images/pull/1121
+[#1122]: https://github.com/stackabletech/docker-images/pull/1122
+[#1124]: https://github.com/stackabletech/docker-images/pull/1124
+[#1125]: https://github.com/stackabletech/docker-images/pull/1125
+[#1126]: https://github.com/stackabletech/docker-images/pull/1126
+[#1127]: https://github.com/stackabletech/docker-images/pull/1127
+[#1128]: https://github.com/stackabletech/docker-images/pull/1128
+[#1133]: https://github.com/stackabletech/docker-images/pull/1133
 
 ## [25.3.0] - 2025-03-21
 

@@ -1,0 +1,112 @@
+on:
+  workflow_call:
+    inputs:
+      product-name:
+        required: true
+        type: string
+      sdp-version:
+        required: true
+        type: string
+      registry-namespace:
+        required: true
+        type: string
+    secrets:
+      harbor-robot-secret:
+        description: The secret for the Harbor robot user used to push images and manifest
+        required: true
+      slack-token:
+        description: The Slack token used to post failure notifications
+        required: true
+
+jobs:
+  generate_matrix:
+    name: Generate Version List
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - id: shard
+        uses: stackabletech/actions/shard@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
+        with:
+          product-name: ${{ inputs.product-name }}
+    outputs:
+      versions: ${{ steps.shard.outputs.versions }}
+
+  build:
+    name: Build/Publish ${{ matrix.versions }}-${{ matrix.runner.arch }} Image
+    needs: [generate_matrix]
+    permissions:
+      id-token: write
+    runs-on: ${{ matrix.runner.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - {name: "ubuntu-latest", arch: "amd64"}
+          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Free Disk Space
+        uses: stackabletech/actions/free-disk-space@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
+
+      - name: Build Product Image
+        id: build
+        uses: stackabletech/actions/build-product-image@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
+        with:
+          product-name: ${{ inputs.product-name }}
+          product-version: ${{ matrix.versions }}
+          sdp-version: ${{ inputs.sdp-version }}
+
+      - name: Publish Container Image on oci.stackable.tech
+        uses: stackabletech/actions/publish-image@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
+          image-registry-password: ${{ secrets.harbor-robot-secret }}
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
+          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+
+  publish_manifests:
+    name: Build/Publish ${{ matrix.versions }} Manifests
+    needs: [generate_matrix, build]
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+        uses: stackabletech/actions/publish-index-manifest@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
+          image-registry-password: ${{ secrets.harbor-robot-secret }}
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+
+  notify:
+    name: Failure Notification
+    needs: [generate_matrix, build, publish_manifests]
+    runs-on: ubuntu-latest
+    if: failure() || github.run_attempt > 1
+    steps:
+      - name: Send Notification
+        uses: stackabletech/actions/send-slack-notification@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # v0.8.1
+        with:
+          publish-manifests-result: ${{ needs.publish_manifests.result }}
+          build-result: ${{ needs.build.result }}
+          slack-token: ${{ secrets.slack-token }}

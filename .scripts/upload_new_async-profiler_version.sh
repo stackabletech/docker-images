@@ -43,10 +43,10 @@ for arch in "${ARCHITECTURES[@]}"; do
     file=async-profiler-$VERSION-linux-$arch.tar.gz
 
     echo "Downloading $file from github.com"
-    curl --fail -LOs "https://github.com/async-profiler/async-profiler/releases/download/v$VERSION/$file"
+    curl --fail -LO --progress-bar "https://github.com/async-profiler/async-profiler/releases/download/v$VERSION/$file"
 
     echo "Uploading $file to Nexus"
-    curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+    curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" \
         --upload-file "$file" \
         'https://repo.stackable.tech/repository/packages/async-profiler/'
 done

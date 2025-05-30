@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 FROM stackable/image/java-devel AS builder
@@ -21,14 +21,14 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/apply_patches.sh /stackable/phoenix-omid-${PRODUCT}/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/phoenix-omid-${PRODUCT}/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/patchable.toml /stackable/src/omid/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
-  curl https://repo.stackable.tech/repository/packages/omid/phoenix-omid-${PRODUCT}-src.tar.gz | tar -xzC .
-  cd /stackable/phoenix-omid-${PRODUCT} || exit
-  ./patches/apply_patches.sh ${PRODUCT}
+  cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT})"
+  # Create snapshot of the source code including custom patches
+  tar -czf /stackable/omid-${PRODUCT}-src.tar.gz .
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
   mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
@@ -78,6 +78,7 @@ COPY omid/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-src.tar.gz /stackable
 
 RUN <<EOF
 microdnf update

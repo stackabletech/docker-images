@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 # hadoop-builder: Provides Hadoop libraries
@@ -7,43 +7,24 @@ FROM stackable/image/hadoop AS hadoop-builder
 # hbase-builder: Provides HBase libraries
 FROM stackable/image/hbase AS hbase-builder
 
-# spark-source-builder: Download the Spark source code into
-# /stackable/spark and apply the patches
+# spark-source-builder: Clone the Spark source code and apply patches
 FROM stackable/image/java-devel AS spark-source-builder
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
+
 RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/spark/spark-${PRODUCT}.tgz \
-    | tar xz
-ln -s spark-${PRODUCT} spark
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
+chmod g=u /stackable/spark-${PRODUCT}-src.tar.gz
 EOF
-
-WORKDIR /stackable/spark
-
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/patches/apply_patches.sh \
-    patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/stackable/patches/${PRODUCT} \
-    patches/${PRODUCT}
-
-RUN patches/apply_patches.sh ${PRODUCT}
-
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
 # required JARs into /stackable/spark/jars
@@ -55,17 +36,6 @@ ARG HBASE
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
 # Copy the pom.xml file from the patched Spark source code to read the
@@ -73,29 +43,21 @@ WORKDIR /stackable
 # not required and not copied, therefore mvn must be called with the
 # parameter --non-recursive.
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
-    /stackable/spark/pom.xml \
+    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT}/pom.xml \
     spark/
 
-# Download the hbase-connectors source code
-RUN <<EOF
-curl https://repo.stackable.tech/repository/packages/hbase-connectors/hbase-connectors_${HBASE_CONNECTOR}.tar.gz \
-    | tar xz
-ln -s hbase-connectors-rel-${HBASE_CONNECTOR} hbase-connectors
-EOF
-
 # Patch the hbase-connectors source code
-WORKDIR /stackable/hbase-connectors
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/hbase-connectors/apply_patches.sh \
-    patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 \
-    spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} \
-    patches/${HBASE_CONNECTOR}
-RUN patches/apply_patches.sh ${HBASE_CONNECTOR}
+WORKDIR /stackable
 
-WORKDIR /stackable/hbase-connectors/spark
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
+
 # Building the hbase-connectors with JDK 17 is not yet supported, see
 # https://github.com/apache/hbase-connectors/pull/132.
 # As there are no JDK profiles, access to the non-public elements must
@@ -137,12 +99,11 @@ mvn \
     --define hbase.version="${HBASE}" \
     --define skipTests \
     clean package
-EOF
 
-WORKDIR /stackable/spark/jars
+mkdir -p /stackable/spark/jars
+ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}.jar
 
-RUN <<EOF
-ln -s /stackable/hbase-connectors/spark/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar
+cd /stackable/spark/jars
 
 # Download log4j-slf4j-impl-x.x.x.jar containing the StaticLoggerBinder
 # which is required by the connector.
@@ -153,6 +114,7 @@ mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackabl
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=./jars
+chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
 EOF
 
 
@@ -177,7 +139,7 @@ ARG STACKABLE_USER_UID
 WORKDIR /stackable/spark-${PRODUCT}
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
-    /stackable/spark/ \
+    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT} \
     ./
 
 # >>> Build spark
@@ -203,7 +165,7 @@ WORKDIR /stackable/spark-${PRODUCT}/dist/jars
 # Copy modules required for s3a://
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
@@ -280,6 +242,7 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG JMX_EXPORTER
+ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Spark" \
@@ -301,6 +264,8 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini

@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 # ==============================================================================
@@ -10,30 +10,31 @@ ARG PRODUCT
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
-# Copy patches and JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable /stackable
+# Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
+# Copy JMX config into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
 RUN <<EOF
-curl --fail "https://repo.stackable.tech/repository/packages/zookeeper/apache-zookeeper-${PRODUCT}.tar.gz" | tar -xzC .
+cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})"
 
-# Apply any required patches
-patches/apply_patches.sh ${PRODUCT}
-cd /stackable/apache-zookeeper-${PRODUCT}/
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/zookeeper-${PRODUCT}-src.tar.gz .
 
 # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
 # that created all kinds of issues for the build container
 mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build
-mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable
 
-cd /stackable
 # Unpack the archive which contains the build artifacts from above. Remove some
 # unused files to shrink the final image size.
-tar xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz
-mv /stackable/apache-zookeeper-${PRODUCT}/zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json
+mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable
+tar -C /stackable -xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz
+mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs
 rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md
 
@@ -70,6 +71,7 @@ LABEL  \
 
 # Copy over the ZooKeeper binary folder
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 

@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
-FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 
 FROM stackable/image/stackable-base AS opa-authorizer-builder
 
@@ -36,13 +36,13 @@ EOF
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
+ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG AUTHLIB
 ARG TARGETARCH
 ARG TARGETOS
-
-COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
-COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+ARG CYCLONEDX_BOM
+ARG UV
 
 RUN microdnf update \
     && microdnf install \
@@ -59,7 +59,6 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
-        patch \
         python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
@@ -68,6 +67,12 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY superset/stackable/constraints/${PRODUCT}/constraints.txt /tmp/constraints.txt
+COPY superset/stackable/constraints/${PRODUCT}/build-constraints.txt /tmp/build-constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
 # DL3042 false-positive, --no-chache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
@@ -78,10 +83,12 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         setuptools==75.2.0 \
         pip \
-    && pip install \
+        uv==${UV} \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
-        --constraint /tmp/constraints.txt \
+        --constraints /tmp/constraints.txt \
+        --build-constraints /tmp/build-constraints.txt \
         apache-superset==${PRODUCT} \
         gevent \
         psycopg2-binary \
@@ -104,21 +111,20 @@ RUN python3 -m venv /stackable/app \
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
     && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
         then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
-        && pip install gunicorn==22.0.0; \
+        && uv pip install gunicorn==22.0.0; \
     fi \
-    && pip install \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-        cyclonedx-bom \
+        cyclonedx-bom==${CYCLONEDX_BOM} \
     && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
-    pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
+    uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY superset/stackable/patches /patches
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
 
 RUN <<EOF
-/patches/apply_patches.sh ${PRODUCT}
 cd /stackable
 source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
 chmod --recursive g=u /stackable

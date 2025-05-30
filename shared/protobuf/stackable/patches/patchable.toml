@@ -1,0 +1,2 @@
+upstream = "https://github.com/protocolbuffers/protobuf.git"
+default-mirror = "https://github.com/stackabletech/protobuf.git"

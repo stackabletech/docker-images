@@ -14,6 +14,9 @@ airflow = importlib.import_module("airflow.versions")
 druid = importlib.import_module("druid.versions")
 hadoop = importlib.import_module("hadoop.versions")
 hbase = importlib.import_module("hbase.versions")
+hbase_phoenix = importlib.import_module("hbase.phoenix.versions")
+hbase_opa_authorizer = importlib.import_module("hbase.hbase-opa-authorizer.versions")
+hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versions")
 hello_world = importlib.import_module("hello-world.versions")
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
@@ -26,16 +29,17 @@ omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
+stackable_devel = importlib.import_module("stackable-devel.versions")
 superset = importlib.import_module("superset.versions")
 trino_cli = importlib.import_module("trino-cli.versions")
 trino = importlib.import_module("trino.versions")
-trino_storage_connector = importlib.import_module("trino-storage-connector.versions")
+trino_storage_connector = importlib.import_module("trino.storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
-kcat = importlib.import_module("kcat.versions")
+kcat = importlib.import_module("kafka.kcat.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
-statsd_exporter = importlib.import_module("statsd_exporter.versions")
+statsd_exporter = importlib.import_module("shared.statsd-exporter.versions")
 spark_connect_client = importlib.import_module("spark-connect-client.versions")
 
 products = [
@@ -43,6 +47,9 @@ products = [
     {"name": "druid", "versions": druid.versions},
     {"name": "hadoop", "versions": hadoop.versions},
     {"name": "hbase", "versions": hbase.versions},
+    {"name": "hbase/phoenix", "versions": hbase_phoenix.versions},
+    {"name": "hbase/hbase-opa-authorizer", "versions": hbase_opa_authorizer.versions},
+    {"name": "hbase/hbase-operator-tools", "versions": hbase_operator_tools.versions},
     {"name": "hello-world", "versions": hello_world.versions},
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
@@ -55,16 +62,17 @@ products = [
     {"name": "opa", "versions": opa.versions},
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
+    {"name": "stackable-devel", "versions": stackable_devel.versions},
     {"name": "superset", "versions": superset.versions},
     {"name": "trino-cli", "versions": trino_cli.versions},
     {"name": "trino", "versions": trino.versions},
-    {"name": "trino-storage-connector", "versions": trino_storage_connector.versions},
+    {"name": "trino/storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
-    {"name": "kcat", "versions": kcat.versions},
+    {"name": "kafka/kcat", "versions": kcat.versions},
     {"name": "testing-tools", "versions": testing_tools.versions},
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},
-    {"name": "statsd_exporter", "versions": statsd_exporter.versions},
+    {"name": "shared/statsd-exporter", "versions": statsd_exporter.versions},
     {"name": "spark-connect-client", "versions": spark_connect_client.versions},
 ]
 

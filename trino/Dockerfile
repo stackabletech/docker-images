@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
-FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
+FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
 FROM stackable/image/java-devel AS trino-builder
 
@@ -9,32 +9,23 @@ ARG PRODUCT
 ARG STACKABLE_USER_UID
 ARG JMX_EXPORTER
 
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
 WORKDIR /stackable
 
-RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/patchable.toml /stackable/src/trino/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/src/trino/stackable/patches/${PRODUCT}
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-storage-connector-image /stackable/trino-storage-${PRODUCT}-src/target/trino-storage-${PRODUCT} \
-    /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/
+COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
+COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/trino-storage-${PRODUCT}.cdx.json
+COPY --from=trino-storage-connector-image /stackable/trino-storage-connector-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-cd "trino-server-${PRODUCT}-src"
-./patches/apply_patches.sh ${PRODUCT}
+cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/trino-${PRODUCT}-src.tar.gz .
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
@@ -42,6 +33,8 @@ cd "trino-server-${PRODUCT}-src"
 # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
 # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
 # smoke test checks that "select version()" is working.
+# Also, we need to initialize a new Git repo because `git-commit-id-maven-plugin` has a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
+rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
 git config user.name "Fake commiter"
@@ -52,15 +45,15 @@ git tag ${PRODUCT}
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
 
 # Delete intermediate build products to free some space and keep runners happy
-rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
+rm -r plugin/*/target core/trino-server/target/trino-server-${PRODUCT}
 
 # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
 # while the raw output folder does not
-tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
-mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
+tar -xzf core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
+mv core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
 
 # Delete intermediate build products to free some space and keep runners happy
-rm -r /stackable/trino-server-${PRODUCT}-src
+(cd .. && rm -r ${PRODUCT})
 rm -r /stackable/.m2
 
 # JMX Exporter

@@ -1,12 +1,17 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:e1c4703364c5cb58f5462575dc90345bcd934ddc45e6c32f9c162f2b5617681c AS builder
 
 LABEL maintainer="Stackable GmbH"
 
+# Pin the rustup version to avoid unexpected breaking changes.
+# See https://github.com/rust-lang/rustup/blob/4514d36fcc9c42416176111cd841c86f7ec44b2c/rustup-init.sh#L91
+# Find the latest version here: https://github.com/rust-lang/rustup/blob/master/CHANGELOG.md
+# renovate: datasource=github-tags packageName=rust-lang/rustup
+ENV RUSTUP_VERSION=1.28.1
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
@@ -20,7 +25,7 @@ ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=27.3
+ENV PROTOC_VERSION=30.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -77,7 +82,7 @@ WORKDIR /
 # If you change the toolchain version here, make sure to also change the "rust_version"
 # property in operator-templating/config/rust.yaml
 RUN <<EOF
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | RUSTUP_VERSION="$RUSTUP_VERSION" sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
 . "$HOME/.cargo/env"
 cargo install --quiet --locked "cargo-cyclonedx@$CARGO_CYCLONEDX_CRATE_VERSION" "cargo-auditable@$CARGO_AUDITABLE_CRATE_VERSION"
 EOF
