@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
-# check=error=true;skip=InvalidDefaultArgInFrom
+# Disabled error checks:
+# - SecretsUsedInArgOrEnv : OPA_AUTH_MANAGER is a false positive and breaks the build.
+# check=error=true;skip=InvalidDefaultArgInFrom,SecretsUsedInArgOrEnv
 
 ARG GIT_SYNC
 
@@ -9,17 +11,30 @@ FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
 
 FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
 
-FROM python:3.12-bookworm AS opa-auth-manager-builder
+FROM stackable/image/vector AS opa-auth-manager-builder
 
-COPY airflow/opa-auth-manager/ /tmp/opa-auth-manager
+ARG OPA_AUTH_MANAGER
+ARG PYTHON
+ARG UV
+
+COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
 WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
-pip install --no-cache-dir poetry
-poetry build
-poetry install
-poetry run pytest
+microdnf update
+microdnf install python${PYTHON}-pip
+microdnf clean all
+
+pip${PYTHON} install --no-cache-dir uv==${UV}
+
+# This folder is required by the tests to set up an sqlite database
+mkdir /root/airflow
+
+# Warnings are disabled because they come from various third party testing libraries
+# that we have no control over.
+uv run pytest --disable-warnings
+uv build
 EOF
 
 FROM stackable/image/vector AS airflow-build-image

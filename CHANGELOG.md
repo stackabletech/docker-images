@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
 - kafka: Add `4.0.0` ([#1117])
 - Include `.tar.gz` snapshots of the product source code in container images ([#1126])
+- airflow: OPA authorizer for Airflow 3.x ([#1127])
 
 ### Changed
 
@@ -66,6 +67,7 @@ All notable changes to this project will be documented in this file.
 - nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
 - containerdebug updated to 0.2.0 ([#1128])
+- Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
 
 ### Fixed
@@ -148,8 +150,10 @@ All notable changes to this project will be documented in this file.
 [#1124]: https://github.com/stackabletech/docker-images/pull/1124
 [#1125]: https://github.com/stackabletech/docker-images/pull/1125
 [#1126]: https://github.com/stackabletech/docker-images/pull/1126
+[#1127]: https://github.com/stackabletech/docker-images/pull/1127
 [#1128]: https://github.com/stackabletech/docker-images/pull/1128
 [#1131]: https://github.com/stackabletech/docker-images/pull/1131
+[#1133]: https://github.com/stackabletech/docker-images/pull/1133
 
 ## [25.3.0] - 2025-03-21
 
