@@ -1,15 +1,17 @@
 versions = [
     {
         "product": "1.2.0",
+        "hadoop": "3.3.6",
         "hbase_thirdparty": "4.1.5",
-        "hbase_version": "2.4.18",
+        "hbase/hbase": "2.4.18",
         "java-devel": "11",
         "delete_caches": "true",
     },
     {
         "product": "1.3.0-fd5a5fb",
+        "hadoop": "3.3.6",
         "hbase_thirdparty": "4.1.9",
-        "hbase_version": "2.6.1",
+        "hbase/hbase": "2.6.1",
         "java-devel": "11",
         "delete_caches": "true",
     },

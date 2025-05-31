@@ -5,6 +5,7 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "authorizer": "0.6.0",
+        "hadoop": "3.3.6",
     },
     {
         "product": "31.0.1",
@@ -12,6 +13,7 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "authorizer": "0.6.0",
+        "hadoop": "3.3.6",
     },
     {
         "product": "33.0.0",
@@ -19,5 +21,6 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "authorizer": "0.6.0",
+        "hadoop": "3.3.6",
     },
 ]

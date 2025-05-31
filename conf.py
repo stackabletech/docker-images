@@ -14,6 +14,7 @@ airflow = importlib.import_module("airflow.versions")
 druid = importlib.import_module("druid.versions")
 hadoop = importlib.import_module("hadoop.versions")
 hbase = importlib.import_module("hbase.versions")
+hbase_jars = importlib.import_module("hbase.hbase.versions")
 hbase_phoenix = importlib.import_module("hbase.phoenix.versions")
 hbase_opa_authorizer = importlib.import_module("hbase.hbase-opa-authorizer.versions")
 hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versions")
@@ -47,6 +48,7 @@ products = [
     {"name": "druid", "versions": druid.versions},
     {"name": "hadoop", "versions": hadoop.versions},
     {"name": "hbase", "versions": hbase.versions},
+    {"name": "hbase/hbase", "versions": hbase_jars.versions},
     {"name": "hbase/phoenix", "versions": hbase_phoenix.versions},
     {"name": "hbase/hbase-opa-authorizer", "versions": hbase_opa_authorizer.versions},
     {"name": "hbase/hbase-operator-tools", "versions": hbase_operator_tools.versions},

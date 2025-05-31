@@ -1,14 +1,18 @@
 # syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
 # check=error=true
 
+FROM stackable/image/hadoop AS hadoop-builder
+
 FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 ARG STACKABLE_USER_UID
+ARG HADOOP
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -35,6 +39,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 # The cache id has to include the product version that we are building because otherwise
@@ -54,6 +59,10 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/sta
 cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
 rm /tmp/DRUID_SOURCE_DIR
 
+# Copy Stackable Hadoop libraries
+mkdir -p /stackable/.m2/repository/org/apache/hadoop
+cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/druid-${PRODUCT}-src.tar.gz .
 
@@ -62,6 +71,7 @@ mvn \
   --no-transfer-progress \
   clean install \
   -Pdist,stackable-bundle-contrib-exts \
+  -Dhadoop.compile.version=${HADOOP}-stackable${RELEASE} \
   -Dmaven.test.skip `# Skip test compilation` \
   -DskipTests `# Skip test execution` \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \

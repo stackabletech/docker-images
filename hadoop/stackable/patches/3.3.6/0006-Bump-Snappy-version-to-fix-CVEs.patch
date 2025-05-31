@@ -1,4 +1,4 @@
-From 8cd8cdc424ff7cf410fb84941fd6d7777ec91913 Mon Sep 17 00:00:00 2001
+From 5ac18a1341bd8412c4f9cb40cef3aa13581d47a3 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.de>
 Date: Thu, 16 May 2024 16:44:14 +0200
 Subject: Bump Snappy version to fix CVEs
