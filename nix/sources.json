@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "stackabletech",
         "repo": "image-tools",
-        "rev": "3795a8727a724a59edf17a3f4061b734302ea7cd",
-        "sha256": "1x0n8cqsri7612asamk8ncfhh0xrk3khjjnfd80mzdhl9zk081nn",
+        "rev": "bdaf1f13d53231ed903efa0a50a595d9d2c6d06e",
+        "sha256": "0d0vqrhscra3p1mfqdbc0d5hkvrfcw8skav8snfp74p2mqdgsyz1",
         "type": "tarball",
-        "url": "https://github.com/stackabletech/image-tools/archive/3795a8727a724a59edf17a3f4061b734302ea7cd.tar.gz",
+        "url": "https://github.com/stackabletech/image-tools/archive/bdaf1f13d53231ed903efa0a50a595d9d2c6d06e.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -17,10 +17,10 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6c43a3495a11e261e5f41e5d7eda2d71dae1b2fe",
-        "sha256": "16f329z831bq7l3wn1dfvbkh95l2gcggdwn6rk3cisdmv2aa3189",
+        "rev": "62b852f6c6742134ade1abdd2a21685fd617a291",
+        "sha256": "04c6dkshw07bm2isv7rvl6xgr4hn7hqznr0v2kww6zjfz4awk4a7",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/6c43a3495a11e261e5f41e5d7eda2d71dae1b2fe.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/62b852f6c6742134ade1abdd2a21685fd617a291.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
