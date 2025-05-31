@@ -78,6 +78,10 @@ fi
 # Service endpoints
 HBASE_SERVICE_HOST=$(cat /stackable/listener/default-address/address)
 HBASE_SERVICE_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_PORT_NAME}")
+HBASE_INFO_PORT=$(cat /stackable/listener/default-address/ports/ui-http)
+export HBASE_SERVICE_HOST
+export HBASE_SERVICE_PORT
+export HBASE_INFO_PORT
 sed -i -e s/\$\{HBASE_SERVICE_HOST\}/"${HBASE_SERVICE_HOST}"/g /stackable/conf/hbase-site.xml
 sed -i -e s/\$\{HBASE_SERVICE_PORT\}/"${HBASE_SERVICE_PORT}"/g /stackable/conf/hbase-site.xml
 

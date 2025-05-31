@@ -1,0 +1,141 @@
+From c17e6c5bc3a942600eb901798654d767448c1e16 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Fri, 30 May 2025 15:36:36 +0200
+Subject: Use this port instead
+
+---
+ .../hadoop/hbase/ipc/RpcClientFactory.java    |  1 +
+ .../apache/hadoop/hbase/master/HMaster.java   |  4 ++--
+ .../hbase/regionserver/HRegionServer.java     | 22 +++++++++++++------
+ 3 files changed, 18 insertions(+), 9 deletions(-)
+
+diff --git a/hbase-client/src/main/java/org/apache/hadoop/hbase/ipc/RpcClientFactory.java b/hbase-client/src/main/java/org/apache/hadoop/hbase/ipc/RpcClientFactory.java
+index fa65739c16..501b6b7637 100644
+--- a/hbase-client/src/main/java/org/apache/hadoop/hbase/ipc/RpcClientFactory.java
++++ b/hbase-client/src/main/java/org/apache/hadoop/hbase/ipc/RpcClientFactory.java
+@@ -99,6 +99,7 @@ public final class RpcClientFactory {
+    */
+   public static RpcClient createClient(Configuration conf, String clusterId,
+     SocketAddress localAddr, MetricsConnection metrics, Map<String, byte[]> connectionAttributes) {
++    new Exception("BATMAN creating client localAddr="+localAddr).printStackTrace();
+     String rpcClientClass = getRpcClientClass(conf);
+     return ReflectionUtils.instantiateWithCustomCtor(
+       rpcClientClass, new Class[] { Configuration.class, String.class, SocketAddress.class,
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+index 3fe5abac27..5719f276bf 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+@@ -587,7 +587,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+       Threads.setDaemonThreadRunning(new Thread(() -> TraceUtil.trace(() -> {
+         try {
+           int infoPort = putUpJettyServer();
+-          startActiveMasterManager(infoPort);
++          startActiveMasterManager(useThisInfoPortInstead);
+         } catch (Throwable t) {
+           // Make sure we log the exception.
+           String error = "Failed to become Active Master";
+@@ -2991,7 +2991,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+         }
+         case MASTER_INFO_PORT: {
+           if (infoServer != null) {
+-            builder.setMasterInfoPort(infoServer.getPort());
++            builder.setMasterInfoPort(useThisInfoPortInstead);
+           }
+           break;
+         }
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+index 27bcef2f06..d18ad91c3a 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+@@ -505,6 +505,10 @@ public class HRegionServer extends Thread
+    */
+   protected String useThisHostnameInstead;
+ 
++  protected int useThisPortInstead;
++
++  protected int useThisInfoPortInstead;
++
+   /**
+    * @deprecated since 2.4.0 and will be removed in 4.0.0. Use
+    *             {@link HRegionServer#UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY} instead.
+@@ -669,6 +673,8 @@ public class HRegionServer extends Thread
+       this.namedQueueRecorder = NamedQueueRecorder.getInstance(this.conf);
+       rpcServices = createRpcServices();
+       useThisHostnameInstead = getUseThisHostnameInstead(conf);
++      useThisPortInstead = Integer.parseInt(System.getenv("HBASE_SERVICE_PORT"));
++      useThisInfoPortInstead = Integer.parseInt(System.getenv("HBASE_INFO_PORT"));
+ 
+       // if use-ip is enabled, we will use ip to expose Master/RS service for client,
+       // see HBASE-27304 for details.
+@@ -678,7 +684,7 @@ public class HRegionServer extends Thread
+         useIp ? rpcServices.isa.getAddress().getHostAddress() : rpcServices.isa.getHostName();
+       String hostName =
+         StringUtils.isBlank(useThisHostnameInstead) ? isaHostName : useThisHostnameInstead;
+-      serverName = ServerName.valueOf(hostName, this.rpcServices.isa.getPort(), this.startcode);
++      serverName = ServerName.valueOf(hostName, useThisPortInstead, this.startcode);
+ 
+       rpcControllerFactory = RpcControllerFactory.instantiate(this.conf);
+       rpcRetryingCallerFactory = RpcRetryingCallerFactory.instantiate(this.conf,
+@@ -715,7 +721,7 @@ public class HRegionServer extends Thread
+ 
+       // Some unit tests don't need a cluster, so no zookeeper at all
+       // Open connection to zookeeper and set primary watcher
+-      zooKeeper = new ZKWatcher(conf, getProcessName() + ":" + rpcServices.isa.getPort(), this,
++      zooKeeper = new ZKWatcher(conf, getProcessName() + ":" + useThisPortInstead, this,
+         canCreateBaseZNode());
+       // If no master in cluster, skip trying to track one or look for a cluster status.
+       if (!this.masterless) {
+@@ -958,7 +964,7 @@ public class HRegionServer extends Thread
+       }
+       // Setup RPC client for master communication
+       this.rpcClient = RpcClientFactory.createClient(conf, clusterId,
+-        new InetSocketAddress(this.rpcServices.isa.getAddress(), 0),
++        new InetSocketAddress(/*this.rpcServices.isa.getAddress(), */0),
+         clusterConnection.getConnectionMetrics(), Collections.emptyMap());
+       span.setStatus(StatusCode.OK);
+     } catch (Throwable t) {
+@@ -1533,6 +1539,8 @@ public class HRegionServer extends Thread
+     } else {
+       serverLoad.setInfoServerPort(-1);
+     }
++    // serverLoad.setInfoServerPort(Integer.parseInt(System.getenv("HBASE_INFO_PORT")));
++    serverLoad.setInfoServerPort(useThisInfoPortInstead);
+     MetricsUserAggregateSource userSource =
+       metricsRegionServer.getMetricsUserAggregate().getSource();
+     if (userSource != null) {
+@@ -1688,7 +1696,7 @@ public class HRegionServer extends Thread
+         if (key.equals(HConstants.KEY_FOR_HOSTNAME_SEEN_BY_MASTER)) {
+           String hostnameFromMasterPOV = e.getValue();
+           this.serverName = ServerName.valueOf(hostnameFromMasterPOV,
+-            rpcServices.getSocketAddress().getPort(), this.startcode);
++            useThisPortInstead, this.startcode);
+           String expectedHostName = rpcServices.getSocketAddress().getHostName();
+           // if Master use-ip is enabled, RegionServer use-ip will be enabled by default even if it
+           // is set to disable. so we will use the ip of the RegionServer to compare with the
+@@ -1814,7 +1822,7 @@ public class HRegionServer extends Thread
+ 
+   private void createMyEphemeralNode() throws KeeperException {
+     RegionServerInfo.Builder rsInfo = RegionServerInfo.newBuilder();
+-    rsInfo.setInfoPort(infoServer != null ? infoServer.getPort() : -1);
++    rsInfo.setInfoPort(infoServer != null ? useThisInfoPortInstead : -1);
+     rsInfo.setVersionInfo(ProtobufUtil.getVersionInfo());
+     byte[] data = ProtobufUtil.prependPBMagic(rsInfo.build().toByteArray());
+     ZKUtil.createEphemeralNodeAndWatch(this.zooKeeper, getMyEphemeralNodePath(), data);
+@@ -2479,7 +2487,7 @@ public class HRegionServer extends Thread
+         LOG.info("Retry starting http info server with port: " + port);
+       }
+     }
+-    port = this.infoServer.getPort();
++    port = useThisInfoPortInstead;
+     conf.setInt(HConstants.REGIONSERVER_INFO_PORT, port);
+     int masterInfoPort =
+       conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
+@@ -3078,7 +3086,7 @@ public class HRegionServer extends Thread
+       if (!StringUtils.isBlank(useThisHostnameInstead)) {
+         request.setUseThisHostnameInstead(useThisHostnameInstead);
+       }
+-      request.setPort(port);
++      request.setPort(useThisPortInstead);
+       request.setServerStartCode(this.startcode);
+       request.setServerCurrentTime(now);
+       result = rss.regionServerStartup(null, request.build());
