@@ -54,7 +54,7 @@ All notable changes to this project will be documented in this file.
 - airflow,superset: Use `uv` to build the product ([#1116]).
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
-- stackable-devel: Bump ubi9 base image ([#1103]).
+- stackable-devel: Bump ubi9 base image ([#1103], [#1137]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
 - jmx_exporter: Bump products to use `1.2.0` ([#1090]).
@@ -154,6 +154,7 @@ All notable changes to this project will be documented in this file.
 [#1128]: https://github.com/stackabletech/docker-images/pull/1128
 [#1131]: https://github.com/stackabletech/docker-images/pull/1131
 [#1133]: https://github.com/stackabletech/docker-images/pull/1133
+[#1137]: https://github.com/stackabletech/docker-images/pull/1137
 
 ## [25.3.0] - 2025-03-21
 
