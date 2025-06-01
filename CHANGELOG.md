@@ -88,6 +88,8 @@ All notable changes to this project will be documented in this file.
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
 - ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
+- hive: Patch for postgres CVE-2024-1597 ([#1100]).
+- bump image-tools (for `bake`) and nixpkgs (for `nodejs_20`, used by pre-commit) ([#1100]).
 
 ### Removed
 
@@ -133,6 +135,7 @@ All notable changes to this project will be documented in this file.
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1099]: https://github.com/stackabletech/docker-images/pull/1099
+[#1100]: https://github.com/stackabletech/docker-images/pull/1100
 [#1101]: https://github.com/stackabletech/docker-images/pull/1101
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
