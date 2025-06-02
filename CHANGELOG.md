@@ -69,6 +69,7 @@ All notable changes to this project will be documented in this file.
 - containerdebug updated to 0.2.0 ([#1128])
 - Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
+- druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
 
 ### Fixed
 
@@ -158,6 +159,7 @@ All notable changes to this project will be documented in this file.
 [#1131]: https://github.com/stackabletech/docker-images/pull/1131
 [#1133]: https://github.com/stackabletech/docker-images/pull/1133
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
+[#1139]: https://github.com/stackabletech/docker-images/pull/1139
 
 ## [25.3.0] - 2025-03-21
 
