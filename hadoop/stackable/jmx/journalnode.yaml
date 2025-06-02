@@ -13,10 +13,9 @@ blacklistObjectNames:
   - 'Hadoop:service=JournalNode,name=UgiMetrics'
 rules:
   # MetricsSystem
-  - pattern: 'Hadoop<service=(.*), name=MetricsSystem, sub=(.*)><>(.*): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=MetricsSystem, sub=(.*)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
@@ -25,20 +24,18 @@ rules:
     type: GAUGE
   # Metrics suffixed with _info, e.g. Hadoop:name=JvmMetrics,attribute=LogInfo
   # The suffix _info is reserved for static information, therefore an underscore is appended.
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info): (.*)'
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3_
-    value: $4
     labels:
       service: HDFS
       role: $1
       kind: $2
     type: GAUGE
   # All other Hadoop metrics
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (.*)'
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1

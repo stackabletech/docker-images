@@ -12,10 +12,9 @@ blacklistObjectNames:
   - 'Hadoop:service=DataNode,name=UgiMetrics'
 rules:
   # MetricsSystem
-  - pattern: 'Hadoop<service=(.*), name=MetricsSystem, sub=(.*)><>(.*): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=MetricsSystem, sub=(.*)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
@@ -24,10 +23,9 @@ rules:
     type: GAUGE
   # FSDatasetState with _total suffix (also extracts the FSDataset ID),
   # e.g. Hadoop:name=FSDatasetState,attribute=EstimatedCapacityLostTotal
-  - pattern: 'Hadoop<service=(.*), name=FSDatasetState-(.*)><>(.*_total): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=FSDatasetState-(.*)><>(.*_total):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
@@ -35,10 +33,9 @@ rules:
       kind: 'FSDatasetState'
     type: COUNTER
   # FSDatasetState (also extracts the FSDataset ID)
-  - pattern: 'Hadoop<service=(.*), name=FSDatasetState-(.*)><>(.*): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=FSDatasetState-(.*)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
@@ -47,10 +44,9 @@ rules:
     type: GAUGE
   # DataNodeActivity with _info suffix (also extracts hostname and port),
   # e.g. Hadoop:name=DataNodeActivity-hdfs-datanode-default-0-9866,attribute=BlocksGetLocalPathInfo
-  - pattern: 'Hadoop<service=(.*), name=DataNodeActivity-(.*)-(\d+)><>(.*_info): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=DataNodeActivity-(.*)-(\d+)><>(.*_info):'
     attrNameSnakeCase: true
     name: hadoop_$1_$4_
-    value: $5
     labels:
       service: HDFS
       role: $1
@@ -58,10 +54,9 @@ rules:
       port: $3
       kind: 'DataNodeActivity'
     type: GAUGE
-  - pattern: 'Hadoop<service=(.*), name=DataNodeActivity-(.*)-(\d+)><>(.*): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=DataNodeActivity-(.*)-(\d+)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$4
-    value: $5
     labels:
       service: HDFS
       role: $1
@@ -70,10 +65,9 @@ rules:
       kind: 'DataNodeActivity'
     type: GAUGE
   # Generic counter, e.g. Hadoop:name=FSDatasetState,attribute=EstimatedCapacityLostTotal
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_total): (\d+)'
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_total):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
@@ -81,20 +75,18 @@ rules:
     type: COUNTER
   # Metrics suffixed with _info, e.g. Hadoop:name=JvmMetrics,attribute=LogInfo
   # The suffix _info is reserved for static information, therefore an underscore is appended.
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info): (.*)'
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*_info):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3_
-    value: $4
     labels:
       service: HDFS
       role: $1
       kind: $2
     type: GAUGE
   # All other Hadoop metrics
-  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (.*)'
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*):'
     attrNameSnakeCase: true
     name: hadoop_$1_$3
-    value: $4
     labels:
       service: HDFS
       role: $1
