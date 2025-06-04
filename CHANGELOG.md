@@ -76,6 +76,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Pin Cython version ([#1116]).
 - druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
 - hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
+- hadoop: adapt the JMX exporter configuration to also export boolean metrics ([#1140]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
 - hive: reduce docker image size by removing the recursive chown/chmods in the final image ([#1040]).
 - kafka: reduce docker image size by removing the recursive chown/chmods in the final image ([#1041]).
