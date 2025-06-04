@@ -48,8 +48,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.0.0` ([#1117])
 - Include `.tar.gz` snapshots of the product source code in container images ([#1126])
 - airflow: OPA authorizer for Airflow 3.x ([#1127])
-- spark-k8s: Add `3.5.6` ([#1141])
-- spark-connect-client: Add `3.5.6` ([#1141])
+- spark-k8s: Add `3.5.6` ([#1142])
+- spark-connect-client: Add `3.5.6` ([#1142])
 
 ### Changed
 
@@ -109,7 +109,7 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117])
-- spark-connect-client: Add `3.5.5` ([#1141])
+- spark-connect-client: Add `3.5.5` ([#1142])
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -163,7 +163,7 @@ All notable changes to this project will be documented in this file.
 [#1133]: https://github.com/stackabletech/docker-images/pull/1133
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
-[#1141]: https://github.com/stackabletech/docker-images/pull/1141
+[#1142]: https://github.com/stackabletech/docker-images/pull/1142
 
 ## [25.3.0] - 2025-03-21
 
