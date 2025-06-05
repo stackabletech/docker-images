@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.0.0` ([#1117])
 - Include `.tar.gz` snapshots of the product source code in container images ([#1126])
 - airflow: OPA authorizer for Airflow 3.x ([#1127])
+- kafka: Add `3.9.1` ([#1149])
 
 ### Changed
 
@@ -163,6 +164,7 @@ All notable changes to this project will be documented in this file.
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
+[#1149]: https://github.com/stackabletech/docker-images/pull/1149
 
 ## [25.3.0] - 2025-03-21
 
