@@ -71,6 +71,7 @@ All notable changes to this project will be documented in this file.
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
 - airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
 - druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
+- zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150])
 
 ### Fixed
 
@@ -163,6 +164,7 @@ All notable changes to this project will be documented in this file.
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
+[#1150]: https://github.com/stackabletech/docker-images/pull/1150
 
 ## [25.3.0] - 2025-03-21
 
