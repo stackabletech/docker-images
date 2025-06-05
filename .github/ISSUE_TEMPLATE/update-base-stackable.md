@@ -28,9 +28,6 @@ Add/Change/Remove anything that isn't applicable anymore
 ## Update tasks
 
 - [ ] Update UBI version hash in the Dockerfile (`FROM`)
-- [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
-- [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
-- [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
 - [ ] Update `PROTOC_VERSION`
 - [ ] Update `CONFIG_UTILS_VERSION`
 
