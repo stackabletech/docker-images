@@ -27,9 +27,17 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update UBI version hash in the Dockerfile (`FROM`)
-- [ ] Update `PROTOC_VERSION`
+### `stackable-base`
+
+- [ ] Update `FROM ...ubi-minimal` version hash in the Dockerfile
 - [ ] Update `CONFIG_UTILS_VERSION`
+
+### `stackable-devel`
+
+- [ ] Update `FROM ...ubi-minimal` version hash in the Dockerfile
+- [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
+- [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
+- [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
 
 ## Related Pull Requests
 
