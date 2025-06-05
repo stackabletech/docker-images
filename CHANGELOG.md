@@ -72,6 +72,7 @@ All notable changes to this project will be documented in this file.
 - Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
 - airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
+- druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
 
 ### Fixed
 
@@ -164,6 +165,7 @@ All notable changes to this project will be documented in this file.
 [#1133]: https://github.com/stackabletech/docker-images/pull/1133
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
+[#1139]: https://github.com/stackabletech/docker-images/pull/1139
 [#1142]: https://github.com/stackabletech/docker-images/pull/1142
 
 ## [25.3.0] - 2025-03-21
