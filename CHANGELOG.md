@@ -52,7 +52,6 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Add `3.5.6` ([#1142])
 - git-sync: Bump version to 4.4.1 ([#1151]).
 
-
 ### Changed
 
 - airflow,superset: Use `uv` to build the product ([#1116]).
@@ -170,7 +169,6 @@ All notable changes to this project will be documented in this file.
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
 [#1142]: https://github.com/stackabletech/docker-images/pull/1142
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
-
 
 ## [25.3.0] - 2025-03-21
 
