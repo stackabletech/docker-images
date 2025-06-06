@@ -9,6 +9,7 @@ FROM stackable/image/java-devel AS builder
 ARG PRODUCT
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
+ARG RELEASE
 
 # Copy patches into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
@@ -23,8 +24,13 @@ WORKDIR /stackable
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT})"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/zookeeper-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/zookeeper-${NEW_VERSION}-src.tar.gz .
 
 # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
 # that created all kinds of issues for the build container
@@ -32,11 +38,12 @@ mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-
 
 # Unpack the archive which contains the build artifacts from above. Remove some
 # unused files to shrink the final image size.
-mv zookeeper-assembly/target/apache-zookeeper-${PRODUCT}-bin.tar.gz /stackable
-tar -C /stackable -xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz
-mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json
-rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs
-rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md
+mv zookeeper-assembly/target/apache-zookeeper-${NEW_VERSION}-bin.tar.gz /stackable
+tar -C /stackable -xvzf /stackable/apache-zookeeper-${NEW_VERSION}-bin.tar.gz
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" zookeeper-assembly/target/bom.json
+mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${NEW_VERSION}-bin/apache-zookeeper-${NEW_VERSION}.cdx.json
+rm -rf /stackable/apache-zookeeper-${NEW_VERSION}-bin/docs
+rm /stackable/apache-zookeeper-${NEW_VERSION}-bin/README_packaging.md
 
 # Download the JMX exporter jar from our own repo
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
@@ -70,8 +77,8 @@ LABEL  \
   description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # Copy over the ZooKeeper binary folder
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
@@ -83,15 +90,15 @@ chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-# Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-bin/
+# Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
 # to preserve the folder name with the version.
-ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
+ln -s /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/ /stackable/zookeeper
 chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
 
 # fix missing permissions
 chmod g=u /stackable/jmx
-chmod g=u /stackable/apache-zookeeper-${PRODUCT}-bin/
-chmod g=u /stackable/zookeeper-${PRODUCT}-src.tar.gz
+chmod g=u /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
+chmod g=u /stackable/zookeeper-${PRODUCT}-stackable${RELEASE}-src.tar.gz
 EOF
 
 # ----------------------------------------
