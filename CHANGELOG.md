@@ -72,6 +72,7 @@ All notable changes to this project will be documented in this file.
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
 - airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
 - druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
+- vector: Bump to `0.47.0` ([#1152]).
 
 ### Fixed
 
@@ -165,6 +166,7 @@ All notable changes to this project will be documented in this file.
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
+[#1152]: https://github.com/stackabletech/docker-images/pull/1152
 
 ## [25.3.0] - 2025-03-21
 
