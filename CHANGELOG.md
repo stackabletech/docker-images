@@ -47,13 +47,15 @@ All notable changes to this project will be documented in this file.
 - hbase: add 2.6.2 and upgrade dependencies ([#1101])
 - kafka: Add `4.0.0` ([#1117])
 - Include `.tar.gz` snapshots of the product source code in container images ([#1126])
+- airflow: OPA authorizer for Airflow 3.x ([#1127])
+- git-sync: Bump version to 4.4.1 ([#1151]).
 
 ### Changed
 
 - airflow,superset: Use `uv` to build the product ([#1116]).
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
 - ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
-- stackable-devel: Bump ubi9 base image ([#1103]).
+- stackable-devel: Bump ubi9 base image ([#1103], [#1137]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
 - jmx_exporter: Bump products to use `1.2.0` ([#1090]).
@@ -65,12 +67,19 @@ All notable changes to this project will be documented in this file.
 - nifi: include NAR SBOMs ([#1119])
 - nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
+- containerdebug updated to 0.2.0 ([#1128])
+- Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
+- patchable: The base branch is now configured as the git upstream branch ([#1131]).
+- airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
+- druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
+- vector: Bump to `0.47.0` ([#1152]).
 
 ### Fixed
 
 - airflow: Pin Cython version ([#1116]).
 - druid: reduce docker image size by removing the recursive chown/chmods in the final image ([#1039]).
 - hadoop: reduce docker image size by removing the recursive chown/chmods in the final image ([#1029]).
+- hadoop: adapt the JMX exporter configuration to also export boolean metrics ([#1140]).
 - hbase: reduce docker image size by removing the recursive chown/chmods in the final image ([#1028]).
 - hive: reduce docker image size by removing the recursive chown/chmods in the final image ([#1040]).
 - kafka: reduce docker image size by removing the recursive chown/chmods in the final image ([#1041]).
@@ -84,6 +93,8 @@ All notable changes to this project will be documented in this file.
 - zookeeper: reduce docker image size by removing the recursive chown/chmods in the final image ([#1043]).
 - Fixed two hardcoded username references ([#1052]).
 - ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
+- hive: Patch for postgres CVE-2024-1597 ([#1100]).
+- bump image-tools (for `bake`) and nixpkgs (for `nodejs_20`, used by pre-commit) ([#1100]).
 
 ### Removed
 
@@ -129,6 +140,7 @@ All notable changes to this project will be documented in this file.
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1099]: https://github.com/stackabletech/docker-images/pull/1099
+[#1100]: https://github.com/stackabletech/docker-images/pull/1100
 [#1101]: https://github.com/stackabletech/docker-images/pull/1101
 [#1102]: https://github.com/stackabletech/docker-images/pull/1102
 [#1103]: https://github.com/stackabletech/docker-images/pull/1103
@@ -146,6 +158,15 @@ All notable changes to this project will be documented in this file.
 [#1124]: https://github.com/stackabletech/docker-images/pull/1124
 [#1125]: https://github.com/stackabletech/docker-images/pull/1125
 [#1126]: https://github.com/stackabletech/docker-images/pull/1126
+[#1127]: https://github.com/stackabletech/docker-images/pull/1127
+[#1128]: https://github.com/stackabletech/docker-images/pull/1128
+[#1131]: https://github.com/stackabletech/docker-images/pull/1131
+[#1133]: https://github.com/stackabletech/docker-images/pull/1133
+[#1137]: https://github.com/stackabletech/docker-images/pull/1137
+[#1138]: https://github.com/stackabletech/docker-images/pull/1138
+[#1139]: https://github.com/stackabletech/docker-images/pull/1139
+[#1151]: https://github.com/stackabletech/docker-images/pull/1151
+[#1152]: https://github.com/stackabletech/docker-images/pull/1152
 
 ## [25.3.0] - 2025-03-21
 

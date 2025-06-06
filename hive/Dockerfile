@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 FROM stackable/image/hadoop AS hadoop-builder
@@ -85,8 +85,12 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
 # Add S3 Support for Hive (support for s3a://)
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
+cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
+
+# According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
+# aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar to bundle-${AWS_JAVA_SDK_BUNDLE}.jar. In future, you might need to do:
+# cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
+cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
 
 # Add Azure ABFS support (support for abfs://)
 cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/

@@ -1,9 +1,9 @@
-# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 # https://hub.docker.com/_/python/tags
-FROM python:3.12-slim-bullseye@sha256:dbdf1a8e375131679547183a70bdb4f9c512946a4ae42de172d59b151c3da5b7
+FROM python:3.12-slim-bullseye@sha256:57ab68549579e5e7bdf485fd33792577b5f4c14336fdc9a9a5a9fb6af0af1776
 
 ARG PRODUCT
 ARG RELEASE

@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 FROM stackable/image/java-devel AS hadoop-builder
@@ -21,7 +21,7 @@ RUN <<EOF
 rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 microdnf update
 # boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-# automake and are required to build protobuf
+# automake and libtool are required to build protobuf
 microdnf install boost1.78-devel automake libtool
 microdnf clean all
 rm -rf /var/cache/yum

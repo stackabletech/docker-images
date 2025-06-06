@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 # hadoop-builder: Provides Hadoop libraries
@@ -23,6 +23,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
+chmod g=u /stackable/spark-${PRODUCT}-src.tar.gz
 EOF
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
@@ -113,6 +114,7 @@ mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackabl
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=./jars
+chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
 EOF
 
 
