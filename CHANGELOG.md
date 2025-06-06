@@ -50,6 +50,8 @@ All notable changes to this project will be documented in this file.
 - airflow: OPA authorizer for Airflow 3.x ([#1127])
 - spark-k8s: Add `3.5.6` ([#1142])
 - spark-connect-client: Add `3.5.6` ([#1142])
+- git-sync: Bump version to 4.4.1 ([#1151]).
+
 
 ### Changed
 
@@ -167,6 +169,8 @@ All notable changes to this project will be documented in this file.
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
 [#1142]: https://github.com/stackabletech/docker-images/pull/1142
+[#1151]: https://github.com/stackabletech/docker-images/pull/1151
+
 
 ## [25.3.0] - 2025-03-21
 
