@@ -2,7 +2,7 @@ versions = [
     {
         "product": "2.9.3",
         "python": "3.9",
-        "git_sync": "v4.4.0",
+        "git_sync": "v4.4.1",
         "s3fs": "2024.9.0",
         "cyclonedx_bom": "6.0.0",
         "shared/statsd-exporter": "0.28.0",
@@ -15,7 +15,7 @@ versions = [
     {
         "product": "2.10.4",
         "python": "3.12",
-        "git_sync": "v4.4.0",
+        "git_sync": "v4.4.1",
         "s3fs": "2024.9.0",
         "cyclonedx_bom": "6.0.0",
         "shared/statsd-exporter": "0.28.0",
@@ -28,7 +28,7 @@ versions = [
     {
         "product": "2.10.5",
         "python": "3.12",
-        "git_sync": "v4.4.0",
+        "git_sync": "v4.4.1",
         "s3fs": "2024.9.0",
         "cyclonedx_bom": "6.0.0",
         "shared/statsd-exporter": "0.28.0",
@@ -41,7 +41,7 @@ versions = [
     {
         "product": "3.0.1",
         "python": "3.12",
-        "git_sync": "v4.4.0",
+        "git_sync": "v4.4.1",
         "s3fs": "2024.9.0",
         "cyclonedx_bom": "6.0.0",
         "shared/statsd-exporter": "0.28.0",
