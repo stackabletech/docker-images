@@ -6,6 +6,7 @@ FROM stackable/image/kafka/kcat AS kcat
 FROM stackable/image/java-devel AS kafka-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG SCALA
 ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
@@ -21,22 +22,34 @@ COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackab
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
 
+ORIGINAL_VERSION="${PRODUCT}"
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+# The comment in gradle.properties mentions to update the version in all of these files
+sed -i "s/version=${ORIGINAL_VERSION}/version=${NEW_VERSION}/g" gradle.properties
+sed -i "s/__version__ = '${ORIGINAL_VERSION}'/__version__ = '${NEW_VERSION}'/g" tests/kafkatest/__init__.py
+sed -i 's/DEV_VERSION = KafkaVersion("'${ORIGINAL_VERSION}'/DEV_VERSION = KafkaVersion("'${NEW_VERSION}'/g' tests/kafkatest/version.py
+sed -i 's/DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "'${ORIGINAL_VERSION}'")/DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "'${NEW_VERSION}'")/g' kafka-merge-pr.py
+sed -i "s/<kafka.version>${ORIGINAL_VERSION}<\/kafka.version>/<kafka.version>${NEW_VERSION}<\/kafka.version>/g" streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+sed -i "s/<version>${ORIGINAL_VERSION}<\/version>/<version>${NEW_VERSION}<\/version>/g" streams/quickstart/pom.xml
+sed -i "s/<version>${ORIGINAL_VERSION}<\/version>/<version>${NEW_VERSION}<\/version>/g" streams/quickstart/java/pom.xml
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/kafka-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/kafka-${NEW_VERSION}-src.tar.gz .
 
 # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
 # it's a good idea to run the tests in this case.
 ./gradlew clean releaseTarGz
 ./gradlew cyclonedxBom
-tar -xf core/build/distributions/kafka_${SCALA}-${PRODUCT}.tgz -C /stackable
-cp build/reports/bom.json /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json
-rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/
+tar -xf core/build/distributions/kafka_${SCALA}-${NEW_VERSION}.tgz -C /stackable
+cp build/reports/bom.json /stackable/kafka_${SCALA}-${NEW_VERSION}.cdx.json
+rm -rf /stackable/kafka_${SCALA}-${NEW_VERSION}/site-docs/
 (cd .. && rm -rf ${PRODUCT})
 
 # TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
 curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
-  -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
+  -o /stackable/kafka_${SCALA}-${NEW_VERSION}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
 
 # JMX exporter
 curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
@@ -65,9 +78,9 @@ LABEL \
   summary="The Stackable image for Apache Kafka." \
   description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka_${SCALA}-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}/kafka_${SCALA}-${PRODUCT}.cdx.json
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT}-src.tar.gz  /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE} /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT}-stackable${RELEASE}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
@@ -94,13 +107,13 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/bin/kcat
 # kcat was located in /stackable/kcat - legacy
 ln -s /stackable/bin/kcat /stackable/kcat
 chown -h ${STACKABLE_USER_UID}:0 /stackable/kcat
-ln -s /stackable/kafka_${SCALA}-${PRODUCT} /stackable/kafka
+ln -s /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE} /stackable/kafka
 chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
 
 # fix missing permissions
 chmod g=u /stackable/bin
 chmod g=u /stackable/jmx
-chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}
+chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}
 chmod g=u /stackable/*-src.tar.gz
 EOF
 

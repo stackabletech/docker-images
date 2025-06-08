@@ -4,6 +4,7 @@
 FROM stackable/image/java-devel AS storage-connector-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
@@ -16,12 +17,15 @@ COPY --chown=${STACKABLE_USER_UID}:0 trino/storage-connector/stackable/patches/$
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT})"
 
-# Create snapshot of the source code including custom patches
-tar -czf /stackable/trino-storage-connector-${PRODUCT}-src.tar.gz .
+ORIGINAL_VERSION="${PRODUCT}"
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
-# Upstream builds are marked as -SNAPSHOT, even for release builds
-mvn versions:set -DnewVersion=${PRODUCT}
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz .
+
+mvn versions:set -DnewVersion=${NEW_VERSION}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
 ./mvnw --batch-mode --no-transfer-progress package -DskipTests -Dmaven.gitcommitid.skip=true
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" target/bom.json
 EOF

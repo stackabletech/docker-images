@@ -4,6 +4,7 @@
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG DELETE_CACHES="true"
 ARG STACKABLE_USER_UID
 
@@ -27,13 +28,21 @@ COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackabl
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
   cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT})"
+
+  ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+  NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+  mvn versions:set -DnewVersion=$NEW_VERSION
+
   # Create snapshot of the source code including custom patches
-  tar -czf /stackable/omid-${PRODUCT}-src.tar.gz .
+  tar -czf /stackable/omid-${NEW_VERSION}-src.tar.gz .
   mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
-  tar -xf tso-server/target/omid-tso-server-${PRODUCT}-bin.tar.gz -C /stackable
-  mv tso-server/target/bom.json /stackable/omid-tso-server-${PRODUCT}/omid-tso-server-${PRODUCT}.cdx.json
-  tar -xf examples/target/omid-examples-${PRODUCT}-bin.tar.gz -C /stackable
-  mv examples/target/bom.json /stackable/omid-examples-${PRODUCT}/omid-examples-${PRODUCT}.cdx.json
+  tar -xf tso-server/target/omid-tso-server-${NEW_VERSION}-bin.tar.gz -C /stackable
+  sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" tso-server/target/bom.json
+  mv tso-server/target/bom.json /stackable/omid-tso-server-${NEW_VERSION}/omid-tso-server-${NEW_VERSION}.cdx.json
+  tar -xf examples/target/omid-examples-${NEW_VERSION}-bin.tar.gz -C /stackable
+  sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" examples/target/bom.json
+  mv examples/target/bom.json /stackable/omid-examples-${NEW_VERSION}/omid-examples-${NEW_VERSION}.cdx.json
 
 if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.m2/repository/*
@@ -46,7 +55,7 @@ EOF
 # TODO: This can be restricted to target only versions which do not honor the environment
 #   varible that has been set above but this has not currently been implemented
 COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/omid-tso-server-${PRODUCT}
+RUN /bin/log4shell.sh /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
 
 # Ensure no vulnerable files are left over
 # This will currently report vulnerable files being present, as it also alerts on
@@ -55,7 +64,7 @@ RUN /bin/log4shell.sh /stackable/omid-tso-server-${PRODUCT}
 COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
 COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
 COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/omid-tso-server-${PRODUCT}
+RUN /bin/log4shell_scanner s /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
 # ===
 
 FROM stackable/image/java-base
@@ -76,17 +85,17 @@ LABEL name="Apache Phoenix Omid" \
 COPY omid/licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT} /stackable/omid-examples-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
 
-ln -s /stackable/omid-tso-server-${PRODUCT} /stackable/omid-tso-server
-ln -s /stackable/omid-examples-${PRODUCT} /stackable/omid-examples
+ln -s /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server
+ln -s /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples
 curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
 -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
