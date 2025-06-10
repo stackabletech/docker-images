@@ -7,6 +7,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ubi9-rust-builder/**
+      - ubi10-rust-builder/**
+      - .github/actions/**
+      - .github/workflows/ubi-rust-builder.yml
+      - .github/workflows/reusable_build_image.yaml
   schedule:
     - cron: '30 4 * * *'
   workflow_dispatch:
