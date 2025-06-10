@@ -45,14 +45,14 @@ All notable changes to this project will be documented in this file.
 - nifi: Add [nifi-iceberg-bundle](https://github.com/stackabletech/nifi-iceberg-bundle) for NiFi `2.2.0` ([#1060], [#1106]).
 - java: Add JDK 24 ([#1097]).
 - ci: Add golang image to mirror workflow ([#1103]).
-- omid: bump version to 1.1.3 ([#1105])
-- hbase: add 2.6.2 and upgrade dependencies ([#1101])
-- kafka: Add `4.0.0` ([#1117])
-- Include `.tar.gz` snapshots of the product source code in container images ([#1126])
-- airflow: OPA authorizer for Airflow 3.x ([#1127])
-- kafka: Add `3.9.1` ([#1149])
-- spark-k8s: Add `3.5.6` ([#1142])
-- spark-connect-client: Add `3.5.6` ([#1142])
+- omid: bump version to 1.1.3 ([#1105]).
+- hbase: add 2.6.2 and upgrade dependencies ([#1101]).
+- kafka: Add `4.0.0` ([#1117]).
+- Include `.tar.gz` snapshots of the product source code in container images ([#1126]).
+- airflow: OPA authorizer for Airflow 3.x ([#1127]).
+- kafka: Add `3.9.1` ([#1149]).
+- spark-k8s: Add `3.5.6` ([#1142]).
+- spark-connect-client: Add `3.5.6` ([#1142]).
 - git-sync: Bump version to 4.4.1 ([#1151]).
 
 ### Changed
@@ -69,16 +69,17 @@ All notable changes to this project will be documented in this file.
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
 - trino-cli: Bump to `476` ([#1095]).
 - vector: Bump to `0.46.1` ([#1098]).
-- spark: update dependencies for 3.5.5 ([#1094])
-- nifi: include NAR SBOMs ([#1119])
+- spark: update dependencies for 3.5.5 ([#1094]).
+- nifi: include NAR SBOMs ([#1119]).
 - nifi: update patch allowing to bypass host header validation starting with NiFi 2.4.0 ([#1125]).
 - BREAKING: kcat: Stop building kcat image ([#1124]).
-- containerdebug updated to 0.2.0 ([#1128])
-- Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133])
+- containerdebug updated to 0.2.0 ([#1128]).
+- Build Hadoop as `stackable` and configure the Stackable Nexus build-repo for the `root` user ([#1133]).
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
-- airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
+- airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138]).
 - druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
 - vector: Bump to `0.47.0` ([#1152]).
+- zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 
 ### Fixed
 
@@ -110,7 +111,7 @@ All notable changes to this project will be documented in this file.
 - trino-storage-connector: Remove `455` ([#1095]).
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
-- spark: remove 3.5.2 ([#1094])
+- spark: remove 3.5.2 ([#1094]).
 - hadoop: Remove `3.3.4` and `3.4.0` ([#1099]).
 - opa: Remove `0.67.1` ([#1103]).
 - opa: Remove legacy bundle-builder from container build ([#1103]).
@@ -118,8 +119,8 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove 2.4.18 ([#1101])
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
-- kafka: Remove `3.7.1` and `3.8.0` ([#1117])
-- spark-connect-client: Remove `3.5.5` ([#1142])
+- kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
+- spark-connect-client: Remove `3.5.5` ([#1142]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -175,8 +176,9 @@ All notable changes to this project will be documented in this file.
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
-[#1149]: https://github.com/stackabletech/docker-images/pull/1149
 [#1142]: https://github.com/stackabletech/docker-images/pull/1142
+[#1149]: https://github.com/stackabletech/docker-images/pull/1149
+[#1150]: https://github.com/stackabletech/docker-images/pull/1150
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
 
