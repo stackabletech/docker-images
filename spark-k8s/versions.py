@@ -30,7 +30,7 @@ versions = [
         "jackson_dataformat_xml": "2.15.2",  # https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.13/3.5.2
         "stax2_api": "4.2.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
         "woodstox_core": "6.5.1",  # https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.15.2
-        "vector": "0.46.1",
+        "vector": "0.47.0",
         "jmx_exporter": "1.2.0",
         "tini": "0.19.0",
         "hbase_connector": "1.0.1",
