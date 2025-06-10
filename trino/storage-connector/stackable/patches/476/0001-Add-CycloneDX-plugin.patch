@@ -1,4 +1,4 @@
-From c14ba9cd92451a2c8a7ad7da2ff2e3f5cdbf2201 Mon Sep 17 00:00:00 2001
+From dd682ba1999455aefc683003cada4fe1677d909c Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Fri, 6 Sep 2024 17:53:52 +0200
 Subject: Add CycloneDX plugin
@@ -8,20 +8,20 @@ Subject: Add CycloneDX plugin
  1 file changed, 18 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index 7304dac..d73dacf 100644
+index 5433be6..c3f2fc7 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -544,6 +544,24 @@
+@@ -584,6 +584,24 @@
                      </dependency>
                  </dependencies>
              </plugin>
 +            <plugin>
 +                <groupId>org.cyclonedx</groupId>
 +                <artifactId>cyclonedx-maven-plugin</artifactId>
-+                <version>2.8.0</version>
++                <version>2.9.1</version>
 +                <configuration>
 +                    <projectType>application</projectType>
-+                    <schemaVersion>1.5</schemaVersion>
++                    <schemaVersion>1.6</schemaVersion>
 +                    <skipNotDeployed>false</skipNotDeployed>
 +                </configuration>
 +                <executions>

@@ -27,22 +27,22 @@ cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/trino-${PRODUCT}-src.tar.gz .
 
-# Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
-# reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
-# have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
-# So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
-# smoke test checks that "select version()" is working.
-# Also, we need to initialize a new Git repo because `git-commit-id-maven-plugin` has a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
-rm .git
-git init
-git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
-git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${PRODUCT}
+SKIP_PROJECTS="!docs"
+if [ "$PRODUCT" = "470" ] || [ "$PRODUCT" = "451" ]; then
+  SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
+fi
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
+./mvnw \
+  --batch-mode \
+  --no-transfer-progress \
+  package \
+  `# -Dmaven.test.skip # Unable to skip test compilation without an unused dependency error for software.amazon.awssdk:identity-spi` \
+  -DskipTests `# Skip test execution` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)` \
+  --projects="$SKIP_PROJECTS"
 
 # Delete intermediate build products to free some space and keep runners happy
 rm -r plugin/*/target core/trino-server/target/trino-server-${PRODUCT}
