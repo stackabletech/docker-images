@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 FROM stackable/image/hadoop AS hadoop-builder
@@ -23,6 +23,7 @@ ARG STACKABLE_USER_UID
 ARG DELETE_CACHES="true"
 
 # Copy patches into the builder
+COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/patchable.toml /stackable/src/hive/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
@@ -37,6 +38,9 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
 cd "$BUILD_SRC_DIR"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/hive-${PRODUCT}-src.tar.gz .
 
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
   mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
@@ -71,6 +75,10 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 
 # Add S3 Support for Hive (support for s3a://)
 cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
+
+# According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
+# aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar to bundle-${AWS_JAVA_SDK_BUNDLE}.jar. In future, you might need to do:
+# cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
 cp /stackable/hadoop-${HADOOP}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-bin/lib/
 
 # Add Azure ABFS support (support for abfs://)
@@ -126,7 +134,9 @@ LABEL io.k8s.display-name="${NAME}"
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-bin /stackable/apache-hive-metastore-${PRODUCT}-bin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP} /stackable/hadoop-${HADOOP}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-bin/bin
@@ -149,6 +159,7 @@ chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP} /stackable/hadoop
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
 chmod g=u /stackable/hadoop
+chmod g=u /stackable/*-src.tar.gz
 
 # fix missing permissions
 chmod --recursive g=u /stackable/jmx

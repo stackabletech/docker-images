@@ -23,11 +23,11 @@ jobs:
     name: Generate Version List
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/shard@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -48,23 +48,23 @@ jobs:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/free-disk-space@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/build-product-image@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
         with:
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/publish-image@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -85,12 +85,12 @@ jobs:
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@2d3d7ddad981ae09901d45a0f6bf30c2658b1b78 # 0.7.0
+        uses: stackabletech/actions/publish-index-manifest@9aae2d1c14239021bfa33c041010f6fb7adec815 # 0.8.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -102,44 +102,11 @@ jobs:
     name: Failure Notification
     needs: [generate_matrix, build, publish_manifests]
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() || github.run_attempt > 1
     steps:
-      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+      - name: Send Notification
+        uses: stackabletech/actions/send-slack-notification@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # v0.8.1
         with:
-          channel-id: "C07UG6JH44F" # notifications-container-images
-          payload: |
-            {
-              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
-              "attachments": [
-                {
-                  "pretext": "See the details below for a summary of which job(s) failed.",
-                  "color": "#aa0000",
-                  "fields": [
-                    {
-                      "title": "Generate Version List",
-                      "short": true,
-                      "value": "${{ needs.generate_matrix.result }}"
-                    },
-                    {
-                      "title": "Build/Publish Image",
-                      "short": true,
-                      "value": "${{ needs.build.result }}"
-                    },
-                    {
-                      "title": "Build/Publish Manifests",
-                      "short": true,
-                      "value": "${{ needs.publish_manifests.result }}"
-                    }
-                  ],
-                  "actions": [
-                    {
-                      "type": "button",
-                      "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.slack-token }}
+          publish-manifests-result: ${{ needs.publish_manifests.result }}
+          build-result: ${{ needs.build.result }}
+          slack-token: ${{ secrets.slack-token }}

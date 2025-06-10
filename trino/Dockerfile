@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/trino-storage-connector AS trino-storage-connector-image
+FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
 FROM stackable/image/java-devel AS trino-builder
 
@@ -11,15 +11,21 @@ ARG JMX_EXPORTER
 
 WORKDIR /stackable
 
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/patchable.toml /stackable/src/trino/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/src/trino/stackable/patches/${PRODUCT}
 
 COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}
+COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${PRODUCT}/trino-storage-${PRODUCT}.cdx.json
+COPY --from=trino-storage-connector-image /stackable/trino-storage-connector-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/trino-${PRODUCT}-src.tar.gz .
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me

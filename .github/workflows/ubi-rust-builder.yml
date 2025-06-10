@@ -19,26 +19,26 @@ jobs:
       fail-fast: false
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - name: Login to Stackable Harbor
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
+        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
       - name: Determine Architecture
         run: |
           echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
       - name: Build and push
         id: build-and-push
-        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
           file: ./${{ matrix.ubi-version }}-rust-builder/Dockerfile
@@ -59,21 +59,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - name: Login to Stackable Harbor
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382 # v3.6.0
+        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
       - name: Build Manifest List
         shell: bash
         run: |

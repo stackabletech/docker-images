@@ -1,41 +1,11 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
-# check=error=true
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true;skip=InvalidDefaultArgInFrom
 
-FROM stackable/image/stackable-base AS opa-bundle-builder
+ARG GOLANG
 
-ARG BUNDLE_BUILDER_VERSION
+FROM oci.stackable.tech/sdp/library/golang:${GOLANG} AS golang-image
 
-# Update image and install everything needed for Rustup & Rust
-RUN <<EOF
-microdnf update
-microdnf install \
-  cmake \
-  gcc \
-  gcc-c++ \
-  git \
-  make \
-  openssl-devel \
-  pkg-config \
-  systemd-devel \
-  unzip
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /
-
-# WARNING (@NickLarsenNZ): We should pin the rustup version
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-RUN git clone --depth 1 --branch ${BUNDLE_BUILDER_VERSION} https://github.com/stackabletech/opa-bundle-builder
-RUN <<EOF
-cd ./opa-bundle-builder
-. "$HOME/.cargo/env"
-rustup toolchain install
-cargo --quiet build --release
-# set correct groups
-chmod -R g=u /opa-bundle-builder/target/release/
-EOF
-
-FROM stackable/image/stackable-base AS multilog-builder
+FROM stackable/image/stackable-devel AS multilog-builder
 
 ARG DAEMONTOOLS_VERSION=0.76
 
@@ -68,7 +38,7 @@ package/install
 chmod g=u /daemontools/admin/daemontools/command/multilog
 EOF
 
-FROM stackable/image/stackable-base AS opa-builder
+FROM stackable/image/stackable-devel AS opa-builder
 
 ARG PRODUCT
 ARG RELEASE
@@ -81,12 +51,10 @@ ENV GOOS=$TARGETOS
 
 # gzip, tar - used to unpack the OPA source
 # git - needed by the cyclonedx-gomod tool to determine the version of OPA
-# golang - used to build OPA
 RUN <<EOF
 microdnf update
 microdnf install \
   git \
-  golang \
   gzip \
   tar
 microdnf clean all
@@ -94,18 +62,26 @@ EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
 
+# Manually install Go since the dnf package is sometimes not recent enough
+COPY --from=golang-image /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/patchable.toml /stackable/src/opa/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/${PRODUCT} /stackable/src/opa/stackable/patches/${PRODUCT}
+
+WORKDIR /stackable
+
 RUN <<EOF
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
-curl "https://repo.stackable.tech/repository/packages/opa/opa_${PRODUCT}.tar.gz" -o opa.tar.gz
-tar -zxvf opa.tar.gz
-mv "opa-${PRODUCT}" opa
-EOF
 
-WORKDIR /opa
+cd "$(/stackable/patchable --images-repo-root=src checkout opa ${PRODUCT})"
 
-RUN <<EOF
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/opa-${PRODUCT}-src.tar.gz .
+
 # Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of OPA
+rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
 git config user.name "Fake commiter"
@@ -115,9 +91,9 @@ go build -o opa -buildmode=exe
 # move artifact to /stackable/*/ to copy in final image
 ~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output /stackable/opa/"opa_${PRODUCT}.cdx.json" -packages -files
 # move artifact to /stackable/* to copy in final image
-mv /opa/opa /stackable/opa/
+mv opa /stackable/opa/
 # set correct groups
-chmod -R g=u /stackable/opa
+chmod -R g=u /stackable/opa /stackable/opa-${PRODUCT}-src.tar.gz
 EOF
 
 FROM stackable/image/vector
@@ -137,7 +113,7 @@ LABEL name="Open Policy Agent" \
 COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 
 COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
-COPY --from=opa-bundle-builder --chown=${STACKABLE_USER_UID}:0 /opa-bundle-builder/target/release/stackable-opa-bundle-builder /stackable/opa-bundle-builder
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT}-src.tar.gz /stackable/opa-${PRODUCT}-src.tar.gz
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 RUN <<EOF

@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 #
@@ -61,6 +61,7 @@ RUN microdnf update && \
 ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jdk"
 
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
+COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /root/.m2/settings.xml
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and

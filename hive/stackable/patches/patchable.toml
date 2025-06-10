@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/hive.git"
+default-mirror = "https://github.com/stackabletech/hive.git"

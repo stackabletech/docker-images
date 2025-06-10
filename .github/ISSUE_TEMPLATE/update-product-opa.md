@@ -62,7 +62,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ```shell
 # See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.13
+pip install image-tools-stackabletech==0.0.16
 
 bake --product opa=x.y.z # where x.y.z is the new version added in this PR
 

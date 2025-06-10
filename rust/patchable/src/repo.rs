@@ -1,15 +1,11 @@
 use std::path::{self, Path, PathBuf};
 
-use git2::{
-    FetchOptions, ObjectType, Oid, RemoteCallbacks, Repository, RepositoryInitOptions,
-    WorktreeAddOptions,
-};
+use git2::{FetchOptions, ObjectType, Oid, Repository, RepositoryInitOptions, WorktreeAddOptions};
 use snafu::{ResultExt, Snafu};
-use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use crate::{
     error::{self, CommitRef},
-    utils::{progress_bar_style, Quantizer},
+    utils::{setup_git_credentials, setup_progress_tracking},
 };
 
 #[derive(Debug, Snafu)]
@@ -149,15 +145,16 @@ pub fn resolve_and_fetch_commitish(
                 error = &err as &dyn std::error::Error,
                 "base commit not found locally, fetching from upstream"
             );
-            let span_recv = tracing::info_span!("receiving");
-            let span_index = tracing::info_span!("indexing");
-            span_recv.pb_set_style(&progress_bar_style());
-            span_index.pb_set_style(&progress_bar_style());
+
+            let (span_recv, mut quant_recv) =
+                setup_progress_tracking(tracing::info_span!("receiving"));
+            let (span_index, mut quant_index) =
+                setup_progress_tracking(tracing::info_span!("indexing"));
+
             let _ = span_recv.enter();
             let _ = span_index.enter();
-            let mut callbacks = RemoteCallbacks::new();
-            let mut quant_recv = Quantizer::percent();
-            let mut quant_index = Quantizer::percent();
+
+            let mut callbacks = setup_git_credentials();
             callbacks.transfer_progress(move |progress| {
                 quant_recv.update_span_progress(
                     progress.received_objects(),
@@ -215,6 +212,7 @@ pub fn ensure_worktree_is_at(
     worktree_name: &str,
     worktree_root: &Path,
     branch: &str,
+    base_branch: Option<&str>,
     commit: Oid,
 ) -> Result<()> {
     tracing::info!("checking out worktree");
@@ -242,18 +240,30 @@ pub fn ensure_worktree_is_at(
                         commit: head_commit,
                     })?;
             }
-            let branch = worktree
-                .branch(branch, &commit_obj, true)
-                .context(CreateWorktreeBranchSnafu {
+            let mut branch =
+                worktree
+                    .branch(branch, &commit_obj, true)
+                    .context(CreateWorktreeBranchSnafu {
+                        repo: &worktree,
+                        branch,
+                        commit,
+                    })?;
+            // Set the base branch as the patch branch's upstream, this helps some git GUIs (like magit)
+            // visualize the difference between upstream and our patchset.
+            if let Err(err) = branch.set_upstream(base_branch) {
+                tracing::warn!(
+                    error = &err as &dyn std::error::Error,
+                    branch.base = base_branch,
+                    "failed to set upstream branch, ignoring..."
+                );
+            }
+            let branch_ref = branch.into_reference();
+            let commit = branch_ref
+                .peel(ObjectType::Commit)
+                .context(FindCommitSnafu {
                     repo: &worktree,
-                    branch,
-                    commit,
-                })?
-                .into_reference();
-            let commit = branch.peel(ObjectType::Commit).context(FindCommitSnafu {
-                repo: &worktree,
-                commit: &branch,
-            })?;
+                    commit: &branch_ref,
+                })?;
             worktree
                 .checkout_tree(&commit, None)
                 .context(CheckoutWorktreeSnafu {
@@ -261,10 +271,10 @@ pub fn ensure_worktree_is_at(
                     commit: &commit,
                 })?;
             worktree
-                .set_head_bytes(branch.name_bytes())
+                .set_head_bytes(branch_ref.name_bytes())
                 .context(UpdateWorktreeHeadSnafu {
                     worktree: &worktree,
-                    target: &branch,
+                    target: &branch_ref,
                 })?;
             Ok(())
         }

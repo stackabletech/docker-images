@@ -1,0 +1,61 @@
+From 5adf2efcf9f91e66aea16cbbf49e0a9c059b2be9 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Thu, 15 May 2025 18:15:16 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index 388a85aa85..fb0015e49a 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -45,6 +45,47 @@ plugins {
+   // artifacts - see https://github.com/johnrengelman/shadow/issues/901
+   id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
+   id 'com.diffplug.spotless' version "6.25.0"
++  id 'org.cyclonedx.bom' version '1.10.0'
++}
++
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = "application"
++    // Specified the version of the CycloneDX specification to use. Defaults to '1.5'
++    schemaVersion = "1.5"
++    // Boms destination directory. Defaults to 'build/reports'
++    destination = file("build/reports")
++    // The file name for the generated BOMs (before the file format suffix). Defaults to 'bom'
++    outputName = "bom"
++    // The file format generated, can be xml, json or all for generating both. Defaults to 'all'
++    outputFormat = "json"
++    includeConfigs = ["runtimeClasspath"]
++    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
++    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++    skipProjects = [
++      'upgrade-system-tests-0110',
++      'upgrade-system-tests-10',
++      'upgrade-system-tests-11',
++      'upgrade-system-tests-20',
++      'upgrade-system-tests-21',
++      'upgrade-system-tests-22',
++      'upgrade-system-tests-23',
++      'upgrade-system-tests-24',
++      'upgrade-system-tests-25',
++      'upgrade-system-tests-26',
++      'upgrade-system-tests-27',
++      'upgrade-system-tests-28',
++      'upgrade-system-tests-30',
++      'upgrade-system-tests-31',
++      'upgrade-system-tests-32',
++      'upgrade-system-tests-33',
++      'upgrade-system-tests-34',
++      'upgrade-system-tests-35',
++      'upgrade-system-tests-36',
++      'upgrade-system-tests-37',
++      'upgrade-system-tests-38',
++      'upgrade-system-tests-39',
++    ]
+ }
+ 
+ ext {

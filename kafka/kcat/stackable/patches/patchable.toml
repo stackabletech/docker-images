@@ -1,0 +1,2 @@
+upstream = "https://github.com/edenhill/kcat.git"
+default-mirror = "https://github.com/stackabletech/kcat.git"
