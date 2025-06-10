@@ -18,6 +18,6 @@ versions = [
         "java-base": "24",
         "java-devel": "24",
         "jmx_exporter": "1.2.0",
-        "trino-storage-connector": "476",
+        "trino/storage-connector": "476",
     },
 ]
