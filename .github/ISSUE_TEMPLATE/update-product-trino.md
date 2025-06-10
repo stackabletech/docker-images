@@ -30,7 +30,6 @@ Add/Change/Remove anything that isn't applicable anymore
 ### Trino
 
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Upload new version (see `trino/*.sh` scripts).
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, opa_authorizer, storage_connector, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
