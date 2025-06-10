@@ -48,6 +48,10 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.0.0` ([#1117])
 - Include `.tar.gz` snapshots of the product source code in container images ([#1126])
 - airflow: OPA authorizer for Airflow 3.x ([#1127])
+- kafka: Add `3.9.1` ([#1149])
+- spark-k8s: Add `3.5.6` ([#1142])
+- spark-connect-client: Add `3.5.6` ([#1142])
+- git-sync: Bump version to 4.4.1 ([#1151]).
 
 ### Changed
 
@@ -71,6 +75,7 @@ All notable changes to this project will be documented in this file.
 - patchable: The base branch is now configured as the git upstream branch ([#1131]).
 - airflow: Updates the entrypoint script and removes the check for GID == 0 ([#1138])
 - druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
+- vector: Bump to `0.47.0` ([#1152]).
 
 ### Fixed
 
@@ -109,6 +114,7 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `30.0.0` ([#1110]).
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117])
+- spark-connect-client: Remove `3.5.5` ([#1142])
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -163,6 +169,10 @@ All notable changes to this project will be documented in this file.
 [#1137]: https://github.com/stackabletech/docker-images/pull/1137
 [#1138]: https://github.com/stackabletech/docker-images/pull/1138
 [#1139]: https://github.com/stackabletech/docker-images/pull/1139
+[#1149]: https://github.com/stackabletech/docker-images/pull/1149
+[#1142]: https://github.com/stackabletech/docker-images/pull/1142
+[#1151]: https://github.com/stackabletech/docker-images/pull/1151
+[#1152]: https://github.com/stackabletech/docker-images/pull/1152
 
 ## [25.3.0] - 2025-03-21
 
