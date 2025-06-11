@@ -37,6 +37,8 @@ All notable changes to this project will be documented in this file.
 - superset: Add version `4.1.2` ([#1102]).
 - trino: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1025]).
+- trino: Add `476` ([#1095]).
+- trino-storage-connector: Add `476` ([#1095]).
 - zookeeper: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1043]).
 - nifi: Build and add OPA authorizer plugin nar ([#1058]).
@@ -65,6 +67,7 @@ All notable changes to this project will be documented in this file.
 - kubectl: Bump products to use `1.33.0` ([#1090]).
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
+- trino-cli: Bump to `476` ([#1095]).
 - vector: Bump to `0.46.1` ([#1098]).
 - spark: update dependencies for 3.5.5 ([#1094]).
 - nifi: include NAR SBOMs ([#1119]).
@@ -104,6 +107,8 @@ All notable changes to this project will be documented in this file.
 
 - ci: Remove Nexus steps from build, mirror and release workflows ([#1056]).
   Also remove the old release workflow.
+- trino: Remove `455` ([#1095]).
+- trino-storage-connector: Remove `455` ([#1095]).
 - zookeeper: Remove 3.9.2 ([#1093]).
 - Remove ubi8-rust-builder image ([#1091]).
 - spark: remove 3.5.2 ([#1094]).
@@ -142,6 +147,7 @@ All notable changes to this project will be documented in this file.
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
 [#1094]: https://github.com/stackabletech/docker-images/pull/1094
+[#1095]: https://github.com/stackabletech/docker-images/pull/1095
 [#1097]: https://github.com/stackabletech/docker-images/pull/1097
 [#1098]: https://github.com/stackabletech/docker-images/pull/1098
 [#1099]: https://github.com/stackabletech/docker-images/pull/1099

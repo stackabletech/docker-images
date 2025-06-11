@@ -1,2 +1,2 @@
-base = "e212460ea0aa663f0de9b16fecd480c4ad6490cc"
 mirror = "https://github.com/stackabletech/trino.git"
+base = "7f3746a7fa0b27ace2470340e848feaf3ee73f48"

@@ -23,5 +23,13 @@ tar -czf /stackable/trino-storage-connector-${PRODUCT}-src.tar.gz .
 mvn versions:set -DnewVersion=${PRODUCT}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests -Dmaven.gitcommitid.skip=true
+./mvnw \
+  --batch-mode \
+  --no-transfer-progress \
+  package \
+  -Dmaven.test.skip `# Skip test compilation` \
+  -DskipTests `# Skip test execution` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)`
 EOF
