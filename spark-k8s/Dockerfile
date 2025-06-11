@@ -154,7 +154,7 @@ WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT} \
     ./
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 
 # >>> Build spark
 # Compiling the tests takes a lot of time, so we skip them
@@ -164,9 +164,8 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-ha
 # This will download it's own version of maven because the UBI version is too old:
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
 RUN <<EOF
-# Copy Stackable Hadoop libraries
-mkdir -p /root/.m2/repository/org/apache/hadoop
-cp -r /stackable/patched-hadoop-libs/* /root/.m2/repository/org/apache/hadoop
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /root/.m2/repository
 
 ORIGINAL_VERSION="${PRODUCT}"
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"

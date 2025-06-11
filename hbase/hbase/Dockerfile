@@ -22,7 +22,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/patchable.toml /stackable/src/hbase/hbase/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT}
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 # And every cache needs its own id, we can't share them between stages because we might delete the caches
@@ -37,9 +37,8 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-ha
 RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT})"
 
-# Copy Stackable Hadoop libraries
-mkdir -p /stackable/.m2/repository/org/apache/hadoop
-cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
@@ -79,7 +78,8 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VE
 
 ln -s "/stackable/hbase-${NEW_VERSION}" /stackable/hbase
 
-cp -r /stackable/.m2/repository/org/apache/hbase /stackable/patched-hbase-libs
+mkdir -p /stackable/patched-libs/maven/org/apache
+cp -r /stackable/.m2/repository/org/apache/hbase /stackable/patched-libs/maven/org/apache
 
 ###
 ### Async Profiler

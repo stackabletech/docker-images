@@ -3,83 +3,14 @@
 
 FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
-FROM stackable/image/java-devel AS trino-builder
-
-ARG PRODUCT
-ARG RELEASE
-ARG STACKABLE_USER_UID
-ARG JMX_EXPORTER
-
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/patchable.toml /stackable/src/trino/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/src/trino/stackable/patches/${PRODUCT}
-
-COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}
-COPY --from=trino-storage-connector-image /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
-COPY --from=trino-storage-connector-image /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
-
-# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
-# hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout trino ${PRODUCT})"
-
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
-
-mvn versions:set -DnewVersion=$NEW_VERSION
-
-# Create snapshot of the source code including custom patches
-tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
-
-# Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
-# reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
-# have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
-# So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
-# smoke test checks that "select version()" is working.
-# Also, we need to initialize a new Git repo because `git-commit-id-maven-plugin` has a problem with worktrees, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
-rm .git
-git init
-git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
-git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${NEW_VERSION}
-
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-# We have to set dep.presto-jdbc-under-test explicitly, otherwise trino-test-jdbc-compatibility-old-driver depends on the original Trino dependencies
-./mvnw --batch-mode --no-transfer-progress package -DskipTests -Ddep.presto-jdbc-under-test=${NEW_VERSION} --projects="!docs,!core/trino-server-rpm"
-
-# Delete intermediate build products to free some space and keep runners happy
-rm -r plugin/*/target core/trino-server/target/trino-server-${NEW_VERSION}
-
-# Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
-# while the raw output folder does not
-tar -xzf core/trino-server/target/trino-server-${NEW_VERSION}.tar.gz -C /stackable
-mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trino-server-${NEW_VERSION}.cdx.json
-
-# Delete intermediate build products to free some space and keep runners happy
-(cd .. && rm -r ${PRODUCT})
-rm -r /stackable/.m2
-
-# JMX Exporter
-curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-
-# Softlinks
-ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
-ln -s /stackable/trino-server-${NEW_VERSION} /stackable/trino-server
-
-# Set correct permissions
-chmod --recursive g=u /stackable
-EOF
+FROM stackable/image/trino/trino AS trino-builder
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG JMX_EXPORTER
 
 LABEL \
     name="Trino" \
@@ -104,8 +35,25 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable /stackable
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
+
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
+
+RUN <<EOF
+# JMX Exporter
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+
+# Set correct permissions
+chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx
+chmod --recursive g=u /stackable
+EOF
 
 # ----------------------------------------
 # Checks

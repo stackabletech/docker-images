@@ -31,7 +31,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackabl
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}-stackable${RELEASE}
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -42,9 +42,8 @@ RUN --mount=type=cache,id=maven-hive-${PRODUCT},uid=${STACKABLE_USER_UID},target
 BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT})"
 cd "$BUILD_SRC_DIR"
 
-# Copy Stackable Hadoop libraries
-mkdir -p /stackable/.m2/repository/org/apache/hadoop /stackable/.m2/repository/com/github/joshelser
-cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
@@ -96,8 +95,6 @@ cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/aws-ja
 cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
 cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
 cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-
-cp -r /stackable/.m2/repository/org/apache/hive /stackable/patched-hive-libs
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -151,7 +148,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop-${HADOOP}-stackable${RELEASE}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/patched-hive-libs /stackable/patched-hive-libs
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bin
 
@@ -177,7 +173,6 @@ chmod g=u /stackable/*-src.tar.gz
 
 # fix missing permissions
 chmod --recursive g=u /stackable/jmx
-chmod --recursive g=u /stackable/patched-hive-libs
 EOF
 
 # ----------------------------------------

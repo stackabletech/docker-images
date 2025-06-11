@@ -39,7 +39,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 # The cache id has to include the product version that we are building because otherwise
@@ -64,9 +64,8 @@ NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
-# Copy Stackable Hadoop libraries
-mkdir -p /stackable/.m2/repository/org/apache/hadoop
-cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /stackable/.m2/repository
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/druid-${NEW_VERSION}-src.tar.gz .

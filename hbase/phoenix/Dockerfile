@@ -18,17 +18,16 @@ ARG DELETE_CACHES="true"
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PRODUCT} /stackable/src/phoenix/stackable/patches/${PRODUCT}
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hadoop-libs /stackable/patched-hadoop-libs
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-hbase-libs /stackable/patched-hbase-libs
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 RUN --mount=type=cache,id=maven-phoenix-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 
-mkdir -p /stackable/.m2/repository/org/apache/{hadoop,hbase}
-cp -r /stackable/patched-hadoop-libs/* /stackable/.m2/repository/org/apache/hadoop
-cp -r /stackable/patched-hbase-libs/* /stackable/.m2/repository/org/apache/hbase
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /stackable/.m2/repository
 
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PRODUCT})"
 
