@@ -131,7 +131,6 @@ ARG AZURE_KEYVAULT_CORE
 ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
-ARG JMX_EXPORTER
 ARG TARGETARCH
 ARG TINI
 ARG STACKABLE_USER_UID
@@ -206,8 +205,6 @@ RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect
     && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
     && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar .
 
-COPY spark-k8s/stackable/jmx /stackable/jmx
-
 WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
 
 RUN <<EOF
@@ -224,14 +221,8 @@ curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-$
   -o /usr/bin/tini
 chmod +x /usr/bin/tini
 
-# JMX Exporter
-curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-  -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
-
 chmod -R g=u /stackable/spark-${PRODUCT}/dist
 chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
-chmod -R g=u /stackable/jmx
 EOF
 
 # TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
@@ -241,7 +232,6 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
-ARG JMX_EXPORTER
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
 
@@ -267,7 +257,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRO
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
@@ -301,7 +290,6 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 
 # fix permissions
 chmod g=u /stackable/spark
-chmod g=u /stackable/jmx
 chmod g=u /stackable/run-spark.sh
 EOF
 
