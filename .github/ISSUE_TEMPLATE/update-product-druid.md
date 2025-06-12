@@ -27,12 +27,13 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
+- [ ] Release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer)
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
 - [ ] Upload new version (see `druid/upload_new_druid_version.sh`).
 - [ ] Create a file: `druid/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
 - [ ] Delete old patch directories.
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
-- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
@@ -43,11 +44,11 @@ Add/Change/Remove anything that isn't applicable anymore
 > Delete any items that do not apply so that all applicable items can be checked.
 > For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
 
+- [ ] _Link to [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) PR_
 - [ ] _Link to the docker-images PR (product update)_
 - [ ] _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - [ ] _Link to any other operator PRs (getting_started / kuttl)_
 - [ ] _Link to demo PR (raise against the `main` branch)_
-- [ ] _Link to [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) PR_
 - [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 
 ## Acceptance

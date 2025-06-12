@@ -59,5 +59,5 @@ Part of stackabletech/issues#xxx.
 - [ ] testing-tools
 - [ ] statsd_exporter
 - [ ] cyclonedx-bom (pip)
-- [ ] cargo-cyclonedx (Look for: `CARGO_CYCLONEDX_CRATE_VERSION`)
-- [ ] cargo-auditable (Look for: `CARGO_AUDITABLE_CRATE_VERSION`)
+- [ ] csi-provisioner for secret-operator
+- [ ] csi-provisioner for listener-operator

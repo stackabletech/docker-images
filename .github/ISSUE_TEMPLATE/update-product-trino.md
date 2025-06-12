@@ -33,6 +33,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, opa_authorizer, storage_connector, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Update versions in `tests/templates/kuttl/opa-authorization/check-opa.py.j2`
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 
 ### trino-cli

@@ -63,7 +63,7 @@ All notable changes to this project will be documented in this file.
 - stackable-devel: Bump ubi9 base image ([#1103], [#1137]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
-- jmx_exporter: Bump products to use `1.2.0` ([#1090]).
+- jmx_exporter: Bump products to use `1.3.0` ([#1090], [#1156]).
 - kubectl: Bump products to use `1.33.0` ([#1090]).
 - yq: Bump products to use `4.45.2` ([#1090]).
 - cyclonedx-bom: Bump airflow and superset to use `6.0.0` ([#1090]).
@@ -181,6 +181,7 @@ All notable changes to this project will be documented in this file.
 [#1150]: https://github.com/stackabletech/docker-images/pull/1150
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
+[#1156]: https://github.com/stackabletech/docker-images/pull/1156
 
 ## [25.3.0] - 2025-03-21
 
