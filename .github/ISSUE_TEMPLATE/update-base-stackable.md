@@ -20,6 +20,12 @@ Part of #xxx.
 
 ## Update tasks
 
+> [!NOTE]
+> When updating the base image, you will likely get a build failure related to the CA certificates.
+> This means you will need to update the `ca-certificates-*` package and try again. The build will
+> fail if the blocked certificates are still found.
+> The package check exists so that we can remove it once (if ever) the _bad_ CA has been removed.
+
 ### `stackable-base`
 
 - [ ] Update `FROM ...ubi-minimal` version hash in the Dockerfile
