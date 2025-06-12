@@ -53,7 +53,6 @@ Part of stackabletech/issues#xxx.
 
 ## Additional items which don't have a tracking issue
 
-- [ ] hello-world
 - [ ] krb5
 - [ ] tools
 - [ ] testing-tools
