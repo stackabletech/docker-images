@@ -46,7 +46,7 @@ we should also make new versions of Java available for use.
 
 ## Related Pull Requests
 
-- [ ] _Link to the docker-images PR (product update)_
+- _Link to the docker-images PR (product update)_
 
 ## Acceptance
 
