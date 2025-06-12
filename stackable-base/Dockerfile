@@ -1,6 +1,12 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
+#
+# Base image for final stages
+# Should not contain any components that are not needed (or helpful) at runtime
+# Build time dependencies that are used in multiple images can be added to `stackable-devel` (or a derivative like `java-devel`) instead
+#
+
 FROM stackable/image/stackable-devel AS config-utils
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
