@@ -13,13 +13,6 @@ assignees: ''
 
 Part of #xxx.
 
-<!--
-This gives hints to the person doing the work.
-Add/Change/Remove anything that isn't applicable anymore
--->
-- Add: `x.x.x`
-- Remove: `y.y.y`
-
 > [!TIP]
 > Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
 >
@@ -35,9 +28,9 @@ Add/Change/Remove anything that isn't applicable anymore
 ### `stackable-devel`
 
 - [ ] Update `FROM ...ubi-minimal` version hash in the Dockerfile
-- [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION`
-- [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION`
-- [ ] Update `CARGO_AUDITABLE_CRATE_VERSION`
+- [ ] Update `RUST_DEFAULT_TOOLCHAIN_VERSION` (if tools need it, eg: patchable, config-utils)
+- [ ] Update `CARGO_CYCLONEDX_CRATE_VERSION` (if necessary)
+- [ ] Update `CARGO_AUDITABLE_CRATE_VERSION` (if necessary)
 
 ## Related Pull Requests
 
