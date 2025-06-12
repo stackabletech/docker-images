@@ -53,6 +53,7 @@ Part of stackabletech/issues#xxx.
 
 ## Additional items which don't have a tracking issue
 
+- [ ] jmx_exporter (validate via hdfs-operator smoke tests)
 - [ ] krb5
 - [ ] tools
 - [ ] testing-tools
