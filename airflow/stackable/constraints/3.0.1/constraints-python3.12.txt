@@ -122,7 +122,14 @@ apache-airflow-providers-asana==2.9.1
 apache-airflow-providers-atlassian-jira==3.0.2
 apache-airflow-providers-celery==3.10.6
 apache-airflow-providers-cloudant==4.1.1
-apache-airflow-providers-cncf-kubernetes==10.4.3
+# Stackable patch:
+# The 10.4.3 Kubernetes provider shipped with Airflow 3.0.1 has a problem.
+# https://airflow.apache.org/docs/apache-airflow-providers-cncf-kubernetes/10.5.0/changelog.html#id1
+# It uses a busybox sidecar container to start tasks using the kubernetes executor
+# Two problems with that:
+# 1) The securityContext says "runAsNonRoot" but the busybox image defaults to root so it fails to be scheduled (at least on a standard OpenShift)
+# 2) The busybox image might not be available on air-gapped clusters
+apache-airflow-providers-cncf-kubernetes==10.5.0
 apache-airflow-providers-cohere==1.4.3
 apache-airflow-providers-common-compat==1.6.1
 apache-airflow-providers-common-io==1.5.4
