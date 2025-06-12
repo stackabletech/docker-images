@@ -11,13 +11,14 @@ ARG HBASE_HBASE
 ARG HBASE_PROFILE
 ARG HADOOP
 ARG STACKABLE_USER_UID
+ARG PHOENIX_VERSION
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PRODUCT} /stackable/src/phoenix/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX_VERSION} /stackable/src/phoenix/stackable/patches/${PHOENIX_VERSION}
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
 
@@ -29,10 +30,10 @@ RUN --mount=type=cache,id=maven-phoenix-${PRODUCT},uid=${STACKABLE_USER_UID},tar
 # Make Maven aware of custom Stackable libraries
 mv /stackable/patched-libs/maven /stackable/.m2/repository
 
-cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX_VERSION})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+NEW_VERSION="${PHOENIX_VERSION}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -59,7 +60,7 @@ tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoe
 mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin/phoenix-${HBASE_PROFILE}-${NEW_VERSION}.cdx.json
 
 # Remove sources
-(cd .. && rm -r ${PRODUCT})
+(cd .. && rm -r ${PHOENIX_VERSION})
 ln -s "/stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin" /stackable/phoenix
 
 # We're removing these to make the intermediate layer smaller

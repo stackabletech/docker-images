@@ -9,6 +9,7 @@ ARG RELEASE
 ARG HBASE_THIRDPARTY
 ARG HBASE_HBASE
 ARG STACKABLE_USER_UID
+ARG HBASE_OPERATOR_TOOLS_VERSION
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -20,7 +21,7 @@ ARG DELETE_CACHES="true"
 # does not work, so please ignore the according warning (SC2016).
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbck2.env /stackable/bin/
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
@@ -32,13 +33,13 @@ WORKDIR /stackable
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-tools ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-tools ${HBASE_OPERATOR_TOOLS_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
 mv /stackable/patched-libs/maven /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -63,9 +64,9 @@ tar -xz \
   --strip-components=1
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-operator-tools-assembly/target/bom.json
 mv hbase-operator-tools-assembly/target/bom.json /stackable/hbase-operator-tools-${NEW_VERSION}/hbase-operator-tools-${NEW_VERSION}.cdx.json
-(cd .. && rm -r ${PRODUCT})
+(cd .. && rm -r ${HBASE_OPERATOR_TOOLS_VERSION})
 
-envsubst '${HBASE_HBASE}:${PRODUCT}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
+envsubst '${HBASE_HBASE}:${HBASE_OPERATOR_TOOLS_VERSION}' < /stackable/bin/hbck2.env > /stackable/bin/hbck2
 chmod +x /stackable/bin/hbck2
 rm /stackable/bin/hbck2.env
 
