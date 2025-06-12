@@ -33,7 +33,15 @@ tar -czf /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz .
 mvn versions:set -DnewVersion=${NEW_VERSION}
 
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests -Ddep.trino.version=${NEW_VERSION} -Dmaven.gitcommitid.skip=true
+./mvnw \
+  --batch-mode \
+  --no-transfer-progress \
+  package \
+  -DskipTests `# Skip test execution` \
+  -Ddep.trino.version=${NEW_VERSION} `# Use custom Stackable Trino version in tests` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)`
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" target/bom.json
 
 # Set correct permissions

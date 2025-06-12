@@ -5,13 +5,12 @@ versions = [
         "java-devel": "22",
     },
     {
-        "product": "455",
-        "trino/trino": "455",
-        "java-devel": "22",
-    },
-    {
         "product": "470",
         "trino/trino": "470",
         "java-devel": "23",
+    },
+    {
+        "product": "476",
+        "java-devel": "24",
     },
 ]
