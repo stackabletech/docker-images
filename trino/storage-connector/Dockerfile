@@ -18,11 +18,11 @@ USER ${STACKABLE_USER_UID}
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${PRODUCT},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-${PRODUCT},target=/stackable/.m2/repository,uid=${STACKABLE_USER_UID} <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT})"
 
 # Make Maven aware of custom Stackable libraries
-cp -r /stackable/patched-libs/maven /stackable/.m2/repository
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION="${PRODUCT}"
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"

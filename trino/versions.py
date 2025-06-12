@@ -16,7 +16,7 @@ versions = [
     {
         "product": "476",
         "java-base": "24",
-        "java-devel": "24",
+        "trino/trino": "476",
         "jmx_exporter": "1.2.0",
         "trino/storage-connector": "476",
     },

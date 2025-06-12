@@ -38,7 +38,7 @@ RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},targe
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT})"
 
 # Make Maven aware of custom Stackable libraries
-mv /stackable/patched-libs/maven /stackable/.m2/repository
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"

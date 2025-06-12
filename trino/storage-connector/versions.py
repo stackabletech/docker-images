@@ -11,6 +11,7 @@ versions = [
     },
     {
         "product": "476",
+        "trino/trino": "476",
         "java-devel": "24",
     },
 ]

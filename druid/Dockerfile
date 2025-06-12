@@ -65,7 +65,7 @@ NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 mvn versions:set -DnewVersion=$NEW_VERSION
 
 # Make Maven aware of custom Stackable libraries
-mv /stackable/patched-libs/maven /stackable/.m2/repository
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/druid-${NEW_VERSION}-src.tar.gz .

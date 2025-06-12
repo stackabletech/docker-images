@@ -28,7 +28,7 @@ WORKDIR /stackable
 RUN --mount=type=cache,id=maven-phoenix-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 
 # Make Maven aware of custom Stackable libraries
-mv /stackable/patched-libs/maven /stackable/.m2/repository
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX_VERSION})"
 
@@ -38,7 +38,7 @@ NEW_VERSION="${PHOENIX_VERSION}-stackable${RELEASE}"
 mvn versions:set -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/phoenix-${NEW_VERSION}-src.tar.gz .
+tar -czf /stackable/phoenix-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
@@ -55,13 +55,14 @@ mvn \
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin
-tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin/ --strip-components=1
-mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin/phoenix-${HBASE_PROFILE}-${NEW_VERSION}.cdx.json
+mkdir /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin
+tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin/ --strip-components=1
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" phoenix-assembly/target/bom.json
+mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}.cdx.json
 
 # Remove sources
 (cd .. && rm -r ${PHOENIX_VERSION})
-ln -s "/stackable/phoenix-${HBASE_PROFILE}-${NEW_VERSION}-bin" /stackable/phoenix
+ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin" /stackable/phoenix
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available

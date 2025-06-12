@@ -43,7 +43,7 @@ BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRO
 cd "$BUILD_SRC_DIR"
 
 # Make Maven aware of custom Stackable libraries
-mv /stackable/patched-libs/maven /stackable/.m2/repository
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"

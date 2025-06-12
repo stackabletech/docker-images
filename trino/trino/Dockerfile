@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
-
 FROM stackable/image/java-devel AS trino-builder
 
 ARG PRODUCT
@@ -39,9 +38,22 @@ git config user.name "Fake commiter"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 
+SKIP_PROJECTS="!docs"
+if [ "$PRODUCT" = "470" ] || [ "$PRODUCT" = "451" ]; then
+  SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
+fi
+
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-# We have to set dep.presto-jdbc-under-test explicitly, otherwise trino-test-jdbc-compatibility-old-driver depends on the original Trino dependencies
-./mvnw --batch-mode --no-transfer-progress install -DskipTests -Ddep.presto-jdbc-under-test=${NEW_VERSION} --projects="!docs,!core/trino-server-rpm"
+./mvnw \
+  --batch-mode \
+  --no-transfer-progress \
+  install \
+  `# -Dmaven.test.skip # Unable to skip test compilation without an unused dependency error for software.amazon.awssdk:identity-spi` \
+  -DskipTests `# Skip test execution` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  -Ddep.presto-jdbc-under-test=${NEW_VERSION} \
+  --projects="$SKIP_PROJECTS"
 
 mkdir -p /stackable/patched-libs/maven/io
 cp -r /root/.m2/repository/io/trino /stackable/patched-libs/maven/io
