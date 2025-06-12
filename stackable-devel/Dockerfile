@@ -3,6 +3,9 @@
 
 #
 # Base image for builder stages
+# It is intended to be used as an intermediate "workbench" layer to build components
+# It should not be the base for a final image to avoid shipping build time dependencies like `patchable` or `gcc`
+# Use `stackable-base` as a base for the final image stage instead
 #
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
