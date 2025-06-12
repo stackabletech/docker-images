@@ -35,6 +35,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Maybe update versions in `tests/templates/kuttl/opa-authorization/check-opa.py.j2` (if tests fail)
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update versions used in the documentation repository
 
 ### trino-cli
 
@@ -43,6 +44,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update versions used in the documentation repository
 
 ## Related Pull Requests
 
