@@ -125,6 +125,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Remove `3.5.5` ([#1142]).
 - spark-k8s: Remove the JMX exporter jar ([#1157]).
 - zookeeper: Remove jmx exporter ([#1161]).
+- nifi: Enable custom versions ([#1172]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
