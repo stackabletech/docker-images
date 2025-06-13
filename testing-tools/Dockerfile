@@ -3,7 +3,9 @@
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 # https://hub.docker.com/_/python/tags
-FROM python:3.12-slim-bullseye@sha256:57ab68549579e5e7bdf485fd33792577b5f4c14336fdc9a9a5a9fb6af0af1776
+# Unfortunately docker hub doesn't show the manifest list digest, so you should do:
+# docker pull python:3.12-slim-bullseye and see the digest that appears in the output.
+FROM python:3.12-slim-bullseye@sha256:229b2897e6b5c630d83a721e42dd1c96e3ec996323bb822b076eb865e2c6c0b2
 
 ARG PRODUCT
 ARG RELEASE
