@@ -16,8 +16,10 @@ HBASE_ROLE_NAME="$1"
 HBASE_ROLE_SERVICE_NAME="$2"
 # 16010 for master, 16020 for regionservers etc.
 HBASE_ROLE_SERVICE_PORT="$3"
-# ui-http or ui-https
+# master, regionserver, rest_http, rest_https
 HBASE_PORT_NAME="$4"
+# ui-http or ui-https
+HBASE_UI_PORT_NAME="$5"
 
 HBASE_ROLE_SERVICE_HOST="${HOSTNAME}.${HBASE_ROLE_SERVICE_NAME}"
 
@@ -78,11 +80,9 @@ fi
 # Service endpoints
 HBASE_SERVICE_HOST=$(cat /stackable/listener/default-address/address)
 HBASE_SERVICE_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_PORT_NAME}")
-HBASE_INFO_PORT=$(cat /stackable/listener/default-address/ports/ui-http)
+HBASE_INFO_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_UI_PORT_NAME}")
 HBASE_LISTENER_ENDPOINT="$HBASE_SERVICE_HOST:$HBASE_INFO_PORT"
-export HBASE_SERVICE_HOST
-export HBASE_SERVICE_PORT
-export HBASE_INFO_PORT
+
 sed -i -e s/\$\{HBASE_SERVICE_HOST\}/"${HBASE_SERVICE_HOST}"/g /stackable/conf/hbase-site.xml
 sed -i -e s/\$\{HBASE_SERVICE_PORT\}/"${HBASE_SERVICE_PORT}"/g /stackable/conf/hbase-site.xml
 sed -i -e s/\$\{HBASE_LISTENER_ENDPOINT\}/"${HBASE_LISTENER_ENDPOINT}"/g /stackable/conf/hbase-site.xml
