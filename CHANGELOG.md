@@ -82,6 +82,7 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.47.0` ([#1152]).
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
+- krb5-testing-tools: Rename image from `krb5` ([#1167]).
 
 ### Fixed
 
@@ -188,6 +189,7 @@ All notable changes to this project will be documented in this file.
 [#1157]: https://github.com/stackabletech/docker-images/pull/1157
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
+[#1167]: https://github.com/stackabletech/docker-images/pull/1167
 
 ## [25.3.0] - 2025-03-21
 
