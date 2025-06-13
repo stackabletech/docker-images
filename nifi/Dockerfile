@@ -8,6 +8,7 @@ FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS git-sync-image
 FROM stackable/image/java-devel AS nifi-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG MAVEN_VERSION="3.9.8"
 ARG STACKABLE_USER_UID
 
@@ -45,8 +46,13 @@ curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bc
 
 cd "$(/stackable/patchable --images-repo-root=src checkout nifi ${PRODUCT})"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/nifi-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/nifi-${NEW_VERSION}-src.tar.gz .
 
 # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
 # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
@@ -57,13 +63,14 @@ else
 fi
 
 # Copy the binaries to the /stackable folder
-mv nifi-assembly/target/nifi-${PRODUCT}-bin/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}
+mv nifi-assembly/target/nifi-${NEW_VERSION}-bin/nifi-${NEW_VERSION} /stackable/nifi-${NEW_VERSION}
 
 # Copy the SBOM as well
-mv nifi-assembly/target/bom.json /stackable/nifi-${PRODUCT}/nifi-${PRODUCT}.cdx.json
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" nifi-assembly/target/bom.json
+mv nifi-assembly/target/bom.json /stackable/nifi-${NEW_VERSION}/nifi-${NEW_VERSION}.cdx.json
 
 # Get a list of NARs
-export NARS=$(ls /stackable/nifi-${PRODUCT}/lib/*.nar | awk -F '/' '{ print $5 }' | sed "s/\-${PRODUCT}.nar\$//g")
+export NARS=$(ls /stackable/nifi-${NEW_VERSION}/lib/*.nar | awk -F '/' '{ print $5 }' | sed "s/\-${NEW_VERSION}.nar\$//g")
 # Get a list of SBOMs
 find . -name bom.json > bomlist.txt
 
@@ -72,7 +79,7 @@ for nar in $NARS; do
     match=$(grep "\/$nar\/target\/bom.json" bomlist.txt || true)
     if [[ -n "$match" ]]; then
         # Copy the SBOM of the NAR
-        cp "$match" "/stackable/nifi-${PRODUCT}/$nar.cdx.json"
+        cp "$match" "/stackable/nifi-${NEW_VERSION}/$nar.cdx.json"
     fi
 done
 
@@ -80,7 +87,7 @@ done
 (cd .. && rm -r ${PRODUCT})
 
 # Remove generated docs in binary
-rm -rf /stackable/nifi-${PRODUCT}/docs
+rm -rf /stackable/nifi-${NEW_VERSION}/docs
 
 # Set correct permissions
 chmod -R g=u /stackable
@@ -182,15 +189,15 @@ LABEL name="Apache NiFi" \
     summary="The Stackable image for Apache NiFi." \
     description="This image is deployed by the Stackable Operator for Apache NiFi."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT} /stackable/nifi-${PRODUCT}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE} /stackable/nifi-${PRODUCT}-stackable${RELEASE}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/extensions/opa-authorizer.nar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
@@ -219,13 +226,13 @@ pip install --no-cache-dir \
 # This can be removed once older versions / operators using this are no longer supported
 ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 
-ln -s /stackable/nifi-${PRODUCT} /stackable/nifi
+ln -s /stackable/nifi-${PRODUCT}-stackable${RELEASE} /stackable/nifi
 
 # fix missing permissions / ownership
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
-chmod g=u /stackable/nifi-${PRODUCT}
+chmod g=u /stackable/nifi-${PRODUCT}-stackable${RELEASE}
 chmod g=u /stackable/*-src.tar.gz
 EOF
 
