@@ -48,11 +48,11 @@ Add/Change/Remove anything that isn't applicable anymore
 > Delete any items that do not apply so that all applicable items can be checked.
 > For example, if you add release notes to the documentation repository, you do not need the latter two criteria.
 
-- [ ] _Link to the docker-images PR (product update)_
-- [ ] _Link to operator PR (getting_started / kuttl)_
-- [ ] _Link to any other operator PRs (getting_started / kuttl)_
-- [ ] _Link to demo PR (raise against the `main` branch)_
-- [ ] _Link to the Release Notes PR in the documentation repo (if not a comment below)_
+- _Link to the docker-images PR (product update)_
+- _Link to operator PR (getting_started / kuttl)_
+- _Link to any other operator PRs (getting_started / kuttl)_
+- _Link to demo PR (raise against the `main` branch)_
+- _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 
 ## Acceptance
 
