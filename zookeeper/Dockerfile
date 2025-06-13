@@ -7,14 +7,11 @@
 FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
-ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
 # Copy patches into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
-# Copy JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -37,12 +34,6 @@ tar -C /stackable -xvzf /stackable/apache-zookeeper-${PRODUCT}-bin.tar.gz
 mv zookeeper-assembly/target/bom.json /stackable/apache-zookeeper-${PRODUCT}-bin/apache-zookeeper-${PRODUCT}.cdx.json
 rm -rf /stackable/apache-zookeeper-${PRODUCT}-bin/docs
 rm /stackable/apache-zookeeper-${PRODUCT}-bin/README_packaging.md
-
-# Download the JMX exporter jar from our own repo
-curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" \
-  -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-chmod +x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # set correct groups
 chmod -R g=u /stackable
@@ -72,7 +63,6 @@ LABEL  \
 # Copy over the ZooKeeper binary folder
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-bin /stackable/apache-zookeeper-${PRODUCT}-bin/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
 RUN <<EOF
@@ -89,7 +79,6 @@ ln -s /stackable/apache-zookeeper-${PRODUCT}-bin/ /stackable/zookeeper
 chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
 
 # fix missing permissions
-chmod g=u /stackable/jmx
 chmod g=u /stackable/apache-zookeeper-${PRODUCT}-bin/
 EOF
 
