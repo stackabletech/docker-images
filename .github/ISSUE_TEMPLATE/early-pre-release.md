@@ -54,9 +54,8 @@ Part of stackabletech/issues#xxx.
 
 - [ ] jmx_exporter (validate via hdfs-operator smoke tests)
 - [ ] krb5
-- [ ] tools
-- [ ] testing-tools
+- [ ] tools (update the versions in version.py)
+- [ ] testing-tools (update the base, maybe keycloak)
 - [ ] statsd_exporter
-- [ ] cyclonedx-bom (pip)
 - [ ] csi-provisioner for secret-operator
 - [ ] csi-provisioner for listener-operator

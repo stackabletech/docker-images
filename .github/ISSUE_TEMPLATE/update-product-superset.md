@@ -31,7 +31,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Create a new constraints file (see `superset/README.md`).
 - [ ] Create a file: `superset/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
 - [ ] Delete old constraint files and patch directories.
-- [ ] Update other dependencies if applicable (eg: python, auth_lib, etc).
+- [ ] Update other dependencies if applicable (eg: python, auth_lib, cyclonedx-bom, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
