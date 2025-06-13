@@ -82,6 +82,7 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.47.0` ([#1152]).
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
+- use custom versions for patched components ([#1068]).
 
 ### Fixed
 
@@ -146,6 +147,7 @@ All notable changes to this project will be documented in this file.
 [#1056]: https://github.com/stackabletech/docker-images/pull/1056
 [#1058]: https://github.com/stackabletech/docker-images/pull/1058
 [#1060]: https://github.com/stackabletech/docker-images/pull/1060
+[#1068]: https://github.com/stackabletech/docker-images/pull/1068
 [#1090]: https://github.com/stackabletech/docker-images/pull/1090
 [#1091]: https://github.com/stackabletech/docker-images/pull/1091
 [#1093]: https://github.com/stackabletech/docker-images/pull/1093
