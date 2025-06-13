@@ -36,7 +36,6 @@ Part of stackabletech/issues#xxx.
 
 - [ ] [Create issue from template: update-base-java.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-java.md)
 - [ ] [Create issue from template: update-base-stackable.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-stackable.md)
-- [ ] [Create issue from template: update-base-ubi-rust-builders.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-ubi-rust-builders.md)
 - [ ] [Create issue from template: update-base-vector.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-vector.md)
 - [ ] [Create issue from template: update-product-airflow.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-airflow.md)
 - [ ] [Create issue from template: update-product-druid.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-druid.md)
@@ -53,11 +52,10 @@ Part of stackabletech/issues#xxx.
 
 ## Additional items which don't have a tracking issue
 
-- [ ] hello-world
+- [ ] jmx_exporter (validate via hdfs-operator smoke tests)
 - [ ] krb5
-- [ ] tools
-- [ ] testing-tools
+- [ ] tools (update the versions in version.py)
+- [ ] testing-tools (update the base, maybe keycloak)
 - [ ] statsd_exporter
-- [ ] cyclonedx-bom (pip)
 - [ ] csi-provisioner for secret-operator
 - [ ] csi-provisioner for listener-operator

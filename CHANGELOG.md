@@ -59,8 +59,9 @@ All notable changes to this project will be documented in this file.
 
 - airflow,superset: Use `uv` to build the product ([#1116]).
 - ubi-rust-builder: Bump Rust toolchain to 1.85.0, cargo-cyclonedx to 0.5.7, and cargo-auditable to 0.6.6 ([#1050]).
-- ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091]).
-- stackable-devel: Bump ubi9 base image ([#1103], [#1137]).
+- ubi9-rust-builder: Bump base image and update protoc to `30.2` ([#1091], [#1163]).
+- stackable-base: Bump ubi9 base image ([#1163]).
+- stackable-devel: Bump ubi9 base image ([#1103], [#1137], [#1163]).
 - spark-k8s: Include spark-connect jars, replace OpenJDK with Temurin JDK, cleanup ([#1034]).
 - spark-connect-client: Image is now completely based on spark-k8s and includes JupyterLab and other demo dependencies ([#1071]).
 - jmx_exporter: Bump products to use `1.3.0` ([#1090], [#1156]).
@@ -80,6 +81,7 @@ All notable changes to this project will be documented in this file.
 - druid: Bump druiod-opa-authorizer to `0.7.0` ([#1139]).
 - vector: Bump to `0.47.0` ([#1152]).
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
+- testing-tools: Update base image ([#1165]).
 
 ### Fixed
 
@@ -184,6 +186,8 @@ All notable changes to this project will be documented in this file.
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
 [#1157]: https://github.com/stackabletech/docker-images/pull/1157
+[#1163]: https://github.com/stackabletech/docker-images/pull/1163
+[#1165]: https://github.com/stackabletech/docker-images/pull/1165
 
 ## [25.3.0] - 2025-03-21
 

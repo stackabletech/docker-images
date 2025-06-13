@@ -41,9 +41,9 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Related Pull Requests
 
-- [ ] _Link to the docker-images PR (product update)_
-- [ ] _Bump rust toolchain in operator-rs_
-- [ ] _Bump rust toolchain in operator-templating_
+- _Link to the docker-images PR (product update)_
+- _Bump rust toolchain in operator-rs_
+- _Bump rust toolchain in operator-templating_
 
 ## Acceptance
 
