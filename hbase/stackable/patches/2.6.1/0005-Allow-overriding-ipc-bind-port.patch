@@ -1,0 +1,30 @@
+From 93620b3eecc29ca0a973891902a3a66944aa2305 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
+Date: Fri, 30 May 2025 14:26:26 +0200
+Subject: Allow overriding ipc bind port
+
+---
+ .../org/apache/hadoop/hbase/regionserver/RSRpcServices.java   | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+index b77fcf338a..1f5c9dd21f 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+@@ -1270,14 +1270,14 @@ public class RSRpcServices implements HBaseRPCErrorHandler, AdminService.Blockin
+       int port = conf.getInt(HConstants.MASTER_PORT, HConstants.DEFAULT_MASTER_PORT);
+       // Creation of a HSA will force a resolve.
+       initialIsa = new InetSocketAddress(hostname, port);
+-      bindAddress = new InetSocketAddress(conf.get("hbase.master.ipc.address", hostname), port);
++      bindAddress = new InetSocketAddress(conf.get("hbase.master.ipc.address", hostname), conf.getInt("hbase.master.ipc.port", port));
+     } else {
+       String hostname = DNS.getHostname(conf, DNS.ServerType.REGIONSERVER);
+       int port = conf.getInt(HConstants.REGIONSERVER_PORT, HConstants.DEFAULT_REGIONSERVER_PORT);
+       // Creation of a HSA will force a resolve.
+       initialIsa = new InetSocketAddress(hostname, port);
+       bindAddress =
+-        new InetSocketAddress(conf.get("hbase.regionserver.ipc.address", hostname), port);
++        new InetSocketAddress(conf.get("hbase.regionserver.ipc.address", hostname), conf.getInt("hbase.regionserver.ipc.port", port));
+     }
+     if (initialIsa.getAddress() == null) {
+       throw new IllegalArgumentException("Failed resolve of " + initialIsa);
