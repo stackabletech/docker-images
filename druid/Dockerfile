@@ -1,14 +1,18 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
+FROM stackable/image/hadoop AS hadoop-builder
+
 FROM stackable/image/java-devel AS druid-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG JACKSON_DATAFORMAT_XML
 ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 ARG STACKABLE_USER_UID
+ARG HADOOP
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -35,6 +39,7 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
 # The cache id has to include the product version that we are building because otherwise
@@ -54,24 +59,33 @@ RUN --mount=type=cache,id=maven-${PRODUCT},uid=${STACKABLE_USER_UID},target=/sta
 cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
 rm /tmp/DRUID_SOURCE_DIR
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
+# Make Maven aware of custom Stackable libraries
+cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/druid-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/druid-${NEW_VERSION}-src.tar.gz .
 
 mvn \
   --batch-mode \
   --no-transfer-progress \
   clean install \
   -Pdist,stackable-bundle-contrib-exts \
-  -Dmaven.test.skip `# Skip test compilation` \
+  -Dhadoop.compile.version=${HADOOP}-stackable${RELEASE} \
   -DskipTests `# Skip test execution` \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
   -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)` \
   $(if [[ ${PRODUCT} != 30.* ]]; then echo --projects '!quidem-ut'; fi) `# This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:0.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...`
 
-mv distribution/target/apache-druid-${PRODUCT}-bin/apache-druid-${PRODUCT} /stackable/
-mv distribution/target/bom.json /stackable/apache-druid-${PRODUCT}/apache-druid-${PRODUCT}.cdx.json
-rm -rf /stackable/apache-druid-${PRODUCT}-src
+mv distribution/target/apache-druid-${NEW_VERSION}-bin/apache-druid-${NEW_VERSION} /stackable/
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" distribution/target/bom.json
+mv distribution/target/bom.json /stackable/apache-druid-${NEW_VERSION}/apache-druid-${NEW_VERSION}.cdx.json
+rm -rf /stackable/apache-druid-${NEW_VERSION}-src
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -83,11 +97,11 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.cache/*
 fi
 
-# Do not remove the /stackable/apache-druid-${PRODUCT}/quickstart folder, it is needed for loading the Wikipedia
+# Do not remove the /stackable/apache-druid-${NEW_VERSION}/quickstart folder, it is needed for loading the Wikipedia
 # testdata in kuttl tests and the getting started guide.
 
 # Install OPA authorizer extension.
-curl "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${PRODUCT}/extensions
+curl "https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER}.tar.gz" | tar -xzC /stackable/apache-druid-${NEW_VERSION}/extensions
 
 # change groups
 chmod -R g=u /stackable
@@ -122,8 +136,8 @@ LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT} /stackable/apache-druid-${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/druid-${PRODUCT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/apache-druid-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/druid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
@@ -136,7 +150,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln -sf /stackable/apache-druid-${PRODUCT} /stackable/druid
+ln -sf /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/druid
 chown -h ${STACKABLE_USER_UID}:0 stackable/druid
 
 # Force to overwrite the existing 'run-druid'
@@ -145,7 +159,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
 
 # fix missing permissions
 chmod -R g=u /stackable/bin
-chmod g=u /stackable/apache-druid-${PRODUCT}
+chmod g=u /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/druid-${PRODUCT}-stackable${RELEASE}-src.tar.gz
 EOF
 
 # ----------------------------------------
