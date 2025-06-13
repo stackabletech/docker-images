@@ -16,7 +16,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT} /s
 RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino/trino ${PRODUCT})"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION

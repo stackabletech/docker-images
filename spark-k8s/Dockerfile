@@ -22,7 +22,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /sta
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
@@ -178,6 +177,7 @@ export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     --batch-mode
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
+
 # <<< Build spark
 
 

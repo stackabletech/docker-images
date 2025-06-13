@@ -76,10 +76,10 @@ USER ${STACKABLE_USER_UID}
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hadoop ${PRODUCT})"
 
-export ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-export NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION=${PRODUCT}-stackable${RELEASE}
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn versions:set -DnewVersion=${NEW_VERSION}
 
 # Since we skip building the hadoop-pipes module, we need to set the version to the original version so it can be pulled from Maven Central
 sed -e '/<artifactId>hadoop-pipes<\/artifactId>/,/<\/dependency>/ { s/<version>.*<\/version>/<version>'"$ORIGINAL_VERSION"'<\/version>/ }' -i hadoop-tools/hadoop-tools-dist/pom.xml
@@ -93,7 +93,7 @@ mvn \
     clean package install \
     -Pdist,native \
     -pl '!hadoop-tools/hadoop-pipes' \
-    -Dhadoop.version=$NEW_VERSION \
+    -Dhadoop.version=${NEW_VERSION} \
     -Drequire.fuse=true \
     -DskipTests \
     -Dmaven.javadoc.skip=true
