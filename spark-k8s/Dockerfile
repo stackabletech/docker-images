@@ -11,6 +11,7 @@ FROM stackable/image/hbase AS hbase-builder
 FROM stackable/image/java-devel AS spark-source-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
@@ -21,9 +22,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /sta
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})"
 
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/spark-${PRODUCT}-src.tar.gz .
-chmod g=u /stackable/spark-${PRODUCT}-src.tar.gz
+tar -czf /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
+chmod g=u /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz
 EOF
 
 # hbase-connectors-builder: Build the Spark HBase connector and copy
@@ -31,6 +36,7 @@ EOF
 FROM stackable/image/java-devel AS hbase-connectors-builder
 
 ARG PRODUCT
+ARG RELEASE
 ARG HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
@@ -55,8 +61,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patche
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
 
+ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+NEW_VERSION="${HBASE_CONNECTOR}-stackable${RELEASE}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
+tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
 
 # Building the hbase-connectors with JDK 17 is not yet supported, see
 # https://github.com/apache/hbase-connectors/pull/132.
@@ -101,7 +112,7 @@ mvn \
     clean package
 
 mkdir -p /stackable/spark/jars
-ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}.jar
+ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar
 
 cd /stackable/spark/jars
 
@@ -114,7 +125,7 @@ mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackabl
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=./jars
-chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz .
+chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
 EOF
 
 
@@ -133,13 +144,15 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG TARGETARCH
 ARG TINI
+ARG RELEASE
 ARG STACKABLE_USER_UID
 
-WORKDIR /stackable/spark-${PRODUCT}
+WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT} \
     ./
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 
 # >>> Build spark
 # Compiling the tests takes a lot of time, so we skip them
@@ -148,28 +161,37 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 #
 # This will download it's own version of maven because the UBI version is too old:
 # 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
+RUN <<EOF
+# Make Maven aware of custom Stackable libraries
+mv /stackable/patched-libs/maven /root/.m2/repository
+
+ORIGINAL_VERSION="${PRODUCT}"
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
     && ./dev/make-distribution.sh \
-    -Dhadoop.version="$HADOOP" \
-    -Dmaven.test.skip=true \
+    -Dhadoop.version="${HADOOP}-stackable${RELEASE}" \
     -DskipTests \
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
     --no-transfer-progress \
     --batch-mode
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
+EOF
 
 # <<< Build spark
 
-WORKDIR /stackable/spark-${PRODUCT}/dist/jars
+
+WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/jars
 
 # Copy modules required for s3a://
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
     ./
@@ -181,8 +203,8 @@ COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
 
 # Copy modules required to access HBase
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}.jar \
-    /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}.jar \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}-stackable${RELEASE}.jar \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}-stackable${RELEASE}.jar \
     ./
 # Copy modules required to access HBase if $HBASE == 2.4.x
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
@@ -196,33 +218,33 @@ COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
     ./
 
-WORKDIR /stackable/spark-${PRODUCT}/dist/connect
+WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/connect
 
 # As of version 3.5.5, spark-connect jars are not included in the dist folder.
 # To avoid classpath conflicts with existing spark applications,
 # we create a new dist/connect folder, and copy them here.
-RUN cp /stackable/spark-${PRODUCT}/connector/connect/server/target/spark-connect_*-${PRODUCT}.jar . \
-    && cp /stackable/spark-${PRODUCT}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}.jar . \
-    && cp /stackable/spark-${PRODUCT}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}.jar .
+RUN cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_*-${PRODUCT}-stackable${RELEASE}.jar . \
+    && cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}-stackable${RELEASE}.jar . \
+    && cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}-stackable${RELEASE}.jar .
 
-WORKDIR /stackable/spark-${PRODUCT}/dist/extra-jars
+WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/extra-jars
 
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
 curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar \
-  -o /stackable/spark-${PRODUCT}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
+  -o /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML}.jar
 curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API}.jar \
-  -o /stackable/spark-${PRODUCT}/dist/extra-jars/stax2-api-${STAX2_API}.jar
+  -o /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/extra-jars/stax2-api-${STAX2_API}.jar
 curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE}.jar \
-  -o /stackable/spark-${PRODUCT}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar
+  -o /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE}.jar
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}" \
   -o /usr/bin/tini
 chmod +x /usr/bin/tini
 
-chmod -R g=u /stackable/spark-${PRODUCT}/dist
-chmod -R g=u /stackable/spark-${PRODUCT}/assembly/target/bom.json
+chmod -R g=u /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist
+chmod -R g=u /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json
 EOF
 
 # TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
@@ -253,10 +275,10 @@ ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/dist /stackable/spark
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}-stackable${RELEASE}.cdx.json
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
@@ -291,6 +313,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.j
 # fix permissions
 chmod g=u /stackable/spark
 chmod g=u /stackable/run-spark.sh
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------
