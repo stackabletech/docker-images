@@ -1,4 +1,4 @@
-# krb5
+# krb5-testing-tools
 
 > [!CAUTION]
 > This image is only intended for Stackable-internal tests.
