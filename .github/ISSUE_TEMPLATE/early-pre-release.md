@@ -36,7 +36,6 @@ Part of stackabletech/issues#xxx.
 
 - [ ] [Create issue from template: update-base-java.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-java.md)
 - [ ] [Create issue from template: update-base-stackable.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-stackable.md)
-- [ ] [Create issue from template: update-base-ubi-rust-builders.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-ubi-rust-builders.md)
 - [ ] [Create issue from template: update-base-vector.md](https://github.com/stackabletech/docker-images/issues/new?template=update-base-vector.md)
 - [ ] [Create issue from template: update-product-airflow.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-airflow.md)
 - [ ] [Create issue from template: update-product-druid.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-druid.md)
