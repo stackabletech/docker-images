@@ -1,7 +1,7 @@
 ---
-name: Build Krb5
+name: Build Krb5 Testing Tools
 run-name: |
-  Build Krb5 (attempt #${{ github.run_attempt }})
+  Build Krb5 Testing Tools (attempt #${{ github.run_attempt }})
 
 on:
   workflow_dispatch:
@@ -13,9 +13,9 @@ on:
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
-      - krb5/**
+      - krb5-testing-tools/**
       - .github/actions/**
-      - .github/workflows/build_krb5.yaml
+      - .github/workflows/build_krb5-testing-tools.yaml
       - .github/workflows/reusable_build_image.yaml
 
 jobs:
@@ -26,6 +26,6 @@ jobs:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     with:
-      product-name: krb5
+      product-name: krb5-testing-tools
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
-      registry-namespace: sdp
+      registry-namespace: stackable

@@ -22,7 +22,7 @@ hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
 kafka = importlib.import_module("kafka.versions")
-krb5 = importlib.import_module("krb5.versions")
+krb5_testing_tools = importlib.import_module("krb5-testing-tools.versions")
 vector = importlib.import_module("vector.versions")
 nifi = importlib.import_module("nifi.versions")
 omid = importlib.import_module("omid.versions")
@@ -55,7 +55,7 @@ products = [
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
     {"name": "kafka", "versions": kafka.versions},
-    {"name": "krb5", "versions": krb5.versions},
+    {"name": "krb5-testing-tools", "versions": krb5_testing_tools.versions},
     {"name": "vector", "versions": vector.versions},
     {"name": "nifi", "versions": nifi.versions},
     {"name": "omid", "versions": omid.versions},

@@ -53,7 +53,7 @@ Part of stackabletech/issues#xxx.
 ## Additional items which don't have a tracking issue
 
 - [ ] jmx_exporter (validate via hdfs-operator smoke tests)
-- [ ] krb5
+- [ ] krb5-testing-tools (Update the base image if possible)
 - [ ] tools (update the versions in version.py)
 - [ ] testing-tools (update the base, maybe keycloak)
 - [ ] statsd_exporter

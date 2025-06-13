@@ -15,7 +15,7 @@ PRODUCTS = [
     "hive",
     "kafka",
     "kafka-testing-tools",
-    "krb5",
+    "krb5-testing-tools",
     "nifi",
     "opa",
     "omid",

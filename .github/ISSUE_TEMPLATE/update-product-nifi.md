@@ -33,6 +33,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, kcat, scala, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update versions used in the documentation repository.
 
 ## Related Pull Requests
 
@@ -44,6 +45,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - _Link to any other operator PRs (getting_started / kuttl)_
 - _Link to demo PR (raise against the `main` branch)_
+- _Link to documentation repo PR_
 - _Link to the Release Notes PR in the documentation repo (if not a comment below)_
 
 ## Acceptance
