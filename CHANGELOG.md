@@ -124,7 +124,6 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
 - spark-k8s: Remove the JMX exporter jar ([#1157]).
-- zookeeper: Remove jmx exporter ([#1161]).
 - omid: Enable custom versions ([#1174]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
@@ -190,7 +189,6 @@ All notable changes to this project will be documented in this file.
 [#1157]: https://github.com/stackabletech/docker-images/pull/1157
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
-[#1161]: https://github.com/stackabletech/docker-images/pull/1161
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
 
 ## [25.3.0] - 2025-03-21
