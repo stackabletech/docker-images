@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.15.1@sha256:9857836c9ee4268391bb5b09f9f157f3c91bb15821bb77969642813b0d00518d
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
 FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
@@ -41,8 +41,21 @@ git config user.name "Fake commiter"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${PRODUCT}
 
+SKIP_PROJECTS="!docs"
+if [ "$PRODUCT" = "470" ] || [ "$PRODUCT" = "451" ]; then
+  SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
+fi
+
 # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
+./mvnw \
+  --batch-mode \
+  --no-transfer-progress \
+  package \
+  `# -Dmaven.test.skip # Unable to skip test compilation without an unused dependency error for software.amazon.awssdk:identity-spi` \
+  -DskipTests `# Skip test execution` \
+  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+  --projects="$SKIP_PROJECTS"
 
 # Delete intermediate build products to free some space and keep runners happy
 rm -r plugin/*/target core/trino-server/target/trino-server-${PRODUCT}

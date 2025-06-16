@@ -426,6 +426,7 @@ fn main() -> Result<()> {
                 &ctx.pv.version,
                 &product_worktree_root,
                 &worktree_branch,
+                base_branch.as_deref(),
                 patched_commit,
             )
             .context(CheckoutProductWorktreeSnafu)?;

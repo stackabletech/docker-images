@@ -1,0 +1,64 @@
+From 4004002a9ff08a539a94842ea12a2a449274e968 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andor=20Moln=C3=A1r?= <andor@apache.org>
+Date: Tue, 11 Feb 2025 10:43:20 -0600
+Subject: ZOOKEEPER-4846: Failure to reload database due to missing ACL
+
+ZOOKEEPER-4846. Fix ACL reference on existing znode when trying to create
+Reviewers: cnauroth, eolivelli, ztzg
+Author: anmolnar
+Closes #2222 from anmolnar/ZOOKEEPER-4846
+---
+ .../org/apache/zookeeper/server/DataTree.java    |  5 +++--
+ .../apache/zookeeper/server/DataTreeTest.java    | 16 ++++++++++++++++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
+index 3b61c80d8..af937f834 100644
+--- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
++++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
+@@ -462,8 +462,9 @@ public class DataTree {
+             // we did for the global sessions.
+             Long acls = aclCache.convertAcls(acl);
+ 
+-            Set<String> children = parent.getChildren();
+-            if (children.contains(childName)) {
++            DataNode existingChild = nodes.get(path);
++            if (existingChild != null) {
++                existingChild.acl = acls;
+                 throw new NodeExistsException();
+             }
+ 
+diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
+index 07a69f14f..fc20ed320 100644
+--- a/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
++++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
+@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
+ import static org.junit.jupiter.api.Assertions.assertNotEquals;
+ import static org.junit.jupiter.api.Assertions.assertNotNull;
+ import static org.junit.jupiter.api.Assertions.assertNull;
++import static org.junit.jupiter.api.Assertions.assertThrows;
+ import static org.junit.jupiter.api.Assertions.assertTrue;
+ import java.io.ByteArrayInputStream;
+ import java.io.ByteArrayOutputStream;
+@@ -631,6 +632,21 @@ public class DataTreeTest extends ZKTestCase {
+         }
+     }
+ 
++    @Test
++    public void testCreateNodeFixMissingACL() throws Exception {
++        DataTree dt = new DataTree();
++        ReferenceCountedACLCache aclCache = dt.getReferenceCountedAclCache();
++
++        dt.createNode("/the_parent", new byte[0], ZooDefs.Ids.CREATOR_ALL_ACL, -1, 1, 1, 0);
++        Long aclId = dt.getNode("/the_parent").acl;
++        aclCache.removeUsage(aclId);
++        aclCache.purgeUnused();
++        // try to re-create the parent -> throws NodeExistsException, but fixes the deleted ACL
++        assertThrows(NodeExistsException.class, () ->
++            dt.createNode("/the_parent", new byte[0], ZooDefs.Ids.CREATOR_ALL_ACL, -1, 1, 1, 0));
++        dt.createNode("/the_parent/the_child", new byte[0], ZooDefs.Ids.CREATOR_ALL_ACL, -1, 2, 2, 2);
++    }
++
+     private DataTree buildDataTreeForTest() {
+         final DataTree dt = new DataTree();
+         assertEquals(dt.lastProcessedZxid, 0);

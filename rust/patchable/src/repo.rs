@@ -1,9 +1,6 @@
 use std::path::{self, Path, PathBuf};
 
-use git2::{
-    FetchOptions, ObjectType, Oid, Repository, RepositoryInitOptions,
-    WorktreeAddOptions,
-};
+use git2::{FetchOptions, ObjectType, Oid, Repository, RepositoryInitOptions, WorktreeAddOptions};
 use snafu::{ResultExt, Snafu};
 
 use crate::{
@@ -215,6 +212,7 @@ pub fn ensure_worktree_is_at(
     worktree_name: &str,
     worktree_root: &Path,
     branch: &str,
+    base_branch: Option<&str>,
     commit: Oid,
 ) -> Result<()> {
     tracing::info!("checking out worktree");
@@ -242,18 +240,30 @@ pub fn ensure_worktree_is_at(
                         commit: head_commit,
                     })?;
             }
-            let branch = worktree
-                .branch(branch, &commit_obj, true)
-                .context(CreateWorktreeBranchSnafu {
+            let mut branch =
+                worktree
+                    .branch(branch, &commit_obj, true)
+                    .context(CreateWorktreeBranchSnafu {
+                        repo: &worktree,
+                        branch,
+                        commit,
+                    })?;
+            // Set the base branch as the patch branch's upstream, this helps some git GUIs (like magit)
+            // visualize the difference between upstream and our patchset.
+            if let Err(err) = branch.set_upstream(base_branch) {
+                tracing::warn!(
+                    error = &err as &dyn std::error::Error,
+                    branch.base = base_branch,
+                    "failed to set upstream branch, ignoring..."
+                );
+            }
+            let branch_ref = branch.into_reference();
+            let commit = branch_ref
+                .peel(ObjectType::Commit)
+                .context(FindCommitSnafu {
                     repo: &worktree,
-                    branch,
-                    commit,
-                })?
-                .into_reference();
-            let commit = branch.peel(ObjectType::Commit).context(FindCommitSnafu {
-                repo: &worktree,
-                commit: &branch,
-            })?;
+                    commit: &branch_ref,
+                })?;
             worktree
                 .checkout_tree(&commit, None)
                 .context(CheckoutWorktreeSnafu {
@@ -261,10 +271,10 @@ pub fn ensure_worktree_is_at(
                     commit: &commit,
                 })?;
             worktree
-                .set_head_bytes(branch.name_bytes())
+                .set_head_bytes(branch_ref.name_bytes())
                 .context(UpdateWorktreeHeadSnafu {
                     worktree: &worktree,
-                    target: &branch,
+                    target: &branch_ref,
                 })?;
             Ok(())
         }
