@@ -83,6 +83,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
 - zookeeper: Enable custom versions ([#1169]).
+- opa: Enable custom versions ([#1170]).
 
 ### Fixed
 
@@ -188,6 +189,7 @@ All notable changes to this project will be documented in this file.
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1169]: https://github.com/stackabletech/docker-images/pull/1169
+[#1170]: https://github.com/stackabletech/docker-images/pull/1170
 
 ## [25.3.0] - 2025-03-21
 
