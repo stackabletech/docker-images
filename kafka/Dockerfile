@@ -2,12 +2,12 @@
 # check=error=true
 
 FROM stackable/image/kafka/kcat AS kcat
+FROM stackable/image/kafka/kafka-opa-plugin AS kafka-opa-plugin
 
 FROM stackable/image/java-devel AS kafka-builder
 
 ARG PRODUCT
 ARG SCALA
-ARG OPA_AUTHORIZER
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
 
@@ -34,10 +34,6 @@ cp build/reports/bom.json /stackable/kafka_${SCALA}-${PRODUCT}.cdx.json
 rm -rf /stackable/kafka_${SCALA}-${PRODUCT}/site-docs/
 (cd .. && rm -rf ${PRODUCT})
 
-# TODO (@NickLarsenNZ): Compile from source: https://github.com/StyraInc/opa-kafka-plugin
-curl https://repo.stackable.tech/repository/packages/kafka-opa-authorizer/opa-authorizer-${OPA_AUTHORIZER}-all.jar \
-  -o /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${OPA_AUTHORIZER}-all.jar
-
 # JMX exporter
 curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
   -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
@@ -54,6 +50,7 @@ ARG RELEASE
 ARG PRODUCT
 ARG SCALA
 ARG KAFKA_KCAT
+ARG KAFKA_KAFKA_OPA_PLUGIN
 ARG STACKABLE_USER_UID
 
 LABEL \
@@ -72,6 +69,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stack
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/kafka-opa-plugin-${KAFKA_KAFKA_OPA_PLUGIN}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
 
@@ -101,6 +100,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
 chmod g=u /stackable/bin
 chmod g=u /stackable/jmx
 chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}
+chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
 chmod g=u /stackable/*-src.tar.gz
 EOF
 
