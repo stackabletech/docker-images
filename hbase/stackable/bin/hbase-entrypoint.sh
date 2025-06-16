@@ -11,19 +11,17 @@ set -euo pipefail
 
 # master, regionserver, rest
 HBASE_ROLE_NAME="$1"
-# k8s service name for this role+group combo
-# <svc-name>.<namespace>.svc.cluster.local
-HBASE_ROLE_SERVICE_NAME="$2"
 # 16010 for master, 16020 for regionservers etc.
-HBASE_ROLE_SERVICE_PORT="$3"
+HBASE_ROLE_SERVICE_PORT="$2"
 # master, regionserver, rest_http, rest_https
-HBASE_PORT_NAME="$4"
+HBASE_PORT_NAME="$3"
 # ui-http or ui-https
-HBASE_UI_PORT_NAME="$5"
+HBASE_UI_PORT_NAME="$4"
 
-HBASE_ROLE_SERVICE_HOST="${HOSTNAME}.${HBASE_ROLE_SERVICE_NAME}"
+# Needed for regionmover service and for hbase-site.xml (see below)
+HBASE_SERVICE_HOST=$(cat /stackable/listener/default-address/address)
 
-REGION_MOVER_OPTS="--regionserverhost ${HBASE_ROLE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
+REGION_MOVER_OPTS="--regionserverhost ${HBASE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
 
 prepare_signal_handlers() {
   unset term_child_pid
@@ -78,7 +76,6 @@ if [ -f /stackable/kerberos/krb5.conf ]; then
 fi
 
 # Service endpoints
-HBASE_SERVICE_HOST=$(cat /stackable/listener/default-address/address)
 HBASE_SERVICE_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_PORT_NAME}")
 HBASE_INFO_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_UI_PORT_NAME}")
 HBASE_LISTENER_ENDPOINT="$HBASE_SERVICE_HOST:$HBASE_INFO_PORT"
