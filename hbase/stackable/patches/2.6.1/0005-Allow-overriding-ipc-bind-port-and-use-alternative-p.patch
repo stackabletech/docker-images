@@ -1,16 +1,16 @@
-From 00ec82be6136e55d4d901e28791bc3ce36d726c7 Mon Sep 17 00:00:00 2001
+From f2360ad266a17eb342eb826ae9dad08d3293b580 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
 Date: Fri, 30 May 2025 14:26:26 +0200
 Subject: Allow overriding ipc bind port and use alternative port from listener
 
 ---
- .../apache/hadoop/hbase/master/HMaster.java   | 10 +++++--
+ .../apache/hadoop/hbase/master/HMaster.java   | 11 ++++++--
  .../hbase/regionserver/HRegionServer.java     | 28 +++++++++++++------
  .../hbase/regionserver/RSRpcServices.java     |  4 +--
- 3 files changed, 30 insertions(+), 12 deletions(-)
+ 3 files changed, 30 insertions(+), 13 deletions(-)
 
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
-index 3fe5abac27..be0136193b 100644
+index 3fe5abac27..6d40db77ae 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
 @@ -20,6 +20,7 @@ package org.apache.hadoop.hbase.master;
@@ -33,16 +33,17 @@ index 3fe5abac27..be0136193b 100644
    private void registerConfigurationObservers() {
      configurationManager.registerObserver(this.rpcServices);
      configurationManager.registerObserver(this);
-@@ -587,7 +593,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+@@ -586,8 +592,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+       registerConfigurationObservers();
        Threads.setDaemonThreadRunning(new Thread(() -> TraceUtil.trace(() -> {
          try {
-           int infoPort = putUpJettyServer();
+-          int infoPort = putUpJettyServer();
 -          startActiveMasterManager(infoPort);
 +          startActiveMasterManager(useThisInfoPortInstead);
          } catch (Throwable t) {
            // Make sure we log the exception.
            String error = "Failed to become Active Master";
-@@ -2991,7 +2997,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+@@ -2991,7 +2996,7 @@ public class HMaster extends HRegionServer implements MasterServices {
          }
          case MASTER_INFO_PORT: {
            if (infoServer != null) {
