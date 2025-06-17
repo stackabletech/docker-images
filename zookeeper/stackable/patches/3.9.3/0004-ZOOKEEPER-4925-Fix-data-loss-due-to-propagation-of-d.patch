@@ -45,7 +45,7 @@ Add separated code to enforce continuous proposals
  create mode 100644 zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSyncTest.java
 
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/Request.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/Request.java
-index c174fdd1e..ad5071375 100644
+index c174fdd1..ad507137 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/Request.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/Request.java
 @@ -78,6 +78,19 @@ public class Request {
@@ -69,7 +69,7 @@ index c174fdd1e..ad5071375 100644
  
      public final int cxid;
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/TxnLogEntry.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/TxnLogEntry.java
-index 352eb81da..409fd21fa 100644
+index 352eb81d..409fd21f 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/TxnLogEntry.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/TxnLogEntry.java
 @@ -47,4 +47,8 @@ public final class TxnLogEntry {
@@ -82,7 +82,7 @@ index 352eb81da..409fd21fa 100644
 +    }
  }
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZKDatabase.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZKDatabase.java
-index 7258daa7c..7a26d8362 100644
+index 7258daa7..7a26d836 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZKDatabase.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZKDatabase.java
 @@ -58,6 +58,7 @@ import org.apache.zookeeper.server.quorum.Leader.Proposal;
@@ -156,7 +156,7 @@ index 7258daa7c..7a26d8362 100644
              wl.unlock();
          }
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZooKeeperServer.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZooKeeperServer.java
-index 6740f6d52..14dd59b8c 100644
+index 6740f6d5..14dd59b8 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZooKeeperServer.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/ZooKeeperServer.java
 @@ -1846,13 +1846,6 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
@@ -205,7 +205,7 @@ index 6740f6d52..14dd59b8c 100644
  
      private void processTxnForSessionEvents(Request request, TxnHeader hdr, Record txn) {
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Follower.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Follower.java
-index 0eff9d248..ca99974cb 100644
+index 0eff9d24..ca99974c 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Follower.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Follower.java
 @@ -35,7 +35,6 @@ import org.apache.zookeeper.server.quorum.flexible.QuorumVerifier;
@@ -234,7 +234,7 @@ index 0eff9d248..ca99974cb 100644
                  /*
                   * Request header is created only by the leader, so this is only set
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/FollowerZooKeeperServer.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/FollowerZooKeeperServer.java
-index b67661999..1b0b5cd92 100644
+index b6766199..1b0b5cd9 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/FollowerZooKeeperServer.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/FollowerZooKeeperServer.java
 @@ -22,7 +22,6 @@ import java.io.IOException;
@@ -303,7 +303,7 @@ index b67661999..1b0b5cd92 100644
 -    }
  }
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Learner.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Learner.java
-index 1ef99e50a..adf0ef6e5 100644
+index 1ef99e50..adf0ef6e 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Learner.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Learner.java
 @@ -82,6 +82,10 @@ public class Learner {
@@ -431,7 +431,7 @@ index 1ef99e50a..adf0ef6e5 100644
              }
          } else {
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Observer.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Observer.java
-index d3aa41b5f..334fa54c1 100644
+index d3aa41b5..334fa54c 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Observer.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/quorum/Observer.java
 @@ -202,12 +202,8 @@ public class Observer extends Learner {
@@ -464,7 +464,7 @@ index d3aa41b5f..334fa54c1 100644
  
              boolean majorChange = self.processReconfig(qv, suggestedLeaderId, qp.getZxid(), true);
 diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/TxnLogDigestTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/TxnLogDigestTest.java
-index 75d6fe680..b52ea3418 100644
+index 75d6fe68..b52ea341 100644
 --- a/zookeeper-server/src/test/java/org/apache/zookeeper/server/TxnLogDigestTest.java
 +++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/TxnLogDigestTest.java
 @@ -60,6 +60,7 @@ public class TxnLogDigestTest extends ClientBase {
@@ -484,7 +484,7 @@ index 75d6fe680..b52ea3418 100644
          super.tearDown();
  
 diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/ZxidRolloverTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/ZxidRolloverTest.java
-index 031ccc2f7..b23fd80a3 100644
+index 031ccc2f..b23fd80a 100644
 --- a/zookeeper-server/src/test/java/org/apache/zookeeper/server/ZxidRolloverTest.java
 +++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/ZxidRolloverTest.java
 @@ -60,6 +60,7 @@ public class ZxidRolloverTest extends ZKTestCase {
@@ -505,7 +505,7 @@ index 031ccc2f7..b23fd80a3 100644
              zkClients[i].close();
 diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSyncTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSyncTest.java
 new file mode 100644
-index 000000000..c4b7720cf
+index 00000000..c4b7720c
 --- /dev/null
 +++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSyncTest.java
 @@ -0,0 +1,100 @@
