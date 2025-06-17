@@ -61,7 +61,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patche
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${HBASE_CONNECTOR}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
