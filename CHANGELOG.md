@@ -54,7 +54,7 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: Add `3.5.6` ([#1142]).
 - spark-connect-client: Add `3.5.6` ([#1142]).
 - git-sync: Bump version to 4.4.1 ([#1151]).
-- zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([##1179])
+- zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
 
 ### Changed
 
