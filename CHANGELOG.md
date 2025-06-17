@@ -83,6 +83,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
 - trino: Enable custom versions ([#1168]).
+- opa: Enable custom versions ([#1170]).
 
 ### Fixed
 
@@ -124,7 +125,6 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
-- spark-k8s: Remove the JMX exporter jar ([#1157]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -186,10 +186,10 @@ All notable changes to this project will be documented in this file.
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
-[#1157]: https://github.com/stackabletech/docker-images/pull/1157
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
+[#1170]: https://github.com/stackabletech/docker-images/pull/1170
 
 ## [25.3.0] - 2025-03-21
 
