@@ -153,8 +153,7 @@ RUN <<EOF
     # 1. Cannot use the UBI maven version because it's too old:
     #   134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
     # 2. Cannot allow Spark to download its own version of Maven from archive.apache.org because the connection is not reliable.
-    cd /tmp
-    curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC .
+    curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC /tmp
 
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
