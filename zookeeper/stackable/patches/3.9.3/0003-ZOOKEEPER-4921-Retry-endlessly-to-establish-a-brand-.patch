@@ -15,7 +15,7 @@ https://lists.apache.org/thread/nfb9z7rhgglbjzfxvg4z2m3pks53b3c1
  2 files changed, 47 insertions(+), 20 deletions(-)
 
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/ClientCnxn.java b/zookeeper-server/src/main/java/org/apache/zookeeper/ClientCnxn.java
-index 0bf616c61..207bb8c49 100644
+index 0bf616c6..207bb8c4 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/ClientCnxn.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/ClientCnxn.java
 @@ -1242,7 +1242,7 @@ public class ClientCnxn {
@@ -28,7 +28,7 @@ index 0bf616c61..207bb8c49 100644
                          String warnInfo = String.format(
                              "Client session timed out, have not heard from server in %dms for session id 0x%s",
 diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/test/SessionTimeoutTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/test/SessionTimeoutTest.java
-index 7a59f5eb9..9f5943f68 100644
+index 7a59f5eb..9f5943f6 100644
 --- a/zookeeper-server/src/test/java/org/apache/zookeeper/test/SessionTimeoutTest.java
 +++ b/zookeeper-server/src/test/java/org/apache/zookeeper/test/SessionTimeoutTest.java
 @@ -18,6 +18,9 @@
