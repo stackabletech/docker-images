@@ -35,10 +35,10 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server-${PRODUCT}-stackable${RELEASE}
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}
 COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
 COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
@@ -49,9 +49,10 @@ RUN <<EOF
 curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+ln -s /stackable/trino-server-${PRODUCT}-stackable${RELEASE} /stackable/trino-server
 
 # Set correct permissions
-chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx
+chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx /stackable/trino-server
 chmod --recursive g=u /stackable
 EOF
 
