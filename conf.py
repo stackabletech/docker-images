@@ -34,6 +34,7 @@ stackable_devel = importlib.import_module("stackable-devel.versions")
 superset = importlib.import_module("superset.versions")
 trino_cli = importlib.import_module("trino-cli.versions")
 trino = importlib.import_module("trino.versions")
+trino_jars = importlib.import_module("trino.trino.versions")
 trino_storage_connector = importlib.import_module("trino.storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
 kcat = importlib.import_module("kafka.kcat.versions")
@@ -68,6 +69,7 @@ products = [
     {"name": "superset", "versions": superset.versions},
     {"name": "trino-cli", "versions": trino_cli.versions},
     {"name": "trino", "versions": trino.versions},
+    {"name": "trino/trino", "versions": trino_jars.versions},
     {"name": "trino/storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
     {"name": "kafka/kcat", "versions": kcat.versions},
