@@ -137,7 +137,7 @@ ARG TINI
 ARG STACKABLE_USER_UID
 # Find the latest version here: https://github.com/apache/maven
 # renovate: datasource=github-tags packageName=apache/maven
-ARG MAVEN_VERSION="3.9.8"
+ARG MAVEN_VERSION="3.9.10"
 
 WORKDIR /stackable/spark-${PRODUCT}
 
