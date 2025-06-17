@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Add `3.5.6` ([#1142]).
 - git-sync: Bump version to 4.4.1 ([#1151]).
 - zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
+- zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
 
 ### Changed
 
@@ -192,6 +193,7 @@ All notable changes to this project will be documented in this file.
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
 [#1170]: https://github.com/stackabletech/docker-images/pull/1170
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
+[#1180]: https://github.com/stackabletech/docker-images/pull/1180
 
 ## [25.3.0] - 2025-03-21
 
