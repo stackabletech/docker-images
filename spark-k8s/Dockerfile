@@ -135,6 +135,9 @@ ARG JMX_EXPORTER
 ARG TARGETARCH
 ARG TINI
 ARG STACKABLE_USER_UID
+# Find the latest version here: https://github.com/apache/maven
+# renovate: datasource=github-tags packageName=apache/maven
+ARG MAVEN_VERSION="3.9.10"
 
 WORKDIR /stackable/spark-${PRODUCT}
 
@@ -146,17 +149,25 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 # Compiling the tests takes a lot of time, so we skip them
 # -Dmaven.test.skip=true skips both the compilation and execution of tests
 # -DskipTests skips only the execution
-#
-# This will download it's own version of maven because the UBI version is too old:
-# 134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-RUN export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g" \
-    && ./dev/make-distribution.sh \
+RUN <<EOF
+    # We download the Maven binary from our own repository because:
+    #
+    # 1. Cannot use the UBI maven version because it's too old:
+    #   134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
+    # 2. Cannot allow Spark to download its own version of Maven from archive.apache.org because the connection is not reliable.
+    curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC /tmp
+
+    export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
+
+    ./dev/make-distribution.sh \
+    --mvn /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn \
     -Dhadoop.version="$HADOOP" \
     -Dmaven.test.skip=true \
     -DskipTests \
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
     --no-transfer-progress \
     --batch-mode
+EOF
 
 # <<< Build spark
 
