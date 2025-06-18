@@ -1,0 +1,21 @@
+From eb7a5e6b23118d016c2d3450c7ea3a3d82e39545 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Fri, 13 Jun 2025 15:39:07 +0200
+Subject: Remove Hadoop benchmark
+
+---
+ hadoop-tools/pom.xml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
+index 88b3da867b..08811db902 100644
+--- a/hadoop-tools/pom.xml
++++ b/hadoop-tools/pom.xml
+@@ -50,7 +50,6 @@
+     <module>hadoop-azure-datalake</module>
+     <module>hadoop-aliyun</module>
+     <module>hadoop-fs2img</module>
+-    <module>hadoop-benchmark</module>
+   </modules>
+ 
+   <build>
