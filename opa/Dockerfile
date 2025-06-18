@@ -77,8 +77,13 @@ go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
 
 cd "$(/stackable/patchable --images-repo-root=src checkout opa ${PRODUCT})"
 
+ORIGINAL_VERSION=${PRODUCT}
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+
+sed -i 's/var Version = "'${ORIGINAL_VERSION}'"/var Version = "'${NEW_VERSION}'"/g' v1/version/version.go
+
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/opa-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/opa-${NEW_VERSION}-src.tar.gz .
 
 # Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of OPA
 rm .git
@@ -86,14 +91,15 @@ git init
 git config user.email "fake.commiter@stackable.tech"
 git config user.name "Fake commiter"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag "v${PRODUCT}"
+git tag "v${NEW_VERSION}"
 go build -o opa -buildmode=exe
 # move artifact to /stackable/*/ to copy in final image
-~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output /stackable/opa/"opa_${PRODUCT}.cdx.json" -packages -files
+~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output /stackable/opa/"opa_${NEW_VERSION}.cdx.json" -packages -files
+sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" /stackable/opa/"opa_${NEW_VERSION}.cdx.json"
 # move artifact to /stackable/* to copy in final image
 mv opa /stackable/opa/
 # set correct groups
-chmod -R g=u /stackable/opa /stackable/opa-${PRODUCT}-src.tar.gz
+chmod -R g=u /stackable/opa /stackable/opa-${NEW_VERSION}-src.tar.gz
 EOF
 
 FROM stackable/image/vector
@@ -113,7 +119,7 @@ LABEL name="Open Policy Agent" \
 COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 
 COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT}-src.tar.gz /stackable/opa-${PRODUCT}-src.tar.gz
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 RUN <<EOF

@@ -54,6 +54,8 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: Add `3.5.6` ([#1142]).
 - spark-connect-client: Add `3.5.6` ([#1142]).
 - git-sync: Bump version to 4.4.1 ([#1151]).
+- zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
+- zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
 
 ### Changed
 
@@ -82,6 +84,9 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.47.0` ([#1152]).
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
+- trino: Enable custom versions ([#1168]).
+- opa: Enable custom versions ([#1170]).
+- use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 
 ### Fixed
 
@@ -187,7 +192,12 @@ All notable changes to this project will be documented in this file.
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
+[#1168]: https://github.com/stackabletech/docker-images/pull/1168
+[#1170]: https://github.com/stackabletech/docker-images/pull/1170
 [#1171]: https://github.com/stackabletech/docker-images/pull/1171
+[#1173]: https://github.com/stackabletech/docker-images/pull/1173
+[#1179]: https://github.com/stackabletech/docker-images/pull/1179
+[#1180]: https://github.com/stackabletech/docker-images/pull/1180
 
 ## [25.3.0] - 2025-03-21
 
