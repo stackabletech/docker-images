@@ -1,0 +1,199 @@
+From 13bfb4c7799553ecd33f42d9f1da7338c64fa911 Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Mon, 16 Jun 2025 14:44:32 +0200
+Subject: Allow overriding ipc bind port and use alternative port from listener
+
+---
+ .../apache/hadoop/hbase/master/HMaster.java   | 11 +++++--
+ .../hbase/regionserver/HRegionServer.java     | 32 +++++++++++--------
+ .../hbase/regionserver/RSRpcServices.java     |  4 +--
+ 3 files changed, 29 insertions(+), 18 deletions(-)
+
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+index 9cafbb7cbf..8847ddaba0 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+@@ -17,6 +17,7 @@
+  */
+ package org.apache.hadoop.hbase.master;
+ 
++import static org.apache.hadoop.hbase.HConstants.MASTER_PORT;
+ import static org.apache.hadoop.hbase.HConstants.DEFAULT_HBASE_SPLIT_COORDINATED_BY_ZK;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_MASTER_LOGCLEANER_PLUGINS;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_COORDINATED_BY_ZK;
+@@ -570,6 +571,11 @@ public class HMaster extends HRegionServer implements MasterServices {
+     return conf.get(MASTER_HOSTNAME_KEY);
+   }
+ 
++  @Override
++  protected int getUseThisPortInstead(Configuration conf) {
++    return conf.getInt(MASTER_PORT, this.rpcServices.getSocketAddress().getPort());
++  }
++
+   private void registerConfigurationObservers() {
+     configurationManager.registerObserver(this.rpcServices);
+     configurationManager.registerObserver(this);
+@@ -597,8 +603,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+       registerConfigurationObservers();
+       Threads.setDaemonThreadRunning(new Thread(() -> TraceUtil.trace(() -> {
+         try {
+-          int infoPort = putUpJettyServer();
+-          startActiveMasterManager(infoPort);
++          startActiveMasterManager(useThisInfoPortInstead);
+         } catch (Throwable t) {
+           // Make sure we log the exception.
+           String error = "Failed to become Active Master";
+@@ -3006,7 +3011,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+         }
+         case MASTER_INFO_PORT: {
+           if (infoServer != null) {
+-            builder.setMasterInfoPort(infoServer.getPort());
++            builder.setMasterInfoPort(useThisInfoPortInstead);
+           }
+           break;
+         }
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+index 351b4fef19..5237f47fd4 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+@@ -24,6 +24,7 @@ import static org.apache.hadoop.hbase.HConstants.DEFAULT_HBASE_SPLIT_WAL_MAX_SPL
+ import static org.apache.hadoop.hbase.HConstants.DEFAULT_SLOW_LOG_SYS_TABLE_CHORE_DURATION;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_COORDINATED_BY_ZK;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_MAX_SPLITTER;
++import static org.apache.hadoop.hbase.HConstants.REGIONSERVER_PORT;
+ import static org.apache.hadoop.hbase.master.waleventtracker.WALEventTrackerTableCreator.WAL_EVENT_TRACKER_ENABLED_DEFAULT;
+ import static org.apache.hadoop.hbase.master.waleventtracker.WALEventTrackerTableCreator.WAL_EVENT_TRACKER_ENABLED_KEY;
+ import static org.apache.hadoop.hbase.namequeues.NamedQueueServiceChore.NAMED_QUEUE_CHORE_DURATION_DEFAULT;
+@@ -505,6 +506,10 @@ public class HRegionServer extends Thread
+    */
+   protected String useThisHostnameInstead;
+ 
++  protected int useThisPortInstead;
++
++  protected int useThisInfoPortInstead;
++
+   /**
+    * @deprecated since 2.4.0 and will be removed in 4.0.0. Use
+    *             {@link HRegionServer#UNSAFE_RS_HOSTNAME_DISABLE_MASTER_REVERSEDNS_KEY} instead.
+@@ -669,6 +674,8 @@ public class HRegionServer extends Thread
+       this.namedQueueRecorder = NamedQueueRecorder.getInstance(this.conf);
+       rpcServices = createRpcServices();
+       useThisHostnameInstead = getUseThisHostnameInstead(conf);
++      useThisPortInstead = getUseThisPortInstead(conf);
++      useThisInfoPortInstead = conf.getInt("hbase.info.port" , this.infoServer != null ? this.infoServer.getPort() : -1);
+ 
+       // if use-ip is enabled, we will use ip to expose Master/RS service for client,
+       // see HBASE-27304 for details.
+@@ -678,7 +685,7 @@ public class HRegionServer extends Thread
+         useIp ? rpcServices.isa.getAddress().getHostAddress() : rpcServices.isa.getHostName();
+       String hostName =
+         StringUtils.isBlank(useThisHostnameInstead) ? isaHostName : useThisHostnameInstead;
+-      serverName = ServerName.valueOf(hostName, this.rpcServices.isa.getPort(), this.startcode);
++      serverName = ServerName.valueOf(hostName, useThisPortInstead, this.startcode);
+ 
+       rpcControllerFactory = RpcControllerFactory.instantiate(this.conf);
+       rpcRetryingCallerFactory = RpcRetryingCallerFactory.instantiate(this.conf,
+@@ -715,7 +722,7 @@ public class HRegionServer extends Thread
+ 
+       // Some unit tests don't need a cluster, so no zookeeper at all
+       // Open connection to zookeeper and set primary watcher
+-      zooKeeper = new ZKWatcher(conf, getProcessName() + ":" + rpcServices.isa.getPort(), this,
++      zooKeeper = new ZKWatcher(conf, getProcessName() + ":" + useThisPortInstead, this,
+         canCreateBaseZNode());
+       // If no master in cluster, skip trying to track one or look for a cluster status.
+       if (!this.masterless) {
+@@ -776,6 +783,10 @@ public class HRegionServer extends Thread
+     }
+   }
+ 
++  protected int getUseThisPortInstead(Configuration conf) {
++    return conf.getInt(REGIONSERVER_PORT, this.rpcServices.isa.getPort());
++  }
++
+   private void setupSignalHandlers() {
+     if (!SystemUtils.IS_OS_WINDOWS) {
+       HBasePlatformDependent.handle("HUP", (number, name) -> {
+@@ -958,7 +969,7 @@ public class HRegionServer extends Thread
+       }
+       // Setup RPC client for master communication
+       this.rpcClient = RpcClientFactory.createClient(conf, clusterId,
+-        new InetSocketAddress(this.rpcServices.isa.getAddress(), 0),
++        new InetSocketAddress(0),
+         clusterConnection.getConnectionMetrics(), Collections.emptyMap());
+       span.setStatus(StatusCode.OK);
+     } catch (Throwable t) {
+@@ -1528,11 +1539,7 @@ public class HRegionServer extends Thread
+ 
+     serverLoad.setReportStartTime(reportStartTime);
+     serverLoad.setReportEndTime(reportEndTime);
+-    if (this.infoServer != null) {
+-      serverLoad.setInfoServerPort(this.infoServer.getPort());
+-    } else {
+-      serverLoad.setInfoServerPort(-1);
+-    }
++    serverLoad.setInfoServerPort(useThisInfoPortInstead);
+     MetricsUserAggregateSource userSource =
+       metricsRegionServer.getMetricsUserAggregate().getSource();
+     if (userSource != null) {
+@@ -1688,7 +1695,7 @@ public class HRegionServer extends Thread
+         if (key.equals(HConstants.KEY_FOR_HOSTNAME_SEEN_BY_MASTER)) {
+           String hostnameFromMasterPOV = e.getValue();
+           this.serverName = ServerName.valueOf(hostnameFromMasterPOV,
+-            rpcServices.getSocketAddress().getPort(), this.startcode);
++            useThisPortInstead, this.startcode);
+           String expectedHostName = rpcServices.getSocketAddress().getHostName();
+           // if Master use-ip is enabled, RegionServer use-ip will be enabled by default even if it
+           // is set to disable. so we will use the ip of the RegionServer to compare with the
+@@ -1814,7 +1821,7 @@ public class HRegionServer extends Thread
+ 
+   private void createMyEphemeralNode() throws KeeperException {
+     RegionServerInfo.Builder rsInfo = RegionServerInfo.newBuilder();
+-    rsInfo.setInfoPort(infoServer != null ? infoServer.getPort() : -1);
++    rsInfo.setInfoPort(infoServer != null ? useThisInfoPortInstead : -1);
+     rsInfo.setVersionInfo(ProtobufUtil.getVersionInfo());
+     byte[] data = ProtobufUtil.prependPBMagic(rsInfo.build().toByteArray());
+     ZKUtil.createEphemeralNodeAndWatch(this.zooKeeper, getMyEphemeralNodePath(), data);
+@@ -2481,7 +2488,7 @@ public class HRegionServer extends Thread
+         LOG.info("Retry starting http info server with port: " + port);
+       }
+     }
+-    port = this.infoServer.getPort();
++    port = useThisInfoPortInstead;
+     conf.setInt(HConstants.REGIONSERVER_INFO_PORT, port);
+     int masterInfoPort =
+       conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
+@@ -3075,12 +3082,11 @@ public class HRegionServer extends Thread
+       LOG.info("reportForDuty to master=" + masterServerName + " with isa=" + rpcServices.isa
+         + ", startcode=" + this.startcode);
+       long now = EnvironmentEdgeManager.currentTime();
+-      int port = rpcServices.isa.getPort();
+       RegionServerStartupRequest.Builder request = RegionServerStartupRequest.newBuilder();
+       if (!StringUtils.isBlank(useThisHostnameInstead)) {
+         request.setUseThisHostnameInstead(useThisHostnameInstead);
+       }
+-      request.setPort(port);
++      request.setPort(useThisPortInstead);
+       request.setServerStartCode(this.startcode);
+       request.setServerCurrentTime(now);
+       result = rss.regionServerStartup(null, request.build());
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+index b77fcf338a..1f5c9dd21f 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
+@@ -1270,14 +1270,14 @@ public class RSRpcServices implements HBaseRPCErrorHandler, AdminService.Blockin
+       int port = conf.getInt(HConstants.MASTER_PORT, HConstants.DEFAULT_MASTER_PORT);
+       // Creation of a HSA will force a resolve.
+       initialIsa = new InetSocketAddress(hostname, port);
+-      bindAddress = new InetSocketAddress(conf.get("hbase.master.ipc.address", hostname), port);
++      bindAddress = new InetSocketAddress(conf.get("hbase.master.ipc.address", hostname), conf.getInt("hbase.master.ipc.port", port));
+     } else {
+       String hostname = DNS.getHostname(conf, DNS.ServerType.REGIONSERVER);
+       int port = conf.getInt(HConstants.REGIONSERVER_PORT, HConstants.DEFAULT_REGIONSERVER_PORT);
+       // Creation of a HSA will force a resolve.
+       initialIsa = new InetSocketAddress(hostname, port);
+       bindAddress =
+-        new InetSocketAddress(conf.get("hbase.regionserver.ipc.address", hostname), port);
++        new InetSocketAddress(conf.get("hbase.regionserver.ipc.address", hostname), conf.getInt("hbase.regionserver.ipc.port", port));
+     }
+     if (initialIsa.getAddress() == null) {
+       throw new IllegalArgumentException("Failed resolve of " + initialIsa);
