@@ -128,6 +128,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
+- kafka: Enable custom versions ([#1171]).
+- omid: Enable custom versions ([#1174]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -193,7 +195,9 @@ All notable changes to this project will be documented in this file.
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
 [#1170]: https://github.com/stackabletech/docker-images/pull/1170
+[#1171]: https://github.com/stackabletech/docker-images/pull/1171
 [#1173]: https://github.com/stackabletech/docker-images/pull/1173
+[#1174]: https://github.com/stackabletech/docker-images/pull/1174
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 
