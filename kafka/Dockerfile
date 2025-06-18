@@ -22,17 +22,10 @@ COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackab
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
 
-ORIGINAL_VERSION="${PRODUCT}"
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
 # The comment in gradle.properties mentions to update the version in all of these files
-sed -i "s/version=${ORIGINAL_VERSION}/version=${NEW_VERSION}/g" gradle.properties
-sed -i "s/__version__ = '${ORIGINAL_VERSION}'/__version__ = '${NEW_VERSION}'/g" tests/kafkatest/__init__.py
-sed -i 's/DEV_VERSION = KafkaVersion("'${ORIGINAL_VERSION}'/DEV_VERSION = KafkaVersion("'${NEW_VERSION}'/g' tests/kafkatest/version.py
-sed -i 's/DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "'${ORIGINAL_VERSION}'")/DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "'${NEW_VERSION}'")/g' kafka-merge-pr.py
-sed -i "s/<kafka.version>${ORIGINAL_VERSION}<\/kafka.version>/<kafka.version>${NEW_VERSION}<\/kafka.version>/g" streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
-sed -i "s/<version>${ORIGINAL_VERSION}<\/version>/<version>${NEW_VERSION}<\/version>/g" streams/quickstart/pom.xml
-sed -i "s/<version>${ORIGINAL_VERSION}<\/version>/<version>${NEW_VERSION}<\/version>/g" streams/quickstart/java/pom.xml
+find . -type f -print0 | xargs -0 sed -i "s/\-stackable0\.0\.0\-dev/-stackable${RELEASE}/g"
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/kafka-${NEW_VERSION}-src.tar.gz .
