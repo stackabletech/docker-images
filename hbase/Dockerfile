@@ -18,6 +18,7 @@ FROM stackable/image/java-devel AS hadoop-s3-builder
 ARG PRODUCT
 ARG RELEASE
 ARG HADOOP
+ARG HBASE_HBASE
 ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
@@ -42,7 +43,7 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-envsubst '${HBASE_HBASE}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
+envsubst '${HBASE_HBASE}:${RELEASE}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
 
