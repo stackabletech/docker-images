@@ -86,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Update base image ([#1165]).
 - trino: Enable custom versions ([#1168]).
 - opa: Enable custom versions ([#1170]).
+- use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 
 ### Fixed
 
@@ -192,6 +193,7 @@ All notable changes to this project will be documented in this file.
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
 [#1170]: https://github.com/stackabletech/docker-images/pull/1170
+[#1173]: https://github.com/stackabletech/docker-images/pull/1173
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 
