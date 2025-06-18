@@ -1,0 +1,137 @@
+From de4d98f9cd65d93bb4bb061c233f6647efc951f4 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 18 Jun 2025 12:16:46 +0200
+Subject: Build custom Stackable version
+
+---
+ docs/js/templateData.js                                       | 2 +-
+ docs/streams/upgrade-guide.html                               | 2 +-
+ gradle.properties                                             | 2 +-
+ kafka-merge-pr.py                                             | 2 +-
+ streams/quickstart/java/pom.xml                               | 2 +-
+ .../java/src/main/resources/archetype-resources/pom.xml       | 2 +-
+ streams/quickstart/pom.xml                                    | 2 +-
+ tests/kafkatest/__init__.py                                   | 2 +-
+ tests/kafkatest/version.py                                    | 4 ++--
+ 9 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/docs/js/templateData.js b/docs/js/templateData.js
+index 13d352fc70..42d3549382 100644
+--- a/docs/js/templateData.js
++++ b/docs/js/templateData.js
+@@ -19,6 +19,6 @@ limitations under the License.
+ var context={
+     "version": "39",
+     "dotVersion": "3.9",
+-    "fullDotVersion": "3.9.0",
++    "fullDotVersion": "3.9.0-stackable0.0.0-dev",
+     "scalaVersion": "2.13"
+ };
+diff --git a/docs/streams/upgrade-guide.html b/docs/streams/upgrade-guide.html
+index 6a30e6671b..6d2ecb81aa 100644
+--- a/docs/streams/upgrade-guide.html
++++ b/docs/streams/upgrade-guide.html
+@@ -133,7 +133,7 @@
+         More details about the new config <code>StreamsConfig#TOPOLOGY_OPTIMIZATION</code> can be found in <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-295%3A+Add+Streams+Configuration+Allowing+for+Optional+Topology+Optimization">KIP-295</a>.
+     </p>
+ 
+-    <h3><a id="streams_api_changes_390" href="#streams_api_changes_390">Streams API changes in 3.9.0</a></h3>
++    <h3><a id="streams_api_changes_390" href="#streams_api_changes_390">Streams API changes in 3.9.0-stackable0.0.0-dev</a></h3>
+ 
+     <p>
+         The introduction of <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-1033%3A+Add+Kafka+Streams+exception+handler+for+exceptions+occurring+during+processing">KIP-1033</a>
+diff --git a/gradle.properties b/gradle.properties
+index 0c14658608..b79ee9f0cf 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -23,7 +23,7 @@ group=org.apache.kafka
+ #  - streams/quickstart/pom.xml
+ #  - streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+ #  - streams/quickstart/java/pom.xml
+-version=3.9.0
++version=3.9.0-stackable0.0.0-dev
+ scalaVersion=2.13.14
+ # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
+ # New version of Swagger 2.2.14 requires minimum JDK 11.
+diff --git a/kafka-merge-pr.py b/kafka-merge-pr.py
+index a775a38435..4a7fbac34e 100755
+--- a/kafka-merge-pr.py
++++ b/kafka-merge-pr.py
+@@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
+ 
+ DEV_BRANCH_NAME = "trunk"
+ 
+-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.9.0")
++DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.9.0-stackable0.0.0-dev")
+ 
+ ORIGINAL_HEAD = ""
+ 
+diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
+index 78e1a70fa7..8698b4eb35 100644
+--- a/streams/quickstart/java/pom.xml
++++ b/streams/quickstart/java/pom.xml
+@@ -26,7 +26,7 @@
+     <parent>
+         <groupId>org.apache.kafka</groupId>
+         <artifactId>streams-quickstart</artifactId>
+-        <version>3.9.0</version>
++        <version>3.9.0-stackable0.0.0-dev</version>
+         <relativePath>..</relativePath>
+     </parent>
+ 
+diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+index 2bc235eb16..90d566d1a0 100644
+--- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
++++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+@@ -29,7 +29,7 @@
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <kafka.version>3.9.0</kafka.version>
++        <kafka.version>3.9.0-stackable0.0.0-dev</kafka.version>
+         <slf4j.version>1.7.36</slf4j.version>
+     </properties>
+ 
+diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
+index b5101583ee..3c08985e2a 100644
+--- a/streams/quickstart/pom.xml
++++ b/streams/quickstart/pom.xml
+@@ -22,7 +22,7 @@
+     <groupId>org.apache.kafka</groupId>
+     <artifactId>streams-quickstart</artifactId>
+     <packaging>pom</packaging>
+-    <version>3.9.0</version>
++    <version>3.9.0-stackable0.0.0-dev</version>
+ 
+     <name>Kafka Streams :: Quickstart</name>
+ 
+diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
+index a190e05067..0aa8fa7095 100644
+--- a/tests/kafkatest/__init__.py
++++ b/tests/kafkatest/__init__.py
+@@ -22,4 +22,4 @@
+ # Instead, in development branches, the version should have a suffix of the form ".devN"
+ #
+ # For example, when Kafka is at version 1.0.0-SNAPSHOT, this should be something like "1.0.0.dev0"
+-__version__ = '3.9.0'
++__version__ = '3.9.0-stackable0.0.0-dev'
+diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
+index 4825a46039..06fd3029f9 100644
+--- a/tests/kafkatest/version.py
++++ b/tests/kafkatest/version.py
+@@ -122,7 +122,7 @@ def get_version(node=None):
+         return DEV_BRANCH
+ 
+ DEV_BRANCH = KafkaVersion("dev")
+-DEV_VERSION = KafkaVersion("3.9.0-SNAPSHOT")
++DEV_VERSION = KafkaVersion("3.9.0-stackable0.0.0-dev")
+ 
+ # This should match the LATEST_PRODUCTION version defined in MetadataVersion.java
+ LATEST_STABLE_METADATA_VERSION = "3.9-IV0"
+@@ -276,5 +276,5 @@ V_3_8_0 = KafkaVersion("3.8.0")
+ LATEST_3_8 = V_3_8_0
+ 
+ # 3.9.x version
+-V_3_9_0 = KafkaVersion("3.9.0")
++V_3_9_0 = KafkaVersion("3.9.0-stackable0.0.0-dev")
+ LATEST_3_9 = V_3_9_0
