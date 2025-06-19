@@ -87,6 +87,7 @@ All notable changes to this project will be documented in this file.
 - trino: Enable custom versions ([#1168]).
 - opa: Enable custom versions ([#1170]).
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
+- hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
 
 ### Fixed
 
@@ -200,6 +201,7 @@ All notable changes to this project will be documented in this file.
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
+[#1185]: https://github.com/stackabletech/docker-images/pull/1185
 
 ## [25.3.0] - 2025-03-21
 
