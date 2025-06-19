@@ -13,7 +13,7 @@ Closes #2222 from anmolnar/ZOOKEEPER-4846
  2 files changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java b/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
-index 3b61c80d8..af937f834 100644
+index 3b61c80d..af937f83 100644
 --- a/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
 +++ b/zookeeper-server/src/main/java/org/apache/zookeeper/server/DataTree.java
 @@ -462,8 +462,9 @@ public class DataTree {
@@ -29,7 +29,7 @@ index 3b61c80d8..af937f834 100644
              }
  
 diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
-index 07a69f14f..fc20ed320 100644
+index 07a69f14..fc20ed32 100644
 --- a/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
 +++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/DataTreeTest.java
 @@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
