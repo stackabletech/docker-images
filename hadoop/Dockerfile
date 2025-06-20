@@ -115,7 +115,7 @@ rm -rf /var/cache/yum
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
 
-ln -s /stackable/hadoop-${HADOOP_HADOOP}-stackable${RELEASE} /stackable/hadoop
+ln -s "/stackable/hadoop-${HADOOP_HADOOP}-stackable${RELEASE}" /stackable/hadoop
 
 # async-profiler
 ARCH="${TARGETARCH/amd64/x64}"
@@ -128,8 +128,8 @@ chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # Set correct permissions and ownerships
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler /stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}
-chmod --recursive g=u /stackable/jmx /stackable/async-profiler /stackable/hadoop-${HADOOP_HADOOP}-stackable${RELEASE}
+chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}"
+chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_HADOOP}-stackable${RELEASE}"
 EOF
 
 # ----------------------------------------
