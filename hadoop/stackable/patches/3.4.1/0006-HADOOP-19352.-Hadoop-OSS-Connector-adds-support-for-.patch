@@ -1,0 +1,247 @@
+From 699f329ba20d938004fc2b983b7b225de36ecf88 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E5=91=A8=E7=BF=B1?= <zhouaoe@163.com>
+Date: Tue, 18 Feb 2025 14:16:37 +0800
+Subject: HADOOP-19352. Hadoop OSS Connector adds support for V4 signatures.
+ (#7205)
+
+* Aliyun oss connector support v4 signature
+---
+ hadoop-project/pom.xml                        |  2 +-
+ hadoop-tools/hadoop-aliyun/pom.xml            | 26 +++++
+ .../aliyun/oss/AliyunOSSFileSystemStore.java  | 16 +++
+ .../hadoop/fs/aliyun/oss/Constants.java       | 15 +++
+ .../fs/aliyun/oss/ITAliyunOSSSignatureV4.java | 98 +++++++++++++++++++
+ .../src/test/resources/log4j.properties       |  3 +
+ 6 files changed, 159 insertions(+), 1 deletion(-)
+ create mode 100644 hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
+
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 3426a76c12..3a812ebc64 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -1620,7 +1620,7 @@
+       <dependency>
+         <groupId>com.aliyun.oss</groupId>
+         <artifactId>aliyun-sdk-oss</artifactId>
+-        <version>3.13.2</version>
++        <version>3.18.1</version>
+         <exclusions>
+           <exclusion>
+             <groupId>org.apache.httpcomponents</groupId>
+diff --git a/hadoop-tools/hadoop-aliyun/pom.xml b/hadoop-tools/hadoop-aliyun/pom.xml
+index 5678cff642..3db04ce913 100644
+--- a/hadoop-tools/hadoop-aliyun/pom.xml
++++ b/hadoop-tools/hadoop-aliyun/pom.xml
+@@ -165,5 +165,31 @@
+       <scope>test</scope>
+       <type>jar</type>
+     </dependency>
++
++    <dependency>
++      <groupId>org.junit.jupiter</groupId>
++      <artifactId>junit-jupiter-api</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.junit.jupiter</groupId>
++      <artifactId>junit-jupiter-engine</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.junit.jupiter</groupId>
++      <artifactId>junit-jupiter-params</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.junit.platform</groupId>
++      <artifactId>junit-platform-launcher</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.junit.vintage</groupId>
++      <artifactId>junit-vintage-engine</artifactId>
++      <scope>test</scope>
++    </dependency>
+   </dependencies>
+ </project>
+diff --git a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
+index 6e0c7dc7e4..dba267b04c 100644
+--- a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
++++ b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
+@@ -73,6 +73,7 @@ import java.util.List;
+ import java.util.ListIterator;
+ import java.util.NoSuchElementException;
+ import java.util.stream.Collectors;
++import com.aliyun.oss.common.comm.SignVersion;
+ 
+ import static org.apache.hadoop.fs.aliyun.oss.Constants.*;
+ 
+@@ -113,6 +114,16 @@ public class AliyunOSSFileSystemStore {
+         conf.get(USER_AGENT_PREFIX, USER_AGENT_PREFIX_DEFAULT) + ", Hadoop/"
+             + VersionInfo.getVersion());
+ 
++    String region = conf.get(REGION_KEY, "");
++    String signatureVersion = conf.get(SIGNATURE_VERSION_KEY, SIGNATURE_VERSION_DEFAULT);
++    if ("V4".equalsIgnoreCase(signatureVersion)) {
++      clientConf.setSignatureVersion(SignVersion.V4);
++      if (StringUtils.isEmpty(region)) {
++        LOG.error("Signature version is V4 ,but region is empty.");
++        throw new IOException("SignVersion is V4 but region is empty");
++      }
++    }
++
+     String proxyHost = conf.getTrimmed(PROXY_HOST_KEY, "");
+     int proxyPort = conf.getInt(PROXY_PORT_KEY, -1);
+     if (StringUtils.isNotEmpty(proxyHost)) {
+@@ -171,6 +182,11 @@ public class AliyunOSSFileSystemStore {
+       statistics.incrementWriteOps(1);
+     }
+ 
++    if (StringUtils.isNotEmpty(region)) {
++      ossClient.setRegion(region);
++      LOG.debug("ossClient setRegion {}", region);
++    }
++
+     maxKeys = conf.getInt(MAX_PAGING_KEYS_KEY, MAX_PAGING_KEYS_DEFAULT);
+     int listVersion = conf.getInt(LIST_VERSION, DEFAULT_LIST_VERSION);
+     if (listVersion < 1 || listVersion > 2) {
+diff --git a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
+index baeb919937..176669ed15 100644
+--- a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
++++ b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
+@@ -211,4 +211,19 @@ public final class Constants {
+   public static final String LIST_VERSION = "fs.oss.list.version";
+ 
+   public static final int DEFAULT_LIST_VERSION = 2;
++
++  /**
++   * OSS signature version.
++   */
++  public static final String SIGNATURE_VERSION_KEY = "fs.oss.signatureversion";
++
++  /**
++   * OSS signature version DEFAULT {@value}.
++   */
++  public static final String SIGNATURE_VERSION_DEFAULT = "V1";
++
++  /**
++   * OSS region {@value}.
++   */
++  public static final String REGION_KEY = "fs.oss.region";
+ }
+diff --git a/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java b/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
+new file mode 100644
+index 0000000000..5070f2a581
+--- /dev/null
++++ b/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
+@@ -0,0 +1,98 @@
++/**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.hadoop.fs.aliyun.oss;
++
++import org.apache.hadoop.conf.Configuration;
++import org.apache.hadoop.fs.FileStatus;
++import org.apache.hadoop.fs.Path;
++import org.junit.Before;
++import org.junit.Test;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import java.io.IOException;
++import java.net.URI;
++
++import static org.apache.hadoop.fs.aliyun.oss.Constants.REGION_KEY;
++import static org.apache.hadoop.fs.aliyun.oss.Constants.SIGNATURE_VERSION_KEY;
++import static org.apache.hadoop.fs.contract.ContractTestUtils.createFile;
++import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
++import static org.junit.Assert.*;
++import static org.junit.Assume.assumeNotNull;
++
++/**
++ * Tests Aliyun OSS system.
++ */
++public class ITAliyunOSSSignatureV4 {
++  private static final Logger LOG = LoggerFactory.getLogger(ITAliyunOSSSignatureV4.class);
++  private Configuration conf;
++  private URI testURI;
++  private Path testFile = new Path("ITAliyunOSSSignatureV4/atestr");
++
++  @Before
++  public void setUp() throws Exception {
++    conf = new Configuration();
++    String bucketUri = conf.get("test.fs.oss.name");
++    LOG.debug("bucketUri={}", bucketUri);
++    testURI = URI.create(bucketUri);
++  }
++
++  @Test
++  public void testV4() throws IOException {
++    conf.set(SIGNATURE_VERSION_KEY, "V4");
++    conf.set(REGION_KEY, "cn-hongkong");
++    AliyunOSSFileSystem fs = new AliyunOSSFileSystem();
++    fs.initialize(testURI, conf);
++    assumeNotNull(fs);
++
++    createFile(fs, testFile, true, dataset(256, 0, 255));
++    FileStatus status = fs.getFileStatus(testFile);
++    fs.delete(testFile);
++    fs.close();
++  }
++
++  @Test
++  public void testDefaultSignatureVersion() throws IOException {
++    AliyunOSSFileSystem fs = new AliyunOSSFileSystem();
++    fs.initialize(testURI, conf);
++    assumeNotNull(fs);
++
++    Path testFile2 = new Path("/test/atestr");
++    createFile(fs, testFile2, true, dataset(256, 0, 255));
++    FileStatus status = fs.getFileStatus(testFile2);
++    fs.delete(testFile2);
++    fs.close();
++  }
++
++  @Test
++  public void testV4WithoutRegion() throws IOException {
++    conf.set(SIGNATURE_VERSION_KEY, "V4");
++    AliyunOSSFileSystem fs = new AliyunOSSFileSystem();
++    IOException expectedException = null;
++    try {
++      fs.initialize(testURI, conf);
++    } catch (IOException e) {
++      LOG.warn("use V4 , but do not set region, get exception={}", e);
++      expectedException = e;
++      assertEquals("use V4 , but do not set region", e.getMessage(),
++              "SignVersion is V4 but region is empty");
++    }
++    assertNotNull(expectedException);
++  }
++}
+diff --git a/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties b/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
+index bb5cbe5ec3..2167f68811 100644
+--- a/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
++++ b/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
+@@ -21,3 +21,6 @@ log4j.threshold=ALL
+ log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+ log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+ log4j.appender.stdout.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
++
++# Log all oss classes
++log4j.logger.org.apache.hadoop.fs.aliyun.oss=DEBUG
+\ No newline at end of file
