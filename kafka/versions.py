@@ -5,7 +5,7 @@ versions = [
         "java-devel": "21",
         "scala": "2.13",
         "kafka/kcat": "1.7.0",
-        "opa_authorizer": "1.5.1",
+        "kafka/kafka-opa-plugin": "1.5.1",
         "jmx_exporter": "1.3.0",
     },
     {
@@ -14,7 +14,7 @@ versions = [
         "java-devel": "21",
         "scala": "2.13",
         "kafka/kcat": "1.7.0",
-        "opa_authorizer": "1.5.1",
+        "kafka/kafka-opa-plugin": "1.5.1",
         "jmx_exporter": "1.3.0",
     },
     {
@@ -23,7 +23,7 @@ versions = [
         "java-devel": "21",
         "scala": "2.13",
         "kafka/kcat": "1.7.0",
-        "opa_authorizer": "1.5.1",
+        "kafka/kafka-opa-plugin": "1.5.1",
         "jmx_exporter": "1.3.0",
     },
     {
@@ -32,7 +32,7 @@ versions = [
         "java-devel": "23",
         "scala": "2.13",
         "kafka/kcat": "1.7.0",
-        "opa_authorizer": "1.5.1",
+        "kafka/kafka-opa-plugin": "1.5.1",
         "jmx_exporter": "1.3.0",
     },
 ]

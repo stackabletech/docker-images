@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - kafka: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1041]).
+- kafka: build kafka-opa-plugin from source ([#1177]).
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
@@ -201,6 +202,7 @@ All notable changes to this project will be documented in this file.
 [#1171]: https://github.com/stackabletech/docker-images/pull/1171
 [#1173]: https://github.com/stackabletech/docker-images/pull/1173
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
+[#1177]: https://github.com/stackabletech/docker-images/pull/1177
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 [#1184]: https://github.com/stackabletech/docker-images/pull/1184

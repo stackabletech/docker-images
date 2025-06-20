@@ -1,0 +1,2 @@
+upstream = "https://github.com/StyraInc/opa-kafka-plugin"
+default-mirror = "https://github.com/stackabletech/opa-kafka-plugin"
