@@ -7,7 +7,7 @@ versions = [
         "hbase/hbase-operator-tools": "1.3.0-fd5a5fb-hbase2.6.1",
         "hbase/phoenix": "5.2.1-hbase2.6.1",
         "hbase/hbase-opa-authorizer": "0.1.0",  # only for HBase 2.6.1
-        "hadoop": "3.3.6",
+        "hadoop/hadoop": "3.3.6",
         "java-base": "11",
         "java-devel": "11",
         "hbase_profile": "2.6",
@@ -19,7 +19,7 @@ versions = [
         "hbase/hbase-operator-tools": "1.3.0-fd5a5fb-hbase2.6.2",
         "hbase/phoenix": "5.2.1-hbase2.6.2",
         "hbase/hbase-opa-authorizer": "0.1.0",  # only for HBase 2.6.1
-        "hadoop": "3.4.1",
+        "hadoop/hadoop": "3.4.1",
         "java-base": "11",
         "java-devel": "11",
         "hbase_profile": "2.6",

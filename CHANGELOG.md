@@ -88,6 +88,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Enable custom versions ([#1169]).
 - opa: Enable custom versions ([#1170]).
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
+- hadoop: Separate Dockerfiles for Hadoop build and HDFS image ([#1186]).
 
 ### Fixed
 
@@ -202,6 +203,7 @@ All notable changes to this project will be documented in this file.
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
+[#1186]: https://github.com/stackabletech/docker-images/pull/1186
 
 ## [25.3.0] - 2025-03-21
 

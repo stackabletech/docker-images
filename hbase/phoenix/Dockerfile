@@ -1,4 +1,4 @@
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/hbase/hbase AS hbase-builder
 
@@ -9,7 +9,7 @@ ARG RELEASE
 ARG ASYNC_PROFILER
 ARG HBASE_HBASE
 ARG HBASE_PROFILE
-ARG HADOOP
+ARG HADOOP_HADOOP
 ARG STACKABLE_USER_UID
 ARG PHOENIX_VERSION
 
@@ -47,7 +47,7 @@ mvn \
   --no-transfer-progress \
   -Dhbase.version=${HBASE_HBASE}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP}-stackable${RELEASE} \
+  -Dhadoop.version=${HADOOP_HADOOP}-stackable${RELEASE} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   clean \

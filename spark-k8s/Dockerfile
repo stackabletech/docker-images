@@ -2,7 +2,7 @@
 # check=error=true
 
 # hadoop-builder: Provides Hadoop libraries
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 # hbase-builder: Provides HBase libraries
 FROM stackable/image/hbase AS hbase-builder
@@ -37,7 +37,7 @@ FROM stackable/image/java-devel AS hbase-connectors-builder
 
 ARG PRODUCT
 ARG RELEASE
-ARG HADOOP
+ARG HADOOP_HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
@@ -105,7 +105,7 @@ mvn \
     --define spark.version="${PRODUCT}" \
     --define scala.version="${SCALA_VERSION}" \
     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
-    --define hadoop-three.version="${HADOOP}" \
+    --define hadoop-three.version="${HADOOP_HADOOP}" \
     --define hbase.version="${HBASE}" \
     --define skipTests \
     clean package
@@ -133,7 +133,7 @@ EOF
 FROM stackable/image/java-devel AS spark-builder
 
 ARG PRODUCT
-ARG HADOOP
+ARG HADOOP_HADOOP
 ARG HBASE
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
@@ -179,7 +179,7 @@ RUN <<EOF
 
     ./dev/make-distribution.sh \
     --mvn /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn \
-    -Dhadoop.version="${HADOOP}-stackable${RELEASE}" \
+    -Dhadoop.version="${HADOOP_HADOOP}-stackable${RELEASE}" \
     -DskipTests \
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
     --no-transfer-progress \
@@ -195,13 +195,13 @@ WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/jars
 
 # Copy modules required for s3a://
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
     ./
