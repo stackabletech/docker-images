@@ -75,7 +75,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stack
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/kafka-opa-plugin-${KAFKA_KAFKA_OPA_PLUGIN}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
@@ -106,7 +106,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
 chmod g=u /stackable/bin
 chmod g=u /stackable/jmx
 chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}
-chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
+chmod g=u /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
 chmod g=u /stackable/*-src.tar.gz
 EOF
 
