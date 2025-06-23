@@ -1,4 +1,4 @@
-From 8b8b17064695f7c631ef3abd79351d756b155dd1 Mon Sep 17 00:00:00 2001
+From b2cccc639680890cf595ddd217dff2dcbf10c04b Mon Sep 17 00:00:00 2001
 From: Lars Francke <lars.francke@stackable.tech>
 Date: Thu, 11 Jul 2024 10:12:51 +0200
 Subject: Update all dependencies which have a new patch update available.
@@ -8,7 +8,7 @@ Subject: Update all dependencies which have a new patch update available.
  1 file changed, 24 insertions(+), 24 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 01123cb35b..3734fb1142 100644
+index 01123cb35b..e78b9eb5d5 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -567,7 +567,7 @@
@@ -16,7 +16,7 @@ index 01123cb35b..3734fb1142 100644
      -->
      <netty3.version>3.10.6.Final</netty3.version>
 -    <netty4.version>4.1.112.Final</netty4.version>
-+    <netty4.version>4.1.117.Final</netty4.version>
++    <netty4.version>4.1.122.Final</netty4.version>
      <!-- end HBASE-15925 default hadoop compatibility values -->
      <audience-annotations.version>0.13.0</audience-annotations.version>
      <!--
@@ -76,8 +76,8 @@ index 01123cb35b..3734fb1142 100644
 -    <spy.version>2.12.2</spy.version>
 -    <bouncycastle.version>1.78</bouncycastle.version>
 -    <skyscreamer.version>1.5.1</skyscreamer.version>
-+    <joni.version>2.2.3</joni.version>
-+    <jcodings.version>1.0.61</jcodings.version>
++    <joni.version>2.2.6</joni.version>
++    <jcodings.version>1.0.63</jcodings.version>
 +    <spy.version>2.12.3</spy.version>
 +    <bouncycastle.version>1.78.1</bouncycastle.version>
 +    <skyscreamer.version>1.5.3</skyscreamer.version>
@@ -116,7 +116,7 @@ index 01123cb35b..3734fb1142 100644
 -    <snappy.version>1.1.10.4</snappy.version>
 -    <zstd-jni.version>1.5.5-2</zstd-jni.version>
 +    <snappy.version>1.1.10.7</snappy.version>
-+    <zstd-jni.version>1.5.6-9</zstd-jni.version>
++    <zstd-jni.version>1.5.7-3</zstd-jni.version>
      <!--
          Note that the version of protobuf shipped in hbase-thirdparty must match the version used
          in hbase-protocol-shaded and hbase-examples. The version of jackson-[annotations,core,

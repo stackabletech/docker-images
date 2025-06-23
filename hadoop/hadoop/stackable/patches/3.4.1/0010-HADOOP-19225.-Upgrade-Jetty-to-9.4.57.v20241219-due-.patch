@@ -1,0 +1,63 @@
+From 49d7986ec818f7bdf51438ad13b7b0a7fc238ec2 Mon Sep 17 00:00:00 2001
+From: PJ Fanning <pjfanning@users.noreply.github.com>
+Date: Wed, 29 Jan 2025 08:45:51 +0100
+Subject: HADOOP-19225. Upgrade Jetty to 9.4.57.v20241219 due to CVE-2024-8184
+ (#7116). Contributed by PJ Fanning.
+
+---
+ LICENSE-binary         | 28 ++++++++++++++--------------
+ hadoop-project/pom.xml |  2 +-
+ 2 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/LICENSE-binary b/LICENSE-binary
+index 65f4d3726f..90da3d032b 100644
+--- a/LICENSE-binary
++++ b/LICENSE-binary
+@@ -341,20 +341,20 @@ org.apache.solr:solr-solrj:8.11.2
+ org.apache.yetus:audience-annotations:0.5.0
+ org.apache.zookeeper:zookeeper:3.8.4
+ org.codehaus.jettison:jettison:1.5.4
+-org.eclipse.jetty:jetty-annotations:9.4.53.v20231009
+-org.eclipse.jetty:jetty-http:9.4.53.v20231009
+-org.eclipse.jetty:jetty-io:9.4.53.v20231009
+-org.eclipse.jetty:jetty-jndi:9.4.53.v20231009
+-org.eclipse.jetty:jetty-plus:9.4.53.v20231009
+-org.eclipse.jetty:jetty-security:9.4.53.v20231009
+-org.eclipse.jetty:jetty-server:9.4.53.v20231009
+-org.eclipse.jetty:jetty-servlet:9.4.53.v20231009
+-org.eclipse.jetty:jetty-util:9.4.53.v20231009
+-org.eclipse.jetty:jetty-util-ajax:9.4.53.v20231009
+-org.eclipse.jetty:jetty-webapp:9.4.53.v20231009
+-org.eclipse.jetty:jetty-xml:9.4.53.v20231009
+-org.eclipse.jetty.websocket:javax-websocket-client-impl:9.4.53.v20231009
+-org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.53.v20231009
++org.eclipse.jetty:jetty-annotations:9.4.57.v20241219
++org.eclipse.jetty:jetty-http:9.4.57.v20241219
++org.eclipse.jetty:jetty-io:9.4.57.v20241219
++org.eclipse.jetty:jetty-jndi:9.4.57.v20241219
++org.eclipse.jetty:jetty-plus:9.4.57.v20241219
++org.eclipse.jetty:jetty-security:9.4.57.v20241219
++org.eclipse.jetty:jetty-server:9.4.57.v20241219
++org.eclipse.jetty:jetty-servlet:9.4.57.v20241219
++org.eclipse.jetty:jetty-util:9.4.57.v20241219
++org.eclipse.jetty:jetty-util-ajax:9.4.57.v20241219
++org.eclipse.jetty:jetty-webapp:9.4.57.v20241219
++org.eclipse.jetty:jetty-xml:9.4.57.v20241219
++org.eclipse.jetty.websocket:javax-websocket-client-impl:9.4.57.v20241219
++org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.57.v20241219
+ org.ehcache:ehcache:3.8.2
+ org.ini4j:ini4j:0.5.4
+ org.lz4:lz4-java:1.7.1
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 60219f2e9f..155cdf9841 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -37,7 +37,7 @@
+     <!--Whether to proceed to next module if any test failures exist-->
+     <maven.test.failure.ignore>true</maven.test.failure.ignore>
+     <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+-    <jetty.version>9.4.53.v20231009</jetty.version>
++    <jetty.version>9.4.57.v20241219</jetty.version>
+     <test.exclude>_</test.exclude>
+     <test.exclude.pattern>_</test.exclude.pattern>
+ 

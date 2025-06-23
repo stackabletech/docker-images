@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - git-sync: Bump version to 4.4.1 ([#1151]).
 - zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
 - zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
+- hadoop: backport HADOOP-19352, HADOOP-19335, HADOOP-19465, HADOOP-19456 and HADOOP-19225 to fix vulnerabilities in Hadoop `3.4.1` ([#1184])
 
 ### Changed
 
@@ -88,6 +89,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Enable custom versions ([#1169]).
 - opa: Enable custom versions ([#1170]).
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
+- hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
 - hadoop: Separate Dockerfiles for Hadoop build and HDFS image ([#1186]).
 
 ### Fixed
@@ -203,6 +205,8 @@ All notable changes to this project will be documented in this file.
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
+[#1184]: https://github.com/stackabletech/docker-images/pull/1184
+[#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1186]: https://github.com/stackabletech/docker-images/pull/1186
 
 ## [25.3.0] - 2025-03-21

@@ -1,4 +1,4 @@
-From 056084630f50ba09e9a078aa9152b6c4f8550f3c Mon Sep 17 00:00:00 2001
+From 21b16c876a30be29ad8450f1092b676137e2a0d1 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 12 Jul 2024 17:30:12 -0400
 Subject: Include jackson-dataformat-xml.
@@ -28,7 +28,7 @@ index 1564851b85..0786288a84 100644
        <groupId>org.apache.logging.log4j</groupId>
        <artifactId>log4j-slf4j-impl</artifactId>
 diff --git a/pom.xml b/pom.xml
-index 3734fb1142..ff1b35986b 100644
+index e78b9eb5d5..69bdb12b71 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1159,6 +1159,11 @@
