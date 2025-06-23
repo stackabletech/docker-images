@@ -167,9 +167,9 @@ RUN <<EOF
 
     # We download the Maven binary from our own repository because:
     #
-    # 1. Cannot use the UBI maven version because it's too old:
+    # 1. The UBI Maven version is too old:
     #   134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-    # 2. Cannot allow Spark to download its own version of Maven from archive.apache.org because the connection is not reliable.
+    # 2. The Maven download from archive.apache.org is not working reliably:
     curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC /tmp
 
     ORIGINAL_VERSION="${PRODUCT}"
@@ -188,8 +188,30 @@ RUN <<EOF
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
 
-# <<< Build spark
 
+# As of version 3.5.5, spark-connect jars are not included in the dist folder.
+# To avoid classpath conflicts with existing spark applications,
+# we create a new dist/connect folder, and copy them here.
+RUN <<EOF
+
+    # Get the Scala binary version
+    SCALA_BINARY_VERSION=$( \
+        mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file pom.xml \
+        org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
+        -DforceStdout \
+        -Dexpression='project.properties(scala.binary.version)')
+
+    mkdir -p dist/connect
+    cd dist/connect
+
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+
+    ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar"
+EOF
+
+# <<< Build spark
 
 WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/jars
 
@@ -227,15 +249,6 @@ COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
     ./
-
-WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/connect
-
-# As of version 3.5.5, spark-connect jars are not included in the dist folder.
-# To avoid classpath conflicts with existing spark applications,
-# we create a new dist/connect folder, and copy them here.
-RUN cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_*-${PRODUCT}-stackable${RELEASE}.jar . \
-    && cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_*-${PRODUCT}-stackable${RELEASE}.jar . \
-    && cp /stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_2.12-${PRODUCT}-stackable${RELEASE}.jar .
 
 COPY spark-k8s/stackable/jmx /stackable/jmx
 
