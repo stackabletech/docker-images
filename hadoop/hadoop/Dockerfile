@@ -83,6 +83,11 @@ mvn \
 mkdir -p /stackable/patched-libs/maven/org/apache
 cp -r /stackable/.m2/repository/org/apache/hadoop /stackable/patched-libs/maven/org/apache
 
+rm -rf hadoop-dist/target/hadoop-${NEW_VERSION}/share/hadoop/yarn
+rm -rf hadoop-dist/target/hadoop-${NEW_VERSION}/share/hadoop/mapreduce
+rm hadoop-dist/target/hadoop-${NEW_VERSION}/share/hadoop/client/hadoop-client-minicluster-*.jar
+rm hadoop-dist/target/hadoop-${NEW_VERSION}/share/hadoop/tools/lib/hadoop-minicluster-*.jar
+
 cp -r hadoop-dist/target/hadoop-${NEW_VERSION} /stackable/hadoop-${NEW_VERSION}
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hadoop-dist/target/bom.json
 mv hadoop-dist/target/bom.json /stackable/hadoop-${NEW_VERSION}/hadoop-${NEW_VERSION}.cdx.json
