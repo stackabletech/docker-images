@@ -1,0 +1,37 @@
+From 7727bee78aa96e3342da8cb9b3221327f29c43db Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 13 Mar 2025 22:00:03 +0100
+Subject: Add CycloneDX plugin
+
+---
+ pom.xml | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/pom.xml b/pom.xml
+index ed97bb870..f8534b4ad 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -697,6 +697,23 @@
+         <extensions>true</extensions>
+         <inherited>true</inherited>
+       </plugin>
++      <plugin>
++        <groupId>org.cyclonedx</groupId>
++        <artifactId>cyclonedx-maven-plugin</artifactId>
++        <version>2.9.1</version>
++        <configuration>
++          <projectType>application</projectType>
++          <schemaVersion>1.5</schemaVersion>
++        </configuration>
++        <executions>
++          <execution>
++          <goals>
++            <goal>makeBom</goal>
++          </goals>
++          <phase>package</phase>
++          </execution>
++        </executions>
++      </plugin>
+     </plugins>
+   </build>
+ 

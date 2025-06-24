@@ -1,0 +1,24 @@
+[project]
+name = "opa-auth-manager"
+version = "0.1.0"
+description = "Auth manager for Airflow 3 which delegates the authorization to an Open Policy Agent"
+authors = [
+    { name = "Siegfried Weber", email = "mail@siegfriedweber.net" },
+    { name = "Razvan Daniel Mihai", email = "razvan.mihai@stackable.tech" },
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+
+dependencies = ["requests==2.32.*", "cachetools==5.5.*", "overrides==7.7.*"]
+
+[dependency-groups]
+dev = [
+    "apache-airflow~=3.0.1",
+    "apache-airflow-devel-common<=0.1.1",
+    "apache-airflow-providers-fab==2.0.*",
+    "pytest~=8.3.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

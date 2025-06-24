@@ -50,7 +50,7 @@ for arch in "${ARCHITECTURES[@]}"; do
   FILE_NAME=$(basename "$DOWNLOAD_URL")
 
   echo "Uploading protoc to Nexus"
-  if ! curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$FILE_NAME" 'https://repo.stackable.tech/repository/packages/protoc/'; then
+  if ! curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$FILE_NAME" 'https://repo.stackable.tech/repository/packages/protoc/'; then
     echo "Failed to upload protoc to Nexus"
     exit 1
   fi

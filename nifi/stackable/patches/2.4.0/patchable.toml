@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/nifi.git"
+base = "65c7732e46cdfcb17afe0dd7b0a3e0956226bcbb"

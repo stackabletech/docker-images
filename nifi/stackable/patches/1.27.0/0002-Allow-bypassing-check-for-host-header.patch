@@ -1,0 +1,62 @@
+From eab66d5ff1db7f32062bc1eab252c19ddbf95797 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 24 Jun 2024 09:04:43 +0200
+Subject: Allow bypassing check for host header
+
+NiFi has the configuration option 'nifi.web.proxy.host' which controls allowed
+values for the host header field in any incoming request for the web ui.
+
+This frequently causes issues when trying to expose the NiFi UI via for example
+an ingress, loadbalancer or any similar type of mechanism.
+
+NiFi does not allow to disable this behavior, so at the moment the nifi operator
+simply hardcodes all even remotely possible values into this field.
+But in order to allow putting for example in ingress in front of NiFi this means
+using config overrides to change the value of this option, copy all the values
+the operator put in there and add the extra value you need.
+
+This is less than ideal, the proper solution would probably be
+https://github.com/stackabletech/nifi-operator/issues/604
+
+But until that is merged this is a simple workaround that allows overriding the list of allowed
+hostnames by just setting it to "*" and this will effectively bypass the hostname check entirely if set.
+
+This allows us to keep the default behavior in place for those users where it works and not remove
+security features, but also enables users to disable this check if they know what they are doing.
+---
+ .../org/apache/nifi/web/server/HostHeaderHandler.java     | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+index dd4bbf54c0..ea1b5b2da1 100644
+--- a/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
++++ b/nifi-nar-bundles/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/HostHeaderHandler.java
+@@ -47,6 +47,7 @@ public class HostHeaderHandler extends ScopedHandler {
+     private final String serverName;
+     private final int serverPort;
+     private final List<String> validHosts;
++    private boolean allowAllHosts = false;
+ 
+     /**
+      * Instantiates a handler with a given server name and port 0.
+@@ -107,6 +108,11 @@ public class HostHeaderHandler extends ScopedHandler {
+         // The value(s) from nifi.web.proxy.host
+         hosts.addAll(parseCustomHostnames(niFiProperties));
+ 
++        // Check if the setting for allowed hosts has only the wildcard entry and
++        // if so store this in allowAllHost for later use
++        List<String> configuredHostNames = niFiProperties.getAllowedHostsAsList();
++        this.allowAllHosts = configuredHostNames.size() == 1 && configuredHostNames.contains("*");
++
+         // empty is ok here
+         hosts.add("");
+ 
+@@ -205,7 +211,7 @@ public class HostHeaderHandler extends ScopedHandler {
+     }
+ 
+     boolean hostHeaderIsValid(String hostHeader) {
+-        return validHosts.contains(hostHeader.toLowerCase().trim());
++        return this.allowAllHosts || validHosts.contains(hostHeader.toLowerCase().trim());
+     }
+ 
+     @Override

@@ -1,7 +1,0 @@
-# This series applies on Git commit de99f8754135ea69adc39da48d2bc2b2710a5366
-01-HBASE-28242.patch
-02-HBASE-28567.patch
-03-patch-updates.patch
-04-include-dataformat-xml.patch
-05-patch-cyclonedx-plugin.patch
-06-CVE-2024-36114-bump-aircompressor-0-27.patch

@@ -10,8 +10,8 @@ projects: ['stackabletech/10']
 assignees: ''
 ---
 
-```[tasklist]
-### Tasks
+## Tasks
+
 - [ ] Create a new top-level folder for the product. The name of the folder must
       use the lowercase product name.
 - [ ] Create a README.md file outlining special considerations required to
@@ -24,7 +24,6 @@ assignees: ''
       `.github/workflows` folder. Use existing local action whenever possible
       or consider creating a new one when there is no fitting action available.
 - [ ] Run `.scripts/update_readme_badges.sh` to generate the new status badge.
-```
 
 _Please consider updating this template if these instructions are wrong, or
 could be made clearer._

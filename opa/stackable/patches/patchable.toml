@@ -1,0 +1,2 @@
+upstream = "https://github.com/open-policy-agent/opa.git"
+default-mirror = "https://github.com/stackabletech/opa.git"

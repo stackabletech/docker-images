@@ -1,17 +1,48 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
+
+FROM stackable/image/stackable-base AS opa-authorizer-builder
+
+ARG PYTHON
+
+COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+
+RUN <<EOF
+microdnf update
+microdnf install \
+    gcc \
+    gcc-c++ \
+    python${PYTHON} \
+    python${PYTHON}-devel \
+    python${PYTHON}-pip
+microdnf clean all
+rm -rf /var/cache/yum
+
+pip install \
+    --no-cache-dir \
+    --upgrade \
+    poetry==2.1.1 \
+    pytest==8.3.4
+
+cd /tmp/opa-authorizer
+
+poetry sync
+poetry run pytest
+poetry build
+EOF
 
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
+ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG AUTHLIB
 ARG TARGETARCH
 ARG TARGETOS
-
-COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
+ARG CYCLONEDX_BOM
+ARG UV
 
 RUN microdnf update \
     && microdnf install \
@@ -28,7 +59,6 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
-        patch \
         python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
@@ -37,6 +67,12 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY superset/stackable/constraints/${PRODUCT}/constraints.txt /tmp/constraints.txt
+COPY superset/stackable/constraints/${PRODUCT}/build-constraints.txt /tmp/build-constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
 # DL3042 false-positive, --no-chache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
@@ -47,10 +83,12 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         setuptools==75.2.0 \
         pip \
-    && pip install \
+        uv==${UV} \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
-        --constraint /tmp/constraints.txt \
+        --constraints /tmp/constraints.txt \
+        --build-constraints /tmp/build-constraints.txt \
         apache-superset==${PRODUCT} \
         gevent \
         psycopg2-binary \
@@ -62,7 +100,7 @@ RUN python3 -m venv /stackable/app \
         # Since https://github.com/stackabletech/superset-operator/pull/530
         # admins can add custom configuration to superset_conf.py.
         Flask_OIDC==2.2.0 \
-        Flask-OpenID==1.3.1\
+        Flask-OpenID==1.3.1 \
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
         # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
@@ -73,22 +111,24 @@ RUN python3 -m venv /stackable/app \
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
     && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
         then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
-        && pip install gunicorn==22.0.0; \
+        && uv pip install gunicorn==22.0.0; \
     fi \
-    && pip install \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-        cyclonedx-bom \
-    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
-
-COPY superset/stackable/patches /patches
-RUN /patches/apply_patches.sh ${PRODUCT}
-
-WORKDIR /stackable
-RUN source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
+        cyclonedx-bom==${CYCLONEDX_BOM} \
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
+    uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
+
+RUN <<EOF
+cd /stackable
+source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
+chmod --recursive g=u /stackable
+EOF
 
 # Final image
 FROM stackable/image/vector
@@ -99,12 +139,12 @@ ARG RELEASE
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Superset" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Superset." \
-      description="This image is deployed by the Stackable Operator for Apache Superset."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Superset." \
+    description="This image is deployed by the Stackable Operator for Apache Superset."
 
 ENV FLASK_APP="superset.app:create_app()" \
     FLASK_ENV="production" \
@@ -112,6 +152,10 @@ ENV FLASK_APP="superset.app:create_app()" \
     SUPERSET_PORT="8088"
 ENV PATH="${HOME}/app/bin:${PATH}" \
     PYTHONPATH="${HOME}/app/pythonpath"
+
+COPY superset/licenses /licenses
+
+COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
 RUN <<EOF
 microdnf update
@@ -125,22 +169,23 @@ microdnf install \
 
 microdnf clean all
 rm -rf /var/cache/yum
-
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R "${STACKABLE_USER_UID}:0" /stackable
-chmod -R g=u /stackable
 EOF
 
-COPY superset/licenses /licenses
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
 
-COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+# Check that permissions and ownership in ${HOME} are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh ${HOME} ${STACKABLE_USER_UID} 0
+EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}

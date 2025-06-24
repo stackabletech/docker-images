@@ -1,0 +1,35 @@
+From 0517d9fb940879ced639eb0d717ba4b5f67d9670 Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Wed, 10 Jul 2024 17:07:13 +0200
+Subject: Removes all traces of the druid ranger extension
+
+---
+ distribution/pom.xml | 2 --
+ pom.xml              | 1 -
+ 2 files changed, 3 deletions(-)
+
+diff --git a/distribution/pom.xml b/distribution/pom.xml
+index 8ee50f9029..cb54001d20 100644
+--- a/distribution/pom.xml
++++ b/distribution/pom.xml
+@@ -458,8 +458,6 @@
+                                         <argument>org.apache.druid.extensions.contrib:druid-rabbit-indexing-service</argument>
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions.contrib:grpc-query</argument>
+-                                        <argument>-c</argument>
+-                                        <argument>org.apache.druid.extensions.contrib:druid-ranger-security</argument>
+                                     </arguments>
+                                 </configuration>
+                             </execution>
+diff --git a/pom.xml b/pom.xml
+index 1f7d6a69df..09daa8b2e9 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -258,7 +258,6 @@
+         <module>extensions-contrib/druid-deltalake-extensions</module>
+         <module>extensions-contrib/spectator-histogram</module>
+         <module>extensions-contrib/rabbit-stream-indexing-service</module>
+-        <module>extensions-contrib/druid-ranger-security</module>
+         <!-- distribution packaging -->
+         <module>distribution</module>
+         <!-- Revised integration tests -->

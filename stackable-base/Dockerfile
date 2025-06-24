@@ -1,44 +1,17 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS product-utils-builder
+#
+# Base image for final stages
+# Should not contain any components that are not needed (or helpful) at runtime
+# Build time dependencies that are used in multiple images can be added to `stackable-devel` (or a derivative like `java-devel`) instead
+#
+
+FROM stackable/image/stackable-devel AS config-utils
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
 # renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
-# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
-# renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.1.1
-# This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-# Find the latest version here: https://doc.rust-lang.org/stable/releases.html
-# renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.82.0
-# Find the latest version here: https://crates.io/crates/cargo-cyclonedx
-# renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.5
-# Find the latest version here: https://crates.io/crates/cargo-auditable
-# renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
-
-RUN <<EOF
-microdnf update --assumeyes
-
-# git: Needed to fetch source
-# gcc: Needed for compilation
-microdnf --assumeyes install \
-  gcc \
-  git
-microdnf clean all
-rm -rf /var/cache/yum
-
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
-EOF
-
-FROM product-utils-builder AS config-utils
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
@@ -47,7 +20,11 @@ cd ./config-utils
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
-FROM product-utils-builder AS containerdebug
+FROM stackable/image/stackable-devel AS containerdebug
+
+# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
+# renovate: datasource=github-tags packageName=stackabletech/containerdebug
+ENV CONTAINERDEBUG_VERSION=0.2.0
 
 RUN <<EOF
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
@@ -59,7 +36,7 @@ EOF
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392 AS final
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:f172b3082a3d1bbe789a1057f03883c1113243564f01cd3020e27548b911d3f8 AS final
 
 # intentionally unused
 ARG PRODUCT
@@ -176,11 +153,14 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
 # Until they are removed by default from ca-certificates, we should remove them manually
-if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch" ]; then
-  echo "The ca-certificates package was updated. Please check if the e-Tugra root certificates are present. \
+EXPECTED_CERTS_PACKAGE="ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch"
+ACTUAL_CERTS_PACKAGE="$(rpm -qa ca-certificates)"
+if [ "$ACTUAL_CERTS_PACKAGE" != "$EXPECTED_CERTS_PACKAGE" ]; then
+  echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra root certificates are present. \
 When they have been removed, manually blacklisting them should be removed"
   echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'"
   trust list --filter=ca-anchors | grep 'E-Tugra'
+  echo "If the cert appears above, please update the expected package: EXPECTED_CERTS_PACKAGE=\"$ACTUAL_CERTS_PACKAGE\""
   exit 1;
 fi
 EOF
@@ -200,6 +180,10 @@ COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-ut
 # **containerdebug**
 # Debug tool that logs generic system information.
 COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+
+# **check-permissions-ownership.sh**
+# Bash script to check proper permissions and ownership requirements in the final Stackable images
+COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
 
 ENV PATH="${PATH}:/stackable"
 

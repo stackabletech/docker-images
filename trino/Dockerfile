@@ -1,168 +1,76 @@
-# syntax=docker/dockerfile:1.10.0@sha256:865e5dd094beca432e8c0a1d5e1c465db5f998dca4e439981029b3b81fb39ed5
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/java-devel AS storage-connector-builder
+FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
-ARG STORAGE_CONNECTOR
-ARG STACKABLE_USER_UID
-
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/trino-storage/${STORAGE_CONNECTOR} /stackable/trino-storage-${STORAGE_CONNECTOR}-src/patches/${STORAGE_CONNECTOR}
-
-RUN curl "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
-# hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${STORAGE_CONNECTOR},target=/root/.m2/repository <<EOF
-cd trino-storage-${STORAGE_CONNECTOR}-src
-./patches/apply_patches.sh ${STORAGE_CONNECTOR}
-
-# Upstream builds are marked as -SNAPSHOT, even for release builds
-mvn versions:set -DnewVersion=${STORAGE_CONNECTOR}
-
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests -Dmaven.gitcommitid.skip=true
-EOF
-
-FROM stackable/image/java-devel AS trino-builder
-
-ARG PRODUCT
-ARG STORAGE_CONNECTOR
-ARG STACKABLE_USER_UID
-
-RUN <<EOF
-microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install \
-patch
-
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
-WORKDIR /stackable
-
-RUN curl "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/apply_patches.sh /stackable/trino-server-${PRODUCT}-src/patches/apply_patches.sh
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/patches/${PRODUCT} /stackable/trino-server-${PRODUCT}-src/patches/${PRODUCT}
-
-# adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
-# hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-cd "trino-server-${PRODUCT}-src"
-./patches/apply_patches.sh ${PRODUCT}
-
-# Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
-# reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
-# have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
-# So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
-# smoke test checks that "select version()" is working.
-git init
-git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
-git commit --allow-empty --message "Fake commit, so that we can create a tag"
-git tag ${PRODUCT}
-
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw --batch-mode --no-transfer-progress package -DskipTests --projects="!docs,!core/trino-server-rpm"
-
-# Delete the worst intermediate build products to free some space
-rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}
-
-# Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
-# while the raw output folder does not
-tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable
-mv /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/bom.json /stackable/trino-server-${PRODUCT}/trino-server-${PRODUCT}.cdx.json
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/trino-server-${PRODUCT}
-
-# Delete all intermediate build products to free some more space
-rm -r /stackable/trino-server-${PRODUCT}-src
-EOF
-
-COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
-
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/trino-server-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
-# ===
+FROM stackable/image/trino/trino AS trino-builder
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
-ARG JMX_EXPORTER
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG JMX_EXPORTER
 
-LABEL name="Trino" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Trino." \
-      description="This image is deployed by the Stackable Operator for Trino."
+LABEL \
+    name="Trino" \
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Trino." \
+    description="This image is deployed by the Stackable Operator for Trino."
 
-RUN microdnf update && \
-    microdnf install \
+RUN <<EOF
+microdnf update
+# libstdc++ required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
+microdnf install \
     gzip \
     httpd-tools \
     python \
     tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+    libstdc++ \
+    zip
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable /stackable
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server-${PRODUCT}-stackable${RELEASE}
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=trino-builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
 RUN <<EOF
-ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server
-
-curl --fail https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+# JMX Exporter
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
 ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+ln -s /stackable/trino-server-${PRODUCT}-stackable${RELEASE} /stackable/trino-server
 
-# All files and folders owned by root group to support running as arbitrary users.
-# This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
-chmod -R g=u /stackable
+# Set correct permissions
+chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx /stackable/trino-server
+chmod --recursive g=u /stackable
 EOF
 
 # ----------------------------------------
-# Attention: We are changing the group of all files in /stackable directly above
-# If you do any file based actions (copying / creating etc.) below this comment you
-# absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}

@@ -1,0 +1,398 @@
+From 9cdc9b30678cfa48c15df19268fedc48241e7305 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: HIVE-26882: Allow transactional check of Table parameter before
+ altering the Table
+
+---
+ .../gen-cpp/hive_metastore_constants.cpp      |   5 +-
+ .../thrift/gen-cpp/hive_metastore_constants.h |   2 +
+ .../api/hive_metastoreConstants.java          |   4 +
+ .../gen/thrift/gen-php/metastore/Types.php    |  10 +-
+ .../thrift/gen-py/hive_metastore/constants.py |   2 +
+ .../thrift/gen-rb/hive_metastore_constants.rb |   3 +
+ .../hive/metastore/HiveAlterHandler.java      |  19 +++-
+ .../hadoop/hive/metastore/ObjectStore.java    |  28 ++++-
+ .../hadoop/hive/metastore/RawStore.java       |  16 ++-
+ .../src/main/thrift/hive_metastore.thrift     |   3 +
+ .../TestTablesCreateDropAlterTruncate.java    | 102 ++++++++++++++++++
+ 11 files changed, 184 insertions(+), 10 deletions(-)
+
+diff --git a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
+index 1c1b3ce5ee..7d560f0430 100644
+--- a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
++++ b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
+@@ -61,7 +61,10 @@ hive_metastoreConstants::hive_metastoreConstants() {
+ 
+   TABLE_BUCKETING_VERSION = "bucketing_version";
+ 
++  EXPECTED_PARAMETER_KEY = "expected_parameter_key";
++
++  EXPECTED_PARAMETER_VALUE = "expected_parameter_value";
++
+ }
+ 
+ }}} // namespace
+-
+diff --git a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
+index 1f062530e4..4cffc9491f 100644
+--- a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
++++ b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
+@@ -40,6 +40,8 @@ class hive_metastoreConstants {
+   std::string TABLE_NO_AUTO_COMPACT;
+   std::string TABLE_TRANSACTIONAL_PROPERTIES;
+   std::string TABLE_BUCKETING_VERSION;
++  std::string EXPECTED_PARAMETER_KEY;
++  std::string EXPECTED_PARAMETER_VALUE;
+ };
+ 
+ extern const hive_metastoreConstants g_hive_metastore_constants;
+diff --git a/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java b/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
+index 2ee81df1dc..76be19a7d0 100644
+--- a/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
++++ b/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
+@@ -86,4 +86,8 @@
+ 
+   public static final String TABLE_BUCKETING_VERSION = "bucketing_version";
+ 
++  public static final String EXPECTED_PARAMETER_KEY = "expected_parameter_key";
++
++  public static final String EXPECTED_PARAMETER_VALUE = "expected_parameter_value";
++
+ }
+diff --git a/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php b/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
+index 84f7e3320c..6255f8fa6d 100644
+--- a/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
++++ b/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
+@@ -31377,6 +31377,8 @@ final class Constant extends \Thrift\Type\TConstant {
+   static protected $TABLE_NO_AUTO_COMPACT;
+   static protected $TABLE_TRANSACTIONAL_PROPERTIES;
+   static protected $TABLE_BUCKETING_VERSION;
++  static protected $EXPECTED_PARAMETER_KEY;
++  static protected $EXPECTED_PARAMETER_VALUE;
+ 
+   static protected function init_DDL_TIME() {
+     return "transient_lastDdlTime";
+@@ -31477,6 +31479,12 @@ final class Constant extends \Thrift\Type\TConstant {
+   static protected function init_TABLE_BUCKETING_VERSION() {
+     return "bucketing_version";
+   }
+-}
+ 
++  static protected function init_EXPECTED_PARAMETER_KEY() {
++    return "expected_parameter_key";
++  }
+ 
++  static protected function init_EXPECTED_PARAMETER_VALUE() {
++    return "expected_parameter_value";
++  }
++}
+diff --git a/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py b/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
+index c27745a607..261b3bf82a 100644
+--- a/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
++++ b/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
+@@ -34,3 +34,5 @@
+ TABLE_NO_AUTO_COMPACT = "no_auto_compaction"
+ TABLE_TRANSACTIONAL_PROPERTIES = "transactional_properties"
+ TABLE_BUCKETING_VERSION = "bucketing_version"
++EXPECTED_PARAMETER_KEY = "expected_parameter_key"
++EXPECTED_PARAMETER_VALUE = "expected_parameter_value"
+diff --git a/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb b/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
+index 9e6cedd43d..db9d5cbfcf 100644
+--- a/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
++++ b/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
+@@ -57,3 +57,6 @@ TABLE_TRANSACTIONAL_PROPERTIES = %q"transactional_properties"
+ 
+ TABLE_BUCKETING_VERSION = %q"bucketing_version"
+ 
++EXPECTED_PARAMETER_KEY = %q"expected_parameter_key"
++
++EXPECTED_PARAMETER_VALUE = %q"expected_parameter_value"
+diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
+index f328ad1815..f010f0d2cc 100644
+--- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
++++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
+@@ -49,6 +49,7 @@
+ import org.apache.hadoop.hive.metastore.api.Table;
+ import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
+ 
++import javax.jdo.Constants;
+ import java.io.IOException;
+ import java.net.URI;
+ import java.util.ArrayList;
+@@ -146,7 +147,17 @@ public void alterTable(RawStore msdb, Warehouse wh, String catName, String dbnam
+         rename = true;
+       }
+ 
+-      msdb.openTransaction();
++      String expectedKey = environmentContext != null && environmentContext.getProperties() != null ?
++              environmentContext.getProperties().get(hive_metastoreConstants.EXPECTED_PARAMETER_KEY) : null;
++      String expectedValue = environmentContext != null && environmentContext.getProperties() != null ?
++              environmentContext.getProperties().get(hive_metastoreConstants.EXPECTED_PARAMETER_VALUE) : null;
++
++      if (expectedKey != null) {
++        // If we have to check the expected state of the table we have to prevent nonrepeatable reads.
++        msdb.openTransaction(Constants.TX_REPEATABLE_READ);
++      } else {
++        msdb.openTransaction();
++      }
+       // get old table
+       oldt = msdb.getTable(catName, dbname, name);
+       if (oldt == null) {
+@@ -154,6 +165,12 @@ public void alterTable(RawStore msdb, Warehouse wh, String catName, String dbnam
+             Warehouse.getCatalogQualifiedTableName(catName, dbname, name) + " doesn't exist");
+       }
+ 
++      if (expectedKey != null && expectedValue != null
++              && !expectedValue.equals(oldt.getParameters().get(expectedKey))) {
++        throw new MetaException("The table has been modified. The parameter value for key '" + expectedKey + "' is '"
++                + oldt.getParameters().get(expectedKey) + "'. The expected was value was '" + expectedValue + "'");
++      }
++
+       if (oldt.getPartitionKeysSize() != 0) {
+         isPartitionedTable = true;
+       }
+diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
+index 99fc74e6d4..815ee4184d 100644
+--- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
++++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
+@@ -704,17 +704,31 @@ public void shutdown() {
+   }
+ 
+   /**
+-   * Opens a new one or the one already created Every call of this function must
+-   * have corresponding commit or rollback function call
++   * Opens a new one or the one already created. Every call of this function must
++   * have corresponding commit or rollback function call.
+    *
+    * @return an active transaction
+    */
+-
+   @Override
+   public boolean openTransaction() {
++    return openTransaction(null);
++  }
++
++  /**
++   * Opens a new one or the one already created. Every call of this function must
++   * have corresponding commit or rollback function call.
++   *
++   * @param isolationLevel The transaction isolation level. Only possible to set on the first call.
++   * @return an active transaction
++   */
++  @Override
++  public boolean openTransaction(String isolationLevel) {
+     openTrasactionCalls++;
+     if (openTrasactionCalls == 1) {
+       currentTransaction = pm.currentTransaction();
++      if (isolationLevel != null) {
++        currentTransaction.setIsolationLevel(isolationLevel);
++      }
+       currentTransaction.begin();
+       transactionStatus = TXN_STATUS.OPEN;
+     } else {
+@@ -724,10 +738,16 @@ public boolean openTransaction() {
+         throw new RuntimeException("openTransaction called in an interior"
+             + " transaction scope, but currentTransaction is not active.");
+       }
++
++      // Can not change the isolation level on an already open transaction
++      if (isolationLevel != null && !isolationLevel.equals(currentTransaction.getIsolationLevel())) {
++        throw new RuntimeException("Can not set isolation level on an open transaction");
++      }
+     }
+ 
+     boolean result = currentTransaction.isActive();
+-    debugLog("Open transaction: count = " + openTrasactionCalls + ", isActive = " + result);
++    debugLog("Open transaction: count = " + openTrasactionCalls + ", isActive = " + result + ", isolationLevel = "
++            + currentTransaction.getIsolationLevel());
+     return result;
+   }
+ 
+diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
+index f350aa9fd7..a6ffcf417e 100644
+--- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
++++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
+@@ -104,14 +104,24 @@ public interface RawStore extends Configurable {
+   void shutdown();
+ 
+   /**
+-   * Opens a new one or the one already created Every call of this function must
+-   * have corresponding commit or rollback function call
++   * Opens a new one or the one already created. Every call of this function must
++   * have corresponding commit or rollback function call.
+    *
+    * @return an active transaction
+    */
+-
+   boolean openTransaction();
+ 
++  /**
++   * Opens a new one or the one already created. Every call of this function must
++   * have corresponding commit or rollback function call.
++   *
++   * @param isolationLevel The transaction isolation level. Only possible to set on the first call.
++   * @return an active transaction
++   */
++  default boolean openTransaction(String isolationLevel) {
++    throw new UnsupportedOperationException("Setting isolation level for this Store is not supported");
++  }
++
+   /**
+    * if this is the commit of the first open call then an actual commit is
+    * called.
+diff --git a/standalone-metastore/src/main/thrift/hive_metastore.thrift b/standalone-metastore/src/main/thrift/hive_metastore.thrift
+index ad1dc1f769..1ad3255da1 100644
+--- a/standalone-metastore/src/main/thrift/hive_metastore.thrift
++++ b/standalone-metastore/src/main/thrift/hive_metastore.thrift
+@@ -2243,3 +2243,6 @@ const string TABLE_NO_AUTO_COMPACT = "no_auto_compaction",
+ const string TABLE_TRANSACTIONAL_PROPERTIES = "transactional_properties",
+ const string TABLE_BUCKETING_VERSION = "bucketing_version",
+ 
++// Keys for alter table environment context parameters
++const string EXPECTED_PARAMETER_KEY = "expected_parameter_key",
++const string EXPECTED_PARAMETER_VALUE = "expected_parameter_value",
+diff --git a/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
+index c1eff55b11..a2ab9e807f 100644
+--- a/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
++++ b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
+@@ -23,7 +23,9 @@
+ import org.apache.hadoop.hive.metastore.ColumnType;
+ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+ import org.apache.hadoop.hive.metastore.MetaStoreTestUtils;
++import org.apache.hadoop.hive.metastore.RawStore;
+ import org.apache.hadoop.hive.metastore.TableType;
++import org.apache.hadoop.hive.metastore.Warehouse;
+ import org.apache.hadoop.hive.metastore.annotation.MetastoreCheckinTest;
+ import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
+ import org.apache.hadoop.hive.metastore.api.Catalog;
+@@ -33,6 +35,7 @@
+ import org.apache.hadoop.hive.metastore.api.FieldSchema;
+ import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
+ import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
++import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
+ import org.apache.hadoop.hive.metastore.api.MetaException;
+ import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+ import org.apache.hadoop.hive.metastore.api.Partition;
+@@ -65,15 +68,21 @@
+ import java.net.URISyntaxException;
+ import java.util.ArrayList;
+ import java.util.Arrays;
++import java.util.Collection;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
++import java.util.concurrent.Callable;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.Future;
+ 
+ import static org.apache.hadoop.hive.metastore.Warehouse.DEFAULT_CATALOG_NAME;
+ import static org.apache.hadoop.hive.metastore.Warehouse.DEFAULT_DATABASE_NAME;
++import static org.junit.Assert.assertTrue;
+ 
+ /**
+  * Test class for IMetaStoreClient API. Testing the Table related functions for metadata
+@@ -1075,6 +1084,99 @@ public void testAlterTableAlreadyExists() throws Exception {
+     }
+   }
+ 
++  @Test
++  public void testAlterTableExpectedPropertyMatch() throws Exception {
++    Table originalTable = testTables[0];
++
++    EnvironmentContext context = new EnvironmentContext();
++    context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_KEY, "transient_lastDdlTime");
++    context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_VALUE,
++            originalTable.getParameters().get("transient_lastDdlTime"));
++
++    client.alter_table(originalTable.getCatName(), originalTable.getDbName(), originalTable.getTableName(),
++            originalTable, context);
++  }
++
++  @Test(expected = MetaException.class)
++  public void testAlterTableExpectedPropertyDifferent() throws Exception {
++    Table originalTable = testTables[0];
++
++    EnvironmentContext context = new EnvironmentContext();
++    context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_KEY, "transient_lastDdlTime");
++    context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_VALUE, "alma");
++
++    client.alter_table(originalTable.getCatName(), originalTable.getDbName(), originalTable.getTableName(),
++            originalTable, context);
++  }
++
++  /**
++   * This tests ensures that concurrent Iceberg commits will fail. Acceptable as a first sanity check.
++   * <p>
++   * I have not found a good way to check that HMS side database commits are parallel in the
++   * {@link org.apache.hadoop.hive.metastore.HiveAlterHandler#alterTable(RawStore, Warehouse, String, String, String, Table, EnvironmentContext)}
++   * call, but this test could be used to manually ensure that using breakpoints.
++   */
++  @Test
++  public void testAlterTableExpectedPropertyConcurrent() throws Exception {
++    Table originalTable = testTables[0];
++
++    originalTable.getParameters().put("snapshot", "0");
++    client.alter_table(originalTable.getCatName(), originalTable.getDbName(), originalTable.getTableName(),
++            originalTable, null);
++
++    ExecutorService threads = null;
++    try {
++      threads = Executors.newFixedThreadPool(2);
++      for (int i = 0; i < 3; i++) {
++        EnvironmentContext context = new EnvironmentContext();
++        context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_KEY, "snapshot");
++        context.putToProperties(hive_metastoreConstants.EXPECTED_PARAMETER_VALUE, String.valueOf(i));
++
++        Table newTable = originalTable.deepCopy();
++        newTable.getParameters().put("snapshot", String.valueOf(i + 1));
++
++        IMetaStoreClient client1 = metaStore.getClient();
++        IMetaStoreClient client2 = metaStore.getClient();
++
++        Collection<Callable<Boolean>> concurrentTasks = new ArrayList<>(2);
++        concurrentTasks.add(alterTask(client1, newTable, context));
++        concurrentTasks.add(alterTask(client2, newTable, context));
++
++        Collection<Future<Boolean>> results = threads.invokeAll(concurrentTasks);
++
++        boolean foundSuccess = false;
++        boolean foundFailure = false;
++
++        for (Future<Boolean> result : results) {
++          if (result.get()) {
++            foundSuccess = true;
++          } else {
++            foundFailure = true;
++          }
++        }
++
++        assertTrue("At least one success is expected", foundSuccess);
++        assertTrue("At least one failure is expected", foundFailure);
++      }
++    } finally {
++      if (threads != null) {
++        threads.shutdown();
++      }
++    }
++  }
++
++  private Callable<Boolean> alterTask(IMetaStoreClient hmsClient, Table newTable, EnvironmentContext context) {
++    return () -> {
++      try {
++        hmsClient.alter_table(newTable.getCatName(), newTable.getDbName(), newTable.getTableName(),
++                newTable, context);
++      } catch (Throwable e) {
++        return false;
++      }
++      return true;
++    };
++  }
++
+   @Test
+   public void tablesInOtherCatalogs() throws TException, URISyntaxException {
+     String catName = "create_etc_tables_in_other_catalogs";

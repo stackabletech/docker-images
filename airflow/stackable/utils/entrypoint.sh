@@ -19,9 +19,9 @@
 
 # Stackable notes:
 # Source of this file is the upstream Apache Airflow project
-# https://github.com/apache/airflow/blob/main/scripts/docker/entrypoint_prod.sh
-# It was last synced from the upstream repo on 2023-07-31 and is up-to-date as of commit 86193f5
-
+# https://github.com/apache/airflow/blob/dc271d0c604ca1836ee4f943726b2d436547700f/scripts/docker/entrypoint_prod.sh
+# It was last synced from the upstream repo on 2025-06-01 and is up-to-date as of commit dc271d0c604ca1836ee4f943726b2d436547700f
+# Changes we made are denoted with a comment "STACKABLE PATCH BEGIN" and # STACKABLE PATCH END
 
 AIRFLOW_COMMAND="${1:-}"
 
@@ -34,9 +34,12 @@ set -euo pipefail
 # The side effect of this is slightly (in the range of 100s of milliseconds) slower load for any
 # binary started and a little memory used for Heap allocated by initialization of libstdc++
 # This overhead is not happening for binaries that already link dynamically libstdc++
+
+# STACKABLE PATCH BEGIN
+# The path to this file is different on UBI
 # LD_PRELOAD="/usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6"
-# Stackable: The path to this file is different on UBI
 LD_PRELOAD=/usr/lib64/libstdc++.so.6
+# STACKABLE PATCH END
 export LD_PRELOAD
 
 function run_check_with_retries {
@@ -161,13 +164,17 @@ function create_www_user() {
         exit 1
     fi
 
-    airflow users create \
-       --username "${_AIRFLOW_WWW_USER_USERNAME="admin"}" \
-       --firstname "${_AIRFLOW_WWW_USER_FIRSTNAME="Airflow"}" \
-       --lastname "${_AIRFLOW_WWW_USER_LASTNAME="Admin"}" \
-       --email "${_AIRFLOW_WWW_USER_EMAIL="airflowadmin@example.com"}" \
-       --role "${_AIRFLOW_WWW_USER_ROLE="Admin"}" \
-       --password "${local_password}" || true
+    if airflow config get-value core auth_manager | grep -q "FabAuthManager"; then
+        airflow users create \
+           --username "${_AIRFLOW_WWW_USER_USERNAME="admin"}" \
+           --firstname "${_AIRFLOW_WWW_USER_FIRSTNAME="Airflow"}" \
+           --lastname "${_AIRFLOW_WWW_USER_LASTNAME="Admin"}" \
+           --email "${_AIRFLOW_WWW_USER_EMAIL="airflowadmin@example.com"}" \
+           --role "${_AIRFLOW_WWW_USER_ROLE="Admin"}" \
+           --password "${local_password}" || true
+    else
+        echo "Skipping user creation as auth manager different from Fab is used"
+    fi
 }
 
 function create_system_user_if_missing() {
@@ -193,7 +200,7 @@ function set_pythonpath_for_root_user() {
     # Now also adds applications installed as local user "airflow".
     if [[ $UID == "0" ]]; then
         local python_major_minor
-        python_major_minor="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
+        python_major_minor=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
         export PYTHONPATH="${AIRFLOW_USER_HOME_DIR}/.local/lib/python${python_major_minor}/site-packages:${PYTHONPATH:-}"
         >&2 echo "The container is run as root user. For security, consider using a regular user account."
     fi
@@ -204,9 +211,9 @@ function wait_for_airflow_db() {
     run_check_with_retries "airflow db check"
 }
 
-function upgrade_db() {
-    # Runs airflow db upgrade
-    airflow db upgrade || true
+function migrate_db() {
+    # Runs airflow db migrate
+    airflow db migrate || true
 }
 
 function wait_for_celery_broker() {
@@ -272,7 +279,10 @@ function check_uid_gid() {
 # not set when PIP is run by Airflow later on
 unset PIP_USER
 
-check_uid_gid
+# STACKABLE PATCH BEGIN
+# Disable check for uid & gid (https://github.com/stackabletech/issues/issues/645)
+# check_uid_gid
+# STACKABLE PATCH END
 
 # Set umask to 0002 to make all the directories created by the current user group-writeable
 # This allows the same directories to be writeable for any arbitrary user the image will be
@@ -292,8 +302,12 @@ if [[ "${CONNECTION_CHECK_MAX_COUNT}" -gt "0" ]]; then
     wait_for_airflow_db
 fi
 
+if [[ -n "${_AIRFLOW_DB_UPGRADE=}" ]] || [[ -n "${_AIRFLOW_DB_MIGRATE=}" ]] ; then
+    migrate_db
+fi
+
 if [[ -n "${_AIRFLOW_DB_UPGRADE=}" ]] ; then
-    upgrade_db
+    >&2 echo "WARNING: Environment variable '_AIRFLOW_DB_UPGRADE' is deprecated please use '_AIRFLOW_DB_MIGRATE' instead"
 fi
 
 if [[ -n "${_AIRFLOW_WWW_USER_CREATE=}" ]] ; then
@@ -310,10 +324,13 @@ if [[ -n "${_PIP_ADDITIONAL_REQUIREMENTS=}" ]] ; then
     >&2 echo "         https://airflow.apache.org/docs/docker-stack/build.html"
     >&2 echo
     >&2 echo "         Adding requirements at container startup is fragile and is done every time"
-    >&2 echo "         the container starts, so it is onlny useful for testing and trying out"
+    >&2 echo "         the container starts, so it is only useful for testing and trying out"
     >&2 echo "         of adding dependencies."
     >&2 echo
-    pip install --root-user-action ignore --no-cache-dir "${_PIP_ADDITIONAL_REQUIREMENTS}"
+    # STACKABLE PATCH BEGIN
+    # Add double quotes to silence Shellcheck warning SC2086
+    pip install --root-user-action ignore "${_PIP_ADDITIONAL_REQUIREMENTS}"
+    # STACKABLE PATCH END
 fi
 
 

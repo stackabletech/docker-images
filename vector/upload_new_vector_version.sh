@@ -32,11 +32,6 @@ for arch in "${ARCHITECTURES[@]}"; do
         "https://yum.vector.dev/stable/vector-$major_version/$arch/$file"
 
     echo "Validating signature"
-    echo "--> NOTE: Make sure you have downloaded and added Datadog's \
-public key (https://keys.datadoghq.com/DATADOG_RPM_KEY_B01082D3.public) \
-to the RPM package database:
-rpmkeys --import --dbpath $RPM_PACKAGE_DB_PATH DATADOG_APT_KEY_CURRENT.public"
-
     EXIT_STATUS=0
     # `rpmkeys --checksig` also succeeds if the digests of an unsigned
     # package are okay. Therefore, test explicitly if the output
@@ -50,11 +45,15 @@ rpmkeys --import --dbpath $RPM_PACKAGE_DB_PATH DATADOG_APT_KEY_CURRENT.public"
         EXIT_STATUS=$?
     if [ $EXIT_STATUS -ne 0 ]; then
       echo "ERROR: The signature could not be verified."
+    echo "--> NOTE: Make sure you have downloaded and added Datadog's \
+public key (https://keys.datadoghq.com/DATADOG_RPM_KEY_B01082D3.public) \
+to the RPM package database:
+rpmkeys --import --dbpath $RPM_PACKAGE_DB_PATH DATADOG_APT_KEY_CURRENT.public"
       exit 1
     fi
 
     echo "Uploading $file to Nexus"
-    curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+    curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" \
         --upload-file "$file" \
         'https://repo.stackable.tech/repository/packages/vector/'
 
