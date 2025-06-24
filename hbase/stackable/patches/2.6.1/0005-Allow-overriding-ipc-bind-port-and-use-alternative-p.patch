@@ -27,7 +27,8 @@ index 3fe5abac27..6d40db77ae 100644
  
 +  @Override
 +  protected int getUseThisPortInstead(Configuration conf) {
-+    return conf.getInt(MASTER_PORT, this.rpcServices.getSocketAddress().getPort());
++    int port = conf.getInt(MASTER_PORT, 0);
++    return port != 0 ? port : this.rpcServices.getSocketAddress().getPort();
 +  }
 +
    private void registerConfigurationObservers() {
