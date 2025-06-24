@@ -132,6 +132,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
+- nifi: Enable custom versions ([#1172]).
 - kafka: Enable custom versions ([#1171]).
 - omid: Enable custom versions ([#1174]).
 
