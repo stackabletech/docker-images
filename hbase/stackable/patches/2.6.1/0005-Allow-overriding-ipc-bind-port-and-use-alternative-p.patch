@@ -38,7 +38,7 @@ index 3fe5abac27..6d40db77ae 100644
        registerConfigurationObservers();
        Threads.setDaemonThreadRunning(new Thread(() -> TraceUtil.trace(() -> {
          try {
--          int infoPort = putUpJettyServer();
+-          putUpJettyServer();
 -          startActiveMasterManager(infoPort);
 +          startActiveMasterManager(useThisInfoPortInstead);
          } catch (Throwable t) {
