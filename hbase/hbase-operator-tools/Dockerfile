@@ -1,6 +1,6 @@
 FROM stackable/image/hbase/hbase AS hbase-builder
 
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/java-devel
 

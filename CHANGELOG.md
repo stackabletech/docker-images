@@ -91,6 +91,7 @@ All notable changes to this project will be documented in this file.
 - opa: Enable custom versions ([#1170]).
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 - hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
+- hadoop: Separate Dockerfiles for Hadoop build and HDFS image ([#1186]).
 
 ### Fixed
 
@@ -209,6 +210,7 @@ All notable changes to this project will be documented in this file.
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 [#1184]: https://github.com/stackabletech/docker-images/pull/1184
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
+[#1186]: https://github.com/stackabletech/docker-images/pull/1186
 
 ## [25.3.0] - 2025-03-21
 
