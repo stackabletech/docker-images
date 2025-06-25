@@ -1,4 +1,4 @@
-From 7014c24f4441278dd366c888fc0c05ce53fe9c06 Mon Sep 17 00:00:00 2001
+From af804478fc88fdd354611ef2e0374c83874fa685 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Natalie=20Klestrup=20R=C3=B6ijezon?= <nat@nullable.se>
 Date: Fri, 30 May 2025 14:26:26 +0200
 Subject: Allow overriding ipc bind port and use alternative port from listener
@@ -123,7 +123,7 @@ index 3fe5abac27..2f323518da 100644
            break;
          }
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
-index 27bcef2f06..ff8b3b05f6 100644
+index 27bcef2f06..3c180f6cd6 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 @@ -24,6 +24,9 @@ import static org.apache.hadoop.hbase.HConstants.DEFAULT_HBASE_SPLIT_WAL_MAX_SPL
@@ -206,7 +206,7 @@ index 27bcef2f06..ff8b3b05f6 100644
    }
  
 +  private InetSocketAddress getInetSocketAddress(Configuration conf) {
-+    return conf.getBoolean(RPC_CLIENT_SPECIFY_HOST, false) ?
++    return conf.getBoolean(RPC_CLIENT_SPECIFY_HOST, true) ?
 +      new InetSocketAddress(this.rpcServices.isa.getAddress(), 0) : new InetSocketAddress(0);
 +  }
 +
