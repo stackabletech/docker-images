@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1028]).
+- hbase: provide patches to implement listener endpoints ([#1159]).
 - hive: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1040]).
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
@@ -184,6 +185,7 @@ All notable changes to this project will be documented in this file.
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
+[#1159]: https://github.com/stackabletech/docker-images/pull/1159
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 
