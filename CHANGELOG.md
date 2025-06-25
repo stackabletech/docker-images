@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - kafka: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1041]).
+- kafka: build kafka-opa-plugin from source ([#1177]).
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
@@ -55,6 +56,9 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: Add `3.5.6` ([#1142]).
 - spark-connect-client: Add `3.5.6` ([#1142]).
 - git-sync: Bump version to 4.4.1 ([#1151]).
+- zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
+- zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
+- hadoop: backport HADOOP-19352, HADOOP-19335, HADOOP-19465, HADOOP-19456 and HADOOP-19225 to fix vulnerabilities in Hadoop `3.4.1` ([#1184])
 
 ### Changed
 
@@ -83,6 +87,11 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.47.0` ([#1152]).
 - zookeeper: backport ZOOKEEPER-4846, ZOOKEEPER-4921, ZOOKEEPER-4925 into Zookeeper 3.9.3 ([#1150]).
 - testing-tools: Update base image ([#1165]).
+- trino: Enable custom versions ([#1168]).
+- zookeeper: Enable custom versions ([#1169]).
+- opa: Enable custom versions ([#1170]).
+- use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
+- hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
 
 ### Fixed
 
@@ -124,6 +133,9 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
+- nifi: Enable custom versions ([#1172]).
+- kafka: Enable custom versions ([#1171]).
+- omid: Enable custom versions ([#1174]).
 
 [nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
 [#1025]: https://github.com/stackabletech/docker-images/pull/1025
@@ -188,6 +200,17 @@ All notable changes to this project will be documented in this file.
 [#1159]: https://github.com/stackabletech/docker-images/pull/1159
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
+[#1168]: https://github.com/stackabletech/docker-images/pull/1168
+[#1169]: https://github.com/stackabletech/docker-images/pull/1169
+[#1170]: https://github.com/stackabletech/docker-images/pull/1170
+[#1171]: https://github.com/stackabletech/docker-images/pull/1171
+[#1173]: https://github.com/stackabletech/docker-images/pull/1173
+[#1174]: https://github.com/stackabletech/docker-images/pull/1174
+[#1177]: https://github.com/stackabletech/docker-images/pull/1177
+[#1179]: https://github.com/stackabletech/docker-images/pull/1179
+[#1180]: https://github.com/stackabletech/docker-images/pull/1180
+[#1184]: https://github.com/stackabletech/docker-images/pull/1184
+[#1185]: https://github.com/stackabletech/docker-images/pull/1185
 
 ## [25.3.0] - 2025-03-21
 

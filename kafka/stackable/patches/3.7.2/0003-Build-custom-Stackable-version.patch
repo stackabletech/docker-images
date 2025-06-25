@@ -1,0 +1,116 @@
+From 508c8053273b091b599c5ab9804cee877483703f Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 18 Jun 2025 12:15:17 +0200
+Subject: Build custom Stackable version
+
+---
+ docs/js/templateData.js                                         | 2 +-
+ gradle.properties                                               | 2 +-
+ kafka-merge-pr.py                                               | 2 +-
+ streams/quickstart/java/pom.xml                                 | 2 +-
+ .../java/src/main/resources/archetype-resources/pom.xml         | 2 +-
+ streams/quickstart/pom.xml                                      | 2 +-
+ tests/kafkatest/__init__.py                                     | 2 +-
+ tests/kafkatest/version.py                                      | 2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/docs/js/templateData.js b/docs/js/templateData.js
+index 7700e24003..8affa51e55 100644
+--- a/docs/js/templateData.js
++++ b/docs/js/templateData.js
+@@ -19,6 +19,6 @@ limitations under the License.
+ var context={
+     "version": "37",
+     "dotVersion": "3.7",
+-    "fullDotVersion": "3.7.2",
++    "fullDotVersion": "3.7.2-stackable0.0.0-dev",
+     "scalaVersion": "2.13"
+ };
+diff --git a/gradle.properties b/gradle.properties
+index 08ae0ded1e..779dcfb829 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -23,7 +23,7 @@ group=org.apache.kafka
+ #  - streams/quickstart/pom.xml
+ #  - streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+ #  - streams/quickstart/java/pom.xml
+-version=3.7.2
++version=3.7.2-stackable0.0.0-dev
+ scalaVersion=2.13.12
+ # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
+ # New version of Swagger 2.2.14 requires minimum JDK 11.
+diff --git a/kafka-merge-pr.py b/kafka-merge-pr.py
+index c16c811178..41b6794b8c 100755
+--- a/kafka-merge-pr.py
++++ b/kafka-merge-pr.py
+@@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
+ 
+ DEV_BRANCH_NAME = "trunk"
+ 
+-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.7.2-SNAPSHOT")
++DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.7.2-stackable0.0.0-dev-SNAPSHOT")
+ 
+ ORIGINAL_HEAD = ""
+ 
+diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
+index 1335f0d58b..e9e8cfe1ec 100644
+--- a/streams/quickstart/java/pom.xml
++++ b/streams/quickstart/java/pom.xml
+@@ -26,7 +26,7 @@
+     <parent>
+         <groupId>org.apache.kafka</groupId>
+         <artifactId>streams-quickstart</artifactId>
+-        <version>3.7.2</version>
++        <version>3.7.2-stackable0.0.0-dev</version>
+         <relativePath>..</relativePath>
+     </parent>
+ 
+diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+index 445fab4b83..21cb230fc4 100644
+--- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
++++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+@@ -29,7 +29,7 @@
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <kafka.version>3.7.2</kafka.version>
++        <kafka.version>3.7.2-stackable0.0.0-dev</kafka.version>
+         <slf4j.version>1.7.36</slf4j.version>
+     </properties>
+ 
+diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
+index 94ac32fcac..2cc1fcd600 100644
+--- a/streams/quickstart/pom.xml
++++ b/streams/quickstart/pom.xml
+@@ -22,7 +22,7 @@
+     <groupId>org.apache.kafka</groupId>
+     <artifactId>streams-quickstart</artifactId>
+     <packaging>pom</packaging>
+-    <version>3.7.2</version>
++    <version>3.7.2-stackable0.0.0-dev</version>
+ 
+     <name>Kafka Streams :: Quickstart</name>
+ 
+diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
+index 1c66c2bcfd..9274ce1fd0 100644
+--- a/tests/kafkatest/__init__.py
++++ b/tests/kafkatest/__init__.py
+@@ -22,4 +22,4 @@
+ # Instead, in development branches, the version should have a suffix of the form ".devN"
+ #
+ # For example, when Kafka is at version 1.0.0-SNAPSHOT, this should be something like "1.0.0.dev0"
+-__version__ = '3.7.2'
++__version__ = '3.7.2-stackable0.0.0-dev'
+diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
+index bed7cffac2..55dc3cbc7d 100644
+--- a/tests/kafkatest/version.py
++++ b/tests/kafkatest/version.py
+@@ -122,7 +122,7 @@ def get_version(node=None):
+         return DEV_BRANCH
+ 
+ DEV_BRANCH = KafkaVersion("dev")
+-DEV_VERSION = KafkaVersion("3.7.2-SNAPSHOT")
++DEV_VERSION = KafkaVersion("3.7.2-stackable0.0.0-dev")
+ 
+ LATEST_METADATA_VERSION = "3.7"
+ 
