@@ -129,9 +129,6 @@ def main():
         "-p", "--password", required=True, help="Password for the user."
     )
     all_args.add_argument(
-        "-v", "--nifi_version", required=True, help="The NiFi product version."
-    )
-    all_args.add_argument(
         "-c",
         "--cert",
         required=True,
