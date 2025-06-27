@@ -1,15 +1,14 @@
-From af07f7d502fcd6a5566b7cb327dd7a154054a9fc Mon Sep 17 00:00:00 2001
+From a36c936d8132bad255bb2be40e4b1dde2a44f478 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Thu, 26 Jun 2025 16:58:47 +0200
 Subject: Update property usage for bound ports
 
 ---
  .../org/apache/hadoop/hbase/HConstants.java   |  4 ++--
- .../hadoop/hbase/LocalHBaseCluster.java       | 12 ++++++------
+ .../hadoop/hbase/LocalHBaseCluster.java       | 12 +++++------
  .../apache/hadoop/hbase/master/HMaster.java   |  6 +++---
- .../hbase/regionserver/HRegionServer.java     | 19 +++++++++++++------
- .../util/ProcessBasedLocalHBaseCluster.java   |  4 ++--
- 5 files changed, 26 insertions(+), 19 deletions(-)
+ .../hbase/regionserver/HRegionServer.java     | 21 +++++++++++++------
+ 4 files changed, 26 insertions(+), 17 deletions(-)
 
 diff --git a/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java b/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
 index 4d892755d2..3f852e7acc 100644
@@ -96,7 +95,7 @@ index 313124d1d0..00e01c116e 100644
    }
  
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
-index 68f56ab796..3d1d2d3a5c 100644
+index 68f56ab796..b610d11651 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 @@ -25,6 +25,7 @@ import static org.apache.hadoop.hbase.HConstants.DEFAULT_SLOW_LOG_SYS_TABLE_CHOR
@@ -116,22 +115,24 @@ index 68f56ab796..3d1d2d3a5c 100644
      return port != 0 ? port : this.infoServer != null ? this.infoServer.getPort() : -1;
    }
  
-@@ -2459,12 +2460,12 @@ public class HRegionServer extends Thread
+@@ -2459,12 +2460,14 @@ public class HRegionServer extends Thread
     */
    private void putUpWebUI() throws IOException {
      int port =
 -      this.conf.getInt(HConstants.REGIONSERVER_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT);
-+      this.conf.getInt(REGIONSERVER_BOUND_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT);
++      this.conf.getInt(REGIONSERVER_BOUND_INFO_PORT,
++        this.conf.getInt(REGIONSERVER_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT));
      String addr = this.conf.get("hbase.regionserver.info.bindAddress", "0.0.0.0");
  
      boolean isMaster = false;
      if (this instanceof HMaster) {
 -      port = conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
-+      port = conf.getInt(HConstants.MASTER_BOUND_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
++      port = conf.getInt(HConstants.MASTER_BOUND_INFO_PORT,
++        this.conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT));
        addr = this.conf.get("hbase.master.info.bindAddress", "0.0.0.0");
        isMaster = true;
      }
-@@ -2501,12 +2502,18 @@ public class HRegionServer extends Thread
+@@ -2501,12 +2504,18 @@ public class HRegionServer extends Thread
          LOG.info("Retry starting http info server with port: " + port);
        }
      }
@@ -153,23 +154,3 @@ index 68f56ab796..3d1d2d3a5c 100644
    }
  
    /*
-diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/util/ProcessBasedLocalHBaseCluster.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/util/ProcessBasedLocalHBaseCluster.java
-index 21c49e61ba..2dd85ab764 100644
---- a/hbase-server/src/test/java/org/apache/hadoop/hbase/util/ProcessBasedLocalHBaseCluster.java
-+++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/util/ProcessBasedLocalHBaseCluster.java
-@@ -370,13 +370,13 @@ public class ProcessBasedLocalHBaseCluster {
- 
-       int masterInfoPort = HBaseTestingUtility.randomFreePort();
-       reportWebUIPort("master", masterInfoPort);
--      confMap.put(HConstants.MASTER_INFO_PORT, masterInfoPort);
-+      confMap.put(HConstants.MASTER_BOUND_INFO_PORT, masterInfoPort);
-     } else if (serverType == ServerType.RS) {
-       confMap.put(HConstants.REGIONSERVER_PORT, rpcPort);
- 
-       int rsInfoPort = HBaseTestingUtility.randomFreePort();
-       reportWebUIPort("region server", rsInfoPort);
--      confMap.put(HConstants.REGIONSERVER_INFO_PORT, rsInfoPort);
-+      confMap.put(HConstants.REGIONSERVER_BOUND_INFO_PORT, rsInfoPort);
-     } else {
-       confMap.put(HConstants.ZOOKEEPER_DATA_DIR, daemonDir);
-     }
