@@ -114,6 +114,8 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
 - hive: Patch for postgres CVE-2024-1597 ([#1100]).
 - bump image-tools (for `bake`) and nixpkgs (for `nodejs_20`, used by pre-commit) ([#1100]).
+- bump image-tools (for `bake`) to fix `RELEASE` arg ([#1188]).
+- nifi: automatically determine NiFi version create reporting task script ([#1189]).
 
 ### Removed
 
@@ -211,6 +213,8 @@ All notable changes to this project will be documented in this file.
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 [#1184]: https://github.com/stackabletech/docker-images/pull/1184
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
+[#1188]: https://github.com/stackabletech/docker-images/pull/1188
+[#1189]: https://github.com/stackabletech/docker-images/pull/1189
 
 ## [25.3.0] - 2025-03-21
 
