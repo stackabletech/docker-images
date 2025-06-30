@@ -3,7 +3,7 @@ versions = [
     # hbase-thirdparty is used to build the hbase-operator-tools and should be set to the version defined in the POM of HBase.
     {
         "product": "2.6.1",
-        "hadoop": "3.3.6",
+        "hadoop/hadoop": "3.3.6",
         "java-base": "11",
         "java-devel": "11",
         "async_profiler": "2.9",
@@ -11,7 +11,7 @@ versions = [
     },
     {
         "product": "2.6.2",
-        "hadoop": "3.4.1",
+        "hadoop/hadoop": "3.4.1",
         "java-base": "11",
         "java-devel": "11",
         "async_profiler": "2.9",
