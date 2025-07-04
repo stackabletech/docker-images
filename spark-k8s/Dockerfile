@@ -31,101 +31,102 @@ tar -czf /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 chmod g=u /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz
 EOF
 
-# hbase-connectors-builder: Build the Spark HBase connector and copy
-# required JARs into /stackable/spark/jars
-FROM stackable/image/java-devel AS hbase-connectors-builder
-
-ARG PRODUCT
-ARG RELEASE
-ARG HADOOP
-ARG HBASE
-ARG HBASE_CONNECTOR
-ARG STACKABLE_USER_UID
-
-WORKDIR /stackable
-
-# Copy the pom.xml file from the patched Spark source code to read the
-# versions used by Spark. The pom.xml defines child modules which are
-# not required and not copied, therefore mvn must be called with the
-# parameter --non-recursive.
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
-    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT}/pom.xml \
-    spark/
-
-# Patch the hbase-connectors source code
-WORKDIR /stackable
-
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
-
-RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
-
-NEW_VERSION="${HBASE_CONNECTOR}-stackable${RELEASE}"
-
-mvn versions:set -DnewVersion=$NEW_VERSION
-
-# Create snapshot of the source code including custom patches
-tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
-
-# Building the hbase-connectors with JDK 17 is not yet supported, see
-# https://github.com/apache/hbase-connectors/pull/132.
-# As there are no JDK profiles, access to the non-public elements must
-# be enabled with --add-opens, see https://openjdk.org/jeps/403 and
-# https://openjdk.org/jeps/261#Breaking-encapsulation.
-export JDK_JAVA_OPTIONS="\
-    --add-opens java.base/java.lang=ALL-UNNAMED \
-    --add-opens java.base/java.util=ALL-UNNAMED"
-
-# Get the Scala version used by Spark
-SCALA_VERSION=$( \
-    mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
-    org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-    -DforceStdout \
-    -Dexpression='project.properties(scala.version)')
-
-# Get the Scala binary version used by Spark
-SCALA_BINARY_VERSION=$( \
-    mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
-    org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-    -DforceStdout \
-    -Dexpression='project.properties(scala.binary.version)')
-
-# Build the Spark HBase connector
-# Skip the tests because the MiniHBaseCluster does not get ready for
-# whatever reason:
-#   Caused by: java.lang.RuntimeException: Master not active after 30000ms
-#     at org.apache.hadoop.hbase.util.JVMClusterUtil.waitForEvent(JVMClusterUtil.java:221)
-#     at org.apache.hadoop.hbase.util.JVMClusterUtil.startup(JVMClusterUtil.java:177)
-#     at org.apache.hadoop.hbase.LocalHBaseCluster.startup(LocalHBaseCluster.java:407)
-#     at org.apache.hadoop.hbase.MiniHBaseCluster.init(MiniHBaseCluster.java:250)
-mvn \
-    --batch-mode \
-    --no-transfer-progress \
-    --define spark.version="${PRODUCT}" \
-    --define scala.version="${SCALA_VERSION}" \
-    --define scala.binary.version="${SCALA_BINARY_VERSION}" \
-    --define hadoop-three.version="${HADOOP}" \
-    --define hbase.version="${HBASE}" \
-    --define skipTests \
-    clean package
-
-mkdir -p /stackable/spark/jars
-ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar
-
-cd /stackable/spark/jars
-
-# Download log4j-slf4j-impl-x.x.x.jar containing the StaticLoggerBinder
-# which is required by the connector.
-# Spark contains only log4j-slf4j2-impl-x.x.x.jar but not
-# log4j-slf4j-impl-x.x.x.jar. It is okay to have both JARs in the
-# classpath as long as they have the same version.
-mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
-    dependency:copy \
-    -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
-    -DoutputDirectory=./jars
-chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
-EOF
+### # hbase-connectors-builder: Build the Spark HBase connector and copy
+### # required JARs into /stackable/spark/jars
+### FROM stackable/image/java-devel AS hbase-connectors-builder
+###
+### ARG PRODUCT
+### ARG RELEASE
+### ARG HADOOP
+### ARG HBASE
+### ARG HBASE_CONNECTOR
+### ARG STACKABLE_USER_UID
+###
+### WORKDIR /stackable
+###
+### # Copy the pom.xml file from the patched Spark source code to read the
+### # versions used by Spark. The pom.xml defines child modules which are
+### # not required and not copied, therefore mvn must be called with the
+### # parameter --non-recursive.
+### COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
+###     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT}/pom.xml \
+###     spark/
+###
+### # Patch the hbase-connectors source code
+### WORKDIR /stackable
+###
+### COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
+### COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
+###
+### RUN <<EOF
+### cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
+###
+### NEW_VERSION="${HBASE_CONNECTOR}-stackable${RELEASE}"
+###
+### mvn versions:set -DnewVersion=$NEW_VERSION
+###
+### # Create snapshot of the source code including custom patches
+### tar -czf /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
+###
+### # Building the hbase-connectors with JDK 17 is not yet supported, see
+### # https://github.com/apache/hbase-connectors/pull/132.
+### # As there are no JDK profiles, access to the non-public elements must
+### # be enabled with --add-opens, see https://openjdk.org/jeps/403 and
+### # https://openjdk.org/jeps/261#Breaking-encapsulation.
+### export JDK_JAVA_OPTIONS="\
+###     --add-opens java.base/java.lang=ALL-UNNAMED \
+###     --add-opens java.base/java.util=ALL-UNNAMED"
+###
+### # Get the Scala version used by Spark
+### SCALA_VERSION=$( \
+###     mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+###     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
+###     -DforceStdout \
+###     -Dexpression='project.properties(scala.version)')
+###
+### # Get the Scala binary version used by Spark
+### SCALA_BINARY_VERSION=$( \
+###     mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+###     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
+###     -DforceStdout \
+###     -Dexpression='project.properties(scala.binary.version)')
+###
+### # Build the Spark HBase connector
+### # Skip the tests because the MiniHBaseCluster does not get ready for
+### # whatever reason:
+### #   Caused by: java.lang.RuntimeException: Master not active after 30000ms
+### #     at org.apache.hadoop.hbase.util.JVMClusterUtil.waitForEvent(JVMClusterUtil.java:221)
+### #     at org.apache.hadoop.hbase.util.JVMClusterUtil.startup(JVMClusterUtil.java:177)
+### #     at org.apache.hadoop.hbase.LocalHBaseCluster.startup(LocalHBaseCluster.java:407)
+### #     at org.apache.hadoop.hbase.MiniHBaseCluster.init(MiniHBaseCluster.java:250)
+### mvn \
+###     --batch-mode \
+###     --no-transfer-progress \
+###     --define spark.version="${PRODUCT}" \
+###     --define scala.version="${SCALA_VERSION}" \
+###     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
+###     --define hadoop-three.version="${HADOOP}" \
+###     --define hbase.version="${HBASE}" \
+###     --define skipTests \
+###     --define maven.test.skip=true \
+###     clean package
+###
+### mkdir -p /stackable/spark/jars
+### ln -s "$(pwd)/hbase-spark/target/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar" /stackable/spark/jars/hbase-spark-${HBASE_CONNECTOR}-stackable${RELEASE}.jar
+###
+### cd /stackable/spark/jars
+###
+### # Download log4j-slf4j-impl-x.x.x.jar containing the StaticLoggerBinder
+### # which is required by the connector.
+### # Spark contains only log4j-slf4j2-impl-x.x.x.jar but not
+### # log4j-slf4j-impl-x.x.x.jar. It is okay to have both JARs in the
+### # classpath as long as they have the same version.
+### mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+###     dependency:copy \
+###     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
+###     -DoutputDirectory=./jars
+### chmod g=u /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz .
+### EOF
 
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT}/dist,
@@ -179,6 +180,7 @@ RUN <<EOF
 
     ./dev/make-distribution.sh \
     --mvn /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn \
+    --connect \
     -Dhadoop.version="${HADOOP}-stackable${RELEASE}" \
     -DskipTests \
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
@@ -195,18 +197,19 @@ EOF
 RUN <<EOF
 
     # Get the Scala binary version
-    SCALA_BINARY_VERSION=$( \
-        mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file pom.xml \
-        org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-        -DforceStdout \
-        -Dexpression='project.properties(scala.binary.version)')
+    # SCALA_BINARY_VERSION=$( \
+    #     mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file pom.xml \
+    #     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
+    #     -DforceStdout \
+    #     -Dexpression='project.properties(scala.binary.version)')
+    SCALA_BINARY_VERSION=$(grep "scala.binary.version" pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
 
     mkdir -p dist/connect
     cd dist/connect
 
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
 
     # The Spark operator expects a file named spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar without the -stackable${RELEASE} suffix.
     ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar"
@@ -229,10 +232,10 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
     ./
 
-# Copy the HBase connector including required modules
-COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/spark/jars/* \
-    ./
+### # Copy the HBase connector including required modules
+### COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
+###     /stackable/spark/jars/* \
+###     ./
 
 # Copy modules required to access HBase
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
@@ -310,7 +313,7 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
+### COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}-stackable${RELEASE}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
