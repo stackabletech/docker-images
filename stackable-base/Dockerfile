@@ -1,39 +1,48 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS product-utils-builder
+#
+# Base image for final stages
+# Should not contain any components that are not needed (or helpful) at runtime
+# Build time dependencies that are used in multiple images can be added to `stackable-devel` (or a derivative like `java-devel`) instead
+#
 
+FROM stackable/image/stackable-devel AS config-utils
+
+# Find the latest version here: https://github.com/stackabletech/config-utils/tags
+# renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
-# This SHOULD be kept in sync with operator-templating and other tools to reduce build times
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.79.0
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.4.0
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.4
 
 RUN <<EOF
-microdnf update --assumeyes
-
-# git: Needed to fetch source
-# gcc: Needed for compilation
-microdnf --assumeyes install \
-  gcc \
-  git
-microdnf clean all
-rm -rf /var/cache/yum
-
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION"
-
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
-cargo auditable --quiet build --release && cargo cyclonedx --output-pattern package --all --output-cdx
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-FROM registry.access.redhat.com/ubi9-minimal@sha256:a7d837b00520a32502ada85ae339e33510cdfdbc8d2ddf460cc838e12ec5fa5a AS final
+FROM stackable/image/stackable-devel AS containerdebug
+
+# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
+# renovate: datasource=github-tags packageName=stackabletech/containerdebug
+ENV CONTAINERDEBUG_VERSION=0.2.0
+
+RUN <<EOF
+git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
+cd ./containerdebug
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+EOF
+
+# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:f172b3082a3d1bbe789a1057f03883c1113243564f01cd3020e27548b911d3f8 AS final
 
 # intentionally unused
 ARG PRODUCT
+ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_NAME
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -53,6 +62,8 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # https://github.com/stackabletech/docker-images/pull/533
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
+# Default curl configuration to avoid forgetting settings and to declutter the Dockerfiles
+COPY stackable-base/stackable/curlrc /root/.curlrc
 
 # echo won't expand escape sequences. Consider printf.
 # https://github.com/koalaman/shellcheck/wiki/SC2028
@@ -62,6 +73,12 @@ COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 RUN <<EOF
 microdnf update
 
+# **findutils**
+# Needed to find all patch files, used in `apply_patches.sh`, and helpful for debugging
+# Added 2024-10: Last vulnerability in 2007, only two vulnerabilities in total, a risk we accept
+# https://nvd.nist.gov/vuln/search/results?form_type=Advanced&results_type=overview&search_type=all&isCpeNameSearch=false&cpe_vendor=cpe%3A%2F%3Agnu&cpe_product=cpe%3A%2F%3Agnu%3Afindutils
+# cpe:2.3:a:gnu:findutils:*:*:*:*:*:*:*:*
+#
 # **iputils**
 # To make debugging easier, includes things like ping
 # Added 2024-03: We cannot find any vulnerabilities in the past years
@@ -85,6 +102,7 @@ microdnf update
 # https://nvd.nist.gov/vuln/search/results?adv_search=true&isCpeNameSearch=true&query=cpe%3A2.3%3Aa%3Agnu%3Atar%3A-%3A*%3A*%3A*%3A*%3A*%3A*%3A*
 # cpe:2.3:a:gnu:tar:-:*:*:*:*:*:*:*
 microdnf install \
+  findutils \
   iputils \
   less \
   nano \
@@ -95,21 +113,22 @@ microdnf install \
 ###
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
-groupadd --gid 1000 --system stackable
+groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
 
 # The --no-log-init is required to work around a bug/problem in Go/Docker when very large UIDs are used
 # See https://github.com/moby/moby/issues/5419#issuecomment-41478290 for more context
 # Making this a system user prevents a mail dir from being created, expiry of passwords etc. but it will warn:
 #   useradd warning: stackable's uid 1000 is greater than SYS_UID_MAX 999
 # We can safely ignore this warning, to get rid of the warning we could change /etc/login.defs but that does not seem worth it
+# We'll leave the home directory hardcoded to /stackable because I don't want to deal with which chars might be valid and which might not in user name vs. directory
 useradd \
   --no-log-init \
-  --gid stackable \
-  --uid 1000 \
+  --gid ${STACKABLE_USER_GID} \
+  --uid ${STACKABLE_USER_UID} \
   --system \
   --create-home \
   --home-dir /stackable \
-   stackable
+   ${STACKABLE_USER_NAME}
 microdnf remove shadow-utils
 microdnf clean all
 
@@ -125,18 +144,23 @@ microdnf clean all
 
 echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile
 
-chown stackable:stackable /stackable/.bashrc
-chown stackable:stackable /stackable/.profile
+chown ${STACKABLE_USER_UID}:0 /stackable/.bashrc
+chown ${STACKABLE_USER_UID}:0 /stackable/.profile
+
+cp /root/.curlrc /stackable/.curlrc
+chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
-# The package ca-certificates 2023.07.22 fixes the problem, until ubi9-minimal updates to it, we should remove them
-# manually.
-if [ "$(rpm -qa ca-certificates)" != "ca-certificates-2023.2.60_v7.0.306-90.1.el9_2.noarch" ]; then
-  echo "The ca-certificates package was updated. Please check if the e-Tugra root certificates are present. \
+# Until they are removed by default from ca-certificates, we should remove them manually
+EXPECTED_CERTS_PACKAGE="ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch"
+ACTUAL_CERTS_PACKAGE="$(rpm -qa ca-certificates)"
+if [ "$ACTUAL_CERTS_PACKAGE" != "$EXPECTED_CERTS_PACKAGE" ]; then
+  echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra root certificates are present. \
 When they have been removed, manually blacklisting them should be removed"
   echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'"
   trust list --filter=ca-anchors | grep 'E-Tugra'
+  echo "If the cert appears above, please update the expected package: EXPECTED_CERTS_PACKAGE=\"$ACTUAL_CERTS_PACKAGE\""
   exit 1;
 fi
 EOF
@@ -150,11 +174,21 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
-COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=product-utils-builder --chown=stackable:stackable /config-utils/config-utils.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+
+# **containerdebug**
+# Debug tool that logs generic system information.
+COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+
+# **check-permissions-ownership.sh**
+# Bash script to check proper permissions and ownership requirements in the final Stackable images
+COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
+
 ENV PATH="${PATH}:/stackable"
 
 # These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"
 

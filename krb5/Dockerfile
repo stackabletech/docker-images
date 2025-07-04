@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
 # RedHat UBI does not package krb5-server, so we cannot use it as a KDC
 # FROM stackable/image/stackable-base

@@ -1,0 +1,31 @@
+From 64f5d9955d31695a0bbb98bc70233cca49939bfb Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Thu, 12 Dec 2024 06:35:21 +0100
+Subject: Update FMPP version
+
+This is because FMPP Maven Plugin depends on FMPP in version 0.9.14
+which itself depends on a Freemarker version that has not been pinned.
+Instead it specifies a "range" which resolves to a SNAPSHOT version
+which we don't want.
+---
+ sql/pom.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/sql/pom.xml b/sql/pom.xml
+index 00ed50cf69..bad8096a59 100644
+--- a/sql/pom.xml
++++ b/sql/pom.xml
+@@ -384,6 +384,13 @@
+       <plugin>
+         <groupId>com.googlecode.fmpp-maven-plugin</groupId>
+         <artifactId>fmpp-maven-plugin</artifactId>
++        <dependencies>
++          <dependency>
++            <groupId>net.sourceforge.fmpp</groupId>
++            <artifactId>fmpp</artifactId>
++            <version>0.9.16</version>
++          </dependency>
++        </dependencies>
+         <executions>
+           <execution>
+             <id>generate-fmpp-sources</id>

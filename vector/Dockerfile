@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
 FROM stackable/image/stackable-base
 
@@ -6,22 +7,29 @@ ARG PRODUCT
 ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
+ARG STACKABLE_USER_UID
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
 # As soon as an Init Container is done it'll need to tell the Vector sidecar that it can now also stop
 # This happens by writing a "shutdown file" in a shared volume
 # See https://github.com/stackabletech/airflow-operator/blob/23.4.1/rust/operator-binary/src/airflow_db_controller.rs#L269 for an example
 # The Vector container waits for this file to appear and this waiting happens using `inotifywait` which comes from the `inotify-tools` package
-RUN ARCH="${TARGETARCH/amd64/x86_64}" ARCH="${ARCH/arm64/aarch64}" && \
-    rpm --install \
-        "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.${ARCH}.rpm" \
-        "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm" && \
-    mkdir /licenses && \
-    cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE && \
-    # Create the directory /stackable/vector/var.
-    # This directory is set by operator-rs in the parameter `data_dir`
-    # of the Vector configuration. The directory is used for persisting
-    # Vector state, such as on-disk buffers, file checkpoints, and more.
-    # Vector needs write permissions.
-    mkdir --parents /stackable/vector/var && \
-    chown --recursive stackable:stackable /stackable/
+RUN <<EOF
+ARCH="${TARGETARCH/amd64/x86_64}"
+ARCH="${ARCH/arm64/aarch64}"
+rpm --install \
+    "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.${ARCH}.rpm" \
+    "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm"
+mkdir /licenses
+cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE
+
+# Create the directory /stackable/vector/var.
+# This directory is set by operator-rs in the parameter `data_dir`
+# of the Vector configuration. The directory is used for persisting
+# Vector state, such as on-disk buffers, file checkpoints, and more.
+# Vector needs write permissions.
+mkdir --parents /stackable/vector/var
+chown --recursive ${STACKABLE_USER_UID}:0 /stackable/
+# Set correct permissions
+chmod -R g=u /stackable
+EOF

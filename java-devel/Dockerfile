@@ -1,15 +1,27 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
 #
-# Base imaege for builder stages
+# Base image for builder stages in Java based products
 #
 
-FROM stackable/image/stackable-base
+FROM stackable/image/stackable-devel
 
 ARG PRODUCT
+ARG STACKABLE_USER_UID
 
-# We need to use EPEL, as openjdk 22 is not shipped with UBI9
-RUN rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+# See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
+RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+[Adoptium]
+name=Adoptium
+# The adoptium mirror times-out often, so we have created a pull-through cache
+# baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
+baseurl=https://build-repo.stackable.tech/repository/Adoptium/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
 
 RUN microdnf update && \
     microdnf install -y \
@@ -26,9 +38,10 @@ RUN microdnf update && \
     gettext \
     # For the apply_patches.sh script
     git \
-    # needed by the maven ant run plugin for the "set-hostname-property" step in zookeeper
+    # Needed by the maven ant run plugin for the "set-hostname-property" step in zookeeper
     hostname \
-    java-"${PRODUCT}"-openjdk-devel \
+    # Needed for compiling Java projects
+    "temurin-${PRODUCT}-jdk" \
     krb5-devel \
     libcurl-devel \
     make \
@@ -45,7 +58,10 @@ RUN microdnf update && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-ENV JAVA_HOME=/usr/lib/jvm/jre-${PRODUCT}
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jdk"
+
+COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
+COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /root/.m2/settings.xml
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and

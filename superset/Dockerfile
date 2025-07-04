@@ -1,22 +1,52 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
-FROM stackable/image/statsd_exporter AS statsd_exporter-builder
+FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
+
+FROM stackable/image/stackable-base AS opa-authorizer-builder
+
+ARG PYTHON
+
+COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
+
+RUN <<EOF
+microdnf update
+microdnf install \
+    gcc \
+    gcc-c++ \
+    python${PYTHON} \
+    python${PYTHON}-devel \
+    python${PYTHON}-pip
+microdnf clean all
+rm -rf /var/cache/yum
+
+pip install \
+    --no-cache-dir \
+    --upgrade \
+    poetry==2.1.1 \
+    pytest==8.3.4
+
+cd /tmp/opa-authorizer
+
+poetry sync
+poetry run pytest
+poetry build
+EOF
 
 FROM stackable/image/vector AS builder
 
 ARG PRODUCT
+ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG AUTHLIB
 ARG TARGETARCH
 ARG TARGETOS
-
-COPY superset/constraints-${PRODUCT}.txt /tmp/constraints.txt
+ARG CYCLONEDX_BOM
+ARG UV
 
 RUN microdnf update \
     && microdnf install \
         cyrus-sasl-devel \
-        # Needed to find all patch files, used in `apply_patches.sh`
-        findutils \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
         diffutils \
         # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
@@ -29,7 +59,6 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
-        patch \
         python${PYTHON} \
         python${PYTHON}-devel \
         python${PYTHON}-pip \
@@ -38,40 +67,68 @@ RUN microdnf update \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
+COPY superset/stackable/constraints/${PRODUCT}/constraints.txt /tmp/constraints.txt
+COPY superset/stackable/constraints/${PRODUCT}/build-constraints.txt /tmp/build-constraints.txt
+COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
+# DL3042 false-positive, --no-chache-dir is specified a few lines below.
+#        See https://github.com/hadolint/hadolint/issues/1042.
+# hadolint ignore=DL3042
 RUN python3 -m venv /stackable/app \
     && source /stackable/app/bin/activate \
     && pip install \
         --no-cache-dir \
         --upgrade \
-        setuptools==66.1.1 \
+        setuptools==75.2.0 \
         pip \
-    && pip install \
+        uv==${UV} \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
-        --constraint /tmp/constraints.txt \
+        --constraints /tmp/constraints.txt \
+        --build-constraints /tmp/build-constraints.txt \
         apache-superset==${PRODUCT} \
         gevent \
         psycopg2-binary \
         statsd \
         pydruid \
         python-ldap \
-        trino[sqlalchemy] \
+        'trino[sqlalchemy]' \
+        # Add optional dependencies for use in custom Superset configurations.
+        # Since https://github.com/stackabletech/superset-operator/pull/530
+        # admins can add custom configuration to superset_conf.py.
+        Flask_OIDC==2.2.0 \
+        Flask-OpenID==1.3.1 \
         # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
         # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
         # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
         # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
         tzdata \
-    && pip install \
+    # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
+    # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
+    # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
+    && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
+        then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
+        && uv pip install gunicorn==22.0.0; \
+    fi \
+    && uv pip install \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-    && if [ ! -z "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi
+        cyclonedx-bom==${CYCLONEDX_BOM} \
+    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
+    uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
-COPY superset/stackable/patches /patches
-RUN /patches/apply_patches.sh ${PRODUCT}
-
-WORKDIR /stackable
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
+
+RUN <<EOF
+cd /stackable
+source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
+chmod --recursive g=u /stackable
+EOF
 
 # Final image
 FROM stackable/image/vector
@@ -79,14 +136,15 @@ FROM stackable/image/vector
 ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
+ARG STACKABLE_USER_UID
 
 LABEL name="Apache Superset" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Apache Superset." \
-      description="This image is deployed by the Stackable Operator for Apache Superset."
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Apache Superset." \
+    description="This image is deployed by the Stackable Operator for Apache Superset."
 
 ENV FLASK_APP="superset.app:create_app()" \
     FLASK_ENV="production" \
@@ -95,22 +153,42 @@ ENV FLASK_APP="superset.app:create_app()" \
 ENV PATH="${HOME}/app/bin:${PATH}" \
     PYTHONPATH="${HOME}/app/pythonpath"
 
-RUN microdnf update \
-    && microdnf install \
-        cyrus-sasl \
-        openldap \
-        openldap-clients \
-        openssl-libs \
-        openssl-pkcs11 \
-        python${PYTHON} \
-    && microdnf clean all && \
-    rm -rf /var/cache/yum
-
 COPY superset/licenses /licenses
 
-COPY --from=builder --chown=stackable:stackable /stackable/ ${HOME}/
+COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
-USER stackable
+RUN <<EOF
+microdnf update
+microdnf install \
+  cyrus-sasl \
+  openldap \
+  openldap-clients \
+  openssl-libs \
+  openssl-pkcs11 \
+  "python${PYTHON}"
+
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in ${HOME} are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh ${HOME} ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 WORKDIR ${HOME}
 
 CMD ["/bin/sh", "-c", \

@@ -1,0 +1,56 @@
+From f9e952767faf3032c0d4e729e51b5901fcf1a0e1 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Tue, 6 May 2025 17:58:34 +0200
+Subject: Exclude hbase-testing-utils dependency from the build.
+
+---
+ hbase-hbck2/pom.xml | 11 +++++++++--
+ hbase-tools/pom.xml |  5 +++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/hbase-hbck2/pom.xml b/hbase-hbck2/pom.xml
+index 1d57225..fd0018c 100644
+--- a/hbase-hbck2/pom.xml
++++ b/hbase-hbck2/pom.xml
+@@ -114,12 +114,19 @@
+         </exclusion>
+       </exclusions>
+     </dependency>
+-    <dependency>
++    <!-- Starting with Hbase 2.6.2, this brings in a dependency that is not publicly available:
++        org.apache.directory.jdbm:apacheds-jdbm1:bundle:2.0.0-M2
++
++      Since we do not run the tests, we exclude this dependency.
++
++      To build successfully we also need to use -Dmaven.test.skip=true to skip building the tests.
++    -->
++    <!-- dependency>
+       <groupId>org.apache.hbase</groupId>
+       <artifactId>hbase-testing-util</artifactId>
+       <version>${hbase.version}</version>
+       <scope>test</scope>
+-    </dependency>
++    </dependency -->
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-core</artifactId>
+diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
+index 55ef075..eeebe14 100644
+--- a/hbase-tools/pom.xml
++++ b/hbase-tools/pom.xml
+@@ -103,12 +103,13 @@
+         </exclusion>
+       </exclusions>
+     </dependency>
+-    <dependency>
++    <!-- See the hbase-hbck2/pom.xml for an explanation of why this is commented out -->
++    <!-- dependency>
+       <groupId>org.apache.hbase</groupId>
+       <artifactId>hbase-testing-util</artifactId>
+       <version>${hbase.version}</version>
+       <scope>test</scope>
+-    </dependency>
++    </dependency -->
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-core</artifactId>

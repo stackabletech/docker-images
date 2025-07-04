@@ -1,0 +1,35 @@
+---
+name: Build Druid
+run-name: |
+  Build Druid (attempt #${{ github.run_attempt }})
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 1/2 * *' # https://crontab.guru/#0_1_1/2_*_*
+  push:
+    branches: [main]
+    tags: ['*']
+    paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - druid/**
+      - vector/**
+      - stackable-base/**
+      - java-base/**
+      - java-devel/**
+      - .github/actions/**
+      - .github/workflows/build_druid.yaml
+      - .github/workflows/reusable_build_image.yaml
+
+jobs:
+  build_image:
+    name: Reusable Workflow
+    uses: ./.github/workflows/reusable_build_image.yaml
+    secrets:
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    with:
+      product-name: druid
+      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp

@@ -1,128 +1,78 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
-FROM stackable/image/java-devel AS storage-connector-builder
+FROM stackable/image/trino/storage-connector AS trino-storage-connector-image
 
-ARG STORAGE_CONNECTOR
-
-WORKDIR /stackable
-
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-storage/trino-storage-${STORAGE_CONNECTOR}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository cd trino-storage-${STORAGE_CONNECTOR}-src && \
-    # Upstream builds are marked as -SNAPSHOT, even for release builds
-    mvn versions:set -DnewVersion=${STORAGE_CONNECTOR} && \
-    mvn package -DskipTests -Dmaven.gitcommitid.skip=true
-
-# # TODO: remove the OPA authorizer builder once Trino versions 414 and 428 are removed
-FROM stackable/image/java-devel AS opa-authorizer-builder
-
-ARG PRODUCT
-ARG OPA_AUTHORIZER
-
-WORKDIR /stackable
-
-RUN if [ -n "${OPA_AUTHORIZER}" ]; then \
-        curl --fail -L "https://repo.stackable.tech/repository/packages/trino-opa-authorizer/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src.tar.gz" | tar -xzC .; \
-    fi
-RUN --mount=type=cache,target=/root/.m2/repository if [ -n "${OPA_AUTHORIZER}" ]; then \
-        cd trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src && \
-        mvn package -DskipTests; \
-    fi
-
-# Create an empty dummy plugin folder for newer versions that don't need the plugin anymore
-RUN mkdir -p trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out
-
-FROM stackable/image/java-devel AS builder
-
-ARG PRODUCT
-# External OPA authorizer only required for 414 and 428, included in 438
-# The `OPA_AUTHORIZER` is not set in the conf.py for version 438 to remove the ARG as soon as 414 and 428 are removed
-ARG OPA_AUTHORIZER
-ARG STORAGE_CONNECTOR
-
-WORKDIR /stackable
-
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/trino-server/trino-server-${PRODUCT}-src.tar.gz" | tar -xzC .
-
-RUN --mount=type=cache,target=/root/.m2/repository cd "trino-server-${PRODUCT}-src" && \
-    # We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-    ./mvnw package -DskipTests -Dmaven.gitcommitid.skip=true --projects="!docs,!core/trino-server-rpm" && \
-    # Delete the worst intermediate build products to free some space
-    rm -r /stackable/trino-server-${PRODUCT}-src/plugin/*/target /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT} && \
-    # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
-    # while the raw output folder does not
-    tar -xzf /stackable/trino-server-${PRODUCT}-src/core/trino-server/target/trino-server-${PRODUCT}.tar.gz -C /stackable && \
-    chown --recursive stackable /stackable/trino-server-${PRODUCT} && \
-    # Delete all intermediate build products to free some more space
-    rm -r /stackable/trino-server-${PRODUCT}-src
-
-COPY --from=storage-connector-builder /stackable/trino-storage-${STORAGE_CONNECTOR}-src/target/trino-storage-${STORAGE_CONNECTOR} /stackable/trino-server-${PRODUCT}/plugin/trino-storage-${STORAGE_CONNECTOR}
-# # TODO: remove the following COPY statement once Trino versions 414 and 428 are removed
-COPY --from=opa-authorizer-builder /stackable/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}-src/target/out /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
-# We have no way to copy a folder conditionally, so delete the opa authorizer folder if no version is selected
-# Otherwise Trino will crash since empty plugin folders are not allowed
-RUN [ -n "${OPA_AUTHORIZER}" ] || rmdir /stackable/trino-server-${PRODUCT}/plugin/trino-opa-authorizer-${PRODUCT}-${OPA_AUTHORIZER}
-
-# For earlier versions this script removes the .class file that contains the
-# vulnerable code.
-# TODO: This can be restricted to target only versions which do not honor the environment
-#   varible that has been set above but this has not currently been implemented
-COPY shared/log4shell.sh /bin
-RUN /bin/log4shell.sh /stackable/trino-server-${PRODUCT}
-
-# Ensure no vulnerable files are left over
-# This will currently report vulnerable files being present, as it also alerts on
-# SocketNode.class, which we do not remove with our scripts.
-# Further investigation will be needed whether this should also be removed.
-COPY shared/log4shell_1.6.1-log4shell_Linux_x86_64 /bin/log4shell_scanner_x86_64
-COPY shared/log4shell_1.6.1-log4shell_Linux_aarch64 /bin/log4shell_scanner_aarch64
-COPY shared/log4shell_scanner /bin/log4shell_scanner
-RUN /bin/log4shell_scanner s /stackable/trino-server-${PRODUCT}
-# ===
-
-FROM stackable/image/java-devel AS jmx-exporter-builder
-
-ARG JMX_EXPORTER
-
-WORKDIR /stackable
-
-RUN curl --fail -L "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus-${JMX_EXPORTER}-src.tar.gz" | tar -xzC .
-RUN --mount=type=cache,target=/root/.m2/repository cd jmx_prometheus-${JMX_EXPORTER}-src && \
-    mvn package
+FROM stackable/image/trino/trino AS trino-builder
 
 FROM stackable/image/java-base
 
 ARG PRODUCT
-ARG JMX_EXPORTER
 ARG RELEASE
+ARG STACKABLE_USER_UID
+ARG JMX_EXPORTER
 
-LABEL name="Trino" \
-      maintainer="info@stackable.tech" \
-      vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
-      summary="The Stackable image for Trino." \
-      description="This image is deployed by the Stackable Operator for Trino."
+LABEL \
+    name="Trino" \
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT}" \
+    release="${RELEASE}" \
+    summary="The Stackable image for Trino." \
+    description="This image is deployed by the Stackable Operator for Trino."
 
-RUN microdnf update && \
-    microdnf install \
+RUN <<EOF
+microdnf update
+# libstdc++ required by snappy and duckdb, see https://github.com/trinodb/trino/pull/25143
+microdnf install \
     gzip \
     httpd-tools \
     python \
     tar \
-    zip && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
+    libstdc++ \
+    zip
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
 
-USER stackable
-WORKDIR /stackable
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --chown=stackable:stackable trino/stackable /stackable
-COPY --chown=stackable:stackable trino/licenses /licenses
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
-COPY --from=builder /stackable/trino-server-${PRODUCT} /stackable/trino-server-${PRODUCT}
-COPY --from=jmx-exporter-builder /stackable/jmx_prometheus-${JMX_EXPORTER}-src/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-RUN ln -s /stackable/trino-server-${PRODUCT} /stackable/trino-server && \
-    ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
+RUN <<EOF
+# JMX Exporter
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar -o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+chmod +x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx/jmx_prometheus_javaagent.jar
+ln -s /stackable/trino-server-${PRODUCT}-stackable${RELEASE} /stackable/trino-server
+
+# Set correct permissions
+chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx /stackable/trino-server
+chmod --recursive g=u /stackable
+EOF
+
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/trino-server
 CMD ["bin/launcher", "run", "--etc-dir=/stackable/conf"]

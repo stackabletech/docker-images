@@ -1,10 +1,18 @@
 ---
-name: UBI Builder rebuild
+name: Build UBI Rust Builders
+run-name: |
+  Build UBI Rust Builders (attempt #${{ github.run_attempt }})
 
 on:
   push:
     branches:
       - main
+    paths:
+      - ubi9-rust-builder/**
+      - ubi10-rust-builder/**
+      - .github/actions/**
+      - .github/workflows/ubi-rust-builder.yml
+      - .github/workflows/reusable_build_image.yaml
   schedule:
     - cron: '30 4 * * *'
   workflow_dispatch:
@@ -14,26 +22,29 @@ jobs:
     permissions:
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
         runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Login to Stackable Harbor
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
       - name: Determine Architecture
         run: |
           echo "TAG=$(git rev-parse --short HEAD)-$(arch)" >> "$GITHUB_ENV"
       - name: Build and push
         id: build-and-push
-        uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
           file: ./${{ matrix.ubi-version }}-rust-builder/Dockerfile
@@ -41,29 +52,34 @@ jobs:
           tags: oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder:${{ env.TAG }}
       - name: Sign the published builder image
         shell: bash
+        env:
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: |
           # Refer to image via its digest (oci.stackable.tech/sdp/airflow@sha256:0a1b2c...)
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
-          cosign sign -y "oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder@${{ steps.build-and-push.outputs.digest }}"
+          cosign sign -y "oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder@$DIGEST"
   create_manifest:
     permissions:
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
-        ubi-version: ["ubi8", "ubi9"]
+        ubi-version: ["ubi9"]
     runs-on: ubuntu-latest
     needs: ["build"]
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Login to Stackable Harbor
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
           password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       - name: Set up Cosign
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
       - name: Build Manifest List
         shell: bash
         run: |
@@ -78,3 +94,44 @@ jobs:
           # This generates a signature and publishes it to the registry, next to the image
           # Uses the keyless signing flow with Github Actions as identity provider
           cosign sign -y "$MANIFEST_LIST_NAME@$DIGEST"
+
+  notify:
+    name: Failure Notification
+    needs: [build, create_manifest]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+        with:
+          channel-id: "C07UG6JH44F" # notifications-container-images
+          payload: |
+            {
+              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
+              "attachments": [
+                {
+                  "pretext": "See the details below for a summary of which job(s) failed.",
+                  "color": "#aa0000",
+                  "fields": [
+                    {
+                      "title": "Build",
+                      "short": true,
+                      "value": "${{ needs.build.result }}"
+                    },
+                    {
+                      "title": "Create Manifest",
+                      "short": true,
+                      "value": "${{ needs.create_manifest.result }}"
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "Go to workflow run",
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}

@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/spark.git"
+default-mirror = "https://github.com/stackabletech/spark.git"

@@ -1,0 +1,35 @@
+From 1f18905f78c9c46c7c12c1d705547f00ddbfa1ab Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Wed, 10 Jul 2024 17:07:13 +0200
+Subject: Removes all traces of the druid ranger extension
+
+---
+ distribution/pom.xml | 2 --
+ pom.xml              | 1 -
+ 2 files changed, 3 deletions(-)
+
+diff --git a/distribution/pom.xml b/distribution/pom.xml
+index 1ebfa31f84..9c2cfc8753 100644
+--- a/distribution/pom.xml
++++ b/distribution/pom.xml
+@@ -252,8 +252,6 @@
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-pac4j</argument>
+                                         <argument>-c</argument>
+-                                        <argument>org.apache.druid.extensions:druid-ranger-security</argument>
+-                                        <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-kubernetes-extensions</argument>
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions:druid-catalog</argument>
+diff --git a/pom.xml b/pom.xml
+index 17cd202ea6..08a3f24210 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -198,7 +198,6 @@
+         <module>extensions-core/simple-client-sslcontext</module>
+         <module>extensions-core/druid-basic-security</module>
+         <module>extensions-core/google-extensions</module>
+-        <module>extensions-core/druid-ranger-security</module>
+         <module>extensions-core/druid-catalog</module>
+         <module>extensions-core/testing-tools</module>
+         <!-- Community extensions -->

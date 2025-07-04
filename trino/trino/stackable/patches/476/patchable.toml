@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/trino.git"
+base = "7f3746a7fa0b27ace2470340e848feaf3ee73f48"

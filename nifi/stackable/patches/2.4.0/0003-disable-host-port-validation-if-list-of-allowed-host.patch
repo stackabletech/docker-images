@@ -1,0 +1,48 @@
+From 5eb0363521dbb30e3e47ec8a604f5a5c678bf4fb Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Thu, 22 May 2025 14:47:24 +0200
+Subject: disable host port validation if list of allowed hosts only contains
+ '*'
+
+---
+ .../connector/FrameworkServerConnectorFactory.java  | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
+index ec1bee66fb..b58c886f4f 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
+@@ -54,6 +54,8 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact
+ 
+     private final String excludeCipherSuites;
+ 
++    private final boolean disableHostPortValidator;
++
+     private final Set<Integer> validPorts;
+ 
+     private SslContextFactory.Server sslContextFactory;
+@@ -72,6 +74,11 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact
+         headerSize = DataUnit.parseDataSize(properties.getWebMaxHeaderSize(), DataUnit.B).intValue();
+         validPorts = getValidPorts(properties);
+ 
++        // Check if the property for allowed hosts has only the wildcard entry and
++        // if so store this in disableHostPortValidator for later use
++        List<String> configuredHostNames = properties.getAllowedHostsAsList();
++        disableHostPortValidator = configuredHostNames.size() == 1 && configuredHostNames.contains("*");
++
+         if (properties.isHTTPSConfigured()) {
+             if (properties.isClientAuthRequiredForRestApi()) {
+                 setNeedClientAuth(true);
+@@ -102,8 +109,10 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact
+         // Add HostHeaderCustomizer to set Host Header for HTTP/2 and HostHeaderHandler
+         httpConfiguration.addCustomizer(new HostHeaderCustomizer());
+ 
+-        final HostPortValidatorCustomizer hostPortValidatorCustomizer = new HostPortValidatorCustomizer(validPorts);
+-        httpConfiguration.addCustomizer(hostPortValidatorCustomizer);
++        if (!disableHostPortValidator) {
++            final HostPortValidatorCustomizer hostPortValidatorCustomizer = new HostPortValidatorCustomizer(validPorts);
++            httpConfiguration.addCustomizer(hostPortValidatorCustomizer);
++        }
+ 
+         return httpConfiguration;
+     }

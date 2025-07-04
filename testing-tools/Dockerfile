@@ -1,8 +1,11 @@
-# syntax=docker/dockerfile:1.8.1@sha256:e87caa74dcb7d46cd820352bfea12591f3dba3ddc4285e19c7dcd13359f7cefd
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
 
 # Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
 # https://hub.docker.com/_/python/tags
-FROM python:3.12-slim-bullseye@sha256:dee6c73dad9e135ebf727e234f1bb2414b4634e34e03d90bc66c9762dec7e671
+# In Docker Hub, open up the tag and look for Index Digest. Otherwise do:
+# docker pull python:3.12-slim-bullseye and see the digest that appears in the output.
+FROM python:3.12-slim-bullseye@sha256:229b2897e6b5c630d83a721e42dd1c96e3ec996323bb822b076eb865e2c6c0b2
 
 ARG PRODUCT
 ARG RELEASE
@@ -55,7 +58,7 @@ COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
 ENV PATH=/stackable/keycloak/bin:$PATH
-RUN curl --fail https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
+RUN curl --fail -L https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
     ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
 RUN pip install --no-cache-dir --upgrade pip && \

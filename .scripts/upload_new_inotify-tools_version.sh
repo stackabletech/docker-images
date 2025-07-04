@@ -49,10 +49,10 @@ for arch in "${ARCHITECTURES[@]}"; do
     file=inotify-tools-$VERSION.$arch.rpm
 
     echo "Downloading $file from dl.fedoraproject.org"
-    curl --fail -LOs "https://dl.fedoraproject.org/pub/epel/$EPEL_VERSION/Everything/$arch/Packages/i/$file"
+    curl --fail -LO --progress-bar "https://dl.fedoraproject.org/pub/epel/$EPEL_VERSION/Everything/$arch/Packages/i/$file"
 
     echo "Uploading $file to Nexus"
-    curl --fail -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+    curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" \
         --upload-file "$file" \
         'https://repo.stackable.tech/repository/packages/inotify-tools/'
 done

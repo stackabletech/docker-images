@@ -1,0 +1,34 @@
+---
+name: Build Spark Connect Client
+run-name: |
+  Build Spark Connect Client (attempt #${{ github.run_attempt }})
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 2/2 * *' # https://crontab.guru/#0_0_2/2_*_*
+  push:
+    branches: [main]
+    tags: ['*']
+    paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      - spark-k8s/**
+      - spark-connect-client/**
+      - stackable-base/**
+      - java-base/**
+      - .github/actions/**
+      - .github/workflows/build_spark-connect-client.yaml
+      - .github/workflows/reusable_build_image.yaml
+
+jobs:
+  build_image:
+    name: Reusable Workflow
+    uses: ./.github/workflows/reusable_build_image.yaml
+    secrets:
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+      slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    with:
+      product-name: spark-connect-client
+      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: stackable

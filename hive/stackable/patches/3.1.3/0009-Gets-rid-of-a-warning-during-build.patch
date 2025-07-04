@@ -1,0 +1,25 @@
+From 005455cb5687d9c5429f538ed69ff77eeba766a5 Mon Sep 17 00:00:00 2001
+From: Lars Francke <lars.francke@stackable.tech>
+Date: Tue, 13 Aug 2024 13:38:12 +0200
+Subject: Gets rid of a warning during build
+
+---
+ serde/pom.xml | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/serde/pom.xml b/serde/pom.xml
+index c2f9de16fe..69f284aa00 100644
+--- a/serde/pom.xml
++++ b/serde/pom.xml
+@@ -70,11 +70,6 @@
+       <artifactId>arrow-vector</artifactId>
+       <version>${arrow.version}</version>
+     </dependency>
+-    <dependency>
+-      <groupId>org.apache.arrow</groupId>
+-      <artifactId>arrow-vector</artifactId>
+-      <version>${arrow.version}</version>
+-    </dependency>
+     <dependency>
+       <groupId>com.carrotsearch</groupId>
+       <artifactId>hppc</artifactId>

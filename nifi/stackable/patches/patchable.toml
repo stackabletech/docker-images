@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/nifi.git"
+default-mirror = "https://github.com/stackabletech/nifi.git"
