@@ -53,8 +53,6 @@ RUN microdnf update && \
     which \
     xz \
     zlib-devel \
-    # Required for log4shell.sh
-    unzip zip && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
