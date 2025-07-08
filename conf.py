@@ -40,6 +40,7 @@ trino_jars = importlib.import_module("trino.trino.versions")
 trino_storage_connector = importlib.import_module("trino.storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
 kcat = importlib.import_module("kafka.kcat.versions")
+kafka_opa_plugin = importlib.import_module("kafka.kafka-opa-plugin.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
@@ -77,6 +78,7 @@ products = [
     {"name": "trino/storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
     {"name": "kafka/kcat", "versions": kcat.versions},
+    {"name": "kafka/kafka-opa-plugin", "versions": kafka_opa_plugin.versions},
     {"name": "testing-tools", "versions": testing_tools.versions},
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},
@@ -112,7 +114,7 @@ cache = [
 
 args = {
     "STACKABLE_USER_NAME": "stackable",
-    "STACKABLE_USER_UID": "1000",
-    "STACKABLE_USER_GID": "1000",
+    "STACKABLE_USER_UID": "782252253",  # This is a random high id to not conflict with any existing user
+    "STACKABLE_USER_GID": "574654813",  # This is a random high id to not conflict with any existing group
     "DELETE_CACHES": "true",
 }
