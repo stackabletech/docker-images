@@ -18,7 +18,6 @@ hbase_jars = importlib.import_module("hbase.hbase.versions")
 hbase_phoenix = importlib.import_module("hbase.phoenix.versions")
 hbase_opa_authorizer = importlib.import_module("hbase.hbase-opa-authorizer.versions")
 hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versions")
-hello_world = importlib.import_module("hello-world.versions")
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
@@ -54,7 +53,6 @@ products = [
     {"name": "hbase/phoenix", "versions": hbase_phoenix.versions},
     {"name": "hbase/hbase-opa-authorizer", "versions": hbase_opa_authorizer.versions},
     {"name": "hbase/hbase-operator-tools", "versions": hbase_operator_tools.versions},
-    {"name": "hello-world", "versions": hello_world.versions},
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
