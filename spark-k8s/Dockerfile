@@ -60,10 +60,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patche
 
 RUN <<EOF
 
-# HBase connectors don't support Spark 4 yet, so we skip the build.
+# IMPORTANT: HBase connectors don't support Spark 4 yet, so we skip the build.
+# Watch this PR for updates: https://github.com/apache/hbase-connectors/pull/130
 if [[ "${PRODUCT}" == 4* ]]; then
     # Create this empy directory so that following COPY layers succeed.
     mkdir -p /stackable/spark/jars
+    # Create a dummy tarball to satisfy the build process for Spark 3.
+    touch hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz
     exit 0
 fi
 
@@ -187,7 +190,7 @@ RUN <<EOF
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
     case "${PRODUCT}" in
-        "4*")
+        4*)
             # The Spark 4 script has a --connect option which is not available in Spark 3.
             # This option is required to build Spark Connect.
             # Also this option breaks the Spark 3 build so we ensure it's only provided here.
@@ -226,7 +229,7 @@ RUN <<EOF
     cd dist/connect
 
     case "${PRODUCT}" in
-        "4*")
+        4*)
             cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
             cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
             cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
@@ -238,7 +241,11 @@ RUN <<EOF
             ;;
     esac
 
-    # The Spark operator expects a file named spark-connect-{PRODUCT}.jar.
+    # This link is needed by the operator and is kept for backwards compatibility.
+    # TODO: remove it at some time in the future.
+    ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar"
+    # Link to the spark-connect jar without the stackable suffix and scala version.
+    # This link supersedes the previous link.
     ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect-${PRODUCT}.jar"
 EOF
 
@@ -340,7 +347,7 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz* /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}-stackable${RELEASE}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
