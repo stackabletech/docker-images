@@ -225,9 +225,18 @@ RUN <<EOF
     mkdir -p dist/connect
     cd dist/connect
 
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    case "${PRODUCT}" in
+        "4*")
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            ;;
+        *)
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            ;;
+    esac
 
     # The Spark operator expects a file named spark-connect-{PRODUCT}.jar.
     ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect-${PRODUCT}.jar"
