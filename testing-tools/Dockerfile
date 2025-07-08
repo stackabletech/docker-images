@@ -10,6 +10,9 @@ FROM python:3.12-slim-bullseye@sha256:229b2897e6b5c630d83a721e42dd1c96e3ec996323
 ARG PRODUCT
 ARG RELEASE
 ARG KEYCLOAK_VERSION
+ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_NAME
 
 LABEL name="Stackable Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -25,49 +28,55 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # This is needed so that krb5-user installs without prompting for a realm.
 ENV DEBIAN_FRONTEND=noninteractive
 
-# krb5-user/libkrb5-dev are needed for Kerberos support.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        curl \
-        gzip \
-        jq \
-        krb5-user \
-        kubernetes-client \
-        libkrb5-dev \
-        libssl-dev \
-        libxml2-dev \
-        libxslt1-dev \
-        pkg-config \
-        python3-certifi \
-        python3-idna \
-        python3-semver \
-        python3-thrift \
-        python3-toml \
-        python3-urllib3 \
-        tar \
-        zip \
-        unzip \
-        # Java 11 seems like the best middle-ground for all tools
-        openjdk-11-jdk-headless && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
+
+RUN <<EOF
+apt-get update
+apt-get install -y --no-install-recommends \
+  build-essential \
+  ca-certificates \
+  curl \
+  gzip \
+  jq \
+  `# krb5-user/libkrb5-dev are needed for Kerberos support. ` \
+  krb5-user \
+  libkrb5-dev \
+  kubernetes-client \
+  libssl-dev \
+  libxml2-dev \
+  libxslt1-dev \
+  pkg-config \
+  python3-certifi \
+  python3-idna \
+  python3-semver \
+  python3-thrift \
+  python3-toml \
+  python3-urllib3 \
+  tar \
+  zip \
+  unzip \
+  `# Java 11 seems like the best middle-ground for all tools` \
+  openjdk-11-jdk-headless
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+
+curl --fail -L https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable
+ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
+
+pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir -r /stackable/python/requirements.txt
+groupadd -r ${STACKABLE_USER_NAME} --gid=${STACKABLE_USER_GID}
+useradd -r -g ${STACKABLE_USER_NAME} --uid=${STACKABLE_USER_UID} ${STACKABLE_USER_NAME}
+chown -R ${STACKABLE_USER_UID}:0 /stackable
+EOF
+
 ENV PATH=/stackable/keycloak/bin:$PATH
-RUN curl --fail -L https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable && \
-    ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /stackable/python/requirements.txt && \
-    groupadd -r stackable --gid=1000 && \
-    useradd -r -g stackable --uid=1000 stackable && \
-    chown -R stackable:stackable /stackable
-
-USER stackable
+USER ${STACKABLE_USER_UID}
 
 ENV STACKABLE_PRODUCT_VERSION=${PRODUCT}
 
