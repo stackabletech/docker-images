@@ -32,8 +32,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY testing-tools/python /stackable/python
 COPY testing-tools/licenses /licenses
 
-# krb5-user/libkrb5-dev are needed for Kerberos support.
-# Java 11 seems like the best middle-ground for all tools
+
 RUN <<EOF
 apt-get update
 apt-get install -y --no-install-recommends \
@@ -42,9 +41,10 @@ apt-get install -y --no-install-recommends \
   curl \
   gzip \
   jq \
+  `# krb5-user/libkrb5-dev are needed for Kerberos support. ` \
   krb5-user \
-  kubernetes-client \
   libkrb5-dev \
+  kubernetes-client \
   libssl-dev \
   libxml2-dev \
   libxslt1-dev \
@@ -58,6 +58,7 @@ apt-get install -y --no-install-recommends \
   tar \
   zip \
   unzip \
+  `# Java 11 seems like the best middle-ground for all tools` \
   openjdk-11-jdk-headless
 
 apt-get clean
