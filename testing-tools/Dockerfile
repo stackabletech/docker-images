@@ -5,7 +5,7 @@
 # https://hub.docker.com/_/python/tags
 # In Docker Hub, open up the tag and look for Index Digest. Otherwise do:
 # docker pull python:3.12-slim-bullseye and see the digest that appears in the output.
-FROM python:3.12-slim-bullseye@sha256:229b2897e6b5c630d83a721e42dd1c96e3ec996323bb822b076eb865e2c6c0b2
+FROM python:3.12-slim-bullseye@sha256:f6d639b794b394cbeb7a9327d5af9976f0e8d61353bcf41916984775c9bbed1a
 
 ARG PRODUCT
 ARG RELEASE
