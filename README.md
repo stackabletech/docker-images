@@ -6,12 +6,11 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 | | | | |
 | -: | -: | -: | -: |
 | [![Build Airflow]][build_airflow.yaml] | [![Build Druid]][build_druid.yaml] | [![Build Hadoop]][build_hadoop.yaml] | [![Build HBase]][build_hbase.yaml] |
-| [![Build Hello-World]][build_hello-world.yaml] | [![Build Hive]][build_hive.yaml] | [![Build Java Base]][build_java-base.yaml] | [![Build Java Development]][build_java-devel.yaml] |
-| [![Build Kafka Testing Tools]][build_kafka-testing-tools.yaml] | [![Build Kafka]][build_kafka.yaml] | [![Build Krb5]][build_krb5.yaml] | [![Build NiFi]][build_nifi.yaml] |
-| [![Build Omid]][build_omid.yaml] | [![Build OPA]][build_opa.yaml] | [![Build Spark Connect Client]][build_spark-connect-client.yaml] | [![Build Spark K8s]][build_spark-k8s.yaml] |
-| [![Build Stackable Base]][build_stackable-base.yaml] | [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] | [![Build Tools]][build_tools.yaml] |
-| [![Build Trino CLI]][build_trino-cli.yaml] | [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] | [![Build ZooKeeper]][build_zookeeper.yaml] |
-| | | | |
+| [![Build Hive]][build_hive.yaml] | [![Build Java Base]][build_java-base.yaml] | [![Build Java Development]][build_java-devel.yaml] | [![Build Kafka Testing Tools]][build_kafka-testing-tools.yaml] |
+| [![Build Kafka]][build_kafka.yaml] | [![Build Krb5]][build_krb5.yaml] | [![Build NiFi]][build_nifi.yaml] | [![Build Omid]][build_omid.yaml] |
+| [![Build OPA]][build_opa.yaml] | [![Build Spark Connect Client]][build_spark-connect-client.yaml] | [![Build Spark K8s]][build_spark-k8s.yaml] | [![Build Stackable Base]][build_stackable-base.yaml] |
+| [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] | [![Build Tools]][build_tools.yaml] | [![Build Trino CLI]][build_trino-cli.yaml] |
+| [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] | [![Build ZooKeeper]][build_zookeeper.yaml] | |
 <!-- end:badges -->
 
 ## Prerequisites
@@ -222,8 +221,6 @@ ENTRYPOINT ["/stackable-zookeeper-operator"]
 [build_hadoop.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_hadoop.yaml
 [Build HBase]: https://github.com/stackabletech/docker-images/actions/workflows/build_hbase.yaml/badge.svg
 [build_hbase.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_hbase.yaml
-[Build Hello-World]: https://github.com/stackabletech/docker-images/actions/workflows/build_hello-world.yaml/badge.svg
-[build_hello-world.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_hello-world.yaml
 [Build Hive]: https://github.com/stackabletech/docker-images/actions/workflows/build_hive.yaml/badge.svg
 [build_hive.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_hive.yaml
 [Build Java Base]: https://github.com/stackabletech/docker-images/actions/workflows/build_java-base.yaml/badge.svg
