@@ -69,8 +69,17 @@ ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
 
 pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir -r /stackable/python/requirements.txt
-groupadd -r ${STACKABLE_USER_NAME} --gid=${STACKABLE_USER_GID}
-useradd -r -g ${STACKABLE_USER_NAME} --uid=${STACKABLE_USER_UID} ${STACKABLE_USER_NAME}
+
+groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
+useradd \
+  --no-log-init \
+  --gid ${STACKABLE_USER_GID} \
+  --uid ${STACKABLE_USER_UID} \
+  --system \
+  --create-home \
+  --home-dir /stackable \
+   ${STACKABLE_USER_NAME}
+
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 EOF
 
