@@ -93,6 +93,9 @@ All notable changes to this project will be documented in this file.
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 - hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
 - Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#1164])
+- ubi-rust-builder: Bump Rust toolchain to 1.87.0, cargo-auditable to 0.7.0 and protoc to 31.1 ([#1197]).
+- stackable-base, stackable-devel, ubi-rust-builder: Update `ubi-minimal` base image ([#1197]).
+- testing-tools: Update `python` 3.12-slim-bullseye base image ([#1197]).
 
 ### Fixed
 
@@ -217,6 +220,7 @@ All notable changes to this project will be documented in this file.
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1188]: https://github.com/stackabletech/docker-images/pull/1188
 [#1189]: https://github.com/stackabletech/docker-images/pull/1189
+[#1197]: https://github.com/stackabletech/docker-images/pull/1197
 
 ## [25.3.0] - 2025-03-21
 
