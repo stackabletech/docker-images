@@ -209,7 +209,6 @@ LABEL \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/
-# TODO ARCH & symlink
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler-${ASYNC_PROFILER}-* /stackable/async-profiler-${ASYNC_PROFILER}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/protobuf-*-src.tar.gz /stackable/
