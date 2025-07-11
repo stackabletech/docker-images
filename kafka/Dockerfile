@@ -11,13 +11,14 @@ ARG RELEASE
 ARG SCALA
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/patchable.toml /stackable/src/kafka/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/stackable/patches/patchable.toml /stackable/src/kafka/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/stackable/patches/${PRODUCT} /stackable/src/kafka/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT})"
@@ -58,6 +59,7 @@ ARG SCALA
 ARG KAFKA_KCAT
 ARG KAFKA_KAFKA_OPA_PLUGIN
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL \
   name="Apache Kafka" \
@@ -68,17 +70,17 @@ LABEL \
   summary="The Stackable image for Apache Kafka." \
   description="This image is deployed by the Stackable Operator for Apache Kafka."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE} /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT}-stackable${RELEASE}-src.tar.gz  /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/kafka-opa-plugin-${KAFKA_KAFKA_OPA_PLUGIN}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE} /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-builder /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-builder /stackable/kafka-${PRODUCT}-stackable${RELEASE}-src.tar.gz  /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-builder /stackable/jmx/ /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN}-all.jar
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kafka-opa-plugin /stackable/kafka-opa-plugin-${KAFKA_KAFKA_OPA_PLUGIN}-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/licenses /licenses
 
 WORKDIR /stackable
 
@@ -90,17 +92,17 @@ microdnf install \
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln -s /stackable/bin/kcat-${KAFKA_KCAT} /stackable/bin/kcat
-chown -h ${STACKABLE_USER_UID}:0 /stackable/bin/kcat
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/bin/kcat
 # kcat was located in /stackable/kcat - legacy
 ln -s /stackable/bin/kcat /stackable/kcat
-chown -h ${STACKABLE_USER_UID}:0 /stackable/kcat
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/kcat
 ln -s /stackable/kafka_${SCALA}-${PRODUCT}-stackable${RELEASE} /stackable/kafka
-chown -h ${STACKABLE_USER_UID}:0 /stackable/kafka
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/kafka
 
 # fix missing permissions
 chmod g=u /stackable/bin

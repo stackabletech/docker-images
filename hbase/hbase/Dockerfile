@@ -9,6 +9,7 @@ ARG HADOOP
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -19,10 +20,10 @@ COPY hbase/licenses /licenses
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/patchable.toml /stackable/src/hbase/hbase/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase/stackable/patches/patchable.toml /stackable/src/hbase/hbase/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT}
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 # And every cache needs its own id, we can't share them between stages because we might delete the caches

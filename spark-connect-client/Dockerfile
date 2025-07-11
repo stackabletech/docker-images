@@ -7,6 +7,7 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Stackable Spark Connect Examples" \
     maintainer="info@stackable.tech" \
@@ -19,8 +20,8 @@ LABEL name="Stackable Spark Connect Examples" \
 # Need root to install setuptools
 USER root
 
-COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
-COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/.jupyter /stackable/.jupyter
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-connect-client/stackable/.jupyter /stackable/.jupyter
 
 RUN <<EOF
 microdnf update
@@ -32,7 +33,7 @@ rm -rf /var/cache/yum
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
+chown -R ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable
 chmod -R g=u /stackable
 EOF
 

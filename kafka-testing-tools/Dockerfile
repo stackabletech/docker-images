@@ -9,6 +9,7 @@ ARG PRODUCT
 ARG KAFKA_KCAT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Kafka Testing Tools" \
       maintainer="info@stackable.tech" \
@@ -18,7 +19,7 @@ LABEL name="Kafka Testing Tools" \
       summary="The Stackable image for the kcat tool." \
       description="Used for integration testing"
 
- # diffutils (diff) and binutils (cmp) are needed for the kafka integration tests
+# diffutils (diff) and binutils (cmp) are needed for the kafka integration tests
 RUN microdnf install  \
     binutils \
     cyrus-sasl \
@@ -30,11 +31,11 @@ RUN microdnf install  \
     && rm -rf /var/cache/yum
 
 # Store kcat version with binary name and add softlink
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/kcat-${KAFKA_KCAT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /stackable/kcat /stackable/kcat-${KAFKA_KCAT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /stackable/kcat-${KAFKA_KCAT}-src.tar.gz /stackable
 RUN ln -s /stackable/kcat-${KAFKA_KCAT} /stackable/kcat
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=kcat /licenses /licenses
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka-testing-tools/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka-testing-tools/licenses /licenses
 
 ENTRYPOINT ["/stackable/kcat"]

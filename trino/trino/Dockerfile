@@ -5,11 +5,12 @@ FROM stackable/image/java-devel AS trino-builder
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT} /stackable/src/trino/trino/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/trino/stackable/patches/${PRODUCT} /stackable/src/trino/trino/stackable/patches/${PRODUCT}
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215

@@ -7,6 +7,7 @@ ARG PRODUCT
 ARG RELEASE
 ARG DELETE_CACHES="true"
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 RUN <<EOF
 microdnf update
@@ -22,8 +23,8 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/patchable.toml /stackable/src/omid/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} omid/stackable/patches/patchable.toml /stackable/src/omid/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
@@ -55,6 +56,7 @@ ARG PRODUCT
 ARG RELEASE
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
@@ -66,10 +68,10 @@ LABEL name="Apache Phoenix Omid" \
 
 COPY omid/licenses /licenses
 
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} omid/stackable /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/omid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
 RUN <<EOF
 microdnf update
@@ -89,7 +91,7 @@ mkdir /stackable/logs
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
+chown -R ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable
 chmod -R g=u /stackable
 EOF
 
@@ -97,7 +99,7 @@ EOF
 # Attention: We are changing the group of all files in /stackable directly above
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID}
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}

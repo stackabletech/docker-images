@@ -8,12 +8,13 @@ FROM stackable/image/java-devel AS storage-connector-builder
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino/storage-connector/stackable/patches/patchable.toml /stackable/src/trino-storage-connector/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 trino/storage-connector/stackable/patches/${PRODUCT} /stackable/src/trino-storage-connector/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=trino-builder /stackable/patched-libs /stackable/patched-libs
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/storage-connector/stackable/patches/patchable.toml /stackable/src/trino-storage-connector/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/storage-connector/stackable/patches/${PRODUCT} /stackable/src/trino-storage-connector/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=trino-builder /stackable/patched-libs /stackable/patched-libs
 USER ${STACKABLE_USER_UID}
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980

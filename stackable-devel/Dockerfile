@@ -17,6 +17,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:383329bf9c4f968e87e85d30
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -89,7 +90,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 cp /root/.curlrc /stackable/.curlrc
-chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/.curlrc
 
 # WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
@@ -112,6 +113,6 @@ cd /patchable
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 mv /patchable/target/release/patchable /stackable/patchable
 microdnf clean all
-chown ${STACKABLE_USER_UID}:0 /stackable/patchable
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patchable
 rm -rf /patchable
 EOF

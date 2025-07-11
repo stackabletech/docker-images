@@ -10,6 +10,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG JMX_EXPORTER
 
 LABEL \
@@ -35,14 +36,14 @@ microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
+COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/trino-server /stackable/trino-server-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/licenses /licenses
 
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/trino-storage-${PRODUCT}-stackable${RELEASE} /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT}/target/bom.json /stackable/trino-server-${PRODUCT}-stackable${RELEASE}/plugin/trino-storage-${PRODUCT}-stackable${RELEASE}/trino-storage-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/trino-storage-connector-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} trino/stackable/jmx /stackable/jmx
 
 RUN <<EOF
 # JMX Exporter
@@ -52,7 +53,7 @@ ln -s /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar /stackable/jmx
 ln -s /stackable/trino-server-${PRODUCT}-stackable${RELEASE} /stackable/trino-server
 
 # Set correct permissions
-chown -R ${STACKABLE_USER_UID}:0 /stackable/jmx /stackable/trino-server
+chown -R ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/jmx /stackable/trino-server
 chmod --recursive g=u /stackable
 EOF
 

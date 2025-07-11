@@ -137,6 +137,7 @@ ARG PRODUCT
 ARG PYTHON
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Apache Superset" \
     maintainer="info@stackable.tech" \
@@ -155,7 +156,7 @@ ENV PATH="${HOME}/app/bin:${PATH}" \
 
 COPY superset/licenses /licenses
 
-COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
+COPY --from=builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/ ${HOME}/
 
 RUN <<EOF
 microdnf update

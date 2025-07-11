@@ -19,19 +19,20 @@ ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
 ARG AZURE_KEYVAULT_CORE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
 # Copy patches into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/patchable.toml /stackable/src/hive/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hive/stackable/patches/patchable.toml /stackable/src/hive/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hive/stackable/patches/${PRODUCT} /stackable/src/hive/stackable/patches/${PRODUCT}
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}-stackable${RELEASE}
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}-stackable${RELEASE}
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs /stackable/patched-libs
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -117,6 +118,7 @@ ARG PRODUCT
 ARG HADOOP
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 
 ARG NAME="Apache Hive metastore"
@@ -143,13 +145,13 @@ LABEL io.k8s.display-name="${NAME}"
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop-${HADOOP}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bin
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hive-builder /stackable/hive-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hive-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop-${HADOOP}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hive-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hive/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bin
 
 COPY hive/licenses /licenses
 
@@ -157,17 +159,17 @@ RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 chmod g=u /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bin/start-metastore
 
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin /stackable/hive-metastore
-chown -h ${STACKABLE_USER_UID}:0 /stackable/hive-metastore
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/hive-metastore
 chmod g=u /stackable/hive-metastore
 ln -s /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop
-chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/hadoop
 chmod g=u /stackable/hadoop
 chmod g=u /stackable/*-src.tar.gz
 

@@ -43,6 +43,7 @@ FROM stackable/image/stackable-devel AS opa-builder
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -60,14 +61,14 @@ microdnf install \
 microdnf clean all
 EOF
 
-COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/bin /stackable/opa/bin
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} opa/stackable/bin /stackable/opa/bin
 
 # Manually install Go since the dnf package is sometimes not recent enough
 COPY --from=golang-image /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/patchable.toml /stackable/src/opa/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/${PRODUCT} /stackable/src/opa/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} opa/stackable/patches/patchable.toml /stackable/src/opa/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} opa/stackable/patches/${PRODUCT} /stackable/src/opa/stackable/patches/${PRODUCT}
 
 WORKDIR /stackable
 
@@ -107,6 +108,7 @@ FROM stackable/image/vector
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Open Policy Agent" \
   maintainer="info@stackable.tech" \
@@ -116,11 +118,11 @@ LABEL name="Open Policy Agent" \
   summary="The Stackable image for Open Policy Agent (OPA)." \
   description="This image is deployed by the Stackable Operator for OPA."
 
-COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} opa/licenses /licenses
 
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz
-COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/opa /stackable/opa
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz
+COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 RUN <<EOF
 microdnf update

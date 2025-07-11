@@ -4,6 +4,7 @@
 FROM stackable/image/stackable-base
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /statsd_exporter
 

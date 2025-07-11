@@ -8,6 +8,7 @@ ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
 # As soon as an Init Container is done it'll need to tell the Vector sidecar that it can now also stop
@@ -29,7 +30,7 @@ cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE
 # Vector state, such as on-disk buffers, file checkpoints, and more.
 # Vector needs write permissions.
 mkdir --parents /stackable/vector/var
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/
+chown --recursive ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/
 # Set correct permissions
 chmod -R g=u /stackable
 EOF

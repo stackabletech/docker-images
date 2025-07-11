@@ -11,6 +11,7 @@ ARG PRODUCT
 ARG RELEASE
 ARG MAVEN_VERSION="3.9.8"
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 RUN <<EOF
 microdnf update
@@ -35,9 +36,9 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=git-sync-image /git-sync /stackable/git-sync
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/stackable/patches/${PRODUCT} /stackable/src/nifi/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=git-sync-image /git-sync /stackable/git-sync
 
 RUN <<EOF
 # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
@@ -98,12 +99,13 @@ FROM stackable/image/java-devel AS nifi-iceberg-bundle-builder
 ARG NIFI_ICEBERG_BUNDLE
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE} /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE} /stackable/src/nifi/nifi-iceberg-bundle/stackable/patches/${NIFI_ICEBERG_BUNDLE}
 
 RUN <<EOF
 mkdir -p /stackable
@@ -144,13 +146,14 @@ FROM stackable/image/java-devel AS opa-authorizer-builder
 
 ARG NIFI_OPA_AUTHORIZER_PLUGIN
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG PRODUCT
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/opa-plugin/stackable/patches/patchable.toml /stackable/src/nifi/opa-plugin/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN} /stackable/src/nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/opa-plugin/stackable/patches/patchable.toml /stackable/src/nifi/opa-plugin/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN} /stackable/src/nifi/opa-plugin/stackable/patches/${NIFI_OPA_AUTHORIZER_PLUGIN}
 
 RUN <<EOF
 mkdir -p /stackable
@@ -179,6 +182,7 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG NIFI_OPA_AUTHORIZER_PLUGIN
 
 LABEL name="Apache NiFi" \
@@ -189,20 +193,20 @@ LABEL name="Apache NiFi" \
     summary="The Stackable image for Apache NiFi." \
     description="This image is deployed by the Stackable Operator for Apache NiFi."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE} /stackable/nifi-${PRODUCT}-stackable${RELEASE}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE} /stackable/nifi-${PRODUCT}-stackable${RELEASE}/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-builder /stackable/nifi-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-builder /stackable/stackable-bcrypt.jar /stackable/stackable-bcrypt.jar
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-iceberg-bundle-builder /stackable/*.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT}-stackable${RELEASE}/lib/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-iceberg-bundle-builder /stackable/*-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=nifi-builder /stackable/git-sync /stackable/git-sync
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/extensions/opa-authorizer.nar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz  /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT}-stackable${RELEASE}/extensions/opa-authorizer.nar
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=opa-authorizer-builder /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz  /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/stackable/bin /stackable/bin
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} nifi/python /stackable/python
 
 RUN <<EOF
 microdnf update
@@ -229,7 +233,7 @@ ln -s /stackable/stackable-bcrypt.jar /bin/stackable-bcrypt.jar
 ln -s /stackable/nifi-${PRODUCT}-stackable${RELEASE} /stackable/nifi
 
 # fix missing permissions / ownership
-chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
+chown --no-dereference ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/nifi
 chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-${PRODUCT}-stackable${RELEASE}

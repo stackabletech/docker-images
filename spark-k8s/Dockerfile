@@ -13,11 +13,12 @@ FROM stackable/image/java-devel AS spark-source-builder
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/stackable/patches/${PRODUCT} /stackable/src/spark-k8s/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT})"
@@ -41,6 +42,7 @@ ARG HADOOP
 ARG HBASE
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /stackable
 
@@ -48,15 +50,15 @@ WORKDIR /stackable
 # versions used by Spark. The pom.xml defines child modules which are
 # not required and not copied, therefore mvn must be called with the
 # parameter --non-recursive.
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT}/pom.xml \
     spark/
 
 # Patch the hbase-connectors source code
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/hbase-connectors/stackable/patches/patchable.toml /stackable/src/spark-k8s/hbase-connectors/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
@@ -146,16 +148,17 @@ ARG TARGETARCH
 ARG TINI
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 # Find the latest version here: https://github.com/apache/maven
 # renovate: datasource=github-tags packageName=apache/maven
 ARG MAVEN_VERSION="3.9.10"
 
 WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT} \
     ./
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs /stackable/patched-libs
 
 # >>> Build spark
 # Compiling the tests takes a lot of time, so we skip them
@@ -217,35 +220,35 @@ EOF
 WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist/jars
 
 # Copy modules required for s3a://
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar \
     ./
 
 # Copy modules required for abfs://
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar \
     /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar \
     ./
 
 # Copy the HBase connector including required modules
-COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/spark/jars/* \
     ./
 
 # Copy modules required to access HBase
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE}-stackable${RELEASE}.jar \
     /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE}-stackable${RELEASE}.jar \
     ./
 # Copy modules required to access HBase if $HBASE == 2.4.x
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/hbase/lib/client-facing-thirdparty/htrace-core4-*-incubating.jar \
     /stackable/hbase/lib/client-facing-thirdparty/slf4j-reload4j-*.jar \
     ./
 # Copy modules required to access HBase if $HBASE == 2.6.x
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
     /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
@@ -289,6 +292,7 @@ ARG RELEASE
 ARG JMX_EXPORTER
 ARG HBASE_CONNECTOR
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Apache Spark" \
     maintainer="info@stackable.tech" \
@@ -308,15 +312,15 @@ ENV PYSPARK_PYTHON=/usr/bin/python
 ENV PYTHONPATH=$SPARK_HOME/python
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist /stackable/spark
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}-stackable${RELEASE}.cdx.json
-COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-source-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-builder /stackable/spark-${PRODUCT}-stackable${RELEASE}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
-COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} spark-k8s/licenses /licenses
 
 RUN <<EOF
 microdnf update
@@ -342,7 +346,7 @@ ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
 
 # Symlink example jar, so that we can easily use it in tests
 ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
-chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/spark/examples/jars/spark-examples.jar
 
 # fix permissions
 chmod g=u /stackable/spark

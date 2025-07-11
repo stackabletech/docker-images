@@ -44,6 +44,7 @@ ARG SHARED_STATSD_EXPORTER
 ARG PYTHON
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG S3FS
 ARG CYCLONEDX_BOM
 ARG UV
@@ -114,7 +115,7 @@ EOF
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
-COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /git-sync /stackable/git-sync
 
 RUN <<EOF
 mkdir -pv /stackable/airflow
@@ -132,6 +133,7 @@ ARG RELEASE
 ARG TINI
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Apache Airflow" \
     maintainer="info@stackable.tech" \
@@ -146,11 +148,11 @@ ENV AIRFLOW_USER_HOME_DIR=/stackable
 ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
-COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
-COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/git-sync ${HOME}/git-sync
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/ ${HOME}/
+COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/git-sync ${HOME}/git-sync
 
-COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
-COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} airflow/stackable/utils/entrypoint.sh /entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 
 COPY airflow/licenses /licenses
 

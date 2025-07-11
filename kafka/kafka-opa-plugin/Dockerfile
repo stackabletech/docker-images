@@ -5,12 +5,13 @@ FROM stackable/image/java-devel
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kafka-opa-plugin/stackable/patches/patchable.toml /stackable/src/kafka/kafka-opa-plugin/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kafka-opa-plugin/stackable/patches/${PRODUCT} /stackable/src/kafka/kafka-opa-plugin/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/kafka-opa-plugin/stackable/patches/patchable.toml /stackable/src/kafka/kafka-opa-plugin/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/kafka-opa-plugin/stackable/patches/${PRODUCT} /stackable/src/kafka/kafka-opa-plugin/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka/kafka-opa-plugin ${PRODUCT})"

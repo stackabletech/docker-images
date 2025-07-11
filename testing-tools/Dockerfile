@@ -12,6 +12,7 @@ ARG RELEASE
 ARG KEYCLOAK_VERSION
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
 
 LABEL name="Stackable Testing Tools" \
@@ -80,7 +81,7 @@ useradd \
   --home-dir /stackable \
    ${STACKABLE_USER_NAME}
 
-chown -R ${STACKABLE_USER_UID}:0 /stackable
+chown -R ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable
 EOF
 
 ENV PATH=/stackable/keycloak/bin:$PATH

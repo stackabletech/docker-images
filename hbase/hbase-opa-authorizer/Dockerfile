@@ -3,12 +3,13 @@ FROM stackable/image/java-devel
 ARG PRODUCT
 ARG DELETE_CACHES
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-opa-authorizer/stackable/patches/patchable.toml /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase-opa-authorizer/stackable/patches/patchable.toml /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT}
 
 RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 ###

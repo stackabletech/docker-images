@@ -11,16 +11,17 @@ ARG HBASE_HBASE
 ARG HBASE_PROFILE
 ARG HADOOP
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG PHOENIX_VERSION
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
 ARG DELETE_CACHES="true"
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/phoenix/stackable/patches/${PHOENIX_VERSION} /stackable/src/phoenix/stackable/patches/${PHOENIX_VERSION}
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/phoenix/stackable/patches/patchable.toml /stackable/src/phoenix/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/phoenix/stackable/patches/${PHOENIX_VERSION} /stackable/src/phoenix/stackable/patches/${PHOENIX_VERSION}
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable

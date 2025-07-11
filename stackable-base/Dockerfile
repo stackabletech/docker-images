@@ -42,6 +42,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:383329bf9c4f968e87e85d30
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
+ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
@@ -144,11 +145,11 @@ microdnf clean all
 
 echo -e "if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi" >> /stackable/.profile
 
-chown ${STACKABLE_USER_UID}:0 /stackable/.bashrc
-chown ${STACKABLE_USER_UID}:0 /stackable/.profile
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/.bashrc
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/.profile
 
 cp /root/.curlrc /stackable/.curlrc
-chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/.curlrc
 
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
@@ -174,16 +175,16 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
-COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=config-utils --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /containerdebug/target/release/containerdebug /stackable/containerdebug
 
 # **check-permissions-ownership.sh**
 # Bash script to check proper permissions and ownership requirements in the final Stackable images
-COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} shared/checks/check-permissions-ownership.sh /bin/check-permissions-ownership.sh
 
 ENV PATH="${PATH}:/stackable"
 

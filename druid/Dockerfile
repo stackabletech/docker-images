@@ -12,6 +12,7 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG HADOOP
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
@@ -36,10 +37,10 @@ EOF
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} druid/stackable/patches/patchable.toml /stackable/src/druid/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} druid/stackable/patches/${PRODUCT} /stackable/src/druid/stackable/patches/${PRODUCT}
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use.
 # The cache id has to include the product version that we are building because otherwise
@@ -80,7 +81,7 @@ mvn \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
   -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)` \
-  $(if [[ ${PRODUCT} != 30.* ]]; then echo --projects '!quidem-ut'; fi) `# This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:0.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...`
+  $(if [[ ${PRODUCT} != 30.* ]]; then echo --projects '!quidem-ut'; fi) `# This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:${STACKABLE_USER_GID}.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...`
 
 mv distribution/target/apache-druid-${NEW_VERSION}-bin/apache-druid-${NEW_VERSION} /stackable/
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" distribution/target/bom.json
@@ -112,6 +113,7 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 ARG NAME="Apache Druid"
 ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache Druid"
@@ -136,26 +138,26 @@ LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/apache-druid-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=druid-builder /stackable/druid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=druid-builder /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/apache-druid-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=druid-builder /stackable/druid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/bin /stackable/bin
-COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} druid/stackable/bin /stackable/bin
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} druid/licenses /licenses
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln -sf /stackable/apache-druid-${PRODUCT}-stackable${RELEASE} /stackable/druid
-chown -h ${STACKABLE_USER_UID}:0 stackable/druid
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} stackable/druid
 
 # Force to overwrite the existing 'run-druid'
 ln -sf /stackable/bin/run-druid /stackable/druid/bin/run-druid
-chown -h ${STACKABLE_USER_UID}:0 /stackable/druid/bin/run-druid
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/druid/bin/run-druid
 
 # fix missing permissions
 chmod -R g=u /stackable/bin

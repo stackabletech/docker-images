@@ -9,6 +9,7 @@ ARG RELEASE
 ARG HBASE_THIRDPARTY
 ARG HBASE_HBASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG HBASE_OPERATOR_TOOLS_VERSION
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
@@ -19,13 +20,13 @@ ARG DELETE_CACHES="true"
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbck2.env /stackable/bin/
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase/stackable/bin/hbck2.env /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
 
-COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable

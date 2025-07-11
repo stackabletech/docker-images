@@ -10,6 +10,7 @@ ARG JQ_VERSION
 ARG YQ_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL name="Stackable Tools" \
     maintainer="info@stackable.tech" \
@@ -59,7 +60,7 @@ chmod +x /stackable/bin/yq
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 /stackable
+chown -R ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable
 chmod -R g=u /stackable
 EOF
 
@@ -67,7 +68,7 @@ EOF
 # Attention: We are changing the group of all files in /stackable directly above
 # If you do any file based actions (copying / creating etc.) below this comment you
 # absolutely need to make sure that the correct permissions are applied!
-# chown ${STACKABLE_USER_UID}:0
+# chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID}
 # ----------------------------------------
 
 USER ${STACKABLE_USER_UID}

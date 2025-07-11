@@ -20,11 +20,12 @@ ARG RELEASE
 ARG HADOOP
 ARG HBASE_HBASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} \
   # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
   # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
   # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
@@ -34,7 +35,7 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hbase/hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
 RUN <<EOF
 # Resolve paths in bin/export-snapshot-to-s3
@@ -63,6 +64,7 @@ ARG HBASE_HBASE_OPERATOR_TOOLS
 ARG HBASE_HBASE_OPA_AUTHORIZER
 ARG HBASE_PHOENIX
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 ARG NAME="Apache HBase"
 ARG DESCRIPTION="This image is deployed by the Stackable Operator for Apache HBase"
@@ -86,31 +88,31 @@ LABEL io.openshift.tags="ubi9,stackable,hbase,sdp,nosql"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE} /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE} /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/bin/hbase-entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/bin/hbase-entrypoint.sh
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_PHOENIX}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=phoenix /stackable/phoenix /stackable/phoenix/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=phoenix /stackable/phoenix-${HBASE_PHOENIX}-stackable${RELEASE}-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
 # Copy the dependencies from Hadoop which are required for the Azure Data Lake
 # Storage (ADLS) to /stackable/hbase-${HBASE_HBASE}/lib which is on the classpath.
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar \
   /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib
 
 RUN <<EOF
 microdnf update
@@ -126,20 +128,20 @@ microdnf install \
 
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 ln --symbolic --logical --verbose "/stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}" /stackable/hbase
-chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase
+chown --no-dereference ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/hbase
 chmod g=u /stackable/hbase
 
 ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}" /stackable/hbase-operator-tools
-chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase-operator-tools
+chown --no-dereference ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/hbase-operator-tools
 chmod g=u /stackable/hbase-operator-tools
 
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
-chown --no-dereference ${STACKABLE_USER_UID}:0 "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
+chown --no-dereference ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 
 # fix missing permissions

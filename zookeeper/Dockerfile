@@ -9,13 +9,14 @@ FROM stackable/image/java-devel AS builder
 ARG PRODUCT
 ARG JMX_EXPORTER
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 ARG RELEASE
 
 # Copy patches into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} zookeeper/stackable/patches/patchable.toml /stackable/src/zookeeper/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} zookeeper/stackable/patches/${PRODUCT} /stackable/src/zookeeper/stackable/patches/${PRODUCT}
 # Copy JMX config into the builder
-COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} zookeeper/stackable/jmx /stackable/jmx
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -66,6 +67,7 @@ FROM stackable/image/java-base
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL  \
   name="Apache ZooKeeper" \
@@ -77,23 +79,23 @@ LABEL  \
   description="This image is deployed by the Stackable Operator for Apache ZooKeeper."
 
 # Copy over the ZooKeeper binary folder
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/zookeeper-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=builder /stackable/jmx /stackable/jmx/
 COPY zookeeper/licenses /licenses
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
 # Add link pointing from /stackable/zookeeper to /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/
 # to preserve the folder name with the version.
 ln -s /stackable/apache-zookeeper-${PRODUCT}-stackable${RELEASE}-bin/ /stackable/zookeeper
-chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
+chown -h ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/zookeeper
 
 # fix missing permissions
 chmod g=u /stackable/jmx

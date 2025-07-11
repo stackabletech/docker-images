@@ -11,11 +11,12 @@ ARG PROTOBUF
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/patchable.toml /stackable/src/shared/protobuf/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/${PROTOBUF} /stackable/src/shared/protobuf/stackable/patches/${PROTOBUF}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} shared/protobuf/stackable/patches/patchable.toml /stackable/src/shared/protobuf/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} shared/protobuf/stackable/patches/${PROTOBUF} /stackable/src/shared/protobuf/stackable/patches/${PROTOBUF}
 
 RUN <<EOF
 rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
@@ -26,7 +27,7 @@ microdnf install boost1.78-devel automake libtool
 microdnf clean all
 rm -rf /var/cache/yum
 mkdir /opt/protobuf
-chown ${STACKABLE_USER_UID}:0 /opt/protobuf
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /opt/protobuf
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -63,10 +64,10 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 EOF
 
 WORKDIR /build
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/patchable.toml /build/src/hadoop/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/fuse_dfs_wrapper /build
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/stackable/patches/patchable.toml /build/src/hadoop/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/stackable/patches/${PRODUCT} /build/src/hadoop/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/stackable/fuse_dfs_wrapper /build
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/stackable/jmx /stackable/jmx
 USER ${STACKABLE_USER_UID}
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -140,6 +141,7 @@ FROM stackable/image/java-devel AS hdfs-utils-builder
 ARG HDFS_UTILS
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 # Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.
 # We can not simply use java-devel with Java 17, as it is also used to compile Hadoop in this
@@ -158,8 +160,8 @@ ENV JAVA_HOME="/usr/lib/jvm/temurin-17-jdk"
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/patchable.toml /stackable/src/hadoop/hdfs-utils/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS} /stackable/src/hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/hdfs-utils/stackable/patches/patchable.toml /stackable/src/hadoop/hdfs-utils/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS} /stackable/src/hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS}
 
 # The Stackable HDFS utils contain an OPA authorizer, group mapper & topology provider.
 # The topology provider provides rack awareness functionality for HDFS by allowing users to specify Kubernetes
@@ -196,6 +198,7 @@ ARG TARGETOS
 ARG HDFS_UTILS
 ARG ASYNC_PROFILER
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 LABEL \
     name="Apache Hadoop" \
@@ -207,16 +210,16 @@ LABEL \
     description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler-${ASYNC_PROFILER}-* /stackable/async-profiler-${ASYNC_PROFILER}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/protobuf-*-src.tar.gz /stackable/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/async-profiler-${ASYNC_PROFILER}-* /stackable/async-profiler-${ASYNC_PROFILER}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hadoop-builder /stackable/protobuf-*-src.tar.gz /stackable/
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} hadoop/licenses /licenses
 
 # fuse is required for fusermount (called by fuse_dfs)
 # fuse-libs is required for fuse_dfs (not included in fuse)
@@ -232,7 +235,7 @@ microdnf install \
   tar
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
-chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
+chown ${STACKABLE_USER_UID}:${STACKABLE_USER_GID} /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
@@ -241,7 +244,7 @@ rm -rf /var/cache/yum
 echo "user_allow_other" > /etc/fuse.conf
 
 ln -s "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}" /stackable/hadoop
-chown --no-dereference "${STACKABLE_USER_UID}:0" /stackable/hadoop
+chown --no-dereference "${STACKABLE_USER_UID}:${STACKABLE_USER_GID}" /stackable/hadoop
 chmod g=u "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}"
 chmod g=u /stackable/*-src.tar.gz
 
@@ -249,7 +252,7 @@ ARCH="${TARGETARCH/amd64/x64}"
 mv /stackable/async-profiler-${ASYNC_PROFILER}* "/stackable/async-profiler-${ASYNC_PROFILER-}-${TARGETOS}-${ARCH}"
 chmod g=u "/stackable/async-profiler-${ASYNC_PROFILER-}-${TARGETOS}-${ARCH}"
 ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
-chown --no-dereference "${STACKABLE_USER_UID}:0" /stackable/async-profiler
+chown --no-dereference "${STACKABLE_USER_UID}:${STACKABLE_USER_GID}" /stackable/async-profiler
 
 chmod g=u /stackable/jmx
 
@@ -273,7 +276,7 @@ USER ${STACKABLE_USER_UID}
 
 ENV HOME=/stackable
 ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
-ENV PATH="${PATH}":/stackable/hadoop/bin
+ENV PATH="${PATH}:/stackable/hadoop/bin"
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
 ENV ASYNC_PROFILER_HOME=/stackable/async-profiler

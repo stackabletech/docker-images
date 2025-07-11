@@ -8,6 +8,7 @@ FROM stackable/image/java-devel AS builder
 
 ARG PRODUCT
 ARG STACKABLE_USER_UID
+ARG STACKABLE_USER_GID
 
 RUN <<EOF
 microdnf update
@@ -30,8 +31,8 @@ EOF
 
 WORKDIR /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/patchable.toml /stackable/src/kafka/kcat/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/${PRODUCT} /stackable/src/kafka/kcat/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/kcat/stackable/patches/patchable.toml /stackable/src/kafka/kcat/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/kcat/stackable/patches/${PRODUCT} /stackable/src/kafka/kcat/stackable/patches/${PRODUCT}
 
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka/kcat ${PRODUCT})"
@@ -46,7 +47,7 @@ chmod --recursive g=u /stackable/kcat
 chmod g=u /stackable/kcat-${PRODUCT}-src.tar.gz
 EOF
 
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:${STACKABLE_USER_GID} kafka/kcat/licenses /licenses
 
 # SNIPPET 1
 # 145.2 gcc  -I/stackable/kcat-1.7.0/tmp-bootstrap/usr/include -I/stackable/kcat-1.7.0/tmp-bootstrap/usr/include -g -O2 -Wall -Wsign-compare -Wfloat-equal -Wpointer-arith -Wcast-align -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -Wl,-rpath-link=/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib -Wl,-rpath-link=/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib kcat.o format.o tools.o input.o json.o avro.o -o kcat  -lm -ldl -lpthread -lrt -lpthread -lrt  -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib  /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libavro.a /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libjansson.a -lcurl /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libserdes.a -Wl,-Bstatic -lavro -Wl,-Bdynamic /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libyajl_s.a -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib //stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/librdkafka.a -lm -ldl -lpthread -lrt -lz -lcrypto -lssl -lsasl2   -lm -ldl -lpthread -lrt -lpthread -lrt  -L/stackable/kcat-1.7.0/tmp-bootstrap/usr/lib  /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libavro.a /stackable/kcat-1.7.0/tmp-bootstrap/usr/lib/libjansson.a -lcurl
