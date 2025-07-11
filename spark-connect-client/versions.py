@@ -5,4 +5,10 @@ versions = [
         "java-base": "17",
         "python": "3.11",
     },
+    {
+        "product": "4.0.0",
+        "spark-k8s": "4.0.0",
+        "java-base": "17",
+        "python": "3.11",
+    },
 ]
