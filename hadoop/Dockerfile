@@ -191,7 +191,10 @@ FROM stackable/image/java-base AS final
 
 ARG PRODUCT
 ARG RELEASE
+ARG TARGETARCH
+ARG TARGETOS
 ARG HDFS_UTILS
+ARG ASYNC_PROFILER
 ARG STACKABLE_USER_UID
 
 LABEL \
@@ -203,7 +206,13 @@ LABEL \
     summary="The Stackable image for Apache Hadoop." \
     description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE} /stackable/hadoop-${PRODUCT}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler-${ASYNC_PROFILER}-* /stackable/async-profiler-${ASYNC_PROFILER}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/protobuf-*-src.tar.gz /stackable/
+
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
 
@@ -230,7 +239,20 @@ rm -rf /var/cache/yum
 # Without this fuse_dfs does not work
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
-EOF
+
+ln -s "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}" /stackable/hadoop
+chown --no-dereference "${STACKABLE_USER_UID}:0" /stackable/hadoop
+chmod g=u "/stackable/hadoop-${PRODUCT}-stackable${RELEASE}"
+chmod g=u /stackable/*-src.tar.gz
+
+ARCH="${TARGETARCH/amd64/x64}"
+mv /stackable/async-profiler-${ASYNC_PROFILER}* "/stackable/async-profiler-${ASYNC_PROFILER-}-${TARGETOS}-${ARCH}"
+chmod g=u "/stackable/async-profiler-${ASYNC_PROFILER-}-${TARGETOS}-${ARCH}"
+ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
+chown --no-dereference "${STACKABLE_USER_UID}:0" /stackable/async-profiler
+
+chmod g=u /stackable/jmx
+
 
 # ----------------------------------------
 # Checks
@@ -241,7 +263,6 @@ EOF
 
 # Check that permissions and ownership in /stackable are set correctly
 # This will fail and stop the build if any mismatches are found.
-RUN <<EOF
 /bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
