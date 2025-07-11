@@ -92,10 +92,10 @@ All notable changes to this project will be documented in this file.
 - opa: Enable custom versions ([#1170]).
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 - hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
-- Changed default user & group IDs from 1000/1000 to 782252253/574654813 ([#1164])
 - ubi-rust-builder: Bump Rust toolchain to 1.87.0, cargo-auditable to 0.7.0 and protoc to 31.1 ([#1197]).
 - stackable-base, stackable-devel, ubi-rust-builder: Update `ubi-minimal` base image ([#1197]).
 - testing-tools: Update `python` 3.12-slim-bullseye base image ([#1197]).
+- Change default user & group IDs to 1000/0 ([#1193]).
 
 ### Fixed
 
@@ -204,7 +204,6 @@ All notable changes to this project will be documented in this file.
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
 [#1159]: https://github.com/stackabletech/docker-images/pull/1159
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
-[#1164]: https://github.com/stackabletech/docker-images/pull/1164
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
 [#1169]: https://github.com/stackabletech/docker-images/pull/1169
@@ -219,6 +218,7 @@ All notable changes to this project will be documented in this file.
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1188]: https://github.com/stackabletech/docker-images/pull/1188
 [#1189]: https://github.com/stackabletech/docker-images/pull/1189
+[#1193]: https://github.com/stackabletech/docker-images/pull/1193
 [#1197]: https://github.com/stackabletech/docker-images/pull/1197
 
 ## [25.3.0] - 2025-03-21
