@@ -212,6 +212,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${P
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/async-profiler-${ASYNC_PROFILER}-* /stackable/async-profiler-${ASYNC_PROFILER}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/protobuf-*-src.tar.gz /stackable/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-libs /stackable/patched-libs
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${PRODUCT}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
@@ -252,6 +253,7 @@ ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackab
 chown --no-dereference "${STACKABLE_USER_UID}:0" /stackable/async-profiler
 
 chmod g=u /stackable/jmx
+chmod g=u /stackable/patched-libs
 
 
 # ----------------------------------------
