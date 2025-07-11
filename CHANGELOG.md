@@ -95,7 +95,7 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.87.0, cargo-auditable to 0.7.0 and protoc to 31.1 ([#1197]).
 - stackable-base, stackable-devel, ubi-rust-builder: Update `ubi-minimal` base image ([#1197]).
 - testing-tools: Update `python` 3.12-slim-bullseye base image ([#1197]).
-- Change default user & group IDs from 1000/1000 to 1000/0 ([#1193]).
+- Change default user & group IDs to 1000/0 ([#1193]).
 
 ### Fixed
 
