@@ -95,7 +95,6 @@ All notable changes to this project will be documented in this file.
 - ubi-rust-builder: Bump Rust toolchain to 1.87.0, cargo-auditable to 0.7.0 and protoc to 31.1 ([#1197]).
 - stackable-base, stackable-devel, ubi-rust-builder: Update `ubi-minimal` base image ([#1197]).
 - testing-tools: Update `python` 3.12-slim-bullseye base image ([#1197]).
-- Change default user & group IDs to 1000/0 ([#1193]).
 
 ### Fixed
 
@@ -219,7 +218,6 @@ All notable changes to this project will be documented in this file.
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1188]: https://github.com/stackabletech/docker-images/pull/1188
 [#1189]: https://github.com/stackabletech/docker-images/pull/1189
-[#1193]: https://github.com/stackabletech/docker-images/pull/1193
 [#1197]: https://github.com/stackabletech/docker-images/pull/1197
 
 ## [25.3.0] - 2025-03-21
