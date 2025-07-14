@@ -18,6 +18,8 @@ FROM stackable/image/java-devel AS hadoop-s3-builder
 ARG PRODUCT
 ARG RELEASE
 ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG HBASE_HBASE
 ARG STACKABLE_USER_UID
 
@@ -31,7 +33,7 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
   # So we try to copy both and if one of them doesn't exist buildx will just ignore it :)
   /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
   /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_HADOOP}-stackable${RELEASE}.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE}.jar \
   /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
@@ -57,6 +59,8 @@ FROM stackable/image/java-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG HBASE_PROFILE
 ARG HBASE_HBASE
 ARG HBASE_HBASE_OPERATOR_TOOLS
@@ -106,7 +110,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_HADOOP}-stackable${RELEASE}.jar \
+  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE}.jar \
   /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER}-src.tar.gz /stackable

@@ -10,6 +10,8 @@ ARG ASYNC_PROFILER
 ARG HBASE_HBASE
 ARG HBASE_PROFILE
 ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG STACKABLE_USER_UID
 ARG PHOENIX_VERSION
 
@@ -47,7 +49,7 @@ mvn \
   --no-transfer-progress \
   -Dhbase.version=${HBASE_HBASE}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP_HADOOP}-stackable${RELEASE} \
+  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   clean \
