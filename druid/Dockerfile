@@ -41,7 +41,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 druid/stackable/patches/${PRODUCT} /stackab
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
-# We need to explicitly give the uid to use which is hardcoded to "1000" in stackable-base
+# We need to explicitly give the uid to use.
 # The cache id has to include the product version that we are building because otherwise
 # docker encounters race conditions when building multiple versions in parallel, as all
 # builder containers will share the same cache and the `rm -rf` commands will fail

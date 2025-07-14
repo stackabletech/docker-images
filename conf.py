@@ -19,7 +19,6 @@ hbase_jars = importlib.import_module("hbase.hbase.versions")
 hbase_phoenix = importlib.import_module("hbase.phoenix.versions")
 hbase_opa_authorizer = importlib.import_module("hbase.hbase-opa-authorizer.versions")
 hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versions")
-hello_world = importlib.import_module("hello-world.versions")
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
@@ -39,6 +38,7 @@ trino_jars = importlib.import_module("trino.trino.versions")
 trino_storage_connector = importlib.import_module("trino.storage-connector.versions")
 kafka_testing_tools = importlib.import_module("kafka-testing-tools.versions")
 kcat = importlib.import_module("kafka.kcat.versions")
+kafka_opa_plugin = importlib.import_module("kafka.kafka-opa-plugin.versions")
 testing_tools = importlib.import_module("testing-tools.versions")
 zookeeper = importlib.import_module("zookeeper.versions")
 tools = importlib.import_module("tools.versions")
@@ -55,7 +55,6 @@ products = [
     {"name": "hbase/phoenix", "versions": hbase_phoenix.versions},
     {"name": "hbase/hbase-opa-authorizer", "versions": hbase_opa_authorizer.versions},
     {"name": "hbase/hbase-operator-tools", "versions": hbase_operator_tools.versions},
-    {"name": "hello-world", "versions": hello_world.versions},
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
@@ -75,6 +74,7 @@ products = [
     {"name": "trino/storage-connector", "versions": trino_storage_connector.versions},
     {"name": "kafka-testing-tools", "versions": kafka_testing_tools.versions},
     {"name": "kafka/kcat", "versions": kcat.versions},
+    {"name": "kafka/kafka-opa-plugin", "versions": kafka_opa_plugin.versions},
     {"name": "testing-tools", "versions": testing_tools.versions},
     {"name": "zookeeper", "versions": zookeeper.versions},
     {"name": "tools", "versions": tools.versions},

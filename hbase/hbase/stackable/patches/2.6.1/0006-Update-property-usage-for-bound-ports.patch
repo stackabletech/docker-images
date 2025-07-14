@@ -1,0 +1,155 @@
+From 5cc38b12c2bfc5fa3850e13e3eb87086d5f1737a Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Thu, 26 Jun 2025 14:59:01 +0200
+Subject: Update property usage for bound ports
+
+---
+ .../org/apache/hadoop/hbase/HConstants.java   |  4 ++--
+ .../hadoop/hbase/LocalHBaseCluster.java       | 12 +++++------
+ .../apache/hadoop/hbase/master/HMaster.java   |  6 +++---
+ .../hbase/regionserver/HRegionServer.java     | 21 +++++++++++++------
+ 4 files changed, 26 insertions(+), 17 deletions(-)
+
+diff --git a/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java b/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
+index ea96ff8fce..054beb10d3 100644
+--- a/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
++++ b/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
+@@ -212,7 +212,7 @@ public final class HConstants {
+   /** Configuration key for advertised master web API port */
+   public static final String MASTER_INFO_PORT = "hbase.master.info.port";
+ 
+-  /** Configuration key for bound master web API port. (Defaults to MASTER_INFO_PORT.) */
++  /** Configuration key for bound master web API port */
+   public static final String MASTER_BOUND_INFO_PORT = "hbase.master.bound.info.port";
+ 
+   /** Configuration key for the list of master host:ports **/
+@@ -340,7 +340,7 @@ public final class HConstants {
+   /** Configuration key for advertised region server web API port */
+   public static final String REGIONSERVER_INFO_PORT = "hbase.regionserver.info.port";
+ 
+-  /** Configuration key for bound region server web API port. (Defaults to REGIONSERVER_INFO_PORT.) */
++  /** Configuration key for bound region server web API port */
+   public static final String REGIONSERVER_BOUND_INFO_PORT = "hbase.regionserver.bound.info.port";
+ 
+   /** A flag that enables automatic selection of regionserver info port */
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/LocalHBaseCluster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/LocalHBaseCluster.java
+index 816ef997cb..2114725986 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/LocalHBaseCluster.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/LocalHBaseCluster.java
+@@ -144,20 +144,20 @@ public class LocalHBaseCluster {
+       // treat info ports special; expressly don't change '-1' (keep off)
+       // in case we make that the default behavior.
+       if (
+-        conf.getInt(HConstants.REGIONSERVER_INFO_PORT, 0) != -1
+-          && conf.getInt(HConstants.REGIONSERVER_INFO_PORT,
++        conf.getInt(HConstants.REGIONSERVER_BOUND_INFO_PORT, 0) != -1
++          && conf.getInt(HConstants.REGIONSERVER_BOUND_INFO_PORT,
+             HConstants.DEFAULT_REGIONSERVER_INFOPORT) == HConstants.DEFAULT_REGIONSERVER_INFOPORT
+       ) {
+         LOG.debug("Setting RS InfoServer Port to random.");
+-        conf.set(HConstants.REGIONSERVER_INFO_PORT, "0");
++        conf.set(HConstants.REGIONSERVER_BOUND_INFO_PORT, "0");
+       }
+       if (
+-        conf.getInt(HConstants.MASTER_INFO_PORT, 0) != -1
+-          && conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT)
++        conf.getInt(HConstants.MASTER_BOUND_INFO_PORT, 0) != -1
++          && conf.getInt(HConstants.MASTER_BOUND_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT)
+               == HConstants.DEFAULT_MASTER_INFOPORT
+       ) {
+         LOG.debug("Setting Master InfoServer Port to random.");
+-        conf.set(HConstants.MASTER_INFO_PORT, "0");
++        conf.set(HConstants.MASTER_BOUND_INFO_PORT, "0");
+       }
+     }
+ 
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+index 2f323518da..37cd7b3afd 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
+@@ -20,7 +20,7 @@ package org.apache.hadoop.hbase.master;
+ import static org.apache.hadoop.hbase.HConstants.DEFAULT_HBASE_SPLIT_COORDINATED_BY_ZK;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_MASTER_LOGCLEANER_PLUGINS;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_COORDINATED_BY_ZK;
+-import static org.apache.hadoop.hbase.HConstants.MASTER_BOUND_INFO_PORT;
++import static org.apache.hadoop.hbase.HConstants.MASTER_INFO_PORT;
+ import static org.apache.hadoop.hbase.HConstants.MASTER_PORT;
+ import static org.apache.hadoop.hbase.master.cleaner.HFileCleaner.CUSTOM_POOL_SIZE;
+ import static org.apache.hadoop.hbase.util.DNS.MASTER_HOSTNAME_KEY;
+@@ -569,7 +569,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+ 
+   @Override
+   protected int getUseThisInfoPortInstead(Configuration conf) {
+-    int port = conf.getInt(MASTER_BOUND_INFO_PORT, 0);
++    int port = conf.getInt(MASTER_INFO_PORT, 0);
+     return port != 0 ? port : this.infoServer != null ? this.infoServer.getPort() : -1;
+   }
+ 
+@@ -3143,7 +3143,7 @@ public class HMaster extends HRegionServer implements MasterServices {
+   public int getRegionServerInfoPort(final ServerName sn) {
+     int port = this.serverManager.getInfoPort(sn);
+     return port == 0
+-      ? conf.getInt(HConstants.REGIONSERVER_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT)
++      ? conf.getInt(HConstants.REGIONSERVER_BOUND_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT)
+       : port;
+   }
+ 
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+index 11bd1e58b5..358ce486f1 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+@@ -25,6 +25,7 @@ import static org.apache.hadoop.hbase.HConstants.DEFAULT_SLOW_LOG_SYS_TABLE_CHOR
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_COORDINATED_BY_ZK;
+ import static org.apache.hadoop.hbase.HConstants.HBASE_SPLIT_WAL_MAX_SPLITTER;
+ import static org.apache.hadoop.hbase.HConstants.REGIONSERVER_BOUND_INFO_PORT;
++import static org.apache.hadoop.hbase.HConstants.REGIONSERVER_INFO_PORT;
+ import static org.apache.hadoop.hbase.HConstants.REGIONSERVER_PORT;
+ import static org.apache.hadoop.hbase.HConstants.RPC_CLIENT_BIND_ADDRESS;
+ import static org.apache.hadoop.hbase.master.waleventtracker.WALEventTrackerTableCreator.WAL_EVENT_TRACKER_ENABLED_DEFAULT;
+@@ -791,7 +792,7 @@ public class HRegionServer extends Thread
+   }
+ 
+   protected int getUseThisInfoPortInstead(Configuration conf) {
+-    int port = conf.getInt(REGIONSERVER_BOUND_INFO_PORT, 0);
++    int port = conf.getInt(REGIONSERVER_INFO_PORT, 0);
+     return port != 0 ? port : this.infoServer != null ? this.infoServer.getPort() : -1;
+   }
+ 
+@@ -2463,11 +2464,13 @@ public class HRegionServer extends Thread
+    */
+   private void putUpWebUI() throws IOException {
+     int port =
+-      this.conf.getInt(HConstants.REGIONSERVER_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT);
++      this.conf.getInt(REGIONSERVER_BOUND_INFO_PORT,
++        this.conf.getInt(REGIONSERVER_INFO_PORT, HConstants.DEFAULT_REGIONSERVER_INFOPORT));
+     String addr = this.conf.get("hbase.regionserver.info.bindAddress", "0.0.0.0");
+ 
+     if (this instanceof HMaster) {
+-      port = conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
++      port = conf.getInt(HConstants.MASTER_BOUND_INFO_PORT,
++        this.conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT));
+       addr = this.conf.get("hbase.master.info.bindAddress", "0.0.0.0");
+     }
+     // -1 is for disabling info server
+@@ -2503,12 +2506,18 @@ public class HRegionServer extends Thread
+         LOG.info("Retry starting http info server with port: " + port);
+       }
+     }
+-    port = useThisInfoPortInstead;
+-    conf.setInt(HConstants.REGIONSERVER_INFO_PORT, port);
++
++    // update bound ports
++    port = this.infoServer.getPort();
++    conf.setInt(REGIONSERVER_BOUND_INFO_PORT, port);
++    conf.setInt(HConstants.MASTER_BOUND_INFO_PORT, port);
++
++    // set advertised ports
++    conf.setInt(REGIONSERVER_INFO_PORT, useThisInfoPortInstead);
+     int masterInfoPort =
+       conf.getInt(HConstants.MASTER_INFO_PORT, HConstants.DEFAULT_MASTER_INFOPORT);
+     conf.setInt("hbase.master.info.port.orig", masterInfoPort);
+-    conf.setInt(HConstants.MASTER_INFO_PORT, port);
++    conf.setInt(HConstants.MASTER_INFO_PORT, useThisInfoPortInstead);
+   }
+ 
+   /*

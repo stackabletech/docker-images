@@ -17,11 +17,13 @@ All notable changes to this project will be documented in this file.
   `check-permissions-ownership.sh` provided in stackable-base image ([#1029]).
 - hbase: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1028]).
+- hbase: provide patches to implement listener endpoints ([#1159]).
 - hive: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1040]).
 - spark-connect-client: A new image for Spark connect tests and demos ([#1034])
 - kafka: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1041]).
+- kafka: build kafka-opa-plugin from source ([#1177]).
 - nifi: check for correct permissions and ownerships in /stackable folder via
   `check-permissions-ownership.sh` provided in stackable-base image ([#1027]).
 - nifi: Add [nifi-iceberg-bundle] for NiFi `2.4.0` ([#1060], [#1106]).
@@ -91,6 +93,9 @@ All notable changes to this project will be documented in this file.
 - use custom product versions for Hadoop, HBase, Phoenix, hbase-operator-tools, Druid, Hive and Spark ([#1173]).
 - hbase: Bump dependencies to the latest patch level for HBase `2.6.1` and `2.6.2` ([#1185]).
 - hadoop: Separate Dockerfiles for Hadoop build and HDFS image ([#1186]).
+- ubi-rust-builder: Bump Rust toolchain to 1.87.0, cargo-auditable to 0.7.0 and protoc to 31.1 ([#1197]).
+- stackable-base, stackable-devel, ubi-rust-builder: Update `ubi-minimal` base image ([#1197]).
+- testing-tools: Update `python` 3.12-slim-bullseye base image ([#1197]).
 
 ### Fixed
 
@@ -113,6 +118,8 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Use pinned `rustup` version ([#1121]).
 - hive: Patch for postgres CVE-2024-1597 ([#1100]).
 - bump image-tools (for `bake`) and nixpkgs (for `nodejs_20`, used by pre-commit) ([#1100]).
+- bump image-tools (for `bake`) to fix `RELEASE` arg ([#1188]).
+- nifi: automatically determine NiFi version create reporting task script ([#1189]).
 
 ### Removed
 
@@ -132,6 +139,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.2.0` ([#1114]).
 - kafka: Remove `3.7.1` and `3.8.0` ([#1117]).
 - spark-connect-client: Remove `3.5.5` ([#1142]).
+- nifi: Enable custom versions ([#1172]).
 - kafka: Enable custom versions ([#1171]).
 - omid: Enable custom versions ([#1174]).
 
@@ -195,6 +203,7 @@ All notable changes to this project will be documented in this file.
 [#1151]: https://github.com/stackabletech/docker-images/pull/1151
 [#1152]: https://github.com/stackabletech/docker-images/pull/1152
 [#1156]: https://github.com/stackabletech/docker-images/pull/1156
+[#1159]: https://github.com/stackabletech/docker-images/pull/1159
 [#1163]: https://github.com/stackabletech/docker-images/pull/1163
 [#1165]: https://github.com/stackabletech/docker-images/pull/1165
 [#1168]: https://github.com/stackabletech/docker-images/pull/1168
@@ -203,11 +212,15 @@ All notable changes to this project will be documented in this file.
 [#1171]: https://github.com/stackabletech/docker-images/pull/1171
 [#1173]: https://github.com/stackabletech/docker-images/pull/1173
 [#1174]: https://github.com/stackabletech/docker-images/pull/1174
+[#1177]: https://github.com/stackabletech/docker-images/pull/1177
 [#1179]: https://github.com/stackabletech/docker-images/pull/1179
 [#1180]: https://github.com/stackabletech/docker-images/pull/1180
 [#1184]: https://github.com/stackabletech/docker-images/pull/1184
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1186]: https://github.com/stackabletech/docker-images/pull/1186
+[#1188]: https://github.com/stackabletech/docker-images/pull/1188
+[#1189]: https://github.com/stackabletech/docker-images/pull/1189
+[#1197]: https://github.com/stackabletech/docker-images/pull/1197
 
 ## [25.3.0] - 2025-03-21
 

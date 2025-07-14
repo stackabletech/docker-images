@@ -132,6 +132,7 @@ chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stac
 chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_HADOOP}-stackable${RELEASE}"
 EOF
 
+RUN <<EOF
 # ----------------------------------------
 # Checks
 # This section is to run final checks to ensure the created final images
@@ -141,7 +142,6 @@ EOF
 
 # Check that permissions and ownership in /stackable are set correctly
 # This will fail and stop the build if any mismatches are found.
-RUN <<EOF
 /bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
