@@ -6,6 +6,7 @@ hive-metastore-client==1.0.9
 kafka-python3==3.0.0
 
 # Used in the NiFi integration tests
+# Should match the version in nifi/Dockerfile
 nipyapi==0.22.0
 
 pandas==2.2.3
