@@ -4,7 +4,7 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
-        "hadoop": "3.4.1",  # Current Stackable LTS version. Source of the AWS and Azure artifacts to Spark's classpath.
+        "hadoop/hadoop": "3.4.1",  # Current Stackable LTS version. Source of the AWS and Azure artifacts to Spark's classpath.
         "hbase": "2.6.2",  # Current Stackable LTS version. Used to build the HBase connector.
         "aws_java_sdk_bundle": "2.24.6",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.1
         "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.1
@@ -22,7 +22,7 @@ versions = [
         "java-base": "17",
         "java-devel": "17",
         "python": "3.11",
-        "hadoop": "3.4.1",  # Current Stackable LTS version. Source of the AWS and Azure artifacts to Spark's classpath.
+        "hadoop/hadoop": "3.4.1",  # Current Stackable LTS version. Source of the AWS and Azure artifacts to Spark's classpath.
         "hbase": "2.6.2",  # Current Stackable LTS version. Used to build the HBase connector.
         "aws_java_sdk_bundle": "2.24.6",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.1
         "azure_storage": "7.0.1",  # https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.1

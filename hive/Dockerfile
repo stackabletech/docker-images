@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/java-devel AS hive-builder
 
@@ -13,7 +13,9 @@ FROM stackable/image/java-devel AS hive-builder
 
 ARG PRODUCT
 ARG RELEASE
-ARG HADOOP
+ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG JMX_EXPORTER
 ARG AWS_JAVA_SDK_BUNDLE
 ARG AZURE_STORAGE
@@ -30,8 +32,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/patches/${PRODUCT} /stackabl
 # It is useful to see which version of Hadoop is used at a glance
 # Therefore the use of the full name here
 # TODO: Do we really need all of Hadoop in here?
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop /stackable/hadoop-${HADOOP}-stackable${RELEASE}
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-libs /stackable/patched-libs
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
@@ -60,7 +62,7 @@ if [[ "${PRODUCT}" == "3.1.3" ]] ; then
 else
   (
     # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
-    mvn --batch-mode --no-transfer-progress clean package -DskipTests -Dhadoop.version=${HADOOP}-stackable${RELEASE}
+    mvn --batch-mode --no-transfer-progress clean package -DskipTests -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE}
 
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz
@@ -84,17 +86,17 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
 # Add S3 Support for Hive (support for s3a://)
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-aws-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
 
 # According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
 # aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar to bundle-${AWS_JAVA_SDK_BUNDLE}.jar. In future, you might need to do:
-# cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
+# cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE}.jar /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/lib/
 
 # Add Azure ABFS support (support for abfs://)
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-azure-${HADOOP}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-cp /stackable/hadoop-${HADOOP}-stackable${RELEASE}/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -114,7 +116,9 @@ EOF
 FROM stackable/image/java-base AS final
 
 ARG PRODUCT
-ARG HADOOP
+ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG RELEASE
 ARG STACKABLE_USER_UID
 
@@ -145,8 +149,8 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop-${HADOOP}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bin
@@ -166,7 +170,7 @@ chmod g=u /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin/bi
 ln -s /stackable/apache-hive-metastore-${PRODUCT}-stackable${RELEASE}-bin /stackable/hive-metastore
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hive-metastore
 chmod g=u /stackable/hive-metastore
-ln -s /stackable/hadoop-${HADOOP}-stackable${RELEASE} /stackable/hadoop
+ln -s /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE} /stackable/hadoop
 chown -h ${STACKABLE_USER_UID}:0 /stackable/hadoop
 chmod g=u /stackable/hadoop
 chmod g=u /stackable/*-src.tar.gz
