@@ -1,4 +1,4 @@
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/hbase/hbase AS hbase-builder
 
@@ -8,8 +8,12 @@ ARG PRODUCT
 ARG RELEASE
 ARG ASYNC_PROFILER
 ARG HBASE_HBASE
+# Reassign the arg to `HBASE_VERSION` for better readability.
+ENV HBASE_VERSION=${HBASE_HBASE}
 ARG HBASE_PROFILE
-ARG HADOOP
+ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG STACKABLE_USER_UID
 ARG PHOENIX_VERSION
 
@@ -45,9 +49,9 @@ tar -czf /stackable/phoenix-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 mvn \
   --batch-mode \
   --no-transfer-progress \
-  -Dhbase.version=${HBASE_HBASE}-stackable${RELEASE} \
+  -Dhbase.version=${HBASE_VERSION}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP}-stackable${RELEASE} \
+  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   clean \
