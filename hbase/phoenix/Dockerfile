@@ -8,6 +8,8 @@ ARG PRODUCT
 ARG RELEASE
 ARG ASYNC_PROFILER
 ARG HBASE_HBASE
+# Reassign the arg to `HBASE_VERSION` for better readability.
+ENV HBASE_VERSION=${HBASE_HBASE}
 ARG HBASE_PROFILE
 ARG HADOOP_HADOOP
 # Reassign the arg to `HADOOP_VERSION` for better readability.
@@ -47,7 +49,7 @@ tar -czf /stackable/phoenix-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 mvn \
   --batch-mode \
   --no-transfer-progress \
-  -Dhbase.version=${HBASE_HBASE}-stackable${RELEASE} \
+  -Dhbase.version=${HBASE_VERSION}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
   -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \

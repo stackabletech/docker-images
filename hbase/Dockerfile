@@ -21,6 +21,10 @@ ARG HADOOP_HADOOP
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG HBASE_HBASE
+# Reassign the arg to `HBASE_VERSION` for better readability.
+# It is passed as `HBASE_HBASE`, because versions.py has to contain `hbase/hbase` to establish a dependency on the HBase builder.
+# The value of `hbase/hbase` is transformed by `bake` and automatically passed as `HBASE_HBASE` arg.
+ENV HBASE_VERSION=${HBASE_HBASE}
 ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
@@ -45,7 +49,7 @@ export LIBS=$(find /stackable/hadoop/share/hadoop -name '*.jar' -printf '%p:' | 
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-envsubst '${HBASE_HBASE}:${RELEASE}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
+envsubst '${HBASE_VERSION}:${RELEASE}:${LIBS}' < /stackable/bin/export-snapshot-to-s3.env > /stackable/bin/export-snapshot-to-s3
 chmod +x /stackable/bin/export-snapshot-to-s3
 rm /stackable/bin/export-snapshot-to-s3.env
 
@@ -63,6 +67,8 @@ ARG HADOOP_HADOOP
 ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG HBASE_PROFILE
 ARG HBASE_HBASE
+# Reassign the arg to `HBASE_VERSION` for better readability.
+ENV HBASE_VERSION=${HBASE_HBASE}
 ARG HBASE_HBASE_OPERATOR_TOOLS
 ARG HBASE_HBASE_OPA_AUTHORIZER
 ARG HBASE_PHOENIX
@@ -90,14 +96,14 @@ LABEL io.openshift.tags="ubi9,stackable,hbase,sdp,nosql"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE} /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE} /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-builder /stackable/async-profiler /stackable/async-profiler/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE} /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS}-stackable${RELEASE}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/bin/hbase-entrypoint.sh
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}/bin/hbase-entrypoint.sh
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_PHOENIX}-stackable${RELEASE}-src.tar.gz /stackable
@@ -106,15 +112,15 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/exp
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
 # Copy the dependencies from Hadoop which are required for the Azure Data Lake
-# Storage (ADLS) to /stackable/hbase-${HBASE_HBASE}/lib which is on the classpath.
+# Storage (ADLS) to /stackable/hbase-${HBASE_VERSION}/lib which is on the classpath.
 # hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
 # by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
   /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE}.jar \
-  /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib/
+  /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER}-src.tar.gz /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}/lib
 
 RUN <<EOF
 microdnf update
@@ -134,7 +140,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
 
-ln --symbolic --logical --verbose "/stackable/hbase-${HBASE_HBASE}-stackable${RELEASE}" /stackable/hbase
+ln --symbolic --logical --verbose "/stackable/hbase-${HBASE_VERSION}-stackable${RELEASE}" /stackable/hbase
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase
 chmod g=u /stackable/hbase
 

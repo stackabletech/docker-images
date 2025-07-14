@@ -8,6 +8,8 @@ ARG PRODUCT
 ARG RELEASE
 ARG HBASE_THIRDPARTY
 ARG HBASE_HBASE
+# Reassign the arg to `HBASE_VERSION` for better readability.
+ENV HBASE_VERSION=${HBASE_HBASE}
 ARG STACKABLE_USER_UID
 ARG HBASE_OPERATOR_TOOLS_VERSION
 
@@ -41,7 +43,7 @@ cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE}"
 FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT}-stackable${RELEASE}" # This includes the HBase version and the Stackable release suffix
-PATCHED_HBASE_VERSION="${HBASE_HBASE}-stackable${RELEASE}"
+PATCHED_HBASE_VERSION="${HBASE_VERSION}-stackable${RELEASE}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
