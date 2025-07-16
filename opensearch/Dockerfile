@@ -1,50 +1,50 @@
-ARG PRODUCT
 
-
-FROM opensearchproject/opensearch:${PRODUCT} AS source
-
-
-FROM stackable/image/java-devel AS builder
+FROM stackable/image/opensearch/security-plugin AS opensearch-security-plugin
+FROM stackable/image/java-devel AS opensearch-builder
 
 ARG PRODUCT
+ARG RELEASE
+ARG OPENSEARCH_SECURITY_PLUGIN
 ARG STACKABLE_USER_UID
+
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/patchable.toml /stackable/src/opensearch/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/${PRODUCT} /stackable/src/opensearch/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/distributions/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
 
 RUN <<EOF
 microdnf update
-
-# patch: Required for the apply-patches.sh script
-microdnf install patch
-
+microdnf install unzip
 microdnf clean all
 rm -rf /var/cache/yum
 EOF
 
-USER ${STACKABLE_USER_UID}:0
-WORKDIR /stackable
+USER ${STACKABLE_USER_UID}
 
-COPY \
-    --chown=${STACKABLE_USER_UID}:0 \
-    --from=source \
-    /usr/share/opensearch \
-    opensearch
-COPY \
-    --chown=${STACKABLE_USER_UID}:0 \
-    opensearch/stackable/patches/apply_patches.sh \
-    opensearch/patches/apply_patches.sh
-COPY \
-    --chown=${STACKABLE_USER_UID}:0 \
-    opensearch/stackable/patches/${PRODUCT} \
-    opensearch/patches/${PRODUCT}
+RUN <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout opensearch ${PRODUCT})"
+
+NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
+./gradlew localDistro
+cp -r ./distribution/archives/linux-tar/build/install/opensearch-${PRODUCT}-SNAPSHOT /stackable/opensearch
+cp ./distribution/docker/src/docker/bin/docker-entrypoint.sh /stackable/opensearch/opensearch-docker-entrypoint.sh
+EOF
+
+WORKDIR /stackable/opensearch-security-plugin
+
+RUN <<EOF
+unzip opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
+rm -r opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
+mv config /stackable/opensearch/config/opensearch-security
+EOF
 
 WORKDIR /stackable/opensearch
 
 RUN <<EOF
 echo y | bin/opensearch-plugin install repository-s3
-EOF
-
-RUN <<EOF
-patches/apply_patches.sh ${PRODUCT}
-rm -r patches
 
 # The JDK from jdk-base is used instead.
 rm -r jdk
@@ -52,7 +52,8 @@ rm -r jdk
 # Change the group permissions already in the builder image to reduce
 # the size of the final image.
 # see https://github.com/stackabletech/docker-images/issues/961
-chmod -R g=u ${HOME}
+chmod -R g=u "${HOME}"
+chmod +x /stackable/opensearch/opensearch-docker-entrypoint.sh
 EOF
 
 
@@ -63,6 +64,7 @@ FROM stackable/image/jdk-base
 
 ARG PRODUCT
 ARG RELEASE
+ARG OPENSEARCH_SECURITY_PLUGIN
 ARG STACKABLE_USER_UID
 
 ARG NAME="OpenSearch"
@@ -84,9 +86,19 @@ LABEL org.opencontainers.image.description="${DESCRIPTION}"
 
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
-    --from=builder \
+    --from=opensearch-builder \
     /stackable/opensearch \
     ${OPENSEARCH_HOME}
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-builder \
+    /stackable/opensearch-security-plugin \
+    ${OPENSEARCH_HOME}/plugins/opensearch-security
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-security-plugin \
+    /stackable/opensearch-security-plugin-${OPENSEARCH_SECURITY_PLUGIN}-src.tar.gz \
+    /stackable
 
 RUN <<EOF
 microdnf update
@@ -103,6 +115,7 @@ USER ${STACKABLE_USER_UID}
 ENV HOME=${HOME}
 ENV OPENSEARCH_HOME=${OPENSEARCH_HOME}
 ENV PATH="${PATH}:/${OPENSEARCH_HOME}:${OPENSEARCH_HOME}/bin"
+ENV OPENSEARCH_CONTAINER=true
 
 WORKDIR ${OPENSEARCH_HOME}
 CMD ["./opensearch-docker-entrypoint.sh"]

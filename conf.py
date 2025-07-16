@@ -30,6 +30,9 @@ nifi = importlib.import_module("nifi.versions")
 omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
 opensearch = importlib.import_module("opensearch.versions")
+opensearch_security_plugin = importlib.import_module(
+    "opensearch.security-plugin.versions"
+)
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 stackable_devel = importlib.import_module("stackable-devel.versions")
@@ -68,6 +71,10 @@ products = [
     {"name": "omid", "versions": omid.versions},
     {"name": "opa", "versions": opa.versions},
     {"name": "opensearch", "versions": opensearch.versions},
+    {
+        "name": "opensearch/security-plugin",
+        "versions": opensearch_security_plugin.versions,
+    },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
     {"name": "stackable-devel", "versions": stackable_devel.versions},

@@ -1,9 +1,8 @@
 versions = [
     {
-        "product": "2.19.1",
-        # The performance analyzer works with JDK 17, but not with 21.
-        # https://github.com/opensearch-project/performance-analyzer-rca/issues/545
-        "java-devel": "17",
-        "jdk-base": "17",
+        "product": "3.1.0",
+        "java-devel": "24",
+        "jdk-base": "24",
+        "opensearch/security-plugin": "3.1.0.0",
     },
 ]
