@@ -62,6 +62,8 @@ RUN microdnf update \
     openssl-devel \
     pkg-config \
     systemd-devel \
+    # tar needed to create the source code snapshot before building the Rust code
+    tar \
     unzip \
   && microdnf clean all \
   && rm -rf /var/cache/yum
@@ -97,6 +99,7 @@ ONBUILD COPY . /src
 
 ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
+tar -czf /app/stackable-src.tar.gz .
 cargo auditable --quiet build --release --workspace
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
 
