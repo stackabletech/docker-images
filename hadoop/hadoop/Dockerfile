@@ -69,6 +69,12 @@ sed -e '/<artifactId>hadoop-pipes<\/artifactId>/,/<\/dependency>/ { s/<version>.
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hadoop-${NEW_VERSION}-src.tar.gz .
 
+# We do not pass require.snappy because that is only built in to the MapReduce client and we don't need that
+#
+# Passing require.openssl SHOULD make the build fail if OpenSSL is not present.
+# This does not work properly however because this builder image contains the openssl-devel package which creates a symlink from /usr/lib64/libcrypto.so to the real version.
+# Therefore, this build does work but the final image does NOT contain the openssl-devel package which is why it fails there which is why we have to create the symlink over there manually.
+# We still leave this flag in to automatically fail should anything with the packages or symlinks ever fail.
 mvn \
     --batch-mode \
     --no-transfer-progress \
@@ -77,6 +83,7 @@ mvn \
     -pl '!hadoop-tools/hadoop-pipes' \
     -Dhadoop.version=${NEW_VERSION} \
     -Drequire.fuse=true \
+    -Drequire.openssl=true \
     -DskipTests \
     -Dmaven.javadoc.skip=true
 
