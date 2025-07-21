@@ -1,0 +1,38 @@
+From eb596aa60cc21369d742b8d73604a2aac2a70f59 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Tue, 22 Jul 2025 09:52:55 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index bb2e65ab..314bb7be 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -71,6 +71,7 @@ plugins {
+     id 'eclipse'
+     id "com.github.spotbugs" version "6.2.0"
+     id "com.google.osdetector" version "1.7.3"
++    id "org.cyclonedx.bom" version "2.3.1"
+ }
+ 
+ allprojects {
+@@ -87,6 +88,16 @@ apply from: 'gradle/formatting.gradle'
+ licenseFile = rootProject.file('LICENSE.txt')
+ noticeFile = rootProject.file('NOTICE.txt')
+ 
++cyclonedxBom {
++    includeConfigs = ["runtimeClasspath"]
++    includeLicenseText = false
++    skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    projectType = "application"
++    schemaVersion = "1.6"
++    outputFormat = "json"
++    componentVersion = opensearch_build
++}
++
+ spotbugs {
+     includeFilter = file('spotbugs-include.xml')
+ }
