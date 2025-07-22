@@ -6,6 +6,7 @@ ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
 
 WORKDIR /stackable
 
@@ -29,14 +30,17 @@ NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
 ./gradlew localDistro
 ./gradlew cyclonedxBom --warning-mode=summary
-cp -r ./distribution/archives/linux-tar/build/install/opensearch-${PRODUCT}-SNAPSHOT /stackable/opensearch
-cp ./distribution/docker/src/docker/bin/docker-entrypoint.sh /stackable/opensearch/opensearch-docker-entrypoint.sh
-cp build/reports/bom.json /stackable/opensearch/opensearch-${PRODUCT}-SNAPSHOT.cdx.json
+cp -r build/distribution/local/opensearch-${PRODUCT}-SNAPSHOT /stackable/opensearch
+cp distribution/docker/src/docker/bin/docker-entrypoint.sh /stackable/opensearch/opensearch-docker-entrypoint.sh
+sed -i -e 's/OPENSEARCH_DISTRIBUTION_TYPE=tar/OPENSEARCH_DISTRIBUTION_TYPE=docker/' /stackable/opensearch/bin/opensearch-env
 EOF
 
-WORKDIR /stackable/opensearch-security-plugin
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/distributions/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.cdx.json
+WORKDIR /stackable/opensearch-security
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-security-plugin \
+    /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/distributions/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip \
+    /stackable/opensearch-security/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
 
 RUN <<EOF
 unzip opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
@@ -91,18 +95,32 @@ COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
     /stackable/opensearch \
-    ${OPENSEARCH_HOME}
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
-    /stackable/opensearch-security-plugin \
-    ${OPENSEARCH_HOME}/plugins/opensearch-security
+    /stackable/opensearch-security \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-builder \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}-src.tar.gz \
+    /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-security-plugin \
-    /stackable/opensearch-security-plugin-${OPENSEARCH_SECURITY_PLUGIN}-src.tar.gz \
+    /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}-src.tar.gz \
     /stackable
-
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-builder \
+    /stackable/src/opensearch/patchable-work/worktree/${PRODUCT}/build/reports/bom.json \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-security-plugin \
+    /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json \
+    /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}.cdx.json
 RUN <<EOF
 microdnf update
 microdnf clean all
@@ -112,6 +130,8 @@ rm -rf /var/cache/yum
 # This is best practice as all container users will belong to the root group (0).
 chown -R ${STACKABLE_USER_UID}:0 ${HOME}
 chmod -R g=u ${HOME}
+ln -s /stackable/opensearch-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_HOME}
+chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_HOME}
 EOF
 
 USER ${STACKABLE_USER_UID}

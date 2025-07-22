@@ -14,7 +14,7 @@ RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout opensearch/security-plugin ${PRODUCT})"
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/opensearch-security-plugin-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/opensearch-security-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 ./gradlew clean assemble
 ./gradlew cyclonedxBom --warning-mode=summary
 EOF
