@@ -232,7 +232,7 @@ All notable changes to this project will be documented in this file.
 
 - omid: Added 1.1.3-SNAPSHOT to allow for easier scanning pre-release
 - airflow: Add OPA support to Airflow ([#978]).
-- nifi: Activate `include-hadoop` profile for NiFi version 2.\* ([#958]).
+- nifi: Activate `include-hadoop` profile for NiFi version 2 ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - superset: Add role mapping from OPA ([#979]).
 - base: Add containerdebug tool ([#928], [#959]).
