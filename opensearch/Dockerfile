@@ -11,7 +11,6 @@ WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/patchable.toml /stackable/src/opensearch/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch/stackable/patches/${PRODUCT} /stackable/src/opensearch/stackable/patches/${PRODUCT}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/distributions/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
 
 RUN <<EOF
 microdnf update
@@ -29,11 +28,15 @@ NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
 ./gradlew localDistro
+./gradlew cyclonedxBom --warning-mode=summary
 cp -r ./distribution/archives/linux-tar/build/install/opensearch-${PRODUCT}-SNAPSHOT /stackable/opensearch
 cp ./distribution/docker/src/docker/bin/docker-entrypoint.sh /stackable/opensearch/opensearch-docker-entrypoint.sh
+cp build/reports/bom.json /stackable/opensearch/opensearch-${PRODUCT}-SNAPSHOT.cdx.json
 EOF
 
 WORKDIR /stackable/opensearch-security-plugin
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/distributions/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
+COPY --chown=${STACKABLE_USER_UID}:0 --from=opensearch-security-plugin /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json /stackable/opensearch-security-plugin/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.cdx.json
 
 RUN <<EOF
 unzip opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-SNAPSHOT.zip
