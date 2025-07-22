@@ -1,14 +1,14 @@
-From 078f639ddc0f7b108345dc5491c9a8ebe55e35bf Mon Sep 17 00:00:00 2001
+From 37d866706d952702effd640babf891fef349da7d Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Tue, 22 Jul 2025 17:34:03 +0200
 Subject: Backport [SPARK-51311][BUILD] Promote bcprov-jdk18on to compile scope
 
 ---
  LICENSE-binary                           |  1 +
- assembly/pom.xml                         | 13 +++++++++++++
+ assembly/pom.xml                         | 14 ++++++++++++++
  dev/deps/spark-deps-hadoop-3-hive-2.3    |  1 +
  licenses-binary/LICENSE-bouncycastle.txt | 13 +++++++++++++
- 4 files changed, 28 insertions(+)
+ 4 files changed, 29 insertions(+)
  create mode 100644 licenses-binary/LICENSE-bouncycastle.txt
 
 diff --git a/LICENSE-binary b/LICENSE-binary
@@ -24,13 +24,14 @@ index 05645977a0..9834cf333f 100644
  org.slf4j:jul-to-slf4j
  org.slf4j:slf4j-api
 diff --git a/assembly/pom.xml b/assembly/pom.xml
-index dcc46b0b82..fc3c11d385 100644
+index dcc46b0b82..def40ad52e 100644
 --- a/assembly/pom.xml
 +++ b/assembly/pom.xml
-@@ -87,6 +87,19 @@
+@@ -85,8 +85,22 @@
+       <artifactId>guava</artifactId>
+       <scope>${hadoop.deps.scope}</scope>
      </dependency>
-   </dependencies>
- 
++
 +    <!--
 +      Adapted from https://github.com/apache/spark/pull/50077
 +
@@ -42,7 +43,9 @@ index dcc46b0b82..fc3c11d385 100644
 +      <artifactId>bcprov-jdk18on</artifactId>
 +      <scope>${hadoop.deps.scope}</scope>
 +    </dependency>
-+  </dependencies>
++
+   </dependencies>
+ 
 +
    <build>
      <plugins>
