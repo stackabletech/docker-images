@@ -5,8 +5,8 @@ FROM stackable/image/java-devel AS opensearch-builder
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
+ARG OPENSEARCH_PERFORMANCE_ANALYZER
 ARG STACKABLE_USER_UID
-ARG TARGETARCH
 
 WORKDIR /stackable
 
@@ -52,6 +52,7 @@ WORKDIR /stackable/opensearch
 
 RUN <<EOF
 echo y | bin/opensearch-plugin install repository-s3
+echo y | bin/opensearch-plugin install org.opensearch.plugin:performance-analyzer:${OPENSEARCH_PERFORMANCE_ANALYZER}
 
 # The JDK from jdk-base is used instead.
 rm -r jdk
