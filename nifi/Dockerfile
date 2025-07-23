@@ -204,6 +204,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
 
+# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
+# This can be removed once the 1.x.x line is removed
+# Note: Keep this in sync with the version installed in testing-tools! (See the requirements.txt file)
+# Find the latest version here: https://pypi.org/project/nipyapi/
+# renovate: datasource=pypi packageName=nipyapi
+ENV NIPYAPI_VERSION=0.22.0
+
 RUN <<EOF
 microdnf update
 
@@ -217,10 +224,8 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
-# This can be removed once the 1.x.x line is removed
 pip install --no-cache-dir \
-    nipyapi==0.19.1
+    nipyapi==${NIPYAPI_VERSION}
 
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported

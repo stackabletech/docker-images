@@ -1,11 +1,13 @@
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/java-devel AS hbase-builder
 
 ARG PRODUCT
 ARG RELEASE
 ARG ASYNC_PROFILER
-ARG HADOOP
+ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
@@ -55,7 +57,7 @@ mvn \
   --batch-mode \
   --no-transfer-progress \
   -Dhadoop.profile=3.0 \
-  -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} \
+  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \
   clean install
 
@@ -63,7 +65,7 @@ mvn \
   --batch-mode \
   --no-transfer-progress \
   -Dhadoop.profile=3.0 \
-  -Dhadoop-three.version=${HADOOP}-stackable${RELEASE} \
+  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   -Prelease \

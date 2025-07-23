@@ -13,12 +13,12 @@ import importlib
 airflow = importlib.import_module("airflow.versions")
 druid = importlib.import_module("druid.versions")
 hadoop = importlib.import_module("hadoop.versions")
+hadoop_jars = importlib.import_module("hadoop.hadoop.versions")
 hbase = importlib.import_module("hbase.versions")
 hbase_jars = importlib.import_module("hbase.hbase.versions")
 hbase_phoenix = importlib.import_module("hbase.phoenix.versions")
 hbase_opa_authorizer = importlib.import_module("hbase.hbase-opa-authorizer.versions")
 hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versions")
-hello_world = importlib.import_module("hello-world.versions")
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
@@ -54,12 +54,12 @@ products = [
     {"name": "airflow", "versions": airflow.versions},
     {"name": "druid", "versions": druid.versions},
     {"name": "hadoop", "versions": hadoop.versions},
+    {"name": "hadoop/hadoop", "versions": hadoop_jars.versions},
     {"name": "hbase", "versions": hbase.versions},
     {"name": "hbase/hbase", "versions": hbase_jars.versions},
     {"name": "hbase/phoenix", "versions": hbase_phoenix.versions},
     {"name": "hbase/hbase-opa-authorizer", "versions": hbase_opa_authorizer.versions},
     {"name": "hbase/hbase-operator-tools", "versions": hbase_operator_tools.versions},
-    {"name": "hello-world", "versions": hello_world.versions},
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
@@ -121,7 +121,7 @@ cache = [
 
 args = {
     "STACKABLE_USER_NAME": "stackable",
-    "STACKABLE_USER_UID": "782252253",  # This is a random high id to not conflict with any existing user
-    "STACKABLE_USER_GID": "574654813",  # This is a random high id to not conflict with any existing group
+    "STACKABLE_USER_UID": "1000",
+    "STACKABLE_USER_GID": "1000",
     "DELETE_CACHES": "true",
 }

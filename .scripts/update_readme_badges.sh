@@ -54,12 +54,15 @@ for BUILD_WORKFLOW_FILE in .github/workflows/build_*.yaml; do
     echo >> "$BADGES_TMP"
   fi
 done
-# This needs to add the remaning empty columns of the last row in the table
-# This is a hack to fix the status quo and make markdownlint happy.
-for _ in $(seq 0 $((COLS - 1))); do
-  echo -n "| " >> "$BADGES_TMP"
-done
-echo "|" >> "$BADGES_TMP"
+
+# Add remaining empty columns to complete the last row if needed
+# "if needed" is the first if here: It'll only run when we're NOT on the last column (0 indexed)
+if [ ${CURRENT_COLUMN} -ne $((COLS - 1)) ]; then
+  for _ in $(seq $((CURRENT_COLUMN + 1)) $((COLS - 1))); do
+    echo -n "| " >> "$BADGES_TMP"
+  done
+  echo "|" >> "$BADGES_TMP"
+fi
 echo -n "<!-- end:badges -->" >> "$BADGES_TMP"
 
 # Print the image and link shortcuts. Eg:

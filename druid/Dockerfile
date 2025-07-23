@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/hadoop AS hadoop-builder
+FROM stackable/image/hadoop/hadoop AS hadoop-builder
 
 FROM stackable/image/java-devel AS druid-builder
 
@@ -12,7 +12,9 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER
 ARG STACKABLE_USER_UID
-ARG HADOOP
+ARG HADOOP_HADOOP
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP}
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -75,7 +77,7 @@ mvn \
   --no-transfer-progress \
   clean install \
   -Pdist,stackable-bundle-contrib-exts \
-  -Dhadoop.compile.version=${HADOOP}-stackable${RELEASE} \
+  -Dhadoop.compile.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests `# Skip test execution` \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
