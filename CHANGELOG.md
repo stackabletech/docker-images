@@ -59,6 +59,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: bump jetty version for CVE-2024-13009 in 3.9.3 ([#1179])
 - zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
 - hadoop: backport HADOOP-19352, HADOOP-19335, HADOOP-19465, HADOOP-19456 and HADOOP-19225 to fix vulnerabilities in Hadoop `3.4.1` ([#1184])
+- opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 
 ### Changed
 
@@ -217,6 +218,7 @@ All notable changes to this project will be documented in this file.
 [#1185]: https://github.com/stackabletech/docker-images/pull/1185
 [#1188]: https://github.com/stackabletech/docker-images/pull/1188
 [#1189]: https://github.com/stackabletech/docker-images/pull/1189
+[#1215]: https://github.com/stackabletech/docker-images/pull/1215
 
 ## [25.3.0] - 2025-03-21
 
