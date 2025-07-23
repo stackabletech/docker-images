@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [25.7.0] - 2025-07-23
+
+## [25.7.0-rc1] - 2025-07-18
+
 ### Added
 
 - airflow: check for correct permissions and ownerships in /stackable folder via
@@ -60,6 +64,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: bump netty version for CVE-2025-24970 in 3.9.3 ([#1180])
 - hadoop: backport HADOOP-19352, HADOOP-19335, HADOOP-19465, HADOOP-19456 and HADOOP-19225 to fix vulnerabilities in Hadoop `3.4.1` ([#1184])
 - hadoop: Backport HADOOP-18583 to make OpenSSL 3.x work with the native hadoop libraries ([#1209]).
+- spark: backport [SPARK-51311] Promote bcprov-jdk18on to compile scope ([#1212]).
 
 ### Changed
 
@@ -223,6 +228,7 @@ All notable changes to this project will be documented in this file.
 [#1189]: https://github.com/stackabletech/docker-images/pull/1189
 [#1197]: https://github.com/stackabletech/docker-images/pull/1197
 [#1209]: https://github.com/stackabletech/docker-images/pull/1209
+[#1212]: https://github.com/stackabletech/docker-images/pull/1212
 
 ## [25.3.0] - 2025-03-21
 
@@ -230,7 +236,7 @@ All notable changes to this project will be documented in this file.
 
 - omid: Added 1.1.3-SNAPSHOT to allow for easier scanning pre-release
 - airflow: Add OPA support to Airflow ([#978]).
-- nifi: Activate `include-hadoop` profile for NiFi version 2.* ([#958]).
+- nifi: Activate `include-hadoop` profile for NiFi version 2 ([#958]).
 - nifi: Add NiFi hadoop Azure and GCP libraries ([#943]).
 - superset: Add role mapping from OPA ([#979]).
 - base: Add containerdebug tool ([#928], [#959]).
@@ -763,7 +769,7 @@ All notable changes to this project will be documented in this file.
 - BREAKING: Use RPM instead of tar.gz for Vector. Because of that, the
   location of the Vector executable changed, and the operator-rs version
   0.45.0 or newer is required ([#429]).
-- spark-k8s: Rework spark images to build on top of java-base image.  This fixes the missing tzdata-java package in 0.0.0-dev versions ([#434]).
+- spark-k8s: Rework spark images to build on top of java-base image. This fixes the missing tzdata-java package in 0.0.0-dev versions ([#434]).
 
 - airflow: Updated git-sync to 3.6.8 ([#431]).
 - airflow: Updated statsd-exporter to 0.24, this was accidentally moved to a very old version previously (0.3.0) ([#431]).
