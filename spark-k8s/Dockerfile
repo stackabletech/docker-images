@@ -61,6 +61,17 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patche
 COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR} /stackable/src/spark-k8s/hbase-connectors/stackable/patches/${HBASE_CONNECTOR}
 
 RUN <<EOF
+
+# IMPORTANT: HBase connectors don't support Spark 4 yet, so we skip the build.
+# Watch this PR for updates: https://github.com/apache/hbase-connectors/pull/130
+if [[ "${PRODUCT}" == 4* ]]; then
+    # Create this empty directory so that following COPY layers succeed.
+    mkdir -p /stackable/spark/jars
+    # Create a dummy tarball to satisfy the build process for Spark 3.
+    touch hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz
+    exit 0
+fi
+
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
 
 NEW_VERSION="${HBASE_CONNECTOR}-stackable${RELEASE}"
@@ -110,6 +121,7 @@ mvn \
     --define hadoop-three.version="${HADOOP_VERSION}" \
     --define hbase.version="${HBASE}" \
     --define skipTests \
+    --define maven.test.skip=true \
     clean package
 
 mkdir -p /stackable/spark/jars
@@ -162,9 +174,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 
 # >>> Build spark
-# Compiling the tests takes a lot of time, so we skip them
-# -Dmaven.test.skip=true skips both the compilation and execution of tests
-# -DskipTests skips only the execution
 RUN <<EOF
     # Make Maven aware of custom Stackable libraries
     mv /stackable/patched-libs/maven /root/.m2/repository
@@ -179,15 +188,35 @@ RUN <<EOF
     ORIGINAL_VERSION="${PRODUCT}"
     NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
+    STACKABLE_HADOOP_VERSION="${HADOOP_HADOOP}-stackable${RELEASE}"
+
+    MAVEN_BIN="/tmp/apache-maven-${MAVEN_VERSION}/bin/mvn"
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
-    ./dev/make-distribution.sh \
-    --mvn /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn \
-    -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE}" \
-    -DskipTests \
-    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
-    --no-transfer-progress \
-    --batch-mode
+    case "${PRODUCT}" in
+        4*)
+            # The Spark 4 script has a --connect option which is not available in Spark 3.
+            # This option is required to build Spark Connect.
+            # Also this option breaks the Spark 3 build so we ensure it's only provided here.
+            ./dev/make-distribution.sh \
+            --mvn "${MAVEN_BIN}" \
+            --connect \
+            -Dhadoop.version="${STACKABLE_HADOOP_VERSION}" \
+            -DskipTests \
+            -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+            --no-transfer-progress \
+            --batch-mode
+            ;;
+        *)
+            ./dev/make-distribution.sh \
+            --mvn "${MAVEN_BIN}" \
+            -Dhadoop.version="${STACKABLE_HADOOP_VERSION}" \
+            -DskipTests \
+            -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
+            --no-transfer-progress \
+            --batch-mode
+            ;;
+    esac
 
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
@@ -198,22 +227,30 @@ EOF
 # we create a new dist/connect folder, and copy them here.
 RUN <<EOF
 
-    # Get the Scala binary version
-    SCALA_BINARY_VERSION=$( \
-        mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file pom.xml \
-        org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-        -DforceStdout \
-        -Dexpression='project.properties(scala.binary.version)')
+    SCALA_BINARY_VERSION=$(grep "scala.binary.version" pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
 
     mkdir -p dist/connect
     cd dist/connect
 
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
-    cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+    case "${PRODUCT}" in
+        4*)
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            ;;
+        *)
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            cp "/stackable/spark-${PRODUCT}-stackable${RELEASE}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" .
+            ;;
+    esac
 
-    # The Spark operator expects a file named spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar without the -stackable${RELEASE} suffix.
+    # This link is needed by the operator and is kept for backwards compatibility.
+    # TODO: remove it at some time in the future.
     ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}.jar"
+    # Link to the spark-connect jar without the stackable suffix and scala version.
+    # This link supersedes the previous link.
+    ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT}-stackable${RELEASE}.jar" "spark-connect-${PRODUCT}.jar"
 EOF
 
 # <<< Build spark
