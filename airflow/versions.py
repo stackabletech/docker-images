@@ -47,6 +47,7 @@ versions = [
         "shared/statsd-exporter": "0.28.0",
         "tini": "0.19.0",
         "vector": "0.47.0",
+        "stackable-devel": "1.0.0",
         "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf-kubernetes,docker,elasticsearch,fab,ftp,grpc,hashicorp,http,ldap,google,microsoft-azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,trino",
         "opa_auth_manager": "airflow-3",

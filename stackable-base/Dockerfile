@@ -14,6 +14,7 @@ FROM stackable/image/stackable-devel AS config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
 
 RUN <<EOF
+proxy-filter.sh
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 cd ./config-utils
 . "$HOME/.cargo/env"
@@ -27,6 +28,7 @@ FROM stackable/image/stackable-devel AS containerdebug
 ENV CONTAINERDEBUG_VERSION=0.2.0
 
 RUN <<EOF
+proxy-filter.sh
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
 cd ./containerdebug
 . "$HOME/.cargo/env"

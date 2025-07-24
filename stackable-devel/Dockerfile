@@ -57,10 +57,12 @@ microdnf update
 # git: Needed to fetch source
 # gcc: Needed for compilation
 # findutils: Needed for xargs, used (at least) by `gradlew` in the Kafka build process
+# squid: HTTP proxy for filtering external connections during builds
 microdnf install \
   gcc \
   findutils \
-  git
+  git \
+  squid
 
 ###
 ### Add Stackable user and group
@@ -128,3 +130,22 @@ COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc /root/.ya
 # YARN v2++
 COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /stackable/.yarnrc.yml
 COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /root/.yarnrc.yml
+
+# HTTP Proxy filtering configuration
+COPY stackable-devel/stackable/squid.conf /etc/squid/squid.conf
+COPY stackable-devel/stackable/proxy-filter.sh /usr/local/bin/proxy-filter.sh
+
+RUN <<EOF
+# Make proxy filter script executable
+chmod +x /usr/local/bin/proxy-filter.sh
+
+# Create squid log directory only (cache disabled)
+mkdir -p /var/log/squid
+chown squid:squid /var/log/squid
+EOF
+
+# Set proxy environment variables for this image
+ENV HTTP_PROXY=http://127.0.0.1:3128
+ENV HTTPS_PROXY=http://127.0.0.1:3128
+ENV http_proxy=http://127.0.0.1:3128
+ENV https_proxy=http://127.0.0.1:3128
