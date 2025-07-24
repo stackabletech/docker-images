@@ -115,3 +115,16 @@ microdnf clean all
 chown ${STACKABLE_USER_UID}:0 /stackable/patchable
 rm -rf /patchable
 EOF
+
+# Make sure NPM and YARN use our build mirror
+# In theory YARN should (I believe) fall back to the npmrc file but we want to make sure...
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.npmrc /stackable/.npmrc
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.npmrc /root/.npmrc
+
+# YARN v1
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc /stackable/.yarnrc
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc /root/.yarnrc
+
+# YARN v2++
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /stackable/.yarnrc.yml
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /root/.yarnrc.yml
