@@ -31,6 +31,7 @@ find . -type f -print0 | xargs -0 sed -i "s/\-stackable0\.0\.0\-dev/-stackable${
 tar -czf /stackable/kafka-${NEW_VERSION}-src.tar.gz .
 
 # TODO: Try to install gradle via package manager (if possible) instead of fetching it from the internet
+# We patch Kafka to use our Nexus build repo instead
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
 # it's a good idea to run the tests in this case.
 ./gradlew clean releaseTarGz
