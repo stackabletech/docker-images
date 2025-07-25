@@ -22,12 +22,20 @@ hbase_operator_tools = importlib.import_module("hbase.hbase-operator-tools.versi
 hive = importlib.import_module("hive.versions")
 java_base = importlib.import_module("java-base.versions")
 java_devel = importlib.import_module("java-devel.versions")
+jdk_base = importlib.import_module("jdk-base.versions")
 kafka = importlib.import_module("kafka.versions")
 krb5 = importlib.import_module("krb5.versions")
 vector = importlib.import_module("vector.versions")
 nifi = importlib.import_module("nifi.versions")
 omid = importlib.import_module("omid.versions")
 opa = importlib.import_module("opa.versions")
+opensearch = importlib.import_module("opensearch.versions")
+opensearch_security_plugin = importlib.import_module(
+    "opensearch.security-plugin.versions"
+)
+opensearch_performance_analyzer = importlib.import_module(
+    "opensearch.performance-analyzer.versions"
+)
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 stackable_devel = importlib.import_module("stackable-devel.versions")
@@ -58,12 +66,22 @@ products = [
     {"name": "hive", "versions": hive.versions},
     {"name": "java-base", "versions": java_base.versions},
     {"name": "java-devel", "versions": java_devel.versions},
+    {"name": "jdk-base", "versions": jdk_base.versions},
     {"name": "kafka", "versions": kafka.versions},
     {"name": "krb5", "versions": krb5.versions},
     {"name": "vector", "versions": vector.versions},
     {"name": "nifi", "versions": nifi.versions},
     {"name": "omid", "versions": omid.versions},
     {"name": "opa", "versions": opa.versions},
+    {"name": "opensearch", "versions": opensearch.versions},
+    {
+        "name": "opensearch/security-plugin",
+        "versions": opensearch_security_plugin.versions,
+    },
+    {
+        "name": "opensearch/performance-analyzer",
+        "versions": opensearch_performance_analyzer.versions,
+    },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
     {"name": "stackable-devel", "versions": stackable_devel.versions},

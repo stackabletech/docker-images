@@ -1,0 +1,26 @@
+FROM stackable/image/java-devel AS performance-analyzer-builder
+
+ARG PRODUCT
+ARG RELEASE
+ARG STACKABLE_USER_UID
+
+USER ${STACKABLE_USER_UID}
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch/performance-analyzer/stackable/patches/patchable.toml /stackable/src/opensearch/performance-analyzer/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch/performance-analyzer/stackable/patches/${PRODUCT} /stackable/src/opensearch/performance-analyzer/stackable/patches/${PRODUCT}
+
+RUN <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout opensearch/performance-analyzer ${PRODUCT})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/opensearch-performance-analyzer-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
+./gradlew clean build -Dbuild.snapshot=false
+./gradlew cyclonedxBom --warning-mode=summary -Dbuild.snapshot=false
+EOF
+
+RUN <<EOF
+# Change the group permissions already in the builder image to reduce the size of the final image.
+# see https://github.com/stackabletech/docker-images/issues/961
+chmod -R g=u "${HOME}"
+EOF
