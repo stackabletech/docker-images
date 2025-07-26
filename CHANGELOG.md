@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - all: Use our build-repo to cache NPM dependencies ([#1219])
+- java: Use a more recent Maven version for all Java based products ([#1220])
 
 [#1219]: https://github.com/stackabletech/docker-images/pull/1219
+[#1220]: https://github.com/stackabletech/docker-images/pull/1220
 
 ## [25.7.0] - 2025-07-23
 
