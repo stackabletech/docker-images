@@ -47,8 +47,6 @@ tar -czf /stackable/phoenix-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   -Dhbase.version=${HBASE_VERSION}-stackable${RELEASE} \
   -Dhbase.profile=${HBASE_PROFILE} \
   -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \

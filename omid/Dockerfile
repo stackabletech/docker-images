@@ -36,7 +36,7 @@ RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target
 
   # Create snapshot of the source code including custom patches
   tar -czf /stackable/omid-${NEW_VERSION}-src.tar.gz .
-  mvn --batch-mode --no-transfer-progress package -Phbase-2 -DskipTests
+  mvn package -Phbase-2 -DskipTests
   tar -xf tso-server/target/omid-tso-server-${NEW_VERSION}-bin.tar.gz -C /stackable
   sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" tso-server/target/bom.json
   mv tso-server/target/bom.json /stackable/omid-tso-server-${NEW_VERSION}/omid-tso-server-${NEW_VERSION}.cdx.json

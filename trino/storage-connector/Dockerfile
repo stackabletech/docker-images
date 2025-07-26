@@ -32,10 +32,7 @@ tar -czf /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz .
 
 mvn versions:set -DnewVersion=${NEW_VERSION}
 
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw \
-  --batch-mode \
-  --no-transfer-progress \
+mvn \
   package \
   -DskipTests `# Skip test execution` \
   -Ddep.trino.version=${NEW_VERSION} `# Use custom Stackable Trino version in tests` \

@@ -81,14 +81,14 @@ export JDK_JAVA_OPTIONS="\
 
 # Get the Scala version used by Spark
 SCALA_VERSION=$( \
-    mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
     -DforceStdout \
     -Dexpression='project.properties(scala.version)')
 
 # Get the Scala binary version used by Spark
 SCALA_BINARY_VERSION=$( \
-    mvn --quiet --non-recursive  --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
     org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
     -DforceStdout \
     -Dexpression='project.properties(scala.binary.version)')
@@ -102,8 +102,6 @@ SCALA_BINARY_VERSION=$( \
 #     at org.apache.hadoop.hbase.LocalHBaseCluster.startup(LocalHBaseCluster.java:407)
 #     at org.apache.hadoop.hbase.MiniHBaseCluster.init(MiniHBaseCluster.java:250)
 mvn \
-    --batch-mode \
-    --no-transfer-progress \
     --define spark.version="${PRODUCT}" \
     --define scala.version="${SCALA_VERSION}" \
     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
@@ -122,7 +120,7 @@ cd /stackable/spark/jars
 # Spark contains only log4j-slf4j2-impl-x.x.x.jar but not
 # log4j-slf4j-impl-x.x.x.jar. It is okay to have both JARs in the
 # classpath as long as they have the same version.
-mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file /stackable/spark/pom.xml \
+mvn --non-recursive --file /stackable/spark/pom.xml \
     dependency:copy \
     -Dartifact=org.apache.logging.log4j:log4j-slf4j-impl:'${log4j.version}' \
     -DoutputDirectory=./jars
@@ -150,9 +148,6 @@ ARG TARGETARCH
 ARG TINI
 ARG RELEASE
 ARG STACKABLE_USER_UID
-# Find the latest version here: https://github.com/apache/maven
-# renovate: datasource=github-tags packageName=apache/maven
-ARG MAVEN_VERSION="3.9.10"
 
 WORKDIR /stackable/spark-${PRODUCT}-stackable${RELEASE}
 
@@ -169,25 +164,15 @@ RUN <<EOF
     # Make Maven aware of custom Stackable libraries
     mv /stackable/patched-libs/maven /root/.m2/repository
 
-    # We download the Maven binary from our own repository because:
-    #
-    # 1. The UBI Maven version is too old:
-    #   134.0 [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.8.8,)
-    # 2. The Maven download from archive.apache.org is not working reliably:
-    curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC /tmp
-
     ORIGINAL_VERSION="${PRODUCT}"
     NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
     ./dev/make-distribution.sh \
-    --mvn /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn \
     -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE}" \
     -DskipTests \
-    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver \
-    --no-transfer-progress \
-    --batch-mode
+    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
@@ -200,7 +185,7 @@ RUN <<EOF
 
     # Get the Scala binary version
     SCALA_BINARY_VERSION=$( \
-        mvn --quiet --non-recursive --no-transfer-progress --batch-mode --file pom.xml \
+        mvn --quiet --non-recursive --file pom.xml \
         org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
         -DforceStdout \
         -Dexpression='project.properties(scala.binary.version)')

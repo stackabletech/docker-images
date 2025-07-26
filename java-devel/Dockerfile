@@ -10,6 +10,10 @@ FROM stackable/image/stackable-devel
 ARG PRODUCT
 ARG STACKABLE_USER_UID
 
+# Find the latest version here: https://github.com/apache/maven
+# renovate: datasource=github-tags packageName=apache/maven
+ARG MAVEN_VERSION="3.9.10"
+
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
@@ -46,7 +50,6 @@ microdnf install \
   krb5-devel \
   libcurl-devel \
   make \
-  maven \
   openssl-devel \
   `# Required to unpack Omid tarball` \
   tar \
@@ -56,9 +59,15 @@ microdnf install \
   zlib-devel
 microdnf clean all
 rm -rf /var/cache/yum
+
+curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC /tmp
+mv /tmp/apache-maven-${MAVEN_VERSION} /opt/maven
+ln -s /opt/maven/bin/mvn /usr/bin/mvn
+
 EOF
 
 ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jdk"
+ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /root/.m2/settings.xml

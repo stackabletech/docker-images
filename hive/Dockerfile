@@ -56,13 +56,19 @@ mvn versions:set -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -Dgenerate
 tar -czf /stackable/hive-${NEW_VERSION}-src.tar.gz .
 
 if [[ "${PRODUCT}" == "3.1.3" ]] ; then
-  mvn --batch-mode --no-transfer-progress clean package -DskipTests --projects standalone-metastore
+  mvn \
+   clean package \
+   -DskipTests \
+    --projects standalone-metastore
   mv standalone-metastore/target/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}-bin /stackable
   mv standalone-metastore/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
 else
   (
     # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
-    mvn --batch-mode --no-transfer-progress clean package -DskipTests -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE}
+    mvn \
+    clean package \
+    -DskipTests \
+    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE}
 
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz

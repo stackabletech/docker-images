@@ -9,27 +9,12 @@ FROM stackable/image/java-devel AS nifi-builder
 
 ARG PRODUCT
 ARG RELEASE
-ARG MAVEN_VERSION="3.9.8"
 ARG STACKABLE_USER_UID
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
-EOF
-
-# NOTE: From NiFi 2.0.0 upwards Apache Maven 3.9.6+ is required. As of 2024-07-04 the java-devel image
-# ships 3.6.3. This will update maven accordingly depending on the version. The error is due to the maven-enforer-plugin.
-#
-# [ERROR] Rule 2: org.apache.maven.enforcer.rules.version.RequireMavenVersion failed with message:
-# [ERROR] Detected Maven Version: 3.6.3 is not in the allowed range [3.9.6,).
-#
-RUN <<EOF
-if [[ "${PRODUCT}" != 1.* ]] ; then
-    cd /tmp
-    curl "https://repo.stackable.tech/repository/packages/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar -xzC .
-    ln -sf /tmp/apache-maven-${MAVEN_VERSION}/bin/mvn /usr/bin/mvn
-fi
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -57,9 +42,17 @@ tar -czf /stackable/nifi-${NEW_VERSION}-src.tar.gz .
 # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
 # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
 if [[ "${PRODUCT}" != 1.* ]] ; then
-    mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
+    mvn \
+    clean install \
+    -Dmaven.javadoc.skip=true \
+    -DskipTests \
+    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
 else
-    mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true -DskipTests --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
+    mvn \
+    clean install \
+    -Dmaven.javadoc.skip=true \
+    -DskipTests \
+    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
 fi
 
 # Copy the binaries to the /stackable folder
@@ -118,8 +111,6 @@ if [[ "${PRODUCT}" != 1.* ]] ; then
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT}/g" pom.xml
 
     mvn \
-        --batch-mode \
-        --no-transfer-progress\
         clean package \
         -D nifi.version=${PRODUCT} \
         -Dmaven.javadoc.skip=true \
@@ -161,8 +152,6 @@ cd "$(/stackable/patchable --images-repo-root=src checkout nifi/opa-plugin ${NIF
 tar -czf /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN}-src.tar.gz .
 
 mvn \
-    --batch-mode \
-    --no-transfer-progress \
     clean package \
     -DskipTests \
     -Pnifi-${PRODUCT}

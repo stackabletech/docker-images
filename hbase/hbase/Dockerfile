@@ -54,16 +54,12 @@ tar -czf /stackable/hbase-${NEW_VERSION}-src.tar.gz .
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 # Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   -Dhadoop.profile=3.0 \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \
   clean install
 
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   -Dhadoop.profile=3.0 \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
   -DskipTests \

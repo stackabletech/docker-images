@@ -34,7 +34,11 @@ tar -czf /stackable/zookeeper-${NEW_VERSION}-src.tar.gz .
 
 # Exclude the `zookeeper-client` submodule, this is not needed and has c parts
 # that created all kinds of issues for the build container
-mvn --batch-mode --no-transfer-progress -pl "!zookeeper-client/zookeeper-client-c" clean install checkstyle:check spotbugs:check -DskipTests -Pfull-build
+mvn \
+  -pl "!zookeeper-client/zookeeper-client-c" \
+  clean install checkstyle:check spotbugs:check \
+  -DskipTests \
+  -Pfull-build
 
 # Unpack the archive which contains the build artifacts from above. Remove some
 # unused files to shrink the final image size.
