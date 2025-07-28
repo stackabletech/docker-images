@@ -137,6 +137,15 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/j
 chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}"
 chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}"
 
+# Workaround for https://issues.apache.org/jira/browse/HADOOP-12845
+# The problem is that our stackable-devel image does contain the openssl-devel package
+# That package creates a symlink from /usr/lib/libcrypto.so to the real libcrypto
+# The non -devel package, which is used in this image, does NOT create this symlink.
+# That's why the Hadoop build works even with the 'require.openssl' flag but in the production
+# image the 'hadoop checknative' tool still fails because it can't find the 'libcrypto.so' symlink.
+# Therefore we create this symlink here.
+ln -s /usr/lib64/libcrypto.so.3 /usr/lib64/libcrypto.so
+
 # ----------------------------------------
 # Checks
 # This section is to run final checks to ensure the created final images
