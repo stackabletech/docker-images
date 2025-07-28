@@ -145,9 +145,7 @@ chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoo
 # image the 'hadoop checknative' tool still fails because it can't find the 'libcrypto.so' symlink.
 # Therefore we create this symlink here.
 ln -s /usr/lib64/libcrypto.so.3 /usr/lib64/libcrypto.so
-EOF
 
-RUN <<EOF
 # ----------------------------------------
 # Checks
 # This section is to run final checks to ensure the created final images

@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207])
+
 ### Changed
 
 - all: Use our build-repo to cache NPM dependencies ([#1219])
 
+[#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1219]: https://github.com/stackabletech/docker-images/pull/1219
 
 ## [25.7.0] - 2025-07-23
