@@ -33,9 +33,6 @@ opensearch = importlib.import_module("opensearch.versions")
 opensearch_security_plugin = importlib.import_module(
     "opensearch.security-plugin.versions"
 )
-opensearch_performance_analyzer = importlib.import_module(
-    "opensearch.performance-analyzer.versions"
-)
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 stackable_devel = importlib.import_module("stackable-devel.versions")
@@ -78,10 +75,6 @@ products = [
         "name": "opensearch/security-plugin",
         "versions": opensearch_security_plugin.versions,
     },
-    {
-        "name": "opensearch/performance-analyzer",
-        "versions": opensearch_performance_analyzer.versions,
-    },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
     {"name": "stackable-devel", "versions": stackable_devel.versions},
@@ -109,6 +102,7 @@ open_shift_projects = {
     "kafka": {"id": "625ff25b91bdcd4b49c823a4"},
     "nifi": {"id": "625586a32e9e14bc8118e203"},
     "opa": {"id": "6255838bea1feb8bec4aaaa3"},
+    "opensearch": {"id": "6880fe690db664aa303d3a28"},
     "spark-k8s": {"id": "62613e81f8ce82a2f247dda5"},
     "superset": {"id": "62557e5fea1feb8bec4aaaa0"},
     "tools": {"id": "62557cd575ab7e30884aaaa0"},

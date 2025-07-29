@@ -1,2 +1,0 @@
-upstream = "https://github.com/opensearch-project/performance-analyzer"
-default-mirror = "https://github.com/stackabletech/opensearch-performance-analyzer"
