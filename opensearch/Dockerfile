@@ -32,7 +32,7 @@ NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
 ./scripts/build.sh -v "${PRODUCT}" -s false -a "${ARCH}"
-tar -xzf artifacts/dist/opensearch-min-${PRODUCT}-linux-${ARCH}.tar.gz -C /stackable
+tar -xzf "artifacts/dist/opensearch-min-${PRODUCT}-linux-${ARCH}.tar.gz" -C /stackable
 unzip artifacts/core-plugins/repository-s3-${PRODUCT}.zip -d /stackable/opensearch-${PRODUCT}/plugins/repository-s3/
 mv /stackable/opensearch-${PRODUCT}/plugins/repository-s3/config /stackable/opensearch-${PRODUCT}/config/repository-s3
 unzip artifacts/core-plugins/telemetry-otel-${PRODUCT}.zip -d /stackable/opensearch-${PRODUCT}/plugins/telemetry-otel/
@@ -65,14 +65,14 @@ rm -r jdk
 # Change the group permissions already in the builder image to reduce
 # the size of the final image.
 # see https://github.com/stackabletech/docker-images/issues/961
-chmod -R g=u "${HOME}"
 chmod +x /stackable/opensearch-${PRODUCT}/opensearch-docker-entrypoint.sh
+chmod -R g=u /stackable
 EOF
 
 # The OpenSearch Performance Analyzer needs a JDK, not just a JRE.
 # With a JRE, the following exception is thrown:
 # java.lang.ClassNotFoundException: com.sun.tools.attach.VirtualMachine
-FROM stackable/image/jdk-base
+FROM stackable/image/jdk-base AS final
 
 ARG PRODUCT
 ARG RELEASE
@@ -129,6 +129,7 @@ COPY \
     --from=opensearch-security-plugin \
     /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}.cdx.json
+
 RUN <<EOF
 microdnf update
 microdnf clean all
@@ -136,11 +137,14 @@ rm -rf /var/cache/yum
 
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
-chown -R ${STACKABLE_USER_UID}:0 ${HOME}
-chmod -R g=u ${HOME}
+chown ${STACKABLE_USER_UID}:0 ${HOME}
+chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}
+chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
+chmod g=u /stackable/*-src.tar.gz
+chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_HOME}
-EOF
+
 
 # ----------------------------------------
 # Checks
@@ -151,7 +155,7 @@ EOF
 
 # Check that permissions and ownership in /stackable are set correctly
 # This will fail and stop the build if any mismatches are found.
-RUN <<EOF
+
 /bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 

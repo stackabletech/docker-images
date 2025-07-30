@@ -25,5 +25,5 @@ EOF
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce the size of the final image.
 # see https://github.com/stackabletech/docker-images/issues/961
-chmod -R g=u "${HOME}"
+chmod -R g=u /stackable
 EOF
