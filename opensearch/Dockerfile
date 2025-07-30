@@ -8,6 +8,7 @@ ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
 
 WORKDIR /stackable
 
@@ -26,17 +27,12 @@ USER ${STACKABLE_USER_UID}
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout opensearch ${PRODUCT})"
 
+ARCH="${TARGETARCH/amd64/x64}"
 NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
-if [[ $(uname -m) == "arm64" ]]
-then
-    ./scripts/build.sh -v ${PRODUCT} -s false -a arm64
-    tar -xzf artifacts/dist/opensearch-min-${PRODUCT}-linux-arm64.tar.gz -C /stackable
-else
-    ./scripts/build.sh -v ${PRODUCT} -s false -a x64
-    tar -xzf artifacts/dist/opensearch-min-${PRODUCT}-linux-x64.tar.gz -C /stackable
-fi
+./scripts/build.sh -v "${PRODUCT}" -s false -a "${ARCH}"
+tar -xzf artifacts/dist/opensearch-min-${PRODUCT}-linux-${ARCH}.tar.gz -C /stackable
 unzip artifacts/core-plugins/repository-s3-${PRODUCT}.zip -d /stackable/opensearch-${PRODUCT}/plugins/repository-s3/
 mv /stackable/opensearch-${PRODUCT}/plugins/repository-s3/config /stackable/opensearch-${PRODUCT}/config/repository-s3
 unzip artifacts/core-plugins/telemetry-otel-${PRODUCT}.zip -d /stackable/opensearch-${PRODUCT}/plugins/telemetry-otel/
