@@ -145,7 +145,6 @@ chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_HOME}
 
-
 # ----------------------------------------
 # Checks
 # This section is to run final checks to ensure the created final images

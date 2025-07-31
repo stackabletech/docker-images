@@ -16,6 +16,7 @@ on:
       - opensearch/**
       - vector/**
       - stackable-base/**
+      - stackable-devel/**
       - jdk-base/**
       - java-devel/**
       - .github/actions/**
