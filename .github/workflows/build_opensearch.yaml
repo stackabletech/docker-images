@@ -16,7 +16,7 @@ on:
       - opensearch/**
       - vector/**
       - stackable-base/**
-      - java-base/**
+      - jdk-base/**
       - java-devel/**
       - .github/actions/**
       - .github/workflows/build_opensearch.yaml
@@ -30,6 +30,6 @@ jobs:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     with:
-      product-name: kafka
+      product-name: opensearch
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp

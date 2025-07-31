@@ -14,8 +14,8 @@ All notable changes to this project will be documented in this file.
 - all: Use our build-repo to cache NPM dependencies ([#1219])
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
-[#1219]: https://github.com/stackabletech/docker-images/pull/1219
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
+[#1219]: https://github.com/stackabletech/docker-images/pull/1219
 
 ## [25.7.0] - 2025-07-23
 

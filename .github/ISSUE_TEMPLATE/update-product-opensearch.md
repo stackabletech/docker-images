@@ -68,7 +68,7 @@ bake --product opensearch=x.y.z # where x.y.z is the new version added in this P
 
 kind load docker-image oci.stackable.tech/sdp/opensearch:x.y.z-stackable0.0.0-dev
 
-# Change directory into the opa-operator repository and update the
+# Change directory into the opensearch-operator repository and update the
 # product version in tests/test-definition.yaml
 ./scripts/run-tests --test-suite smoke-latest # or similar
 ```
