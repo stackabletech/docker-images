@@ -33,6 +33,7 @@ PRODUCT_CODE_NAMES=(
   hive
   kafka
   nifi
+  opensearch
   spark-k8s
   superset
   trino
