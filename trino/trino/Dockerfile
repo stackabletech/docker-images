@@ -42,10 +42,7 @@ if [ "$PRODUCT" = "470" ] || [ "$PRODUCT" = "451" ]; then
   SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
 fi
 
-# We need to use ./mvnw instead of mvn to get a recent maven version (which is required to build Trino)
-./mvnw \
-  --batch-mode \
-  --no-transfer-progress \
+mvn \
   install \
   `# -Dmaven.test.skip # Unable to skip test compilation without an unused dependency error for software.amazon.awssdk:identity-spi` \
   -DskipTests `# Skip test execution` \

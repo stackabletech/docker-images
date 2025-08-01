@@ -52,8 +52,6 @@ cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 tar -czf /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz .
 
 mvn \
-    --batch-mode \
-    --no-transfer-progress\
     clean package \
     -P hadoop-${HADOOP_VERSION} \
     -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
