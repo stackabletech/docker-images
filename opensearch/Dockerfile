@@ -2,6 +2,7 @@
 # check=error=true
 
 FROM stackable/image/opensearch/security-plugin AS opensearch-security-plugin
+FROM stackable/image/opensearch/elasticsearch-exporter AS opensearch-elasticsearch-exporter
 FROM stackable/image/java-devel AS opensearch-builder
 
 ARG PRODUCT
@@ -77,6 +78,7 @@ FROM stackable/image/jdk-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
+ARG OPENSEARCH_ELASTICSEARCH_EXPORTER
 ARG STACKABLE_USER_UID
 
 ARG NAME="OpenSearch"
@@ -111,6 +113,11 @@ COPY \
     /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-elasticsearch-exporter \
+    /stackable/elasticsearch_exporter \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/bin/elasticsearch_exporter
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
     /stackable/opensearch-${PRODUCT}-stackable${RELEASE}-src.tar.gz \
     /stackable
@@ -118,6 +125,11 @@ COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-security-plugin \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}-src.tar.gz \
+    /stackable
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-elasticsearch-exporter \
+    /stackable/opensearch-elasticsearch-exporter-${OPENSEARCH_ELASTICSEARCH_EXPORTER}-stackable${RELEASE}-src.tar.gz \
     /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
@@ -129,6 +141,11 @@ COPY \
     --from=opensearch-security-plugin \
     /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-elasticsearch-exporter \
+    /stackable/opensearch-elasticsearch-exporter-${OPENSEARCH_ELASTICSEARCH_EXPORTER}-stackable${RELEASE}.cdx.json \
+    /stackable
 
 RUN <<EOF
 microdnf update
