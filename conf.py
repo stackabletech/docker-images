@@ -33,6 +33,9 @@ opensearch = importlib.import_module("opensearch.versions")
 opensearch_security_plugin = importlib.import_module(
     "opensearch.security-plugin.versions"
 )
+opensearch_performance_analyzer = importlib.import_module(
+    "opensearch.performance-analyzer.versions"
+)
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 stackable_devel = importlib.import_module("stackable-devel.versions")
@@ -74,6 +77,10 @@ products = [
     {
         "name": "opensearch/security-plugin",
         "versions": opensearch_security_plugin.versions,
+    },
+    {
+        "name": "opensearch/performance-analyzer",
+        "versions": opensearch_performance_analyzer.versions,
     },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},

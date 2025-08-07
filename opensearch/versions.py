@@ -4,5 +4,6 @@ versions = [
         "java-devel": "21",
         "jdk-base": "21",
         "opensearch/security-plugin": "3.1.0.0",
+        "opensearch/performance-analyzer": "3.1.0.0",
     },
 ]

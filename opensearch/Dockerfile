@@ -2,11 +2,13 @@
 # check=error=true
 
 FROM stackable/image/opensearch/security-plugin AS opensearch-security-plugin
+FROM stackable/image/opensearch/performance-analyzer AS opensearch-performance-analyzer
 FROM stackable/image/java-devel AS opensearch-builder
 
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
+ARG OPENSEARCH_PERFORMANCE_ANALYZER
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -56,6 +58,23 @@ rm opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}.zip
 mv config /stackable/opensearch-${PRODUCT}/config/opensearch-security
 EOF
 
+WORKDIR /stackable/opensearch-performance-analyzer
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-performance-analyzer \
+    /stackable/src/opensearch/performance-analyzer/patchable-work/worktree/${OPENSEARCH_PERFORMANCE_ANALYZER}/build/distributions/opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}.zip \
+    opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}.zip
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-performance-analyzer \
+    /stackable/src/opensearch/performance-analyzer/patchable-work/worktree/${OPENSEARCH_PERFORMANCE_ANALYZER}/config \
+    /stackable/opensearch-${PRODUCT}/config/opensearch-performance-analyzer
+
+RUN <<EOF
+unzip opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}.zip
+rm opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}.zip
+EOF
+
 WORKDIR /stackable/opensearch-${PRODUCT}
 
 RUN <<EOF
@@ -77,6 +96,7 @@ FROM stackable/image/jdk-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
+ARG OPENSEARCH_PERFORMANCE_ANALYZER
 ARG STACKABLE_USER_UID
 
 ARG NAME="OpenSearch"
@@ -112,12 +132,22 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
+    /stackable/opensearch-performance-analyzer \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-performance-analyzer
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-builder \
     /stackable/opensearch-${PRODUCT}-stackable${RELEASE}-src.tar.gz \
     /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-security-plugin \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}-src.tar.gz \
+    /stackable
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-performance-analyzer \
+    /stackable/opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}-stackable${RELEASE}-src.tar.gz \
     /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
@@ -129,17 +159,29 @@ COPY \
     --from=opensearch-security-plugin \
     /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN}/build/reports/bom.json \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-performance-analyzer \
+    /stackable/src/opensearch/performance-analyzer/patchable-work/worktree/${OPENSEARCH_PERFORMANCE_ANALYZER}/build/reports/bom.json \
+    /stackable/opensearch-performance-analyzer-${OPENSEARCH_PERFORMANCE_ANALYZER}-stackable${RELEASE}.cdx.json
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
 
+echo '## OpenDistro Performance Analyzer' >> /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/config/jvm.options
+echo "-Dclk.tck=100" >> /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/config/jvm.options
+echo "-Djdk.attach.allowAttachSelf=true" >> /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/config/jvm.options
+echo "-Djava.security.policy=file:///stackable/opensearch/config/opensearch-performance-analyzer/opensearch_security.policy" >> /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/config/jvm.options
+echo "--add-opens=jdk.attach/sun.tools.attach=ALL-UNNAMED" >> /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/config/jvm.options
+
 # All files and folders owned by root group to support running as arbitrary users.
 # This is best practice as all container users will belong to the root group (0).
 chown ${STACKABLE_USER_UID}:0 ${HOME}
 chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}
 chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
+chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-performance-analyzer
 chmod g=u /stackable/*-src.tar.gz
 chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_HOME}
