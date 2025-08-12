@@ -1,0 +1,34 @@
+From f89f753d1bc03598bfe129c367233fec6daee078 Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Tue, 12 Aug 2025 14:59:12 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index 6c09118..d47ae14 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -63,6 +63,20 @@ buildscript {
+     }
+ }
+ 
++plugins {
++    id "org.cyclonedx.bom" version "2.3.1"
++}
++
++cyclonedxBom {
++    includeConfigs = ["runtimeClasspath"]
++    includeLicenseText = false
++    skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    projectType = "application"
++    schemaVersion = "1.6"
++    outputFormat = "json"
++    componentVersion = versions.version
++}
++
+ apply plugin: 'java'
+ apply plugin: 'idea'
+ apply plugin: 'opensearch.opensearchplugin'
