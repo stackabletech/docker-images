@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/stackable-base
+FROM local-image/stackable-base
 
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG RPM_RELEASE
 ARG INOTIFY_TOOLS
 ARG TARGETARCH
@@ -18,10 +18,10 @@ RUN <<EOF
 ARCH="${TARGETARCH/amd64/x86_64}"
 ARCH="${ARCH/arm64/aarch64}"
 rpm --install \
-    "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT}-${RPM_RELEASE}.${ARCH}.rpm" \
+    "https://repo.stackable.tech/repository/packages/vector/vector-${PRODUCT_VERSION}-${RPM_RELEASE}.${ARCH}.rpm" \
     "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm"
 mkdir /licenses
-cp /usr/share/licenses/vector-${PRODUCT}/LICENSE /licenses/VECTOR_LICENSE
+cp /usr/share/licenses/vector-${PRODUCT_VERSION}/LICENSE /licenses/VECTOR_LICENSE
 
 # Create the directory /stackable/vector/var.
 # This directory is set by operator-rs in the parameter `data_dir`

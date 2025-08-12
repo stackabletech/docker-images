@@ -1,0 +1,6 @@
+[versions."3.5.6".local-images]
+spark-k8s = "3.5.6"
+java-base = "17"
+
+[versions."3.5.6".build-arguments]
+python-version = "3.11"

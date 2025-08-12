@@ -4,16 +4,16 @@
 #
 # Provides the common Java Runtime for SDP products
 #
-FROM stackable/image/vector
+FROM local-image/vector
 
-ARG PRODUCT
-ARG RELEASE="1"
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION="1"
 
 LABEL name="Stackable image for OpenJDK" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
     summary="The Stackable OpenJDK base image." \
     description="This image is the base image for all Stackable Java product images."
 
@@ -32,7 +32,7 @@ EOF
 RUN microdnf update && \
     microdnf install \
     # Needed to run Java programs
-    "temurin-${PRODUCT}-jre" \
+    "temurin-${PRODUCT_VERSION}-jre" \
     # Needed, because otherwise e.g. Zookeeper fails with
     # Caused by: java.io.FileNotFoundException: /usr/lib/jvm/java-11-openjdk-11.0.20.0.8-2.el8.x86_64/lib/tzdb.dat (No such file or directory)
     tzdata-java \
@@ -43,7 +43,7 @@ RUN microdnf update && \
 
 COPY java-base/licenses /licenses
 
-ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jre"
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT_VERSION}-jre"
 
 # This image doesn't include the development packages for Java.
 # For images that need the devel package (ex. Spark) use this env variable to
@@ -51,7 +51,7 @@ ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jre"
 #
 # microdnf install java-${JAVA_VERSION}-openjdk-devel
 #
-ENV JAVA_VERSION=$PRODUCT
+ENV JAVA_VERSION=$PRODUCT_VERSION
 
 # Mitigation for CVE-2021-44228 (Log4Shell)
 # This variable is supported as of Log4j version 2.10 and
