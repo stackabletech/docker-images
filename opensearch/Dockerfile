@@ -2,12 +2,13 @@
 # check=error=true
 
 FROM stackable/image/opensearch/security-plugin AS opensearch-security-plugin
-FROM stackable/image/opensearch/elasticsearch-exporter AS opensearch-elasticsearch-exporter
+FROM stackable/image/opensearch/opensearch-prometheus-exporter AS opensearch-prometheus-exporter
 FROM stackable/image/java-devel AS opensearch-builder
 
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
+ARG OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -57,6 +58,18 @@ rm opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}.zip
 mv config /stackable/opensearch-${PRODUCT}/config/opensearch-security
 EOF
 
+WORKDIR /stackable/opensearch-prometheus-exporter
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-prometheus-exporter \
+    /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}/build/distributions/prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}.zip \
+    opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}.zip
+
+RUN <<EOF
+unzip opensearch-prometheus-exporter-${OPENSEARCH_SECURITY_PLUGIN}.zip
+rm opensearch-prometheus-exporter-${OPENSEARCH_SECURITY_PLUGIN}.zip
+EOF
+
 WORKDIR /stackable/opensearch-${PRODUCT}
 
 RUN <<EOF
@@ -78,7 +91,7 @@ FROM stackable/image/jdk-base AS final
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_SECURITY_PLUGIN
-ARG OPENSEARCH_ELASTICSEARCH_EXPORTER
+ARG OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER
 ARG STACKABLE_USER_UID
 
 ARG NAME="OpenSearch"
@@ -113,9 +126,9 @@ COPY \
     /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
-    --from=opensearch-elasticsearch-exporter \
-    /stackable/elasticsearch_exporter \
-    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/bin/elasticsearch_exporter
+    --from=opensearch-builder \
+    /stackable/opensearch-prometheus-exporter \
+    /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/prometheus-exporter
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
@@ -128,8 +141,8 @@ COPY \
     /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
-    --from=opensearch-elasticsearch-exporter \
-    /stackable/opensearch-elasticsearch-exporter-${OPENSEARCH_ELASTICSEARCH_EXPORTER}-stackable${RELEASE}-src.tar.gz \
+    --from=opensearch-prometheus-exporter \
+    /stackable/opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}-stackable${RELEASE}-src.tar.gz \
     /stackable
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
@@ -143,9 +156,9 @@ COPY \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN}-stackable${RELEASE}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
-    --from=opensearch-elasticsearch-exporter \
-    /stackable/opensearch-elasticsearch-exporter-${OPENSEARCH_ELASTICSEARCH_EXPORTER}-stackable${RELEASE}.cdx.json \
-    /stackable
+    --from=opensearch-prometheus-exporter \
+    /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}/build/reports/bom.json \
+    /stackable/opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER}-stackable${RELEASE}.cdx.json
 
 RUN <<EOF
 microdnf update
@@ -157,6 +170,7 @@ rm -rf /var/cache/yum
 chown ${STACKABLE_USER_UID}:0 ${HOME}
 chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}
 chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/opensearch-security
+chmod g=u /stackable/opensearch-${PRODUCT}-stackable${RELEASE}/plugins/prometheus-exporter
 chmod g=u /stackable/*-src.tar.gz
 chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_HOME}

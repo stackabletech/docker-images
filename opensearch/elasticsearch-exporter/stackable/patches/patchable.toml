@@ -1,2 +1,0 @@
-upstream = "https://github.com/prometheus-community/elasticsearch_exporter"
-default-mirror = "https://github.com/stackabletech/elasticsearch_exporter"

@@ -33,8 +33,8 @@ opensearch = importlib.import_module("opensearch.versions")
 opensearch_security_plugin = importlib.import_module(
     "opensearch.security-plugin.versions"
 )
-opensearch_elasticsearch_exporter = importlib.import_module(
-    "opensearch.elasticsearch-exporter.versions"
+opensearch_prometheus_exporter = importlib.import_module(
+    "opensearch.opensearch-prometheus-exporter.versions"
 )
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
@@ -79,8 +79,8 @@ products = [
         "versions": opensearch_security_plugin.versions,
     },
     {
-        "name": "opensearch/elasticsearch-exporter",
-        "versions": opensearch_elasticsearch_exporter.versions,
+        "name": "opensearch/opensearch-prometheus-exporter",
+        "versions": opensearch_prometheus_exporter.versions,
     },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},

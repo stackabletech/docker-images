@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207])
 - opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
-- opensearch: Add elasticsearch-exporter to export prometheus metrics ([#1223]).
+- opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
 
 ### Changed
 
