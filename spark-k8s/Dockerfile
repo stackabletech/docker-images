@@ -91,18 +91,10 @@ export JDK_JAVA_OPTIONS="\
     --add-opens java.base/java.util=ALL-UNNAMED"
 
 # Get the Scala version used by Spark
-SCALA_VERSION=$( \
-    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
-    org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-    -DforceStdout \
-    -Dexpression='project.properties(scala.version)')
+SCALA_VERSION=$(grep "scala.version" /stackable/spark/pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
 
 # Get the Scala binary version used by Spark
-SCALA_BINARY_VERSION=$( \
-    mvn --quiet --non-recursive --file /stackable/spark/pom.xml \
-    org.apache.maven.plugins:maven-help-plugin:3.5.0:evaluate \
-    -DforceStdout \
-    -Dexpression='project.properties(scala.binary.version)')
+SCALA_BINARY_VERSION=$(grep "scala.binary.version" /stackable/spark/pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
 
 # Build the Spark HBase connector
 # Skip the tests because the MiniHBaseCluster does not get ready for
