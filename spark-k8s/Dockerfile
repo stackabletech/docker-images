@@ -168,9 +168,7 @@ RUN <<EOF
     ORIGINAL_VERSION="${PRODUCT}"
     NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
 
-    STACKABLE_HADOOP_VERSION="${HADOOP_HADOOP}-stackable${RELEASE}"
-
-    MAVEN_BIN="/tmp/apache-maven-${MAVEN_VERSION}/bin/mvn"
+    MAVEN_BIN="/usr/bin/mvn"
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
     case "${PRODUCT}" in
