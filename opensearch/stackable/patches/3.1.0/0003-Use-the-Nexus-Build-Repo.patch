@@ -1,0 +1,175 @@
+From 5e81f271d46d5768cb7631e0e3f8f6a7860a0f1d Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Wed, 6 Aug 2025 13:12:12 +0200
+Subject: Use the Nexus Build Repo
+
+---
+ buildSrc/build.gradle                                     | 4 +++-
+ .../gradle/OpenSearchTestBasePluginFuncTest.groovy        | 4 +++-
+ .../org/opensearch/gradle/RepositoriesSetupPlugin.java    | 2 +-
+ .../test/resources/plugin/optional-dependencies.gradle    | 4 +++-
+ buildSrc/src/testKit/opensearch.build/build.gradle        | 8 ++++++--
+ buildSrc/src/testKit/testingConventions/build.gradle      | 4 +++-
+ buildSrc/src/testKit/thirdPartyAudit/build.gradle         | 4 +++-
+ .../src/testKit/thirdPartyAudit/sample_jars/build.gradle  | 4 +++-
+ doc-tools/build.gradle                                    | 4 +++-
+ gradle/code-coverage.gradle                               | 4 +++-
+ 10 files changed, 31 insertions(+), 11 deletions(-)
+
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index e8459443e8a..08633faf7ca 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -94,7 +94,9 @@ tasks.withType(JavaCompile).configureEach {
+  *****************************************************************************/
+ 
+ repositories {
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+   gradlePluginPortal()
+ }
+ 
+diff --git a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
+index fb61bbded5e..85df5b10c4a 100644
+--- a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
++++ b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
+@@ -53,7 +53,9 @@ class OpenSearchTestBasePluginFuncTest extends AbstractGradleFuncTest {
+             }
+ 
+             repositories {
+-                mavenCentral()
++                maven {
++                  url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++                }
+             }
+ 
+             dependencies {
+diff --git a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
+index 0c901b97269..8a4e8c9c53a 100644
+--- a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
++++ b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
+@@ -82,7 +82,7 @@ public class RepositoriesSetupPlugin implements Plugin<Project> {
+             // such that we don't have to pass hardcoded files to gradle
+             repos.mavenLocal();
+         }
+-        repos.mavenCentral();
++        repos.maven(repo -> repo.setUrl("https://build-repo.stackable.tech/repository/maven-public/"));
+ 
+         String luceneVersion = VersionProperties.getLucene();
+         if (luceneVersion.contains("-snapshot")) {
+diff --git a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
+index ebcf758f578..af8ce7143ff 100644
+--- a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
++++ b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
+@@ -18,7 +18,9 @@ group = "org.custom.group"
+ version = '1.0.0'
+ 
+ repositories {
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/buildSrc/src/testKit/opensearch.build/build.gradle b/buildSrc/src/testKit/opensearch.build/build.gradle
+index a0093eb1d2c..8267594fb64 100644
+--- a/buildSrc/src/testKit/opensearch.build/build.gradle
++++ b/buildSrc/src/testKit/opensearch.build/build.gradle
+@@ -39,7 +39,9 @@ repositories {
+       artifact()
+     }
+   }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ repositories {
+@@ -53,7 +55,9 @@ repositories {
+       artifact()
+     }
+   }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ // todo remove offending rules
+diff --git a/buildSrc/src/testKit/testingConventions/build.gradle b/buildSrc/src/testKit/testingConventions/build.gradle
+index 676960bcc8b..e9e3557b4a6 100644
+--- a/buildSrc/src/testKit/testingConventions/build.gradle
++++ b/buildSrc/src/testKit/testingConventions/build.gradle
+@@ -18,7 +18,9 @@ allprojects {
+   apply plugin: 'opensearch.build'
+ 
+   repositories {
+-    mavenCentral()
++    maven {
++      url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++    }
+   }
+   dependencies {
+     testImplementation "junit:junit:4.13.2"
+diff --git a/buildSrc/src/testKit/thirdPartyAudit/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
+index caaaa6bd1ac..e9a107cf125 100644
+--- a/buildSrc/src/testKit/thirdPartyAudit/build.gradle
++++ b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
+@@ -36,7 +36,9 @@ repositories {
+       artifact()
+     }
+   }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
+index 83bec727b15..6825bd03bfc 100644
+--- a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
++++ b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
+@@ -13,7 +13,9 @@ plugins {
+   id 'java'
+ }
+ repositories {
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/doc-tools/build.gradle b/doc-tools/build.gradle
+index 9639c7d7048..3bd6ed063ba 100644
+--- a/doc-tools/build.gradle
++++ b/doc-tools/build.gradle
+@@ -8,5 +8,7 @@ base {
+ }
+ 
+ repositories {
+-    mavenCentral()
++    maven {
++      url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++    }
+ }
+diff --git a/gradle/code-coverage.gradle b/gradle/code-coverage.gradle
+index 582ed36ba44..96dceb38e91 100644
+--- a/gradle/code-coverage.gradle
++++ b/gradle/code-coverage.gradle
+@@ -9,7 +9,9 @@
+ apply plugin: 'jacoco'
+ 
+ repositories {
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+   gradlePluginPortal()
+   // TODO: Find the way to use the repositories from RepositoriesSetupPlugin
+   maven {

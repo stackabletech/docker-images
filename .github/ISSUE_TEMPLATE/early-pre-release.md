@@ -45,6 +45,7 @@ Part of stackabletech/issues#xxx.
 - [ ] [Create issue from template: update-product-kafka.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-kafka.md)
 - [ ] [Create issue from template: update-product-nifi.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-nifi.md)
 - [ ] [Create issue from template: update-product-opa.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-opa.md)
+- [ ] [Create issue from template: update-product-opensearch.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-opensearch.md)
 - [ ] [Create issue from template: update-product-spark.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-spark.md)
 - [ ] [Create issue from template: update-product-superset.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-superset.md)
 - [ ] [Create issue from template: update-product-trino.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-trino.md)

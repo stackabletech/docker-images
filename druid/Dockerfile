@@ -73,8 +73,6 @@ cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 tar -czf /stackable/druid-${NEW_VERSION}-src.tar.gz .
 
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   clean install \
   -Pdist,stackable-bundle-contrib-exts \
   -Dhadoop.compile.version=${HADOOP_VERSION}-stackable${RELEASE} \

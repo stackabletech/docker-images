@@ -18,6 +18,7 @@ PRODUCTS = [
     "krb5",
     "nifi",
     "opa",
+    "opensearch",
     "omid",
     "spark-k8s",
     "superset",

@@ -20,8 +20,6 @@ if [[ -n "$PRODUCT" ]]; then
     # Create snapshot of the source code including custom patches
     tar -czf /stackable/hbase-opa-authorizer-${PRODUCT}-src.tar.gz .
     mvn \
-      --batch-mode \
-      --no-transfer-progress \
       -DskipTests \
       -Dmaven.test.skip=true \
       package

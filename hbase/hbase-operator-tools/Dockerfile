@@ -51,8 +51,6 @@ mvn versions:set -DnewVersion=$NEW_VERSION
 tar -czf /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}-src.tar.gz .
 
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   -Dhbase.version=${PATCHED_HBASE_VERSION} \
   -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
   -DskipTests \
