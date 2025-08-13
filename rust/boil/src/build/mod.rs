@@ -33,6 +33,9 @@ pub enum Error {
     #[snafu(display("failed to run child process"))]
     RunChildProcess { source: std::io::Error },
 
+    #[snafu(display("failed to spawn child process"))]
+    SpawnChildProcess { source: std::io::Error },
+
     #[snafu(display("encountered invalid image version, must not include any build metadata"))]
     InvalidImageVersion,
 }
@@ -74,7 +77,7 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
         .arg("-")
         .stdin(Stdio::piped())
         .spawn()
-        .unwrap();
+        .context(SpawnChildProcessSnafu)?;
 
     let stdin_handle = child.stdin.take().with_context(|| {
         child

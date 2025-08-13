@@ -7,7 +7,7 @@ use std::{
 
 use glob::glob;
 use serde::Serialize;
-use snafu::{ResultExt, Snafu};
+use snafu::{OptionExt, ResultExt, Snafu};
 use time::format_description::well_known::Rfc3339;
 use url::Host;
 
@@ -35,6 +35,9 @@ pub enum GitError {
 
     #[snafu(display("failed to parse HEAD revision"))]
     ParseHeadRevision { source: git2::Error },
+
+    #[snafu(display("failed to find starting point of rev range"))]
+    InvalidRange,
 }
 
 #[derive(Debug, Snafu)]
@@ -366,7 +369,6 @@ impl Bakefile {
     /// Formats and return the context name, eg. `stackable/image/stackable-base-1_0_0`.
     fn format_context_name(name: &str) -> String {
         format!("local-image/{name}")
-        // format!("stackable/image/{name}")
     }
 
     /// Formats and returns the context target name, eg. `target:stackable-base-1_0_0`.
@@ -384,8 +386,9 @@ impl Bakefile {
     fn git_head_revision() -> Result<String, GitError> {
         let repo = git2::Repository::open(".").context(OpenRepositorySnafu)?;
         let rev = repo.revparse("HEAD").context(ParseHeadRevisionSnafu)?;
+        let rev = rev.from().context(InvalidRangeSnafu)?.id().to_string();
 
-        Ok(rev.from().unwrap().id().to_string())
+        Ok(rev)
     }
 }
 

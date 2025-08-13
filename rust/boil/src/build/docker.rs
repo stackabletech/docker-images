@@ -6,10 +6,14 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize, de::Visitor, ser::SerializeMap};
-use snafu::{Snafu, ensure};
+use snafu::{OptionExt, Snafu, ensure};
 
 #[derive(Debug, Snafu)]
 pub enum ParseBuildArgumentError {
+    #[snafu(display("invalid format, expected <key>=<value>"))]
+    InvalidFormat,
+
+    #[snafu(display("encountered non ASCII characters"))]
     NonAscii,
 }
 
@@ -29,7 +33,7 @@ impl FromStr for BuildArgument {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         ensure!(s.is_ascii(), NonAsciiSnafu);
 
-        let (key, value) = s.split_once('=').unwrap();
+        let (key, value) = s.split_once('=').context(InvalidFormatSnafu)?;
         let key = key.replace(['-', '/'], "_").to_uppercase();
 
         Ok(Self((key, value.to_owned())))
