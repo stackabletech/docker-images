@@ -15,45 +15,28 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 
 ## Prerequisites
 
-* [Stackable Image Tools](https://github.com/stackabletech/image-tools) (`pip install image-tools-stackabletech`)
+* [boil](./rust/boil//README.md) (`cargo boil`)
 * Docker including the [`buildx` plugin](https://github.com/docker/buildx)
 * Optional: [OpenShift preflight tool](https://github.com/redhat-openshift-ecosystem/openshift-preflight) to verify an image for OpenShift
 
-## Build Product Images
+## Build Images
 
-Product images are published to the `oci.stackable.tech` registry under the `sdp` organization by default.
+Images are published to the `oci.stackable.tech` registry under the `sdp` organization by default.
 
-### Build single products locally
+### Build images locally
 
-To build and push product images to the default repository use this command:
+Consult the [boil README](./rust/boil//README.md) which contains a broad selection of different commands to build images locally.
 
-```sh
-bake --product zookeeper --image 0.0.0-dev --push
-```
+### Build images via GitHub Actions
 
-This will build images for Apache ZooKeeper versions as defined in the `conf.py` file, tag them with the `image-version` 0.0.0-dev and push them to the registry.
+There are individual GHA workflows (one for each image) which use a
+[reusable workflow](.github/workflows/reusable_build_image.yaml) to build all specified versions for
+both `amd64` and `arm64`. The workflow is triggered
 
-You can select a specific version of a product to build using the syntax `product=version` e.g. to build Hive 3.1.3 you can use this command:
-
-```sh
-bake --product hive=3.1.3 -i 0.0.0-dev
-```
-
-> [!NOTE]
-> `-i` is the shorthand for `--image` (i.e. the resulting image tag)
-
-### Build all products locally
-
-To build all products in all versions locally you can use this command
-
-```sh
-bake --image-version 0.0.0-dev
-```
-
-### Build everything in GitHub
-
-The GitHub action called `Build (and optionally publish) 0.0.0-dev images` can be triggered manually to do build all images in all versions.
-When triggered manually it will _not_ push the images to the registry.
+* by pushes to `main` to produce `0.0.0-dev` versions of the images,
+* by a regular schedule to rebuild `0.0.0-dev` versions of the images to avoid staleness,
+* by tag pushes to produce (release candidate) images for a particular SDP,
+* and by manual workflow dispatches.
 
 ## Patches
 
