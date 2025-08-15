@@ -35,7 +35,7 @@ both `amd64` and `arm64`. The workflow is triggered
 
 * by pushes to `main` to produce `0.0.0-dev` versions of the images,
 * by a regular schedule to rebuild `0.0.0-dev` versions of the images to avoid staleness,
-* by tag pushes to produce (release candidate) images for a particular SDP,
+* by tag pushes to produce (release candidate) images for a particular SDP release,
 * and by manual workflow dispatches.
 
 ## Patches
