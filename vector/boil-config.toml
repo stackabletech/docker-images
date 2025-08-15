@@ -1,0 +1,6 @@
+[versions."0.47.0".local-images]
+stackable-base = "1.0.0"
+
+[versions."0.47.0".build-arguments]
+inotify-tools = "3.22.1.0-1.el9"
+rpm-release = "1"

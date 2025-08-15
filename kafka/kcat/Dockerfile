@@ -4,9 +4,9 @@
 # Normally we would use stackable/image/stackable-base here, *but* we fail to link kcat at the end with error messages
 # shown in Snippet 1, which we were not able to solve.
 
-FROM stackable/image/java-devel AS builder
+FROM local-image/java-devel AS builder
 
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 
 RUN <<EOF
@@ -31,19 +31,19 @@ EOF
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/patchable.toml /stackable/src/kafka/kcat/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/${PRODUCT} /stackable/src/kafka/kcat/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/stackable/patches/${PRODUCT_VERSION} /stackable/src/kafka/kcat/stackable/patches/${PRODUCT_VERSION}
 
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout kafka/kcat ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout kafka/kcat ${PRODUCT_VERSION})"
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/kcat-${PRODUCT}-src.tar.gz .
+tar -czf /stackable/kcat-${PRODUCT_VERSION}-src.tar.gz .
 
 ./bootstrap.sh
 mv kcat /stackable/kcat
 # set correct permissions
 chmod --recursive g=u /stackable/kcat
-chmod g=u /stackable/kcat-${PRODUCT}-src.tar.gz
+chmod g=u /stackable/kcat-${PRODUCT_VERSION}-src.tar.gz
 EOF
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/kcat/licenses /licenses

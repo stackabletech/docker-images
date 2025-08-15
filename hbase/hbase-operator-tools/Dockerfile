@@ -1,15 +1,15 @@
-FROM stackable/image/hbase/hbase AS hbase-builder
+FROM local-image/hbase/hbase AS hbase-builder
 
-FROM stackable/image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hadoop/hadoop AS hadoop-builder
 
-FROM stackable/image/java-devel
+FROM local-image/java-devel
 
-ARG PRODUCT
-ARG RELEASE
-ARG HBASE_THIRDPARTY
-ARG HBASE_HBASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG HBASE_THIRDPARTY_VERSION
+ARG HBASE_HBASE_VERSION
 # Reassign the arg to `HBASE_VERSION` for better readability.
-ENV HBASE_VERSION=${HBASE_HBASE}
+ENV HBASE_VERSION=${HBASE_HBASE_VERSION}
 ARG STACKABLE_USER_UID
 ARG HBASE_OPERATOR_TOOLS_VERSION
 
@@ -34,16 +34,16 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
-RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-tools ${HBASE_OPERATOR_TOOLS_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE}"
-FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT}-stackable${RELEASE}" # This includes the HBase version and the Stackable release suffix
-PATCHED_HBASE_VERSION="${HBASE_VERSION}-stackable${RELEASE}"
+NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE_VERSION}"
+FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}" # This includes the HBase version and the Stackable release suffix
+PATCHED_HBASE_VERSION="${HBASE_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -52,7 +52,7 @@ tar -czf /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}-sr
 
 mvn \
   -Dhbase.version=${PATCHED_HBASE_VERSION} \
-  -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
+  -Dhbase-thirdparty.version=${HBASE_THIRDPARTY_VERSION} \
   -DskipTests \
   -Dmaven.test.skip=true \
   package assembly:single

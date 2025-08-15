@@ -1,23 +1,23 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/java-devel AS security-plugin-builder
+FROM local-image/java-devel AS security-plugin-builder
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch/security-plugin/stackable/patches/patchable.toml /stackable/src/opensearch/security-plugin/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 opensearch/security-plugin/stackable/patches/${PRODUCT} /stackable/src/opensearch/security-plugin/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch/security-plugin/stackable/patches/${PRODUCT_VERSION} /stackable/src/opensearch/security-plugin/stackable/patches/${PRODUCT_VERSION}
 
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout opensearch/security-plugin ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout opensearch/security-plugin ${PRODUCT_VERSION})"
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/opensearch-security-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
+tar -czf /stackable/opensearch-security-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
 ./gradlew clean assemble -Dbuild.snapshot=false
 ./gradlew cyclonedxBom --warning-mode=summary -Dbuild.snapshot=false
 EOF
