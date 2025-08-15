@@ -8,6 +8,8 @@ boil builds container images in parallel.
 
 ## Quick Overview
 
+Either compile and run the binary, or use the `cargo boil` alias.
+
 ```shell
 # Builds all version of the image located in the 'airflow' folder
 boil build airflow
