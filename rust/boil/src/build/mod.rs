@@ -8,6 +8,7 @@ use snafu::{OptionExt, ResultExt, Snafu, ensure};
 use crate::{
     build::{bakefile::Bakefile, cli::BuildArguments},
     config::Config,
+    utils::CommandExt,
 };
 
 pub mod bakefile;
@@ -68,17 +69,20 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     }
 
     // TODO (@Techassi): Invoke this directly using the Docker daemon via bollard
+    // or by building the image ourself.
+
     // Finally invoke the docker buildx bake command
     let mut child = Command::new("docker")
         .arg("buildx")
         .arg("bake")
-        // .arg("--no-cache")
+        .arg_if(args.load, "--load")
         .arg("--file")
         .arg("-")
         .stdin(Stdio::piped())
         .spawn()
         .context(SpawnChildProcessSnafu)?;
 
+    // Acquire stdin handle to pipe the bakefile as JSON to it
     let stdin_handle = child.stdin.take().with_context(|| {
         child
             .kill()
@@ -93,6 +97,7 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
         SerializeBakefileSnafu
     })?;
 
+    // Wait for successful completion of the child process
     let status = child.wait().context(RunChildProcessSnafu)?;
 
     // TODO (@Techassi): Return an error if the status was not a success

@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use semver::Version;
 use url::Host;
 
@@ -20,4 +22,20 @@ pub fn format_image_manifest_uri(
     architecture: &Architecture,
 ) -> String {
     format!("{image_repository_uri}:{image_version}-stackable{sdp_image_version}-{architecture}")
+}
+
+pub trait CommandExt {
+    /// Adds an argument to the command if the `predicate` is `true`.
+    fn arg_if<S>(&mut self, predicate: bool, arg: S) -> &mut Self
+    where
+        S: AsRef<std::ffi::OsStr>;
+}
+
+impl CommandExt for Command {
+    fn arg_if<S>(&mut self, predicate: bool, arg: S) -> &mut Self
+    where
+        S: AsRef<std::ffi::OsStr>,
+    {
+        if predicate { self.arg(arg) } else { self }
+    }
 }

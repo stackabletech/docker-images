@@ -98,6 +98,10 @@ pub struct BuildArguments {
     )]
     pub export_image_manifest_uris: Option<PathBuf>,
 
+    /// Loads the image into the local image store.
+    #[arg(long, help_heading = "Build Options")]
+    pub load: bool,
+
     /// Dry run. This does not build the image(s) but instead prints out the bakefile.
     #[arg(short, long, alias = "dry")]
     pub dry_run: bool,
