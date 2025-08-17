@@ -3,3 +3,12 @@ STACKABLE_USER_NAME = "stackable"
 STACKABLE_USER_UID = "1000"
 STACKABLE_USER_GID = "1000"
 DELETE_CACHES = "true"
+
+[metadata]
+documentation = "https://docs.stackable.tech/home/stable/"
+source = "https://github.com/stackabletech/docker-images/"
+authors = "Stackable GmbH <info@stackable.tech>"
+vendor = "Stackable GmbH"
+licenses = "Apache-2.0"
+
+[docker-config]

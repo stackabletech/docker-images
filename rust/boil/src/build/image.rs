@@ -85,6 +85,9 @@ pub enum ImageConfigError {
 
 #[derive(Debug, Deserialize)]
 pub struct ImageConfig {
+    // TODO (@Techassi): Eventually support this
+    // #[serde(default)]
+    // pub metadata: ImageMetadata,
     pub versions: ImageVersions,
 }
 

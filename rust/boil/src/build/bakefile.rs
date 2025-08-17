@@ -6,6 +6,11 @@ use std::{
 };
 
 use glob::glob;
+use oci_spec::image::{
+    ANNOTATION_AUTHORS, ANNOTATION_CREATED, ANNOTATION_DOCUMENTATION, ANNOTATION_LICENSES,
+    ANNOTATION_REVISION, ANNOTATION_SOURCE, ANNOTATION_VENDOR, ANNOTATION_VERSION,
+};
+use semver::Version;
 use serde::Serialize;
 use snafu::{OptionExt, ResultExt, Snafu};
 use time::format_description::well_known::Rfc3339;
@@ -19,12 +24,9 @@ use crate::{
         image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
         platform::TargetPlatform,
     },
-    config::Config,
+    config::{self, Config},
     utils::{format_image_manifest_uri, format_image_repository_uri},
 };
-
-pub const OPEN_CONTAINER_IMAGE_REVISION: &str = "org.opencontainers.image.revision";
-pub const OPEN_CONTAINER_IMAGE_CREATED: &str = "org.opencontainers.image.created";
 
 pub const ENTRY_TARGET_NAME_PREFIX: &str = "entry--";
 
@@ -240,6 +242,9 @@ impl Bakefile {
         let mut bakefile_targets = BTreeMap::new();
         let mut groups: BTreeMap<String, BakefileGroup> = BTreeMap::new();
 
+        let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
+        let date_time = Self::now()?;
+
         // TODO (@Techassi): Can we somehow optimize this to come by with minimal amount of
         // cloning, because we also need to clone on every loop iteration below.
         let mut docker_build_arguments = config.build_arguments;
@@ -297,8 +302,6 @@ impl Bakefile {
                 );
 
                 let dockerfile = PathBuf::new().join(&image_name).join("Dockerfile");
-                let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
-                let date_time = Self::now()?;
 
                 let target_name = if is_entry {
                     Self::format_entry_target_name(&image_name, &image_version)
@@ -317,15 +320,24 @@ impl Bakefile {
                     })
                     .collect();
 
+                let annotations = BakefileTarget::annotations(
+                    &date_time,
+                    &revision,
+                    &image_version,
+                    &args.image_version,
+                    &config.metadata,
+                );
+                let labels = BakefileTarget::labels(date_time.clone(), revision.clone());
+
                 let target = BakefileTarget {
-                    annotations: BakefileTarget::annotations(&date_time, &revision),
-                    labels: BakefileTarget::labels(date_time, revision),
                     tags: vec![image_manifest_uri],
                     arguments: docker_build_arguments,
                     platforms: vec![args.target_platform.clone()],
                     context: PathBuf::from("."),
+                    annotations,
                     dockerfile,
                     contexts,
+                    labels,
                 };
 
                 bakefile_targets.insert(target_name, target);
@@ -412,17 +424,43 @@ pub struct BakefileTarget {
 }
 
 impl BakefileTarget {
-    fn annotations(date_time: &str, revision: &str) -> Vec<String> {
+    fn annotations(
+        date_time: &str,
+        revision: &str,
+        image_version: &str,
+        sdp_image_version: &Version,
+        global_metadata: &config::Metadata,
+    ) -> Vec<String> {
+        let config::Metadata {
+            documentation,
+            licenses,
+            authors,
+            source,
+            vendor,
+        } = global_metadata;
+
+        // Annotations describe OCI image components.
         vec![
-            format!("{OPEN_CONTAINER_IMAGE_CREATED}={date_time}"),
-            format!("{OPEN_CONTAINER_IMAGE_REVISION}={revision}"),
+            format!("{ANNOTATION_CREATED}={date_time}"),
+            format!("{ANNOTATION_AUTHORS}={authors}"),
+            format!("{ANNOTATION_DOCUMENTATION}={documentation}"),
+            format!("{ANNOTATION_SOURCE}={source}"),
+            // TODO (@Techassi): Move this version formatting into a function
+            // TODO (@Techassi): Make this vendor agnostic, don't hard-code stackable here
+            format!("{ANNOTATION_VERSION}={image_version}-stackable{sdp_image_version}"),
+            format!("{ANNOTATION_REVISION}={revision}"),
+            format!("{ANNOTATION_VENDOR}={vendor}"),
+            format!("{ANNOTATION_LICENSES}={licenses}"),
         ]
     }
 
     fn labels(date_time: String, revision: String) -> BTreeMap<String, String> {
+        // Labels describe Docker resources, and con be considered legacy. We
+        // should use annotations instead. These labels are only added to be
+        // consistent with `bake`.
         BTreeMap::from([
-            (OPEN_CONTAINER_IMAGE_CREATED.to_owned(), date_time.clone()),
-            (OPEN_CONTAINER_IMAGE_REVISION.to_owned(), revision),
+            (ANNOTATION_CREATED.to_owned(), date_time.clone()),
+            (ANNOTATION_REVISION.to_owned(), revision),
             ("build-date".to_owned(), date_time),
         ])
     }
