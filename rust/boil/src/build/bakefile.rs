@@ -123,12 +123,10 @@ impl Targets {
             targets.insert_targets(image_name.to_owned(), pairs, &options, true)?;
         }
 
-        println!("{targets:#?}");
-
         Ok(targets)
     }
 
-    pub fn from_images(images: &[Image], options: TargetsOptions) -> Result<Self, TargetsError> {
+    pub fn set(images: &[Image], options: TargetsOptions) -> Result<Self, TargetsError> {
         let mut targets = Self::default();
 
         for image in images {
@@ -214,9 +212,9 @@ impl Bakefile {
     /// This will only create targets for selected entry images and their dependencies. There is no
     /// need to filter anything out afterwards. The filtering is done automatically internally.
     pub fn from_args(args: &cli::BuildArguments, config: Config) -> Result<Self, Error> {
-        let graph = Targets::from_images(&args.images, TargetsOptions::default())
-            .context(CreateGraphSnafu)?;
-        Self::from_targets(graph, args, config)
+        let targets =
+            Targets::set(&args.images, TargetsOptions::default()).context(CreateGraphSnafu)?;
+        Self::from_targets(targets, args, config)
     }
 
     /// Returns all image manifest URIs for entry images.

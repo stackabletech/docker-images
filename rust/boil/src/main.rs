@@ -3,8 +3,9 @@ use semver::Version;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    cli::{Cli, Command, ShowCommand},
+    cli::{Cli, Command},
     config::Config,
+    show::ShowCommand,
 };
 
 // Common modules
@@ -83,7 +84,9 @@ async fn main() -> Result<(), Error> {
             build::run_command(arguments, config).context(BuildSnafu)
         }
         Command::Show(arguments) => match arguments.commands {
-            ShowCommand::Images => show::images::run_command().context(ShowSnafu),
+            ShowCommand::Images(arguments) => {
+                show::images::run_command(arguments).context(ShowSnafu)
+            }
             ShowCommand::Tree => todo!(),
         },
         Command::Completions(arguments) => {

@@ -1,11 +1,8 @@
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand};
-use clap_complete::Shell;
-use semver::Version;
-use snafu::{ResultExt, Snafu, ensure};
+use clap::{Parser, Subcommand};
 
-use crate::build::cli::BuildArguments;
+use crate::{build::cli::BuildArguments, completions::CompletionsArguments, show::ShowArguments};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -52,38 +49,4 @@ pub enum Command {
 
     /// Generate shell completions.
     Completions(CompletionsArguments),
-}
-
-#[derive(Debug, Args)]
-pub struct ShowArguments {
-    #[command(subcommand)]
-    pub commands: ShowCommand,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum ShowCommand {
-    Images,
-    Tree,
-}
-
-#[derive(Debug, Args)]
-pub struct CompletionsArguments {
-    /// Shell to generate completions for.
-    pub shell: Shell,
-}
-
-#[derive(Debug, Snafu)]
-pub enum ParseImageVersionError {
-    #[snafu(display("failed to parse semantic version"))]
-    ParseVersion { source: semver::Error },
-
-    #[snafu(display("semantic version must not contain build metadata"))]
-    ContainsBuildMetadata,
-}
-
-pub fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
-    let version = Version::from_str(input).context(ParseVersionSnafu)?;
-    ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
-
-    Ok(version)
 }

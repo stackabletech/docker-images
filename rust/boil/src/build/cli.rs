@@ -1,16 +1,14 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::{Args, ValueHint, value_parser};
 use semver::Version;
+use snafu::{ResultExt, Snafu, ensure};
 use url::Host;
 
-use crate::{
-    build::{
-        docker::BuildArgument,
-        image::Image,
-        platform::{Architecture, TargetPlatform},
-    },
-    cli::parse_image_version,
+use crate::build::{
+    docker::BuildArgument,
+    image::Image,
+    platform::{Architecture, TargetPlatform},
 };
 
 #[derive(Debug, Args)]
@@ -123,4 +121,20 @@ impl BuildArguments {
     fn default_target_containerfile() -> PathBuf {
         PathBuf::from("Dockerfile")
     }
+}
+
+#[derive(Debug, Snafu)]
+pub enum ParseImageVersionError {
+    #[snafu(display("failed to parse semantic version"))]
+    ParseVersion { source: semver::Error },
+
+    #[snafu(display("semantic version must not contain build metadata"))]
+    ContainsBuildMetadata,
+}
+
+pub fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
+    let version = Version::from_str(input).context(ParseVersionSnafu)?;
+    ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
+
+    Ok(version)
 }

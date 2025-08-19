@@ -1,6 +1,13 @@
-use clap::CommandFactory;
+use clap::{Args, CommandFactory};
+use clap_complete::Shell;
 
-use crate::cli::{Cli, CompletionsArguments};
+use crate::cli::Cli;
+
+#[derive(Debug, Args)]
+pub struct CompletionsArguments {
+    /// Shell to generate completions for.
+    pub shell: Shell,
+}
 
 pub fn run_command(arguments: CompletionsArguments) {
     let mut cli = Cli::command();
