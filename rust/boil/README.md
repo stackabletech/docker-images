@@ -28,6 +28,9 @@ boil build airflow opa
 # output
 boil show images
 
+# Display a list of versions of the image located in the 'airflow' folder
+boil show images airflow
+
 # Soon (hopefully) implemented
 boil show graph
 ```
