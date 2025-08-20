@@ -51,6 +51,6 @@ versions = [
         "vector": "0.47.0",
         "jmx_exporter": "1.3.0",
         "tini": "0.19.0",
-        "hbase_connector": "1.0.1",
+        "hbase_connector": "1.0.1",  # This is not supported in Spark 4 yet.
     },
 ]
