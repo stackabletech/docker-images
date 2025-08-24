@@ -28,6 +28,7 @@ use crate::{
     utils::{format_image_manifest_uri, format_image_repository_uri},
 };
 
+pub const COMMON_TARGET_NAME: &str = "common--target";
 pub const ENTRY_TARGET_NAME_PREFIX: &str = "entry--";
 
 #[derive(Debug, Snafu)]
@@ -232,6 +233,22 @@ impl Bakefile {
             .collect()
     }
 
+    /// Creates the common target, containing shared data, which will be inherited by other targets.
+    fn common_target(args: &cli::BuildArguments, config: Config) -> Result<BakefileTarget, Error> {
+        let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
+        let date_time = Self::now()?;
+
+        let target = BakefileTarget::common(
+            date_time,
+            revision,
+            config,
+            args.docker_build_arguments.clone(),
+            args.image_version.base_prerelease(),
+        );
+
+        Ok(target)
+    }
+
     fn from_targets(
         targets: Targets,
         args: &cli::BuildArguments,
@@ -240,23 +257,15 @@ impl Bakefile {
         let mut bakefile_targets = BTreeMap::new();
         let mut groups: BTreeMap<String, BakefileGroup> = BTreeMap::new();
 
-        let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
-        let date_time = Self::now()?;
+        // Create a common target, which contains shared data, like annotations, arguments, labels, etc...
+        let common_target = Self::common_target(args, config)?;
+        bakefile_targets.insert(COMMON_TARGET_NAME.to_owned(), common_target);
 
-        // TODO (@Techassi): Can we somehow optimize this to come by with minimal amount of
-        // cloning, because we also need to clone on every loop iteration below.
-        let mut docker_build_arguments = config.build_arguments;
-        docker_build_arguments.extend(args.docker_build_arguments.clone());
-        docker_build_arguments.insert(BuildArgument::new(
-            "RELEASE_VERSION".to_owned(),
-            args.image_version.base_prerelease(),
-        ));
-
-        for (image_name, image_versions) in targets.0.into_iter() {
+        for (image_name, image_versions) in targets.into_iter() {
             for (image_version, (image_options, is_entry)) in image_versions {
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
-                let mut docker_build_arguments = docker_build_arguments.clone();
+                let mut build_arguments = BuildArguments::new();
 
                 let local_version_docker_args: Vec<_> = image_options
                     .local_images
@@ -272,9 +281,10 @@ impl Bakefile {
                     })
                     .collect();
 
-                docker_build_arguments.extend(image_options.build_arguments.clone());
-                docker_build_arguments.extend(local_version_docker_args);
-                docker_build_arguments.insert(BuildArgument::new(
+                build_arguments.extend(image_options.build_arguments);
+                build_arguments.extend(local_version_docker_args);
+                // TODO (@Techassi): Rename this to IMAGE_VERSION
+                build_arguments.insert(BuildArgument::new(
                     "PRODUCT_VERSION".to_owned(),
                     image_version.to_string(),
                 ));
@@ -318,24 +328,20 @@ impl Bakefile {
                     })
                     .collect();
 
-                let annotations = BakefileTarget::annotations(
-                    &date_time,
-                    &revision,
-                    &image_version,
-                    &args.image_version,
-                    &config.metadata,
-                );
-                let labels = BakefileTarget::labels(date_time.clone(), revision.clone());
+                let annotations =
+                    BakefileTarget::image_version_annotation(&image_version, &args.image_version);
 
                 let target = BakefileTarget {
                     tags: vec![image_manifest_uri],
-                    arguments: docker_build_arguments,
+                    arguments: build_arguments,
                     platforms: vec![args.target_platform.clone()],
-                    context: PathBuf::from("."),
+                    // NOTE (@Techassi): Should this instead be scoped to the folder of the image we build
+                    context: Some(PathBuf::from(".")),
+                    dockerfile: Some(dockerfile),
+                    inherits: vec![COMMON_TARGET_NAME.to_owned()],
                     annotations,
-                    dockerfile,
                     contexts,
-                    labels,
+                    ..Default::default()
                 };
 
                 bakefile_targets.insert(target_name, target);
@@ -404,63 +410,112 @@ impl Bakefile {
 
 // TODO (@Techassi): Figure out of we can use borrowed data in here. This would avoid a whole bunch
 // of cloning.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct BakefileTarget {
-    pub annotations: Vec<String>,
-    pub context: PathBuf,
-
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub contexts: BTreeMap<String, String>,
-    pub dockerfile: PathBuf,
-
+    /// Defines build arguments for the target.
     #[serde(rename = "args", skip_serializing_if = "BuildArguments::is_empty")]
     pub arguments: BuildArguments,
 
+    /// Adds annotations to images built with bake.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub annotations: Vec<String>,
+
+    /// Specifies the location of the build context to use for this target.
+    ///
+    /// Accepts a URL or a directory path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<PathBuf>,
+
+    /// Additional build contexts.
+    ///
+    /// This attribute takes a map, where keys result in named contexts that you can reference in
+    /// your builds.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub contexts: BTreeMap<String, String>,
+
+    /// Name of the Dockerfile to use for the build.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dockerfile: Option<PathBuf>,
+
+    /// A target can inherit attributes from other targets.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub inherits: Vec<String>,
+
+    /// Assigns image labels to the build.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub labels: BTreeMap<String, String>,
-    pub tags: Vec<String>,
+
+    // TODO (@Techassi): Explore how we can build multiple platforms at once
+    /// Set target platforms for the build target.
+    ///
+    /// Technically, multiple architectures can be listed in here, but boil chooses to build only
+    /// one architecture at a time.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub platforms: Vec<TargetPlatform>,
+
+    /// Image names and tags to use for the build target.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 impl BakefileTarget {
-    fn annotations(
-        date_time: &str,
-        revision: &str,
-        image_version: &str,
-        sdp_image_version: &Version,
-        global_metadata: &config::Metadata,
-    ) -> Vec<String> {
+    fn common(
+        date_time: String,
+        revision: String,
+        config: Config,
+        docker_build_arguments: Vec<BuildArgument>,
+        release_version: String,
+    ) -> Self {
         let config::Metadata {
             documentation,
             licenses,
             authors,
             source,
             vendor,
-        } = global_metadata;
+        } = config.metadata;
 
         // Annotations describe OCI image components.
-        vec![
+        let annotations = vec![
             format!("{ANNOTATION_CREATED}={date_time}"),
             format!("{ANNOTATION_AUTHORS}={authors}"),
             format!("{ANNOTATION_DOCUMENTATION}={documentation}"),
             format!("{ANNOTATION_SOURCE}={source}"),
-            // TODO (@Techassi): Move this version formatting into a function
-            // TODO (@Techassi): Make this vendor agnostic, don't hard-code stackable here
-            format!("{ANNOTATION_VERSION}={image_version}-stackable{sdp_image_version}"),
             format!("{ANNOTATION_REVISION}={revision}"),
             format!("{ANNOTATION_VENDOR}={vendor}"),
             format!("{ANNOTATION_LICENSES}={licenses}"),
-        ]
-    }
+        ];
 
-    fn labels(date_time: String, revision: String) -> BTreeMap<String, String> {
+        let mut arguments = config.build_arguments;
+        arguments.extend(docker_build_arguments);
+        arguments.insert(BuildArgument::new(
+            "RELEASE_VERSION".to_owned(),
+            release_version,
+        ));
+
         // Labels describe Docker resources, and con be considered legacy. We
         // should use annotations instead. These labels are only added to be
         // consistent with `bake`.
-        BTreeMap::from([
+        let labels = BTreeMap::from([
             (ANNOTATION_CREATED.to_owned(), date_time.clone()),
             (ANNOTATION_REVISION.to_owned(), revision),
             ("build-date".to_owned(), date_time),
-        ])
+        ]);
+
+        Self {
+            annotations,
+            arguments,
+            labels,
+            ..Default::default()
+        }
+    }
+
+    fn image_version_annotation(image_version: &str, sdp_image_version: &Version) -> Vec<String> {
+        // Annotations describe OCI image components.
+        vec![
+            // TODO (@Techassi): Move this version formatting into a function
+            // TODO (@Techassi): Make this vendor agnostic, don't hard-code stackable here
+            format!("{ANNOTATION_VERSION}={image_version}-stackable{sdp_image_version}"),
+        ]
     }
 }
 

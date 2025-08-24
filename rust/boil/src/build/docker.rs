@@ -154,6 +154,10 @@ impl Serialize for BuildArguments {
 }
 
 impl BuildArguments {
+    pub fn new() -> Self {
+        Self(BTreeSet::new())
+    }
+
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
