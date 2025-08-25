@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/java-devel AS builder
+FROM local-image/java-devel AS builder
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG DELETE_CACHES="true"
 ARG STACKABLE_USER_UID
 
@@ -23,14 +23,14 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/patchable.toml /stackable/src/omid/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT} /stackable/src/omid/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable/patches/${PRODUCT_VERSION} /stackable/src/omid/stackable/patches/${PRODUCT_VERSION}
 
-RUN --mount=type=cache,id=maven-omid-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-omid-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
   set -x
-  cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT})"
+  cd "$(/stackable/patchable --images-repo-root=src checkout omid ${PRODUCT_VERSION})"
 
   ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-  NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+  NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
   mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -49,38 +49,38 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
 fi
 EOF
 
-FROM stackable/image/java-base
+FROM local-image/java-base
 
-ARG PRODUCT
-ARG RELEASE
-ARG JMX_EXPORTER
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG JMX_EXPORTER_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Phoenix Omid" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
+      version="${PRODUCT_VERSION}" \
+      release="${RELEASE_VERSION}" \
       summary="The Stackable image for Apache Phoenix Omid." \
       description="This image is deployed by the Stackable Operator for Apache HBase."
 
 COPY omid/licenses /licenses
 
 COPY --chown=${STACKABLE_USER_UID}:0 omid/stackable /stackable
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples-${PRODUCT}-stackable${RELEASE}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-tso-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/omid-tso-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-examples-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/omid-examples-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/omid-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
 
-ln -s /stackable/omid-tso-server-${PRODUCT}-stackable${RELEASE} /stackable/omid-tso-server
-ln -s /stackable/omid-examples-${PRODUCT}-stackable${RELEASE} /stackable/omid-examples
-curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar \
--o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
-chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar
+ln -s /stackable/omid-tso-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/omid-tso-server
+ln -s /stackable/omid-examples-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/omid-examples
+curl https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
+-o /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
+chmod -x /stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar
 # omid.sh places this file at the front of the classpath: remove it to allow the config map entry to take precedence
 rm /stackable/omid-tso-server/conf/hbase-site.xml
 

@@ -1,13 +1,13 @@
-FROM stackable/image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hadoop/hadoop AS hadoop-builder
 
-FROM stackable/image/java-devel AS hbase-builder
+FROM local-image/java-devel AS hbase-builder
 
-ARG PRODUCT
-ARG RELEASE
-ARG ASYNC_PROFILER
-ARG HADOOP_HADOOP
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG ASYNC_PROFILER_VERSION
+ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-ENV HADOOP_VERSION=${HADOOP_HADOOP}
+ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
@@ -22,7 +22,7 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/patchable.toml /stackable/src/hbase/hbase/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/${PRODUCT_VERSION} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT_VERSION}
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
@@ -36,14 +36,14 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 # builder containers will share the same cache and the `rm -rf` commands will fail
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
-RUN --mount=type=cache,id=maven-hbase-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT})"
+RUN --mount=type=cache,id=maven-hbase-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -55,13 +55,13 @@ tar -czf /stackable/hbase-${NEW_VERSION}-src.tar.gz .
 # Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
 mvn \
   -Dhadoop.profile=3.0 \
-  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
+  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   clean install
 
 mvn \
   -Dhadoop.profile=3.0 \
-  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE} \
+  -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   -Prelease \
@@ -72,7 +72,7 @@ sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-assembly/target/bom.json
 mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VERSION}.cdx.json
 
 # Remove sources
-(cd .. && rm -r ${PRODUCT})
+(cd .. && rm -r ${PRODUCT_VERSION})
 
 ln -s "/stackable/hbase-${NEW_VERSION}" /stackable/hbase
 
@@ -84,8 +84,8 @@ cp -r /stackable/.m2/repository/org/apache/hbase /stackable/patched-libs/maven/o
 ###
 cd /stackable
 export ARCH="${TARGETARCH/amd64/x64}"
-curl --fail "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
-ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
+curl --fail "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC .
+ln -s "/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available

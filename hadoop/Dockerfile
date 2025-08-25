@@ -1,19 +1,19 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hadoop/hadoop AS hadoop-builder
 
-FROM stackable/image/java-devel AS hdfs-utils-builder
+FROM local-image/java-devel AS hdfs-utils-builder
 
-ARG HDFS_UTILS
-ARG PRODUCT
-ARG RELEASE
+ARG HDFS_UTILS_VERSION
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
-ARG HADOOP_HADOOP
+ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-# It is passed as `HADOOP_HADOOP`, because versions.py has to contain `hadoop/hadoop` to establish a dependency on the Hadoop builder.
-# The value of `hadoop/hadoop` is transformed by `bake` and automatically passed as `HADOOP_HADOOP` arg.
-ENV HADOOP_VERSION=${HADOOP_HADOOP}
+# It is passed as `HADOOP_HADOOP_VERSION`, because versions.py has to contain `hadoop/hadoop` to establish a dependency on the Hadoop builder.
+# The value of `hadoop/hadoop` is transformed by `bake` and automatically passed as `HADOOP_HADOOP_VERSION` arg.
+ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 
 # Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.
 # We can not simply use java-devel with Java 17, as it is also used to compile Hadoop in this
@@ -33,7 +33,7 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/patchable.toml /stackable/src/hadoop/hdfs-utils/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS} /stackable/src/hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS}
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS_VERSION} /stackable/src/hadoop/hdfs-utils/stackable/patches/${HDFS_UTILS_VERSION}
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 
@@ -42,40 +42,40 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 # labels to build a rackID from.
 # Starting with hdfs-utils version 0.3.0 the topology provider is not a standalone jar anymore and included in hdfs-utils.
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hadoop/hdfs-utils ${HDFS_UTILS})"
+cd "$(/stackable/patchable --images-repo-root=src checkout hadoop/hdfs-utils ${HDFS_UTILS_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
 mkdir -p /stackable/.m2/repository
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz .
+tar -czf /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz .
 
 mvn \
     clean package \
     -P hadoop-${HADOOP_VERSION} \
-    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
+    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
     -DskipTests \
     -Dmaven.javadoc.skip=true
 
-cp target/hdfs-utils-$HDFS_UTILS.jar /stackable/hdfs-utils-${HDFS_UTILS}.jar
+cp target/hdfs-utils-$HDFS_UTILS_VERSION.jar /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar
 rm -rf hdfs-utils-main
 
 # Set correct groups
-chmod g=u /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz
+chmod g=u /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz
 EOF
 
-FROM stackable/image/java-base AS final
+FROM local-image/java-base AS final
 
-ARG PRODUCT
-ARG RELEASE
-ARG HADOOP_HADOOP
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-ENV HADOOP_VERSION=${HADOOP_HADOOP}
-ARG HDFS_UTILS
+ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ARG HDFS_UTILS_VERSION
 ARG STACKABLE_USER_UID
-ARG ASYNC_PROFILER
-ARG JMX_EXPORTER
+ARG ASYNC_PROFILER_VERSION
+ARG JMX_EXPORTER_VERSION
 ARG TARGETARCH
 ARG TARGETOS
 
@@ -83,16 +83,16 @@ LABEL \
     name="Apache Hadoop" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
     summary="The Stackable image for Apache Hadoop." \
     description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}.jar /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS}.jar
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS_VERSION}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/licenses /licenses
@@ -110,7 +110,7 @@ microdnf install \
   fuse-libs \
   tar
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
+rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum
@@ -119,21 +119,21 @@ rm -rf /var/cache/yum
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
 
-ln -s "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}" /stackable/hadoop
+ln -s "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}" /stackable/hadoop
 
 # async-profiler
 ARCH="${TARGETARCH/amd64/x64}"
-curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC /stackable
-ln -s "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}" /stackable/async-profiler
+curl "https://repo.stackable.tech/repository/packages/async-profiler/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}.tar.gz"  | tar -xzC /stackable
+ln -s "/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}" /stackable/async-profiler
 
 # JMX Exporter
-curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar"
-ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
+chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
+ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # Set correct permissions and ownerships
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER}-${TARGETOS}-${ARCH}"
-chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE}"
+chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}"
+chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}"
 
 # Workaround for https://issues.apache.org/jira/browse/HADOOP-12845
 # The problem is that our stackable-devel image does contain the openssl-devel package

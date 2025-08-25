@@ -1,11 +1,9 @@
-# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
-# check=error=true;skip=InvalidDefaultArgInFrom
 
-ARG GOLANG
+ARG GOLANG_VERSION
 
-FROM oci.stackable.tech/sdp/library/golang:${GOLANG} AS golang-image
+FROM oci.stackable.tech/sdp/library/golang:${GOLANG_VERSION} AS golang-image
 
-FROM stackable/image/stackable-devel AS multilog-builder
+FROM local-image/stackable-devel AS multilog-builder
 
 ARG DAEMONTOOLS_VERSION=0.76
 
@@ -38,10 +36,10 @@ package/install
 chmod g=u /daemontools/admin/daemontools/command/multilog
 EOF
 
-FROM stackable/image/stackable-devel AS opa-builder
+FROM local-image/stackable-devel AS opa-builder
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 ARG TARGETOS
@@ -75,10 +73,10 @@ RUN <<EOF
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
 
-cd "$(/stackable/patchable --images-repo-root=src checkout opa ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout opa ${PRODUCT_VERSION})"
 
-ORIGINAL_VERSION=${PRODUCT}
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+ORIGINAL_VERSION=${PRODUCT_VERSION}
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 sed -i 's/var Version = "'${ORIGINAL_VERSION}'"/var Version = "'${NEW_VERSION}'"/g' v1/version/version.go
 
@@ -102,24 +100,24 @@ mv opa /stackable/opa/
 chmod -R g=u /stackable/opa /stackable/opa-${NEW_VERSION}-src.tar.gz
 EOF
 
-FROM stackable/image/vector
+FROM local-image/vector
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Open Policy Agent" \
   maintainer="info@stackable.tech" \
   vendor="Stackable GmbH" \
-  version="${PRODUCT}" \
-  release="${RELEASE}" \
+  version="${PRODUCT_VERSION}" \
+  release="${RELEASE_VERSION}" \
   summary="The Stackable image for Open Policy Agent (OPA)." \
   description="This image is deployed by the Stackable Operator for OPA."
 
 COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 
 COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa /stackable/opa
-COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz /stackable/opa-${PRODUCT}-stackable${RELEASE}-src.tar.gz
+COPY --from=opa-builder --chown=${STACKABLE_USER_UID}:0 /stackable/opa-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable/opa-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz
 COPY --from=multilog-builder --chown=${STACKABLE_USER_UID}:0 /daemontools/admin/daemontools/command/multilog /stackable/multilog
 
 RUN <<EOF

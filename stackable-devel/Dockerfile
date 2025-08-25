@@ -14,7 +14,7 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:383329bf9c4f968e87e85d30ba3a5cb988a3bbde28b8e4932dcd3a025fd9c98c
 
 # intentionally unused
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME

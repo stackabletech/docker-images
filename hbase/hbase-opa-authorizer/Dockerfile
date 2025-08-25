@@ -1,6 +1,6 @@
-FROM stackable/image/java-devel
+FROM local-image/java-devel
 
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG DELETE_CACHES
 ARG STACKABLE_USER_UID
 
@@ -8,17 +8,17 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-opa-authorizer/stackable/patches/patchable.toml /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT} /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT_VERSION} /stackable/src/hbase/hbase-opa-authorizer/stackable/patches/${PRODUCT_VERSION}
 
 RUN --mount=type=cache,id=maven-opa,uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 ###
 ### OPA Authorizer (only for 2.6 upwards)
 ###
-if [[ -n "$PRODUCT" ]]; then
-    cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-opa-authorizer ${PRODUCT})"
+if [[ -n "$PRODUCT_VERSION" ]]; then
+    cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-opa-authorizer ${PRODUCT_VERSION})"
 
     # Create snapshot of the source code including custom patches
-    tar -czf /stackable/hbase-opa-authorizer-${PRODUCT}-src.tar.gz .
+    tar -czf /stackable/hbase-opa-authorizer-${PRODUCT_VERSION}-src.tar.gz .
     mvn \
       -DskipTests \
       -Dmaven.test.skip=true \
@@ -27,7 +27,7 @@ else
   # Create a dummy jar to avoid errors when copying it to the final image
   mkdir -p target
   touch target/hbase-opa-authorizer.jar
-  touch /stackable/hbase-opa-authorizer-${PRODUCT}-src.tar.gz
+  touch /stackable/hbase-opa-authorizer-${PRODUCT_VERSION}-src.tar.gz
 fi
 
 mkdir /stackable/hbase-opa-authorizer

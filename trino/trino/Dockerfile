@@ -1,22 +1,22 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
-FROM stackable/image/java-devel AS trino-builder
+FROM local-image/java-devel AS trino-builder
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT} /stackable/src/trino/trino/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT_VERSION} /stackable/src/trino/trino/stackable/patches/${PRODUCT_VERSION}
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
-RUN --mount=type=cache,id=maven-${PRODUCT},target=/root/.m2/repository <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout trino/trino ${PRODUCT})"
+RUN --mount=type=cache,id=maven-${PRODUCT_VERSION},target=/root/.m2/repository <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout trino/trino ${PRODUCT_VERSION})"
 
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -38,7 +38,7 @@ git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 
 SKIP_PROJECTS="!docs"
-if [ "$PRODUCT" = "470" ] || [ "$PRODUCT" = "451" ]; then
+if [ "$PRODUCT_VERSION" = "470" ] || [ "$PRODUCT_VERSION" = "451" ]; then
   SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
 fi
 
@@ -63,7 +63,7 @@ tar -xzf core/trino-server/target/trino-server-${NEW_VERSION}.tar.gz -C /stackab
 mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trino-server-${NEW_VERSION}.cdx.json
 
 # Delete intermediate build products to free some space and keep runners happy
-(cd .. && rm -r ${PRODUCT})
+(cd .. && rm -r ${PRODUCT_VERSION})
 rm -r /stackable/.m2
 
 ln -s /stackable/trino-server-${NEW_VERSION} /stackable/trino-server

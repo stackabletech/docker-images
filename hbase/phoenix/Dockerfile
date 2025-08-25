@@ -1,19 +1,18 @@
-FROM stackable/image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hadoop/hadoop AS hadoop-builder
 
-FROM stackable/image/hbase/hbase AS hbase-builder
+FROM local-image/hbase/hbase AS hbase-builder
 
-FROM stackable/image/java-devel
+FROM local-image/java-devel
 
-ARG PRODUCT
-ARG RELEASE
-ARG ASYNC_PROFILER
-ARG HBASE_HBASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG HBASE_HBASE_VERSION
 # Reassign the arg to `HBASE_VERSION` for better readability.
-ENV HBASE_VERSION=${HBASE_HBASE}
+ENV HBASE_VERSION=${HBASE_HBASE_VERSION}
 ARG HBASE_PROFILE
-ARG HADOOP_HADOOP
+ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-ENV HADOOP_VERSION=${HADOOP_HADOOP}
+ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG STACKABLE_USER_UID
 ARG PHOENIX_VERSION
 
@@ -29,7 +28,7 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-RUN --mount=type=cache,id=maven-phoenix-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-phoenix-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
@@ -37,19 +36,19 @@ cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 cd "$(/stackable/patchable --images-repo-root=src checkout phoenix ${PHOENIX_VERSION})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${PHOENIX_VERSION}-stackable${RELEASE}"
+NEW_VERSION="${PHOENIX_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/phoenix-${PRODUCT}-stackable${RELEASE}-src.tar.gz .
+tar -czf /stackable/phoenix-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
 
 # The Maven command can be found inside of the scripts in the create-release folder (release-util.sh as of Phoenix 5.2.0)
 # https://github.com/apache/phoenix/tree/5.2.0/dev/create-release
 mvn \
-  -Dhbase.version=${HBASE_VERSION}-stackable${RELEASE} \
+  -Dhbase.version=${HBASE_VERSION}-stackable${RELEASE_VERSION} \
   -Dhbase.profile=${HBASE_PROFILE} \
-  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE} \
+  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   -Dcheckstyle.skip=true \
   clean \
@@ -57,14 +56,14 @@ mvn \
 
 # We need the "*" here as the directory won't be the same as the final tar file for SNAPSHOTs which we currently have to use for 2.6
 # And we're stripping the top level directory while extracting because it may be called different than the folder name when it's a SNAPSHOT
-mkdir /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin
-tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin/ --strip-components=1
+mkdir /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin
+tar -xz -f phoenix-assembly/target/phoenix-hbase-*-bin.tar.gz -C /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/ --strip-components=1
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" phoenix-assembly/target/bom.json
-mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}.cdx.json
+mv phoenix-assembly/target/bom.json /stackable/phoenix-${HBASE_PROFILE}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/phoenix-${HBASE_PROFILE}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 
 # Remove sources
 (cd .. && rm -r ${PHOENIX_VERSION})
-ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PRODUCT}-stackable${RELEASE}-bin" /stackable/phoenix
+ln -s "/stackable/phoenix-${HBASE_PROFILE}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin" /stackable/phoenix
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available

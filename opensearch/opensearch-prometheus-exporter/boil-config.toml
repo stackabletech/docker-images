@@ -1,0 +1,2 @@
+[versions."3.1.0.0".local-images]
+java-devel = "21"

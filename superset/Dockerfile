@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
+FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
-FROM stackable/image/stackable-base AS opa-authorizer-builder
+FROM local-image/stackable-base AS opa-authorizer-builder
 
-ARG PYTHON
+ARG PYTHON_VERSION
 
 COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
 
@@ -14,9 +14,9 @@ microdnf update
 microdnf install \
     gcc \
     gcc-c++ \
-    python${PYTHON} \
-    python${PYTHON}-devel \
-    python${PYTHON}-pip
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-devel \
+    python${PYTHON_VERSION}-pip
 microdnf clean all
 rm -rf /var/cache/yum
 
@@ -33,16 +33,16 @@ poetry run pytest
 poetry build
 EOF
 
-FROM stackable/image/vector AS builder
+FROM local-image/vector AS builder
 
-ARG PRODUCT
-ARG SHARED_STATSD_EXPORTER
-ARG PYTHON
-ARG AUTHLIB
+ARG PRODUCT_VERSION
+ARG SHARED_STATSD_EXPORTER_VERSION
+ARG PYTHON_VERSION
+ARG AUTHLIB_VERSION
 ARG TARGETARCH
 ARG TARGETOS
-ARG CYCLONEDX_BOM
-ARG UV
+ARG CYCLONEDX_BOM_VERSION
+ARG UV_VERSION
 
 RUN microdnf update \
     && microdnf install \
@@ -59,16 +59,16 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
-        python${PYTHON} \
-        python${PYTHON}-devel \
-        python${PYTHON}-pip \
-        python${PYTHON}-wheel \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-devel \
+        python${PYTHON_VERSION}-pip \
+        python${PYTHON_VERSION}-wheel \
         libpq-devel \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
-COPY superset/stackable/constraints/${PRODUCT}/constraints.txt /tmp/constraints.txt
-COPY superset/stackable/constraints/${PRODUCT}/build-constraints.txt /tmp/build-constraints.txt
+COPY superset/stackable/constraints/${PRODUCT_VERSION}/constraints.txt /tmp/constraints.txt
+COPY superset/stackable/constraints/${PRODUCT_VERSION}/build-constraints.txt /tmp/build-constraints.txt
 COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
 
 # Upgrade pip to the latest version
@@ -83,13 +83,13 @@ RUN python3 -m venv /stackable/app \
         --upgrade \
         setuptools==75.2.0 \
         pip \
-        uv==${UV} \
+        uv==${UV_VERSION} \
     && uv pip install \
         --no-cache-dir \
         --upgrade \
         --constraints /tmp/constraints.txt \
         --build-constraints /tmp/build-constraints.txt \
-        apache-superset==${PRODUCT} \
+        apache-superset==${PRODUCT_VERSION} \
         gevent \
         psycopg2-binary \
         statsd \
@@ -109,7 +109,7 @@ RUN python3 -m venv /stackable/app \
     # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
     # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
     # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
-    && if [[ "$PRODUCT" =~ ^4\.0\..* ]]; \
+    && if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; \
         then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
         && uv pip install gunicorn==22.0.0; \
     fi \
@@ -117,32 +117,32 @@ RUN python3 -m venv /stackable/app \
         --no-cache-dir \
         --upgrade \
         python-json-logger \
-        cyclonedx-bom==${CYCLONEDX_BOM} \
-    && if [ -n "$AUTHLIB" ]; then pip install Authlib==${AUTHLIB}; fi && \
+        cyclonedx-bom==${CYCLONEDX_BOM_VERSION} \
+    && if [ -n "$AUTHLIB_VERSION" ]; then pip install Authlib==${AUTHLIB_VERSION}; fi && \
     uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
 
 RUN <<EOF
 cd /stackable
-source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT}.cdx.json
+source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT_VERSION}.cdx.json
 chmod --recursive g=u /stackable
 EOF
 
 # Final image
-FROM stackable/image/vector
+FROM local-image/vector
 
-ARG PRODUCT
-ARG PYTHON
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG PYTHON_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Superset" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
     summary="The Stackable image for Apache Superset." \
     description="This image is deployed by the Stackable Operator for Apache Superset."
 
@@ -165,7 +165,7 @@ microdnf install \
   openldap-clients \
   openssl-libs \
   openssl-pkcs11 \
-  "python${PYTHON}"
+  "python${PYTHON_VERSION}"
 
 microdnf clean all
 rm -rf /var/cache/yum
