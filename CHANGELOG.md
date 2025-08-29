@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
+- opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
 - nifi: Backport NIFI-14848 to NiFi ([#1225])
 
 ### Changed
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 [#1222]: https://github.com/stackabletech/docker-images/pull/1222
 [#1223]: https://github.com/stackabletech/docker-images/pull/1223
 [#1225]: https://github.com/stackabletech/docker-images/pull/1225
+[#1228]: https://github.com/stackabletech/docker-images/pull/1228
 
 ## [25.7.0] - 2025-07-23
 
