@@ -50,5 +50,6 @@ versions = [
         "uv": "0.7.8",
         "extras": "async,amazon,celery,cncf-kubernetes,docker,elasticsearch,fab,ftp,grpc,hashicorp,http,ldap,google,microsoft-azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,trino",
         "opa_auth_manager": "airflow-3",
+        "stackable-devel": "1.0.0",
     },
 ]

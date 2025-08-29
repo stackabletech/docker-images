@@ -37,7 +37,7 @@ uv run pytest --disable-warnings
 uv build
 EOF
 
-FROM stackable/image/vector AS airflow-build-image
+FROM stackable/image/stackable-devel AS airflow-build-image
 
 ARG PRODUCT
 ARG SHARED_STATSD_EXPORTER
@@ -82,6 +82,11 @@ COPY airflow/stackable/constraints/${PRODUCT}/constraints-python${PYTHON}.txt /t
 COPY airflow/stackable/constraints/${PRODUCT}/build-constraints-python${PYTHON}.txt /tmp/build-constraints.txt
 COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
 
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/patchable.toml /stackable/src/airflow/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT} /stackable/src/airflow/stackable/patches/${PRODUCT}
+
+WORKDIR /stackable
+
 RUN <<EOF
 python${PYTHON} -m venv --system-site-packages /stackable/app
 
@@ -91,8 +96,15 @@ source /stackable/app/bin/activate
 # Also install uv to get support for build constraints
 pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir uv==${UV}
+uv tool install hatch
+
+cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT})/airflow-core"
+
+/root/.local/bin/hatch build -t wheel
 
 uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+
+uv pip install --no-cache-dir dist/apache_airflow_core-${PRODUCT}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 uv pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
 # Needed for OIDC
