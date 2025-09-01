@@ -8,7 +8,7 @@ use crate::{build::cli::BuildArguments, completions::CompletionsArguments, show:
 #[command(author, version, about)]
 pub struct Cli {
     /// Path to the configuration file.
-    #[arg(short = 'c', long = "configuration", default_value_os_t = Self::default_config_path())]
+    #[arg(short, long = "configuration", global = true, default_value_os_t = Self::default_config_path())]
     pub config_path: PathBuf,
 
     /// Path to the OpenShift configuration file.
