@@ -20,8 +20,15 @@ pub fn format_image_manifest_uri(
     image_version: &str,
     sdp_image_version: &Version,
     architecture: &Architecture,
+    strip_architecture: bool,
 ) -> String {
-    format!("{image_repository_uri}:{image_version}-stackable{sdp_image_version}-{architecture}")
+    if strip_architecture {
+        format!("{image_repository_uri}:{image_version}-stackable{sdp_image_version}")
+    } else {
+        format!(
+            "{image_repository_uri}:{image_version}-stackable{sdp_image_version}-{architecture}"
+        )
+    }
 }
 
 pub trait CommandExt {

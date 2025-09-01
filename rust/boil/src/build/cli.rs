@@ -96,6 +96,10 @@ pub struct BuildArguments {
     )]
     pub export_image_manifest_uris: Option<PathBuf>,
 
+    /// Strips the architecture from the image (index) manifest tag.
+    #[arg(long, help_heading = "Build Options")]
+    pub strip_architecture: bool,
+
     /// Loads the image into the local image store.
     #[arg(long, help_heading = "Build Options")]
     pub load: bool,

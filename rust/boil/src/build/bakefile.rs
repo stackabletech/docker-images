@@ -307,6 +307,7 @@ impl Bakefile {
                     &image_version,
                     &args.image_version,
                     args.target_platform.architecture(),
+                    args.strip_architecture,
                 );
 
                 let dockerfile = PathBuf::new().join(&image_name).join("Dockerfile");
