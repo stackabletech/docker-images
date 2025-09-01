@@ -1,6 +1,4 @@
 ---
-name: Build boil
-
 on:
   workflow_call:
     inputs:
