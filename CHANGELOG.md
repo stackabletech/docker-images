@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file.
 - all: Use our build-repo to cache NPM dependencies ([#1219])
 - java: Use a more recent Maven version for all Java based products ([#1220])
 
+### Removed
+
+- opensearch: stop applying formatting plugin ([#1230]).
+
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
 [#1219]: https://github.com/stackabletech/docker-images/pull/1219
@@ -24,6 +28,7 @@ All notable changes to this project will be documented in this file.
 [#1222]: https://github.com/stackabletech/docker-images/pull/1222
 [#1223]: https://github.com/stackabletech/docker-images/pull/1223
 [#1225]: https://github.com/stackabletech/docker-images/pull/1225
+[#1230]: https://github.com/stackabletech/docker-images/pull/1230
 
 ## [25.7.0] - 2025-07-23
 
