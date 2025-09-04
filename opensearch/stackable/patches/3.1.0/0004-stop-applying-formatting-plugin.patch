@@ -1,0 +1,60 @@
+From b324a8fc96417870fd34009f2e3c4a43a8b9139e Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Tue, 2 Sep 2025 12:01:22 +0200
+Subject: stop applying formatting plugin
+
+---
+ benchmarks/build.gradle               | 9 ---------
+ build.gradle                          | 1 -
+ plugins/arrow-flight-rpc/build.gradle | 7 -------
+ 3 files changed, 17 deletions(-)
+
+diff --git a/benchmarks/build.gradle b/benchmarks/build.gradle
+index 732e77934b4..47a7c1b1066 100644
+--- a/benchmarks/build.gradle
++++ b/benchmarks/build.gradle
+@@ -76,14 +76,5 @@ thirdPartyAudit.ignoreViolations(
+   'org.openjdk.jmh.util.Utils'
+ )
+ 
+-spotless {
+-  java {
+-    // IDEs can sometimes run annotation processors that leave files in
+-    // here, causing Spotless to complain. Even though this path ought not
+-    // to exist, exclude it anyway in order to avoid spurious failures.
+-    targetExclude 'src/main/generated/**/*.java'
+-  }
+-}
+-
+ // Add support for incubator modules on supported Java versions.
+ run.jvmArgs += ['--add-modules=jdk.incubator.vector']
+diff --git a/build.gradle b/build.gradle
+index 4c2f2374a99..99ffd8b743c 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -65,7 +65,6 @@ apply from: 'gradle/build-complete.gradle'
+ apply from: 'gradle/runtime-jdk-provision.gradle'
+ apply from: 'gradle/ide.gradle'
+ apply from: 'gradle/forbidden-dependencies.gradle'
+-apply from: 'gradle/formatting.gradle'
+ apply from: 'gradle/local-distribution.gradle'
+ apply from: 'gradle/run.gradle'
+ apply from: 'gradle/missing-javadoc.gradle'
+diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
+index 1d05464d0ee..0659d0a3369 100644
+--- a/plugins/arrow-flight-rpc/build.gradle
++++ b/plugins/arrow-flight-rpc/build.gradle
+@@ -93,13 +93,6 @@ internalClusterTest {
+   jvmArgs += ["--add-opens", "java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED"]
+ }
+ 
+-spotless {
+-  java {
+-    // Files to exclude from formatting
+-    targetExclude 'src/main/java/org/apache/arrow/flight/**/*.java'
+-  }
+-}
+-
+ 
+ tasks.named("dependencyLicenses").configure {
+   mapping from: /netty-.*/, to: 'netty'
