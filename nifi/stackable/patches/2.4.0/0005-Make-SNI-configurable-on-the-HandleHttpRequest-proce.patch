@@ -1,14 +1,14 @@
-From 30237816686ef716d8d1246ef8cef513eb617ac9 Mon Sep 17 00:00:00 2001
+From 6214294eac254fd7463fd5d6d52ec6256fa9ed4b Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Mon, 8 Sep 2025 15:02:29 +0200
 Subject: Make SNI configurable on the HandleHttpRequest processor
 
 ---
- .../processors/standard/HandleHttpRequest.java     | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ .../processors/standard/HandleHttpRequest.java | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java b/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
-index ccdfb6c993..7fc00ed41b 100644
+index ccdfb6c993..e6fffdd023 100644
 --- a/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
 +++ b/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
 @@ -318,6 +318,18 @@ public class HandleHttpRequest extends AbstractProcessor {
@@ -30,7 +30,18 @@ index ccdfb6c993..7fc00ed41b 100644
  
      private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(
              PORT,
-@@ -392,6 +404,8 @@ public class HandleHttpRequest extends AbstractProcessor {
+@@ -340,7 +352,9 @@ public class HandleHttpRequest extends AbstractProcessor {
+             CONTAINER_QUEUE_SIZE,
+             MULTIPART_REQUEST_MAX_SIZE,
+             MULTIPART_READ_BUFFER_SIZE,
+-            PARAMETERS_TO_ATTRIBUTES
++            PARAMETERS_TO_ATTRIBUTES,
++            JETTY_SNI_REQUIRED,
++            JETTY_SNI_HOST_CHECK
+     );
+ 
+     public static final Relationship REL_SUCCESS = new Relationship.Builder()
+@@ -392,6 +406,8 @@ public class HandleHttpRequest extends AbstractProcessor {
  
          final int requestHeaderSize = context.getProperty(REQUEST_HEADER_MAX_SIZE).asDataSize(DataUnit.B).intValue();
          final StandardServerConnectorFactory serverConnectorFactory = new StandardServerConnectorFactory(server, port);
