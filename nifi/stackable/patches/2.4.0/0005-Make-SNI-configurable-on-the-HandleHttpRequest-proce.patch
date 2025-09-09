@@ -1,0 +1,41 @@
+From 30237816686ef716d8d1246ef8cef513eb617ac9 Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Mon, 8 Sep 2025 15:02:29 +0200
+Subject: Make SNI configurable on the HandleHttpRequest processor
+
+---
+ .../processors/standard/HandleHttpRequest.java     | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java b/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
+index ccdfb6c993..7fc00ed41b 100644
+--- a/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
++++ b/nifi-extension-bundles/nifi-standard-bundle/nifi-standard-processors/src/main/java/org/apache/nifi/processors/standard/HandleHttpRequest.java
+@@ -318,6 +318,18 @@ public class HandleHttpRequest extends AbstractProcessor {
+             .addValidator(StandardValidators.DATA_SIZE_VALIDATOR)
+             .defaultValue("512 KB")
+             .build();
++  public static final PropertyDescriptor JETTY_SNI_REQUIRED = new PropertyDescriptor.Builder()
++          .name("Jetty SNI Required")
++          .description("This controls whether the server handling the requests does require Require Server Name Indication (SNI) or not.")
++          .allowableValues("true", "false")
++          .defaultValue("false")
++          .build();
++  public static final PropertyDescriptor JETTY_SNI_HOST_CHECK = new PropertyDescriptor.Builder()
++          .name("Jetty SNI Host Check")
++          .description("Jetty SNI Host Check")
++          .allowableValues("true", "false")
++          .defaultValue("true")
++          .build();
+ 
+     private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(
+             PORT,
+@@ -392,6 +404,8 @@ public class HandleHttpRequest extends AbstractProcessor {
+ 
+         final int requestHeaderSize = context.getProperty(REQUEST_HEADER_MAX_SIZE).asDataSize(DataUnit.B).intValue();
+         final StandardServerConnectorFactory serverConnectorFactory = new StandardServerConnectorFactory(server, port);
++        serverConnectorFactory.setSniRequired(context.getProperty(JETTY_SNI_REQUIRED).asBoolean());
++        serverConnectorFactory.setSniHostCheck(context.getProperty(JETTY_SNI_HOST_CHECK).asBoolean());
+         serverConnectorFactory.setRequestHeaderSize(requestHeaderSize);
+ 
+         final boolean needClientAuth = CLIENT_NEED.getValue().equals(clientAuthValue);
