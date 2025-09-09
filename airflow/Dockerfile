@@ -48,6 +48,7 @@ ARG S3FS
 ARG CYCLONEDX_BOM
 ARG UV
 ARG EXTRAS
+ARG NODEJS
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
@@ -55,7 +56,8 @@ ARG EXTRAS
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ENV AIRFLOW_EXTRAS=${EXTRAS}
 
-RUN microdnf update && \
+RUN microdnf module enable -y nodejs:${NODEJS} && \
+    microdnf update && \
     microdnf install \
         cyrus-sasl-devel \
         # Needed by ./configure to build gevent, see snippet [1] at the end of file
@@ -73,6 +75,9 @@ RUN microdnf update && \
         python${PYTHON}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
+        # Needed for Airflow UI assets
+        npm \
+        nodejs \
         # Needed to modify the SBOM
         jq && \
     microdnf clean all && \
@@ -100,11 +105,19 @@ uv tool install hatch
 
 cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT})/airflow-core"
 
+# build front-end assets
+cd src/airflow/ui
+npm install -g pnpm
+pnpm install --frozen-lockfile
+pnpm run build
+
+# build airflow wheel from airflow root folder
+# this picks up the UI assets from the pnpm build, and the dependencies from the root folder
+cd ../../../..
 /root/.local/bin/hatch build -t wheel
 
-uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
-uv pip install --no-cache-dir dist/apache_airflow_core-${PRODUCT}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 uv pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
 # Needed for OIDC
