@@ -1,7 +1,7 @@
 ---
 name: Early Pre-Release Container Image Updates
 about: This template can be used to track the container image updates leading up to the next Stackable release
-title: "chore: Update Container Images for Stackable Release YY.M.X"
+title: "chore(tracking): Update major/minor|patch versions for YY.M.X"
 labels: ['epic']
 assignees: ''
 ---
@@ -12,7 +12,7 @@ assignees: ''
 -->
 
 <!-- Update this with the parent tracking issue for the release -->
-Part of stackabletech/issues#xxx.
+Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.

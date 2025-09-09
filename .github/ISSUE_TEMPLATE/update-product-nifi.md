@@ -4,14 +4,14 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(nifi): Update container images ahead of Stackable Release YY.M.X
+  chore(nifi): Update major/minor|patch versions for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of #xxx.
+Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -21,7 +21,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - Remove: `y.y.y`
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
