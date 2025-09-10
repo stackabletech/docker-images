@@ -1,7 +1,7 @@
-From cd1c23ea5bddd2796caf2590fef467e488c3bcbf Mon Sep 17 00:00:00 2001
+From 932464d9fbf23f9042fee2f8b4be6029174d2ca4 Mon Sep 17 00:00:00 2001
 From: Sebastian Klemke <3669903+packet23@users.noreply.github.com>
 Date: Thu, 7 Nov 2024 19:14:13 +0100
-Subject: HADOOP-18583. Fix loading of OpenSSL 3.x symbols  (#5256) (#7149)
+Subject: HADOOP-18583. Fix loading of OpenSSL 3.x symbols (#5256) (#7149)
 
 Contributed by Sebastian Klemke
 ---
