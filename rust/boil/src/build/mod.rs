@@ -43,8 +43,6 @@ pub enum Error {
 
 pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
-    // let pattern = format!("**/{}/boil-config.toml", arguments.product.name);
-
     // Validation
     ensure!(
         args.image_version.build.is_empty(),

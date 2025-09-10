@@ -65,7 +65,7 @@ pub struct BuildArguments {
     #[arg(long, help_heading = "Registry Options")]
     pub use_localhost_registry: bool,
 
-    /// Override the target containerfile used, points to <PRODUCT>/<TARGET_CONTAINERFILE>.
+    /// Override the target containerfile used, points to <IMAGE>/<TARGET_CONTAINERFILE>.
     #[arg(
         long,
         default_value_os_t = Self::default_target_containerfile(),

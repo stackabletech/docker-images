@@ -57,8 +57,8 @@ pub enum Error {
 
 #[derive(Debug, Snafu)]
 pub enum TargetsError {
-    #[snafu(display("encountered invalid product version"))]
-    InvalidProductVersion { source: ImageConfigError },
+    #[snafu(display("encountered invalid image version"))]
+    InvalidImageVersion { source: ImageConfigError },
 
     #[snafu(display("failed to read image config"))]
     ReadImageConfig { source: ImageConfigError },
@@ -136,15 +136,15 @@ impl Targets {
             // files are not a source a truth, but just provide data needed during the build.
             let image_config_path = PathBuf::new().join(&image.name).join("boil-config.toml");
 
-            // Read the product config which defines supported product versions and their dependencies as
+            // Read the image config which defines supported image versions and their dependencies as
             // well as other values.
             let image_config =
                 ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
-            // Create a list of product versions we need to generate targets for in the bakefile.
+            // Create a list of image versions we need to generate targets for in the bakefile.
             let pairs = image_config
                 .filter_by_version(&image.versions)
-                .context(InvalidProductVersionSnafu)?;
+                .context(InvalidImageVersionSnafu)?;
 
             targets.insert_targets(image.name.clone(), pairs, &options, true)?;
         }
@@ -174,15 +174,15 @@ impl Targets {
                         continue;
                     }
 
-                    let product_config_path =
+                    let image_config_path =
                         PathBuf::new().join(image_name).join("boil-config.toml");
 
-                    let product_config = ImageConfig::from_file(product_config_path)
-                        .context(ReadImageConfigSnafu)?;
+                    let image_config =
+                        ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
-                    let pairs = product_config
+                    let pairs = image_config
                         .filter_by_version(&[image_version])
-                        .context(InvalidProductVersionSnafu)?;
+                        .context(InvalidImageVersionSnafu)?;
 
                     // Wowzers, recursion!
                     self.insert_targets(image_name.clone(), pairs, options, false)?;
@@ -372,15 +372,15 @@ impl Bakefile {
 
     /// Formats and returns the target name, eg. `stackable-base-1_0_0`.
     fn format_target_name(image_name: &str, image_version: &str) -> String {
-        // Replace any slashes from nested product names, eg. shared/protobuf, because docker buildx
+        // Replace any slashes from nested image names, eg. shared/protobuf, because docker buildx
         // has this weird restriction (because it also supports push, which we do on our own). We
         // are therefore artificially limited what target names we can use: [a-zA-Z0-9_-]+
-        let product_name = image_name.replace('/', "__");
+        let image_name = image_name.replace('/', "__");
 
         // The dots in the semantic version also need to be replaced.
-        let product_version = image_version.to_string().replace('.', "_");
+        let image_version = image_version.to_string().replace('.', "_");
 
-        format!("{product_name}-{product_version}")
+        format!("{image_name}-{image_version}")
     }
 
     /// Formats and return the context name, eg. `stackable/image/stackable-base-1_0_0`.
@@ -464,7 +464,7 @@ impl BakefileTarget {
         date_time: String,
         revision: String,
         config: Config,
-        docker_build_arguments: Vec<BuildArgument>,
+        build_arguments: Vec<BuildArgument>,
         release_version: String,
     ) -> Self {
         let config::Metadata {
@@ -487,7 +487,7 @@ impl BakefileTarget {
         ];
 
         let mut arguments = config.build_arguments;
-        arguments.extend(docker_build_arguments);
+        arguments.extend(build_arguments);
         arguments.insert(BuildArgument::new(
             "RELEASE_VERSION".to_owned(),
             release_version,

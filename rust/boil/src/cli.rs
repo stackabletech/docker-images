@@ -38,7 +38,7 @@ impl Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Build one or more product images.
+    /// Build one or more images.
     ///
     /// Requires docker with the buildx extension.
     #[command(alias = "some-chicken")]
