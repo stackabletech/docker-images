@@ -2,11 +2,12 @@ use std::{
     collections::BTreeSet,
     fmt::Display,
     ops::{Deref, DerefMut},
+    path::{Path, PathBuf},
     str::FromStr,
 };
 
 use serde::{Deserialize, Serialize, de::Visitor, ser::SerializeMap};
-use snafu::{OptionExt, Snafu, ensure};
+use snafu::{OptionExt, ResultExt, Snafu, ensure};
 
 #[derive(Debug, Snafu)]
 pub enum ParseBuildArgumentError {
@@ -17,13 +18,17 @@ pub enum ParseBuildArgumentError {
     NonAscii,
 }
 
-// TODO (@Techassi): Unify parsing/casing in one place
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct BuildArgument((String, String));
 
 impl BuildArgument {
     pub fn new(key: String, value: String) -> Self {
-        Self((key.replace(['-', '/'], "_").to_uppercase(), value))
+        let key = Self::format_key(key);
+        Self((key, value))
+    }
+
+    fn format_key(key: impl AsRef<str>) -> String {
+        key.as_ref().replace(['-', '/'], "_").to_uppercase()
     }
 }
 
@@ -34,7 +39,7 @@ impl FromStr for BuildArgument {
         ensure!(s.is_ascii(), NonAsciiSnafu);
 
         let (key, value) = s.split_once('=').context(InvalidFormatSnafu)?;
-        let key = key.replace(['-', '/'], "_").to_uppercase();
+        let key = Self::format_key(key);
 
         Ok(Self((key, value.to_owned())))
     }
@@ -71,6 +76,18 @@ impl Display for BuildArgument {
         let (key, value) = &self.0;
         write!(f, "{key}={value}")
     }
+}
+
+#[derive(Debug, Snafu)]
+pub enum ParseBuildArgumentsError {
+    #[snafu(display("failed to read file at {path}", path = path.display()))]
+    ReadFile {
+        source: std::io::Error,
+        path: PathBuf,
+    },
+
+    #[snafu(display("failed to parse build argument"))]
+    ParseBuildArgument { source: ParseBuildArgumentError },
 }
 
 #[derive(Clone, Debug, Default)]
@@ -111,30 +128,30 @@ impl<'de> Deserialize<'de> for BuildArguments {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_map(BuildArgumentsVisitor)
-    }
-}
+        struct BuildArgumentsVisitor;
 
-struct BuildArgumentsVisitor;
+        impl<'de> Visitor<'de> for BuildArgumentsVisitor {
+            type Value = BuildArguments;
 
-impl<'de> Visitor<'de> for BuildArgumentsVisitor {
-    type Value = BuildArguments;
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(formatter, "a map of valid build arguments")
+            }
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "a map of valid build arguments")
-    }
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut args = BTreeSet::new();
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: serde::de::MapAccess<'de>,
-    {
-        let mut args = BTreeSet::new();
+                while let Some((key, value)) = map.next_entry()? {
+                    args.insert(BuildArgument::new(key, value));
+                }
 
-        while let Some((key, value)) = map.next_entry()? {
-            args.insert(BuildArgument::new(key, value));
+                Ok(BuildArguments(args))
+            }
         }
 
-        Ok(BuildArguments(args))
+        deserializer.deserialize_map(BuildArgumentsVisitor)
     }
 }
 
@@ -160,5 +177,21 @@ impl BuildArguments {
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    pub fn from_file<P>(path: P) -> Result<Self, ParseBuildArgumentsError>
+    where
+        P: AsRef<Path>,
+    {
+        let path = path.as_ref();
+        let content = std::fs::read_to_string(path).context(ReadFileSnafu { path })?;
+        let mut args = Self::new();
+
+        for line in content.lines() {
+            let arg = BuildArgument::from_str(line).context(ParseBuildArgumentSnafu)?;
+            args.insert(arg);
+        }
+
+        Ok(args)
     }
 }

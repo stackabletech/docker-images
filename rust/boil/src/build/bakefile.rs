@@ -20,7 +20,7 @@ use crate::{
     VersionExt,
     build::{
         cli,
-        docker::{BuildArgument, BuildArguments},
+        docker::{BuildArgument, BuildArguments, ParseBuildArgumentsError},
         image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
         platform::TargetPlatform,
     },
@@ -53,6 +53,9 @@ pub enum Error {
 
     #[snafu(display("failed to create target graph"))]
     CreateGraph { source: TargetsError },
+
+    #[snafu(display("failed to parse build arguments"))]
+    ParseBuildArguments { source: ParseBuildArgumentsError },
 }
 
 #[derive(Debug, Snafu)]
@@ -238,11 +241,19 @@ impl Bakefile {
         let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
         let date_time = Self::now()?;
 
+        // Load build arguments from a file if the user requested it
+        let mut build_arguments = args.build_arguments.clone();
+        if let Some(path) = &args.build_arguments_file {
+            let build_arguments_from_file =
+                BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
+            build_arguments.extend(build_arguments_from_file);
+        }
+
         let target = BakefileTarget::common(
             date_time,
             revision,
             config,
-            args.docker_build_arguments.clone(),
+            build_arguments,
             args.image_version.base_prerelease(),
         );
 

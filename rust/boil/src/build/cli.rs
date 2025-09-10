@@ -79,9 +79,15 @@ pub struct BuildArguments {
     #[arg(
         long = "build-argument",
         alias = "build-arg",
+        value_name = "BUILD_ARGUMENT",
         help_heading = "Build Options"
     )]
-    pub docker_build_arguments: Vec<BuildArgument>,
+    pub build_arguments: Vec<BuildArgument>,
+
+    /// Load and override build arguments, in key=value format, each separated by a newline from the
+    /// specified file.
+    #[arg(long, alias = "build-args-file", help_heading = "Build Options")]
+    pub build_arguments_file: Option<PathBuf>,
 
     /// Write target image tags to <EXPORT_FILE>. Useful for signing or other follow-up CI steps.
     #[arg(
