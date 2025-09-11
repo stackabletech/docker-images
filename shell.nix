@@ -4,15 +4,7 @@
   pkgs ? import nixpkgs { },
 }:
 
-let
-  bake = pkgs.callPackage (sources.image-tools + "/image-tools.nix") { };
-in
 pkgs.mkShell {
-  packages = [
-    bake
-    pkgs.nodejs_20
-  ];
-
   buildInputs = [
     # Required by patchable
     pkgs.openssl
@@ -22,5 +14,4 @@ pkgs.mkShell {
     # Required for libraries to be discoverable
     pkgs.pkg-config
   ];
-
 }
