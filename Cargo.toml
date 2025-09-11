@@ -3,7 +3,9 @@ members = ["rust/*"]
 resolver = "2"
 
 [workspace.package]
+repository = "https://github.com/stackabletech/docker-images"
 authors = ["Stackable <info@stackable.tech>"]
+license = "OSL-3.0"
 
 [workspace.dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
