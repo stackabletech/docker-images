@@ -16,9 +16,34 @@ env:
   RUST_VERSION: 1.87.0
 
 jobs:
+  # This job is always run to ensure we don't miss any new upstream advisories
+  cargo-deny:
+    name: Run cargo-deny
+    runs-on: ubuntu-latest
+    # Prevent sudden announcement of a new advisory from failing CI
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Run cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # v2.0.13
+        with:
+          command: check ${{ matrix.checks }}
+
   create-release:
     name: Create Draft Release
     if: github.event_name == 'push'
+    needs:
+      - cargo-deny
     runs-on: ubuntu-latest
     steps:
       - name: Create Draft Release
@@ -27,6 +52,9 @@ jobs:
           draft: true
 
   build:
+    name: Build boil
+    needs:
+      - create-release
     strategy:
       fail-fast: false
       matrix:
