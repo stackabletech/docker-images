@@ -54,7 +54,7 @@ jobs:
   build:
     name: Build boil
     needs:
-      - create-release
+      - cargo-deny
     strategy:
       fail-fast: false
       matrix:
