@@ -114,9 +114,8 @@ impl Extend<BuildArgument> for BuildArguments {
 }
 
 impl IntoIterator for BuildArguments {
-    type Item = BuildArgument;
-
     type IntoIter = std::collections::btree_set::IntoIter<Self::Item>;
+    type Item = BuildArgument;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()

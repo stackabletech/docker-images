@@ -95,9 +95,9 @@ impl DerefMut for Targets {
 }
 
 impl IntoIterator for Targets {
-    type Item = (String, BTreeMap<String, (ImageOptions, bool)>);
     type IntoIter =
         std::collections::btree_map::IntoIter<String, BTreeMap<String, (ImageOptions, bool)>>;
+    type Item = (String, BTreeMap<String, (ImageOptions, bool)>);
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
