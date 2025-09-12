@@ -41,6 +41,7 @@ pub enum Error {
     InvalidImageVersion,
 }
 
+/// This is the `boil build` command handler function.
 pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
     // Validation

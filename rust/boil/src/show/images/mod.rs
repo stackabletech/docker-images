@@ -43,6 +43,7 @@ impl Serialize for OneOrMany {
     }
 }
 
+/// This is the `boil show images` command handler function.
 pub fn run_command(arguments: ShowImagesArguments) -> Result<(), Error> {
     let list: BTreeMap<_, _> = if arguments.image.is_empty() {
         Targets::all(TargetsOptions { only_entry: true })

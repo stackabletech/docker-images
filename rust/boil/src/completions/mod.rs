@@ -9,6 +9,7 @@ pub struct CompletionsArguments {
     pub shell: Shell,
 }
 
+/// This is the `boil completions` command handler function.
 pub fn run_command(arguments: CompletionsArguments) {
     let mut cli = Cli::command();
     let bin_name = cli.get_bin_name().unwrap_or("boil").to_owned();
