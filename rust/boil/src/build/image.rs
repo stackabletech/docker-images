@@ -11,8 +11,11 @@ use snafu::{ResultExt as _, Snafu, ensure};
 
 use crate::{IfContext, build::docker::BuildArguments};
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, PartialEq, Snafu)]
 pub enum ParseImageError {
+    #[snafu(display("input must not be empty"))]
+    EmptyInput,
+
     #[snafu(display("encountered invalid format, expected name[=version,...]"))]
     InvalidFormat,
 
@@ -32,17 +35,32 @@ pub struct Image {
 impl FromStr for Image {
     type Err = ParseImageError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts: Vec<_> = s.split('=').collect();
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        // Get rid of any leading and traling whitespace
+        let input = input.trim();
+        ensure!(!input.is_empty(), EmptyInputSnafu);
 
-        ensure!(!parts[0].contains(['.', '~']), UnsupportedCharsSnafu);
+        let parts: Vec<_> = input.split('=').collect();
+
+        // Ensure that the path/image name is not empty, doesn't contain '~', and is not abolute.
+        ensure!(!parts[0].is_empty(), InvalidFormatSnafu);
+        ensure!(!parts[0].contains('~'), UnsupportedCharsSnafu);
         ensure!(!parts[0].starts_with('/'), AbsolutePathSnafu);
 
-        let image_name = parts[0].trim_end_matches('/').to_owned();
+        // Get rid of a leading ./ from the image name. This would need to be replaced, because
+        // Docker doesn't allow dots in various places (like target names). Additionally, it would
+        // clutter the different names. The same applies for a trailing slash.
+        let image_name = parts[0]
+            .trim_start_matches("./")
+            .trim_end_matches('/')
+            .to_owned();
 
         match parts.len() {
             1 => Ok(Self::new_unversioned(image_name)),
             2 => {
+                // Ensure that the version part is not empty
+                ensure!(!parts[1].is_empty(), InvalidFormatSnafu);
+
                 let versions: Vec<_> = parts[1].split(',').map(ToOwned::to_owned).collect();
                 Ok(Self::new(image_name, versions))
             }
@@ -178,5 +196,39 @@ impl From<(String, ImageOptions)> for VersionOptionsPair {
             version: value.0,
             options: value.1,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case("my/image/in.a/folder/with/name=1.2.3-rc.1,4.5.6-rc.2", &["1.2.3-rc.1", "4.5.6-rc.2"])]
+    #[case("my/image/in.a/folder/with/name=1.2.3-rc.1", &["1.2.3-rc.1"])]
+    #[case("my.image.in.a.folder.with/name=1.2.3", &["1.2.3"])]
+    #[case("my/image/in.a/folder/with/name", &[])]
+    #[case("my.image.in.a.folder.with/name", &[])]
+    #[case("my/image/with/name=1.2.3", &["1.2.3"])]
+    #[case("my/image/with/name", &[])]
+    #[case("name=1.2.3", &["1.2.3"])]
+    #[case("name", &[])]
+    fn valid(#[case] input: &str, #[case] expected_versions: &[&str]) {
+        let Image { versions, .. } = Image::from_str(input).expect("must be a valid image");
+        assert_eq!(versions, expected_versions);
+    }
+
+    #[rstest]
+    #[case("double/equal/image=1.2.3=4.5.6", ParseImageError::InvalidFormat)]
+    #[case("~/image/folder/with/tilde", ParseImageError::UnsupportedChars)]
+    #[case("/absolute/image/folder", ParseImageError::AbsolutePath)]
+    #[case("empty/version/image=", ParseImageError::InvalidFormat)]
+    #[case("   ", ParseImageError::EmptyInput)]
+    #[case("", ParseImageError::EmptyInput)]
+    fn invalid(#[case] input: &str, #[case] expected_error: ParseImageError) {
+        let error = Image::from_str(input).expect_err("invalid image must not parse");
+        assert_eq!(error, expected_error);
     }
 }
