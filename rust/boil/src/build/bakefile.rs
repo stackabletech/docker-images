@@ -20,7 +20,7 @@ use crate::{
     VersionExt,
     build::{
         cli,
-        docker::{BuildArgument, BuildArguments, ParseBuildArgumentsError},
+        docker::{BuildArgument, BuildArguments, LABEL_BUILD_DATE, ParseBuildArgumentsError},
         image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
         platform::TargetPlatform,
     },
@@ -513,7 +513,7 @@ impl BakefileTarget {
         let labels = BTreeMap::from([
             (ANNOTATION_CREATED.to_owned(), date_time.clone()),
             (ANNOTATION_REVISION.to_owned(), revision),
-            ("build-date".to_owned(), date_time),
+            (LABEL_BUILD_DATE.to_owned(), date_time),
         ]);
 
         Self {

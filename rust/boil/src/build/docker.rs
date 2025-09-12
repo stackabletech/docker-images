@@ -9,6 +9,9 @@ use std::{
 use serde::{Deserialize, Serialize, de::Visitor, ser::SerializeMap};
 use snafu::{OptionExt, ResultExt, Snafu, ensure};
 
+/// Label key for the date and time on which the image was built.
+pub const LABEL_BUILD_DATE: &str = "build-date";
+
 #[derive(Debug, Snafu)]
 pub enum ParseBuildArgumentError {
     #[snafu(display("invalid format, expected <key>=<value>"))]
