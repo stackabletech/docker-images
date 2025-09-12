@@ -35,8 +35,6 @@ EOF
 
 FROM stackable/image/stackable-devel AS cert-tools
 
-RUN echo bye bye cache 2
-
 RUN <<EOF
 git clone --depth 1 --branch feat/truststore-merger https://github.com/stackabletech/secret-operator
 cd ./secret-operator
