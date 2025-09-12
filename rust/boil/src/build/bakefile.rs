@@ -105,6 +105,9 @@ impl IntoIterator for Targets {
 }
 
 impl Targets {
+    /// Returns a map of all targets by globbing for (nested) image config files.
+    ///
+    /// The search behaviour can be customized using the provided [`TargetsOptions`].
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
         let image_config_paths = glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)
             .expect("glob pattern must be valid")
@@ -130,6 +133,9 @@ impl Targets {
         Ok(targets)
     }
 
+    /// Returns a filtered set out of all targets by looking up selected image config files.
+    ///
+    /// The search behaviour can be customized using the provided [`TargetsOptions`].
     pub fn set(images: &[Image], options: TargetsOptions) -> Result<Self, TargetsError> {
         let mut targets = Self::default();
 

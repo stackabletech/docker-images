@@ -18,7 +18,16 @@ mod build;
 mod completions;
 mod show;
 
+/// This trait extends functionailty provided by [`snafu`].
+///
+/// [`snafu`] already provides various ways to extend [`Result`]s with additional context-sensitive
+/// information. This trait allows calling `if_context` on any type, which runs a predicate to
+/// determine if an error with the provided context should be returned.
+///
+/// This trait can be thought of as a combination of [`snafu::ensure!`] and returning [`Ok`]
+/// afterwards.
 pub trait IfContext: Sized {
+    /// Runs `predicate` and returns [`Ok`] if `true` or [`Err`] (with data from `context`) otherwise.
     fn if_context<P, C, E>(self, predicate: P, context: C) -> Result<Self, E>
     where
         P: Fn(&Self) -> bool,
@@ -50,7 +59,13 @@ pub trait VersionExt {
 
 impl VersionExt for Version {
     fn base(&self) -> String {
-        let Self {major, minor, patch, ..} = self;
+        let Self {
+            major,
+            minor,
+            patch,
+            ..
+        } = self;
+
         format!("{major}.{minor}.{patch}")
     }
 
