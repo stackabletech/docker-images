@@ -56,7 +56,7 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     let count = image_manifest_uris.len();
 
     // Write the image manifest URIs to file if requested
-    if let Some(path) = args.export_image_manifest_uris {
+    if let Some(path) = args.write_image_manifest_uris {
         std::fs::write(path, image_manifest_uris.join("\n"))
             .context(WriteImageManifestUrisFileSnafu)?;
     }

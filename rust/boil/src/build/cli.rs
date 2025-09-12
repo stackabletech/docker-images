@@ -94,13 +94,13 @@ pub struct BuildArguments {
         long,
         alias = "export-tags-file",
         help_heading = "Build Options",
-        value_name = "EXPORT_FILE",
+        value_name = "FILE",
         value_hint = ValueHint::FilePath,
         value_parser = value_parser!(PathBuf),
         default_missing_value = "boil-target-tags",
         num_args(0..=1)
     )]
-    pub export_image_manifest_uris: Option<PathBuf>,
+    pub write_image_manifest_uris: Option<PathBuf>,
 
     /// Strips the architecture from the image (index) manifest tag.
     #[arg(long, help_heading = "Build Options")]
