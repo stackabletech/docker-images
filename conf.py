@@ -36,6 +36,13 @@ opensearch_security_plugin = importlib.import_module(
 opensearch_prometheus_exporter = importlib.import_module(
     "opensearch.opensearch-prometheus-exporter.versions"
 )
+opensearch_dashboards = importlib.import_module("opensearch-dashboards.versions")
+opensearch_dashboards_opensearch_build = importlib.import_module(
+    "opensearch-dashboards.opensearch-build.versions"
+)
+opensearch_dashboards_security_dashboards_plugin = importlib.import_module(
+    "opensearch-dashboards.security-dashboards-plugin.versions"
+)
 spark_k8s = importlib.import_module("spark-k8s.versions")
 stackable_base = importlib.import_module("stackable-base.versions")
 stackable_devel = importlib.import_module("stackable-devel.versions")
@@ -81,6 +88,15 @@ products = [
     {
         "name": "opensearch/opensearch-prometheus-exporter",
         "versions": opensearch_prometheus_exporter.versions,
+    },
+    {"name": "opensearch-dashboards", "versions": opensearch_dashboards.versions},
+    {
+        "name": "opensearch-dashboards/opensearch-build",
+        "versions": opensearch_dashboards_opensearch_build.versions,
+    },
+    {
+        "name": "opensearch-dashboards/security-dashboards-plugin",
+        "versions": opensearch_dashboards_security_dashboards_plugin.versions,
     },
     {"name": "spark-k8s", "versions": spark_k8s.versions},
     {"name": "stackable-base", "versions": stackable_base.versions},
