@@ -103,6 +103,11 @@ pub struct ImageConfig {
 }
 
 impl ImageConfig {
+    /// This glob pattern matches all (deeply nested) image configs.
+    pub const ALL_CONFIGS_GLOB_PATTERN: &str = "**/boil-config.toml";
+    /// The default image config file name.
+    pub const DEFAULT_FILE_NAME: &str = "boil-config.toml";
+
     pub fn filter_by_version<V>(
         self,
         versions: &[V],

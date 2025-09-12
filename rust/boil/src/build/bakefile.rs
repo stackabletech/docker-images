@@ -28,8 +28,6 @@ use crate::{
     utils::{format_image_manifest_uri, format_image_repository_uri},
 };
 
-/// This glob pattern matches all (deeply nested) image configs.
-pub const ALL_CONFIGS_GLOB_PATTERN: &str = "**/boil-config.toml";
 pub const COMMON_TARGET_NAME: &str = "common--target";
 pub const ENTRY_TARGET_NAME_PREFIX: &str = "entry--";
 
@@ -108,7 +106,7 @@ impl IntoIterator for Targets {
 
 impl Targets {
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
-        let image_config_paths = glob(ALL_CONFIGS_GLOB_PATTERN)
+        let image_config_paths = glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)
             .expect("glob pattern must be valid")
             .filter_map(Result::ok);
 
@@ -139,7 +137,9 @@ impl Targets {
             // TODO (@Techassi): We should instead build the graph based on the Dockerfile(s),
             // because this is the source of truth and what ultimately gets built. The boil config
             // files are not a source a truth, but just provide data needed during the build.
-            let image_config_path = PathBuf::new().join(&image.name).join("boil-config.toml");
+            let image_config_path = PathBuf::new()
+                .join(&image.name)
+                .join(ImageConfig::DEFAULT_FILE_NAME);
 
             // Read the image config which defines supported image versions and their dependencies as
             // well as other values.
@@ -179,8 +179,9 @@ impl Targets {
                         continue;
                     }
 
-                    let image_config_path =
-                        PathBuf::new().join(image_name).join("boil-config.toml");
+                    let image_config_path = PathBuf::new()
+                        .join(image_name)
+                        .join(ImageConfig::DEFAULT_FILE_NAME);
 
                     let image_config =
                         ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
