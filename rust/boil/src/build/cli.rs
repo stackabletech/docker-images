@@ -120,6 +120,7 @@ impl BuildArguments {
         "0.0.0-dev".parse().expect("must be a valid SemVer")
     }
 
+    // TODO: Auto-detect this
     fn default_architecture() -> TargetPlatform {
         TargetPlatform::Linux(Architecture::Amd64)
     }

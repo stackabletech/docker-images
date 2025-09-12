@@ -50,7 +50,8 @@ pub trait VersionExt {
 
 impl VersionExt for Version {
     fn base(&self) -> String {
-        format!("{}.{}.{}", self.major, self.minor, self.patch)
+        let Self {major, minor, patch, ..} = self;
+        format!("{major}.{minor}.{patch}")
     }
 
     fn base_prerelease(&self) -> String {
