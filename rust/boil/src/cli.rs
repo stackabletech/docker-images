@@ -11,10 +11,6 @@ pub struct Cli {
     #[arg(short, long = "configuration", global = true, default_value_os_t = Self::default_config_path())]
     pub config_path: PathBuf,
 
-    /// Path to the OpenShift configuration file.
-    #[arg(long, default_value_os_t = Self::default_openshift_config_path())]
-    pub openshift_config_path: PathBuf,
-
     #[arg(short, long, default_value_os_t = Self::default_base_path())]
     pub base_path: PathBuf,
 
@@ -25,10 +21,6 @@ pub struct Cli {
 impl Cli {
     fn default_config_path() -> PathBuf {
         PathBuf::from("./boil.toml")
-    }
-
-    fn default_openshift_config_path() -> PathBuf {
-        PathBuf::from("./openshift.toml")
     }
 
     fn default_base_path() -> PathBuf {
