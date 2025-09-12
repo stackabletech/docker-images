@@ -324,7 +324,9 @@ impl Bakefile {
                     args.strip_architecture,
                 );
 
-                let dockerfile = PathBuf::new().join(&image_name).join("Dockerfile");
+                let dockerfile = PathBuf::new()
+                    .join(&image_name)
+                    .join(&args.target_containerfile);
 
                 let target_name = if is_entry {
                     Self::format_entry_target_name(&image_name, &image_version)
@@ -525,7 +527,6 @@ impl BakefileTarget {
     }
 
     fn image_version_annotation(image_version: &str, sdp_image_version: &Version) -> Vec<String> {
-        // Annotations describe OCI image components.
         vec![
             // TODO (@Techassi): Move this version formatting into a function
             // TODO (@Techassi): Make this vendor agnostic, don't hard-code stackable here
