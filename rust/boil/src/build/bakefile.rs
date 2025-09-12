@@ -28,6 +28,8 @@ use crate::{
     utils::{format_image_manifest_uri, format_image_repository_uri},
 };
 
+/// This glob pattern matches all (deeply nested) image configs.
+pub const ALL_CONFIGS_GLOB_PATTERN: &str = "**/boil-config.toml";
 pub const COMMON_TARGET_NAME: &str = "common--target";
 pub const ENTRY_TARGET_NAME_PREFIX: &str = "entry--";
 
@@ -106,7 +108,7 @@ impl IntoIterator for Targets {
 
 impl Targets {
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
-        let image_config_paths = glob("./**/boil-config.toml")
+        let image_config_paths = glob(ALL_CONFIGS_GLOB_PATTERN)
             .expect("glob pattern must be valid")
             .filter_map(Result::ok);
 
