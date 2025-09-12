@@ -60,3 +60,27 @@ repos:
         entry: .scripts/update_readme_badges.sh
         stages: [pre-commit, pre-merge-commit, manual]
         pass_filenames: false
+
+      - id: cargo-test
+        name: cargo-test
+        language: system
+        entry: cargo test
+        stages: [pre-commit, pre-merge-commit]
+        pass_filenames: false
+        files: \.rs$|Cargo\.(toml|lock)
+
+      - id: cargo-rustfmt
+        name: cargo-rustfmt
+        language: system
+        entry: cargo +nightly-2025-05-26 fmt --all -- --check
+        stages: [pre-commit, pre-merge-commit]
+        pass_filenames: false
+        files: \.rs$
+
+      - id: cargo-clippy
+        name: cargo-clippy
+        language: system
+        entry: cargo clippy --all-targets -- -D warnings
+        stages: [pre-commit, pre-merge-commit]
+        pass_filenames: false
+        files: \.rs$
