@@ -33,6 +33,17 @@ cd ./containerdebug
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
+FROM stackable/image/stackable-devel AS cert-tools
+
+RUN echo bye bye cache 2
+
+RUN <<EOF
+git clone --depth 1 --branch feat/truststore-merger https://github.com/stackabletech/secret-operator
+cd ./secret-operator
+. "$HOME/.cargo/env"
+cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+EOF
+
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
@@ -174,12 +185,20 @@ if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
 fi
 EOF
 
+# **config-utils**
+# Utility to replace values in a file with values from environment variables and files
 COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
 COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
 COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+
+# **cert-tools**
+# A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
+COPY --from=cert-tools --chown=${STACKABLE_USER_UID}:0 /secret-operator/target/release/cert-tools /stackable/cert-tools
+COPY --from=cert-tools --chown=${STACKABLE_USER_UID}:0 /secret-operator/rust/cert-tools/cert-tools_bin.cdx.xml /stackable/cert-tools_bin.cdx.xml
 
 # **check-permissions-ownership.sh**
 # Bash script to check proper permissions and ownership requirements in the final Stackable images
