@@ -37,6 +37,3 @@ pub struct Metadata {
     pub vendor: String,
     pub source: Url,
 }
-
-#[derive(Debug, Deserialize)]
-pub struct DockerConfig {}
