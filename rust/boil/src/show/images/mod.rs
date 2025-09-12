@@ -1,11 +1,10 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, io::IsTerminal};
 
-use serde::{Serialize, ser::SerializeSeq};
 use snafu::{ResultExt, Snafu};
 
 use crate::{
     build::bakefile::{Targets, TargetsError, TargetsOptions},
-    show::images::cli::ShowImagesArguments,
+    show::images::cli::{Pretty, ShowImagesArguments},
 };
 
 pub mod cli;
@@ -66,14 +65,14 @@ pub fn run_command(arguments: ShowImagesArguments) -> Result<(), Error> {
     print_to_stdout(list, arguments.pretty)
 }
 
-fn print_to_stdout(list: BTreeMap<String, Vec<String>>, pretty: bool) -> Result<(), Error> {
+fn print_to_stdout(list: BTreeMap<String, Vec<String>>, pretty: Pretty) -> Result<(), Error> {
     let stdout = std::io::stdout();
 
-    let list = OneOrMany(list);
-
-    if pretty {
-        serde_json::to_writer_pretty(stdout, &list).context(SerializeListSnafu)
-    } else {
-        serde_json::to_writer(stdout, &list).context(SerializeListSnafu)
+    match pretty {
+        Pretty::Always | Pretty::Auto if stdout.is_terminal() => {
+            serde_json::to_writer_pretty(stdout, &list)
+        }
+        _ => serde_json::to_writer(stdout, &list),
     }
+    .context(SerializeListSnafu)
 }
