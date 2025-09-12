@@ -13,5 +13,4 @@ pub struct ShowArguments {
 #[derive(Debug, Subcommand)]
 pub enum ShowCommand {
     Images(ShowImagesArguments),
-    Tree,
 }

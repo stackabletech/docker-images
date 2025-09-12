@@ -87,7 +87,6 @@ async fn main() -> Result<(), Error> {
             ShowCommand::Images(arguments) => {
                 show::images::run_command(arguments).context(ShowSnafu)
             }
-            ShowCommand::Tree => todo!(),
         },
         Command::Completions(arguments) => {
             completions::run_command(arguments);
