@@ -18,30 +18,6 @@ pub enum Error {
     BuildTargets { source: TargetsError },
 }
 
-// NOTE (@Techassi): I don't know if I like this... but this makes the stdout output very convient
-// to consume.
-struct OneOrMany(BTreeMap<String, Vec<String>>);
-
-impl Serialize for OneOrMany {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        if self.0.len() == 1 {
-            let mut seq = serializer.serialize_seq(Some(1))?;
-            for entry in &self.0 {
-                for version in entry.1 {
-                    seq.serialize_element(&version)?;
-                }
-            }
-
-            Ok(seq.end()?)
-        } else {
-            self.0.serialize(serializer)
-        }
-    }
-}
-
 /// This is the `boil show images` command handler function.
 pub fn run_command(arguments: ShowImagesArguments) -> Result<(), Error> {
     let list: BTreeMap<_, _> = if arguments.image.is_empty() {
