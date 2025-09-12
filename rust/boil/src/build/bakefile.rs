@@ -391,7 +391,7 @@ impl Bakefile {
         let image_name = image_name.replace('/', "__");
 
         // The dots in the semantic version also need to be replaced.
-        let image_version = image_version.to_string().replace('.', "_");
+        let image_version = image_version.replace('.', "_");
 
         format!("{image_name}-{image_version}")
     }

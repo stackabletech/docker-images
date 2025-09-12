@@ -7,7 +7,7 @@ use std::{
 };
 
 use serde::Deserialize;
-use snafu::{ResultExt as _, Snafu};
+use snafu::{ResultExt as _, Snafu, ensure};
 
 use crate::{IfContext, build::docker::BuildArguments};
 
@@ -15,6 +15,12 @@ use crate::{IfContext, build::docker::BuildArguments};
 pub enum ParseImageError {
     #[snafu(display("encountered invalid format, expected name[=version,...]"))]
     InvalidFormat,
+
+    #[snafu(display("the path contains unsupported characters: '.' or '~'"))]
+    UnsupportedChars,
+
+    #[snafu(display("absolute paths are not supported"))]
+    AbsolutePath,
 }
 
 #[derive(Clone, Debug)]
@@ -29,11 +35,16 @@ impl FromStr for Image {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<_> = s.split('=').collect();
 
+        ensure!(!parts[0].contains(['.', '~']), UnsupportedCharsSnafu);
+        ensure!(!parts[0].starts_with('/'), AbsolutePathSnafu);
+
+        let image_name = parts[0].trim_end_matches('/').to_owned();
+
         match parts.len() {
-            1 => Ok(Self::new_unversioned(parts[0].to_owned())),
+            1 => Ok(Self::new_unversioned(image_name)),
             2 => {
                 let versions: Vec<_> = parts[1].split(',').map(ToOwned::to_owned).collect();
-                Ok(Self::new(parts[0].to_owned(), versions))
+                Ok(Self::new(image_name, versions))
             }
             _ => InvalidFormatSnafu.fail(),
         }
