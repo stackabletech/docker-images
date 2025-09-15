@@ -7,38 +7,32 @@
 # Build time dependencies that are used in multiple images can be added to `stackable-devel` (or a derivative like `java-devel`) instead
 #
 
-FROM local-image/stackable-devel AS config-utils
+FROM local-image/stackable-devel AS rust-binaries
 
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
 # renovate: datasource=github-tags packageName=stackabletech/config-utils
 ENV CONFIG_UTILS_VERSION=0.2.0
-
-RUN <<EOF
-git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-cd ./config-utils
-. "$HOME/.cargo/env"
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-EOF
-
-FROM local-image/stackable-devel AS containerdebug
-
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug
 ENV CONTAINERDEBUG_VERSION=0.2.0
+# Find the latest version here: https://github.com/stackabletech/secret-operator/tags
+# I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
+# so I was unable to add a renovate hint.
+ENV CERT_TOOLS_VERSION=0.1.0
+
 
 RUN <<EOF
+. "$HOME/.cargo/env"
+
+cd /
+git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
 git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
-cd ./containerdebug
-. "$HOME/.cargo/env"
+git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
+cd /config-utils
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-EOF
-
-FROM stackable/image/stackable-devel AS cert-tools
-
-RUN <<EOF
-git clone --depth 1 --branch feat/truststore-merger https://github.com/stackabletech/secret-operator
-cd ./secret-operator
-. "$HOME/.cargo/env"
+cd /containerdebug
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cd /secret-operator
 cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
 
@@ -185,18 +179,18 @@ EOF
 
 # **config-utils**
 # Utility to replace values in a file with values from environment variables and files
-COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=config-utils --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
-COPY --from=containerdebug --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
-COPY --from=cert-tools --chown=${STACKABLE_USER_UID}:0 /secret-operator/target/release/cert-tools /stackable/cert-tools
-COPY --from=cert-tools --chown=${STACKABLE_USER_UID}:0 /secret-operator/rust/cert-tools/cert-tools_bin.cdx.xml /stackable/cert-tools_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /secret-operator/target/release/cert-tools /stackable/cert-tools
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /secret-operator/rust/cert-tools/cert-tools_bin.cdx.xml /stackable/cert-tools_bin.cdx.xml
 
 # **check-permissions-ownership.sh**
 # Bash script to check proper permissions and ownership requirements in the final Stackable images
