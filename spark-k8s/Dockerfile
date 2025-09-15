@@ -68,11 +68,11 @@ if [[ "${PRODUCT_VERSION}" == 4* ]]; then
     # Create this empty directory so that following COPY layers succeed.
     mkdir -p /stackable/spark/jars
     # Create a dummy tarball to satisfy the build process for Spark 3.
-    touch hbase-connector-${HBASE_CONNECTOR}-stackable${RELEASE}-src.tar.gz
+    touch hbase-connector-${HBASE_CONNECTOR_VERSION}-stackable${RELEASE}-src.tar.gz
     exit 0
 fi
 
-cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR})/spark"
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${HBASE_CONNECTOR_VERSION})/spark"
 
 NEW_VERSION="${HBASE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}"
 
