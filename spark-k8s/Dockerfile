@@ -301,7 +301,7 @@ EOF
 FROM local-image/java-base AS final
 
 ARG PRODUCT_VERSION
-ARG PYTHON
+ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG JMX_EXPORTER_VERSION
 ARG HBASE_CONNECTOR_VERSION
@@ -347,15 +347,15 @@ microdnf install --nodocs \
   gzip \
   hostname \
   procps \
-  "python${PYTHON}" \
-  "python${PYTHON}-pip" \
+  "python${PYTHON_VERSION}" \
+  "python${PYTHON_VERSION}-pip" \
   zip \
   "temurin-${JAVA_VERSION}-jdk"
 microdnf clean all
 rm -rf /var/cache/yum
 
-ln -s /usr/bin/python${PYTHON} /usr/bin/python
-ln -s /usr/bin/pip-${PYTHON} /usr/bin/pip
+ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
+ln -s /usr/bin/pip-${PYTHON_VERSION} /usr/bin/pip
 
 # Symlink example jar, so that we can easily use it in tests
 ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
