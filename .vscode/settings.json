@@ -1,0 +1,10 @@
+{
+  "rust-analyzer.rustfmt.overrideCommand": [
+    "rustfmt",
+    // Keep in sync with across other repos like operator-rs and operator-templating
+    "+nightly-2025-05-26",
+    "--edition",
+    "2024",
+    "--"
+  ],
+}

@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/opensearch-dashboards/security-dashboards-plugin AS security-dashboards-plugin
-FROM stackable/image/opensearch-dashboards/opensearch-build AS opensearch-build
-FROM stackable/image/stackable-devel AS opensearch-dashboards-builder
+FROM local-image/opensearch-dashboards/security-dashboards-plugin AS security-dashboards-plugin
+FROM local-image/opensearch-dashboards/opensearch-build AS opensearch-build
+FROM local-image/stackable-devel AS opensearch-dashboards-builder
 
 ARG PRODUCT
 ARG RELEASE
 ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN
-ARG NODEJS
-ARG YARN
+ARG NODEJS_VERSION
+ARG YARN_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -31,8 +31,8 @@ microdnf update
 microdnf install tar xz unzip
 microdnf clean all
 rm -rf /var/cache/yum
-curl "https://nodejs.org/dist/v${NODEJS}/node-v${NODEJS}-linux-${ARCH}.tar.xz" | tar -xJC /usr/local --strip-components=1
-npm install -g yarn@${YARN}
+curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xJC /usr/local --strip-components=1
+npm install -g yarn@${YARN_VERSION}
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -48,7 +48,6 @@ HUSKY=0 yarn osd bootstrap --single-version=loose
 yarn build-platform --release
 mkdir /stackable/opensearch-dashboards
 tar -xzf target/opensearch-dashboards-${PRODUCT}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
-# node scripts/build_opensearch_dashboards_platform_plugins --no-examples --workers 10
 cd plugins/security-dashboards-plugin
 yarn build
 unzip build/security-dashboards-${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN}.zip -d /stackable/security-dashboards-plugin
@@ -63,7 +62,7 @@ RUN <<EOF
 chmod -R g=u /stackable
 EOF
 
-FROM stackable/image/vector AS final
+FROM local-image/vector AS final
 
 ARG PRODUCT
 ARG RELEASE

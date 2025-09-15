@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/shard@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -44,7 +44,7 @@ jobs:
       matrix:
         runner:
           - {name: "ubuntu-latest", arch: "amd64"}
-          - {name: "ubicloud-standard-8-arm", arch: "arm64"}
+          - {name: "ubicloud-standard-8-arm-ubuntu-2404", arch: "arm64"}
         versions: ${{ fromJson(needs.generate_matrix.outputs.versions) }}
     steps:
       - name: Checkout Repository
@@ -53,25 +53,26 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/free-disk-space@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/build-product-image@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
+          registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/publish-image@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
           image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
 
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
@@ -90,7 +91,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/publish-image-index-manifest@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -102,10 +103,10 @@ jobs:
     name: Failure Notification
     needs: [generate_matrix, build, publish_manifests]
     runs-on: ubuntu-latest
-    if: failure() || github.run_attempt > 1
+    if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # v0.8.1
+        uses: stackabletech/actions/send-slack-notification@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}

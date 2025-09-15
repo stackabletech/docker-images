@@ -5,6 +5,8 @@ on:
   pull_request:
 
 env:
+  # Keep in sync with across other repos like operator-rs and operator-templating
+  RUST_TOOLCHAIN_VERSION: "nightly-2025-05-26"
   HADOLINT_VERSION: "v2.12.0"
   PYTHON_VERSION: "3.12"
 
@@ -16,7 +18,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+      - uses: stackabletech/actions/run-pre-commit@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          rust: ${{ env.RUST_TOOLCHAIN_VERSION }}
           hadolint: ${{ env.HADOLINT_VERSION }}
