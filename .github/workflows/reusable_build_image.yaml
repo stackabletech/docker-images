@@ -27,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/shard@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -53,25 +53,26 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/free-disk-space@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/build-product-image@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
         with:
+          registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/publish-image@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
           image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
 
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
@@ -90,7 +91,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-index-manifest@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
+        uses: stackabletech/actions/publish-image-index-manifest@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -105,7 +106,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # v0.8.1
+        uses: stackabletech/actions/send-slack-notification@c4e66c3fb2426b37799fdace4b968a03f9478e3c #v0.10.0
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
