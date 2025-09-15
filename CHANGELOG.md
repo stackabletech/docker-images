@@ -6,17 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207])
+- ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207]).
 - opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
 - opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
-- nifi: Backport NIFI-14848 to NiFi ([#1225])
+- nifi: Backport NIFI-14848 to NiFi ([#1225]).
 
 ### Changed
 
-- all: Use our build-repo to cache NPM dependencies ([#1219])
-- java: Use a more recent Maven version for all Java based products ([#1220])
+- all: Use our build-repo to cache NPM dependencies ([#1219]).
+- java: Use a more recent Maven version for all Java based products ([#1220]).
+- ubi9-rust-builder: Bump ubi9 base image ([#1253]).
+- stackable-base: Bump ubi9 base image ([#1253]).
+- stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 
 ### Removed
 
@@ -31,6 +34,7 @@ All notable changes to this project will be documented in this file.
 [#1225]: https://github.com/stackabletech/docker-images/pull/1225
 [#1228]: https://github.com/stackabletech/docker-images/pull/1228
 [#1230]: https://github.com/stackabletech/docker-images/pull/1230
+[#1253]: https://github.com/stackabletech/docker-images/pull/1253
 
 ## [25.7.0] - 2025-07-23
 
