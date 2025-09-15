@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/stackable-base
-ARG PRODUCT
+FROM local-image/stackable-base
+ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /statsd_exporter
@@ -26,18 +26,18 @@ export GOPATH=/go_cache
 # We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
 go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
 
-curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT}.src.tar.gz" | tar -xzC .
+curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT_VERSION}.src.tar.gz" | tar -xzC .
 (
-  cd "statsd_exporter-${PRODUCT}" || exit
+  cd "statsd_exporter-${PRODUCT_VERSION}" || exit
 
   # Unfortunately, we need to create a dummy Git repository to allow cyclonedx-gomod to determine the version of statsd_exporter
   git init
   git config user.email "fake.commiter@stackable.tech"
   git config user.name "Fake commiter"
   git commit --allow-empty --message "Fake commit, so that we can create a tag"
-  git tag "v${PRODUCT}"
+  git tag "v${PRODUCT_VERSION}"
   go build -o ../statsd_exporter
-  $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT}.cdx.json -packages -files
+  $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -output ../statsd_exporter-${PRODUCT_VERSION}.cdx.json -packages -files
 )
-rm -rf "statsd_exporter-${PRODUCT}"
+rm -rf "statsd_exporter-${PRODUCT_VERSION}"
 EOF

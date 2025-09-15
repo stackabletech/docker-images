@@ -102,7 +102,7 @@ jobs:
     name: Failure Notification
     needs: [generate_matrix, build, publish_manifests]
     runs-on: ubuntu-latest
-    if: failure() || github.run_attempt > 1
+    if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
         uses: stackabletech/actions/send-slack-notification@55d2f9fcbcd7884ac929ea65fd6f069e7b7a49d2 # v0.8.1

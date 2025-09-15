@@ -1,0 +1,26 @@
+[versions."30.0.1".local-images]
+# https://druid.apache.org/docs/30.0.1/operations/java/
+java-base = "17"
+java-devel = "17"
+"hadoop/hadoop" = "3.3.6"
+
+[versions."30.0.1".build-arguments]
+authorizer-version = "0.7.0"
+
+[versions."31.0.1".local-images]
+# https://druid.apache.org/docs/31.0.1/operations/java/
+java-base = "17"
+java-devel = "17"
+"hadoop/hadoop" = "3.3.6"
+
+[versions."31.0.1".build-arguments]
+authorizer-version = "0.7.0"
+
+[versions."33.0.0".local-images]
+# https://druid.apache.org/docs/33.0.0/operations/java/
+java-base = "17"
+java-devel = "17"
+"hadoop/hadoop" = "3.3.6"
+
+[versions."33.0.0".build-arguments]
+authorizer-version = "0.7.0"
