@@ -1,0 +1,2 @@
+[versions."0.28.0".local-images]
+stackable-base = "1.0.0"

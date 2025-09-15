@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM stackable/image/stackable-base
+FROM local-image/stackable-base
 
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG KUBECTL_VERSION
-ARG RELEASE
+ARG RELEASE_VERSION
 ARG JQ_VERSION
 ARG YQ_VERSION
 ARG TARGETARCH
@@ -14,8 +14,8 @@ ARG STACKABLE_USER_UID
 LABEL name="Stackable Tools" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
     summary="Stackable Tools for Kubernetes." \
     description="Stackable Tools for Kubernetes."
 
