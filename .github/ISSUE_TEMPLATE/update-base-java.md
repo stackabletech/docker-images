@@ -41,8 +41,8 @@ we should also make new versions of Java available for use.
 
 ## Update tasks
 
-- [ ] Add any new versions of java to both `java-base/versions.py` and `java-devel/versions.py`
-- [ ] Remove versions when there are no long any references (eg: `grep java- **/versions.py | grep "1.8.0"`)
+- [ ] Add any new versions of java to both `java-base/boil-config.toml` and `java-devel/boil-config.toml`
+- [ ] Remove versions when there are no long any references (eg: `grep java- **/boil-config.toml | grep "1.8.0"`)
 
 ## Related Pull Requests
 
@@ -55,18 +55,16 @@ we should also make new versions of Java available for use.
 > checked, the issue can be moved into _Development: Done_.
 
 - [ ] Can build a product image that uses the new version(s)
-- [ ] Both `java-base` and `java-devel` have the same Java versions in `versions.py`
+- [ ] Both `java-base` and `java-devel` have the same Java versions in `boil-config.toml`
 - [ ] Kuttl smoke test passes locally for a product using the new Java version
 
 <details>
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-# Test a product image can build, eg: ZooKeeper
-bake --product zookeeper=x.y.z # where x.y.z is a valid product version using the newly added Java version
+# Test a product image can build, eg: ZooKeeper where x.y.z is a valid product
+# version using the newly added Java version
+boil build zookeeper=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/zookeeper:x.y.z-stackable0.0.0-dev
 

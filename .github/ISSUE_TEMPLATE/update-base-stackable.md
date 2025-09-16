@@ -55,10 +55,8 @@ Part of <https://github.com/stackabletech/issues/issues/xxx>.
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product vector=x.y.z # where x.y.z is a valid version
+# Where x.y.z is a valid version
+boil build vector=x.y.z --strip-architecture --load
 ```
 
 </details>

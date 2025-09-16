@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `opa/upload_new_opa_version.sh`).
 - [ ] Update other dependencies if applicable (eg: opa_bundle_builder, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
@@ -61,10 +61,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product opa=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build opa=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/opa:x.y.z-stackable0.0.0-dev
 
