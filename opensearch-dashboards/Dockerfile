@@ -5,9 +5,9 @@ FROM local-image/opensearch-dashboards/security-dashboards-plugin AS security-da
 FROM local-image/opensearch-dashboards/opensearch-build AS opensearch-build
 FROM local-image/stackable-devel AS opensearch-dashboards-builder
 
-ARG PRODUCT
-ARG RELEASE
-ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION
 ARG NODEJS_VERSION
 ARG YARN_VERSION
 ARG STACKABLE_USER_UID
@@ -16,11 +16,11 @@ ARG TARGETARCH
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/stackable/patches/patchable.toml /stackable/src/opensearch-dashboards/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/stackable/patches/${PRODUCT} /stackable/src/opensearch-dashboards/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/stackable/patches/${PRODUCT_VERSION} /stackable/src/opensearch-dashboards/stackable/patches/${PRODUCT_VERSION}
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=security-dashboards-plugin \
-    /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN} \
+    /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/security-dashboards-plugin
 
 # tar, xz - extract nodejs bundle
@@ -39,18 +39,18 @@ USER ${STACKABLE_USER_UID}
 
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
-cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards ${PRODUCT})"
+cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards ${PRODUCT_VERSION})"
 cp -r /stackable/security-dashboards-plugin plugins/security-dashboards-plugin
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-dashboards-${NEW_VERSION}-src.tar.gz .
 HUSKY=0 yarn osd bootstrap --single-version=loose
 yarn build-platform --release
 mkdir /stackable/opensearch-dashboards
-tar -xzf target/opensearch-dashboards-${PRODUCT}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
+tar -xzf target/opensearch-dashboards-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
 cd plugins/security-dashboards-plugin
 yarn build
-unzip build/security-dashboards-${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN}.zip -d /stackable/security-dashboards-plugin
+unzip build/security-dashboards-${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION}.zip -d /stackable/security-dashboards-plugin
 mv /stackable/security-dashboards-plugin/opensearch-dashboards/securityDashboards /stackable/opensearch-dashboards/plugins/securityDashboards
 EOF
 
@@ -64,8 +64,8 @@ EOF
 
 FROM local-image/vector AS final
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG NODEJS
 ARG STACKABLE_USER_UID
 
@@ -78,14 +78,14 @@ LABEL \
   name="OpenSearch Dashboards" \
   maintainer="info@stackable.tech" \
   vendor="Stackable GmbH" \
-  version="${PRODUCT}" \
-  release="${RELEASE}" \
+  version="${PRODUCT_VERSION}" \
+  release="${RELEASE_VERSION}" \
   summary="The Stackable image for OpenSearch Dashboards." \
   description="This image is currently not deployed by a Stackable Operator."
 
 # # https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
-LABEL org.opencontainers.image.version="${PRODUCT}"
-LABEL org.opencontainers.image.revision="${RELEASE}"
+LABEL org.opencontainers.image.version="${PRODUCT_VERSION}"
+LABEL org.opencontainers.image.revision="${RELEASE_VERSION}"
 LABEL org.opencontainers.image.title="${NAME}"
 LABEL org.opencontainers.image.description="${DESCRIPTION}"
 
@@ -93,22 +93,22 @@ COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
     /stackable/opensearch-dashboards \
-    /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
-    /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}-src.tar.gz \
-    /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}-src.tar.gz
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz \
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-build \
     /stackable/opensearch-dashboards-docker-entrypoint.sh \
-    /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}/opensearch-dashboards-docker-entrypoint.sh
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/opensearch-dashboards-docker-entrypoint.sh
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-build \
     /stackable/opensearch_dashboards.yml \
-    /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}/config/opensearch_dashboards.yml
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/config/opensearch_dashboards.yml
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
@@ -125,11 +125,11 @@ RUN <<EOF
 # # All files and folders owned by root group to support running as arbitrary users.
 # # This is best practice as all container users will belong to the root group (0).
 chown ${STACKABLE_USER_UID}:0 ${HOME}
-chmod g=u /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}
-chmod g=u /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}/opensearch-dashboards-docker-entrypoint.sh
-chmod g=u /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE}/config/opensearch_dashboards.yml
+chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/opensearch-dashboards-docker-entrypoint.sh
+chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/config/opensearch_dashboards.yml
 chmod g=u /stackable/*-src.tar.gz
-ln -s /stackable/opensearch-dashboards-${PRODUCT}-stackable${RELEASE} ${OPENSEARCH_DASHBOARDS_HOME}
+ln -s /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} ${OPENSEARCH_DASHBOARDS_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_DASHBOARDS_HOME}
 
 # ----------------------------------------

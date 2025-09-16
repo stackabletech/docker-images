@@ -3,14 +3,14 @@
 
 FROM local-image/stackable-devel AS opensearch-securitydashboards-builder
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/security-dashboards-plugin/stackable/patches/patchable.toml /stackable/src/opensearch-dashboards/security-dashboards-plugin/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/security-dashboards-plugin/stackable/patches/${PRODUCT} /stackable/src/opensearch-dashboards/security-dashboards-plugin/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/security-dashboards-plugin/stackable/patches/${PRODUCT_VERSION} /stackable/src/opensearch-dashboards/security-dashboards-plugin/stackable/patches/${PRODUCT_VERSION}
 
 # tar - archive source code
 RUN <<EOF
@@ -23,8 +23,8 @@ EOF
 USER ${STACKABLE_USER_UID}
 
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards/security-dashboards-plugin ${PRODUCT})"
-NEW_VERSION="${PRODUCT}-stackable${RELEASE}"
+cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards/security-dashboards-plugin ${PRODUCT_VERSION})"
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-dashboards-security-dashboards-plugin${NEW_VERSION}-src.tar.gz .
 EOF
