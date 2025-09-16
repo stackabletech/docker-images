@@ -37,6 +37,12 @@ pub enum Error {
     #[snafu(display("failed to spawn child process"))]
     SpawnChildProcess { source: std::io::Error },
 
+    #[snafu(display(
+        "the docker child process failed with code {code}",
+        code = code.map_or("unknown".to_owned(), |c| c.to_string())
+    ))]
+    ChildProcessFailed { code: Option<i32> },
+
     #[snafu(display("encountered invalid image version, must not include any build metadata"))]
     InvalidImageVersion,
 }
@@ -99,14 +105,19 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     // Wait for successful completion of the child process
     let status = child.wait().context(RunChildProcessSnafu)?;
 
-    // TODO (@Techassi): Return an error if the status was not a success
-    if status.success() {
-        println!(
-            "Successfully built {count} image{plural}:\n{images}",
-            plural = if count > 1 { "s" } else { "" },
-            images = image_manifest_uris.join("\n")
-        );
-    }
+    // Return an error if the child process failed
+    ensure!(
+        status.success(),
+        ChildProcessFailedSnafu {
+            code: status.code()
+        }
+    );
+
+    println!(
+        "Successfully built {count} image{plural}:\n{images}",
+        plural = if count > 1 { "s" } else { "" },
+        images = image_manifest_uris.join("\n")
+    );
 
     Ok(())
 }
