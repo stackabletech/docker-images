@@ -1,6 +1,6 @@
 [versions."2.9.3".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."2.9.3".build-arguments]
 python-version = "3.9"
@@ -14,7 +14,7 @@ opa-auth-manager = "airflow-2"
 
 [versions."2.10.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."2.10.4".build-arguments]
 python-version = "3.12"
@@ -28,7 +28,7 @@ opa-auth-manager = "airflow-2"
 
 [versions."2.10.5".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."2.10.5".build-arguments]
 python-version = "3.12"
@@ -42,7 +42,7 @@ opa-auth-manager = "airflow-2"
 
 [versions."3.0.1".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."3.0.1".build-arguments]
 python-version = "3.12"
