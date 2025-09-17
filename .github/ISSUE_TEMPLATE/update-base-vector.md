@@ -36,7 +36,6 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update all `versions.py` files which reference vector.
 - [ ] Upload new version (see `vector/upload_new_vector_version.sh`).
-- [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
