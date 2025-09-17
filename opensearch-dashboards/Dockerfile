@@ -10,6 +10,7 @@ ARG RELEASE_VERSION
 ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION
 ARG NODEJS_VERSION
 ARG YARN_VERSION
+ARG CDXGEN_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -32,12 +33,7 @@ microdnf install tar xz unzip
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xJC /usr/local --strip-components=1
-echo "installing yarn"
-npm install -g yarn@${YARN_VERSION}
-echo "installing cdxgen"
-npm update
-npm show es-define-property versions
-npm install -g @cyclonedx/cdxgen@11.7.0
+npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -146,7 +142,7 @@ chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/opensearch-dashboards-docker-entrypoint.sh
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/config/opensearch_dashboards.yml
 chmod g=u /stackable/*-src.tar.gz
-chmod g=u /stackable/*-src.cdx.json
+chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} ${OPENSEARCH_DASHBOARDS_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_DASHBOARDS_HOME}
 
