@@ -32,7 +32,12 @@ microdnf install tar xz unzip
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xJC /usr/local --strip-components=1
+echo "installing yarn"
 npm install -g yarn@${YARN_VERSION}
+echo "installing cdxgen"
+npm update
+npm show es-define-property versions
+npm install -g @cyclonedx/cdxgen@11.7.0
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -48,8 +53,10 @@ HUSKY=0 yarn osd bootstrap --single-version=loose
 yarn build-platform --release
 mkdir /stackable/opensearch-dashboards
 tar -xzf target/opensearch-dashboards-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
+cdxgen -t yarn --json-pretty
 cd plugins/security-dashboards-plugin
 yarn build
+cdxgen -t yarn --json-pretty
 unzip build/security-dashboards-${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION}.zip -d /stackable/security-dashboards-plugin
 mv /stackable/security-dashboards-plugin/opensearch-dashboards/securityDashboards /stackable/opensearch-dashboards/plugins/securityDashboards
 EOF
@@ -112,6 +119,16 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
+    /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}/bom.json \
+    /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-dashboards-builder \
+    /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}/plugins/security-dashboards-plugin/bom.json \
+    /stackable/opensearch-dashboards-security-dashboards-plugin-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    --from=opensearch-dashboards-builder \
     /usr/local/bin/node \
     /usr/local/bin/node
 
@@ -129,6 +146,7 @@ chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/opensearch-dashboards-docker-entrypoint.sh
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/config/opensearch_dashboards.yml
 chmod g=u /stackable/*-src.tar.gz
+chmod g=u /stackable/*-src.cdx.json
 ln -s /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} ${OPENSEARCH_DASHBOARDS_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_DASHBOARDS_HOME}
 
