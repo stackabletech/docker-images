@@ -36,7 +36,6 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update all `boil-config.toml` files which reference vector.
 - [ ] Upload new version (see `vector/upload_new_vector_version.sh`).
-- [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
