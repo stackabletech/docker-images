@@ -22,7 +22,7 @@ ARG HADOOP_HADOOP_VERSION
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG HBASE_HBASE_VERSION
 # Reassign the arg to `HBASE_VERSION` for better readability.
-# It is passed as `HBASE_HBASE_VERSION`, because versions.py has to contain `hbase/hbase` to establish a dependency on the HBase builder.
+# It is passed as `HBASE_HBASE_VERSION`, because boil-config.toml has to contain `hbase/hbase` to establish a dependency on the HBase builder.
 # The value of `hbase/hbase` is transformed by `bake` and automatically passed as `HBASE_HBASE_VERSION` arg.
 ENV HBASE_VERSION=${HBASE_HBASE_VERSION}
 ARG STACKABLE_USER_UID

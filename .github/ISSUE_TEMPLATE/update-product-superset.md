@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Create a new constraints file (see `superset/README.md`).
 - [ ] Create a file: `superset/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
 - [ ] Delete old constraint files and patch directories.
@@ -64,10 +64,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product superset=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build superset=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/superset:x.y.z-stackable0.0.0-dev
 
