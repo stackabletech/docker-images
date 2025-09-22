@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Bump ubi9 base image ([#1253]).
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
+- vector: Bump to `0.49.0` ([#1258]).
 
 ### Removed
 
@@ -37,6 +38,7 @@ All notable changes to this project will be documented in this file.
 [#1230]: https://github.com/stackabletech/docker-images/pull/1230
 [#1247]: https://github.com/stackabletech/docker-images/pull/1247
 [#1253]: https://github.com/stackabletech/docker-images/pull/1253
+[#1258]: https://github.com/stackabletech/docker-images/pull/1258
 
 ## [25.7.0] - 2025-07-23
 

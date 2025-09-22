@@ -17,7 +17,8 @@ assignees: ''
 - [ ] Create a README.md file outlining special considerations required to
       update or run the product. See existing README files as a guide of
       reference.
-- [ ] Add a `versions.py` file to the folder. Add all required key-value pairs.
+- [ ] Add a `boil-config.toml` file to the folder. Add all required local image
+      dependencies and build arguments.
 - [ ] Add a new "Update Product" issue template in `.github/ISSUE_TEMPLATE/`
       folder. See existing ones as a guide of reference.
 - [ ] Add a new `build_<PRODUCT>.yml` GitHub Action workflow in the

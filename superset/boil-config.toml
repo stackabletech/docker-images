@@ -1,7 +1,7 @@
 [versions."4.0.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-base = "1.0.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."4.0.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
@@ -13,7 +13,7 @@ uv-version = "0.7.3"
 [versions."4.1.1".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-base = "1.0.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."4.1.1".build-arguments]
 cyclonedx-bom-version = "6.0.0"
@@ -26,7 +26,7 @@ uv-version = "0.7.3"
 [versions."4.1.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-base = "1.0.0"
-vector = "0.47.0"
+vector = "0.49.0"
 
 [versions."4.1.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
