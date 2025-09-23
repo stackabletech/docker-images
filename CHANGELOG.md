@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
-- kafka: Add jackson xml databind for Kafka 4.0.0 ([#1262]).
+- kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
 
 ### Changed
 
