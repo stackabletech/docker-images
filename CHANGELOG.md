@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
+- druid: Add `34.0.0` ([#1263]).
 
 ### Changed
 
@@ -23,10 +24,12 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - vector: Bump to `0.49.0` ([#1258]).
+- druid: Deprecate `33.0.0` ([#1263]).
 
 ### Removed
 
 - opensearch: stop applying formatting plugin ([#1230]).
+- druid: Remove `31.0.1` ([#1263]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -41,6 +44,7 @@ All notable changes to this project will be documented in this file.
 [#1253]: https://github.com/stackabletech/docker-images/pull/1253
 [#1258]: https://github.com/stackabletech/docker-images/pull/1258
 [#1262]: https://github.com/stackabletech/docker-images/pull/1262
+[#1263]: https://github.com/stackabletech/docker-images/pull/1263
 
 ## [25.7.0] - 2025-07-23
 
