@@ -33,7 +33,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Delete old patch directories.
 - [ ] If build does not compile with current `druid-opa-authorizer` version, release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer) with updated profiles.
 - [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
-- [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
