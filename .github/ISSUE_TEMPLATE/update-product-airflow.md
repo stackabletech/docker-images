@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Download new constraints file (see `airflow/download_constraints.sh`).
 - [ ] Update other dependencies if applicable (eg: python, statsd_exporter, cyclonedx-bom, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
@@ -62,10 +62,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product airflow=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build airflow=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/airflow:x.y.z-stackable0.0.0-dev
 

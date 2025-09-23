@@ -29,8 +29,8 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ### Trino
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, opa_authorizer, storage_connector, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Maybe update versions in `tests/templates/kuttl/opa-authorization/check-opa.py.j2` (if tests fail)
@@ -39,9 +39,9 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ### trino-cli
 
-- [ ] Update `trino-cli/versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `trino-cli/boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `trino-cli/upload_new_trino_version.sh` scripts).
-- [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 - [ ] Update versions used in the documentation repository
@@ -74,11 +74,9 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product trino=x.y.z # where x.y.z is the new version added in this PR
-bake --product trino-cli=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build trino=x.y.z --strip-architecture --load
+boil build trino-cli=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/trino:x.y.z-stackable0.0.0-dev
 kind load docker-image oci.stackable.tech/sdp/trino-cli:x.y.z-stackable0.0.0-dev

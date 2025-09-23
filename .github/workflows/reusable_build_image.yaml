@@ -111,3 +111,5 @@ jobs:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
           slack-token: ${{ secrets.slack-token }}
+          channel-id: C07UG6JH44F # notifications-container-images
+          type: container-image-build

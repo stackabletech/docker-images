@@ -28,12 +28,12 @@ Add/Change/Remove anything that isn't applicable anymore
 ## Update tasks
 
 - [ ] Release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer)
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
 - [ ] Upload new version (see `druid/upload_new_druid_version.sh`).
 - [ ] Create a file: `druid/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
 - [ ] Delete old patch directories.
-- [ ] Update `versions.py` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
@@ -67,10 +67,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product druid=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build druid=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/druid:x.y.z-stackable0.0.0-dev
 

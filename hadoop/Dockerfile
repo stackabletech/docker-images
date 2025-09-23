@@ -11,7 +11,7 @@ ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-# It is passed as `HADOOP_HADOOP_VERSION`, because versions.py has to contain `hadoop/hadoop` to establish a dependency on the Hadoop builder.
+# It is passed as `HADOOP_HADOOP_VERSION`, because boil-config.toml has to contain `hadoop/hadoop` to establish a dependency on the Hadoop builder.
 # The value of `hadoop/hadoop` is transformed by `bake` and automatically passed as `HADOOP_HADOOP_VERSION` arg.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 
