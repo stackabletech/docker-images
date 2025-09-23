@@ -4,7 +4,6 @@
 FROM local-image/stackable-devel AS opensearch-securitydashboards-builder
 
 ARG PRODUCT_VERSION
-ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
@@ -22,9 +21,4 @@ EOF
 
 USER ${STACKABLE_USER_UID}
 
-RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards/security-dashboards-plugin ${PRODUCT_VERSION})"
-NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
-# Create snapshot of the source code including custom patches
-tar -czf /stackable/opensearch-dashboards-security-dashboards-plugin${NEW_VERSION}-src.tar.gz .
-EOF
+RUN /stackable/patchable --images-repo-root=src checkout opensearch-dashboards/security-dashboards-plugin ${PRODUCT_VERSION}

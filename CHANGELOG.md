@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
 - opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
-- opensearch: Add an image for Opensearch Dashboards with version `3.1.0` ([#1248]).
+- opensearch-dashboards: Add an image for Opensearch Dashboards with version `3.1.0` ([#1248]).
 - nifi: Backport NIFI-14848 to NiFi ([#1225])
 
 ### Changed

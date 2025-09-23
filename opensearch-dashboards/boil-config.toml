@@ -6,6 +6,5 @@ stackable-devel = "1.0.0"
 
 [versions."3.1.0".build-arguments]
 nodejs-version = "20.18.3"
-nifi-opa-authorizer-plugin-version = "0.1.0"
 yarn-version = "1.22.19"
 cdxgen-version = "11.7.0"

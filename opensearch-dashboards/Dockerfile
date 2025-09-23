@@ -26,13 +26,15 @@ COPY \
 
 # tar, xz - extract nodejs bundle
 # unzip - extract plugin from archive
+# yarn - build Opensearch Dashboards
+# cdxgen - generate CycloneDX SBOM
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
 microdnf install tar xz unzip
 microdnf clean all
 rm -rf /var/cache/yum
-curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xJC /usr/local --strip-components=1
+curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xC /usr/local --xz --strip-components=1
 npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
 EOF
 
@@ -44,15 +46,17 @@ cd "$(/stackable/patchable --images-repo-root=src checkout opensearch-dashboards
 cp -r /stackable/security-dashboards-plugin plugins/security-dashboards-plugin
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/opensearch-dashboards-${NEW_VERSION}-src.tar.gz .
-HUSKY=0 yarn osd bootstrap --single-version=loose
+# Exclude cypress directory to prevent bloat in the final image
+tar -cz --exclude ./cypress -f /stackable/opensearch-dashboards-${NEW_VERSION}-src.tar.gz .
+yarn osd bootstrap
+# Running yarn build-platform without a platform flag will build the local architecture
 yarn build-platform --release
 mkdir /stackable/opensearch-dashboards
 tar -xzf target/opensearch-dashboards-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
-cdxgen -t yarn --json-pretty
+cdxgen --target yarn --json-pretty
 cd plugins/security-dashboards-plugin
 yarn build
-cdxgen -t yarn --json-pretty
+cdxgen --target yarn --json-pretty
 unzip build/security-dashboards-${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION}.zip -d /stackable/security-dashboards-plugin
 mv /stackable/security-dashboards-plugin/opensearch-dashboards/securityDashboards /stackable/opensearch-dashboards/plugins/securityDashboards
 EOF
@@ -69,7 +73,6 @@ FROM local-image/vector AS final
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
-ARG NODEJS
 ARG STACKABLE_USER_UID
 
 ARG NAME="OpenSearch Dashboards"
@@ -78,19 +81,24 @@ ARG HOME=/stackable
 ARG OPENSEARCH_DASHBOARDS_HOME=${HOME}/opensearch-dashboards
 
 LABEL \
-  name="OpenSearch Dashboards" \
+  name="${NAME}" \
   maintainer="info@stackable.tech" \
   vendor="Stackable GmbH" \
   version="${PRODUCT_VERSION}" \
   release="${RELEASE_VERSION}" \
   summary="The Stackable image for OpenSearch Dashboards." \
-  description="This image is currently not deployed by a Stackable Operator."
+  description="${DESCRIPTION}"
 
 # # https://github.com/opencontainers/image-spec/blob/036563a4a268d7c08b51a08f05a02a0fe74c7268/annotations.md#annotations
 LABEL org.opencontainers.image.version="${PRODUCT_VERSION}"
 LABEL org.opencontainers.image.revision="${RELEASE_VERSION}"
 LABEL org.opencontainers.image.title="${NAME}"
 LABEL org.opencontainers.image.description="${DESCRIPTION}"
+# https://docs.openshift.com/container-platform/4.16/openshift_images/create-images.html#defining-image-metadata
+# https://github.com/projectatomic/ContainerApplicationGenericLabels/blob/master/vendor/redhat/labels.md
+LABEL io.openshift.tags="ubi9,stackable,opensearch-dashboards,opensearch"
+LABEL io.k8s.description="${DESCRIPTION}"
+LABEL io.k8s.display-name="${NAME}"
 
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
@@ -141,8 +149,6 @@ chown ${STACKABLE_USER_UID}:0 ${HOME}
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/opensearch-dashboards-docker-entrypoint.sh
 chmod g=u /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/config/opensearch_dashboards.yml
-chmod g=u /stackable/*-src.tar.gz
-chmod g=u /stackable/*.cdx.json
 ln -s /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} ${OPENSEARCH_DASHBOARDS_HOME}
 chown -h ${STACKABLE_USER_UID}:0 ${OPENSEARCH_DASHBOARDS_HOME}
 
