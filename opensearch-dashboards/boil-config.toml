@@ -2,7 +2,7 @@
 stackable-devel = "1.0.0"
 "opensearch-dashboards/security-dashboards-plugin"= "3.1.0.0"
 "opensearch-dashboards/opensearch-build"= "3.1.0"
-"vector" = "0.47.0"
+"vector" = "0.49.0"
 
 [versions."3.1.0".build-arguments]
 nodejs-version = "20.18.3"
