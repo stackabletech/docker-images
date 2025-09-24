@@ -27,12 +27,12 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
+- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions (profile)
+- [ ] Release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer) with updated profiles.
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Initialize new product versions with patchable and add patches if applicable.
 - [ ] Delete old patch directories.
-- [ ] If build does not compile with current `druid-opa-authorizer` version, release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer) with updated profiles.
-- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions.
 - [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
