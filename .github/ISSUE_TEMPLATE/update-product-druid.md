@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions (profile)
+- [ ] Update the [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer/) with the new set of versions (profile).
 - [ ] Release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer) with updated profiles.
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
