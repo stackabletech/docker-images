@@ -1,26 +1,23 @@
-From 540182e6a1169103cb77ff37d963186f23204800 Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Mon, 17 Feb 2025 16:42:34 +0100
+From 8a1e8f9c4eaa419bb59825e645cbacd0b4ec7d34 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Tue, 23 Sep 2025 09:31:00 +0200
 Subject: Stop building unused extensions.
 
 By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused
 extensions from the build.
 ---
- pom.xml | 32 +-------------------------------
- 1 file changed, 1 insertion(+), 31 deletions(-)
+ pom.xml | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 807f9f11df..e9e19f7920 100644
+index 829ddbd9e7..369550e166 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -200,39 +200,9 @@
-         <module>extensions-core/google-extensions</module>
-         <module>extensions-core/druid-catalog</module>
+@@ -229,37 +229,8 @@
          <module>extensions-core/testing-tools</module>
-+
          <!-- Community extensions -->
--        <module>extensions-contrib/compressed-bigdecimal</module>
+         <module>extensions-contrib/compressed-bigdecimal</module>
 -        <module>extensions-contrib/influx-extensions</module>
 -        <module>extensions-contrib/cassandra-storage</module>
 -        <module>extensions-contrib/dropwizard-emitter</module>
@@ -33,7 +30,7 @@ index 807f9f11df..e9e19f7920 100644
 -        <module>extensions-contrib/thrift-extensions</module>
 -        <module>extensions-contrib/ambari-metrics-emitter</module>
 -        <module>extensions-contrib/sqlserver-metadata-storage</module>
--        <module>extensions-contrib/kafka-emitter</module>
+         <module>extensions-contrib/kafka-emitter</module>
 -        <module>extensions-contrib/redis-cache</module>
 -        <module>extensions-contrib/opentsdb-emitter</module>
 -        <module>extensions-contrib/materialized-view-maintenance</module>
@@ -47,11 +44,11 @@ index 807f9f11df..e9e19f7920 100644
 -        <module>extensions-contrib/aliyun-oss-extensions</module>
          <module>extensions-contrib/prometheus-emitter</module>
 -        <module>extensions-contrib/opentelemetry-emitter</module>
--        <module>extensions-contrib/kubernetes-overlord-extensions</module>
+-        <module>extensions-contrib/grpc-query</module>
 -        <module>extensions-contrib/druid-iceberg-extensions</module>
 -        <module>extensions-contrib/druid-deltalake-extensions</module>
 -        <module>extensions-contrib/spectator-histogram</module>
 -        <module>extensions-contrib/rabbit-stream-indexing-service</module>
- 
          <!-- distribution packaging -->
          <module>distribution</module>
+         <!-- Revised integration tests -->
