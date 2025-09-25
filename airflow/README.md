@@ -6,16 +6,13 @@ _The script is safe to run from outside of this directory. The file will be down
 script resides. This example will assume you are running from the repository root directory._
 
 ```sh
-# Use default Python version (specified in the script):
-./airflow/download_constraints.sh 2.8.3
-
-# Use a specific Python version:
-./airflow/download_constraints.sh 2.8.3 3.11
+# Specify Airflow and Python versions:
+./airflow/download_constraints.sh 3.0.6 3.12
 ```
 
 Example output:
 
 ```output
-Downloading constraints file for Airflow 2.8.3 (Python 3.9)
-Successfully pulled new constraints file: constraints-2.8.3-python39.txt
+Downloading constraints file for Airflow 3.0.6 (Python 3.12)
+Successfully pulled new constraints file: constraints-3.0.6-python3.12.txt
 ```
