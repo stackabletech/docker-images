@@ -1,6 +1,6 @@
-From bb1dd6ace9f6112532e5c4ad7158f0703b5baf9a Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Mon, 17 Feb 2025 16:42:49 +0100
+From 602c632042726fb4f71302d18144b540df8b42e9 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Tue, 23 Sep 2025 09:42:41 +0200
 Subject: Include jackson-dataformat-xml dependency.
 
 This allows us to use XmlLayout for Log4jV2.
@@ -12,12 +12,12 @@ build.
  1 file changed, 5 insertions(+)
 
 diff --git a/server/pom.xml b/server/pom.xml
-index 8f1bb2bd72..4c443f9ac4 100644
+index fbe2a2a480..f099199c01 100644
 --- a/server/pom.xml
 +++ b/server/pom.xml
-@@ -205,6 +205,11 @@
-             <groupId>org.apache.logging.log4j</groupId>
-             <artifactId>log4j-core</artifactId>
+@@ -218,6 +218,11 @@
+             <artifactId>checker-qual</artifactId>
+             <version>${checkerframework.version}</version>
          </dependency>
 +        <dependency>
 +          <!-- This is an optional dependency of log4j which is needed to use XmlLayout -->
