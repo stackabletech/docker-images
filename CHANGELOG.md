@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - vector: Bump to `0.49.0` ([#1258]).
+- airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - kafka: Replace `4.0.0` with `4.1.0` ([#1277]).
 
 ### Removed
@@ -42,6 +43,7 @@ All notable changes to this project will be documented in this file.
 [#1253]: https://github.com/stackabletech/docker-images/pull/1253
 [#1258]: https://github.com/stackabletech/docker-images/pull/1258
 [#1262]: https://github.com/stackabletech/docker-images/pull/1262
+[#1264]: https://github.com/stackabletech/docker-images/pull/1264
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 
 ## [25.7.0] - 2025-07-23
