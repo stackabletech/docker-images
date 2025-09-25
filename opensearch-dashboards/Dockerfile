@@ -24,17 +24,17 @@ COPY \
     /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/security-dashboards-plugin
 
-# tar, xz - extract nodejs bundle
+# tar - extract nodejs bundle
 # unzip - extract plugin from archive
 # yarn - build Opensearch Dashboards
 # cdxgen - generate CycloneDX SBOM
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar xz unzip
+microdnf install tar unzip
 microdnf clean all
 rm -rf /var/cache/yum
-curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | tar -xC /usr/local --xz --strip-components=1
+curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.gz" | tar -xzC /usr/local --strip-components=1
 npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
 EOF
 
@@ -135,6 +135,7 @@ COPY \
     --from=opensearch-dashboards-builder \
     /usr/local/bin/node \
     /usr/local/bin/node
+COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/licenses /licenses
 
 RUN <<EOF
 microdnf update
