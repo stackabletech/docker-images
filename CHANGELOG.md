@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
+- kafka: Add version `4.1.0` ([#1277]).
 
 ### Changed
 
@@ -24,11 +25,11 @@ All notable changes to this project will be documented in this file.
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - vector: Bump to `0.49.0` ([#1258]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
-- kafka: Replace `4.0.0` with `4.1.0` ([#1277]).
 
 ### Removed
 
-- opensearch: stop applying formatting plugin ([#1230]).
+- opensearch: Stop applying formatting plugin ([#1230]).
+- kafka: Remove version `4.0.0` ([#1277]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
