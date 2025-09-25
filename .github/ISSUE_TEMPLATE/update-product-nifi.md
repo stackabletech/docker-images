@@ -11,7 +11,7 @@ projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of <https://github.com/stackabletech/issues/issues/xxx>.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
