@@ -16,7 +16,7 @@ Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.
-> Follow these rules when creating the tracking for individual images:
+> Follow these rules when creating the tracking issues for individual images:
 >
 > - Major/minor changes:
 >   - Removal and deprecation of entire major or minor version branches
