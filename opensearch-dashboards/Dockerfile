@@ -34,7 +34,7 @@ microdnf update
 microdnf install tar unzip
 microdnf clean all
 rm -rf /var/cache/yum
-curl "https://nodejs.org/dist/v${NODEJS_VERSION}/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.gz" | tar -xzC /usr/local --strip-components=1
+curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.gz" | tar -xzC /usr/local --strip-components=1
 npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
 EOF
 
