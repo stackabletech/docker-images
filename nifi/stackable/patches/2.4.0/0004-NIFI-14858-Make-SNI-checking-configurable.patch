@@ -1,6 +1,6 @@
-From d91597ab5d3410cb3955b1bad5a750a3b99f7126 Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Wed, 13 Aug 2025 14:16:55 +0200
+From ba6e0992aa74ab3f991b6214750d3204b859647c Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Wed, 24 Sep 2025 17:12:15 +0200
 Subject: NIFI-14858: Make SNI checking configurable
 
 Introduces two new properties:
@@ -64,7 +64,7 @@ index 26d09706a1..132973cad5 100644
          }
  
 diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-index cd3cd0b27e..0e07d5a141 100644
+index cd3cd0b27e..4bd2f4f810 100644
 --- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 +++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 @@ -206,6 +206,8 @@ public class NiFiProperties extends ApplicationProperties {
@@ -81,7 +81,7 @@ index cd3cd0b27e..0e07d5a141 100644
      }
  
 +    public boolean isWebHttpsSniRequired() {
-+        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_REQUIRED, "true"));
++        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_REQUIRED, "false"));
 +    }
 +
 +    public boolean isWebHttpsSniHostCheck() {
