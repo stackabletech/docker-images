@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
+- kafka: Add version `4.1.0` ([#1277]).
 
 ### Changed
 
@@ -27,7 +28,8 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- opensearch: stop applying formatting plugin ([#1230]).
+- opensearch: Stop applying formatting plugin ([#1230]).
+- kafka: Remove version `4.0.0` ([#1277]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -43,6 +45,7 @@ All notable changes to this project will be documented in this file.
 [#1258]: https://github.com/stackabletech/docker-images/pull/1258
 [#1262]: https://github.com/stackabletech/docker-images/pull/1262
 [#1264]: https://github.com/stackabletech/docker-images/pull/1264
+[#1277]: https://github.com/stackabletech/docker-images/pull/1277
 
 ## [25.7.0] - 2025-07-23
 
