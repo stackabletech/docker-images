@@ -1,6 +1,6 @@
-From 5adf2efcf9f91e66aea16cbbf49e0a9c059b2be9 Mon Sep 17 00:00:00 2001
-From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
-Date: Thu, 15 May 2025 18:15:16 +0200
+From 670402877c002de8df0e3a8d67b735c326174cca Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Thu, 25 Sep 2025 10:47:57 +0200
 Subject: Add CycloneDX plugin
 
 ---
@@ -8,12 +8,12 @@ Subject: Add CycloneDX plugin
  1 file changed, 41 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 388a85aa85..fb0015e49a 100644
+index 97250637b7..732c6c2a18 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -45,6 +45,47 @@ plugins {
-   // artifacts - see https://github.com/johnrengelman/shadow/issues/901
-   id 'com.github.johnrengelman.shadow' version '8.1.0' apply false
+@@ -41,6 +41,47 @@ plugins {
+   id 'org.scoverage' version '8.0.3' apply false
+   id 'com.gradleup.shadow' version '8.3.6' apply false
    id 'com.diffplug.spotless' version "6.25.0"
 +  id 'org.cyclonedx.bom' version '1.10.0'
 +}
