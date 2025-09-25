@@ -796,7 +796,13 @@ urllib3==2.5.0
 userpath==1.9.2
 uuid6==2025.0.1
 uv==0.8.13
-uvicorn==0.35.0
+# Stackable patch:
+# The original version 0.35.0 hard codes the worker timeout to 5s.
+# This has been fixed in 0.37.0 so that the value passed through from Airflow
+# (default 120s) is honoured.
+# See discussion here: https://github.com/apache/airflow/discussions/50170#discussioncomment-13265000.
+# Uvicorn release notes: https://github.com/Kludex/uvicorn/commit/4098bcac97aa0fbda2f4e73278fbbe3b128be940
+uvicorn==0.37.0
 uvloop==0.21.0
 validators==0.35.0
 vertica-python==1.4.0
