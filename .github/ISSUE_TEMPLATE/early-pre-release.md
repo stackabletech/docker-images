@@ -16,11 +16,21 @@ Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.
+> Follow these rules when creating the tracking for individual images:
+>
+> - Major/minor changes:
+>   - Removal and deprecation of entire major or minor version branches
+>   - Adding a new major/minor version (optionally marking it as LTS)
+> - Patch-level changes:
+>   - Removal and deprecation if individual patch-level versions
+>   - Marking a (new) patch-level version as LTS
+>   - Adding a new patch-level version
 
 [^1]: Currently this is a private spreadsheet
 
 > [!IMPORTANT]
 > Replace the items in the task lists below with the subsequent tracking issue.
+> Remove this and the above admonitions afterwards to de-clutter the tracking issue.
 
 ## Product Container Images
 
