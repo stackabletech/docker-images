@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- opensearch: stop applying formatting plugin ([#1230]).
+- opensearch: Stop applying formatting plugin ([#1230]).
 - kafka: Remove version `4.0.0` ([#1277]).
 - druid: Remove `31.0.1` ([#1263]).
 
