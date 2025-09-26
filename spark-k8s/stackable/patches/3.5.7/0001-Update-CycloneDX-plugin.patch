@@ -1,4 +1,4 @@
-From 37ad7dcbb2a77267bbddafc4f3b3d99fddda0b28 Mon Sep 17 00:00:00 2001
+From 5e3c5568d4bf0fdd4feb19e559d606a55a0d2569 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Tue, 11 Mar 2025 17:29:39 +0200
 Subject: Update CycloneDX plugin
@@ -21,7 +21,7 @@ index ef7c010e93..0f4c1c74e4 100755
  
  # Actually build the jar
 diff --git a/pom.xml b/pom.xml
-index 9b009c3a42..483dceb8ea 100644
+index a0e25ce4d8..b3755a04e7 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3534,7 +3534,12 @@
