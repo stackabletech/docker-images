@@ -1,6 +1,6 @@
-From 484bd7f13890823fdfdcbec5bd21b046ac885015 Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Mon, 17 Feb 2025 16:42:34 +0100
+From c836d04ca08c6f341817096dcca7d8231c25ed66 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Mon, 22 Sep 2025 14:23:11 +0200
 Subject: Include Prometheus emitter in distribution
 
 ---
@@ -8,10 +8,10 @@ Subject: Include Prometheus emitter in distribution
  1 file changed, 46 insertions(+)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index 1a4f7df716..a28e34bb6a 100644
+index 7c2573fbd4..21954e8fb4 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -464,6 +464,52 @@
+@@ -468,6 +468,52 @@
                  </plugins>
              </build>
          </profile>
