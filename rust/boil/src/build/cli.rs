@@ -188,14 +188,14 @@ impl FromStr for HostPort {
 
         let parts: Vec<_> = input.split(':').collect();
 
-        match parts.len() {
-            1 => {
-                let host = Host::parse(parts[0]).context(InvalidHostSnafu)?;
+        match parts[..] {
+            [host] => {
+                let host = Host::parse(host).context(InvalidHostSnafu)?;
                 Ok(Self { host, port: None })
             }
-            2 => {
-                let host = Host::parse(parts[0]).context(InvalidHostSnafu)?;
-                let port = u16::from_str(parts[1]).context(InvalidPortSnafu)?;
+            [host, port] => {
+                let host = Host::parse(host).context(InvalidHostSnafu)?;
+                let port = u16::from_str(port).context(InvalidPortSnafu)?;
 
                 Ok(Self {
                     host,
@@ -238,7 +238,7 @@ mod tests {
 
     #[rstest]
     // We use None here, because ParseIntErrors cannot be constructed outside of std. As such, it is
-    // impossoble to fully qualify the error we expect in cases where port parsing fails.
+    // impossible to fully qualify the error we expect in cases where port parsing fails.
     #[case("localhost:65536", None)]
     #[case("localhost:", None)]
     #[case("with space:", Some(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
