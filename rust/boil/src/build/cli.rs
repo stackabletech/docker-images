@@ -1,8 +1,13 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{
+    fmt::{Debug, Display},
+    path::PathBuf,
+    str::FromStr,
+};
 
 use clap::{Args, ValueHint, value_parser};
 use semver::Version;
 use snafu::{ResultExt, Snafu, ensure};
+use strum::EnumDiscriminants;
 use url::Host;
 
 use crate::build::{
@@ -39,14 +44,14 @@ pub struct BuildArguments {
     pub target_platform: TargetPlatform,
 
     /// Image registry used in image manifests, URIs, and tags.
+    /// The format is host[:port].
     #[arg(
         short, long,
-        default_value_t = Self::default_registry(),
-        value_parser = Host::parse,
+        default_value_t = HostPort::localhost(),
         value_hint = ValueHint::Hostname,
         help_heading = "Registry Options"
     )]
-    pub registry: Host,
+    pub registry: HostPort,
 
     /// The namespace within the given registry.
     #[arg(
@@ -125,10 +130,6 @@ impl BuildArguments {
         TargetPlatform::Linux(Architecture::Amd64)
     }
 
-    fn default_registry() -> Host {
-        Host::Domain(String::from("oci.stackable.tech"))
-    }
-
     fn default_target_containerfile() -> PathBuf {
         PathBuf::from("Dockerfile")
     }
@@ -148,4 +149,130 @@ pub fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionErro
     ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
 
     Ok(version)
+}
+
+#[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]
+pub enum ParseHostPortError {
+    #[snafu(display("unexpected empty input"))]
+    EmptyInput,
+
+    #[snafu(display("invalid format, expected host[:port]"))]
+    InvalidFormat,
+
+    #[snafu(display("failed to parse host"))]
+    InvalidHost { source: url::ParseError },
+
+    #[snafu(display("failed to parse port"))]
+    InvalidPort { source: std::num::ParseIntError },
+}
+
+#[derive(Clone, Debug)]
+pub struct HostPort {
+    pub host: Host,
+    pub port: Option<u16>,
+}
+
+impl Display for HostPort {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.port {
+            Some(port) => write!(f, "{host}:{port}", host = self.host),
+            None => Display::fmt(&self.host, f),
+        }
+    }
+}
+
+impl FromStr for HostPort {
+    type Err = ParseHostPortError;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        ensure!(!input.is_empty(), EmptyInputSnafu);
+
+        let parts: Vec<_> = input.split(':').collect();
+
+        match parts[..] {
+            [host] => {
+                let host = Host::parse(host).context(InvalidHostSnafu)?;
+                Ok(Self { host, port: None })
+            }
+            [host, port] => {
+                let host = Host::parse(host).context(InvalidHostSnafu)?;
+                let port = u16::from_str(port).context(InvalidPortSnafu)?;
+
+                Ok(Self {
+                    host,
+                    port: Some(port),
+                })
+            }
+            _ => InvalidFormatSnafu.fail(),
+        }
+    }
+}
+
+impl HostPort {
+    pub fn localhost() -> Self {
+        HostPort {
+            host: Host::Domain(String::from("localhost")),
+            port: None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+    use strum::IntoDiscriminant;
+    use url::ParseError;
+
+    use super::*;
+
+    enum Either<L, R> {
+        Left(L),
+        Right(R),
+    }
+
+    impl<L, R> Either<L, R>
+    where
+        L: PartialEq,
+        R: PartialEq,
+    {
+        fn is_either(&self, left: &L, right: &R) -> bool {
+            match self {
+                Either::Left(l) => l.eq(left),
+                Either::Right(r) => r.eq(right),
+            }
+        }
+    }
+
+    #[rstest]
+    #[case("registry.example.org:65535")]
+    #[case("registry.example.org:8080")]
+    #[case("registry.example.org")]
+    #[case("example.org:8080")]
+    #[case("localhost:8080")]
+    #[case("example.org")]
+    #[case("localhost")]
+    fn valid_host_port(#[case] input: &str) {
+        let host_port = HostPort::from_str(input).expect("must parse");
+        assert_eq!(host_port.to_string(), input);
+    }
+
+    #[rustfmt::skip]
+    #[rstest]
+    // We use the discriminants here, because ParseIntErrors cannot be constructed outside of std.
+    // As such, it is impossible to fully qualify the error we expect in cases where port parsing
+    // fails.
+    #[case("localhost:65536", Either::Right(ParseHostPortErrorDiscriminants::InvalidPort))]
+    #[case("localhost:", Either::Right(ParseHostPortErrorDiscriminants::InvalidPort))]
+    // Other errors can be fully qualified.
+    #[case("with space:", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
+    #[case("with space", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
+    #[case(":", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::EmptyHost }))]
+    #[case("", Either::Left(ParseHostPortError::EmptyInput))]
+    fn invalid_host_port(
+        #[case] input: &str,
+        #[case] expected_error: Either<ParseHostPortError, ParseHostPortErrorDiscriminants>,
+    ) {
+        let error = HostPort::from_str(input).expect_err("must not parse");
+        assert!(expected_error.is_either(&error, &error.discriminant()));
+    }
 }

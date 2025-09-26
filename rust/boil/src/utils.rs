@@ -1,13 +1,12 @@
 use std::process::Command;
 
 use semver::Version;
-use url::Host;
 
-use crate::build::platform::Architecture;
+use crate::build::{cli::HostPort, platform::Architecture};
 
 /// Formats and returns the image repository URI, eg. `oci.stackable.tech/sdp/opa`.
 pub fn format_image_repository_uri(
-    image_registry: &Host,
+    image_registry: &HostPort,
     registry_namespace: &str,
     image_name: &str,
 ) -> String {
