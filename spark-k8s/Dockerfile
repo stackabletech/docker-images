@@ -197,10 +197,8 @@ RUN <<EOF
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
 
-
-# As of version 3.5.5, spark-connect jars are not included in the dist folder.
 # To avoid classpath conflicts with existing spark applications,
-# we create a new dist/connect folder, and copy them here.
+# we create a new dist/connect folder, and copy spark connect jars here.
 RUN <<EOF
 
     SCALA_BINARY_VERSION=$(grep "scala.binary.version" pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
