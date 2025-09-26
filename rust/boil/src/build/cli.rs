@@ -7,6 +7,7 @@ use std::{
 use clap::{Args, ValueHint, value_parser};
 use semver::Version;
 use snafu::{ResultExt, Snafu, ensure};
+use strum::EnumDiscriminants;
 use url::Host;
 
 use crate::build::{
@@ -150,7 +151,7 @@ pub fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionErro
     Ok(version)
 }
 
-#[derive(Debug, PartialEq, Snafu)]
+#[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]
 pub enum ParseHostPortError {
     #[snafu(display("unexpected empty input"))]
     EmptyInput,
@@ -219,9 +220,28 @@ impl HostPort {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use strum::IntoDiscriminant;
     use url::ParseError;
 
     use super::*;
+
+    enum Either<L, R> {
+        Left(L),
+        Right(R),
+    }
+
+    impl<L, R> Either<L, R>
+    where
+        L: PartialEq,
+        R: PartialEq,
+    {
+        fn is_either(&self, left: &L, right: &R) -> bool {
+            match self {
+                Either::Left(l) => l.eq(left),
+                Either::Right(r) => r.eq(right),
+            }
+        }
+    }
 
     #[rstest]
     #[case("registry.example.org:65535")]
@@ -236,19 +256,23 @@ mod tests {
         assert_eq!(host_port.to_string(), input);
     }
 
+    #[rustfmt::skip]
     #[rstest]
-    // We use None here, because ParseIntErrors cannot be constructed outside of std. As such, it is
-    // impossible to fully qualify the error we expect in cases where port parsing fails.
-    #[case("localhost:65536", None)]
-    #[case("localhost:", None)]
-    #[case("with space:", Some(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
-    #[case("with space", Some(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
-    #[case(":", Some(ParseHostPortError::InvalidHost { source: ParseError::EmptyHost }))]
-    #[case("", Some(ParseHostPortError::EmptyInput))]
-    fn invalid_host_port(#[case] input: &str, #[case] expected_error: Option<ParseHostPortError>) {
+    // We use the discriminants here, because ParseIntErrors cannot be constructed outside of std.
+    // As such, it is impossible to fully qualify the error we expect in cases where port parsing
+    // fails.
+    #[case("localhost:65536", Either::Right(ParseHostPortErrorDiscriminants::InvalidPort))]
+    #[case("localhost:", Either::Right(ParseHostPortErrorDiscriminants::InvalidPort))]
+    // Other errors can be fully qualified.
+    #[case("with space:", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
+    #[case("with space", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::IdnaError }))]
+    #[case(":", Either::Left(ParseHostPortError::InvalidHost { source: ParseError::EmptyHost }))]
+    #[case("", Either::Left(ParseHostPortError::EmptyInput))]
+    fn invalid_host_port(
+        #[case] input: &str,
+        #[case] expected_error: Either<ParseHostPortError, ParseHostPortErrorDiscriminants>,
+    ) {
         let error = HostPort::from_str(input).expect_err("must not parse");
-        if let Some(expected_error) = expected_error {
-            assert_eq!(error, expected_error)
-        }
+        assert!(expected_error.is_either(&error, &error.discriminant()));
     }
 }
