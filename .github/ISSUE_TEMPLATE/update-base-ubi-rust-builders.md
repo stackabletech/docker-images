@@ -17,7 +17,7 @@ developers need newer versions , which could be multiple times in a release.
 If there are no bumps in a release, we can still rely on SecObserve and Renovate
 to alert us to security vulnerabilities.
 -->
-Part of <https://github.com/stackabletech/issues/issues/xxx>.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.

@@ -11,7 +11,7 @@ projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of <https://github.com/stackabletech/issues/issues/xxx>.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 > [!TIP]
 > Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.

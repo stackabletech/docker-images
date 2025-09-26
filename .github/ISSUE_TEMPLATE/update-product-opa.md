@@ -11,7 +11,7 @@ projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of <https://github.com/stackabletech/issues/issues/xxx>.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -28,8 +28,8 @@ Add/Change/Remove anything that isn't applicable anymore
 ## Update tasks
 
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Upload new version (see `opa/upload_new_opa_version.sh`).
-- [ ] Update other dependencies if applicable (eg: opa_bundle_builder, etc).
+- [ ] Update other dependencies if applicable (eg: golang-version, etc).
+- [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 

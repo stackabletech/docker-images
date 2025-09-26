@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `34.0.0` ([#1263]).
 - kafka: Add version `4.1.0` ([#1277]).
 - airflow: Add version `3.0.6` ([#1278]).
+- opa: Add `1.8.0` ([#1279]).
 
 ### Changed
 
@@ -28,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.49.0` ([#1258]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - druid: Deprecate `33.0.0` ([#1263]).
+- opa: Deprecate `1.4.2` ([#1279]).
 
 ### Removed
 
@@ -35,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `31.0.1` ([#1263]).
 - kafka: Remove version `4.0.0` ([#1277]).
 - airflow: Remove version `2.10.4` ([#1278]).
+- opa: Remove `1.0.1` ([#1279]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -53,6 +56,7 @@ All notable changes to this project will be documented in this file.
 [#1264]: https://github.com/stackabletech/docker-images/pull/1264
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
+[#1279]: https://github.com/stackabletech/docker-images/pull/1279
 
 ## [25.7.0] - 2025-07-23
 
