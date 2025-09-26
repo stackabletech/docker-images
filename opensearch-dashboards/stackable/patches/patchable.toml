@@ -1,0 +1,2 @@
+upstream = "https://github.com/opensearch-project/opensearch-dashboards"
+default-mirror = "https://github.com/stackabletech/opensearch-dashboards"

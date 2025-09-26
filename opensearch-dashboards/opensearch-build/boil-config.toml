@@ -1,0 +1,2 @@
+[versions."3.1.0".local-images]
+stackable-devel = "1.0.0"
