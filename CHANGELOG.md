@@ -14,8 +14,9 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
-- kafka: Add version `4.1.0` ([#1277]).
 - druid: Add `34.0.0` ([#1263]).
+- kafka: Add version `4.1.0` ([#1277]).
+- airflow: Add version `3.0.6` ([#1278]).
 - opa: Add `1.8.0` ([#1279]).
 
 ### Changed
@@ -33,8 +34,9 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - opensearch: Stop applying formatting plugin ([#1230]).
-- kafka: Remove version `4.0.0` ([#1277]).
 - druid: Remove `31.0.1` ([#1263]).
+- kafka: Remove version `4.0.0` ([#1277]).
+- airflow: Remove version `2.10.4` ([#1278]).
 - opa: Remove `1.0.1` ([#1279]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
@@ -50,9 +52,10 @@ All notable changes to this project will be documented in this file.
 [#1253]: https://github.com/stackabletech/docker-images/pull/1253
 [#1258]: https://github.com/stackabletech/docker-images/pull/1258
 [#1262]: https://github.com/stackabletech/docker-images/pull/1262
+[#1263]: https://github.com/stackabletech/docker-images/pull/1263
 [#1264]: https://github.com/stackabletech/docker-images/pull/1264
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
-[#1263]: https://github.com/stackabletech/docker-images/pull/1263
+[#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
 
 ## [25.7.0] - 2025-07-23
