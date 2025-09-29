@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - druid: Deprecate `33.0.0` ([#1263]).
 - opa: Deprecate `1.4.2` ([#1279]).
+- trino-cli: Bump to 477 ([#xxxx]).
 
 ### Removed
 
