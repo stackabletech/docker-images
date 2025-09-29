@@ -6,3 +6,6 @@ java-devel = "23"
 
 [versions."476".local-images]
 java-devel = "24"
+
+[versions."477".local-images]
+java-devel = "24"

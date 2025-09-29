@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.8.0` ([#1279]).
 - spark: Add `3.5.7` ([#1280]).
 - spark-connect-client: Add `3.5.7` ([#1280]).
+- trino/trino-storage-connector: Add `477` ([#xxxx]).
 
 ### Changed
 
@@ -63,6 +64,7 @@ All notable changes to this project will be documented in this file.
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
 [#1283]: https://github.com/stackabletech/docker-images/pull/1283
+[#xxxx]: https://github.com/stackabletech/docker-images/pull/xxxx
 
 ## [25.7.0] - 2025-07-23
 
