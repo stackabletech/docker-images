@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.8.0` ([#1279]).
 - spark: Add `3.5.7` ([#1280]).
 - spark-connect-client: Add `3.5.7` ([#1280]).
+- superset: Add `4.1.4`  ([#1284]).
 
 ### Changed
 
@@ -42,7 +43,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `1.0.1` ([#1279]).
 - spark: Remove `3.5.5` ([#1280]).
 - spark-connect-client: Remove unused example script from the image ([#1280]).
-- kafka: Remove `3.9.0` ([#1283]). 
+- kafka: Remove `3.9.0` ([#1283]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -63,6 +64,7 @@ All notable changes to this project will be documented in this file.
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
 [#1283]: https://github.com/stackabletech/docker-images/pull/1283
+[#1284]: https://github.com/stackabletech/docker-images/pull/1284
 
 ## [25.7.0] - 2025-07-23
 
