@@ -1,4 +1,4 @@
-From 2da5608928018dd017c91b904eb8f84a4f6df78a Mon Sep 17 00:00:00 2001
+From b5de94e20aff25a394c6095c0649b4fcbaa941aa Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 4 Jul 2025 15:54:55 +0200
 Subject: Update CycloneDX plugin
@@ -9,7 +9,7 @@ Subject: Update CycloneDX plugin
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/dev/make-distribution.sh b/dev/make-distribution.sh
-index 16607e45ae..44e345a245 100755
+index 16607e45ae6..44e345a245d 100755
 --- a/dev/make-distribution.sh
 +++ b/dev/make-distribution.sh
 @@ -176,7 +176,6 @@ BUILD_COMMAND=("$MVN" clean package \
@@ -21,7 +21,7 @@ index 16607e45ae..44e345a245 100755
  
  # Actually build the jar
 diff --git a/pom.xml b/pom.xml
-index 443d46a430..632920f100 100644
+index 22922143fc3..59c3747c625 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3327,6 +3327,11 @@
