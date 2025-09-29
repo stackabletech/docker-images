@@ -8,18 +8,17 @@ ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
-LABEL name="Stackable Spark Connect Examples" \
+LABEL name="Stackable Spark Connect Client" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
     version="${PRODUCT_VERSION}" \
     release="${RELEASE_VERSION}" \
     summary="Spark Connect Examples" \
-    description="Spark Connect client libraries for Python and the JVM, including some examples."
+    description="Spark Connect client libraries for Python and the JVM."
 
 # Need root to install setuptools
 USER root
 
-COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/spark-connect-examples /stackable/spark-connect-examples
 COPY --chown=${STACKABLE_USER_UID}:0 spark-connect-client/stackable/.jupyter /stackable/.jupyter
 
 RUN <<EOF
@@ -48,4 +47,4 @@ RUN pip install --no-cache-dir --user \
   "scikit-learn==1.3.1" \
   "matplotlib==3.10.1"
 
-WORKDIR /stackable/spark-connect-examples/python
+WORKDIR /stackable
