@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.8.0` ([#1279]).
 - spark: Add `3.5.7` ([#1280]).
 - spark-connect-client: Add `3.5.7` ([#1280]).
+- superset: Add `4.1.4`  ([#1284]).
 
 ### Changed
 
@@ -63,6 +64,7 @@ All notable changes to this project will be documented in this file.
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
 [#1283]: https://github.com/stackabletech/docker-images/pull/1283
+[#1284]: https://github.com/stackabletech/docker-images/pull/1284
 
 ## [25.7.0] - 2025-07-23
 
