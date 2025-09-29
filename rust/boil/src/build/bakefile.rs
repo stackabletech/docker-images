@@ -14,12 +14,11 @@ use semver::Version;
 use serde::Serialize;
 use snafu::{OptionExt, ResultExt, Snafu};
 use time::format_description::well_known::Rfc3339;
-use url::Host;
 
 use crate::{
     VersionExt,
     build::{
-        cli,
+        cli::{self, HostPort},
         docker::{BuildArgument, BuildArguments, LABEL_BUILD_DATE, ParseBuildArgumentsError},
         image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
         platform::TargetPlatform,
@@ -311,7 +310,7 @@ impl Bakefile {
 
                 // The image registry, eg. `oci.stackable.tech` or `localhost`
                 let image_registry = if args.use_localhost_registry {
-                    &Host::Domain(String::from("localhost"))
+                    &HostPort::localhost()
                 } else {
                     &args.registry
                 };
