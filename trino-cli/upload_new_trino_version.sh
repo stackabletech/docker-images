@@ -32,7 +32,7 @@ trap cleanup EXIT
 cd "$WORK_DIR" || exit
 
 echo "Downloading Trino"
-# Since Trno version 477, the CLI is only available as a GitHub release and not on Maven repository anymore.
+# Since Trino version 477, the CLI is only available as a GitHub release and not on Maven repository anymore.
 curl --fail -LO --progress-bar "https://github.com/trinodb/trino/releases/download/${VERSION}/trino-cli-${VERSION}"
 
 # The GitHub releases don't provide SHA1 checksums. That's why we currently don't validate the checksum.
