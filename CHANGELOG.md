@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Add version `4.1.0` ([#1277]).
 - druid: Add `34.0.0` ([#1263]).
 - opa: Add `1.8.0` ([#1279]).
+- spark: Add `3.5.7` ([#1280]).
+- spark-connect-client: Add `3.5.7` ([#1280]).
 
 ### Changed
 
@@ -36,6 +38,8 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove version `4.0.0` ([#1277]).
 - druid: Remove `31.0.1` ([#1263]).
 - opa: Remove `1.0.1` ([#1279]).
+- spark: Remove `3.5.5` ([#1280]).
+- spark-connect-client: Remove unused example script from the image ([#1280]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
