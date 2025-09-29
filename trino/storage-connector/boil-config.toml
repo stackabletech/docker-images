@@ -9,3 +9,7 @@ java-devel = "23"
 [versions."476".local-images]
 "trino/trino" = "476"
 java-devel = "24"
+
+[versions."477".local-images]
+"trino/trino" = "477"
+java-devel = "24"
