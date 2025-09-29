@@ -43,7 +43,8 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `1.0.1` ([#1279]).
 - spark: Remove `3.5.5` ([#1280]).
 - spark-connect-client: Remove unused example script from the image ([#1280]).
-- kafka: Remove `3.9.0` ([#1283]). 
+- kafka: Remove `3.9.0` ([#1283]).
+- trino/trino-storage-conector: Remove `470` ([#xxxx]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
