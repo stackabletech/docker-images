@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
 - kafka: Add version `4.1.0` ([#1277]).
 - druid: Add `34.0.0` ([#1263]).
+- opa: Add `1.8.0` ([#1279]).
 
 ### Changed
 
@@ -28,12 +29,14 @@ All notable changes to this project will be documented in this file.
 - vector: Bump to `0.49.0` ([#1258]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - druid: Deprecate `33.0.0` ([#1263]).
+- opa: Deprecate `1.4.2` ([#1279]).
 
 ### Removed
 
 - opensearch: Stop applying formatting plugin ([#1230]).
 - kafka: Remove version `4.0.0` ([#1277]).
 - druid: Remove `31.0.1` ([#1263]).
+- opa: Remove `1.0.1` ([#1279]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -52,6 +55,7 @@ All notable changes to this project will be documented in this file.
 [#1264]: https://github.com/stackabletech/docker-images/pull/1264
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 [#1263]: https://github.com/stackabletech/docker-images/pull/1263
+[#1279]: https://github.com/stackabletech/docker-images/pull/1279
 
 ## [25.7.0] - 2025-07-23
 
