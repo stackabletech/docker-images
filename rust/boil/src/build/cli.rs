@@ -47,7 +47,7 @@ pub struct BuildArguments {
     /// The format is host[:port].
     #[arg(
         short, long,
-        default_value_t = HostPort::localhost(),
+        default_value_t = Self::default_registry(),
         value_hint = ValueHint::Hostname,
         help_heading = "Registry Options"
     )]
@@ -123,6 +123,13 @@ pub struct BuildArguments {
 impl BuildArguments {
     fn default_image_version() -> Version {
         "0.0.0-dev".parse().expect("must be a valid SemVer")
+    }
+
+    fn default_registry() -> HostPort {
+        HostPort {
+            host: Host::Domain(String::from("oci.stackable.tech")),
+            port: None,
+        }
     }
 
     // TODO: Auto-detect this
