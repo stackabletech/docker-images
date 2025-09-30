@@ -1,19 +1,19 @@
-[versions."5.2.1-hbase2.6.1".local-images]
-"hbase/hbase" = "2.6.1"
-"hadoop/hadoop" = "3.3.6"
-java-devel = "11"
-
-[versions."5.2.1-hbase2.6.1".build-arguments]
-phoenix-version = "5.2.1"
-hbase-profile = "2.6"
-delete-caches = "true"
-
 [versions."5.2.1-hbase2.6.2".local-images]
 "hbase/hbase" = "2.6.2"
 "hadoop/hadoop" = "3.4.1"
 java-devel = "11"
 
 [versions."5.2.1-hbase2.6.2".build-arguments]
+phoenix-version = "5.2.1"
+hbase-profile = "2.6"
+delete-caches = "true"
+
+[versions."5.2.1-hbase2.6.3".local-images]
+"hbase/hbase" = "2.6.3"
+"hadoop/hadoop" = "3.4.1"
+java-devel = "11"
+
+[versions."5.2.1-hbase2.6.3".build-arguments]
 phoenix-version = "5.2.1"
 hbase-profile = "2.6"
 delete-caches = "true"
