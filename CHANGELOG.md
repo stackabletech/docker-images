@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - druid: Deprecate `33.0.0` ([#1263]).
 - opa: Deprecate `1.4.2` ([#1279]).
 - trino-cli: Bump to 477 ([#1285]).
+- tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
 
 ### Removed
@@ -78,6 +79,7 @@ All notable changes to this project will be documented in this file.
 [#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
 [#1289]: https://github.com/stackabletech/docker-images/pull/1289
+[#1290]: https://github.com/stackabletech/docker-images/pull/1290
 
 ## [25.7.0] - 2025-07-23
 
