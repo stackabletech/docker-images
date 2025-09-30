@@ -1,6 +1,6 @@
-From 1ec0bcdafe9f74f37b6e791e3df6b552ba748538 Mon Sep 17 00:00:00 2001
+From 5800f14ed19ffaafb7286b5b17639a5df806c1c6 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
-Date: Wed, 18 Jun 2025 15:22:49 +0200
+Date: Wed, 18 Jun 2025 14:05:10 +0200
 Subject: Disable web-ui code checking, because flow v0.241.0 for non-x86
  systems requires glibc 2.35, as of 2025-06-18 our UBI image comes with glibc
  2.34. This patch can likely be removed once we ship a newer version of glibc.
@@ -10,10 +10,10 @@ Subject: Disable web-ui code checking, because flow v0.241.0 for non-x86
  1 file changed, 22 deletions(-)
 
 diff --git a/core/trino-web-ui/pom.xml b/core/trino-web-ui/pom.xml
-index d097a1e22f..98c7516af1 100644
+index 471111f196..2c9eb56566 100644
 --- a/core/trino-web-ui/pom.xml
 +++ b/core/trino-web-ui/pom.xml
-@@ -103,28 +103,6 @@
+@@ -104,28 +104,6 @@
                              <workingDirectory>src/main/resources/webapp/src</workingDirectory>
                          </configuration>
                      </execution>

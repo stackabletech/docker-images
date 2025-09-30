@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add `4.1.4`  ([#1284]).
 - spark: Add `4.0.1` ([#1286]).
 - spark-connect-client: Add `4.0.1` ([#1286]).
+- trino/trino-storage-connector: Add `477` ([#1285]).
 
 ### Changed
 
@@ -35,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - druid: Deprecate `33.0.0` ([#1263]).
 - opa: Deprecate `1.4.2` ([#1279]).
+- trino-cli: Bump to 477 ([#1285]).
 
 ### Removed
 
@@ -48,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove `3.9.0` ([#1283]).
 - spark: Remove `4.0.0` ([#1286]).
 - spark-connect-client: Remove `4.0.0` ([#1286]).
+- trino/trino-storage-conector: Remove `470` ([#1285]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -70,6 +73,7 @@ All notable changes to this project will be documented in this file.
 [#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1280]: https://github.com/stackabletech/docker-images/pull/1280
 [#1284]: https://github.com/stackabletech/docker-images/pull/1284
+[#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
 
 ## [25.7.0] - 2025-07-23
