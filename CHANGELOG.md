@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add `4.1.4`  ([#1284]).
 - spark: Add `4.0.1` ([#1286]).
 - spark-connect-client: Add `4.0.1` ([#1286]).
+- testing-tools: Add `upload_new_keycloak_version.sh` script ([#1289]).
 
 ### Changed
 
@@ -35,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - druid: Deprecate `33.0.0` ([#1263]).
 - opa: Deprecate `1.4.2` ([#1279]).
+- testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
 
 ### Removed
 
@@ -71,6 +73,7 @@ All notable changes to this project will be documented in this file.
 [#1280]: https://github.com/stackabletech/docker-images/pull/1280
 [#1284]: https://github.com/stackabletech/docker-images/pull/1284
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
+[#1289]: https://github.com/stackabletech/docker-images/pull/1289
 
 ## [25.7.0] - 2025-07-23
 
