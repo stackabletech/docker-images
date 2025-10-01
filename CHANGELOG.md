@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `4.0.1` ([#1286]).
 - spark-connect-client: Add `4.0.1` ([#1286]).
 - trino/trino-storage-connector: Add `477` ([#1285]).
+- zookeeper: Add `3.9.4` ([#1292]).
 
 ### Changed
 
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - opa: Deprecate `1.4.2` ([#1279]).
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
+- zookeeper: Deprecate `3.9.3` ([#1292]).
 
 ### Removed
 
@@ -77,6 +79,7 @@ All notable changes to this project will be documented in this file.
 [#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
 [#1290]: https://github.com/stackabletech/docker-images/pull/1290
+[#1292]: https://github.com/stackabletech/docker-images/pull/1292
 
 ## [25.7.0] - 2025-07-23
 
