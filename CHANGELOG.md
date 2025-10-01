@@ -36,12 +36,9 @@ All notable changes to this project will be documented in this file.
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - vector: Bump to `0.49.0` ([#1258]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
-- druid: Deprecate `33.0.0` ([#1263]).
-- opa: Deprecate `1.4.2` ([#1279]).
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
-- zookeeper: Deprecate `3.9.3` ([#1292]).
 
 ### Removed
 
