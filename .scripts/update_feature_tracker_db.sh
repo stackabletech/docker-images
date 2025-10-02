@@ -34,6 +34,7 @@ PRODUCT_CODE_NAMES=(
   kafka
   nifi
   opensearch
+  opensearch-dashboards
   spark-k8s
   superset
   trino

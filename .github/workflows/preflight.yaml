@@ -67,6 +67,7 @@ jobs:
           - omid
           - opa
           - opensearch
+          - opensearch-dashboards
           - spark-k8s
           - superset
           - trino
