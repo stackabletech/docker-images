@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - spark: Remove `4.0.0` ([#1286]).
 - spark-connect-client: Remove `4.0.0` ([#1286]).
 - trino/trino-storage-conector: Remove `470` ([#1285]).
+- hbase: Remove `2.6.1` ([#1296]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
