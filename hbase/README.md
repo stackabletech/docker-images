@@ -1,6 +1,7 @@
 # Support for HBase 2.6
 
-As of SDP 24.7 we do include HBase 2.6 support in an experimental state.
+Support for HBase 2.6 in SDP 24.7 is experimental.
+As of SDP 25.3 this support is non-experimental.
 
 ## Phoenix
 
@@ -11,16 +12,4 @@ SDP 24.7 included Phoenix built from the master branch from commit [4afe457](htt
 
 Repository: [hbase-operator-tools](https://github.com/apache/hbase-operator-tools)
 
-Built from git hash [7c738fc](https://github.com/apache/hbase-operator-tools/tree/7c738fc1bd14fd3e2ca4e66569b496b3fd9d0288) (master)
-since no release supporting HBase 2.6 available yet.
-
-```bash
-mkdir ../hbase-operator-tools-1.3.0-7c738fc
-git archive --format=tar --output ../hbase-operator-tools-1.3.0-7c738fc/hot.tar 7c738fc
-cd ../hbase-operator-tools-1.3.0-7c738fc
-tar xf hot.tar
-rm hot.tar
-echo 7c738fc > git-commit
-cd ..
-tar -c hbase-operator-tools-1.3.0-7c738fc|gzip > hbase-operator-tools-1.3.0-7c738fc-src.tar.gz
-```
+This is now mirrored and built from source using `patchable`.
