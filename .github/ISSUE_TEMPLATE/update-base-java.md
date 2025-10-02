@@ -42,6 +42,7 @@ we should also make new versions of Java available for use.
 ## Update tasks
 
 - [ ] Add any new versions of java to both `java-base/boil-config.toml` and `java-devel/boil-config.toml`
+- [ ] Check for and upload new Maven versions (updated directly in the `java-devel/Dockerfile`)
 - [ ] Remove versions when there are no long any references (eg: `grep java- **/boil-config.toml | grep "1.8.0"`)
 
 ## Related Pull Requests

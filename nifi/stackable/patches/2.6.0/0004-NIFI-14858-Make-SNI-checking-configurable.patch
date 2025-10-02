@@ -1,0 +1,108 @@
+From 22fff64167758481f7c66a85bc86df1467928e00 Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Wed, 13 Aug 2025 14:16:55 +0200
+Subject: NIFI-14858: Make SNI checking configurable
+
+Introduces two new properties:
+- nifi.web.https.sni.required (default: false)
+- nifi.web.https.sni.host.check (default: true)
+
+These defaults mean that SNI is not required (this is the current behavior already) but if SNI is provided then the host has to match.
+---
+ .../StandardServerConnectorFactory.java       | 24 +++++++++++++++++++
+ .../org/apache/nifi/util/NiFiProperties.java  | 10 ++++++++
+ .../FrameworkServerConnectorFactory.java      |  4 ++++
+ 3 files changed, 38 insertions(+)
+
+diff --git a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
+index 26d09706a1..132973cad5 100644
+--- a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
++++ b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
+@@ -70,6 +70,10 @@ public class StandardServerConnectorFactory implements ServerConnectorFactory {
+ 
+     private int requestHeaderSize = 8192;
+ 
++    private boolean sniRequired = false;
++
++    private boolean sniHostCheck = true;
++
+     /**
+      * Standard Server Connector Factory Constructor with required properties
+      *
+@@ -181,6 +185,24 @@ public class StandardServerConnectorFactory implements ServerConnectorFactory {
+         this.requestHeaderSize = requestHeaderSize;
+     }
+ 
++    /**
++     * Set to true if a SNI certificate is required, else requests will be rejected with 400 response.
++     *
++     * @param sniRequired SNI Required status
++     */
++    public void setSniRequired(final boolean sniRequired) {
++        this.sniRequired = sniRequired;
++    }
++
++    /**
++     * Set to true if the SNI Host name must match when there is an SNI certificate.
++     *
++     * @param sniHostCheck SNI Host Check status
++     */
++    public void setSniHostCheck(final boolean sniHostCheck) {
++        this.sniHostCheck = sniHostCheck;
++    }
++
+     protected Server getServer() {
+         return server;
+     }
+@@ -195,6 +217,8 @@ public class StandardServerConnectorFactory implements ServerConnectorFactory {
+             httpConfiguration.setSendServerVersion(SEND_SERVER_VERSION);
+ 
+             final SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
++            secureRequestCustomizer.setSniRequired(sniRequired);
++            secureRequestCustomizer.setSniHostCheck(sniHostCheck);
+             httpConfiguration.addCustomizer(secureRequestCustomizer);
+         }
+ 
+diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
+index 9e85c05d22..89d81813f4 100644
+--- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
++++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
+@@ -205,6 +205,8 @@ public class NiFiProperties extends ApplicationProperties {
+     public static final String WEB_HTTPS_CIPHERSUITES_INCLUDE = "nifi.web.https.ciphersuites.include";
+     public static final String WEB_HTTPS_CIPHERSUITES_EXCLUDE = "nifi.web.https.ciphersuites.exclude";
+     public static final String WEB_HTTPS_NETWORK_INTERFACE_PREFIX = "nifi.web.https.network.interface.";
++    public static final String WEB_HTTPS_SNI_REQUIRED = "nifi.web.https.sni.required";
++    public static final String WEB_HTTPS_SNI_HOST_CHECK = "nifi.web.https.sni.host.check";
+     public static final String WEB_WORKING_DIR = "nifi.web.jetty.working.directory";
+     public static final String WEB_THREADS = "nifi.web.jetty.threads";
+     public static final String WEB_MAX_HEADER_SIZE = "nifi.web.max.header.size";
+@@ -709,6 +711,14 @@ public class NiFiProperties extends ApplicationProperties {
+         return Arrays.stream(protocols.split("\\s+")).collect(Collectors.toSet());
+     }
+ 
++    public boolean isWebHttpsSniRequired() {
++        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_REQUIRED, "true"));
++    }
++
++    public boolean isWebHttpsSniHostCheck() {
++        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_HOST_CHECK, "true"));
++    }
++
+     public String getWebMaxHeaderSize() {
+         return getProperty(WEB_MAX_HEADER_SIZE, DEFAULT_WEB_MAX_HEADER_SIZE);
+     }
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
+index 72986669d5..993b23889c 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
+@@ -90,6 +90,10 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact
+ 
+             // Set Transport Layer Security Protocols based on platform configuration
+             setIncludeSecurityProtocols(TlsPlatform.getPreferredProtocols().toArray(new String[0]));
++
++            // Set SNI configuration from properties
++            setSniRequired(properties.isWebHttpsSniRequired());
++            setSniHostCheck(properties.isWebHttpsSniHostCheck());
+         }
+     }
+ 
