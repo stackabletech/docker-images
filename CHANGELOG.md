@@ -27,11 +27,12 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Add `upload_new_keycloak_version.sh` script ([#1289]).
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
+- nifi: Add `2.6.0` ([#1293]).
 
 ### Changed
 
 - all: Use our build-repo to cache NPM dependencies ([#1219]).
-- java: Use a more recent Maven version for all Java based products ([#1220]).
+- java: Use a more recent Maven version for all Java based products ([#1220], [[#1293]]).
 - ubi9-rust-builder: Bump ubi9 base image ([#1253]).
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
@@ -82,6 +83,7 @@ All notable changes to this project will be documented in this file.
 [#1290]: https://github.com/stackabletech/docker-images/pull/1290
 [#1291]: https://github.com/stackabletech/docker-images/pull/1291
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
+[#1293]: https://github.com/stackabletech/docker-images/pull/1293
 
 ## [25.7.0] - 2025-07-23
 
