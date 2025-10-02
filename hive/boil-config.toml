@@ -46,7 +46,7 @@ java-devel = "17"
 [versions."4.1.0".build-arguments]
 jmx-exporter-version = "1.3.0"
 # Keep consistent with the dependency from hadoop-aws: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.2
-aws-java-sdk-bundle-version = "1.12.720"
+aws-java-sdk-bundle-version = "2.29.52"
 # Keep consistent with the dependency from hadoop-azure: https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.2
 azure-storage-version = "7.0.1"
 # Keep consistent with the dependency from azure-storage: https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
