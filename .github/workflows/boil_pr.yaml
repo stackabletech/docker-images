@@ -1,0 +1,65 @@
+---
+name: Build boil
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/boil_pr.yaml"
+      - "rust-toolchain.toml"
+      - "rust/boil/**.rs"
+      - "Cargo.*"
+
+env:
+  RUST_VERSION: 1.87.0
+
+jobs:
+  # This job is always run to ensure we don't miss any new upstream advisories
+  cargo-deny:
+    name: Run cargo-deny
+    runs-on: ubuntu-latest
+    # Prevent sudden announcement of a new advisory from failing CI
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Run cargo-deny
+        uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # v2.0.13
+        with:
+          command: check ${{ matrix.checks }}
+
+  build:
+    name: Build boil
+    needs:
+      - cargo-deny
+    strategy:
+      fail-fast: false
+      matrix:
+        targets:
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-24.04-arm }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+          - { target: aarch64-apple-darwin, os: macos-latest }
+    runs-on: ${{ matrix.targets.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: ${{ matrix.targets.target }}
+
+      - name: Build Binary
+        env:
+          TARGET: ${{ matrix.targets.target }}
+        run: cargo build --target "$TARGET" --package boil

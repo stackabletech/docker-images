@@ -39,7 +39,8 @@ curl --fail -LO --progress-bar "https://github.com/prometheus/jmx_exporter/relea
 curl --fail -LO --progress-bar "https://github.com/prometheus/jmx_exporter/releases/download/$VERSION/$SUM_FILE"
 
 # Check that sha256 sum matches before uploading
-sha256sum --check --status "$SUM_FILE" && echo "SHA256 Sum matches"
+sha256sum --strict --check --status "$SUM_FILE"
+echo "SHA256 Sum matches"
 
 echo "Uploading to Nexus"
 curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --upload-file "$JAR_FILE" 'https://repo.stackable.tech/repository/packages/jmx-exporter/'

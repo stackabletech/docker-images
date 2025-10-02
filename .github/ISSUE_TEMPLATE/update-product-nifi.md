@@ -27,12 +27,16 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
+- [ ] Release a new version of [nifi-iceberg-bundle] for any new NiFi versions added (also add version with Patchable).
+- [ ] Release a new version of [nifi-opa-authorizer-plugin] for any new NiFi versions added (also add version with Patchable).
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Upload new version (see `nifi/upload_new_nifi_version.sh`).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, kcat, scala, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+
+[nifi-iceberg-bundle]: https://github.com/stackabletech/nifi-iceberg-bundle
+[nifi-opa-authorizer-plugin]: https://github.com/DavidGitter/nifi-opa-plugin
 
 ## Related Pull Requests
 
