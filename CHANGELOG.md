@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
+- hive: Add `4.1.0` ([#XXXX]).
 
 ### Changed
 
