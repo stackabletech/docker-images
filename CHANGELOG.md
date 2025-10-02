@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
-- hive: Add `4.1.0` ([#XXXX]).
+- hive: Add `4.1.0` ([#1295]).
 
 ### Changed
 
@@ -85,6 +85,7 @@ All notable changes to this project will be documented in this file.
 [#1291]: https://github.com/stackabletech/docker-images/pull/1291
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
+[#1295]: https://github.com/stackabletech/docker-images/pull/1295
 
 ## [25.7.0] - 2025-07-23
 
