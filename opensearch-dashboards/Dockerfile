@@ -123,7 +123,7 @@ COPY \
     /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/plugins/security-dashboards-plugin
 
-# tar - extract nodejs bundle
+# tar - extract OpenSearch Dashboards from archive & create source code archive
 # unzip - extract plugin from archive
 # yarn - build Opensearch Dashboards
 # cdxgen - generate CycloneDX SBOM
