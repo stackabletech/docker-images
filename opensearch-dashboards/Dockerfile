@@ -160,7 +160,7 @@ cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSIO
 cp -r /stackable/plugins .
 # Remove dependencies from previous bootstrapping
 yarn osd clean
-# Bootstrap for the platform plugins. 
+# Bootstrap for the platform plugins.
 # --single-version=loose allows diverging versions for dependencies between different plugins
 yarn osd bootstrap --single-version=loose
 EOF
@@ -170,7 +170,7 @@ cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSIO
 cd plugins
 for plugin in $(ls); do
     cd "$plugin"
-    yarn build 
+    yarn build
     find ~+/build -name *.zip -exec \
         /stackable/opensearch-dashboards/bin/opensearch-dashboards-plugin install "file://{}" \;
     cd -
