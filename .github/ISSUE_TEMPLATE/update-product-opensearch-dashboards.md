@@ -11,7 +11,7 @@ projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of <https://github.com/stackabletech/issues/issues/xxx>.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update other dependencies if applicable (eg: security-plugin, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
@@ -60,14 +60,12 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product opensearch-dashboards=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build opensearch-dashboards=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/opensearch-dashboards:x.y.z-stackable0.0.0-dev
 
-# Change directory into the opensearch-operator repository and update the
+# Change directory into the opensearch repository and update the
 # product version in tests/test-definition.yaml (once there is an integration test for opensearch-dashboards)
 ./scripts/run-tests --test-suite smoke-latest # or similar
 ```
