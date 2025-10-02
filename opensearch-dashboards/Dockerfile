@@ -141,40 +141,41 @@ USER ${STACKABLE_USER_UID}
 
 RUN /stackable/patchable --images-repo-root=src checkout opensearch-dashboards ${PRODUCT_VERSION}
 WORKDIR /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}
-# RUN <<EOF
-# ARCH="${TARGETARCH/amd64/x64}"
-# NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
-# # Create snapshot of the source code including custom patches
-# # Exclude cypress directory to prevent bloat in the final image
-# tar -cz --exclude ./cypress -f /stackable/opensearch-dashboards-${NEW_VERSION}-src.tar.gz .
-# # Bootstrap for the main OpenSearch Dashboards project
-# yarn osd bootstrap
-# # Running yarn build-platform without a platform flag will build the local architecture
-# yarn build-platform --release
-# mkdir /stackable/opensearch-dashboards
-# tar -xzf target/opensearch-dashboards-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
-# # cdxgen --target yarn --json-pretty
-# EOF
-# RUN <<EOF
-# cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}
-# cp -r /stackable/plugins .
-# # Remove dependencies from previous bootstrapping
-# yarn osd clean
-# # Bootstrap for the platform plugins. 
-# # --single-version=loose allows diverging versions for dependencies between different plugins
-# yarn osd bootstrap --single-version=loose
-# EOF
-# RUN <<EOF
-# cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}
-# # Build all plugins
-# cd plugins
-# for plugin in $(ls); do
-#     cd "$plugin"
-#     yarn build 
-#     /stackable/opensearch-dashboards/bin/opensearch-dashboards-plugin install build/*.zip
-#     cd -
-# done
-# EOF
+RUN <<EOF
+ARCH="${TARGETARCH/amd64/x64}"
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
+# Create snapshot of the source code including custom patches
+# Exclude cypress directory to prevent bloat in the final image
+tar -cz --exclude ./cypress -f /stackable/opensearch-dashboards-${NEW_VERSION}-src.tar.gz .
+# Bootstrap for the main OpenSearch Dashboards project
+yarn osd bootstrap
+# Running yarn build-platform without a platform flag will build the local architecture
+yarn build-platform --release
+mkdir /stackable/opensearch-dashboards
+tar -xzf target/opensearch-dashboards-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz -C /stackable/opensearch-dashboards --strip-components=1
+# cdxgen --target yarn --json-pretty
+EOF
+RUN <<EOF
+cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}
+cp -r /stackable/plugins .
+# Remove dependencies from previous bootstrapping
+yarn osd clean
+# Bootstrap for the platform plugins. 
+# --single-version=loose allows diverging versions for dependencies between different plugins
+yarn osd bootstrap --single-version=loose
+EOF
+RUN <<EOF
+cd /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}
+# Build all plugins
+cd plugins
+for plugin in $(ls); do
+    cd "$plugin"
+    yarn build 
+    find ~+/build -name *.zip -exec \
+        /stackable/opensearch-dashboards/bin/opensearch-dashboards-plugin install "file://{}" \;
+    cd -
+done
+EOF
 
 
 # RUN <<EOF
