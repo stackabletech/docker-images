@@ -1,7 +1,6 @@
 # Support for HBase 2.6
 
-Support for HBase 2.6 in SDP 24.7 is experimental.
-As of SDP 25.3 this support is non-experimental.
+As of SDP release 25.3, HBase 2.6.x is fully supported.
 
 ## Phoenix
 
