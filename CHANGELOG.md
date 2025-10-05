@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
+- hbase: Add `2.6.3` ([#1296]).
 
 ### Changed
 
@@ -56,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - spark: Remove `4.0.0` ([#1286]).
 - spark-connect-client: Remove `4.0.0` ([#1286]).
 - trino/trino-storage-conector: Remove `470` ([#1285]).
+- hbase: Remove `2.6.1` ([#1296]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -86,6 +88,7 @@ All notable changes to this project will be documented in this file.
 [#1291]: https://github.com/stackabletech/docker-images/pull/1291
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
+[#1296]: https://github.com/stackabletech/docker-images/pull/1296
 
 ## [25.7.0] - 2025-07-23
 
