@@ -250,11 +250,6 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
-    /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}/plugins/security-dashboards-plugin/bom.json \
-    /stackable/opensearch-dashboards-security-dashboards-plugin-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
-COPY \
-    --chown=${STACKABLE_USER_UID}:0 \
-    --from=opensearch-dashboards-builder \
     /usr/local/bin/node \
     /usr/local/bin/node
 COPY --chown=${STACKABLE_USER_UID}:0 opensearch-dashboards/licenses /licenses
