@@ -1,0 +1,22 @@
+From 4c72295d98bdc3d47b7f348987e0ea2de9538296 Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Tue, 9 Sep 2025 16:41:31 +0200
+Subject: set correct OPENSEARCH_DASHBOARDS_HOME in docker entrypoint
+
+---
+ .../opensearch-dashboards-docker-entrypoint-3.x.sh              | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh b/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
+index 055354ba..33d98353 100755
+--- a/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
++++ b/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
+@@ -16,7 +16,7 @@
+ #       --opensearch.startupTimeout=60
+ 
+ # Setup Home Directory
+-export OPENSEARCH_DASHBOARDS_HOME=/usr/share/opensearch-dashboards
++export OPENSEARCH_DASHBOARDS_HOME=/stackable/opensearch-dashboards
+ 
+ opensearch_dashboards_vars=(
+     console.enabled
