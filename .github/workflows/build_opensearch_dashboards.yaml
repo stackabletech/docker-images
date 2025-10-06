@@ -14,9 +14,10 @@ on:
       - "[0-9][0-9].[0-9]+.[0-9]+-rc[0-9]+"
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
-      # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
+      # cargo boil build --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - opensearch-dashboards/**
       - vector/**
+      - stackable-base/**
       - stackable-devel/**
       - .github/actions/**
       - .github/workflows/build_opensearch_dashboards.yaml
