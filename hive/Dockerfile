@@ -109,6 +109,9 @@ mkdir /stackable/jmx
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
+# Needed to run housekeeping jobs, see footnote <1> below
+cp /stackable/patched-libs/maven/org/apache/hadoop/hadoop-mapreduce-client-core/${HADOOP_VERSION}-stackable${RELEASE_VERSION}/hadoop-mapreduce-client-core-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
+
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
 
@@ -141,7 +144,6 @@ fi
 # change groups
 chmod --recursive g=u /stackable
 EOF
-
 
 FROM local-image/java-base AS final
 
@@ -239,3 +241,28 @@ ENV HADOOP_MAPRED_HOME=/stackable/hadoop
 
 WORKDIR /stackable/hive-metastore
 # Start command is set by operator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"
+
+
+
+# <1>: org.apache.hadoop.mapred.JobConf need
+# 2025-10-06T08:42:04,137 ERROR [Metastore threads starter thread] metastore.HiveMetaStore: Failure when starting the leader tasks, Compaction or Housekeeping tasks may not happen
+# java.lang.NoClassDefFoundError: org/apache/hadoop/mapred/JobConf
+#         at org.apache.hadoop.hive.conf.HiveConf.initialize(HiveConf.java:6601) ~[hive-common-4.1.0.jar:4.1.0]
+#         at org.apache.hadoop.hive.conf.HiveConf.<init>(HiveConf.java:6569) ~[hive-common-4.1.0.jar:4.1.0]
+#         at org.apache.hadoop.hive.ql.txn.compactor.CompactorThread.setConf(CompactorThread.java:68) ~[hive-exec-4.1.0-core.jar:4.1.0]
+#         at org.apache.hadoop.hive.metastore.leader.CompactorTasks.takeLeadership(CompactorTasks.java:139) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.lambda$notifyListener$0(LeaseLeaderElection.java:141) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at java.base/java.util.ArrayList.forEach(Unknown Source) ~[?:?]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.notifyListener(LeaseLeaderElection.java:138) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.doWork(LeaseLeaderElection.java:120) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.tryBeLeader(LeaseLeaderElection.java:181) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.tryBeLeader(LeaseLeaderElection.java:63) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaderElectionContext.lambda$start$2(LeaderElectionContext.java:125) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at java.base/java.lang.Thread.run(Unknown Source) ~[?:?]
+#         at org.apache.hadoop.hive.metastore.leader.LeaderElectionContext.start(LeaderElectionContext.java:136) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.HiveMetaStore$8.run(HiveMetaStore.java:856) [hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+# Caused by: java.lang.ClassNotFoundException: org.apache.hadoop.mapred.JobConf
+#         at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(Unknown Source) ~[?:?]
+#         at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(Unknown Source) ~[?:?]
+#         at java.base/java.lang.ClassLoader.loadClass(Unknown Source) ~[?:?]
+#         ... 14 more
