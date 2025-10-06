@@ -123,6 +123,9 @@ EOF
 
 ENV ZOOKEEPER_HOME=/stackable/zookeeper
 ENV PATH="${PATH}":/stackable/zookeeper/bin
+# This is used by zkEnv.sh and for the shell scripts in bin/
+# If unset it tries to find the conf directory automatically and that fails
+ENV ZOOCFGDIR=/stackable/config
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable/zookeeper
