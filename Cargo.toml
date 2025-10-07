@@ -2,14 +2,29 @@
 members = ["rust/*"]
 resolver = "2"
 
+[workspace.package]
+repository = "https://github.com/stackabletech/docker-images"
+authors = ["Stackable <info@stackable.tech>"]
+license = "Apache-2.0"
+
 [workspace.dependencies]
-clap = { version = "4.5.27", features = ["derive"] }
+clap = { version = "4.5.41", features = ["derive"] }
+clap_complete = "4.5.55"
+clap_complete_nushell = "4.5.8"
 git2 = "0.20.1"
+glob = "0.3.2"
+oci-spec = "0.8.2"
+rstest = "0.26.1"
+semver = { version = "1.0.26", features = ["serde"] }
 serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.140"
 snafu = "0.8.5"
+strum = { version = "0.27.1", features = ["derive"] }
 tempfile = "3.16.0"
-time = { version = "0.3.37", features = ["parsing"] }
-toml = "0.8.19"
+time = { version = "0.3.41", features = ["parsing", "formatting"] }
+tokio = { version = "1.46.1", features = ["rt", "macros", "process"] }
+toml = "0.9.2"
 tracing = "0.1.41"
 tracing-indicatif = "0.3.9"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+url = { version = "2.5.4", features = ["serde"] }

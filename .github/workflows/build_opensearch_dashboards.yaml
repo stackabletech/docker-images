@@ -1,0 +1,36 @@
+---
+name: Build OpenSearch Dashboards
+run-name: |
+  Build OpenSearch Dashboards (attempt #${{ github.run_attempt }})
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 2/2 * *' # https://crontab.guru/#0_0_2/2_*_*
+  push:
+    branches: [main]
+    tags:
+      - "[0-9][0-9].[0-9]+.[0-9]+"
+      - "[0-9][0-9].[0-9]+.[0-9]+-rc[0-9]+"
+    paths:
+      # To check dependencies, run this ( you will need to consider transitive dependencies)
+      # cargo boil build PRODUCT -d
+      - opensearch-dashboards/**
+      - vector/**
+      - stackable-base/**
+      - stackable-devel/**
+      - .github/actions/**
+      - .github/workflows/build_opensearch_dashboards.yaml
+      - .github/workflows/reusable_build_image.yaml
+
+jobs:
+  build_image:
+    name: Reusable Workflow
+    uses: ./.github/workflows/reusable_build_image.yaml
+    secrets:
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    with:
+      product-name: opensearch-dashboards
+      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      registry-namespace: sdp

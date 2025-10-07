@@ -6,16 +6,58 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207])
+- ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207]).
 - opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
-- nifi: Backport NIFI-14848 to NiFi ([#1225])
+- opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
+- opensearch-dashboards: Add an image for Opensearch Dashboards with version `3.1.0` ([#1248]).
+- nifi: Backport NIFI-14848 to NiFi ([#1225]).
+- stackable-base: Add cert-tools ([#1247]).
+- kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
+- druid: Add `34.0.0` ([#1263]).
+- kafka: Add version `4.1.0` ([#1277]).
+- airflow: Add version `3.0.6` ([#1278]).
+- opa: Add `1.8.0` ([#1279]).
+- spark: Add `3.5.7` ([#1280]).
+- spark-connect-client: Add `3.5.7` ([#1280]).
+- superset: Add `4.1.4`  ([#1284]).
+- spark: Add `4.0.1` ([#1286]).
+- spark-connect-client: Add `4.0.1` ([#1286]).
+- trino/trino-storage-connector: Add `477` ([#1285]).
+- testing-tools: Add `upload_new_keycloak_version.sh` script ([#1289]).
+- hadoop: Add `3.4.2` ([#1291]).
+- zookeeper: Add `3.9.4` ([#1292]).
+- nifi: Add `2.6.0` ([#1293]).
+- hbase: Add `2.6.3` ([#1296]).
 
 ### Changed
 
-- all: Use our build-repo to cache NPM dependencies ([#1219])
-- java: Use a more recent Maven version for all Java based products ([#1220])
+- all: Use our build-repo to cache NPM dependencies ([#1219]).
+- java: Use a more recent Maven version for all Java based products ([#1220], [[#1293]]).
+- ubi9-rust-builder: Bump ubi9 base image ([#1253]).
+- stackable-base: Bump ubi9 base image ([#1253]).
+- stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
+- vector: Bump to `0.49.0` ([#1258]).
+- airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
+- trino-cli: Bump to 477 ([#1285]).
+- tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
+- testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
+
+### Removed
+
+- opensearch: Stop applying formatting plugin ([#1230]).
+- druid: Remove `31.0.1` ([#1263]).
+- kafka: Remove version `4.0.0` ([#1277]).
+- airflow: Remove version `2.10.4` ([#1278]).
+- opa: Remove `1.0.1` ([#1279]).
+- spark: Remove `3.5.5` ([#1280]).
+- spark-connect-client: Remove unused example script from the image ([#1280]).
+- kafka: Remove `3.9.0` ([#1283]).
+- spark: Remove `4.0.0` ([#1286]).
+- spark-connect-client: Remove `4.0.0` ([#1286]).
+- trino/trino-storage-conector: Remove `470` ([#1285]).
+- hbase: Remove `2.6.1` ([#1296]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -24,6 +66,29 @@ All notable changes to this project will be documented in this file.
 [#1222]: https://github.com/stackabletech/docker-images/pull/1222
 [#1223]: https://github.com/stackabletech/docker-images/pull/1223
 [#1225]: https://github.com/stackabletech/docker-images/pull/1225
+[#1228]: https://github.com/stackabletech/docker-images/pull/1228
+[#1230]: https://github.com/stackabletech/docker-images/pull/1230
+[#1247]: https://github.com/stackabletech/docker-images/pull/1247
+[#1248]: https://github.com/stackabletech/docker-images/pull/1248
+[#1253]: https://github.com/stackabletech/docker-images/pull/1253
+[#1258]: https://github.com/stackabletech/docker-images/pull/1258
+[#1262]: https://github.com/stackabletech/docker-images/pull/1262
+[#1263]: https://github.com/stackabletech/docker-images/pull/1263
+[#1264]: https://github.com/stackabletech/docker-images/pull/1264
+[#1277]: https://github.com/stackabletech/docker-images/pull/1277
+[#1278]: https://github.com/stackabletech/docker-images/pull/1278
+[#1279]: https://github.com/stackabletech/docker-images/pull/1279
+[#1283]: https://github.com/stackabletech/docker-images/pull/1283
+[#1280]: https://github.com/stackabletech/docker-images/pull/1280
+[#1284]: https://github.com/stackabletech/docker-images/pull/1284
+[#1285]: https://github.com/stackabletech/docker-images/pull/1285
+[#1286]: https://github.com/stackabletech/docker-images/pull/1286
+[#1289]: https://github.com/stackabletech/docker-images/pull/1289
+[#1290]: https://github.com/stackabletech/docker-images/pull/1290
+[#1291]: https://github.com/stackabletech/docker-images/pull/1291
+[#1292]: https://github.com/stackabletech/docker-images/pull/1292
+[#1293]: https://github.com/stackabletech/docker-images/pull/1293
+[#1296]: https://github.com/stackabletech/docker-images/pull/1296
 
 ## [25.7.0] - 2025-07-23
 

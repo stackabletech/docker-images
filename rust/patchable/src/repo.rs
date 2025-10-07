@@ -28,9 +28,7 @@ pub enum Error {
         path: PathBuf,
     },
 
-    #[snafu(display(
-        "failed to create worktree branch {branch:?} pointing at {commit} in {repo}"
-    ))]
+    #[snafu(display("failed to create worktree branch {branch:?} pointing at {commit} in {repo}"))]
     CreateWorktreeBranch {
         source: git2::Error,
         repo: error::RepoPath,

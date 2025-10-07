@@ -1,0 +1,23 @@
+[versions."451".local-images]
+java-base = "22"
+"trino/trino" = "451"
+"trino/storage-connector" = "451"
+
+[versions."451".build-arguments]
+jmx-exporter-version = "1.3.0"
+
+[versions."476".local-images]
+java-base = "24"
+"trino/trino" = "476"
+"trino/storage-connector" = "476"
+
+[versions."476".build-arguments]
+jmx-exporter-version = "1.3.0"
+
+[versions."477".local-images]
+java-base = "24"
+"trino/trino" = "477"
+"trino/storage-connector" = "477"
+
+[versions."477".build-arguments]
+jmx-exporter-version = "1.3.0"

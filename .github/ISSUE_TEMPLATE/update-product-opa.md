@@ -4,14 +4,14 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(opa): Update container images ahead of Stackable Release YY.M.X
+  chore(opa): Update major/minor|patch versions for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of #xxx.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -21,15 +21,15 @@ Add/Change/Remove anything that isn't applicable anymore
 - Remove: `y.y.y`
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Upload new version (see `opa/upload_new_opa_version.sh`).
-- [ ] Update other dependencies if applicable (eg: opa_bundle_builder, etc).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update other dependencies if applicable (eg: golang-version, etc).
+- [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 
@@ -61,10 +61,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product opa=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build opa=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/opa:x.y.z-stackable0.0.0-dev
 

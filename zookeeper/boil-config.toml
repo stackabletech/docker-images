@@ -1,0 +1,13 @@
+[versions."3.9.3".local-images]
+java-base = "17"
+java-devel = "11"
+
+[versions."3.9.3".build-arguments]
+jmx-exporter-version = "1.4.0"
+
+[versions."3.9.4".local-images]
+java-base = "17"
+java-devel = "11"
+
+[versions."3.9.4".build-arguments]
+jmx-exporter-version = "1.4.0"

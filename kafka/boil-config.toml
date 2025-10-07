@@ -1,0 +1,29 @@
+[versions."3.7.2".local-images]
+java-base = "21"
+java-devel = "21"
+"kafka/kcat" = "1.7.0"
+"kafka/kafka-opa-plugin" = "1.5.1"
+
+[versions."3.7.2".build-arguments]
+scala-version = "2.13"
+jmx-exporter-version = "1.3.0"
+
+[versions."3.9.1".local-images]
+java-base = "21"
+java-devel = "21"
+"kafka/kcat" = "1.7.0"
+"kafka/kafka-opa-plugin" = "1.5.1"
+
+[versions."3.9.1".build-arguments]
+scala-version = "2.13"
+jmx-exporter-version = "1.3.0"
+
+[versions."4.1.0".local-images]
+java-base = "23"
+java-devel = "23"
+"kafka/kcat" = "1.7.0"
+"kafka/kafka-opa-plugin" = "1.5.1"
+
+[versions."4.1.0".build-arguments]
+scala-version = "2.13"
+jmx-exporter-version = "1.3.0"

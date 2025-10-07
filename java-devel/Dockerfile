@@ -5,14 +5,14 @@
 # Base image for builder stages in Java based products
 #
 
-FROM stackable/image/stackable-devel
+FROM local-image/stackable-devel
 
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 
-# Find the latest version here: https://github.com/apache/maven
+# Find the latest version here: https://github.com/apache/maven/releases
 # renovate: datasource=github-tags packageName=apache/maven
-ARG MAVEN_VERSION="3.9.10"
+ARG MAVEN_VERSION="3.9.11"
 
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
@@ -46,7 +46,7 @@ microdnf install \
   `# Needed by the maven ant run plugin for the "set-hostname-property" step in zookeeper` \
   hostname \
   `# Needed for compiling Java projects` \
-  "temurin-${PRODUCT}-jdk" \
+  "temurin-${PRODUCT_VERSION}-jdk" \
   krb5-devel \
   libcurl-devel \
   make \
@@ -66,7 +66,7 @@ ln -s /opt/maven/bin/mvn /usr/bin/mvn
 
 EOF
 
-ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT}-jdk"
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT_VERSION}-jdk"
 ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml

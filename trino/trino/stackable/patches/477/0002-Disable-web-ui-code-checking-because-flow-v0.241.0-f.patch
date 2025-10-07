@@ -1,0 +1,44 @@
+From 5800f14ed19ffaafb7286b5b17639a5df806c1c6 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 18 Jun 2025 14:05:10 +0200
+Subject: Disable web-ui code checking, because flow v0.241.0 for non-x86
+ systems requires glibc 2.35, as of 2025-06-18 our UBI image comes with glibc
+ 2.34. This patch can likely be removed once we ship a newer version of glibc.
+
+---
+ core/trino-web-ui/pom.xml | 22 ----------------------
+ 1 file changed, 22 deletions(-)
+
+diff --git a/core/trino-web-ui/pom.xml b/core/trino-web-ui/pom.xml
+index 471111f196..2c9eb56566 100644
+--- a/core/trino-web-ui/pom.xml
++++ b/core/trino-web-ui/pom.xml
+@@ -104,28 +104,6 @@
+                             <workingDirectory>src/main/resources/webapp/src</workingDirectory>
+                         </configuration>
+                     </execution>
+-                    <execution>
+-                        <id>check (webapp)</id>
+-                        <goals>
+-                            <goal>npm</goal>
+-                        </goals>
+-                        <phase>verify</phase>
+-                        <configuration>
+-                            <arguments>run ${frontend.check.goal}</arguments>
+-                            <workingDirectory>src/main/resources/webapp/src</workingDirectory>
+-                        </configuration>
+-                    </execution>
+-                    <execution>
+-                        <id>check (webapp-preview)</id>
+-                        <goals>
+-                            <goal>npm</goal>
+-                        </goals>
+-                        <phase>verify</phase>
+-                        <configuration>
+-                            <arguments>run ${frontend.check.goal}</arguments>
+-                            <workingDirectory>src/main/resources/webapp-preview</workingDirectory>
+-                        </configuration>
+-                    </execution>
+                     <execution>
+                         <id>package (webapp-preview)</id>
+                         <goals>

@@ -4,14 +4,14 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(superset): Update container images ahead of Stackable Release YY.M.X
+  chore(superset): Update major/minor|patch versions for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of #xxx.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -21,13 +21,13 @@ Add/Change/Remove anything that isn't applicable anymore
 - Remove: `y.y.y`
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Create a new constraints file (see `superset/README.md`).
 - [ ] Create a file: `superset/stackable/patches/x.y.z/.gitkeep`, add patches if applicable.
 - [ ] Delete old constraint files and patch directories.
@@ -64,10 +64,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product superset=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build superset=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/superset:x.y.z-stackable0.0.0-dev
 

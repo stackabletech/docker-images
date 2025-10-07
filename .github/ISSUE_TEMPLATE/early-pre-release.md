@@ -1,7 +1,7 @@
 ---
 name: Early Pre-Release Container Image Updates
 about: This template can be used to track the container image updates leading up to the next Stackable release
-title: "chore: Update Container Images for Stackable Release YY.M.X"
+title: "chore(tracking): Update major/minor|patch versions for YY.M.X"
 labels: ['epic']
 assignees: ''
 ---
@@ -12,15 +12,25 @@ assignees: ''
 -->
 
 <!-- Update this with the parent tracking issue for the release -->
-Part of stackabletech/issues#xxx.
+Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.
+> Follow these rules when creating the tracking issues for individual images:
+>
+> - Major/minor changes:
+>   - Removal and deprecation of entire major or minor version branches
+>   - Adding a new major/minor version (optionally marking it as LTS)
+> - Patch-level changes:
+>   - Removal and deprecation if individual patch-level versions
+>   - Marking a (new) patch-level version as LTS
+>   - Adding a new patch-level version
 
 [^1]: Currently this is a private spreadsheet
 
 > [!IMPORTANT]
 > Replace the items in the task lists below with the subsequent tracking issue.
+> Remove this and the above admonitions afterwards to de-clutter the tracking issue.
 
 ## Product Container Images
 
@@ -46,6 +56,7 @@ Part of stackabletech/issues#xxx.
 - [ ] [Create issue from template: update-product-nifi.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-nifi.md)
 - [ ] [Create issue from template: update-product-opa.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-opa.md)
 - [ ] [Create issue from template: update-product-opensearch.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-opensearch.md)
+- [ ] [Create issue from template: update-product-opensearch-dashboards.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-opensearch-dashboards.md)
 - [ ] [Create issue from template: update-product-spark.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-spark.md)
 - [ ] [Create issue from template: update-product-superset.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-superset.md)
 - [ ] [Create issue from template: update-product-trino.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-trino.md)

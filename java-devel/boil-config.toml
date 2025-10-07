@@ -1,0 +1,20 @@
+[versions."8".local-images]
+stackable-devel = "1.0.0"
+
+[versions."11".local-images]
+stackable-devel = "1.0.0"
+
+[versions."17".local-images]
+stackable-devel = "1.0.0"
+
+[versions."21".local-images]
+stackable-devel = "1.0.0"
+
+[versions."22".local-images]
+stackable-devel = "1.0.0"
+
+[versions."23".local-images]
+stackable-devel = "1.0.0"
+
+[versions."24".local-images]
+stackable-devel = "1.0.0"

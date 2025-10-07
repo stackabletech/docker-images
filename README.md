@@ -8,208 +8,47 @@ This repository contains Dockerfiles and scripts to build base images for use wi
 | [![Build Airflow]][build_airflow.yaml] | [![Build Druid]][build_druid.yaml] | [![Build Hadoop]][build_hadoop.yaml] | [![Build HBase]][build_hbase.yaml] |
 | [![Build Hive]][build_hive.yaml] | [![Build Java Base]][build_java-base.yaml] | [![Build Java Development]][build_java-devel.yaml] | [![Build Kafka Testing Tools]][build_kafka-testing-tools.yaml] |
 | [![Build Kafka]][build_kafka.yaml] | [![Build Krb5]][build_krb5.yaml] | [![Build NiFi]][build_nifi.yaml] | [![Build Omid]][build_omid.yaml] |
-| [![Build OPA]][build_opa.yaml] | [![Build OpenSearch]][build_opensearch.yaml] | [![Build Spark Connect Client]][build_spark-connect-client.yaml] | [![Build Spark K8s]][build_spark-k8s.yaml] |
-| [![Build Stackable Base]][build_stackable-base.yaml] | [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] | [![Build Tools]][build_tools.yaml] |
-| [![Build Trino CLI]][build_trino-cli.yaml] | [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] | [![Build ZooKeeper]][build_zookeeper.yaml] |
+| [![Build OPA]][build_opa.yaml] | [![Build OpenSearch]][build_opensearch.yaml] | [![Build OpenSearch Dashboards]][build_opensearch_dashboards.yaml] | [![Build Spark Connect Client]][build_spark-connect-client.yaml] |
+| [![Build Spark K8s]][build_spark-k8s.yaml] | [![Build Stackable Base]][build_stackable-base.yaml] | [![Build Superset]][build_superset.yaml] | [![Build Testing Tools]][build_testing-tools.yaml] |
+| [![Build Tools]][build_tools.yaml] | [![Build Trino CLI]][build_trino-cli.yaml] | [![Build Trino]][build_trino.yaml] | [![Build Vector]][build_vector.yaml] |
+| [![Build ZooKeeper]][build_zookeeper.yaml] | | | |
 <!-- end:badges -->
 
 ## Prerequisites
 
-* [Stackable Image Tools](https://github.com/stackabletech/image-tools) (`pip install image-tools-stackabletech`)
+* [boil](./rust/boil//README.md) (`cargo boil`)
 * Docker including the [`buildx` plugin](https://github.com/docker/buildx)
 * Optional: [OpenShift preflight tool](https://github.com/redhat-openshift-ecosystem/openshift-preflight) to verify an image for OpenShift
 
-## Build Product Images
+## Build Images
 
-Product images are published to the `oci.stackable.tech` registry under the `sdp` organization by default.
+Images are published to the `oci.stackable.tech` registry under the `sdp` organization by default.
 
-### Build single products locally
+### Build images locally
 
-To build and push product images to the default repository use this command:
+Consult the [boil README](./rust/boil//README.md) which contains a broad selection of different commands to build images locally.
 
-```sh
-bake --product zookeeper --image 0.0.0-dev --push
-```
+### Build images via GitHub Actions
 
-This will build images for Apache ZooKeeper versions as defined in the `conf.py` file, tag them with the `image-version` 0.0.0-dev and push them to the registry.
+There are individual GHA workflows (one for each image) which use a
+[reusable workflow](.github/workflows/reusable_build_image.yaml) to build all specified versions for
+both `amd64` and `arm64`. The workflow is triggered
 
-You can select a specific version of a product to build using the syntax `product=version` e.g. to build Hive 3.1.3 you can use this command:
+* by pushes to `main` to produce `0.0.0-dev` versions of the images,
+* by a regular schedule to rebuild `0.0.0-dev` versions of the images to avoid staleness,
+* by tag pushes to produce (release candidate) images for a particular SDP release,
+* and by manual workflow dispatches.
 
-```sh
-bake --product hive=3.1.3 -i 0.0.0-dev
-```
+## Patch Images
 
-> [!NOTE]
-> `-i` is the shorthand for `--image` (i.e. the resulting image tag)
+Images are patched using `patchable`. Consult the [patchable README](./rust/patchable/README.md) which contains a detailed usage guide.
 
-### Build all products locally
+## Verify Images
 
-To build all products in all versions locally you can use this command
-
-```sh
-bake --image-version 0.0.0-dev
-```
-
-### Build everything in GitHub
-
-The GitHub action called `Build (and optionally publish) 0.0.0-dev images` can be triggered manually to do build all images in all versions.
-When triggered manually it will _not_ push the images to the registry.
-
-## Patches
-
-Many products apply Stackable-specific patches, managed by [Patchable](rust/patchable).
-
-Patchable doesn't _edit_ anything by itself. Instead, it's a uniform way to apply a set of patches
-to an upstream Git repository, and then export your local changes back into patch files.
-
-It doesn't care about how you make your local changes - you can edit the branch created by
-patchable using any Git frontend, such as the git CLI or [jj](https://jj-vcs.github.io/jj/latest/).
-
-This way, the patch files are the global source of truth and track the history of our patch series,
-while you can still use the same familiar Git tools to manipulate them.
-
-### Check out patched sources locally
-
-> [!NOTE]
-> This is not required for building images, but is used for when hacking on or debugging patch series.
+To verify if a container image is compatible with OpenShift, run the following `preflight` command:
 
 ```sh
-# Fetches the upstream repository (if required), and creates a git worktree to work with it
-# It also creates two branches:
-# - patchable/{version} (HEAD, has all patches applied)
-# - patchable/base/{version} (the upstream)
-pushd $(cargo patchable checkout druid 26.0.0)
-
-# Commit to add new patches
-# NOTE: the commit message will be used to construct the patch filename. Spaces
-# will be converted to hyphens automatically.
-git commit
-
-# Rebase against the base commit to edit or remove patches
-git rebase --interactive patchable/base/26.0.0
-# jj edit also works, but make sure to go back to the tip before exporting
-
-# When done, export your patches and commit them (to docker-images)
-popd
-cargo patchable export druid 26.0.0
-git status
-```
-
-> ![CAUTION]
-> `cargo patchable export` exports whatever is currently checked out (`HEAD`) in the worktree.
-> If you use `jj edit` (or `git switch`) then you _must_ go back to the tip before exporting, or
-> any patches after that point will be omitted from the export.
-
-### Initialize a new patch series
-
-Patchable stores metadata about each patch series in its `patchable.toml`, and will not be able to check out
-a patch series that lacks one. It can be generated using `cargo patchable init`:
-
-```sh
-cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
-cargo patchable checkout druid 28.0.0
-```
-
-### Importing patch series into Patchable
-
-Patchable is stricter about applying invalid patches (both metadata and patches themselves) than Git is.
-
-If an initial `cargo patchable checkout` fails then `git am` can be useful for the initial migration:
-
-```sh
-# Create Patchable configuration for the new version, if it doesn't already exist
-cargo patchable init druid 30.0.0 --upstream https://github.com/apache/druid.git --base druid-30.0.0
-# Check out the upstream base commit, without trying to apply the patches
-pushd $(cargo patchable checkout druid 30.0.0 --base-only)
-
-# Apply the patch series
-git am ../../../stackable/patches/30.0.0/*.patch
-# Resolve any conflicts that arise, and `git am --continue` until done
-
-# Leave and export the new patch series!
-popd
-cargo patchable export druid 30.0.0
-```
-
-### Porting patch series to a new version
-
-Patchable doesn't support restoring a patch series that doesn't apply cleanly. Instead, use `git cherry-pick` to rebase the patch series.
-
-For example, let's try rebasing our patch series from Druid 26.0.0 to Druid 28.0.0 (which is not packaged by SDP):
-
-```sh
-# Restore the old version
-# In addition to creating the version worktree, this also creates the branches patchable/26.0.0 (26.0.0 with our patches applied) and
-# patchable/base/26.0.0 (upstream 26.0.0 with no patches).
-cargo patchable checkout druid 26.0.0
-# Tell Patchable about the new version 28.0.0, which can be fetched from https://github.com/apache/druid.git, and has the tag druid-28.0.0
-cargo patchable init druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
-# Create and go to the worktree for the new version
-pushd $(cargo patchable checkout druid 28.0.0)
-
-# Cherry pick the old patch series
-git cherry-pick patchable/base/26.0.0..patchable/26.0.0
-# Solve conflicts and `git cherry-pick --continue` until done
-# You can also use `git cherry-pick --skip` to skip resolving conflicts for patches that are no longer required
-
-# If some patches are no longer required, use an interactive rebase to remove them (or do other cleanup)
-git rebase --interactive patchable/base/28.0.0
-
-# Leave and export the new patch series!
-popd
-cargo patchable export druid 28.0.0
-git status
-```
-
-### Porting patches between versions
-
-Individual patches can also be cherry-picked across versions.
-
-For example, assuming we are in the Druid 28.0.0 workspace and want to port the last patch of the Druid 26.0.0 series:
-
-```sh
-# git cherry-pick <hash> is also fine for grabbing arbitrary patches
-git cherry-pick patchable/26.0.0
-```
-
-## Verify Product Images
-
-To verify if Apache Zookeeper validate against OpenShift preflight, run:
-
-```sh
-check-container --product zookeeper --image 0.0.0-dev
-```
-
-## ubi8-rust-builder / ubi9-rust-builder
-
-These images are meant to be used in multi-stage builds as a base image for projects building Rust projects.
-They are automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
-
-The image will run `cargo build --release` in the current context and copy all binaries to an `/app` directory.
-
-This will bake in the current stable Rust version at the time this image was built, which means it should be rebuilt (and tagged) for every release of Rust.
-
-## Example usage
-
-```dockerfile
-FROM oci.stackable.tech/ubi9-rust-builder AS builder
-
-FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
-LABEL maintainer="Stackable GmbH"
-
-# Update image
-RUN microdnf update \
-  && microdnf install \
-    shadow-utils \
-  && rm -rf /var/cache/yum
-
-COPY --from=builder /app/stackable-zookeeper-operator /
-
-RUN groupadd -g 1000 stackable && adduser -u 1000 -g stackable -c 'Stackable Operator' stackable
-
-USER 1000:1000
-
-ENTRYPOINT ["/stackable-zookeeper-operator"]
+preflight check container oci.stackable.tech/sdp/<IMAGE>:<VERSION>-stackable<RELEASE_VERSION> --platform amd64
 ```
 
 <!-- start:links: autogenerated by .scripts/update_readme_badges.sh -->
@@ -241,6 +80,8 @@ ENTRYPOINT ["/stackable-zookeeper-operator"]
 [build_opa.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_opa.yaml
 [Build OpenSearch]: https://github.com/stackabletech/docker-images/actions/workflows/build_opensearch.yaml/badge.svg
 [build_opensearch.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_opensearch.yaml
+[Build OpenSearch Dashboards]: https://github.com/stackabletech/docker-images/actions/workflows/build_opensearch_dashboards.yaml/badge.svg
+[build_opensearch_dashboards.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_opensearch_dashboards.yaml
 [Build Spark Connect Client]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-connect-client.yaml/badge.svg
 [build_spark-connect-client.yaml]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-connect-client.yaml
 [Build Spark K8s]: https://github.com/stackabletech/docker-images/actions/workflows/build_spark-k8s.yaml/badge.svg

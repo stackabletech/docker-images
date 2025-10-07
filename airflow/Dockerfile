@@ -3,19 +3,19 @@
 # - SecretsUsedInArgOrEnv : OPA_AUTH_MANAGER is a false positive and breaks the build.
 # check=error=true;skip=InvalidDefaultArgInFrom,SecretsUsedInArgOrEnv
 
-ARG GIT_SYNC
+ARG GIT_SYNC_VERSION
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
-FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC} AS gitsync-image
+FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC_VERSION} AS gitsync-image
 
-FROM stackable/image/shared/statsd-exporter AS statsd_exporter-builder
+FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
-FROM stackable/image/vector AS opa-auth-manager-builder
+FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
-ARG PYTHON
-ARG UV
+ARG PYTHON_VERSION
+ARG UV_VERSION
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
@@ -23,10 +23,10 @@ WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
 microdnf update
-microdnf install python${PYTHON}-pip
+microdnf install python${PYTHON_VERSION}-pip
 microdnf clean all
 
-pip${PYTHON} install --no-cache-dir uv==${UV}
+pip${PYTHON_VERSION} install --no-cache-dir uv==${UV_VERSION}
 
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
@@ -39,22 +39,21 @@ EOF
 
 FROM stackable/image/stackable-devel AS airflow-build-image
 
-ARG PRODUCT
-ARG SHARED_STATSD_EXPORTER
-ARG PYTHON
+ARG PRODUCT_VERSION
+ARG SHARED_STATSD_EXPORTER_VERSION
+ARG PYTHON_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
-ARG S3FS
-ARG CYCLONEDX_BOM
-ARG UV
-ARG EXTRAS
 ARG NODEJS
+ARG S3FS_VERSION
+ARG CYCLONEDX_BOM_VERSION
+ARG UV_VERSION
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
-ENV AIRFLOW_EXTRAS=${EXTRAS}
+ARG AIRFLOW_EXTRAS
 
 RUN microdnf module enable -y nodejs:${NODEJS} && \
     microdnf update && \
@@ -69,10 +68,10 @@ RUN microdnf module enable -y nodejs:${NODEJS} && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python${PYTHON} \
-        python${PYTHON}-devel \
-        python${PYTHON}-pip \
-        python${PYTHON}-wheel \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-devel \
+        python${PYTHON_VERSION}-pip \
+        python${PYTHON_VERSION}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
         # Needed for Airflow UI assets
@@ -83,27 +82,27 @@ RUN microdnf module enable -y nodejs:${NODEJS} && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
-COPY airflow/stackable/constraints/${PRODUCT}/constraints-python${PYTHON}.txt /tmp/constraints.txt
-COPY airflow/stackable/constraints/${PRODUCT}/build-constraints-python${PYTHON}.txt /tmp/build-constraints.txt
+COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
+COPY airflow/stackable/constraints/${PRODUCT_VERSION}/build-constraints-python${PYTHON_VERSION}.txt /tmp/build-constraints.txt
 COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager-0.1.0-py3-none-any.whl /tmp/
 
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/patchable.toml /stackable/src/airflow/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT} /stackable/src/airflow/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT_VERSION} /stackable/src/airflow/stackable/patches/${PRODUCT_VERSION}
 
 WORKDIR /stackable
 
 RUN <<EOF
-python${PYTHON} -m venv --system-site-packages /stackable/app
+python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
 
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
 pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir uv==${UV}
+pip install --no-cache-dir uv==${UV_VERSION}
 uv tool install hatch
 
-cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT})/airflow-core"
+cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})/airflow-core"
 
 # build front-end assets
 cd src/airflow/ui
@@ -116,10 +115,10 @@ pnpm run build
 cd ../../../..
 /root/.local/bin/hatch build -t wheel
 
-uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-uv pip install --no-cache-dir s3fs==${S3FS} cyclonedx-bom==${CYCLONEDX_BOM}
+uv pip install --no-cache-dir s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
 # Needed for OIDC
 uv pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 
@@ -131,14 +130,14 @@ cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
 
 # Break circular dependencies by removing the apache-airflow dependency from the providers
 jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
-    .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT}'"))
+    .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
 else
     .
-end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT}.cdx.json
+end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
 EOF
 
 COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER}.cdx.json
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
 COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 RUN <<EOF
@@ -149,20 +148,20 @@ chmod --recursive g=u /stackable
 EOF
 
 
-FROM stackable/image/vector AS airflow-main-image
+FROM local-image/vector AS airflow-main-image
 
-ARG PRODUCT
-ARG PYTHON
-ARG RELEASE
-ARG TINI
+ARG PRODUCT_VERSION
+ARG PYTHON_VERSION
+ARG RELEASE_VERSION
+ARG TINI_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
     maintainer="info@stackable.tech" \
     vendor="Stackable GmbH" \
-    version="${PRODUCT}" \
-    release="${RELEASE}" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
     summary="The Stackable image for Apache Airflow." \
     description="This image is deployed by the Stackable Operator for Apache Airflow."
 
@@ -197,7 +196,7 @@ microdnf install \
   openssh-clients \
   openssl-libs \
   openssl-pkcs11 \
-  python${PYTHON} \
+  python${PYTHON_VERSION} \
   socat \
   unixODBC
 microdnf clean all
@@ -205,7 +204,7 @@ rm -rf /var/cache/yum
 
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
-curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI}-${TARGETARCH}"
+curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}"
 
 # fix missing permissions
 chmod a+x /entrypoint.sh

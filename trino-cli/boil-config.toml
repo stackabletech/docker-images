@@ -1,0 +1,2 @@
+[versions."477".local-images]
+java-base = "24"

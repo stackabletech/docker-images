@@ -1,0 +1,2 @@
+[versions."0.2.0".build-arguments]
+keycloak-version = "26.3.5"

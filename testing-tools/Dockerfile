@@ -5,10 +5,10 @@
 # https://hub.docker.com/_/python/tags
 # In Docker Hub, open up the tag and look for Index Digest. Otherwise do:
 # docker pull python:3.12-slim-bullseye and see the digest that appears in the output.
-FROM python:3.12-slim-bullseye@sha256:f6d639b794b394cbeb7a9327d5af9976f0e8d61353bcf41916984775c9bbed1a
+FROM python:3.12-slim-bullseye@sha256:411fa4dcfdce7e7a3057c45662beba9dcd4fa36b2e50a2bfcd6c9333e59bf0db
 
-ARG PRODUCT
-ARG RELEASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
 ARG KEYCLOAK_VERSION
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
@@ -17,8 +17,8 @@ ARG STACKABLE_USER_NAME
 LABEL name="Stackable Testing Tools" \
       maintainer="info@stackable.tech" \
       vendor="Stackable GmbH" \
-      version="${PRODUCT}" \
-      release="${RELEASE}" \
+      version="${PRODUCT_VERSION}" \
+      release="${RELEASE_VERSION}" \
       summary="Stackable tools for integration tests." \
       description="Used by Stackable integration tests."
 
@@ -87,6 +87,6 @@ ENV PATH=/stackable/keycloak/bin:$PATH
 
 USER ${STACKABLE_USER_UID}
 
-ENV STACKABLE_PRODUCT_VERSION=${PRODUCT}
+ENV STACKABLE_PRODUCT_VERSION=${PRODUCT_VERSION}
 
 WORKDIR /stackable
