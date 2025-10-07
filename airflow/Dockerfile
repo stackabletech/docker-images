@@ -37,14 +37,14 @@ uv run pytest --disable-warnings
 uv build
 EOF
 
-FROM stackable/image/stackable-devel AS airflow-build-image
+FROM local-image/stackable-devel AS airflow-build-image
 
 ARG PRODUCT_VERSION
 ARG SHARED_STATSD_EXPORTER_VERSION
 ARG PYTHON_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
-ARG NODEJS
+ARG NODEJS_VERSION
 ARG S3FS_VERSION
 ARG CYCLONEDX_BOM_VERSION
 ARG UV_VERSION
@@ -55,7 +55,7 @@ ARG UV_VERSION
 # Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
 ARG AIRFLOW_EXTRAS
 
-RUN microdnf module enable -y nodejs:${NODEJS} && \
+RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
     microdnf update && \
     microdnf install \
         cyrus-sasl-devel \
