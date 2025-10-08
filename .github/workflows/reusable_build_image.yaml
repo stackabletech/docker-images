@@ -39,10 +39,10 @@ jobs:
           RUNNERS_TYPE: ${{ inputs.runners }}
         run: |
           if [ "$RUNNERS_TYPE" == "mixed" ]; then
-            RUNNERS=$(cat .github/workflows/runners/mixed.json | jq --compact-output)
+            RUNNERS=$(jq --compact-output < .github/workflows/runners/mixed.json)
             echo "RUNNERS=$RUNNERS" | tee -a "$GITHUB_OUTPUT"
           elif [ "$RUNNERS_TYPE" == "ubicloud" ]; then
-            RUNNERS=$(cat .github/workflows/runners/ubicloud.json | jq --compact-output)
+            RUNNERS=$(jq --compact-output < .github/workflows/runners/ubicloud.json)
             echo "RUNNERS=$RUNNERS" | tee -a "$GITHUB_OUTPUT"
           else
             echo "Invalid runners type, expected 'mixed' or 'ubicloud'"
