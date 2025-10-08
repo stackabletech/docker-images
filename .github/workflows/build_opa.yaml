@@ -6,7 +6,7 @@ run-name: |
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 2 1/2 * *' # https://crontab.guru/#0_2_1/2_*_*
+    - cron: "0 2 1/2 * *" # https://crontab.guru/#0_2_1/2_*_*
   push:
     branches: [main]
     tags:
@@ -33,3 +33,4 @@ jobs:
       product-name: opa
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
+      runners: ubicloud
