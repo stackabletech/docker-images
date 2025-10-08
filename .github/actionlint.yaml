@@ -2,4 +2,5 @@
 self-hosted-runner:
   # Ubicloud machines we are using
   labels:
-    - ubicloud-standard-8-arm
+    - ubicloud-standard-8-arm-ubuntu-2404
+    - ubicloud-standard-8-ubuntu-2404
