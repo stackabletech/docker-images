@@ -25,6 +25,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/bin/hb
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/conf/log4j2-hbck.properties /tmp/log4j2-hbck.properties
 
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
@@ -84,6 +85,10 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.cache/*
 fi
 
+mkdir -p /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}/conf
+mv /tmp/log4j2-hbck.properties /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}/conf/log4j2-hbck.properties
+
 # set correct groups
 chmod --recursive g=u /stackable
 EOF
+
