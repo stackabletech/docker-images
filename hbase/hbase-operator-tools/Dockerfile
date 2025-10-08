@@ -21,7 +21,7 @@ ARG DELETE_CACHES="true"
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbck2.env /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/bin/hbck2.env /stackable/bin/
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
