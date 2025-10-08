@@ -102,18 +102,33 @@ pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir uv==${UV_VERSION}
 uv tool install hatch
 
-cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})/airflow-core"
+cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})"
 
-# build front-end assets
-cd src/airflow/ui
-npm install -g pnpm
-pnpm install --frozen-lockfile
-pnpm run build
+# Detect if we're in a monorepo structure (Airflow 3.x) or traditional structure (Airflow 2.x)
+if [ -d "./airflow-core" ]; then
+  cd airflow-core/src/airflow/ui
 
-# build airflow wheel from airflow root folder
-# this picks up the UI assets from the pnpm build, and the dependencies from the root folder
-cd ../../../..
-/root/.local/bin/hatch build -t wheel
+  # build front-end assets
+  npm install -g pnpm
+  pnpm install --frozen-lockfile
+  pnpm run build
+
+  # build airflow wheel from airflow root folder
+  # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
+  cd ../../../..
+  /root/.local/bin/hatch build -t wheel
+else
+  # build front-end assets
+  # Airflow 2.x uses yarn instead of pnpm
+  cd airflow/www
+  npm install -g yarn
+  yarn install --frozen-lockfile
+  yarn run build
+
+  # build airflow wheel from airflow root folder
+  cd ../..
+  /root/.local/bin/hatch build -t wheel
+fi
 
 uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
