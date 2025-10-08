@@ -91,4 +91,3 @@ mv /tmp/log4j2-hbck.properties /stackable/hbase-operator-tools-${FULL_HBASE_OPER
 # set correct groups
 chmod --recursive g=u /stackable
 EOF
-
