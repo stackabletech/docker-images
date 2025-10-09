@@ -1,0 +1,10 @@
+[
+  {
+    "name": "ubicloud-standard-8-ubuntu-2404",
+    "arch": "amd64"
+  },
+  {
+    "name": "ubicloud-standard-8-arm-ubuntu-2404",
+    "arch": "arm64"
+  }
+]
