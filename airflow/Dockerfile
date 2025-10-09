@@ -40,7 +40,6 @@ EOF
 FROM local-image/stackable-devel AS airflow-build-image
 
 ARG PRODUCT_VERSION
-ARG SHARED_STATSD_EXPORTER_VERSION
 ARG PYTHON_VERSION
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
@@ -104,8 +103,8 @@ uv tool install hatch
 
 cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})"
 
-# Detect if we're in a monorepo structure (Airflow 3.x) or traditional structure (Airflow 2.x)
 if [ -d "./airflow-core" ]; then
+  # Airflow 3.x
   cd airflow-core/src/airflow/ui
 
   # build front-end assets
@@ -115,11 +114,15 @@ if [ -d "./airflow-core" ]; then
 
   # build airflow wheel from airflow root folder
   # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
-  cd ../../../..
+  cd ../../..
   /root/.local/bin/hatch build -t wheel
+  # First install the full apache-airflow package to get all dependencies including database drivers
+  uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  # Then install the locally built core wheel to override the core package
+  uv pip install --no-cache-dir dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 else
+  # Airflow 2.x
   # build front-end assets
-  # Airflow 2.x uses yarn instead of pnpm
   cd airflow/www
   npm install -g yarn
   yarn install --frozen-lockfile
@@ -128,9 +131,11 @@ else
   # build airflow wheel from airflow root folder
   cd ../..
   /root/.local/bin/hatch build -t wheel
+  # First install the full apache-airflow package to get all dependencies including database drivers
+  uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  # Then install the locally built wheel to override with patched version
+  uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 fi
-
-uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 uv pip install --no-cache-dir s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
@@ -151,10 +156,6 @@ else
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
 EOF
 
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
-COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
-
 RUN <<EOF
 mkdir -pv /stackable/airflow
 mkdir -pv /stackable/airflow/dags
@@ -170,6 +171,7 @@ ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG TINI_VERSION
 ARG TARGETARCH
+ARG SHARED_STATSD_EXPORTER_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Airflow" \
@@ -186,10 +188,13 @@ ENV PATH=$PATH:/bin:$HOME/app/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
-COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/git-sync ${HOME}/git-sync
 
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
+
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
 
 COPY airflow/licenses /licenses
 
@@ -225,6 +230,7 @@ curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini
 chmod a+x /entrypoint.sh
 chmod a+x /run-airflow.sh
 chmod +x /usr/bin/tini
+chmod g=u /stackable/statsd_exporter /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/git-sync
 EOF
 
 # ----------------------------------------
