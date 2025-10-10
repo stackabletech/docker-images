@@ -182,6 +182,12 @@ pub struct ImageOptions {
     // suffixed with _VERSION.
     #[serde(default)]
     pub build_arguments: BuildArguments,
+
+    /// A custom path to a Containerfile for a particular version of an image.
+    ///
+    /// This is usefull for cases where the same image is being built differently depending on it's
+    /// version and it is too difficult/messy to do it the same Containerfile.
+    pub containerfile: Option<PathBuf>,
 }
 
 #[derive(Debug)]
