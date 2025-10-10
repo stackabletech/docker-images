@@ -57,8 +57,8 @@ pub enum Error {
     #[snafu(display("failed to parse build arguments"))]
     ParseBuildArguments { source: ParseBuildArgumentsError },
 
-    #[snafu(display("failed to locate containerfile relative to the image folder"))]
-    NoSuchContainerfileExists,
+    #[snafu(display("failed to locate containerfile relative to the {path:?} directory"))]
+    NoSuchContainerfileExists { path: String },
 }
 
 #[derive(Debug, Snafu)]
@@ -341,14 +341,14 @@ impl Bakefile {
                 let containerfile_path = if let Some(custom_path) = &image_options.containerfile {
                     ensure!(
                         image_dir.exists(custom_path),
-                        NoSuchContainerfileExistsSnafu
+                        NoSuchContainerfileExistsSnafu { path: image_name }
                     );
 
                     PathBuf::new().join(&image_name).join(custom_path)
                 } else {
                     ensure!(
                         image_dir.exists(&args.target_containerfile),
-                        NoSuchContainerfileExistsSnafu
+                        NoSuchContainerfileExistsSnafu { path: image_name }
                     );
 
                     PathBuf::new()
