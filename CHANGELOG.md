@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
 - hbase: Add `2.6.3` ([#1296]).
+- airflow,superset: Build from source ([#1304]).
 
 ### Changed
 
@@ -93,6 +94,7 @@ All notable changes to this project will be documented in this file.
 [#1296]: https://github.com/stackabletech/docker-images/pull/1296
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
+[#1304]: https://github.com/stackabletech/docker-images/pull/1304
 
 ## [25.7.0] - 2025-07-23
 
