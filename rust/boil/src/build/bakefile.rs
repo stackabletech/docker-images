@@ -5,6 +5,7 @@ use std::{
     path::PathBuf,
 };
 
+use cap_std::{ambient_authority, fs::Dir};
 use glob::glob;
 use oci_spec::image::{
     ANNOTATION_AUTHORS, ANNOTATION_CREATED, ANNOTATION_DOCUMENTATION, ANNOTATION_LICENSES,
@@ -12,7 +13,7 @@ use oci_spec::image::{
 };
 use semver::Version;
 use serde::Serialize;
-use snafu::{OptionExt, ResultExt, Snafu};
+use snafu::{OptionExt, ResultExt, Snafu, ensure};
 use time::format_description::well_known::Rfc3339;
 
 use crate::{
@@ -55,6 +56,9 @@ pub enum Error {
 
     #[snafu(display("failed to parse build arguments"))]
     ParseBuildArguments { source: ParseBuildArgumentsError },
+
+    #[snafu(display("failed to locate containerfile relative to the {path:?} directory"))]
+    NoSuchContainerfileExists { path: String },
 }
 
 #[derive(Debug, Snafu)]
@@ -329,9 +333,28 @@ impl Bakefile {
                     args.strip_architecture,
                 );
 
-                let dockerfile = PathBuf::new()
-                    .join(&image_name)
-                    .join(&args.target_containerfile);
+                // By using a cap-std Dir, we can ensure that the paths provided must be relative to
+                // the appropriate image folder and wont escape it by providing absolute or relative
+                // paths with traversals (..).
+                let image_dir = Dir::open_ambient_dir(&image_name, ambient_authority()).unwrap();
+
+                let dockerfile_path = if let Some(custom_path) = &image_options.dockerfile {
+                    ensure!(
+                        image_dir.exists(custom_path),
+                        NoSuchContainerfileExistsSnafu { path: image_name }
+                    );
+
+                    PathBuf::new().join(&image_name).join(custom_path)
+                } else {
+                    ensure!(
+                        image_dir.exists(&args.target_containerfile),
+                        NoSuchContainerfileExistsSnafu { path: image_name }
+                    );
+
+                    PathBuf::new()
+                        .join(&image_name)
+                        .join(&args.target_containerfile)
+                };
 
                 let target_name = if is_entry {
                     Self::format_entry_target_name(&image_name, &image_version)
@@ -359,7 +382,7 @@ impl Bakefile {
                     platforms: vec![args.target_platform.clone()],
                     // NOTE (@Techassi): Should this instead be scoped to the folder of the image we build
                     context: Some(PathBuf::from(".")),
-                    dockerfile: Some(dockerfile),
+                    dockerfile: Some(dockerfile_path),
                     inherits: vec![COMMON_TARGET_NAME.to_owned()],
                     annotations,
                     contexts,
