@@ -10,19 +10,25 @@ All notable changes to this project will be documented in this file.
 
 - Support Containerfiles per version ([#1302](https://github.com/stackabletech/docker-images/pull/1302)).
 
-## [[0.1.4](https://github.com/stackabletech/docker-images/compare/boil-0.1.3..boil-0.1.4)] - 2025-09-30
+## [0.1.4] - 2025-09-30
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.3..boil-0.1.4)
 
 ### Bug Fixes
 
 - Revert accidental default registry change from #1281 ([#1288](https://github.com/stackabletech/docker-images/pull/1288)).
 
-## [[0.1.3](https://github.com/stackabletech/docker-images/compare/boil-0.1.2..boil-0.1.3)] - 2025-09-29
+## [0.1.3] - 2025-09-29
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.2..boil-0.1.3)
 
 ### Features
 
 - Add support for port in registry host ([#1281](https://github.com/stackabletech/docker-images/pull/1281)).
 
-## [[0.1.2](https://github.com/stackabletech/docker-images/compare/boil-0.1.1..boil-0.1.2)] - 2025-09-18
+## [0.1.2] - 2025-09-18
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.1..boil-0.1.2)
 
 ### Features
 
