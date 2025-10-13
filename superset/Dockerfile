@@ -3,7 +3,7 @@
 
 FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
-FROM local-image/stackable-base AS opa-authorizer-builder
+FROM local-image/stackable-devel AS opa-authorizer-builder
 
 ARG PYTHON_VERSION
 
@@ -33,7 +33,7 @@ poetry run pytest
 poetry build
 EOF
 
-FROM local-image/vector AS builder
+FROM local-image/stackable-devel AS builder
 
 ARG PRODUCT_VERSION
 ARG SHARED_STATSD_EXPORTER_VERSION
@@ -43,8 +43,11 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
 ARG UV_VERSION
+ARG NODEJS_VERSION
+ARG STACKABLE_USER_UID
 
-RUN microdnf update \
+RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
+    microdnf update \
     && microdnf install \
         cyrus-sasl-devel \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
@@ -64,6 +67,9 @@ RUN microdnf update \
         python${PYTHON_VERSION}-pip \
         python${PYTHON_VERSION}-wheel \
         libpq-devel \
+        # Needed to build Superset UI assets
+        npm \
+        nodejs \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -71,62 +77,86 @@ COPY superset/stackable/constraints/${PRODUCT_VERSION}/constraints.txt /tmp/cons
 COPY superset/stackable/constraints/${PRODUCT_VERSION}/build-constraints.txt /tmp/build-constraints.txt
 COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
 
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
+
+COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/patchable.toml /stackable/src/superset/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSION} /stackable/src/superset/stackable/patches/${PRODUCT_VERSION}
+
+WORKDIR /stackable
+
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
 # DL3042 false-positive, --no-chache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
-RUN python3 -m venv /stackable/app \
-    && source /stackable/app/bin/activate \
-    && pip install \
-        --no-cache-dir \
-        --upgrade \
-        setuptools==75.2.0 \
-        pip \
-        uv==${UV_VERSION} \
-    && uv pip install \
-        --no-cache-dir \
-        --upgrade \
-        --constraints /tmp/constraints.txt \
-        --build-constraints /tmp/build-constraints.txt \
-        apache-superset==${PRODUCT_VERSION} \
-        gevent \
-        psycopg2-binary \
-        statsd \
-        pydruid \
-        python-ldap \
-        'trino[sqlalchemy]' \
-        # Add optional dependencies for use in custom Superset configurations.
-        # Since https://github.com/stackabletech/superset-operator/pull/530
-        # admins can add custom configuration to superset_conf.py.
-        Flask_OIDC==2.2.0 \
-        Flask-OpenID==1.3.1 \
-        # Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
-        # Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
-        # by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
-        # That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
-        tzdata \
-    # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
-    # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
-    # We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
-    && if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; \
-        then echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135" \
-        && uv pip install gunicorn==22.0.0; \
-    fi \
-    && uv pip install \
-        --no-cache-dir \
-        --upgrade \
-        python-json-logger \
-        cyclonedx-bom==${CYCLONEDX_BOM_VERSION} \
-    && if [ -n "$AUTHLIB_VERSION" ]; then pip install Authlib==${AUTHLIB_VERSION}; fi && \
-    uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
-
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
-
 RUN <<EOF
-cd /stackable
-source /stackable/app/bin/activate && cyclonedx-py environment --schema-version 1.5 --outfile app/superset-${PRODUCT_VERSION}.cdx.json
+python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
+
+source /stackable/app/bin/activate
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
+pip install --no-cache-dir --upgrade pip setuptools==75.2.0 uv==${UV_VERSION}
+
+cd "$(/stackable/patchable --images-repo-root=src checkout superset ${PRODUCT_VERSION})"
+
+# Build front-end assets
+cd superset-frontend
+
+npm ci
+npm run build
+
+# Install build to properly handle pyproject.toml
+uv pip install --no-cache-dir build
+
+# Build superset wheel from superset root folder
+# This picks up the UI assets from the npm build
+cd ..
+python${PYTHON_VERSION} -m build --wheel
+
+uv pip install --no-cache-dir dist/apache_superset-${PRODUCT_VERSION}-py3-none-any.whl --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+
+# Install additional dependencies
+# Add optional dependencies for use in custom Superset configurations.
+# Since https://github.com/stackabletech/superset-operator/pull/530
+# admins can add custom configuration to superset_conf.py.
+# Redhat has removed `tzdata` from the ubi-minimal images: see https://bugzilla.redhat.com/show_bug.cgi?id=2223028.
+# Superset relies on ZoneInfo (https://docs.python.org/3/library/zoneinfo.html#data-sources) to resolve time zones, and this is done
+# by searching first under `TZPATH` (which is empty due to the point above) or for the tzdata python package.
+# That package is therefore added here (airflow has tzdata in its list of dependencies, but superset does not).
+uv pip install --no-cache-dir \
+    gevent \
+    psycopg2-binary \
+    statsd \
+    pydruid \
+    python-ldap \
+    'trino[sqlalchemy]' \
+    Flask_OIDC==2.2.0 \
+    Flask-OpenID==1.3.1 \
+    tzdata
+
+# We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
+# Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
+# We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
+if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
+    echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135"
+    uv pip install gunicorn==22.0.0
+fi
+
+uv pip install --no-cache-dir \
+    python-json-logger \
+    cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+
+if [ -n "$AUTHLIB_VERSION" ]; then
+    pip install Authlib==${AUTHLIB_VERSION}
+fi
+
+uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
+
+cyclonedx-py environment --schema-version 1.5 --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
+uv pip uninstall cyclonedx-bom
+
 chmod --recursive g=u /stackable
 EOF
 
