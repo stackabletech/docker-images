@@ -338,7 +338,7 @@ impl Bakefile {
                 // paths with traversals (..).
                 let image_dir = Dir::open_ambient_dir(&image_name, ambient_authority()).unwrap();
 
-                let containerfile_path = if let Some(custom_path) = &image_options.containerfile {
+                let dockerfile_path = if let Some(custom_path) = &image_options.dockerfile {
                     ensure!(
                         image_dir.exists(custom_path),
                         NoSuchContainerfileExistsSnafu { path: image_name }
@@ -382,7 +382,7 @@ impl Bakefile {
                     platforms: vec![args.target_platform.clone()],
                     // NOTE (@Techassi): Should this instead be scoped to the folder of the image we build
                     context: Some(PathBuf::from(".")),
-                    dockerfile: Some(containerfile_path),
+                    dockerfile: Some(dockerfile_path),
                     inherits: vec![COMMON_TARGET_NAME.to_owned()],
                     annotations,
                     contexts,
