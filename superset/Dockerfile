@@ -36,7 +36,6 @@ EOF
 FROM local-image/stackable-devel AS builder
 
 ARG PRODUCT_VERSION
-ARG SHARED_STATSD_EXPORTER_VERSION
 ARG PYTHON_VERSION
 ARG AUTHLIB_VERSION
 ARG TARGETARCH
@@ -76,9 +75,6 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
 COPY superset/stackable/constraints/${PRODUCT_VERSION}/constraints.txt /tmp/constraints.txt
 COPY superset/stackable/constraints/${PRODUCT_VERSION}/build-constraints.txt /tmp/build-constraints.txt
 COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
-
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
 
 COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/patchable.toml /stackable/src/superset/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSION} /stackable/src/superset/stackable/patches/${PRODUCT_VERSION}
@@ -167,6 +163,7 @@ ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG SHARED_STATSD_EXPORTER_VERSION
 
 LABEL name="Apache Superset" \
     maintainer="info@stackable.tech" \
@@ -187,6 +184,9 @@ COPY superset/licenses /licenses
 
 COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter /stackable/statsd_exporter
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
+
 RUN <<EOF
 microdnf update
 microdnf install \
@@ -199,6 +199,8 @@ microdnf install \
 
 microdnf clean all
 rm -rf /var/cache/yum
+
+chmod g=u /stackable/statsd_exporter /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
 EOF
 
 # ----------------------------------------
