@@ -8,6 +8,7 @@ authors = ["Stackable <info@stackable.tech>"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
+cap-std = "3.4.4"
 clap = { version = "4.5.41", features = ["derive"] }
 clap_complete = "4.5.55"
 clap_complete_nushell = "4.5.8"

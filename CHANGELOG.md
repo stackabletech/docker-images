@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.8.0` ([#1279]).
 - spark: Add `3.5.7` ([#1280]).
 - spark-connect-client: Add `3.5.7` ([#1280]).
-- superset: Add `4.1.4`  ([#1284]).
+- superset: Add `4.1.4` ([#1284]).
 - spark: Add `4.0.1` ([#1286]).
 - spark-connect-client: Add `4.0.1` ([#1286]).
 - trino/trino-storage-connector: Add `477` ([#1285]).
@@ -43,6 +43,8 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
+- hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
+- hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 
 ### Removed
 
@@ -89,6 +91,8 @@ All notable changes to this project will be documented in this file.
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
 [#1296]: https://github.com/stackabletech/docker-images/pull/1296
+[#1300]: https://github.com/stackabletech/docker-images/pull/1300
+[#1301]: https://github.com/stackabletech/docker-images/pull/1301
 
 ## [25.7.0] - 2025-07-23
 

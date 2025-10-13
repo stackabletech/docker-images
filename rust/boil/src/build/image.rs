@@ -182,6 +182,13 @@ pub struct ImageOptions {
     // suffixed with _VERSION.
     #[serde(default)]
     pub build_arguments: BuildArguments,
+
+    /// A custom path to a Dockerfile/Containerfile for a particular version of an image.
+    ///
+    /// This is usefull for cases where the same image is being built differently depending on it's
+    /// version and it is too difficult/messy to do it the same Dockerfile/Containerfile.
+    #[serde(alias = "containerfile")]
+    pub dockerfile: Option<PathBuf>,
 }
 
 #[derive(Debug)]
