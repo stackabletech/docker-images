@@ -108,7 +108,7 @@ if [ -d "./airflow-core" ]; then
   cd airflow-core/src/airflow/ui
 
   # build front-end assets
-  npm install -g pnpm
+  npm install -g pnpm@10.18.2
   pnpm install --frozen-lockfile
   pnpm run build
 
@@ -124,7 +124,7 @@ else
   # Airflow 2.x
   # build front-end assets
   cd airflow/www
-  npm install -g yarn
+  npm install -g yarn@1.22.22
   yarn install --frozen-lockfile
   yarn run build
 
