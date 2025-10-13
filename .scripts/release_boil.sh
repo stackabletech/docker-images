@@ -8,11 +8,30 @@ CLEANED_BUMPED_VERSION=${BUMPED_VERSION#boil-}
 
 RELEASE_BRANCH="chore/boil-release-$CLEANED_BUMPED_VERSION"
 
-# echo "Checking if working directory is clean"
+echo "Checking if working directory is clean"
 if ! git diff-index --quiet HEAD --; then
   echo "Working directory is dirty, aborting" >&2
   exit 1
 fi
+
+# Prompt the user to confirm their Git identity used to create the commit
+GIT_EMAIL=$(git config --includes --get user.email)
+GIT_USER=$(git config --includes --get user.name)
+
+echo "The following Git user will be used: $GIT_USER <$GIT_EMAIL>"
+echo "Is this correct (Y/n)?"
+read -r RESPONSE
+
+if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" || -z "$RESPONSE" ]]; then
+  echo "Proceeding with $GIT_USER <$GIT_EMAIL>"
+else
+  >&2 echo "User not accepted. Exiting."
+  exit 1
+fi
+
+# Check dependencies
+gh auth status
+git-cliff --version
 
 # Switch to main branch after we validated that the working directory is clean
 git switch main
