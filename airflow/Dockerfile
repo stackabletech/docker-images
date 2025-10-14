@@ -193,9 +193,9 @@ COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HO
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/entrypoint.sh /entrypoint.sh
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/utils/run-airflow.sh /run-airflow.sh
 
-COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter /stackable/statsd_exporter
-COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
-COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync /stackable/git-sync
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter ${HOME}/statsd_exporter
+COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json ${HOME}/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
+COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync ${HOME}/git-sync
 
 COPY airflow/licenses /licenses
 
@@ -231,7 +231,7 @@ curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini
 chmod a+x /entrypoint.sh
 chmod a+x /run-airflow.sh
 chmod +x /usr/bin/tini
-chmod g=u /stackable/statsd_exporter /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/git-sync
+chmod g=u /stackable/statsd_exporter ${HOME}/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json ${HOME}/git-sync
 EOF
 
 # ----------------------------------------
