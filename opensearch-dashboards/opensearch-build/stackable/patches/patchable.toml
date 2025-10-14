@@ -1,0 +1,2 @@
+upstream = "https://github.com/opensearch-project/opensearch-build"
+default-mirror = "https://github.com/stackabletech/opensearch-build"

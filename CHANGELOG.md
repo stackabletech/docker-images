@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
 - opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
+- opensearch-dashboards: Add an image for Opensearch Dashboards with version `3.1.0` ([#1248]).
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
 - kafka: Add jackson xml dataformat for Kafka 4.0.0 ([#1262]).
@@ -20,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.8.0` ([#1279]).
 - spark: Add `3.5.7` ([#1280]).
 - spark-connect-client: Add `3.5.7` ([#1280]).
-- superset: Add `4.1.4`  ([#1284]).
+- superset: Add `4.1.4` ([#1284]).
 - spark: Add `4.0.1` ([#1286]).
 - spark-connect-client: Add `4.0.1` ([#1286]).
 - trino/trino-storage-connector: Add `477` ([#1285]).
@@ -29,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
 - hive: Add `4.1.0` ([#1295]).
+- hbase: Add `2.6.3` ([#1296]).
 
 ### Changed
 
@@ -42,6 +44,8 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
+- hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
+- hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 
 ### Removed
 
@@ -56,6 +60,7 @@ All notable changes to this project will be documented in this file.
 - spark: Remove `4.0.0` ([#1286]).
 - spark-connect-client: Remove `4.0.0` ([#1286]).
 - trino/trino-storage-conector: Remove `470` ([#1285]).
+- hbase: Remove `2.6.1` ([#1296]).
 
 [#1207]: https://github.com/stackabletech/docker-images/pull/1207
 [#1215]: https://github.com/stackabletech/docker-images/pull/1215
@@ -67,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#1228]: https://github.com/stackabletech/docker-images/pull/1228
 [#1230]: https://github.com/stackabletech/docker-images/pull/1230
 [#1247]: https://github.com/stackabletech/docker-images/pull/1247
+[#1248]: https://github.com/stackabletech/docker-images/pull/1248
 [#1253]: https://github.com/stackabletech/docker-images/pull/1253
 [#1258]: https://github.com/stackabletech/docker-images/pull/1258
 [#1262]: https://github.com/stackabletech/docker-images/pull/1262
@@ -86,6 +92,9 @@ All notable changes to this project will be documented in this file.
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
 [#1295]: https://github.com/stackabletech/docker-images/pull/1295
+[#1296]: https://github.com/stackabletech/docker-images/pull/1296
+[#1300]: https://github.com/stackabletech/docker-images/pull/1300
+[#1301]: https://github.com/stackabletech/docker-images/pull/1301
 
 ## [25.7.0] - 2025-07-23
 

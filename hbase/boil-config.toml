@@ -1,16 +1,3 @@
-[versions."2.6.1".local-images]
-"hbase/hbase" = "2.6.1"
-"hbase/hbase-operator-tools" = "1.3.0-fd5a5fb-hbase2.6.1"
-"hbase/phoenix" = "5.2.1-hbase2.6.1"
-"hbase/hbase-opa-authorizer" = "0.1.0" # only for HBase 2.6.1
-"hadoop/hadoop" = "3.3.6"
-java-base = "11"
-java-devel = "11"
-
-[versions."2.6.1".build-arguments]
-hbase-profile = "2.6"
-delete-caches = "true"
-
 [versions."2.6.2".local-images]
 "hbase/hbase" = "2.6.2"
 "hbase/hbase-operator-tools" = "1.3.0-fd5a5fb-hbase2.6.2"
@@ -21,5 +8,18 @@ java-base = "11"
 java-devel = "11"
 
 [versions."2.6.2".build-arguments]
+hbase-profile = "2.6"
+delete-caches = "true"
+
+[versions."2.6.3".local-images]
+"hbase/hbase" = "2.6.3"
+"hbase/hbase-operator-tools" = "1.3.0-fd5a5fb-hbase2.6.3"
+"hbase/phoenix" = "5.2.1-hbase2.6.3"
+"hbase/hbase-opa-authorizer" = "0.1.0" # only for HBase 2.6.1
+"hadoop/hadoop" = "3.4.2"
+java-base = "11"
+java-devel = "11"
+
+[versions."2.6.3".build-arguments]
 hbase-profile = "2.6"
 delete-caches = "true"
