@@ -55,17 +55,18 @@ if git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-git add rust/boil/CHANGELOG.md rust/boil/Cargo.toml
+git add rust/boil/CHANGELOG.md rust/boil/Cargo.*
 git commit --message "chore(boil): Release $CLEANED_BUMPED_VERSION" --no-verify --gpg-sign
 
 echo "Pushing changes and raising PR"
 CHANGELOG_SUMMARY=$(git-cliff --config rust/boil/cliff.toml --tag "$BUMPED_VERSION" --strip header --unreleased)
-PR_BODY="This PR was raised automatically by a release script. It releases $BUMPED_VERSION:\n\n$CHANGELOG_SUMMARY)"
+PR_BODY=$(mktemp)
+echo -e "This PR was raised automatically by a release script. It releases $BUMPED_VERSION:\n$CHANGELOG_SUMMARY" > "$PR_BODY"
 
 git push --set-upstream origin "$RELEASE_BRANCH"
 gh pr create --base main \
   --title "chore(boil): Release $CLEANED_BUMPED_VERSION" \
-  --body "$PR_BODY" \
+  --body-file "$PR_BODY" \
   --assignee "@me" \
   --draft
 
