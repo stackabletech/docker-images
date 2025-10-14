@@ -23,13 +23,13 @@ sort_commits = "newest"
 filter_commits = true
 
 commit_parsers = [
+  { message = "^chore\\(boil\\): Release", skip = true },
   { message = "^feat\\(boil\\)", group = "<!-- 0 --> Features" },
   { message = "^fix\\(boil\\)", group = "<!-- 1 --> Bug Fixes" },
   { message = "^docs?\\(boil\\)", group = "<!-- 2 --> Documentation" },
   { message = "^(perf|refactor|test)\\(boil\\)", group = "<!-- 3 --> Improvements" },
   { message = "^chore\\(boil\\): Improve", group = "<!-- 3 --> Improvements" },
   { message = "^chore\\(boil\\)", group = "<!-- 4 --> Miscellaneous" },
-  { message = "^chore\\(boil\\): Release", skip = true },
 ]
 
 commit_preprocessors = [
