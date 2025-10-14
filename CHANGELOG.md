@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
+- hive: Add `4.1.0` ([#1295]).
 - hbase: Add `2.6.3` ([#1296]).
 - airflow,superset: Build from source ([#1304]).
 
@@ -91,6 +92,7 @@ All notable changes to this project will be documented in this file.
 [#1291]: https://github.com/stackabletech/docker-images/pull/1291
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
+[#1295]: https://github.com/stackabletech/docker-images/pull/1295
 [#1296]: https://github.com/stackabletech/docker-images/pull/1296
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
