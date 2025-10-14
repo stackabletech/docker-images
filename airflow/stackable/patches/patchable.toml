@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/airflow.git"
+default-mirror = "https://github.com/stackabletech/airflow.git"

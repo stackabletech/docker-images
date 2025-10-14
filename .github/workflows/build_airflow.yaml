@@ -17,7 +17,7 @@ on:
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
       - airflow/**
       - vector/**
-      - stackable-base/**
+      - stackable-devel/**
       - .github/actions/**
       - .github/workflows/build_airflow.yaml
       - .github/workflows/reusable_build_image.yaml
