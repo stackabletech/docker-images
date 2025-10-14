@@ -4,11 +4,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.1.5] - 2025-10-14
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.4..boil-0.1.5)
 
 ### Features
 
 - Support Containerfiles per version ([#1302](https://github.com/stackabletech/docker-images/pull/1302)).
+
+### Miscellaneous
+
+- Add release script and changelog ([#1303](https://github.com/stackabletech/docker-images/pull/1303)).
 
 ## [0.1.4] - 2025-09-30
 
