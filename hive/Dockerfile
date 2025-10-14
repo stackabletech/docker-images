@@ -103,7 +103,7 @@ fi
 rm -rf "$BUILD_SRC_DIR"
 EOF
 
-RUN << EOF
+RUN <<EOF
 cd /stackable
 mkdir /stackable/jmx
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
