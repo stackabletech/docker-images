@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - hive: Add `4.1.0` ([#1295]).
 - hbase: Add `2.6.3` ([#1296]).
 - airflow,superset: Build from source ([#1304]).
+- kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
 
 ### Changed
 
@@ -97,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
 [#1304]: https://github.com/stackabletech/docker-images/pull/1304
+[#1308]: https://github.com/stackabletech/docker-images/pull/1308
 
 ## [25.7.0] - 2025-07-23
 
