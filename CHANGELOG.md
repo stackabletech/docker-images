@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
+- superset: Fix the 4.1.2 build when building from source ([#1309])
 
 ### Removed
 
@@ -97,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
 [#1304]: https://github.com/stackabletech/docker-images/pull/1304
+[#1309]: https://github.com/stackabletech/docker-images/pull/1309
 
 ## [25.7.0] - 2025-07-23
 
