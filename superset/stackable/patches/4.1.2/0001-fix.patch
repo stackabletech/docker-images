@@ -1,0 +1,55 @@
+From a80b4577d184f92680676cd021199838a6a84fc2 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Tue, 14 Oct 2025 18:49:00 +0200
+Subject: fix
+
+---
+ superset-frontend/package-lock.json | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/superset-frontend/package-lock.json b/superset-frontend/package-lock.json
+index 3130369143..879991195a 100644
+--- a/superset-frontend/package-lock.json
++++ b/superset-frontend/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "superset",
+-  "version": "4.1.1",
++  "version": "4.1.2",
+   "lockfileVersion": 2,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "superset",
+-      "version": "4.1.1",
++      "version": "4.1.2",
+       "license": "Apache-2.0",
+       "workspaces": [
+         "packages/*",
+@@ -41663,9 +41663,10 @@
+       }
+     },
+     "node_modules/luxon": {
+-      "version": "3.5.0",
+-      "resolved": "https://registry.npmjs.org/luxon/-/luxon-3.5.0.tgz",
+-      "integrity": "sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==",
++      "version": "3.6.1",
++      "resolved": "https://registry.npmjs.org/luxon/-/luxon-3.6.1.tgz",
++      "integrity": "sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ==",
++      "license": "MIT",
+       "engines": {
+         "node": ">=12"
+       }
+@@ -99672,9 +99673,9 @@
+       }
+     },
+     "luxon": {
+-      "version": "3.5.0",
+-      "resolved": "https://registry.npmjs.org/luxon/-/luxon-3.5.0.tgz",
+-      "integrity": "sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ=="
++      "version": "3.6.1",
++      "resolved": "https://registry.npmjs.org/luxon/-/luxon-3.6.1.tgz",
++      "integrity": "sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ=="
+     },
+     "lz-string": {
+       "version": "1.5.0",
