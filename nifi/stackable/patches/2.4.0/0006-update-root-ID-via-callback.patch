@@ -1,0 +1,124 @@
+From 93055143af33db3044aeb2ca6bab78d15ddaa4b2 Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Wed, 15 Oct 2025 17:12:12 +0200
+Subject: update root ID via callback
+
+---
+ .../nifi/flow/FlowInitializationCallback.java |  9 +++++++
+ .../FileAccessPolicyProvider.java             |  4 +++
+ .../FileAuthorizerInitializer.java            | 25 +++++++++++++++++++
+ .../nifi/controller/StandardFlowService.java  | 16 ++++++++++--
+ 4 files changed, 52 insertions(+), 2 deletions(-)
+ create mode 100644 nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java
+ create mode 100644 nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
+
+diff --git a/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java b/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java
+new file mode 100644
+index 0000000000..3039c97497
+--- /dev/null
++++ b/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java
+@@ -0,0 +1,9 @@
++package org.apache.nifi.flow;
++
++/**
++ * Simple callback interface invoked when the root process group has been
++ * loaded and the flow is fully initialized for the first time.
++ */
++public interface FlowInitializationCallback {
++    void onRootGroupLoaded();
++}
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
+index ca9758f32c..cb16cd1a30 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
+@@ -29,6 +29,7 @@ import org.apache.nifi.authorization.resource.ResourceType;
+ import org.apache.nifi.authorization.util.IdentityMapping;
+ import org.apache.nifi.authorization.util.IdentityMappingUtil;
+ import org.apache.nifi.components.PropertyValue;
++import org.apache.nifi.controller.StandardFlowService;
+ import org.apache.nifi.util.FlowInfo;
+ import org.apache.nifi.util.FlowParser;
+ import org.apache.nifi.util.NiFiProperties;
+@@ -133,6 +134,9 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
+     public void initialize(AccessPolicyProviderInitializationContext initializationContext) throws AuthorizerCreationException {
+         userGroupProviderLookup = initializationContext.getUserGroupProviderLookup();
+ 
++        // Register flow initialization hook
++        StandardFlowService.registerInitializationCallback(new FileAuthorizerInitializer(this));
++
+         try {
+             final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+             authorizationsSchema = schemaFactory.newSchema(FileAccessPolicyProvider.class.getResource(AUTHORIZATIONS_XSD));
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
+new file mode 100644
+index 0000000000..f67328ef84
+--- /dev/null
++++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
+@@ -0,0 +1,25 @@
++package org.apache.nifi.authorization;
++
++import org.apache.nifi.flow.FlowInitializationCallback;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++
++public class FileAuthorizerInitializer implements FlowInitializationCallback {
++    private static final Logger logger = LoggerFactory.getLogger(FileAuthorizerInitializer.class);
++private FileAccessPolicyProvider fileAccessPolicyProvider;
++
++    public FileAuthorizerInitializer(FileAccessPolicyProvider fileAccessPolicyProvider) {
++        this.fileAccessPolicyProvider = fileAccessPolicyProvider;
++    }
++
++    @Override
++    public void onRootGroupLoaded() {
++        try {
++            logger.info("Flow initialized; ensuring root group ID is recorded in authorizations.xml");
++            this.fileAccessPolicyProvider.replaceWithRootGroupId();
++        } catch (Exception e) {
++            logger.warn("Unable to update authorizations.xml with root group ID", e);
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
+index dad44540de..b0137c8302 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
+@@ -55,6 +55,7 @@ import org.apache.nifi.controller.serialization.FlowSynchronizationException;
+ import org.apache.nifi.controller.status.ProcessGroupStatus;
+ import org.apache.nifi.engine.FlowEngine;
+ import org.apache.nifi.events.BulletinFactory;
++import org.apache.nifi.flow.FlowInitializationCallback;
+ import org.apache.nifi.groups.BundleUpdateStrategy;
+ import org.apache.nifi.groups.ProcessGroup;
+ import org.apache.nifi.groups.RemoteProcessGroup;
+@@ -148,6 +149,13 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
+     private static final String CONNECTION_EXCEPTION_MSG_PREFIX = "Failed to connect node to cluster";
+     private static final Logger logger = LoggerFactory.getLogger(StandardFlowService.class);
+ 
++    // Static callback registration for post-initialization hooks
++    private static volatile FlowInitializationCallback initializationCallback;
++
++    public static void registerInitializationCallback(FlowInitializationCallback callback) {
++        initializationCallback = callback;
++    }
++
+     public static StandardFlowService createStandaloneInstance(
+             final FlowController controller,
+             final NiFiProperties nifiProperties,
+@@ -934,8 +942,12 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
+             controller.onFlowInitialized(autoResumeState);
+ 
+             // this should be done once the flow has been initialized
+-            if (this.authorizer instanceof org.apache.nifi.authorization.FileAccessPolicyProvider) {
+-                ((org.apache.nifi.authorization.FileAccessPolicyProvider) this.authorizer).replaceWithRootGroupId();
++            if (initializationCallback != null) {
++                try {
++                    initializationCallback.onRootGroupLoaded();
++                } catch (Exception e) {
++                    logger.warn("Error invoking FlowInitializationCallback", e);
++                }
+             }
+ 
+             loadSnippets(dataFlow.getSnippets());
