@@ -19,6 +19,20 @@ rules:
   - pattern: kafka.coordinator.(\w+)<type=(.+), name=(.+)><>Value
     name: kafka_coordinator_$1_$2_$3
     type: GAUGE
+  # Kraft current state info metric rule
+  - pattern: "kafka.server<type=raft-metrics><>current-state: ([a-z]+)"
+    name: kafka_server_raft_metrics_current_state_info
+    type: GAUGE
+    value: 1
+    labels:
+      "state": "$1"
+  # Kraft specific rules for raft-metrics, raft-channel-metrics, broker-metadata-metrics
+  - pattern: kafka.server<type=(.+)><>([a-z-]+)-total
+    name: kafka_server_$1_$2_total
+    type: COUNTER
+  - pattern: kafka.server<type=(.+)><>([a-z-]+)
+    name: kafka_server_$1_$2
+    type: GAUGE
 
   # Generic per-second counters with 0-2 key/value pairs
   - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
@@ -36,13 +50,7 @@ rules:
     name: kafka_$1_$2_$3_total
     type: COUNTER
 
-  - pattern: kafka.server<type=(.+), client-id=(.+)><>([a-z-]+)
-    name: kafka_server_quota_$3
-    type: GAUGE
-    labels:
-      resource: "$1"
-      clientId: "$2"
-
+  # Quota specific rules
   - pattern: kafka.server<type=(.+), user=(.+), client-id=(.+)><>([a-z-]+)
     name: kafka_server_quota_$4
     type: GAUGE
@@ -50,6 +58,18 @@ rules:
       resource: "$1"
       user: "$2"
       clientId: "$3"
+  - pattern: kafka.server<type=(.+), client-id=(.+)><>([a-z-]+)
+    name: kafka_server_quota_$3
+    type: GAUGE
+    labels:
+      resource: "$1"
+      clientId: "$2"
+  - pattern: kafka.server<type=(.+), user=(.+)><>([a-z-]+)
+    name: kafka_server_quota_$3
+    type: GAUGE
+    labels:
+      resource: "$1"
+      user: "$2"
 
   # Generic gauges with 0-2 key/value pairs
   - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
@@ -102,3 +122,17 @@ rules:
     type: GAUGE
     labels:
       quantile: "0.$4"
+
+  # Generic gauges for MeanRate Percent
+  # Ex) kafka.server<type=KafkaRequestHandlerPool, name=RequestHandlerAvgIdlePercent><>MeanRate
+  - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>MeanRate
+    name: kafka_$1_$2_$3_percent
+    type: GAUGE
+  - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>Value
+    name: kafka_$1_$2_$3_percent
+    type: GAUGE
+  - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*, (.+)=(.+)><>Value
+    name: kafka_$1_$2_$3_percent
+    type: GAUGE
+    labels:
+      "$4": "$5"
