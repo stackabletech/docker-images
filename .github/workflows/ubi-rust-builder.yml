@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: ["ubuntu-latest", "ubicloud-standard-8-arm"]
+        runner: ["ubuntu-latest", "ubicloud-standard-8-arm-ubuntu-2404"]
         ubi-version: ["ubi9"]
     runs-on: ${{ matrix.runner }}
     steps:
