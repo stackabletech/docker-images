@@ -21,6 +21,7 @@ nifi-opa-authorizer-plugin-version = "0.3.0"
 [versions."2.4.0".local-images]
 java-base = "21"
 java-devel = "21"
+"shared/logback" = "1.5.18"
 
 [versions."2.4.0".build-arguments]
 git-sync-version = "v4.4.1"
