@@ -81,6 +81,13 @@ rm -r jdk
 # see https://github.com/stackabletech/docker-images/issues/961
 chmod +x /stackable/opensearch-${PRODUCT_VERSION}/opensearch-docker-entrypoint.sh
 chmod -R g=u /stackable
+
+# The OpenSearch Security Plugin expects specific permissions in the config directory, otherwise
+# warnings are shown at startup.
+# see https://github.com/opensearch-project/security/blob/3.1.0.0/src/main/java/org/opensearch/security/OpenSearchSecurityPlugin.java#L547-L590
+find /stackable/opensearch-${PRODUCT_VERSION}/config -type d -exec chmod 770 {} \;
+find /stackable/opensearch-${PRODUCT_VERSION}/config -type f -exec chmod 660 {} \;
+
 EOF
 
 # The OpenSearch Performance Analyzer needs a JDK, not just a JRE.

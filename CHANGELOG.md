@@ -50,6 +50,10 @@ All notable changes to this project will be documented in this file.
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 - superset: Fix the 4.1.2 build when building from source ([#1309])
 
+### Fixed
+
+- opensearch: Fix insecure file permissions ([#1311]).
+
 ### Removed
 
 - opensearch: Stop applying formatting plugin ([#1230]).
@@ -84,8 +88,8 @@ All notable changes to this project will be documented in this file.
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
-[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1280]: https://github.com/stackabletech/docker-images/pull/1280
+[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1284]: https://github.com/stackabletech/docker-images/pull/1284
 [#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
@@ -99,8 +103,9 @@ All notable changes to this project will be documented in this file.
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
 [#1304]: https://github.com/stackabletech/docker-images/pull/1304
-[#1309]: https://github.com/stackabletech/docker-images/pull/1309
 [#1308]: https://github.com/stackabletech/docker-images/pull/1308
+[#1309]: https://github.com/stackabletech/docker-images/pull/1309
+[#1311]: https://github.com/stackabletech/docker-images/pull/1311
 
 ## [25.7.0] - 2025-07-23
 
