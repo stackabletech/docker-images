@@ -14,9 +14,23 @@ jobs:
     name: Create Draft Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        id: changelog
+        uses: orhun/git-cliff-action@d77b37db2e3f7398432d34b72a12aa3e2ba87e51 # v4.6.0
+        with:
+          config: rust/boil/cliff.toml
+          args: --latest --strip header
+
       - name: Create Draft Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
+          body: ${{ steps.changelog.outputs.content }}
           draft: true
 
   build:
