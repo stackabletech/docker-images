@@ -166,6 +166,10 @@ COPY \
     --from=opensearch-prometheus-exporter \
     /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}/build/reports/bom.json \
     /stackable/opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    opensearch/licenses \
+    /licenses
 
 RUN <<EOF
 microdnf update
