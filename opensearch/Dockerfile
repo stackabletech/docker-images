@@ -81,6 +81,13 @@ rm -r jdk
 # see https://github.com/stackabletech/docker-images/issues/961
 chmod +x /stackable/opensearch-${PRODUCT_VERSION}/opensearch-docker-entrypoint.sh
 chmod -R g=u /stackable
+
+# The OpenSearch Security Plugin expects specific permissions in the config directory, otherwise
+# warnings are shown at startup.
+# see https://github.com/opensearch-project/security/blob/3.1.0.0/src/main/java/org/opensearch/security/OpenSearchSecurityPlugin.java#L547-L590
+find /stackable/opensearch-${PRODUCT_VERSION}/config -type d -exec chmod 770 {} \;
+find /stackable/opensearch-${PRODUCT_VERSION}/config -type f -exec chmod 660 {} \;
+
 EOF
 
 # The OpenSearch Performance Analyzer needs a JDK, not just a JRE.
@@ -159,6 +166,10 @@ COPY \
     --from=opensearch-prometheus-exporter \
     /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}/build/reports/bom.json \
     /stackable/opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY \
+    --chown=${STACKABLE_USER_UID}:0 \
+    opensearch/licenses \
+    /licenses
 
 RUN <<EOF
 microdnf update
