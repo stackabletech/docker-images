@@ -1,6 +1,7 @@
 [versions."1.27.0".local-images]
 java-base = "11"
 java-devel = "11"
+"shared/logback" = "1.3.14"
 
 [versions."1.27.0".build-arguments]
 git-sync-version = "v4.4.1"
@@ -11,6 +12,7 @@ nifi-opa-authorizer-plugin-version = "0.3.0"
 [versions."1.28.1".local-images]
 java-base = "11"
 java-devel = "11"
+"shared/logback" = "1.3.14"
 
 [versions."1.28.1".build-arguments]
 git-sync-version = "v4.4.1"
