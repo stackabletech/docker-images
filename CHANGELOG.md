@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 - superset: Fix the 4.1.2 build when building from source ([#1309])
+- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315])
 
 ### Fixed
 
@@ -106,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#1308]: https://github.com/stackabletech/docker-images/pull/1308
 [#1309]: https://github.com/stackabletech/docker-images/pull/1309
 [#1311]: https://github.com/stackabletech/docker-images/pull/1311
+[#1315]: https://github.com/stackabletech/docker-images/pull/1315
 
 ## [25.7.0] - 2025-07-23
 
