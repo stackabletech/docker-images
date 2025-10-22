@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.3` ([#1296]).
 - airflow,superset: Build from source ([#1304]).
 - kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
+- airflow: Add apache-kafka provider plus dependencies to image ([#1313]).
 
 ### Changed
 
@@ -106,6 +107,7 @@ All notable changes to this project will be documented in this file.
 [#1308]: https://github.com/stackabletech/docker-images/pull/1308
 [#1309]: https://github.com/stackabletech/docker-images/pull/1309
 [#1311]: https://github.com/stackabletech/docker-images/pull/1311
+[#1313]: https://github.com/stackabletech/docker-images/pull/1313
 
 ## [25.7.0] - 2025-07-23
 
