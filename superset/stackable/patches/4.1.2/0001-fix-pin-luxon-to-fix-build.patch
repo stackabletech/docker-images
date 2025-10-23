@@ -1,0 +1,23 @@
+From 1b11f3ff47f46105289f7f9dcaa4fc10d6ea3571 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 22 Oct 2025 17:04:19 +0200
+Subject: fix: pin luxon to fix build
+
+For some reason npm tries to use a newer version of luxon than the version in the lock file. I suspect this might be related to how npm before version 11 handles workspace dependencies in lock files. The luxon version is set to 3.6.1 now to prevent npm from trying to select a newer version, so that the same packages as in the original Superset build are used.
+---
+ superset-frontend/package.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/superset-frontend/package.json b/superset-frontend/package.json
+index ebca197a25..3490ecaa93 100644
+--- a/superset-frontend/package.json
++++ b/superset-frontend/package.json
+@@ -148,7 +148,7 @@
+     "json-bigint": "^1.0.0",
+     "json-stringify-pretty-compact": "^2.0.0",
+     "lodash": "^4.17.21",
+-    "luxon": "^3.5.0",
++    "luxon": "3.6.1",
+     "mapbox-gl": "^2.10.0",
+     "markdown-to-jsx": "^7.4.7",
+     "match-sorter": "^6.3.4",
