@@ -5,6 +5,8 @@ ARG GIT_SYNC_VERSION
 
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC_VERSION} AS git-sync-image
 
+FROM local-image/shared/logback AS patched-logback
+
 FROM local-image/java-devel AS nifi-builder
 
 ARG PRODUCT_VERSION
@@ -23,8 +25,12 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/patchable.toml /stackable/src/nifi/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/patches/${PRODUCT_VERSION} /stackable/src/nifi/stackable/patches/${PRODUCT_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=git-sync-image /git-sync /stackable/git-sync
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-logback /stackable/.m2/repository /stackable/patched-logback-libs
 
 RUN <<EOF
+mkdir -p /stackable/.m2/repository
+cp -r /stackable/patched-logback-libs/* /stackable/.m2/repository
+
 # This used to be located in /bin/stackable-bcrypt.jar. We create a softlink for /bin/stackable-bcrypt.jar in the main container for backwards compatibility.
 curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bcrypt/1.0-SNAPSHOT/stackable-bcrypt-1.0-20240508.153334-1-jar-with-dependencies.jar' \
     -o /stackable/stackable-bcrypt.jar
@@ -185,6 +191,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackab
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*.cdx.json /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/lib/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-iceberg-bundle-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=nifi-builder /stackable/git-sync /stackable/git-sync
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-logback /stackable/*-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/opa-authorizer.nar /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/extensions/opa-authorizer.nar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN_VERSION}-src.tar.gz  /stackable
