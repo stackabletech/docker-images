@@ -1,4 +1,4 @@
-From 775a7fcb5c9828b5b9077c2cccf7f300de65bd45 Mon Sep 17 00:00:00 2001
+From 1caea87a7a4806dd0a233cfac2ee2a4dc7994dd7 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Fri, 10 Oct 2025 15:28:56 +0200
 Subject: replace process groups root with root ID
@@ -28,7 +28,7 @@ index 0000000000..3039c97497
 +    void onRootGroupLoaded();
 +}
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
-index 5363bb5619..17b3f3929d 100644
+index 5363bb5619..5ed48a5af9 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 @@ -29,6 +29,7 @@ import org.apache.nifi.authorization.resource.ResourceType;
@@ -77,7 +77,7 @@ index 5363bb5619..17b3f3929d 100644
 +                }
 +            }
 +            if (authorizationsChanged) {
-+                saveAuthorizations(authorizations);
++                saveAndRefreshHolder(authorizations);
 +            }
 +        } else {
 +            // this is not expected as this is called from the flow service
