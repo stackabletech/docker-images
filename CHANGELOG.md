@@ -49,7 +49,7 @@ All notable changes to this project will be documented in this file.
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 - superset: Fix the 4.1.2 build when building from source ([#1309])
-- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315])
+- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
 - nifi: Use a patched version of logback to fix corrupted logs ([#1314])
 
 ### Fixed
