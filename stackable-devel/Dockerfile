@@ -49,7 +49,7 @@ ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.89.0
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.0
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.1
 
 RUN <<EOF
 microdnf update
