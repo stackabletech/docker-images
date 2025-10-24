@@ -11,17 +11,17 @@ LABEL maintainer="Stackable GmbH"
 # See https://github.com/rust-lang/rustup/blob/4514d36fcc9c42416176111cd841c86f7ec44b2c/rustup-init.sh#L91
 # Find the latest version here: https://github.com/rust-lang/rustup/blob/master/CHANGELOG.md
 # renovate: datasource=github-tags packageName=rust-lang/rustup
-ENV RUSTUP_VERSION=1.28.1
+ENV RUSTUP_VERSION=1.28.2
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.87.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.89.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.0
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.1
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
