@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - all: Use our build-repo to cache NPM dependencies ([#1219]).
 - java: Use a more recent Maven version for all Java based products ([#1220], [[#1293]]).
 - ubi9-rust-builder: Bump ubi9 base image ([#1253]).
+- ubi9-rust-builder: Bump Rust toolchain to `1.89.0`, rustup to `1.28.2`, and cargo-auditable to `0.7.1` ([#1318]).
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - vector: Bump to `0.49.0` ([#1258]).
@@ -50,6 +51,8 @@ All notable changes to this project will be documented in this file.
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 - superset: Fix the 4.1.2 build when building from source ([#1309])
+- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
+- nifi: Use a patched version of logback to fix corrupted logs ([#1314])
 
 ### Fixed
 
@@ -108,6 +111,10 @@ All notable changes to this project will be documented in this file.
 [#1309]: https://github.com/stackabletech/docker-images/pull/1309
 [#1311]: https://github.com/stackabletech/docker-images/pull/1311
 [#1313]: https://github.com/stackabletech/docker-images/pull/1313
+[#1314]: https://github.com/stackabletech/docker-images/pull/1314
+[#1315]: https://github.com/stackabletech/docker-images/pull/1315
+[#1316]: https://github.com/stackabletech/docker-images/pull/1316
+[#1318]: https://github.com/stackabletech/docker-images/pull/1318
 
 ## [25.7.0] - 2025-07-23
 
