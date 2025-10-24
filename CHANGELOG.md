@@ -33,7 +33,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.3` ([#1296]).
 - airflow,superset: Build from source ([#1304]).
 - kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
-- airflow: Add apache-kafka provider plus dependencies to image ([#1313]).
+- airflow: Add apache-kafka provider plus dependencies to `3.0.6` image ([#1313]).
 
 ### Changed
 
