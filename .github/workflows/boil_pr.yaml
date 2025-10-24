@@ -10,7 +10,7 @@ on:
       - "Cargo.*"
 
 env:
-  RUST_VERSION: 1.87.0
+  RUST_VERSION: 1.89.0
 
 jobs:
   # This job is always run to ensure we don't miss any new upstream advisories
@@ -54,7 +54,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921
         with:
           toolchain: ${{ env.RUST_VERSION }}
           targets: ${{ matrix.targets.target }}
