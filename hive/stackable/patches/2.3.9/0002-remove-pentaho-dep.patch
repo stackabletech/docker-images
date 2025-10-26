@@ -1,0 +1,67 @@
+From 8691f45a499a40c82397f9afd27e06eda98f2ad5 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Mon, 1 Sep 2025 09:47:13 +0200
+Subject: remove pentaho dep
+
+---
+ pom.xml    | 10 +++++-----
+ ql/pom.xml |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 97443e73b9..414047bfd9 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -181,7 +181,7 @@
+     <mina.version>2.0.0-M5</mina.version>
+     <netty.version>4.0.52.Final</netty.version>
+     <parquet.version>1.8.1</parquet.version>
+-    <pentaho-aggdesigner.version>5.1.5-jhyde</pentaho-aggdesigner.version>
++    <!-- pentaho-aggdesigner.version>5.1.5-jhyde</pentaho-aggdesigner.version -->
+     <pig.version>0.16.0</pig.version>
+     <protobuf.version>2.5.0</protobuf.version>
+     <stax.version>1.0.1</stax.version>
+@@ -751,12 +751,12 @@
+         <artifactId>hadoop-minicluster</artifactId>
+         <version>${hadoop.version}</version>
+       </dependency>
+-      <dependency>
++<!--      <dependency>
+         <groupId>org.pentaho</groupId>
+         <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+         <version>${pentaho-aggdesigner.version}</version>
+       </dependency>
+-      <dependency>
++ -->     <dependency>
+         <groupId>org.scala-lang</groupId>
+         <artifactId>scala-library</artifactId>
+         <version>${scala.version}</version>
+@@ -809,8 +809,8 @@
+           <artifactId>maven-compiler-plugin</artifactId>
+           <version>${maven.compiler.plugin.version}</version>
+           <configuration>
+-            <source>1.7</source>
+-            <target>1.7</target>
++            <source>1.8</source>
++            <target>1.8</target>
+           </configuration>
+         </plugin>
+         <plugin>
+diff --git a/ql/pom.xml b/ql/pom.xml
+index 460cc225e1..2bb05e1411 100644
+--- a/ql/pom.xml
++++ b/ql/pom.xml
+@@ -708,11 +708,11 @@
+       <groupId>org.codehaus.janino</groupId>
+       <artifactId>janino</artifactId>
+     </dependency>
+-    <dependency>
++<!--    <dependency>
+       <groupId>org.pentaho</groupId>
+       <artifactId>pentaho-aggdesigner-algorithm</artifactId>
+     </dependency>
+-  </dependencies>
++ --> </dependencies>
+ 
+   <profiles>
+     <profile>
