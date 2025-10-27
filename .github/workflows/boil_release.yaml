@@ -7,7 +7,7 @@ on:
       - "boil-[0-9]+.[0-9]+.[0-9]+**"
 
 env:
-  RUST_VERSION: 1.87.0
+  RUST_VERSION: 1.89.0
 
 jobs:
   create-release:
@@ -28,7 +28,7 @@ jobs:
           args: --latest --strip header
 
       - name: Create Draft Release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
         with:
           body: ${{ steps.changelog.outputs.content }}
           draft: true
@@ -51,7 +51,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921
         with:
           toolchain: ${{ env.RUST_VERSION }}
           targets: ${{ matrix.targets.target }}
@@ -67,7 +67,7 @@ jobs:
         run: mv "target/$TARGET/release/boil" "boil-$TARGET"
 
       - name: Upload Artifact to Release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
         with:
           draft: false
           files: boil-${{ matrix.targets.target }}
