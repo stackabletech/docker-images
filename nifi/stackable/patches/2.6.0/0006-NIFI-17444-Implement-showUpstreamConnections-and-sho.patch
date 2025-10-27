@@ -1,0 +1,132 @@
+From d6975c935aef3572a1bffe43fdb8da82f11a447d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 27 Oct 2025 22:22:04 +0100
+Subject: NIFI-17444: Implement showUpstreamConnections and
+ showDownstreamConnections
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This commit reimplements the showUpstreamConnections and showDownstreamConnections
+functions that were present in the AngularJS version of NiFi's canvas context menu.
+
+Changes:
+- Updated UPSTREAM_DOWNSTREAM menu to use existing hasUpstream() and hasDownstream()
+  condition functions from CanvasUtils service
+- Implemented showUpstreamConnections() method that highlights all connections where
+  the selected component is the destination (showing what flows into the component)
+- Implemented showDownstreamConnections() method that highlights all connections where
+  the selected component is the source (showing what flows out of the component)
+
+The Angular implementation differs from the AngularJS version by visually highlighting
+connections directly on the canvas rather than opening a separate dialog, providing
+more immediate visual feedback and aligning with modern UI patterns.
+
+Supports all component types: Processors, Funnels, Input/Output Ports, Process Groups,
+and Remote Process Groups.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .../service/canvas-context-menu.service.ts    | 70 ++++++++++++++++---
+ 1 file changed, 62 insertions(+), 8 deletions(-)
+
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
+index 353433539a..721f7fc5ab 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
+@@ -280,24 +280,22 @@ export class CanvasContextMenu implements ContextMenuDefinitionProvider {
+         menuItems: [
+             {
+                 condition: (selection: any) => {
+-                    // TODO - hasUpstream
+-                    return false;
++                    return this.canvasUtils.hasUpstream(selection);
+                 },
+                 clazz: 'icon',
+                 text: 'Upstream',
+-                action: () => {
+-                    // TODO - showUpstream
++                action: (selection: any) => {
++                    this.showUpstreamConnections(selection);
+                 }
+             },
+             {
+                 condition: (selection: any) => {
+-                    // TODO - hasDownstream
+-                    return false;
++                    return this.canvasUtils.hasDownstream(selection);
+                 },
+                 clazz: 'icon',
+                 text: 'Downstream',
+-                action: () => {
+-                    // TODO - showDownstream
++                action: (selection: any) => {
++                    this.showDownstreamConnections(selection);
+                 }
+             }
+         ]
+@@ -1380,6 +1378,62 @@ export class CanvasContextMenu implements ContextMenuDefinitionProvider {
+         this.allMenus.set(this.DOWNLOAD.id, this.DOWNLOAD);
+     }
+ 
++    /**
++     * Shows upstream connections for the selected component.
++     *
++     * @param selection The selected component
++     */
++    private showUpstreamConnections(selection: d3.Selection<any, any, any, any>): void {
++        if (selection.size() !== 1) {
++            return;
++        }
++
++        const component: any = selection.datum();
++        const componentId = component.id;
++
++        // Get all connections
++        const allConnections = d3.selectAll('g.connection');
++
++        // Clear any existing selection
++        d3.selectAll('g.component.selected, g.connection.selected').classed('selected', false);
++
++        // Find and select upstream connections
++        allConnections.each(function (this: any, d: any) {
++            // Select connections where this component is the destination
++            if (d.destinationId === componentId) {
++                d3.select(this).classed('selected', true);
++            }
++        });
++    }
++
++    /**
++     * Shows downstream connections for the selected component.
++     *
++     * @param selection The selected component
++     */
++    private showDownstreamConnections(selection: d3.Selection<any, any, any, any>): void {
++        if (selection.size() !== 1) {
++            return;
++        }
++
++        const component: any = selection.datum();
++        const componentId = component.id;
++
++        // Get all connections
++        const allConnections = d3.selectAll('g.connection');
++
++        // Clear any existing selection
++        d3.selectAll('g.component.selected, g.connection.selected').classed('selected', false);
++
++        // Find and select downstream connections
++        allConnections.each(function (this: any, d: any) {
++            // Select connections where this component is the source
++            if (d.sourceId === componentId) {
++                d3.select(this).classed('selected', true);
++            }
++        });
++    }
++
+     getMenu(menuId: string): ContextMenuDefinition | undefined {
+         return this.allMenus.get(menuId);
+     }
