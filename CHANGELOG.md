@@ -33,14 +33,17 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.3` ([#1296]).
 - airflow,superset: Build from source ([#1304]).
 - kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
+- airflow: Add apache-kafka provider plus dependencies to `3.0.6` image ([#1313]).
 
 ### Changed
 
 - all: Use our build-repo to cache NPM dependencies ([#1219]).
 - java: Use a more recent Maven version for all Java based products ([#1220], [[#1293]]).
 - ubi9-rust-builder: Bump ubi9 base image ([#1253]).
+- ubi9-rust-builder: Bump Rust toolchain to `1.89.0`, rustup to `1.28.2`, and cargo-auditable to `0.7.1` ([#1318]).
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
+- stackable-devel: Bump Rust toolchain to `1.89.0` and cargo-auditable to `0.7.1` ([#1319]).
 - vector: Bump to `0.49.0` ([#1258]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - trino-cli: Bump to 477 ([#1285]).
@@ -49,6 +52,13 @@ All notable changes to this project will be documented in this file.
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
 - superset: Fix the 4.1.2 build when building from source ([#1309])
+- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
+- nifi: Use a patched version of logback to fix corrupted logs ([#1314])
+- zookeeper: Use a patched version of logback to fix corrupted logs ([#1320])
+
+### Fixed
+
+- opensearch: Fix insecure file permissions ([#1311]).
 
 ### Removed
 
@@ -84,8 +94,8 @@ All notable changes to this project will be documented in this file.
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
-[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1280]: https://github.com/stackabletech/docker-images/pull/1280
+[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1284]: https://github.com/stackabletech/docker-images/pull/1284
 [#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
@@ -99,8 +109,16 @@ All notable changes to this project will be documented in this file.
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
 [#1304]: https://github.com/stackabletech/docker-images/pull/1304
-[#1309]: https://github.com/stackabletech/docker-images/pull/1309
 [#1308]: https://github.com/stackabletech/docker-images/pull/1308
+[#1309]: https://github.com/stackabletech/docker-images/pull/1309
+[#1311]: https://github.com/stackabletech/docker-images/pull/1311
+[#1313]: https://github.com/stackabletech/docker-images/pull/1313
+[#1314]: https://github.com/stackabletech/docker-images/pull/1314
+[#1315]: https://github.com/stackabletech/docker-images/pull/1315
+[#1316]: https://github.com/stackabletech/docker-images/pull/1316
+[#1318]: https://github.com/stackabletech/docker-images/pull/1318
+[#1319]: https://github.com/stackabletech/docker-images/pull/1319
+[#1320]: https://github.com/stackabletech/docker-images/pull/1320
 
 ## [25.7.0] - 2025-07-23
 

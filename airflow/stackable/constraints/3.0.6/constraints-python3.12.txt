@@ -109,7 +109,10 @@ apache-airflow-providers-apache-hdfs==4.10.2
 apache-airflow-providers-apache-hive==9.1.2
 apache-airflow-providers-apache-iceberg==1.3.2
 apache-airflow-providers-apache-impala==1.7.2
-apache-airflow-providers-apache-kafka==1.10.2
+# Stackable patch:
+# The original version 1.10.2 has sync/async issues when using event scheduling
+# with the triggerer. The fix could not be traced to a specific change/commit.
+apache-airflow-providers-apache-kafka==1.10.4
 apache-airflow-providers-apache-kylin==3.9.2
 apache-airflow-providers-apache-livy==4.4.2
 apache-airflow-providers-apache-pig==4.7.2
@@ -125,7 +128,12 @@ apache-airflow-providers-cncf-kubernetes==10.7.0
 apache-airflow-providers-cohere==1.5.3
 apache-airflow-providers-common-compat==1.7.3
 apache-airflow-providers-common-io==1.6.2
-apache-airflow-providers-common-messaging==1.0.5
+# Stackable patch:
+# Update from previous version 1.0.5 due to refactoring and compatability with
+# apache-airflow-providers-apache-kafka==1.10.4 (see above).
+# See https://github.com/apache/airflow/commit/1790ec41eeaff6e33f78b39ad50b2bcd98107e67
+# See https://github.com/apache/airflow/commit/1790ec41eeaff6e33f78b39ad50b2bcd98107e67
+apache-airflow-providers-common-messaging==2.0.0
 apache-airflow-providers-common-sql==1.27.5
 apache-airflow-providers-databricks==7.7.1
 apache-airflow-providers-datadog==3.9.2

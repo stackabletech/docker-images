@@ -1,0 +1,28 @@
+From 1fe22dcc974b52d83b8288d5279c3aa8c41a1243 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 22 Oct 2025 15:27:29 +0200
+Subject: fix: pin esbuild to fix NiFi 2.6.0 build
+
+For some reason, npm tries to use a newer version of esbuild than the version in the lock file. I suspect this might be related to how npm handles optional dependencies in lock files. The esbuild version is set to 0.25.10 now to prevent npm from trying to select a newer version, so that the same packages as in the original NiFi build are used.
+---
+ nifi-frontend/src/main/frontend/package.json | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/nifi-frontend/src/main/frontend/package.json b/nifi-frontend/src/main/frontend/package.json
+index ee125e7663..6914c5f00c 100644
+--- a/nifi-frontend/src/main/frontend/package.json
++++ b/nifi-frontend/src/main/frontend/package.json
+@@ -114,10 +114,11 @@
+         "vite": "^5.4.6",
+         "underscore": "1.13.6",
+         "rollup": "4.22.4",
+-        "esbuild": "^0.25.8",
++        "esbuild": "0.25.10",
+         "koa": "^2.16.1"
+     },
+     "overrides": {
+-        "koa": "^2.16.1"
++        "koa": "^2.16.1",
++        "esbuild": "0.25.10"
+     }
+ }

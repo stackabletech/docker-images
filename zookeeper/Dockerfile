@@ -4,6 +4,8 @@
 # ==============================================================================
 # START ZOOKEEPER BUILDER
 
+FROM local-image/shared/logback AS patched-logback
+
 FROM local-image/java-devel AS builder
 
 ARG PRODUCT_VERSION
@@ -16,12 +18,16 @@ COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/patchable.toml 
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/patches/${PRODUCT_VERSION} /stackable/src/zookeeper/stackable/patches/${PRODUCT_VERSION}
 # Copy JMX config into the builder
 COPY --chown=${STACKABLE_USER_UID}:0 zookeeper/stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-logback /stackable/.m2/repository /stackable/patched-logback-libs
 
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 # Download ZooKeeper sources from our own repo
 RUN <<EOF
+mkdir -p /stackable/.m2/repository
+cp -r /stackable/patched-logback-libs/* /stackable/.m2/repository
+
 cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT_VERSION})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -84,6 +90,8 @@ LABEL  \
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/apache-zookeeper-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin /stackable/apache-zookeeper-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/zookeeper-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=builder /stackable/jmx /stackable/jmx/
+# Copy over the patched logback files
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-logback /stackable/*-src.tar.gz /stackable
 COPY zookeeper/licenses /licenses
 
 RUN <<EOF
@@ -102,6 +110,7 @@ chown -h ${STACKABLE_USER_UID}:0 /stackable/zookeeper
 # fix missing permissions
 chmod g=u /stackable/jmx
 chmod g=u /stackable/apache-zookeeper-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/
+chmod g=u /stackable/*-src.tar.gz
 EOF
 
 # ----------------------------------------
