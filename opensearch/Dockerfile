@@ -79,7 +79,7 @@ rm -r jdk
 # Install common plugins that are also used in the official image.
 #
 # TODO: The LTR plugin is currently missing because an official release for OpenSearch 3.x versions is missing.
-# There are tags for 3.x version in the git repo, so it can be built from source:
+# There are tags for 3.x versions in the git repo, so it can be built from source:
 # See https://github.com/opensearch-project/opensearch-learning-to-rank-base
 /stackable/opensearch-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/bin/opensearch-plugin \
     install \
