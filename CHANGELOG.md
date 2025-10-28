@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - superset: Fix the 4.1.2 build when building from source ([#1309])
 - superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
 - nifi: Use a patched version of logback to fix corrupted logs ([#1314])
+- zookeeper: Use a patched version of logback to fix corrupted logs ([#1320])
 
 ### Fixed
 
@@ -117,6 +118,7 @@ All notable changes to this project will be documented in this file.
 [#1316]: https://github.com/stackabletech/docker-images/pull/1316
 [#1318]: https://github.com/stackabletech/docker-images/pull/1318
 [#1319]: https://github.com/stackabletech/docker-images/pull/1319
+[#1320]: https://github.com/stackabletech/docker-images/pull/1320
 
 ## [25.7.0] - 2025-07-23
 

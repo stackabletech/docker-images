@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/logback.git"
+base = "81f8c25e2a2fae99f45029c27dc793bdaa8cb079"
