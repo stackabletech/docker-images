@@ -7,10 +7,39 @@ FROM local-image/java-devel AS opensearch-builder
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
-ARG OPENSEARCH_SECURITY_PLUGIN_VERSION
-ARG OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
+
+# Local image versions
+ARG OPENSEARCH_SECURITY_PLUGIN_VERSION
+ARG OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION
+
+# External plugin versions
+ARG OPENSEARCH_ALERTING_PLUGIN_VERSION
+ARG OPENSEARCH_JOB_SCHEDULER_PLUGIN_VERSION
+ARG OPENSEARCH_ANOMALY_DETECTION_PLUGIN_VERSION
+ARG OPENSEARCH_ASYNCHRONOUS_SEARCH_PLUGIN_VERSION
+ARG OPENSEARCH_CROSS_CLUSTER_REPLICATION_PLUGIN_VERSION
+ARG OPENSEARCH_CUSTOM_CODECS_PLUGIN_VERSION
+ARG OPENSEARCH_FLOW_FRAMEWORK_PLUGIN_VERSION
+ARG OPENSEARCH_GEOSPATIAL_PLUGIN_VERSION
+ARG OPENSEARCH_INDEX_MANAGEMENT_PLUGIN_VERSION
+ARG OPENSEARCH_KNN_PLUGIN_VERSION
+ARG OPENSEARCH_ML_PLUGIN_VERSION
+ARG OPENSEARCH_NEURAL_SEARCH_PLUGIN_VERSION
+ARG OPENSEARCH_NOTIFICATIONS_CORE_PLUGIN_VERSION
+ARG OPENSEARCH_NOTIFICATIONS_PLUGIN_VERSION
+ARG OPENSEARCH_OBSERVABILITY_PLUGIN_VERSION
+ARG OPENSEARCH_PERFORMANCE_ANALYZER_PLUGIN_VERSION
+ARG OPENSEARCH_REPORTS_SCHEDULER_PLUGIN_VERSION
+ARG OPENSEARCH_SEARCH_RELEVANCE_PLUGIN_VERSION
+ARG OPENSEARCH_SECURITY_ANALYTICS_PLUGIN_VERSION
+ARG OPENSEARCH_SKILLS_PLUGIN_VERSION
+ARG OPENSEARCH_SQL_PLUGIN_VERSION
+ARG OPENSEARCH_SYSTEM_TEMPLATES_PLUGIN_VERSION
+ARG OPENSEARCH_UBI_PLUGIN_VERSION
+ARG QUERY_INSIGHTS_PLUGIN_VERSION
+
 
 WORKDIR /stackable
 
@@ -75,6 +104,39 @@ WORKDIR /stackable/opensearch-${PRODUCT_VERSION}
 RUN <<EOF
 # The JDK from jdk-base is used instead.
 rm -r jdk
+
+# Install common plugins that are also used in the official image. The order is influenced by dependencies between plugins.
+#
+# TODO: The LTR plugin is currently missing because an official release for OpenSearch 3.x versions is missing.
+# There are tags for 3.x versions in the git repo, so it can be built from source:
+# See https://github.com/opensearch-project/opensearch-learning-to-rank-base
+./bin/opensearch-plugin \
+    install \
+    --batch \
+    "org.opensearch.plugin:alerting:${OPENSEARCH_ALERTING_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-job-scheduler:${OPENSEARCH_JOB_SCHEDULER_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-anomaly-detection:${OPENSEARCH_ANOMALY_DETECTION_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:asynchronous-search:${OPENSEARCH_ASYNCHRONOUS_SEARCH_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-cross-cluster-replication:${OPENSEARCH_CROSS_CLUSTER_REPLICATION_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-custom-codecs:${OPENSEARCH_CUSTOM_CODECS_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-flow-framework:${OPENSEARCH_FLOW_FRAMEWORK_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:geospatial:${OPENSEARCH_GEOSPATIAL_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-index-management:${OPENSEARCH_INDEX_MANAGEMENT_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-knn:${OPENSEARCH_KNN_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-ml-plugin:${OPENSEARCH_ML_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:neural-search:${OPENSEARCH_NEURAL_SEARCH_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-notifications-core:${OPENSEARCH_NOTIFICATIONS_CORE_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:notifications:${OPENSEARCH_NOTIFICATIONS_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-observability:${OPENSEARCH_OBSERVABILITY_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:performance-analyzer:${OPENSEARCH_PERFORMANCE_ANALYZER_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-reports-scheduler:${OPENSEARCH_REPORTS_SCHEDULER_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-search-relevance:${OPENSEARCH_SEARCH_RELEVANCE_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-security-analytics:${OPENSEARCH_SECURITY_ANALYTICS_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-skills:${OPENSEARCH_SKILLS_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-sql-plugin:${OPENSEARCH_SQL_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-system-templates:${OPENSEARCH_SYSTEM_TEMPLATES_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:opensearch-ubi:${OPENSEARCH_UBI_PLUGIN_VERSION}" \
+    "org.opensearch.plugin:query-insights:${QUERY_INSIGHTS_PLUGIN_VERSION}"
 
 # Change the group permissions already in the builder image to reduce
 # the size of the final image.
