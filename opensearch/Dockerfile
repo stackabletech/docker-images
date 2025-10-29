@@ -7,8 +7,14 @@ FROM local-image/java-devel AS opensearch-builder
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
+ARG STACKABLE_USER_UID
+ARG TARGETARCH
+
+# Local image versions
 ARG OPENSEARCH_SECURITY_PLUGIN_VERSION
 ARG OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION
+
+# External plugin versions
 ARG OPENSEARCH_ALERTING_PLUGIN_VERSION
 ARG OPENSEARCH_JOB_SCHEDULER_PLUGIN_VERSION
 ARG OPENSEARCH_ANOMALY_DETECTION_PLUGIN_VERSION
@@ -33,8 +39,7 @@ ARG OPENSEARCH_SQL_PLUGIN_VERSION
 ARG OPENSEARCH_SYSTEM_TEMPLATES_PLUGIN_VERSION
 ARG OPENSEARCH_UBI_PLUGIN_VERSION
 ARG QUERY_INSIGHTS_PLUGIN_VERSION
-ARG STACKABLE_USER_UID
-ARG TARGETARCH
+
 
 WORKDIR /stackable
 
@@ -100,7 +105,7 @@ RUN <<EOF
 # The JDK from jdk-base is used instead.
 rm -r jdk
 
-# Install common plugins that are also used in the official image.
+# Install common plugins that are also used in the official image. The order is influenced by dependencies between plugins.
 #
 # TODO: The LTR plugin is currently missing because an official release for OpenSearch 3.x versions is missing.
 # There are tags for 3.x versions in the git repo, so it can be built from source:
