@@ -92,6 +92,8 @@ ARG INOTIFY_TOOLS
 ARG TARGETARCH
 ARG STACKABLE_USER_UID
 
+LABEL maintainer="Stackable GmbH"
+
 COPY --chown=${STACKABLE_USER_UID}:0 opa/licenses /licenses
 COPY --from=vector-builder --chown=${STACKABLE_USER_UID}:0 /app/* /usr/local/bin/
 
