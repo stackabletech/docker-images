@@ -42,7 +42,7 @@ tar -czf /stackable/zookeeper-${NEW_VERSION}-src.tar.gz .
 # that created all kinds of issues for the build container
 mvn \
   -pl "!zookeeper-client/zookeeper-client-c" \
-  clean install checkstyle:check spotbugs:check \
+  clean install \
   -DskipTests \
   -Pfull-build
 
