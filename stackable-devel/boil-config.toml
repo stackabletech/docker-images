@@ -1,1 +1,7 @@
 [versions."1.0.0"]
+
+# Used specifically by vector
+[versions."vector-build".build-arguments]
+# Use what upstream vector uses:
+# https://github.com/vectordotdev/vector/blob/v0.49.0/rust-toolchain.toml
+rust-default-toolchain-version = "1.88.0"

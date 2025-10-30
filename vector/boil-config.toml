@@ -1,6 +1,10 @@
 [versions."0.49.0".local-images]
+stackable-devel = "vector-build"
 stackable-base = "1.0.0"
 
 [versions."0.49.0".build-arguments]
+# See .scripts/upload_new_protoc_version.sh
+# Unsure which version is used by vector. They seem to install `buf` in workflows.
+protoc-version = "31.1"
 inotify-tools = "3.22.1.0-1.el9"
 rpm-release = "1"

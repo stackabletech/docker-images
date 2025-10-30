@@ -45,7 +45,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
 - stackable-devel: Bump Rust toolchain to `1.89.0` and cargo-auditable to `0.7.1` ([#1319]).
-- vector: Bump to `0.49.0` ([#1258]).
+- vector: Bump to `0.49.0` and build from source (applying patches) ([#1258], [#1323]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
@@ -121,6 +121,7 @@ All notable changes to this project will be documented in this file.
 [#1319]: https://github.com/stackabletech/docker-images/pull/1319
 [#1320]: https://github.com/stackabletech/docker-images/pull/1320
 [#1322]: https://github.com/stackabletech/docker-images/pull/1322
+[#1323]: https://github.com/stackabletech/docker-images/pull/1323
 
 ## [25.7.0] - 2025-07-23
 
