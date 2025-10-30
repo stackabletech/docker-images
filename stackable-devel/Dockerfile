@@ -42,6 +42,7 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+# TODO (@NickLarsenNZ): Move the version into boil-config.toml once renovate can look there
 # renovate: datasource=github-releases packageName=rust-lang/rust
 ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.89.0
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=${RUST_DEFAULT_TOOLCHAIN_VERSION}
