@@ -5,6 +5,11 @@
 }:
 
 pkgs.mkShell {
+  packages = [
+    pkgs.cargo
+    pkgs.rustc
+  ];
+
   buildInputs = [
     # Required by patchable
     pkgs.openssl
