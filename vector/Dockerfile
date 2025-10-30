@@ -59,9 +59,10 @@ NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/vector-${NEW_VERSION}-src.tar.gz .
 
-# rust build here?
 . "$HOME/.cargo/env"
-# cargo auditable --quiet build --release --workspace
+
+# Build vector with default features
+# TODO (@NickLarsenNZ): Consider reducing the feature-set to only what we need in the sidecar.
 cargo auditable --quiet build --release
 
 # Generate SBOMs and copy them to /app (via a script)
