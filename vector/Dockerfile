@@ -46,7 +46,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 vector/stackable/patches/${PRODUCT_VERSION}
 # Build artifacts will be available in /app.
 RUN mkdir /app
 
-# This script is designed for operator, and their source path.
+# This script is designed for operators, and their source path.
 # So we can't use it. Instead we use a modified version.
 # COPY shared/copy_artifacts.sh /
 COPY vector/copy_artifacts.sh /
