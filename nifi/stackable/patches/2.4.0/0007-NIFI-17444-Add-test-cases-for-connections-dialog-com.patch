@@ -1,0 +1,445 @@
+From cd9324352ee9b9be958d5e6ff639e68205044e15 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Wed, 29 Oct 2025 15:56:18 +0100
+Subject: NIFI-17444: Add test cases for connections dialog component
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This commit adds comprehensive unit tests for the ConnectionsDialog component:
+
+- Component creation and initialization tests
+- Distance-based sorting tests for both upstream and downstream directions
+- Tests verifying ascending sort for downstream (selected at top)
+- Tests verifying descending sort for upstream (selected at bottom)
+- Transitive connections toggle functionality tests
+- Direct and transitive connections management tests
+- Component type extraction from fully qualified class names
+- Relationship name formatting tests
+- Navigation event emission tests
+- Empty state handling tests
+
+The tests cover all major functionality including:
+- Distance tracking and display
+- Direction-aware sorting algorithms
+- Checkbox toggle for showing/hiding transitive connections
+- Proper data source updates based on toggle state
+- Event emissions for navigation and toggle actions
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .../connections-dialog.component.spec.ts      | 403 ++++++++++++++++++
+ 1 file changed, 403 insertions(+)
+ create mode 100644 nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.spec.ts
+
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.spec.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.spec.ts
+new file mode 100644
+index 0000000000..e9dfc617a1
+--- /dev/null
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.spec.ts
+@@ -0,0 +1,403 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { ComponentFixture, TestBed } from '@angular/core/testing';
++import { ConnectionsDialog, ConnectionItem, ConnectionsDialogRequest } from './connections-dialog.component';
++import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
++import { NoopAnimationsModule } from '@angular/platform-browser/animations';
++
++describe('ConnectionsDialog', () => {
++    let component: ConnectionsDialog;
++    let fixture: ComponentFixture<ConnectionsDialog>;
++
++    const mockConnectionItems: ConnectionItem[] = [
++        {
++            id: 'conn-1',
++            name: 'connection-1',
++            sourceId: 'proc-1',
++            sourceName: 'Source Processor',
++            sourceType: 'PROCESSOR',
++            sourceComponentType: 'org.apache.nifi.processors.standard.GetFile',
++            sourceGroupId: 'group-1',
++            destinationId: 'proc-2',
++            destinationName: 'Destination Processor',
++            destinationType: 'PROCESSOR',
++            destinationComponentType: 'org.apache.nifi.processors.standard.PutFile',
++            destinationGroupId: 'group-1',
++            relationships: ['success'],
++            distance: 0
++        },
++        {
++            id: 'conn-2',
++            name: 'connection-2',
++            sourceId: 'proc-2',
++            sourceName: 'Second Source',
++            sourceType: 'PROCESSOR',
++            sourceComponentType: 'org.apache.nifi.processors.standard.UpdateAttribute',
++            sourceGroupId: 'group-1',
++            destinationId: 'proc-3',
++            destinationName: 'Second Destination',
++            destinationType: 'PROCESSOR',
++            destinationComponentType: 'org.apache.nifi.processors.standard.LogAttribute',
++            destinationGroupId: 'group-1',
++            relationships: ['success', 'failure'],
++            distance: 1
++        }
++    ];
++
++    const createComponent = (data: ConnectionsDialogRequest) => {
++        TestBed.configureTestingModule({
++            imports: [ConnectionsDialog, NoopAnimationsModule],
++            providers: [
++                {
++                    provide: MAT_DIALOG_DATA,
++                    useValue: data
++                },
++                { provide: MatDialogRef, useValue: null }
++            ]
++        }).compileComponents();
++
++        fixture = TestBed.createComponent(ConnectionsDialog);
++        component = fixture.componentInstance;
++        fixture.detectChanges();
++    };
++
++    describe('Component Creation', () => {
++        it('should create', () => {
++            createComponent({
++                title: 'Test Connections',
++                connections: mockConnectionItems,
++                direction: 'downstream'
++            });
++            expect(component).toBeTruthy();
++        });
++
++        it('should initialize with provided title and direction', () => {
++            createComponent({
++                title: 'Upstream Connections',
++                connections: mockConnectionItems,
++                direction: 'upstream'
++            });
++            expect(component.title).toBe('Upstream Connections');
++            expect(component.direction).toBe('upstream');
++        });
++
++        it('should initialize dataSource with sorted connections', () => {
++            createComponent({
++                title: 'Test Connections',
++                connections: mockConnectionItems,
++                direction: 'downstream'
++            });
++            expect(component.dataSource.data.length).toBe(2);
++        });
++    });
++
++    describe('Distance-based Sorting', () => {
++        it('should sort downstream connections in ascending order by distance', () => {
++            const unsortedConnections: ConnectionItem[] = [
++                { ...mockConnectionItems[1], distance: 2 },
++                { ...mockConnectionItems[0], distance: 0 },
++                { ...mockConnectionItems[1], id: 'conn-3', distance: 1 }
++            ];
++
++            createComponent({
++                title: 'Downstream Connections',
++                connections: unsortedConnections,
++                direction: 'downstream'
++            });
++
++            const sortedData = component.dataSource.data;
++            expect(sortedData[0].distance).toBe(0);
++            expect(sortedData[1].distance).toBe(1);
++            expect(sortedData[2].distance).toBe(2);
++        });
++
++        it('should sort upstream connections in descending order by distance', () => {
++            const unsortedConnections: ConnectionItem[] = [
++                { ...mockConnectionItems[0], distance: 0 },
++                { ...mockConnectionItems[1], distance: 2 },
++                { ...mockConnectionItems[1], id: 'conn-3', distance: 1 }
++            ];
++
++            createComponent({
++                title: 'Upstream Connections',
++                connections: unsortedConnections,
++                direction: 'upstream'
++            });
++
++            const sortedData = component.dataSource.data;
++            expect(sortedData[0].distance).toBe(2);
++            expect(sortedData[1].distance).toBe(1);
++            expect(sortedData[2].distance).toBe(0);
++        });
++
++        it('should handle connections with undefined distance values', () => {
++            const connectionsWithUndefined: ConnectionItem[] = [
++                { ...mockConnectionItems[0], distance: undefined },
++                { ...mockConnectionItems[1], distance: 1 }
++            ];
++
++            createComponent({
++                title: 'Test Connections',
++                connections: connectionsWithUndefined,
++                direction: 'downstream'
++            });
++
++            const sortedData = component.dataSource.data;
++            expect(sortedData[0].distance ?? 0).toBe(0);
++            expect(sortedData[1].distance).toBe(1);
++        });
++    });
++
++    describe('Transitive Connections Toggle', () => {
++        beforeEach(() => {
++            createComponent({
++                title: 'Test Connections',
++                connections: [mockConnectionItems[0]],
++                direction: 'downstream'
++            });
++        });
++
++        it('should initialize with showTransitive set to false', () => {
++            expect(component.showTransitive).toBe(false);
++        });
++
++        it('should emit toggleTransitive event when checkbox is toggled', () => {
++            const emitSpy = jest.spyOn(component.toggleTransitive, 'emit');
++
++            component.onToggleTransitive(true);
++
++            expect(emitSpy).toHaveBeenCalledWith(true);
++            expect(component.showTransitive).toBe(true);
++        });
++
++        it('should update showTransitive state when toggled', () => {
++            component.onToggleTransitive(true);
++            expect(component.showTransitive).toBe(true);
++
++            component.onToggleTransitive(false);
++            expect(component.showTransitive).toBe(false);
++        });
++    });
++
++    describe('Setting Direct and Transitive Connections', () => {
++        beforeEach(() => {
++            createComponent({
++                title: 'Test Connections',
++                connections: [mockConnectionItems[0]],
++                direction: 'downstream'
++            });
++        });
++
++        it('should update dataSource with direct connections when showTransitive is false', () => {
++            const newDirectConnections = [mockConnectionItems[0], mockConnectionItems[1]];
++
++            component.setDirectConnections(newDirectConnections);
++
++            expect(component.dataSource.data.length).toBe(2);
++            expect(component.dataSource.data).toEqual(newDirectConnections);
++        });
++
++        it('should not update dataSource with direct connections when showTransitive is true', () => {
++            component.showTransitive = true;
++            const newDirectConnections = [mockConnectionItems[0]];
++
++            component.setDirectConnections(newDirectConnections);
++
++            // DataSource should not be updated with just direct connections
++            expect(component.dataSource.data.length).toBe(1);
++        });
++
++        it('should update dataSource with combined connections when showTransitive is true', () => {
++            component.showTransitive = true;
++            const directConnections = [mockConnectionItems[0]];
++            const transitiveConnections = [mockConnectionItems[1]];
++
++            component.setDirectConnections(directConnections);
++            component.setTransitiveConnections(transitiveConnections);
++
++            expect(component.dataSource.data.length).toBe(2);
++        });
++
++        it('should not update dataSource with transitive connections when showTransitive is false', () => {
++            component.showTransitive = false;
++            const transitiveConnections = [mockConnectionItems[1]];
++
++            component.setTransitiveConnections(transitiveConnections);
++
++            // DataSource should remain unchanged
++            expect(component.dataSource.data.length).toBe(1);
++        });
++
++        it('should sort combined connections when setting transitive connections', () => {
++            const directConnections: ConnectionItem[] = [
++                { ...mockConnectionItems[0], distance: 0 }
++            ];
++            const transitiveConnections: ConnectionItem[] = [
++                { ...mockConnectionItems[1], distance: 2 },
++                { ...mockConnectionItems[1], id: 'conn-3', distance: 1 }
++            ];
++
++            component.showTransitive = true;
++            component.setDirectConnections(directConnections);
++            component.setTransitiveConnections(transitiveConnections);
++
++            const sortedData = component.dataSource.data;
++            expect(sortedData[0].distance).toBe(0);
++            expect(sortedData[1].distance).toBe(1);
++            expect(sortedData[2].distance).toBe(2);
++        });
++    });
++
++    describe('Component Type Extraction', () => {
++        beforeEach(() => {
++            createComponent({
++                title: 'Test Connections',
++                connections: mockConnectionItems,
++                direction: 'downstream'
++            });
++        });
++
++        it('should extract simple type name from fully qualified source component type', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                sourceComponentType: 'org.apache.nifi.processors.standard.GetFile'
++            };
++
++            const typeName = component.getComponentType(connection, 'source');
++
++            expect(typeName).toBe('GetFile');
++        });
++
++        it('should extract simple type name from fully qualified destination component type', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                destinationComponentType: 'org.apache.nifi.processors.standard.PutFile'
++            };
++
++            const typeName = component.getComponentType(connection, 'destination');
++
++            expect(typeName).toBe('PutFile');
++        });
++
++        it('should handle component types without package names', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                sourceComponentType: 'CustomProcessor'
++            };
++
++            const typeName = component.getComponentType(connection, 'source');
++
++            expect(typeName).toBe('CustomProcessor');
++        });
++    });
++
++    describe('Relationship Names', () => {
++        beforeEach(() => {
++            createComponent({
++                title: 'Test Connections',
++                connections: mockConnectionItems,
++                direction: 'downstream'
++            });
++        });
++
++        it('should join multiple relationship names with comma', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                relationships: ['success', 'failure', 'retry']
++            };
++
++            const relationshipNames = component.getRelationshipNames(connection);
++
++            expect(relationshipNames).toBe('success, failure, retry');
++        });
++
++        it('should handle single relationship', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                relationships: ['success']
++            };
++
++            const relationshipNames = component.getRelationshipNames(connection);
++
++            expect(relationshipNames).toBe('success');
++        });
++
++        it('should handle empty relationships array', () => {
++            const connection: ConnectionItem = {
++                ...mockConnectionItems[0],
++                relationships: []
++            };
++
++            const relationshipNames = component.getRelationshipNames(connection);
++
++            expect(relationshipNames).toBe('');
++        });
++    });
++
++    describe('Navigation', () => {
++        beforeEach(() => {
++            createComponent({
++                title: 'Test Connections',
++                connections: mockConnectionItems,
++                direction: 'downstream'
++            });
++        });
++
++        it('should emit goToConnection event with connection and direction', () => {
++            const emitSpy = jest.spyOn(component.goToConnection, 'emit');
++            const connection = mockConnectionItems[0];
++
++            component.onGoToConnection(connection);
++
++            expect(emitSpy).toHaveBeenCalledWith({
++                connection,
++                direction: 'downstream'
++            });
++        });
++
++        it('should emit correct direction for upstream connections', () => {
++            createComponent({
++                title: 'Upstream Connections',
++                connections: mockConnectionItems,
++                direction: 'upstream'
++            });
++
++            const emitSpy = jest.spyOn(component.goToConnection, 'emit');
++            const connection = mockConnectionItems[0];
++
++            component.onGoToConnection(connection);
++
++            expect(emitSpy).toHaveBeenCalledWith({
++                connection,
++                direction: 'upstream'
++            });
++        });
++    });
++
++    describe('Empty State', () => {
++        it('should handle empty connections array', () => {
++            createComponent({
++                title: 'Test Connections',
++                connections: [],
++                direction: 'downstream'
++            });
++
++            expect(component.dataSource.data.length).toBe(0);
++        });
++    });
++});
