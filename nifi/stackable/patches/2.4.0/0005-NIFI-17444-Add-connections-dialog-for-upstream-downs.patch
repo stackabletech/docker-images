@@ -1,0 +1,494 @@
+From f36232ed47af91564127660aad5a9dd90c8c477e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 27 Oct 2025 22:22:04 +0100
+Subject: NIFI-17444: Add connections dialog for upstream/downstream navigation
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Implements a dialog-based interface for viewing and navigating to upstream and downstream connections from the context menu. This restores the functionality from the AngularJS version where users can view a list of connections and jump directly to them.
+
+The dialog displays:
+- Source processor type (prominently displayed)
+- Relationship name(s) for the connection
+- Destination processor type
+- "Go To" action button for navigation
+
+When clicking "Go To":
+- For upstream connections: navigates to the source component
+- For downstream connections: navigates to the destination component
+
+Implementation details:
+- Created ConnectionsDialog component with Material table
+- Added NgRx state management (actions, effects, and types)
+- Updated context menu to dispatch dialog action instead of highlighting
+- Effect gathers connection data from D3 canvas elements
+- Dialog integrates with existing navigation system using navigateToComponent action
+- Automatically determines component type from connection endpoint type
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .../service/canvas-context-menu.service.ts    |  59 ++++++++--
+ .../flow-designer/state/flow/flow.actions.ts  |   6 +
+ .../flow-designer/state/flow/flow.effects.ts  | 108 ++++++++++++++++++
+ .../pages/flow-designer/state/flow/index.ts   |   6 +
+ .../connections-dialog.component.html         |  63 ++++++++++
+ .../connections-dialog.component.scss         |  21 ++++
+ .../connections-dialog.component.ts           |  92 +++++++++++++++
+ 7 files changed, 347 insertions(+), 8 deletions(-)
+ create mode 100644 nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
+ create mode 100644 nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.scss
+ create mode 100644 nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
+
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
+index 5397a990a0..6556c77b40 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/service/canvas-context-menu.service.ts
+@@ -40,6 +40,7 @@ import {
+     openChangeProcessorVersionDialog,
+     openChangeVersionDialogRequest,
+     openCommitLocalChangesDialogRequest,
++    openConnectionsDialog,
+     openForceCommitLocalChangesDialogRequest,
+     openRevertLocalChangesDialogRequest,
+     openSaveVersionDialogRequest,
+@@ -280,24 +281,22 @@ export class CanvasContextMenu implements ContextMenuDefinitionProvider {
+         menuItems: [
+             {
+                 condition: (selection: any) => {
+-                    // TODO - hasUpstream
+-                    return false;
++                    return this.canvasUtils.hasUpstream(selection);
+                 },
+                 clazz: 'icon',
+                 text: 'Upstream',
+-                action: () => {
+-                    // TODO - showUpstream
++                action: (selection: any) => {
++                    this.showUpstreamConnections(selection);
+                 }
+             },
+             {
+                 condition: (selection: any) => {
+-                    // TODO - hasDownstream
+-                    return false;
++                    return this.canvasUtils.hasDownstream(selection);
+                 },
+                 clazz: 'icon',
+                 text: 'Downstream',
+-                action: () => {
+-                    // TODO - showDownstream
++                action: (selection: any) => {
++                    this.showDownstreamConnections(selection);
+                 }
+             }
+         ]
+@@ -1383,6 +1382,50 @@ export class CanvasContextMenu implements ContextMenuDefinitionProvider {
+         this.allMenus.set(this.DOWNLOAD.id, this.DOWNLOAD);
+     }
+ 
++    /**
++     * Shows upstream connections for the selected component.
++     *
++     * @param selection The selected component
++     */
++    private showUpstreamConnections(selection: d3.Selection<any, any, any, any>): void {
++        if (selection.size() !== 1) {
++            return;
++        }
++
++        const component: any = selection.datum();
++        this.store.dispatch(
++            openConnectionsDialog({
++                request: {
++                    componentId: component.id,
++                    componentName: component.component?.name || component.id,
++                    direction: 'upstream'
++                }
++            })
++        );
++    }
++
++    /**
++     * Shows downstream connections for the selected component.
++     *
++     * @param selection The selected component
++     */
++    private showDownstreamConnections(selection: d3.Selection<any, any, any, any>): void {
++        if (selection.size() !== 1) {
++            return;
++        }
++
++        const component: any = selection.datum();
++        this.store.dispatch(
++            openConnectionsDialog({
++                request: {
++                    componentId: component.id,
++                    componentName: component.component?.name || component.id,
++                    direction: 'downstream'
++                }
++            })
++        );
++    }
++
+     getMenu(menuId: string): ContextMenuDefinition | undefined {
+         return this.allMenus.get(menuId);
+     }
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.actions.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.actions.ts
+index 232f4ab422..b28b49ae57 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.actions.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.actions.ts
+@@ -84,6 +84,7 @@ import {
+     SaveToVersionControlRequest,
+     SaveVersionDialogRequest,
+     SelectComponentsRequest,
++    ShowConnectionsDialogRequest,
+     StartComponentRequest,
+     StartComponentResponse,
+     StartComponentsRequest,
+@@ -900,3 +901,8 @@ export const openChangeColorDialog = createAction(
+     `${CANVAS_PREFIX} Open Change Color Dialog`,
+     props<{ request: ChangeColorRequest[] }>()
+ );
++
++export const openConnectionsDialog = createAction(
++    `${CANVAS_PREFIX} Open Connections Dialog`,
++    props<{ request: ShowConnectionsDialogRequest }>()
++);
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
+index 58bcc3341c..5444afce17 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
+@@ -159,6 +159,8 @@ import { ErrorHelper } from '../../../../service/error-helper.service';
+ import { selectConnectedStateChanged } from '../../../../state/cluster-summary/cluster-summary.selectors';
+ import { resetConnectedStateChanged } from '../../../../state/cluster-summary/cluster-summary.actions';
+ import { ChangeColorDialog } from '../../ui/canvas/change-color-dialog/change-color-dialog.component';
++import { ConnectionsDialog, ConnectionItem } from '../../ui/canvas/connections-dialog/connections-dialog.component';
++import * as d3 from 'd3';
+ import {
+     resetPropertyVerificationState,
+     verifyProperties
+@@ -4616,4 +4618,110 @@ export class FlowEffects {
+             ),
+         { dispatch: false }
+     );
++
++    showConnections$ = createEffect(
++        () =>
++            this.actions$.pipe(
++                ofType(FlowActions.openConnectionsDialog),
++                concatLatestFrom(() => this.store.select(selectCurrentProcessGroupId)),
++                map(([action, processGroupId]) => {
++                    const request = action.request;
++                    const allConnections = d3.selectAll('g.connection');
++                    const connections: ConnectionItem[] = [];
++
++                    // Find matching connections based on direction
++                    allConnections.each(function (this: any, d: any) {
++                        if (request.direction === 'upstream' && d.destinationId === request.componentId) {
++                            // Upstream connections: where the selected component is the destination
++                            connections.push({
++                                id: d.id,
++                                name: d.component?.name || d.id,
++                                sourceId: d.sourceId,
++                                sourceName: d.component?.source?.name || 'Unknown',
++                                sourceType: d.sourceType,
++                                sourceComponentType: d.component?.source?.type || 'Unknown',
++                                sourceGroupId: d.sourceGroupId,
++                                destinationId: d.destinationId,
++                                destinationName: d.component?.destination?.name || 'Unknown',
++                                destinationType: d.destinationType,
++                                destinationComponentType: d.component?.destination?.type || 'Unknown',
++                                destinationGroupId: d.destinationGroupId,
++                                relationships: d.component?.selectedRelationships || []
++                            });
++                        } else if (request.direction === 'downstream' && d.sourceId === request.componentId) {
++                            // Downstream connections: where the selected component is the source
++                            connections.push({
++                                id: d.id,
++                                name: d.component?.name || d.id,
++                                sourceId: d.sourceId,
++                                sourceName: d.component?.source?.name || 'Unknown',
++                                sourceType: d.sourceType,
++                                sourceComponentType: d.component?.source?.type || 'Unknown',
++                                sourceGroupId: d.sourceGroupId,
++                                destinationId: d.destinationId,
++                                destinationName: d.component?.destination?.name || 'Unknown',
++                                destinationType: d.destinationType,
++                                destinationComponentType: d.component?.destination?.type || 'Unknown',
++                                destinationGroupId: d.destinationGroupId,
++                                relationships: d.component?.selectedRelationships || []
++                            });
++                        }
++                    });
++
++                    return {
++                        title: `${request.direction === 'upstream' ? 'Upstream' : 'Downstream'} Connections - ${request.componentName}`,
++                        connections,
++                        processGroupId,
++                        direction: request.direction
++                    };
++                }),
++                tap(({ title, connections, processGroupId, direction }) => {
++                    const dialogRef = this.dialog.open(ConnectionsDialog, {
++                        ...MEDIUM_DIALOG,
++                        data: {
++                            title,
++                            connections,
++                            direction
++                        }
++                    });
++
++                    dialogRef.componentInstance.goToConnection.pipe(take(1)).subscribe((payload) => {
++                        const { connection, direction } = payload;
++
++                        // For upstream, navigate to the source; for downstream, navigate to the destination
++                        const targetId = direction === 'upstream' ? connection.sourceId : connection.destinationId;
++                        const targetType = direction === 'upstream' ? connection.sourceType : connection.destinationType;
++                        const targetGroupId = direction === 'upstream' ? connection.sourceGroupId : connection.destinationGroupId;
++
++                        // Convert the connection endpoint type to ComponentType
++                        let componentType: ComponentType;
++                        if (targetType.includes('PROCESSOR')) {
++                            componentType = ComponentType.Processor;
++                        } else if (targetType.includes('INPUT_PORT')) {
++                            componentType = ComponentType.InputPort;
++                        } else if (targetType.includes('OUTPUT_PORT')) {
++                            componentType = ComponentType.OutputPort;
++                        } else if (targetType.includes('FUNNEL')) {
++                            componentType = ComponentType.Funnel;
++                        } else if (targetType.includes('REMOTE')) {
++                            componentType = ComponentType.RemoteProcessGroup;
++                        } else {
++                            componentType = ComponentType.ProcessGroup;
++                        }
++
++                        this.store.dispatch(
++                            FlowActions.navigateToComponent({
++                                request: {
++                                    id: targetId,
++                                    type: componentType,
++                                    processGroupId: targetGroupId
++                                }
++                            })
++                        );
++                        dialogRef.close();
++                    });
++                })
++            ),
++        { dispatch: false }
++    );
+ }
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/index.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/index.ts
+index 7becf59996..68248dcea1 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/index.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/index.ts
+@@ -902,3 +902,9 @@ export interface ChangeColorRequest {
+     revision: Revision;
+     style: any | null;
+ }
++
++export interface ShowConnectionsDialogRequest {
++    componentId: string;
++    componentName: string;
++    direction: 'upstream' | 'downstream';
++}
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
+new file mode 100644
+index 0000000000..2ced71db82
+--- /dev/null
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
+@@ -0,0 +1,63 @@
++<!--
++  ~ Licensed to the Apache Software Foundation (ASF) under one or more
++  ~ contributor license agreements.  See the NOTICE file distributed with
++  ~ this work for additional information regarding copyright ownership.
++  ~ The ASF licenses this file to You under the Apache License, Version 2.0
++  ~ (the "License"); you may not use this file except in compliance with
++  ~ the License.  You may obtain a copy of the License at
++  ~
++  ~    http://www.apache.org/licenses/LICENSE-2.0
++  ~
++  ~ Unless required by applicable law or agreed to in writing, software
++  ~ distributed under the License is distributed on an "AS IS" BASIS,
++  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++  ~ See the License for the specific language governing permissions and
++  ~ limitations under the License.
++  -->
++
++<h2 mat-dialog-title>{{ title }}</h2>
++<mat-dialog-content>
++    @if (dataSource.data.length === 0) {
++        <div class="flex justify-center p-4 text-muted">No connections found</div>
++    } @else {
++        <table mat-table [dataSource]="dataSource" class="w-full">
++            <!-- Component Type Column -->
++            <ng-container matColumnDef="componentType">
++                <th mat-header-cell *matHeaderCellDef>Type</th>
++                <td mat-cell *matCellDef="let item">
++                    <div class="font-medium">{{ getComponentType(item, 'source') }}</div>
++                    <div class="text-sm text-muted">{{ item.sourceName }}</div>
++                </td>
++            </ng-container>
++
++            <!-- Relationship Column -->
++            <ng-container matColumnDef="relationship">
++                <th mat-header-cell *matHeaderCellDef>Relationship</th>
++                <td mat-cell *matCellDef="let item">
++                    <div class="font-medium">{{ getRelationshipNames(item) }}</div>
++                    <div class="text-sm text-muted">{{ getComponentType(item, 'destination') }}</div>
++                </td>
++            </ng-container>
++
++            <!-- Actions Column -->
++            <ng-container matColumnDef="actions">
++                <th mat-header-cell *matHeaderCellDef></th>
++                <td mat-cell *matCellDef="let item" class="text-right">
++                    <button
++                        mat-button
++                        color="primary"
++                        type="button"
++                        (click)="onGoToConnection(item)">
++                        Go To
++                    </button>
++                </td>
++            </ng-container>
++
++            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
++            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
++        </table>
++    }
++</mat-dialog-content>
++<mat-dialog-actions align="end">
++    <button mat-button mat-dialog-close>Close</button>
++</mat-dialog-actions>
+\ No newline at end of file
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.scss b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.scss
+new file mode 100644
+index 0000000000..083b31ac88
+--- /dev/null
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.scss
+@@ -0,0 +1,21 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++mat-dialog-content {
++    min-width: 500px;
++    max-height: 400px;
++}
+\ No newline at end of file
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
+new file mode 100644
+index 0000000000..d36a2ce606
+--- /dev/null
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
+@@ -0,0 +1,92 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import { Component, EventEmitter, Inject, Output } from '@angular/core';
++import { CommonModule } from '@angular/common';
++import {
++    MAT_DIALOG_DATA,
++    MatDialogActions,
++    MatDialogClose,
++    MatDialogContent,
++    MatDialogTitle
++} from '@angular/material/dialog';
++import { MatButton } from '@angular/material/button';
++import { CloseOnEscapeDialog, ComponentType } from '@nifi/shared';
++import { MatTableDataSource, MatTableModule } from '@angular/material/table';
++
++export interface ConnectionItem {
++    id: string;
++    name: string;
++    sourceId: string;
++    sourceName: string;
++    sourceType: string;
++    sourceComponentType: string;
++    sourceGroupId: string;
++    destinationId: string;
++    destinationName: string;
++    destinationType: string;
++    destinationComponentType: string;
++    destinationGroupId: string;
++    relationships: string[];
++}
++
++export interface ConnectionsDialogRequest {
++    title: string;
++    connections: ConnectionItem[];
++    direction: 'upstream' | 'downstream';
++}
++
++@Component({
++    selector: 'connections-dialog',
++    imports: [CommonModule, MatDialogTitle, MatDialogContent, MatButton, MatDialogActions, MatDialogClose, MatTableModule],
++    templateUrl: './connections-dialog.component.html',
++    styleUrl: './connections-dialog.component.scss'
++})
++export class ConnectionsDialog extends CloseOnEscapeDialog {
++    title: string;
++    direction: 'upstream' | 'downstream';
++    displayedColumns: string[] = ['componentType', 'relationship', 'actions'];
++    dataSource: MatTableDataSource<ConnectionItem>;
++
++    @Output() goToConnection = new EventEmitter<{ connection: ConnectionItem; direction: 'upstream' | 'downstream' }>();
++
++    constructor(@Inject(MAT_DIALOG_DATA) private data: ConnectionsDialogRequest) {
++        super();
++        this.title = data.title;
++        this.direction = data.direction;
++        this.dataSource = new MatTableDataSource<ConnectionItem>(data.connections);
++    }
++
++    onGoToConnection(connection: ConnectionItem): void {
++        this.goToConnection.next({ connection, direction: this.direction });
++    }
++
++    getComponentType(connection: ConnectionItem, direction: 'source' | 'destination'): string {
++        if (direction === 'source') {
++            // Extract simple type name from fully qualified name (e.g., "org.apache.nifi.processors.standard.GetFile" -> "GetFile")
++            const typeParts = connection.sourceComponentType.split('.');
++            return typeParts[typeParts.length - 1];
++        } else {
++            const typeParts = connection.destinationComponentType.split('.');
++            return typeParts[typeParts.length - 1];
++        }
++    }
++
++    getRelationshipNames(connection: ConnectionItem): string {
++        return connection.relationships.join(', ');
++    }
++}
+\ No newline at end of file

@@ -1,0 +1,317 @@
+From 5f94acfd141326c14a1ef3a1f71a5d02b0016b3e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Tue, 28 Oct 2025 14:02:28 +0100
+Subject: NIFI-17444: Add transitive connections with distance tracking to
+ upstream/downstream dialog
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This commit enhances the connections dialog to support transitive connections:
+
+- Added checkbox toggle to show/hide transitive (indirect) connections
+- Implemented BFS (Breadth-First Search) algorithm to traverse connection graph
+- Added distance tracking to show how many hops away each component is
+- Direct connections are assigned distance 0, first level transitive distance 1, etc.
+- Implemented distance-based sorting:
+  - Downstream: ascending order (selected component at top with distance 0)
+  - Upstream: descending order (selected component at bottom)
+- Added distance column to the table display
+- Updated ConnectionItem interface to include optional distance field
+- Modified flow effects to calculate and assign distances during BFS traversal
+
+Note: Current implementation works within the current process group only.
+Transitive connections across process group boundaries are not included
+because d3.selectAll only returns connections visible on the current canvas.
+Full cross-boundary support would require API calls to fetch parent and
+child group connections.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+---
+ .../flow-designer/state/flow/flow.effects.ts  | 116 +++++++++++++++++-
+ .../connections-dialog.component.html         |  13 ++
+ .../connections-dialog.component.ts           |  52 +++++++-
+ 3 files changed, 176 insertions(+), 5 deletions(-)
+
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
+index 5444afce17..40cf4922d8 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/state/flow/flow.effects.ts
+@@ -4630,6 +4630,7 @@ export class FlowEffects {
+                     const connections: ConnectionItem[] = [];
+ 
+                     // Find matching connections based on direction
++                    // Direct connections have distance 0
+                     allConnections.each(function (this: any, d: any) {
+                         if (request.direction === 'upstream' && d.destinationId === request.componentId) {
+                             // Upstream connections: where the selected component is the destination
+@@ -4646,7 +4647,8 @@ export class FlowEffects {
+                                 destinationType: d.destinationType,
+                                 destinationComponentType: d.component?.destination?.type || 'Unknown',
+                                 destinationGroupId: d.destinationGroupId,
+-                                relationships: d.component?.selectedRelationships || []
++                                relationships: d.component?.selectedRelationships || [],
++                                distance: 0
+                             });
+                         } else if (request.direction === 'downstream' && d.sourceId === request.componentId) {
+                             // Downstream connections: where the selected component is the source
+@@ -4663,7 +4665,8 @@ export class FlowEffects {
+                                 destinationType: d.destinationType,
+                                 destinationComponentType: d.component?.destination?.type || 'Unknown',
+                                 destinationGroupId: d.destinationGroupId,
+-                                relationships: d.component?.selectedRelationships || []
++                                relationships: d.component?.selectedRelationships || [],
++                                distance: 0
+                             });
+                         }
+                     });
+@@ -4685,6 +4688,12 @@ export class FlowEffects {
+                         }
+                     });
+ 
++                    const allConnections = d3.selectAll('g.connection');
++                    const originalComponentId = connections.length > 0
++                        ? (direction === 'upstream' ? connections[0].destinationId : connections[0].sourceId)
++                        : null;
++
++                    // Handle navigation when "Go To" is clicked
+                     dialogRef.componentInstance.goToConnection.pipe(take(1)).subscribe((payload) => {
+                         const { connection, direction } = payload;
+ 
+@@ -4720,6 +4729,109 @@ export class FlowEffects {
+                         );
+                         dialogRef.close();
+                     });
++
++                    // Handle transitive connections toggle
++                    dialogRef.componentInstance.toggleTransitive
++                        .pipe(takeUntil(dialogRef.afterClosed()))
++                        .subscribe((showTransitive: boolean) => {
++                            if (showTransitive && originalComponentId) {
++                                const transitiveConnections: ConnectionItem[] = [];
++                                const visited = new Set<string>();
++                                const componentDistances = new Map<string, number>();
++
++                                // Initialize direct component distances
++                                connections.forEach(c => {
++                                    visited.add(c.id);
++                                    const componentId = direction === 'upstream' ? c.sourceId : c.destinationId;
++                                    componentDistances.set(componentId, 1);
++                                });
++
++                                // Set selected component distance to 0
++                                componentDistances.set(originalComponentId, 0);
++
++                                // Helper function to check if a component is a port that crosses process group boundary
++                                const isPortCrossingBoundary = (componentId: string, componentType: string, groupId: string): boolean => {
++                                    // Input ports at group boundary: sourceGroupId != current process group
++                                    // Output ports at group boundary: destinationGroupId != current process group
++                                    return (componentType.includes('INPUT_PORT') || componentType.includes('OUTPUT_PORT')) &&
++                                           groupId !== processGroupId;
++                                };
++
++                                // Find transitive connections using BFS with distance tracking
++                                // Queue stores: {componentId, distance}
++                                const queue: Array<{id: string, distance: number}> = [];
++
++                                // Initialize queue with direct connections
++                                connections.forEach(c => {
++                                    const componentId = direction === 'upstream' ? c.sourceId : c.destinationId;
++                                    queue.push({id: componentId, distance: 1});
++                                });
++
++                                while (queue.length > 0) {
++                                    const current = queue.shift()!;
++                                    const currentDistance = current.distance;
++
++                                    allConnections.each(function (this: any, d: any) {
++                                        // Skip if we've already processed this connection
++                                        if (visited.has(d.id)) {
++                                            return;
++                                        }
++
++                                        let isTransitive = false;
++                                        let nextComponentId: string | null = null;
++
++                                        if (direction === 'upstream' && d.destinationId === current.id) {
++                                            // Found an upstream connection from the current component
++                                            isTransitive = true;
++                                            nextComponentId = d.sourceId;
++                                        } else if (direction === 'downstream' && d.sourceId === current.id) {
++                                            // Found a downstream connection from the current component
++                                            isTransitive = true;
++                                            nextComponentId = d.destinationId;
++                                        }
++
++                                        if (isTransitive && nextComponentId) {
++                                            visited.add(d.id);
++                                            const nextDistance = currentDistance + 1;
++
++                                            transitiveConnections.push({
++                                                id: d.id,
++                                                name: d.component?.name || d.id,
++                                                sourceId: d.sourceId,
++                                                sourceName: d.component?.source?.name || 'Unknown',
++                                                sourceType: d.sourceType,
++                                                sourceComponentType: d.component?.source?.type || 'Unknown',
++                                                sourceGroupId: d.sourceGroupId,
++                                                destinationId: d.destinationId,
++                                                destinationName: d.component?.destination?.name || 'Unknown',
++                                                destinationType: d.destinationType,
++                                                destinationComponentType: d.component?.destination?.type || 'Unknown',
++                                                destinationGroupId: d.destinationGroupId,
++                                                relationships: d.component?.selectedRelationships || [],
++                                                distance: nextDistance
++                                            });
++
++                                            // Add the next component to the queue to continue traversal
++                                            if (!componentDistances.has(nextComponentId)) {
++                                                queue.push({id: nextComponentId, distance: nextDistance});
++                                                componentDistances.set(nextComponentId, nextDistance);
++                                            }
++                                        }
++                                    });
++
++                                    // Note: When we reach an INPUT_PORT or OUTPUT_PORT that represents a process group boundary,
++                                    // we cannot traverse further without querying connections from parent/child process groups.
++                                    // d3.selectAll only returns connections visible on the current canvas.
++                                    // A complete implementation would require fetching connections from the flow state store
++                                    // for parent/child process groups, which is left for future enhancement.
++                                }
++
++                                dialogRef.componentInstance.setTransitiveConnections(transitiveConnections);
++                            } else {
++                                // Hide transitive connections
++                                dialogRef.componentInstance.setDirectConnections(connections);
++                            }
++                        });
+                 })
+             ),
+         { dispatch: false }
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
+index 2ced71db82..2cd9ae42b3 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.html
+@@ -17,10 +17,23 @@
+ 
+ <h2 mat-dialog-title>{{ title }}</h2>
+ <mat-dialog-content>
++    <div class="mb-4">
++        <mat-checkbox [(ngModel)]="showTransitive" (change)="onToggleTransitive($event.checked)">
++            Show transitive connections
++        </mat-checkbox>
++    </div>
+     @if (dataSource.data.length === 0) {
+         <div class="flex justify-center p-4 text-muted">No connections found</div>
+     } @else {
+         <table mat-table [dataSource]="dataSource" class="w-full">
++            <!-- Distance Column -->
++            <ng-container matColumnDef="distance">
++                <th mat-header-cell *matHeaderCellDef>Distance</th>
++                <td mat-cell *matCellDef="let item">
++                    <span class="font-medium">{{ item.distance ?? 0 }}</span>
++                </td>
++            </ng-container>
++
+             <!-- Component Type Column -->
+             <ng-container matColumnDef="componentType">
+                 <th mat-header-cell *matHeaderCellDef>Type</th>
+diff --git a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
+index d36a2ce606..41ba6a1da3 100644
+--- a/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
++++ b/nifi-frontend/src/main/frontend/apps/nifi/src/app/pages/flow-designer/ui/canvas/connections-dialog/connections-dialog.component.ts
+@@ -27,6 +27,8 @@ import {
+ import { MatButton } from '@angular/material/button';
+ import { CloseOnEscapeDialog, ComponentType } from '@nifi/shared';
+ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
++import { MatCheckbox } from '@angular/material/checkbox';
++import { FormsModule } from '@angular/forms';
+ 
+ export interface ConnectionItem {
+     id: string;
+@@ -42,6 +44,7 @@ export interface ConnectionItem {
+     destinationComponentType: string;
+     destinationGroupId: string;
+     relationships: string[];
++    distance?: number; // Distance from the selected component (0 for direct connections, 1+ for transitive)
+ }
+ 
+ export interface ConnectionsDialogRequest {
+@@ -52,29 +55,72 @@ export interface ConnectionsDialogRequest {
+ 
+ @Component({
+     selector: 'connections-dialog',
+-    imports: [CommonModule, MatDialogTitle, MatDialogContent, MatButton, MatDialogActions, MatDialogClose, MatTableModule],
++    imports: [CommonModule, MatDialogTitle, MatDialogContent, MatButton, MatDialogActions, MatDialogClose, MatTableModule, MatCheckbox, FormsModule],
+     templateUrl: './connections-dialog.component.html',
+     styleUrl: './connections-dialog.component.scss'
+ })
+ export class ConnectionsDialog extends CloseOnEscapeDialog {
+     title: string;
+     direction: 'upstream' | 'downstream';
+-    displayedColumns: string[] = ['componentType', 'relationship', 'actions'];
++    displayedColumns: string[] = ['distance', 'componentType', 'relationship', 'actions'];
+     dataSource: MatTableDataSource<ConnectionItem>;
++    allConnections: ConnectionItem[];
++    showTransitive: boolean = false;
+ 
+     @Output() goToConnection = new EventEmitter<{ connection: ConnectionItem; direction: 'upstream' | 'downstream' }>();
++    @Output() toggleTransitive = new EventEmitter<boolean>();
++
++    private directConnections: ConnectionItem[] = [];
++    private transitiveConnections: ConnectionItem[] = [];
+ 
+     constructor(@Inject(MAT_DIALOG_DATA) private data: ConnectionsDialogRequest) {
+         super();
+         this.title = data.title;
+         this.direction = data.direction;
+-        this.dataSource = new MatTableDataSource<ConnectionItem>(data.connections);
++        this.directConnections = data.connections;
++        this.allConnections = data.connections;
++        this.dataSource = new MatTableDataSource<ConnectionItem>(this.sortConnections(data.connections));
+     }
+ 
+     onGoToConnection(connection: ConnectionItem): void {
+         this.goToConnection.next({ connection, direction: this.direction });
+     }
+ 
++    onToggleTransitive(checked: boolean): void {
++        this.showTransitive = checked;
++        this.toggleTransitive.emit(checked);
++    }
++
++    setDirectConnections(connections: ConnectionItem[]): void {
++        this.directConnections = connections;
++        if (!this.showTransitive) {
++            this.dataSource.data = this.sortConnections(connections);
++        }
++    }
++
++    setTransitiveConnections(connections: ConnectionItem[]): void {
++        this.transitiveConnections = connections;
++        if (this.showTransitive) {
++            const allConnections = [...this.directConnections, ...connections];
++            this.dataSource.data = this.sortConnections(allConnections);
++        }
++    }
++
++    private sortConnections(connections: ConnectionItem[]): ConnectionItem[] {
++        return connections.sort((a, b) => {
++            const distanceA = a.distance ?? 0;
++            const distanceB = b.distance ?? 0;
++
++            // For downstream: sort ascending (selected component at top with distance 0)
++            // For upstream: sort descending (selected component at bottom with highest distance)
++            if (this.direction === 'downstream') {
++                return distanceA - distanceB;
++            } else {
++                return distanceB - distanceA;
++            }
++        });
++    }
++
+     getComponentType(connection: ConnectionItem, direction: 'source' | 'destination'): string {
+         if (direction === 'source') {
+             // Extract simple type name from fully qualified name (e.g., "org.apache.nifi.processors.standard.GetFile" -> "GetFile")
