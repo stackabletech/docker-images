@@ -77,7 +77,9 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         npm \
         nodejs \
         # Needed to modify the SBOM
-        jq && \
+        jq \
+        # Needed to create the source code snapshot
+        tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -102,6 +104,8 @@ pip install --no-cache-dir uv==${UV_VERSION}
 uv tool install hatch
 
 cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})"
+
+tar -czf /stackable/airflow-${PRODUCT_VERSION}-src.tar.gz .
 
 if [ -d "./airflow-core" ]; then
   # Airflow 3.x
@@ -155,6 +159,10 @@ jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
+
+# Clean up build artifacts and temporary files to reduce image size
+cd /stackable
+rm -rf ./src
 EOF
 
 RUN <<EOF

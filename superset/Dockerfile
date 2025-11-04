@@ -69,6 +69,8 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         # Needed to build Superset UI assets
         npm \
         nodejs \
+        # Needed to create the source code snapshot
+        tar \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -96,6 +98,9 @@ source /stackable/app/bin/activate
 pip install --no-cache-dir --upgrade pip setuptools==75.2.0 uv==${UV_VERSION}
 
 cd "$(/stackable/patchable --images-repo-root=src checkout superset ${PRODUCT_VERSION})"
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/superset-${PRODUCT_VERSION}-src.tar.gz .
 
 # Build front-end assets
 cd superset-frontend
@@ -152,6 +157,10 @@ uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 cyclonedx-py environment --schema-version 1.5 --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
 uv pip uninstall cyclonedx-bom
+
+# Clean up build artifacts and temporary files to reduce image size
+cd /stackable
+rm -rf ./src
 
 chmod --recursive g=u /stackable
 EOF
