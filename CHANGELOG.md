@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - airflow,superset: Build from source ([#1304]).
 - kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
 - airflow: Add apache-kafka provider plus dependencies to `3.0.6` image ([#1313]).
+- airflow,superset: Reduce image size and add a snapshot of the source code ([#1326]).
 
 ### Changed
 
@@ -122,6 +123,7 @@ All notable changes to this project will be documented in this file.
 [#1320]: https://github.com/stackabletech/docker-images/pull/1320
 [#1322]: https://github.com/stackabletech/docker-images/pull/1322
 [#1323]: https://github.com/stackabletech/docker-images/pull/1323
+[#1326]: https://github.com/stackabletech/docker-images/pull/1326
 
 ## [25.7.0] - 2025-07-23
 
