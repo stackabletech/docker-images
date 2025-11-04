@@ -1,11 +1,9 @@
-From 39fb29c54dc9705e5b56b60300beae381cae87f5 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Jo=C3=A3o=20Ferr=C3=A3o?= <jrcferrao@gmail.com>
-Date: Mon, 4 Nov 2024 17:54:47 +0100
+From f15eb32f034ae647a8af71787b681bfa233ccd2e Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Tue, 4 Nov 2025 12:01:57 +0100
 Subject: feat(oauth2): add support for trino (#30081)
 
-(cherry picked from commit 305b6df6e3e5aaa6d3faa8fa1a2d91fcb05b7c34)
 ---
- .github/actions/chart-releaser-action         |   2 +-
  superset/db_engine_specs/base.py              |  50 ++++----
  superset/db_engine_specs/trino.py             |  31 ++++-
  superset/superset_typing.py                   |   4 +
@@ -13,15 +11,8 @@ Subject: feat(oauth2): add support for trino (#30081)
  .../db_engine_specs/test_gsheets.py           |   1 +
  .../unit_tests/db_engine_specs/test_trino.py  | 117 ++++++++++++++----
  tests/unit_tests/models/core_test.py          |   1 +
- 8 files changed, 158 insertions(+), 55 deletions(-)
+ 7 files changed, 157 insertions(+), 54 deletions(-)
 
-diff --git a/.github/actions/chart-releaser-action b/.github/actions/chart-releaser-action
-index 120944e66..a917fd15b 160000
---- a/.github/actions/chart-releaser-action
-+++ b/.github/actions/chart-releaser-action
-@@ -1 +1 @@
--Subproject commit 120944e66390c2534cc1b3c62d7285ba7ff02594
-+Subproject commit a917fd15b20e8b64b94d9158ad54cd6345335584
 diff --git a/superset/db_engine_specs/base.py b/superset/db_engine_specs/base.py
 index d0f25d2f6..4664d1162 100644
 --- a/superset/db_engine_specs/base.py
