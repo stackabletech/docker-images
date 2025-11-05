@@ -35,4 +35,5 @@ jobs:
       product-name: trino
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
+      # We have a too high disk usage for GitHub runners
       runners: ubicloud
