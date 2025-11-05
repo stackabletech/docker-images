@@ -58,6 +58,9 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
     microdnf update && \
     microdnf install \
         cyrus-sasl-devel \
+        # Needed for kerberos
+        cyrus-sasl-gssapi \
+        krb5-devel\
         # Needed by ./configure to build gevent, see snippet [1] at the end of file
         diffutils \
         # Needed to build gevent, see snippet [1] at the end of file
