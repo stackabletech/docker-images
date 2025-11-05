@@ -21,8 +21,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT_VERSION} 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-reload4j /stackable/.m2/repository /stackable/patched-reload4j-libs
 
 RUN <<EOF
-mkdir -p /stackable/.m2/repository
-cp -r /stackable/patched-reload4j-libs/* /stackable/.m2/repository
+    # TODO: remove this later.
+    # reload4j jars are only needed of Kafka 3.x
+    case "${PRODUCT_VERSION}" in
+      3*)
+        mkdir -p /stackable/.m2/repository
+        cp -r /stackable/patched-reload4j-libs/* /stackable/.m2/repository
+    esac
 
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT_VERSION})"
 
