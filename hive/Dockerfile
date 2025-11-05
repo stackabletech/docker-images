@@ -250,8 +250,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackab
 
 COPY hive/licenses /licenses
 
-ENV HIVE_HOME=/stackable/hive-metastore
-
 RUN <<EOF
 microdnf update
 microdnf clean all
@@ -293,6 +291,7 @@ EOF
 
 USER ${STACKABLE_USER_UID}
 
+ENV HIVE_HOME=/stackable/hive-metastore
 ENV HADOOP_HOME=/stackable/hadoop
 ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
 
