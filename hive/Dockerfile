@@ -17,6 +17,7 @@ ARG DELETE_CACHES="true"
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 
 # We need Java 11 to build the hive-metastore-opa-authorizer
+# TODO: How can we improve this or e.g. specify different java-dev images?
 RUN <<EOF
 microdnf update
 microdnf install "temurin-11-jdk" 
