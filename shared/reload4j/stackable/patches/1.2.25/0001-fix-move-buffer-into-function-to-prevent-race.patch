@@ -1,14 +1,14 @@
-From 3c1ce68a548f435b63a104537b8653e5f14347a7 Mon Sep 17 00:00:00 2001
+From ea035412d25a54e387e748c07a6c4f58b06ff10d Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Wed, 5 Nov 2025 12:27:34 +0100
-Subject: fix: move StringBuffer into function to prevent race
+Subject: fix: move buffer into function to prevent race
 
 ---
  src/main/java/org/apache/log4j/xml/XMLLayout.java | 10 +---------
  1 file changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/src/main/java/org/apache/log4j/xml/XMLLayout.java b/src/main/java/org/apache/log4j/xml/XMLLayout.java
-index 4f0d99f3..157ecdc6 100644
+index 4f0d99f3..35ef30d8 100644
 --- a/src/main/java/org/apache/log4j/xml/XMLLayout.java
 +++ b/src/main/java/org/apache/log4j/xml/XMLLayout.java
 @@ -64,9 +64,7 @@ import java.util.Arrays;
@@ -32,7 +32,7 @@ index 4f0d99f3..157ecdc6 100644
 -        } else {
 -            buf.setLength(0);
 -        }
-+        StringBuffer buf = new StringBuffer(DEFAULT_SIZE);
++        StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
  
          // We yield to the \r\n heresy.
  
