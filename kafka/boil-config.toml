@@ -3,6 +3,7 @@ java-base = "21"
 java-devel = "21"
 "kafka/kcat" = "1.7.0"
 "kafka/kafka-opa-plugin" = "1.5.1"
+"shared/reload4j" = "1.2.25"
 
 [versions."3.7.2".build-arguments]
 scala-version = "2.13"
@@ -13,6 +14,7 @@ java-base = "21"
 java-devel = "21"
 "kafka/kcat" = "1.7.0"
 "kafka/kafka-opa-plugin" = "1.5.1"
+"shared/reload4j" = "1.2.25"
 
 [versions."3.9.1".build-arguments]
 scala-version = "2.13"
