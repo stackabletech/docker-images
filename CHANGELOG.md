@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
 - nifi: Use a patched version of logback to fix corrupted logs ([#1314])
 - zookeeper: Use a patched version of logback to fix corrupted logs ([#1320])
+- kafka: Use patched version of reload4j to fix corrupted logs ([#1330])
 
 ### Fixed
 
@@ -124,6 +125,7 @@ All notable changes to this project will be documented in this file.
 [#1322]: https://github.com/stackabletech/docker-images/pull/1322
 [#1323]: https://github.com/stackabletech/docker-images/pull/1323
 [#1326]: https://github.com/stackabletech/docker-images/pull/1326
+[#1330]: https://github.com/stackabletech/docker-images/pull/1330
 
 ## [25.7.0] - 2025-07-23
 
