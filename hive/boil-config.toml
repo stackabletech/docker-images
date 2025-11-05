@@ -10,6 +10,8 @@ jmx-exporter-version = "1.3.0"
 aws-java-sdk-bundle-version = "1.12.367"
 azure-storage-version = "7.0.1"
 azure-keyvault-core-version = "1.0.0"
+# hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
+hive-metastore-opa-authorizer-version = "v1.0.0"
 
 [versions."4.0.0".local-images]
 # Hive 4 must be built with Java 8 (according to GitHub README) but seems to run on Java 11
@@ -23,6 +25,8 @@ jmx-exporter-version = "1.3.0"
 aws-java-sdk-bundle-version = "1.12.367"
 azure-storage-version = "7.0.1"
 azure-keyvault-core-version = "1.0.0"
+# hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
+hive-metastore-opa-authorizer-version = "v1.0.0"
 
 [versions."4.0.1".local-images]
 # Hive 4.0 must be built with Java 8 (according to GitHub README) but seems to run on Java 11
@@ -36,6 +40,8 @@ jmx-exporter-version = "1.3.0"
 aws-java-sdk-bundle-version = "1.12.367"
 azure-storage-version = "7.0.1"
 azure-keyvault-core-version = "1.0.0"
+# hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
+hive-metastore-opa-authorizer-version = "v1.0.0"
 
 [versions."4.1.0".local-images]
 # Hive 4.1 requires Java 17 (according to GitHub README)
@@ -51,3 +57,5 @@ aws-java-sdk-bundle-version = "2.29.52"
 azure-storage-version = "7.0.1"
 # Keep consistent with the dependency from azure-storage: https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
 azure-keyvault-core-version = "1.0.0"
+# hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
+hive-metastore-opa-authorizer-version = "v1.0.0"
