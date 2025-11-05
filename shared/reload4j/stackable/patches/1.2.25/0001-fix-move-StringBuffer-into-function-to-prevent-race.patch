@@ -1,0 +1,38 @@
+From 3c1ce68a548f435b63a104537b8653e5f14347a7 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 5 Nov 2025 12:27:34 +0100
+Subject: fix: move StringBuffer into function to prevent race
+
+---
+ src/main/java/org/apache/log4j/xml/XMLLayout.java | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/src/main/java/org/apache/log4j/xml/XMLLayout.java b/src/main/java/org/apache/log4j/xml/XMLLayout.java
+index 4f0d99f3..157ecdc6 100644
+--- a/src/main/java/org/apache/log4j/xml/XMLLayout.java
++++ b/src/main/java/org/apache/log4j/xml/XMLLayout.java
+@@ -64,9 +64,7 @@ import java.util.Arrays;
+ public class XMLLayout extends Layout {
+ 
+     private final int DEFAULT_SIZE = 256;
+-    private final int UPPER_LIMIT = 2048;
+ 
+-    private StringBuffer buf = new StringBuffer(DEFAULT_SIZE);
+     private boolean locationInfo = false;
+     private boolean properties = false;
+ 
+@@ -121,13 +119,7 @@ public class XMLLayout extends Layout {
+      */
+     public String format(final LoggingEvent event) {
+ 
+-        // Reset working buffer. If the buffer is too large, then we need a new
+-        // one in order to avoid the penalty of creating a large array.
+-        if (buf.capacity() > UPPER_LIMIT) {
+-            buf = new StringBuffer(DEFAULT_SIZE);
+-        } else {
+-            buf.setLength(0);
+-        }
++        StringBuffer buf = new StringBuffer(DEFAULT_SIZE);
+ 
+         // We yield to the \r\n heresy.
+ 
