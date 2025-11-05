@@ -57,7 +57,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@75e0756966dea229d697165bfd06ba79abcda72c # v0.10.3
+        uses: stackabletech/actions/publish-image@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -84,7 +84,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@75e0756966dea229d697165bfd06ba79abcda72c # v0.10.3
+        uses: stackabletech/actions/publish-image-index-manifest@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
