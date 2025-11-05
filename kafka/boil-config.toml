@@ -25,6 +25,10 @@ java-base = "23"
 java-devel = "23"
 "kafka/kcat" = "1.7.0"
 "kafka/kafka-opa-plugin" = "1.5.1"
+# TODO: this is not used in this version but it's added
+# to avoid major changes to the Kafka image build on short notice.
+# Building this image is quick and in CI should not even be noticed.
+"shared/reload4j" = "1.2.25"
 
 [versions."4.1.0".build-arguments]
 scala-version = "2.13"
