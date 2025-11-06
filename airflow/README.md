@@ -24,5 +24,5 @@ The expected versions are listed in the constraints files, but these change over
 To keep the installation tightly coupled to the associated constraints it is best to extract the list of providers from the specific constraints file being used to build the product image.
 The only providers that are currently excluded are:
 
-- `mysql`, as it requires an implementation of: https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh
+- `mysql`, as it requires an implementation of: <https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh>
 - `apache-spark`, due to the size (roughly 500MB) and the number high/critical CVEs it adds to the image
