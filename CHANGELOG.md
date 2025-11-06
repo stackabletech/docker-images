@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Use a patched version of logback to fix corrupted logs ([#1314])
 - zookeeper: Use a patched version of logback to fix corrupted logs ([#1320])
 - kafka: Use patched version of reload4j to fix corrupted logs ([#1330])
+- airflow: Extend list of providers for 3.0.6 ([#1336])
 
 ### Fixed
 
@@ -126,6 +127,7 @@ All notable changes to this project will be documented in this file.
 [#1323]: https://github.com/stackabletech/docker-images/pull/1323
 [#1326]: https://github.com/stackabletech/docker-images/pull/1326
 [#1330]: https://github.com/stackabletech/docker-images/pull/1330
+[#1336]: https://github.com/stackabletech/docker-images/pull/1336
 
 ## [25.7.0] - 2025-07-23
 
