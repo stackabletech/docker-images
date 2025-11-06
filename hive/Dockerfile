@@ -2,67 +2,7 @@
 # check=error=true
 
 FROM local-image/hadoop/hadoop AS hadoop-builder
-
-FROM local-image/java-devel AS hive-metastore-opa-authorizer-builder
-
-ARG PRODUCT_VERSION
-ARG HADOOP_HADOOP_VERSION
-ARG HIVE_METASTORE_OPA_AUTHORIZER_VERSION
-ARG STACKABLE_USER_UID
-# Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
-# This can be used to speed up builds when disk space is of no concern.
-ARG DELETE_CACHES="true"
-
-# Reassign the arg to `HADOOP_VERSION` for better readability.
-ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
-
-# We need Java 11 to build the hive-metastore-opa-authorizer
-# TODO: How can we improve this or e.g. specify different java-dev images?
-RUN <<EOF
-microdnf update
-microdnf install "temurin-11-jdk" 
-microdnf clean all
-rm -rf /var/cache/yum
-EOF
-
-ENV JAVA_HOME="/usr/lib/jvm/temurin-11-jdk"
-ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
-
-USER ${STACKABLE_USER_UID}
-WORKDIR /hive-metastore-opa-authorizer
-
-RUN <<'EOF'
-set -euo pipefail
-
-# for moving nested artifacts out of target folder
-mkdir /hive-metastore-opa-authorizer/jars
-
-git clone --depth 1 --branch ${HIVE_METASTORE_OPA_AUTHORIZER_VERSION} https://github.com/boschglobal/hive-metastore-opa-authorizer.git
-cd hive-metastore-opa-authorizer 
-
-# The if part can be removed once we do no longer support Hive 3.x.x
-if [[ "${PRODUCT_VERSION}" =~ ^3 ]]; then
-  mvn clean package -DskipTests -Dhive.version=${PRODUCT_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v3/pom.xml
-  mv hms-v3/target/com.bosch.bdps.hms3-${PRODUCT_VERSION}-${HADOOP_VERSION}-dev.jar /hive-metastore-opa-authorizer/jars
-else
-  mvn clean package -DskipTests -Dhive.version=${PRODUCT_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
-  mv hms-v4/target/com.bosch.bdps.hms4-${PRODUCT_VERSION}-${HADOOP_VERSION}-dev.jar /hive-metastore-opa-authorizer/jars
-fi
-
-# We're removing these to make the intermediate layer smaller
-# This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
-# and we are sometimes running into errors because we're out of space.
-# Therefore, we try to clean up all layers as much as possible.
-if [ "${DELETE_CACHES}" = "true" ] ; then
-  rm -rf /stackable/.m2/repository/*
-  rm -rf /stackable/.npm/*
-  rm -rf /stackable/.cache/*
-  rm -rf /hive-metastore-opa-authorizer/hive-metastore-opa-authorizer
-fi
-
-# permissions
-chmod --recursive g=u /hive-metastore-opa-authorizer/jars
-EOF
+FROM local-image/hive/hive-metastore-opa-authorizer AS hive-metastore-opa-authorizer-builder
 
 FROM local-image/java-devel AS hive-builder
 
@@ -245,7 +185,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /hive-metastore-opa-authorizer/jars /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-bin /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-src /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/bin
 

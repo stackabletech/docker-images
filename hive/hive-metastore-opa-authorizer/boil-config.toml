@@ -1,0 +1,8 @@
+[versions."v1.0.0".local-images]
+"java-devel" = "11"
+
+[versions."v1.0.0".build-arguments]
+hive-version = "3.1.3"
+hadoop-version = "3.3.6"
+
+delete-caches = "true"
