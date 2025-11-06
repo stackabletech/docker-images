@@ -3,7 +3,7 @@
 
 FROM local-image/java-devel
 
-ARG PRODUCT_VERSION
+ARG AUTHORIZER_VERSION
 ARG HIVE_VERSION
 ARG HADOOP_VERSION
 ARG STACKABLE_USER_UID
@@ -15,7 +15,7 @@ USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hive/hive-metastore-opa-authorizer/stackable/patches/patchable.toml /stackable/src/hive/hive-metastore-opa-authorizer/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hive/hive-metastore-opa-authorizer/stackable/patches/${PRODUCT_VERSION} /stackable/src/hive/hive-metastore-opa-authorizer/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 hive/hive-metastore-opa-authorizer/stackable/patches/${AUTHORIZER_VERSION} /stackable/src/hive/hive-metastore-opa-authorizer/stackable/patches/${AUTHORIZER_VERSION}
 
 RUN <<'EOF'
 set -euo pipefail
@@ -25,10 +25,10 @@ mkdir -p /stackable/opa-authorizer-bin
 # containing sources
 mkdir -p /stackable/opa-authorizer-src
 
-cd "$(/stackable/patchable --images-repo-root=src checkout hive/hive-metastore-opa-authorizer ${PRODUCT_VERSION})"
+cd "$(/stackable/patchable --images-repo-root=src checkout hive/hive-metastore-opa-authorizer ${AUTHORIZER_VERSION})"
 
 # Create snapshot of the source code including custom patches
-tar -czf /stackable/opa-authorizer-src/hive-metastore-opa-authorizer-${PRODUCT_VERSION}-hive-${HIVE_VERSION}-hadoop-${HADOOP_VERSION}-src.tar.gz .
+tar -czf /stackable/opa-authorizer-src/hive-metastore-opa-authorizer-${AUTHORIZER_VERSION}-hive-${HIVE_VERSION}-hadoop-${HADOOP_VERSION}-src.tar.gz .
 
 # The if part can be removed once we do no longer support Hive 3.x.x
 if [[ "${HIVE_VERSION}" =~ ^3 ]]; then
