@@ -57,7 +57,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
     def __init__(self, appbuilder: AppBuilder):
         super().__init__(appbuilder)
 
-        config = appbuilder.get_app.config
+        config = current_app.config
 
         self.role_cache: TTLCache[str, set[Role]] = TTLCache(
             maxsize=config.get(
@@ -74,7 +74,7 @@ class OpaSupersetSecurityManager(SupersetSecurityManager):
         self.auth_opa_rule: str = config.get(
             "AUTH_OPA_RULE", self.AUTH_OPA_RULE_DEFAULT
         )
-        self.auth_opa_request_timeout: int = current_app.config.get(
+        self.auth_opa_request_timeout: int = config.get(
             "AUTH_OPA_REQUEST_TIMEOUT", self.AUTH_OPA_REQUEST_TIMEOUT_DEFAULT
         )
 
