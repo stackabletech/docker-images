@@ -6,7 +6,7 @@ run-name: |
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 1/2 * *' # https://crontab.guru/#0_0_1/2_*_*
+    - cron: "0 0 1/2 * *" # https://crontab.guru/#0_0_1/2_*_*
   push:
     branches: [main]
     tags:
@@ -35,3 +35,6 @@ jobs:
       product-name: nifi
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
+      # Since building Vector from source, this build runs out of disk space.
+      # As such, we use the Ubicloud runners which provide bigger disks.
+      runners: ubicloud

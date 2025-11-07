@@ -3,7 +3,7 @@
 
 FROM local-image/kafka/kcat AS kcat
 FROM local-image/kafka/kafka-opa-plugin AS kafka-opa-plugin
-
+FROM local-image/shared/reload4j AS patched-reload4j
 FROM local-image/java-devel AS kafka-builder
 
 ARG PRODUCT_VERSION
@@ -18,8 +18,17 @@ WORKDIR /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/jmx/ /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/patchable.toml /stackable/src/kafka/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/stackable/patches/${PRODUCT_VERSION} /stackable/src/kafka/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-reload4j /stackable/.m2/repository /stackable/patched-reload4j-libs
 
 RUN <<EOF
+    # TODO: remove this later.
+    # reload4j jars are only needed of Kafka 3.x
+    case "${PRODUCT_VERSION}" in
+      3*)
+        mkdir -p /stackable/.m2/repository
+        cp -r /stackable/patched-reload4j-libs/* /stackable/.m2/repository
+    esac
+
 cd "$(/stackable/patchable --images-repo-root=src checkout kafka ${PRODUCT_VERSION})"
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
@@ -78,6 +87,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat-${KAFKA_KCAT_VE
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /licenses /licenses
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/src/kafka/kafka-opa-plugin/patchable-work/worktree/${KAFKA_KAFKA_OPA_PLUGIN_VERSION}/build/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN_VERSION}-all.jar /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/libs/opa-authorizer-${KAFKA_KAFKA_OPA_PLUGIN_VERSION}-all.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-opa-plugin /stackable/kafka-opa-plugin-${KAFKA_KAFKA_OPA_PLUGIN_VERSION}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-reload4j /stackable/*-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 kafka/licenses /licenses
 
