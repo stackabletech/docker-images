@@ -1,0 +1,2 @@
+upstream = "https://github.com/qos-ch/reload4j.git"
+default-mirror = "https://github.com/stackabletech/reload4j.git"
