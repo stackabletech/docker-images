@@ -40,12 +40,12 @@ python-version = "3.9"
 uv-version = "0.7.3"
 nodejs-version = "20"
 
-[versions."6.0.0rc2".local-images]
+[versions."6.0.0-rc2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"
 vector = "0.49.0"
 
-[versions."6.0.0rc2".build-arguments]
+[versions."6.0.0-rc2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
 # Find the flask-appbuilder version in the applicable constraints.txt file, then find the authlib version.
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.0/requirements/extra.txt#L7
