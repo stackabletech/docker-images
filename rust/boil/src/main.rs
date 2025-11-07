@@ -71,8 +71,13 @@ impl VersionExt for Version {
 
     fn base_prerelease(&self) -> String {
         let mut base = self.base();
-        base.push('-');
-        base.push_str(&self.pre);
+
+        // Well, that was a big doozy, ruined the whole release...
+        if !self.pre.is_empty() {
+            base.push('-');
+            base.push_str(&self.pre);
+        }
+
         base
     }
 }
@@ -108,5 +113,36 @@ async fn main() -> Result<(), Error> {
             completions::run_command(arguments);
             Ok(())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case("25.11.0-rc.1+arm64", "25.11.0-rc.1")]
+    #[case("25.11.0-rc.1", "25.11.0-rc.1")]
+    #[case("25.11.0-rc1", "25.11.0-rc1")]
+    #[case("0.0.0-dev", "0.0.0-dev")]
+    #[case("25.11.0", "25.11.0")]
+    #[case("0.0.0", "0.0.0")]
+    fn version_ext_base_prerelease(#[case] input: &str, #[case] expected: &str) {
+        let version: Version = input.parse().expect("must be a valid semantic version");
+        assert_eq!(version.base_prerelease(), expected);
+    }
+
+    #[rstest]
+    #[case("25.11.0-rc.1+arm64", "25.11.0")]
+    #[case("25.11.0-rc.1", "25.11.0")]
+    #[case("25.11.0-rc1", "25.11.0")]
+    #[case("0.0.0-dev", "0.0.0")]
+    #[case("25.11.0", "25.11.0")]
+    #[case("0.0.0", "0.0.0")]
+    fn version_ext_base(#[case] input: &str, #[case] expected: &str) {
+        let version: Version = input.parse().expect("must be a valid semantic version");
+        assert_eq!(version.base(), expected);
     }
 }
