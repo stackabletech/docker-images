@@ -25,4 +25,4 @@ To keep the installation tightly coupled to the associated constraints it is bes
 The only providers that are currently excluded are:
 
 - `mysql`, as it requires an implementation of: <https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh>
-- `apache-spark`, due to the size (roughly 500MB) and the number high/critical CVEs it adds to the image
+- `apache-spark`, due to the size (roughly 500MB) and the number of high/critical CVEs it adds to the image
