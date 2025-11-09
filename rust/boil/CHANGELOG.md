@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 2025-11-07
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.5..boil-0.1.6)
+
+### Bug Fixes
+
+- Set correct release version in container image metadata ([#1341](https://github.com/stackabletech/docker-images/pull/1341)).
+
 ## [0.1.5] - 2025-10-14
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.4..boil-0.1.5)

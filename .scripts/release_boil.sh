@@ -47,6 +47,7 @@ git-cliff --config rust/boil/cliff.toml --tag "$BUMPED_VERSION" > rust/boil/CHAN
 
 echo "Updating the version to $CLEANED_BUMPED_VERSION in the Cargo.toml file"
 sed -E -i "s/^version = .* $MESSAGE$/version = \"$CLEANED_BUMPED_VERSION\" $MESSAGE/" rust/boil/Cargo.toml
+cargo check
 
 echo "Committing changes"
 # Make sure that there are changes to be committed
