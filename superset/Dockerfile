@@ -20,7 +20,7 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-pip install \
+pip${PYTHON_VERSION} install \
     --no-cache-dir \
     --upgrade \
     poetry==2.1.1 \
@@ -71,6 +71,9 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         nodejs \
         # Needed to create the source code snapshot
         tar \
+        # Needed by `npm run build`:
+        which \
+        zstd \
     && microdnf clean all && \
     rm -rf /var/cache/yum
 
@@ -115,8 +118,7 @@ uv pip install --no-cache-dir build
 # This picks up the UI assets from the npm build
 cd ..
 python${PYTHON_VERSION} -m build --wheel
-
-uv pip install --no-cache-dir dist/apache_superset-${PRODUCT_VERSION}-py3-none-any.whl --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+uv pip install --no-cache-dir dist/apache_superset-*-py3-none-any.whl --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
 # Install additional dependencies
 # Add optional dependencies for use in custom Superset configurations.
@@ -150,7 +152,7 @@ uv pip install --no-cache-dir \
     cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
 
 if [ -n "$AUTHLIB_VERSION" ]; then
-    pip install Authlib==${AUTHLIB_VERSION}
+    uv pip install Authlib==${AUTHLIB_VERSION}
 fi
 
 uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
