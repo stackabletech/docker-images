@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- superset: Add 6.0.0-rc2 ([#1337]).
+
 ### Changed
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
+[#1337]: https://github.com/stackabletech/docker-images/pull/1337
 
 ## [25.11.0] - 2025-11-07
 
