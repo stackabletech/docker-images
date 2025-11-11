@@ -260,7 +260,10 @@ cachetools==5.5.2
 cadwyn==5.4.4
 cassandra-driver==3.29.2
 cattrs==25.1.1
-celery==5.5.2
+# Stackable patch:
+# Bumped to newest version (from 5.5.2) to reduce celery on redis issues
+# See https://github.com/stackabletech/airflow-operator/issues/676
+celery==5.5.3
 certifi==2025.8.3
 cffi==1.17.1
 cfgv==3.4.0
@@ -660,7 +663,10 @@ qdrant-client==1.15.1
 ray==2.47.1
 reactivex==4.0.4
 readme_renderer==44.0
-redis==5.3.1
+# Stackable patch:
+# Downgrade from previous version 5.3.1 due to compatability with
+# celery==5.5.3 (see above).
+redis==5.2.1
 redshift-connector==2.1.8
 referencing==0.36.2
 regex==2025.7.34

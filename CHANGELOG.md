@@ -11,9 +11,11 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
+- airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
+[#1343]: https://github.com/stackabletech/docker-images/pull/1343
 
 ## [25.11.0] - 2025-11-07
 
