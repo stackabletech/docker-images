@@ -51,13 +51,24 @@ ARG UV_VERSION
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
 # The mysql provider is currently excluded.
-# Requires implementation of https://github.com/apache/airflow/blob/2.2.5/scripts/docker/install_mysql.sh
-ARG AIRFLOW_EXTRAS
+# Requires implementation of https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh
+# The providers are split into separate lists to make it easier to manage
+# (and to compare to the online links). Default values are provided for
+# backwards compatability.
+ARG AIRFLOW_EXTRAS_CORE=""
+ARG AIRFLOW_EXTRAS_META=""
+ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
+ARG AIRFLOW_EXTRAS_EXTERNAL_SERVICES=""
+ARG AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE=""
+ARG AIRFLOW_EXTRAS_OTHER=""
 
 RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
     microdnf update && \
     microdnf install \
         cyrus-sasl-devel \
+        # Needed for kerberos
+        cyrus-sasl-gssapi \
+        krb5-devel\
         # Needed by ./configure to build gevent, see snippet [1] at the end of file
         diffutils \
         # Needed to build gevent, see snippet [1] at the end of file
@@ -93,6 +104,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT_VERSION
 WORKDIR /stackable
 
 RUN <<EOF
+
+# Compose comma-delimited AIRFLOW_EXTRAS
+AIRFLOW_EXTRAS="$AIRFLOW_EXTRAS_CORE,$AIRFLOW_EXTRAS_META,$AIRFLOW_EXTRAS_PROVIDER_APACHE,$AIRFLOW_EXTRAS_EXTERNAL_SERVICES,$AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE,$AIRFLOW_EXTRAS_OTHER"
+
+# Removing duplicates
+AIRFLOW_EXTRAS=$(echo "$AIRFLOW_EXTRAS" | tr ',' '\n' | awk 'NF > 0 {if (!seen[$0]++) print $0}' | tr '\n' ',' | sed 's/,$//')
+
 python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
