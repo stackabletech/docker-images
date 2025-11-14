@@ -2,6 +2,7 @@
 # check=error=true
 
 FROM local-image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hive/hive-metastore-opa-authorizer AS hive-metastore-opa-authorizer-builder
 
 FROM local-image/java-devel AS hive-builder
 
@@ -184,6 +185,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-bin /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-src /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/bin
 
@@ -230,8 +233,8 @@ EOF
 
 USER ${STACKABLE_USER_UID}
 
-ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive-metastore
+ENV HADOOP_HOME=/stackable/hadoop
 ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
 
 # The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.

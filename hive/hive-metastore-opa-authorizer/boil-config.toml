@@ -1,0 +1,26 @@
+[versions."v1.0.0-hive-3.1.3-hadoop-3.3.6".local-images]
+"java-devel" = "11"
+"hadoop/hadoop" = "3.3.6"
+
+[versions."v1.0.0-hive-3.1.3-hadoop-3.3.6".build-arguments]
+authorizer-version = "v1.0.0"
+hive-version = "3.1.3"
+delete-caches = "true"
+
+[versions."v1.0.0-hive-4.0.1-hadoop-3.3.6".local-images]
+"java-devel" = "11"
+"hadoop/hadoop" = "3.3.6"
+
+[versions."v1.0.0-hive-4.0.1-hadoop-3.3.6".build-arguments]
+authorizer-version = "v1.0.0"
+hive-version = "4.0.1"
+delete-caches = "true"
+
+[versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".local-images]
+"java-devel" = "17"
+"hadoop/hadoop" = "3.4.2"
+
+[versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".build-arguments]
+authorizer-version = "v1.0.0"
+hive-version = "4.1.0"
+delete-caches = "true"

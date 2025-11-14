@@ -1,0 +1,2 @@
+upstream = "https://github.com/boschglobal/hive-metastore-opa-authorizer"
+default-mirror = "https://github.com/stackabletech/hive-metastore-opa-authorizer"
