@@ -45,6 +45,10 @@ ENV NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # thus taking a bit (which is annoying while development)
 RUN /stackable/patchable --images-repo-root=src checkout hive ${PRODUCT_VERSION} > /tmp/HIVE_SOURCE_DIR
 
+# Use bash for regex machting, otherwise docker lint is complaining:
+# hive/Dockerfile:51 SC3014 warning: In POSIX sh, == in place of = is undefined.
+SHELL ["/bin/bash", "-c"]
+
 # Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
