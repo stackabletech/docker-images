@@ -23,6 +23,13 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/hive-metastore-opa-authorizer/stackabl
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-libs /stackable/patched-libs
 
+# Use bash for regex machting, otherwise docker lint is complaining:
+# hive/hive-metastore-opa-authorizer/Dockerfile:26 SC3015 warning: In POSIX sh, =~ regex matching is undefined.
+SHELL ["/bin/bash", "-c"]
+
+# Make expensive maven build a separate layer for better caching
+# Cache mounts are owned by root by default
+# We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-metastore-opa-authorizer-${AUTHORIZER_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 # for moving nested artifacts out of target folder
 mkdir -p /stackable/opa-authorizer-bin
