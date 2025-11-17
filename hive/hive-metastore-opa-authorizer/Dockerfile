@@ -51,13 +51,13 @@ mvn versions:set -DnewVersion=${AUTHORIZER_VERSION}
 if [[ "${HIVE_VERSION}" =~ ^3 ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v3/pom.xml
 
-  mv hms-v3/target/com.bosch.bdps.hms3-${HIVE_VERSION}-${HADOOP_VERSION}-dev.jar /stackable/opa-authorizer-bin
+  mv hms-v3/target/com.bosch.bdps.hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin
 else
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
 
   # The hive-metastore-opa-authorizer offers a shaded jar from version 4.x.x. Using the shaded jar leads to problems with schema tool at pod startup.
   # mv hms-v4/target/com.bosch.bdps.hms4-${HIVE_VERSION}-${HADOOP_VERSION}-dev.jar /stackable/opa-authorizer-bin
-  mv hms-v4/target/hms4-dev.jar /stackable/opa-authorizer-bin
+  mv hms-v4/target/hms4-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin
 fi
 
 # We're removing these to make the intermediate layer smaller
