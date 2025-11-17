@@ -24,7 +24,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 hive/hive-metastore-opa-authorizer/stackabl
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-libs /stackable/patched-libs
 
 RUN --mount=type=cache,id=maven-hive-metastore-opa-authorizer-${AUTHORIZER_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-set -euo pipefail
 # for moving nested artifacts out of target folder
 mkdir -p /stackable/opa-authorizer-bin
 # for moving sources out of target folder
@@ -37,6 +36,9 @@ tar -czf /stackable/opa-authorizer-src/hive-metastore-opa-authorizer-${AUTHORIZE
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
+
+# Set version in the output jars(s)
+mvn versions:set -DnewVersion=${AUTHORIZER_VERSION}
 
 # The if part can be removed once we do no longer support Hive 3.x.x
 if [[ "${HIVE_VERSION}" =~ ^3 ]]; then
