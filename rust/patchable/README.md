@@ -121,7 +121,7 @@ You can optionally provide the `--ssh` flag to use SSH instead of HTTPS for Git 
 You can use the same patchable workflow for custom dependencies (e.g., Java libraries) as for regular products.
 
 For example, to create a patched version of a Java dependency, start by creating a directory for the dependency with `mkdir -p shared/jackson-dataformat-xml`.
-Then create a `Dockerfile` with build instructions and `boil-config.toml` in that directory. Create a fork of the dependency on GitHub for mirroring the source code.
+Then create a `Dockerfile` with build instructions and a `boil-config.toml` file in that directory. Create a fork of the dependency on GitHub for mirroring the source code.
 
 Initialize patchable product configuration:
 
