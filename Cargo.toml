@@ -29,3 +29,8 @@ tracing = "0.1.41"
 tracing-indicatif = "0.3.9"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 url = { version = "2.5.4", features = ["serde"] }
+
+[workspace.lints.clippy]
+unwrap_in_result = "deny"
+unwrap_used = "deny"
+panic = "deny"
