@@ -67,7 +67,7 @@ git status
 ### Adding a new product
 
 If you're adding a completely new product, start by creating the product directory with `mkdir product-name`.
-Note that you can also create dependencies in subdirectories, like `product/my-dependency` or `shared/my-dependency`.
+Note that you can also create dependencies in subdirectories, like `product-name/my-dependency` or `shared/my-dependency`.
 Next, create `Dockerfile` and `boil-config.toml` in that directory.
 Then create a fork on GitHub (main branch is fine, patchable ensures tags for configured versions are mirrored).
 
