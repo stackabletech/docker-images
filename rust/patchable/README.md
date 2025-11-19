@@ -69,7 +69,7 @@ git status
 If you're adding a completely new product, start by creating the product directory with `mkdir product-name`.
 Note that you can also create dependencies in subdirectories, like `product-name/my-dependency` or `shared/my-dependency`.
 Next, create a `Dockerfile` and a `boil-config.toml` file in that directory.
-Then create a fork on GitHub (main branch is fine, patchable ensures tags for configured versions are mirrored).
+Then create a fork on GitHub (the default branch, like `main`, is fine - patchable ensures tags for configured versions are mirrored).
 
 Initialize the product-level config by running:
 
