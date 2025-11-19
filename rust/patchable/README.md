@@ -242,13 +242,13 @@ pushd $(cargo patchable checkout zookeeper 3.9.3)
 Fetch the upstream commit using:
 
 ```sh
-git fetch https://github.com/apache/zookeeper 8532163
+git fetch https://github.com/apache/zookeeper 3d6c0d1164dc9ec96a02de383e410b1b0ef64565
 ```
 
 Then cherry-pick it with:
 
 ```sh
-git cherry-pick 8532163
+git cherry-pick 3d6c0d1
 ```
 
 Finally, export the patches as .patch files:
