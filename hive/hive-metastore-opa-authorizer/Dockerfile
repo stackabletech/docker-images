@@ -48,15 +48,13 @@ cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 mvn versions:set -DnewVersion=${AUTHORIZER_VERSION}
 
 # The if part can be removed once we do no longer support Hive 3.x.x
+# Hive 3.1.3 only works with the shaded jar
 if [[ "${HIVE_VERSION}" =~ ^3 ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v3/pom.xml
-
   mv hms-v3/target/com.bosch.bdps.hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin
+# Hive 4.1.0 only works with the non shaded jar
 else
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
-
-  # The hive-metastore-opa-authorizer offers a shaded jar from version 4.x.x. Using the shaded jar leads to problems with schema tool at pod startup.
-  # mv hms-v4/target/com.bosch.bdps.hms4-${HIVE_VERSION}-${HADOOP_VERSION}-dev.jar /stackable/opa-authorizer-bin
   mv hms-v4/target/hms4-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin
 fi
 
