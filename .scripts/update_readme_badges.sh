@@ -30,7 +30,7 @@ for _ in $(seq 0 $((COLS - 1))); do
 done
 echo "|" >> "$BADGES_TMP"
 
-for BUILD_WORKFLOW_FILE in $(find .github/workflows/ -name 'build_*.yaml' | sort); do
+for BUILD_WORKFLOW_FILE in $(find .github/workflows/ -name 'build_*.yaml' | sort -d); do
   CURRENT_COLUMN=$(( (CURRENT_COLUMN + 1) % COLS ))
 
   BUILD_WORKFLOW_NAME=$(yq -r '.name' "$BUILD_WORKFLOW_FILE")
