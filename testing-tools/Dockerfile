@@ -1,15 +1,14 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Manifest list digest because of multi architecture builds ( https://www.redhat.com/architect/pull-container-image#:~:text=A%20manifest%20list%20exists%20to,system%20on%20a%20specific%20architecture )
-# https://hub.docker.com/_/python/tags
-# In Docker Hub, open up the tag and look for Index Digest. Otherwise do:
-# docker pull python:3.12-slim-bullseye and see the digest that appears in the output.
-FROM python:3.12-slim-bullseye@sha256:411fa4dcfdce7e7a3057c45662beba9dcd4fa36b2e50a2bfcd6c9333e59bf0db
+# Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-this-image
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:28ec2f4662bdc4b0d4893ef0d8aebf36a5165dfb1d1dc9f46319bd8a03ed3365
 
 ARG PRODUCT_VERSION
+ARG PYTHON_VERSION
 ARG RELEASE_VERSION
-ARG KEYCLOAK_VERSION
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
@@ -25,50 +24,54 @@ LABEL name="Stackable Testing Tools" \
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
-# This is needed so that krb5-user installs without prompting for a realm.
-ENV DEBIAN_FRONTEND=noninteractive
 
+# We configure microdnf to not install weak dependencies in this file
+# Not doing this caused the content of images to become unpredictable because
+# based on which packages get updated by `microdnf update` new weak dependencies
+# might be installed that were not present earlier (the ubi base image doesn't
+# seem to install weak dependencies)
+# This also affects the packages that are installed in our Dockerfiles (java as prime
+# example).
+# https://github.com/stackabletech/docker-images/pull/533
+COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
-COPY testing-tools/python /stackable/python
+# Default curl configuration to avoid forgetting settings and to declutter the Dockerfiles
+COPY stackable-base/stackable/curlrc /root/.curlrc
+
+# Base requirements for all testing-tools images
+COPY testing-tools/requirements.txt /stackable/requirements.txt
 COPY testing-tools/licenses /licenses
 
-
 RUN <<EOF
-apt-get update
-apt-get install -y --no-install-recommends \
-  build-essential \
-  ca-certificates \
-  curl \
-  gzip \
-  jq \
-  `# krb5-user/libkrb5-dev are needed for Kerberos support. ` \
-  krb5-user \
-  libkrb5-dev \
-  kubernetes-client \
-  libssl-dev \
-  libxml2-dev \
-  libxslt1-dev \
+microdnf update
+
+microdnf install \
+  gcc \
+  make \
   pkg-config \
-  python3-certifi \
-  python3-idna \
-  python3-semver \
-  python3-thrift \
-  python3-toml \
-  python3-urllib3 \
+  openssl-devel \
+  libxml2-devel \
+  libxslt-devel \
+  python${PYTHON_VERSION} \
+  python${PYTHON_VERSION}-devel \
+  python${PYTHON_VERSION}-pip \
+  jq \
+  gzip \
+  curl \
   tar \
   zip \
-  unzip \
-  `# Java 11 seems like the best middle-ground for all tools` \
-  openjdk-11-jdk-headless
+  unzip
 
-apt-get clean
-rm -rf /var/lib/apt/lists/*
+microdnf clean all
+rm -rf /var/cache/yum
 
-curl --fail -L https://repo.stackable.tech/repository/packages/keycloak/keycloak-${KEYCLOAK_VERSION}.tar.gz | tar -xzC /stackable
-ln -s /stackable/keycloak-${KEYCLOAK_VERSION} /stackable/keycloak
+python3.12 -m pip install --no-cache-dir --upgrade pip
+python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
 
-pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir -r /stackable/python/requirements.txt
+ln -s /usr/bin/python3.12 /usr/bin/python
+
+# Added only temporarily to create the user and group, removed again below
+microdnf install shadow-utils
 
 groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
 useradd \
@@ -80,10 +83,11 @@ useradd \
   --home-dir /stackable \
    ${STACKABLE_USER_NAME}
 
+microdnf remove shadow-utils
+microdnf clean all
+
 chown -R ${STACKABLE_USER_UID}:0 /stackable
 EOF
-
-ENV PATH=/stackable/keycloak/bin:$PATH
 
 USER ${STACKABLE_USER_UID}
 
