@@ -1,0 +1,79 @@
+From b02129c9d83aab93915a59beea68a72f0e5937a1 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 29 Aug 2025 15:35:12 +0200
+Subject: Revert "HIVE-24608: Switch back to get_table in HMS client for Hive
+ 2.3.x (#2080)"
+
+This reverts commit c78ff81915ff3f54d3b1e7c3ce1f11a6fdf749b2.
+---
+ .../org/apache/hadoop/hive/conf/HiveConf.java     |  2 +-
+ .../hive/metastore/HiveMetaStoreClient.java       | 15 ++++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/common/src/java/org/apache/hadoop/hive/conf/HiveConf.java b/common/src/java/org/apache/hadoop/hive/conf/HiveConf.java
+index 46a74305ee..412e7d0273 100644
+--- a/common/src/java/org/apache/hadoop/hive/conf/HiveConf.java
++++ b/common/src/java/org/apache/hadoop/hive/conf/HiveConf.java
+@@ -601,7 +601,7 @@ public static enum ConfVars {
+     METASTOREURIS("hive.metastore.uris", "",
+         "Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore."),
+ 
+-    METASTORE_CAPABILITY_CHECK("hive.metastore.client.capability.check", false,
++    METASTORE_CAPABILITY_CHECK("hive.metastore.client.capability.check", true,
+         "Whether to check client capabilities for potentially breaking API usage."),
+     METASTORE_FASTPATH("hive.metastore.fastpath", false,
+         "Used to avoid all of the proxies and object copies in the metastore.  Note, if this is " +
+diff --git a/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java b/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java
+index 53d97ff073..971a8a45df 100644
+--- a/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java
++++ b/metastore/src/java/org/apache/hadoop/hive/metastore/HiveMetaStoreClient.java
+@@ -121,6 +121,7 @@ public class HiveMetaStoreClient implements IMetaStoreClient {
+   // for thrift connects
+   private int retries = 5;
+   private long retryDelaySeconds = 0;
++  private final ClientCapabilities version;
+ 
+   static final protected Logger LOG = LoggerFactory.getLogger("hive.metastore");
+ 
+@@ -142,6 +143,7 @@ public HiveMetaStoreClient(HiveConf conf, HiveMetaHookLoader hookLoader, Boolean
+     } else {
+       this.conf = new HiveConf(conf);
+     }
++    version = HiveConf.getBoolVar(conf, ConfVars.HIVE_IN_TEST) ? TEST_VERSION : VERSION;
+     filterHook = loadFilterHooks();
+     fileMetadataBatchSize = HiveConf.getIntVar(
+         conf, HiveConf.ConfVars.METASTORE_BATCH_RETRIEVE_OBJECTS_MAX);
+@@ -1343,7 +1345,9 @@ public Partition getPartitionWithAuthInfo(String db_name, String tbl_name,
+   @Override
+   public Table getTable(String dbname, String name) throws MetaException,
+       TException, NoSuchObjectException {
+-    Table t = client.get_table(dbname, name);
++    GetTableRequest req = new GetTableRequest(dbname, name);
++    req.setCapabilities(version);
++    Table t = client.get_table_req(req).getTable();
+     return fastpath ? t : deepCopy(filterHook.filterTable(t));
+   }
+ 
+@@ -1360,7 +1364,10 @@ public Table getTable(String tableName) throws MetaException, TException,
+   @Override
+   public List<Table> getTableObjectsByName(String dbName, List<String> tableNames)
+       throws MetaException, InvalidOperationException, UnknownDBException, TException {
+-    List<Table> tabs = client.get_table_objects_by_name(dbName, tableNames);
++    GetTablesRequest req = new GetTablesRequest(dbName);
++    req.setTblNames(tableNames);
++    req.setCapabilities(version);
++    List<Table> tabs = client.get_table_objects_by_name_req(req).getTables();
+     return fastpath ? tabs : deepCopyTables(filterHook.filterTables(tabs));
+   }
+ 
+@@ -1452,7 +1459,9 @@ public List<String> getAllTables(String dbname) throws MetaException {
+   public boolean tableExists(String databaseName, String tableName) throws MetaException,
+       TException, UnknownDBException {
+     try {
+-      return filterHook.filterTable(client.get_table(databaseName, tableName)) != null;
++      GetTableRequest req = new GetTableRequest(databaseName, tableName);
++      req.setCapabilities(version);
++      return filterHook.filterTable(client.get_table_req(req).getTable()) != null;
+     } catch (NoSuchObjectException e) {
+       return false;
+     }
