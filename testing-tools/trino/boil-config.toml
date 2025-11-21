@@ -1,0 +1,2 @@
+[versions."0.3.0".local-images]
+testing-tools = "0.3.0"
