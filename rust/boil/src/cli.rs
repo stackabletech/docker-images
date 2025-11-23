@@ -27,7 +27,7 @@ pub enum Command {
     ///
     /// Requires docker with the buildx extension.
     #[command(alias = "some-chicken")]
-    Build(BuildArguments),
+    Build(Box<BuildArguments>),
 
     /// Display various structured outputs in JSON format.
     Show(ShowArguments),
