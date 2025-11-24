@@ -112,6 +112,8 @@ pub struct BuildArguments {
     pub strip_architecture: bool,
 
     /// Loads the image into the local image store.
+    ///
+    /// DEPRECATED: Use -- --load instead.
     #[arg(long, help_heading = "Build Options")]
     #[deprecated(since = "0.1.7", note = "Use -- --load instead")]
     pub load: bool,
