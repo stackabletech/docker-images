@@ -236,9 +236,6 @@ USER ${STACKABLE_USER_UID}
 ENV HIVE_HOME=/stackable/hive-metastore
 ENV HADOOP_HOME=/stackable/hadoop
 ENV PATH="${PATH}:${HADOOP_HOME}/bin:${HIVE_HOME}/bin"
-#ENV CLASSPATH="${HADOOP_HOME}/lib/*:${HIVE_HOME}/lib/*:/stackable/auxlib/*:."
-#ENV CLASSPATH="${HADOOP_HOME}/lib/*:${HIVE_HOME}/lib/*:."
-#ENV HIVE_AUX_JARS_PATH="${HIVE_HOME}/auxlib/hms4-4.0.1-3.3.6-v1.0.0.jar"
 
 # The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.
 # We set them here to a sensible default.
