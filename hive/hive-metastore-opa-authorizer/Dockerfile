@@ -30,7 +30,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
-RUN --mount=type=cache,id=maven-hive-metastore-opa-authorizer-${AUTHORIZER_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hive-metastore-opa-authorizer-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 set -e
 # for moving nested artifacts out of target folder
 mkdir -p /stackable/opa-authorizer-bin
