@@ -1,7 +1,7 @@
 From beabf57d974d85eaa0ffbd822e32a59b0781d42b Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Mon, 24 Nov 2025 16:37:57 +0100
-Subject: Relocate jline to avoid depedency mess with hive schematool
+Subject: Relocate jline to avoid dependency mess with hive schematool
 
 ---
  hms-v4/pom.xml | 19 +++++++++++++++++++
