@@ -31,6 +31,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-metastore-opa-authorizer-${AUTHORIZER_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+set -e
 # for moving nested artifacts out of target folder
 mkdir -p /stackable/opa-authorizer-bin
 # for moving sources out of target folder
@@ -44,12 +45,12 @@ tar -czf /stackable/opa-authorizer-src/hive-metastore-opa-authorizer-${AUTHORIZE
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
-# Set version in the output jars(s)
+# Set version
 mvn versions:set -DnewVersion=${AUTHORIZER_VERSION}
 
 # The if part can be removed once we do no longer support Hive 3.x.x
 # Hive 3.1.3 only works with the shaded jar
-if [[ "${HIVE_VERSION}" =~ "^3" ]]; then
+if [[ "${HIVE_VERSION}" == "3.1.3" ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v3/pom.xml
   mv hms-v3/target/com.bosch.bdps.hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
 # Hive 4.0.1 only works with the shaded jar
