@@ -25,7 +25,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-li
 
 # Use bash for regex machting, otherwise docker lint is complaining:
 # hive/hive-metastore-opa-authorizer/Dockerfile:26 SC3015 warning: In POSIX sh, =~ regex matching is undefined.
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
@@ -55,10 +55,7 @@ if [[ "${HIVE_VERSION}" =~ "^3" ]]; then
 # Hive 4.0.1 only works with the shaded jar
 elif [[ "${HIVE_VERSION}" == "4.0.1" ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
-  # The renaming from "com.bosch.bdps.hms4-..." to "zhms4-.." is required for 4.0.1 because it is a dependency mess and otherwise loaded before other hive
-  # libraries. Setting CLASSPATH or HIVE_AUX_JARS_PATH did not reorder the dependency loading up as well. 
-  # This is very very bad and depends on alhpabetically ordering...
-  mv hms-v4/target/com.bosch.bdps.hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/zhms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
+  mv hms-v4/target/com.bosch.bdps.hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
 # Hive 4.1.0 only works with the non shaded jar
 else
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml

@@ -47,7 +47,7 @@ RUN /stackable/patchable --images-repo-root=src checkout hive ${PRODUCT_VERSION}
 
 # Use bash for regex machting, otherwise docker lint is complaining:
 # hive/Dockerfile:51 SC3014 warning: In POSIX sh, == in place of = is undefined.
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
