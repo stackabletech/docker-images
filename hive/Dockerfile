@@ -84,6 +84,9 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz
     mv standalone-metastore/metastore-server/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
+    
+    # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
+    sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${NEW_VERSION}-bin/bin/ext/schemaTool.sh
   )
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
