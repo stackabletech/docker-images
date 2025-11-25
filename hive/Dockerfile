@@ -53,6 +53,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+set -e
+
 BUILD_SRC_DIR="$(cat /tmp/HIVE_SOURCE_DIR)" || exit 1
 rm /tmp/HIVE_SOURCE_DIR
 cd "$BUILD_SRC_DIR"
