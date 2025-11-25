@@ -54,10 +54,10 @@ if [[ "${HIVE_VERSION}" == "3.1.3" ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v3/pom.xml
   mv hms-v3/target/com.bosch.bdps.hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/hms3-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
 # Hive 4.0.* only works with the shaded jar
-elif [[ "${HIVE_VERSION}" == "4.0.*" ]]; then
+elif [[ "${HIVE_VERSION}" == 4.0.* ]]; then
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
   mv hms-v4/target/com.bosch.bdps.hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
-# Hive 4.1.0 only works with the non shaded jar
+# Hive > 4.0.x only works with the non shaded jar
 else
   mvn clean package -DskipTests -Dhive.version=${HIVE_VERSION} -Dhadoop.version=${HADOOP_VERSION} -f hms-v4/pom.xml
   mv hms-v4/target/hms4-${AUTHORIZER_VERSION}.jar /stackable/opa-authorizer-bin/hms4-${HIVE_VERSION}-${HADOOP_VERSION}-${AUTHORIZER_VERSION}.jar
