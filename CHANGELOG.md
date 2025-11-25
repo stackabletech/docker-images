@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
+- hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 
 ### Removed
 
@@ -22,6 +23,7 @@ All notable changes to this project will be documented in this file.
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
 [#1343]: https://github.com/stackabletech/docker-images/pull/1343
 [#1340]: https://github.com/stackabletech/docker-images/pull/1340
+[#1356]: https://github.com/stackabletech/docker-images/pull/1356
 
 ## [25.11.0] - 2025-11-07
 
