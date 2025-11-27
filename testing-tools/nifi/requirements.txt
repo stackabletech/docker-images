@@ -1,0 +1,2 @@
+# Should match the version in nifi/Dockerfile
+nipyapi==0.22.0
