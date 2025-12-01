@@ -30,7 +30,6 @@ ARG OPENSEARCH_NEURAL_SEARCH_PLUGIN_VERSION
 ARG OPENSEARCH_NOTIFICATIONS_CORE_PLUGIN_VERSION
 ARG OPENSEARCH_NOTIFICATIONS_PLUGIN_VERSION
 ARG OPENSEARCH_OBSERVABILITY_PLUGIN_VERSION
-ARG OPENSEARCH_PERFORMANCE_ANALYZER_PLUGIN_VERSION
 ARG OPENSEARCH_REPORTS_SCHEDULER_PLUGIN_VERSION
 ARG OPENSEARCH_SEARCH_RELEVANCE_PLUGIN_VERSION
 ARG OPENSEARCH_SECURITY_ANALYTICS_PLUGIN_VERSION
@@ -128,7 +127,6 @@ rm -r jdk
     "org.opensearch.plugin:opensearch-notifications-core:${OPENSEARCH_NOTIFICATIONS_CORE_PLUGIN_VERSION}" \
     "org.opensearch.plugin:notifications:${OPENSEARCH_NOTIFICATIONS_PLUGIN_VERSION}" \
     "org.opensearch.plugin:opensearch-observability:${OPENSEARCH_OBSERVABILITY_PLUGIN_VERSION}" \
-    "org.opensearch.plugin:performance-analyzer:${OPENSEARCH_PERFORMANCE_ANALYZER_PLUGIN_VERSION}" \
     "org.opensearch.plugin:opensearch-reports-scheduler:${OPENSEARCH_REPORTS_SCHEDULER_PLUGIN_VERSION}" \
     "org.opensearch.plugin:opensearch-search-relevance:${OPENSEARCH_SEARCH_RELEVANCE_PLUGIN_VERSION}" \
     "org.opensearch.plugin:opensearch-security-analytics:${OPENSEARCH_SECURITY_ANALYTICS_PLUGIN_VERSION}" \
@@ -152,9 +150,7 @@ find /stackable/opensearch-${PRODUCT_VERSION}/config -type f -exec chmod 660 {} 
 
 EOF
 
-# The OpenSearch Performance Analyzer needs a JDK, not just a JRE.
-# With a JRE, the following exception is thrown:
-# java.lang.ClassNotFoundException: com.sun.tools.attach.VirtualMachine
+# The upstream image is built with a bundled JDK and not just a JRE, so we also ship OpenSearch with a JDK.
 FROM local-image/jdk-base AS final
 
 ARG PRODUCT_VERSION
