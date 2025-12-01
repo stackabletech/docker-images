@@ -23,10 +23,10 @@ WORKDIR /tmp/opa-auth-manager
 
 RUN <<EOF
 microdnf update
-microdnf install python${PYTHON_VERSION}-pip
+microdnf install python3-pip
 microdnf clean all
 
-pip${PYTHON_VERSION} install --no-cache-dir uv==${UV_VERSION}
+pip install --no-cache-dir uv==${UV_VERSION}
 
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
@@ -62,8 +62,7 @@ ARG AIRFLOW_EXTRAS_EXTERNAL_SERVICES=""
 ARG AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE=""
 ARG AIRFLOW_EXTRAS_OTHER=""
 
-RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
-    microdnf update && \
+RUN microdnf update && \
     microdnf install \
         cyrus-sasl-devel \
         # Needed for kerberos
@@ -78,10 +77,10 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python${PYTHON_VERSION} \
-        python${PYTHON_VERSION}-devel \
-        python${PYTHON_VERSION}-pip \
-        python${PYTHON_VERSION}-wheel \
+        python3 \
+        python3-devel \
+        python3-pip \
+        # python${PYTHON_VERSION}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
         # Needed for Airflow UI assets
@@ -111,14 +110,16 @@ AIRFLOW_EXTRAS="$AIRFLOW_EXTRAS_CORE,$AIRFLOW_EXTRAS_META,$AIRFLOW_EXTRAS_PROVID
 # Removing duplicates
 AIRFLOW_EXTRAS=$(echo "$AIRFLOW_EXTRAS" | tr ',' '\n' | awk 'NF > 0 {if (!seen[$0]++) print $0}' | tr '\n' ',' | sed 's/,$//')
 
-python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
-
-source /stackable/app/bin/activate
-
+# TODO: Use uv ${UV_VERSION} from Nexus instead of pip
 # Upgrade pip to the latest version
-# Also install uv to get support for build constraints
+# Also install uv to get support for build constraints and venv for a given python version
 pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir uv==${UV_VERSION}
+
+uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+source /stackable/app/bin/activate
+
+# Another project manager
 uv tool install hatch
 
 cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})"
@@ -200,6 +201,7 @@ ARG TINI_VERSION
 ARG TARGETARCH
 ARG SHARED_STATSD_EXPORTER_VERSION
 ARG STACKABLE_USER_UID
+ARG UV_VERSION
 
 LABEL name="Apache Airflow" \
     maintainer="info@stackable.tech" \
@@ -225,6 +227,9 @@ COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync ${HOME}/git-
 
 COPY airflow/licenses /licenses
 
+# TODO (@NickLarsenNZ): Get the image into our registry
+COPY --from=ghcr.io/astral-sh/uv:0.9.10 --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
+
 # Update image and install needed packages
 RUN <<EOF
 microdnf update
@@ -242,8 +247,6 @@ microdnf install \
   openldap-clients \
   openssh-clients \
   openssl-libs \
-  openssl-pkcs11 \
-  python${PYTHON_VERSION} \
   socat \
   unixODBC
 microdnf clean all
@@ -252,6 +255,15 @@ rm -rf /var/cache/yum
 # Get the correct `tini` binary for our architecture.
 # It is used as an init alternative in the entrypoint
 curl -o /usr/bin/tini "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}"
+
+# There is currently no way to tell `uv` where to write to, and it assumes `$HOME` for the XDG paths.
+export XDG_DATA_HOME=/usr/local/share
+export XDG_CACHE_HOME=/var/cache
+uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+chown -R "${STACKABLE_USER_UID}:0" /stackable/app/bin
+source /stackable/app/bin/activate
+# uv python install "${PYTHON_VERSION}" --no-cache -v
+# uv python pin "${PYTHON_VERSION}" --no-cache -v
 
 # fix missing permissions
 chmod a+x /entrypoint.sh
