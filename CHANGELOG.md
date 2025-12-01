@@ -19,7 +19,6 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- hive: Remove `4.0.0` ([#1340]).
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
