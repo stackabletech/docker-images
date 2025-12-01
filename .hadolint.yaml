@@ -60,14 +60,12 @@ ignored:
 
   # In POSIX sh, == in place of = is undefined.
   # https://www.shellcheck.net/wiki/SC3014
-  # Reason: == is used for equality comparison in C-like languages,
-  # and is also supported by bash and ksh in [ .. ] and test expressions.
+  # Reason: Ignoring because we inherit SHELL from the base image which sets the default shell to Bash where == is defined
   - SC3014
 
   # In POSIX sh, =~ regex matching is undefined.
   # https://www.shellcheck.net/wiki/SC3015
-  # Reason: You are using =~ in a script declared to be compatible with POSIX sh or Dash,
-  # but =~ is not specified by POSIX and is unlikely to work outside [[ ]] in Bash and Ksh.
+  # Reason: Ignoring because we inherit SHELL from the base image which sets the default shell to Bash where =~ regex matching is defined
   - SC3015
 
   # In POSIX sh, string replacement is undefined.
