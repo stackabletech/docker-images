@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# WARNING: This is currently specific to stackable-operators due to the path to
+# the source (under `rust/`).
+
 # Copy over the binary
 cp "$1" /app
 

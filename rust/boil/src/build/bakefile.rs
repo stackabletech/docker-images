@@ -59,6 +59,12 @@ pub enum Error {
 
     #[snafu(display("failed to locate containerfile relative to the {path:?} directory"))]
     NoSuchContainerfileExists { path: String },
+
+    #[snafu(display("failed to open scoped directory as {path}"))]
+    OpenScopedDirectory {
+        source: std::io::Error,
+        path: String,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -68,6 +74,9 @@ pub enum TargetsError {
 
     #[snafu(display("failed to read image config"))]
     ReadImageConfig { source: ImageConfigError },
+
+    #[snafu(display("failed to resolve parent directory of image config at {path}", path = path.display()))]
+    ResolveParentDirectory { path: PathBuf },
 }
 
 #[derive(Debug, Default)]
@@ -111,9 +120,21 @@ impl Targets {
     /// Returns a map of all targets by globbing for (nested) image config files.
     ///
     /// The search behaviour can be customized using the provided [`TargetsOptions`].
+    //
+    // SAFETY: We purposefully allow the `clippy::unwrap_in_result` lint below in this function.
+    // We can use expect here, because the glob pattern is defined as a constant and the glob
+    // function only returns an error if the pattern is invalid. We must ensure the pattern is
+    // valid at compile time, because there is no need to allow an invalid pattern which would
+    // render this tool inoperable.
+    //
+    // FIXME (@Techassi): This attribute can be used on individual unwrap and expect calls since
+    // Rust 1.91.0. We should move this attribute to not contaminate an unnecessarily large scope
+    // once we bump the toolchain to 1.91.0.
+    // See https://github.com/rust-lang/rust-clippy/pull/15445
+    #[allow(clippy::unwrap_in_result)]
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
         let image_config_paths = glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)
-            .expect("glob pattern must be valid")
+            .expect("constant glob pattern must be valid")
             .filter_map(Result::ok);
 
         let mut targets = Self::default();
@@ -124,7 +145,9 @@ impl Targets {
 
             let image_name = image_config_path
                 .parent()
-                .expect("there must be a parent")
+                .with_context(|| ResolveParentDirectorySnafu {
+                    path: image_config_path.clone(),
+                })?
                 .to_string_lossy()
                 .into_owned();
 
@@ -336,7 +359,10 @@ impl Bakefile {
                 // By using a cap-std Dir, we can ensure that the paths provided must be relative to
                 // the appropriate image folder and wont escape it by providing absolute or relative
                 // paths with traversals (..).
-                let image_dir = Dir::open_ambient_dir(&image_name, ambient_authority()).unwrap();
+                let image_dir = Dir::open_ambient_dir(&image_name, ambient_authority())
+                    .with_context(|_| OpenScopedDirectorySnafu {
+                        path: image_name.clone(),
+                    })?;
 
                 let dockerfile_path = if let Some(custom_path) = &image_options.dockerfile {
                     ensure!(

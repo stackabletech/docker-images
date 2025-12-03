@@ -2,6 +2,7 @@
 # check=error=true
 
 FROM local-image/hadoop/hadoop AS hadoop-builder
+FROM local-image/hive/hive-metastore-opa-authorizer AS hive-metastore-opa-authorizer-builder
 
 FROM local-image/java-devel AS hive-builder
 
@@ -38,16 +39,22 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/patched-li
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
+ENV NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
+
+# Let's have patchable as a dedicated step, as it fetches the Hive sourcecode over the network,
+# thus taking a bit (which is annoying while development)
+RUN /stackable/patchable --images-repo-root=src checkout hive ${PRODUCT_VERSION} > /tmp/HIVE_SOURCE_DIR
+
+# Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
 RUN --mount=type=cache,id=maven-hive-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
-BUILD_SRC_DIR="$(/stackable/patchable --images-repo-root=src checkout hive ${PRODUCT_VERSION})"
+BUILD_SRC_DIR="$(cat /tmp/HIVE_SOURCE_DIR)" || exit 1
+rm /tmp/HIVE_SOURCE_DIR
 cd "$BUILD_SRC_DIR"
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
-
-NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 # generateBackupPoms=false is needed for the Hive 4.0.0 build to succeed, otherwise it fails with the obscure reason: `Too many files with unapproved license`
 mvn versions:set -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -DgenerateBackupPoms=false
@@ -62,7 +69,7 @@ if [[ "${PRODUCT_VERSION}" == "3.1.3" ]] ; then
     --projects standalone-metastore
   mv standalone-metastore/target/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}-bin /stackable
   mv standalone-metastore/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
-else
+elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   (
     # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
     mvn \
@@ -73,20 +80,37 @@ else
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz
     mv standalone-metastore/metastore-server/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
-
     # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
     # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
     sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${NEW_VERSION}-bin/bin/ext/schemaTool.sh
   )
+else
+  # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
+  mvn \
+  clean package \
+  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
+  -DskipTests \
+  -Pdist
+  # Looks like we can not filter the projects using "--projects standalone-metastore/metastore-server --also-make",
+  # as this does not build a *.tar.gz
+
+  # We only seem to get a .tar.gz archive, so let's extract that to the correct location
+  tar --extract --directory=/stackable -f standalone-metastore/packaging/target/hive-standalone-metastore-${NEW_VERSION}-bin.tar.gz
+  mv standalone-metastore/metastore-server/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/hive-standalone-metastore-${NEW_VERSION}.cdx.json
 fi
 
 # Remove sourcecode
-cd /stackable
 rm -rf "$BUILD_SRC_DIR"
+EOF
 
+RUN <<EOF
+cd /stackable
 mkdir /stackable/jmx
 curl "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+
+# Needed to run housekeeping jobs, see footnote <1> below
+cp /stackable/patched-libs/maven/org/apache/hadoop/hadoop-mapreduce-client-core/${HADOOP_VERSION}-stackable${RELEASE_VERSION}/hadoop-mapreduce-client-core-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
 
 # The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
 # This way the build will fail should one of the files not be available anymore in a later Hadoop version!
@@ -96,8 +120,11 @@ cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/
 
 # According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
 # aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar to bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar. In future, you might need to do:
-# cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
+if [[ "${PRODUCT_VERSION}" == "3.1.3" || "${PRODUCT_VERSION}" == 4.0.* ]]; then
 cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
+else
+cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
+fi
 
 # Add Azure ABFS support (support for abfs://)
 cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
@@ -117,7 +144,6 @@ fi
 # change groups
 chmod --recursive g=u /stackable
 EOF
-
 
 FROM local-image/java-base AS final
 
@@ -158,6 +184,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hive-${PRODU
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-builder /stackable/jmx /stackable/jmx
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-bin /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hive-metastore-opa-authorizer-builder /stackable/opa-authorizer-src /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/jmx /stackable/jmx
 COPY --chown=${STACKABLE_USER_UID}:0 hive/stackable/bin/start-metastore /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/bin
 
@@ -204,9 +232,9 @@ EOF
 
 USER ${STACKABLE_USER_UID}
 
-ENV HADOOP_HOME=/stackable/hadoop
 ENV HIVE_HOME=/stackable/hive-metastore
-ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
+ENV HADOOP_HOME=/stackable/hadoop
+ENV PATH="${PATH}:${HADOOP_HOME}/bin:${HIVE_HOME}/bin"
 
 # The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.
 # We set them here to a sensible default.
@@ -215,3 +243,28 @@ ENV HADOOP_MAPRED_HOME=/stackable/hadoop
 
 WORKDIR /stackable/hive-metastore
 # Start command is set by operator to something like "bin/start-metastore --config /stackable/config --db-type postgres --hive-bin-dir bin"
+
+
+
+# <1>: org.apache.hadoop.mapred.JobConf need
+# 2025-10-06T08:42:04,137 ERROR [Metastore threads starter thread] metastore.HiveMetaStore: Failure when starting the leader tasks, Compaction or Housekeeping tasks may not happen
+# java.lang.NoClassDefFoundError: org/apache/hadoop/mapred/JobConf
+#         at org.apache.hadoop.hive.conf.HiveConf.initialize(HiveConf.java:6601) ~[hive-common-4.1.0.jar:4.1.0]
+#         at org.apache.hadoop.hive.conf.HiveConf.<init>(HiveConf.java:6569) ~[hive-common-4.1.0.jar:4.1.0]
+#         at org.apache.hadoop.hive.ql.txn.compactor.CompactorThread.setConf(CompactorThread.java:68) ~[hive-exec-4.1.0-core.jar:4.1.0]
+#         at org.apache.hadoop.hive.metastore.leader.CompactorTasks.takeLeadership(CompactorTasks.java:139) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.lambda$notifyListener$0(LeaseLeaderElection.java:141) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at java.base/java.util.ArrayList.forEach(Unknown Source) ~[?:?]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.notifyListener(LeaseLeaderElection.java:138) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.doWork(LeaseLeaderElection.java:120) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.tryBeLeader(LeaseLeaderElection.java:181) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaseLeaderElection.tryBeLeader(LeaseLeaderElection.java:63) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.leader.LeaderElectionContext.lambda$start$2(LeaderElectionContext.java:125) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at java.base/java.lang.Thread.run(Unknown Source) ~[?:?]
+#         at org.apache.hadoop.hive.metastore.leader.LeaderElectionContext.start(LeaderElectionContext.java:136) ~[hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+#         at org.apache.hadoop.hive.metastore.HiveMetaStore$8.run(HiveMetaStore.java:856) [hive-standalone-metastore-server-4.1.0-stackable0.0.0-dev.jar:4.1.0-stackable0.0.0-dev]
+# Caused by: java.lang.ClassNotFoundException: org.apache.hadoop.mapred.JobConf
+#         at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(Unknown Source) ~[?:?]
+#         at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(Unknown Source) ~[?:?]
+#         at java.base/java.lang.ClassLoader.loadClass(Unknown Source) ~[?:?]
+#         ... 14 more

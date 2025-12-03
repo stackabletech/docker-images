@@ -30,7 +30,7 @@ jobs:
     name: Generate Runner Dimension
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
       - id: runners
@@ -55,11 +55,11 @@ jobs:
     name: Generate Version Dimension
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/shard@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -80,16 +80,16 @@ jobs:
         runner: ${{ fromJson(needs.generate_runner_dimension.outputs.runners) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/free-disk-space@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/build-product-image@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
@@ -97,7 +97,7 @@ jobs:
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/publish-image@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -118,12 +118,12 @@ jobs:
         versions: ${{ fromJson(needs.generate_version_dimension.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/publish-image-index-manifest@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -138,7 +138,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+        uses: stackabletech/actions/send-slack-notification@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}

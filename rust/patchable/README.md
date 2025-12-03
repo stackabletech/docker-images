@@ -59,29 +59,46 @@ cargo patchable export druid 26.0.0
 git status
 ```
 
-> ![CAUTION]
+> [!CAUTION]
 > `cargo patchable export` exports whatever is currently checked out (`HEAD`) in the worktree.
 > If you use `jj edit` (or `git switch`) then you _must_ go back to the tip before exporting, or
 > any patches after that point will be omitted from the export.
 
-### Initialize a new product
+### Adding a new product
 
-If you're adding a completely new product, you need to initialize the product-level config once
-using patchable:
+If you're adding a completely new product, start by creating the product directory with `mkdir product-name`.
+Note that you can also create dependencies in subdirectories, like `product-name/my-dependency` or `shared/my-dependency`.
+Next, create a `Dockerfile` and a `boil-config.toml` file in that directory.
+Then create a fork on GitHub (the default branch, like `main`, is fine - patchable ensures tags for configured versions are mirrored).
+
+Initialize the product-level config by running:
 
 ```sh
-cargo patchable init product druid \
-  --upstream https://github.com/apache/druid.git \
-  --default-mirror https://github.com/stackabletech/druid.git
+cargo patchable init product product-name \
+  --upstream https://github.com/upstream-org/product-name.git \
+  --default-mirror https://github.com/stackabletech/product-name.git
 ```
 
-This will create the product-level configuration in `docker-images/druid/stackable/patches/patchable.toml`
-containing the following fields:
+This will create the product-level configuration in `docker-images/product-name/stackable/patches/patchable.toml` containing the following fields:
 
 - `upstream` - the URL of the upstream repository (such as `https://github.com/apache/druid.git`)
 - `default_mirror` - optional: default URL of a mirror repository (such as `https://github.com/stackabletech/druid.git`)
 
-### Initialize a new patch series
+Initialize the product version (`base` can be a branch, tag, or commit):
+
+```sh
+cargo patchable init version product-name 1.2.3 --base=product-name-1.2.3 --mirror
+```
+
+Checkout the source code and switch into the directory with `pushd $(cargo patchable checkout product-name 1.2.3)`.
+Create your patches and commit them, then export the patches as .patch files by running:
+
+```sh
+popd
+cargo patchable export product-name 1.2.3
+```
+
+### Adding a new version to an existing product
 
 Patchable stores metadata about each patch series in its version-level config, and will not be able
 to check out a patch series that lacks one. It can be generated using the following command:
@@ -98,6 +115,51 @@ with the base commit hash and the default mirror URL from the product-level conf
 - `mirror` - optional: URL of the mirror repository for this version, if mirroring is enabled
 
 You can optionally provide the `--ssh` flag to use SSH instead of HTTPS for Git operations.
+
+### Creating a forked dependency
+
+You can use the same patchable workflow for custom dependencies (e.g., Java libraries) as for regular products.
+
+For example, to create a patched version of a Java dependency, start by creating a directory for the dependency with `mkdir -p shared/jackson-dataformat-xml`.
+Then create a `Dockerfile` with build instructions and a `boil-config.toml` file in that directory. Create a fork of the dependency on GitHub for mirroring the source code.
+
+Initialize patchable product configuration:
+
+```sh
+cargo patchable init product shared/jackson-dataformat-xml \
+  --upstream https://github.com/FasterXML/jackson-dataformat-xml.git \
+  --default-mirror https://github.com/stackabletech/jackson-dataformat-xml.git
+```
+
+Initialize a specific version:
+
+```sh
+cargo patchable init version shared/jackson-dataformat-xml 2.12.7 \
+  --base=jackson-dataformat-xml-2.12.7 --mirror
+```
+
+Create and export patches:
+
+```sh
+pushd $(cargo patchable checkout shared/jackson-dataformat-xml 2.12.7)
+# Make your changes
+git commit -m "Apply security patch"
+popd
+cargo patchable export shared/jackson-dataformat-xml 2.12.7
+```
+
+Use the dependency in other products. For a Java dependency for example it would look like this in the product's `Dockerfile`:
+
+```dockerfile
+FROM local-image/shared/jackson-dataformat-xml AS patched-jackson-dataformat-xml
+COPY --chown=${STACKABLE_USER_UID}:0 --from=patched-jackson-dataformat-xml /stackable/.m2/repository /stackable/patched-jackson-dataformat-xml-libs
+
+# Copy patched libs into local Maven repository
+mkdir -p /stackable/.m2/repository
+cp -r /stackable/patched-jackson-dataformat-xml-libs/* /stackable/.m2/repository
+```
+
+Now the patched dependency will be used instead of pulling the original one.
 
 ### Importing patch series into Patchable
 
@@ -167,6 +229,33 @@ Druid 26.0.0 series:
 ```sh
 # git cherry-pick <hash> is also fine for grabbing arbitrary patches
 git cherry-pick patchable/26.0.0
+```
+
+### Backporting a patch
+
+To backport a specific upstream commit to a product version, first checkout the source code with:
+
+```sh
+pushd $(cargo patchable checkout zookeeper 3.9.3)
+```
+
+Fetch the upstream commit using:
+
+```sh
+git fetch https://github.com/apache/zookeeper 3d6c0d1164dc9ec96a02de383e410b1b0ef64565
+```
+
+Then cherry-pick it with:
+
+```sh
+git cherry-pick 3d6c0d1
+```
+
+Finally, export the patches as .patch files:
+
+```sh
+popd
+cargo patchable export zookeeper 3.9.3
 ```
 
 ## Notes

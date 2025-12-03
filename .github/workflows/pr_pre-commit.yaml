@@ -6,19 +6,19 @@ on:
 
 env:
   # Keep in sync with across other repos like operator-rs and operator-templating
-  RUST_TOOLCHAIN_VERSION: "nightly-2025-05-26"
-  HADOLINT_VERSION: "v2.12.0"
-  PYTHON_VERSION: "3.12"
+  RUST_TOOLCHAIN_VERSION: "nightly-2025-10-23"
+  HADOLINT_VERSION: "v2.14.0"
+  PYTHON_VERSION: "3.14"
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@a5d39a4eb109bb6af3c152800701c86e98bfe1a5 # v0.10.1
+      - uses: stackabletech/actions/run-pre-commit@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           rust: ${{ env.RUST_TOOLCHAIN_VERSION }}

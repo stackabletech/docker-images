@@ -1,35 +1,55 @@
 [versions."4.0.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
-stackable-base = "1.0.0"
+stackable-devel = "1.0.0"
 vector = "0.49.0"
 
 [versions."4.0.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
+# Find the flask-appbuilder version in the applicable constraints.txt file, then find the authlib version.
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.4.1/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.7.3"
+nodejs-version = "20"
 
 [versions."4.1.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
-stackable-base = "1.0.0"
+stackable-devel = "1.0.0"
 vector = "0.49.0"
 
 [versions."4.1.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
+# Find the flask-appbuilder version in the applicable constraints.txt file, then find the authlib version.
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.7.3"
+nodejs-version = "20"
 
 [versions."4.1.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
-stackable-base = "1.0.0"
+stackable-devel = "1.0.0"
 vector = "0.49.0"
 
 [versions."4.1.4".build-arguments]
 cyclonedx-bom-version = "6.0.0"
+# Find the flask-appbuilder version in the applicable constraints.txt file, then find the authlib version.
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.7.3"
+nodejs-version = "20"
+
+[versions."6.0.0-rc2".local-images]
+"shared/statsd-exporter" = "0.28.0"
+stackable-devel = "1.0.0"
+vector = "0.49.0"
+
+[versions."6.0.0-rc2".build-arguments]
+cyclonedx-bom-version = "6.0.0"
+# Find the flask-appbuilder version in the applicable constraints.txt file, then find the authlib version.
+# https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.0/requirements/extra.txt#L7
+authlib-version = "1.2.1"
+python-version = "3.11"
+uv-version = "0.7.3"
+nodejs-version = "20"

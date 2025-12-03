@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/airflow.git"
+base = "4ecebc2973587ebaa2cb12482de82e93d15c092f"

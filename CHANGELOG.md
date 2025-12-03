@@ -6,11 +6,41 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- superset: Add 6.0.0-rc2 ([#1337]).
+- hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
+- hive: Add `4.2.0` ([#1356]).
+
+### Changed
+
+- airflow: Extend list of providers for 3.0.6 ([#1336])
+- airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
+- testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
+- hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+
+### Removed
+
+- opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
+
+[#1336]: https://github.com/stackabletech/docker-images/pull/1336
+[#1337]: https://github.com/stackabletech/docker-images/pull/1337
+[#1340]: https://github.com/stackabletech/docker-images/pull/1340
+[#1343]: https://github.com/stackabletech/docker-images/pull/1343
+[#1354]: https://github.com/stackabletech/docker-images/pull/1354
+[#1356]: https://github.com/stackabletech/docker-images/pull/1356
+[#1357]: https://github.com/stackabletech/docker-images/pull/1357
+
+## [25.11.0] - 2025-11-07
+
+## [25.11.0-rc1] - 2025-11-06
+
+### Added
+
 - ubi9-rust-builder: Include `.tar.gz` snapshots of the operator source code in container images ([#1207]).
 - opensearch: Add Opensearch as new product with version `3.1.0` ([#1215]).
 - opensearch: Use build-repo.stackable.tech instead of Maven Central ([#1222]).
 - opensearch: Add the `opensearch-prometheus-exporter` plugin to the image ([#1223]).
 - opensearch: Replace the demo configuration of the OpenSearch Security plugin with a minimal one ([#1228]).
+- opensearch: Install common plugins from Maven Central ([#1322]).
 - opensearch-dashboards: Add an image for Opensearch Dashboards with version `3.1.0` ([#1248]).
 - nifi: Backport NIFI-14848 to NiFi ([#1225]).
 - stackable-base: Add cert-tools ([#1247]).
@@ -29,22 +59,38 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.4.2` ([#1291]).
 - zookeeper: Add `3.9.4` ([#1292]).
 - nifi: Add `2.6.0` ([#1293]).
+- hive: Add `4.1.0` ([#1295]).
 - hbase: Add `2.6.3` ([#1296]).
+- airflow,superset: Build from source ([#1304]).
+- kafka: Add updated JMX config `server.yaml` for KRaft ([#1308]).
+- airflow: Add apache-kafka provider plus dependencies to `3.0.6` image ([#1313]).
+- airflow,superset: Reduce image size and add a snapshot of the source code ([#1326]).
 
 ### Changed
 
 - all: Use our build-repo to cache NPM dependencies ([#1219]).
 - java: Use a more recent Maven version for all Java based products ([#1220], [[#1293]]).
 - ubi9-rust-builder: Bump ubi9 base image ([#1253]).
+- ubi9-rust-builder: Bump Rust toolchain to `1.89.0`, rustup to `1.28.2`, and cargo-auditable to `0.7.1` ([#1318]).
 - stackable-base: Bump ubi9 base image ([#1253]).
 - stackable-devel: Bump ubi9 base image and update cargo-auditable to `0.7.0` ([#1253]).
-- vector: Bump to `0.49.0` ([#1258]).
+- stackable-devel: Bump Rust toolchain to `1.89.0` and cargo-auditable to `0.7.1` ([#1319]).
+- vector: Bump to `0.49.0` and build from source (applying patches) ([#1258], [#1323]).
 - airflow: Bump uvicorn dependency to `0.37.0` ([#1264]).
 - trino-cli: Bump to 477 ([#1285]).
 - tools: Bump dependency versions - kubectl to `1.34.1`, yq to `4.47.2`, and jq to `1.8.1` ([#1290]).
 - testing-tools: Update keycloak dependency to `26.3.5` and `python:3.12-slim-bullseye` base image ([#1289]).
 - hbase: move hbck2.env to hbase-operator-tools image and add log4j2 properties for this tool ([#1300]).
 - hbase: replace `sed` calls with `config-utils template` where possible ([#1301]).
+- superset: Fix the 4.1.2 build when building from source ([#1309])
+- superset: Pin `luxon` to version 3.6.1 to fix build ([#1315], [#1316])
+- nifi: Use a patched version of logback to fix corrupted logs ([#1314])
+- zookeeper: Use a patched version of logback to fix corrupted logs ([#1320])
+- kafka: Use patched version of reload4j to fix corrupted logs ([#1330])
+
+### Fixed
+
+- opensearch: Fix insecure file permissions ([#1311]).
 
 ### Removed
 
@@ -80,8 +126,8 @@ All notable changes to this project will be documented in this file.
 [#1277]: https://github.com/stackabletech/docker-images/pull/1277
 [#1278]: https://github.com/stackabletech/docker-images/pull/1278
 [#1279]: https://github.com/stackabletech/docker-images/pull/1279
-[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1280]: https://github.com/stackabletech/docker-images/pull/1280
+[#1283]: https://github.com/stackabletech/docker-images/pull/1283
 [#1284]: https://github.com/stackabletech/docker-images/pull/1284
 [#1285]: https://github.com/stackabletech/docker-images/pull/1285
 [#1286]: https://github.com/stackabletech/docker-images/pull/1286
@@ -90,9 +136,25 @@ All notable changes to this project will be documented in this file.
 [#1291]: https://github.com/stackabletech/docker-images/pull/1291
 [#1292]: https://github.com/stackabletech/docker-images/pull/1292
 [#1293]: https://github.com/stackabletech/docker-images/pull/1293
+[#1295]: https://github.com/stackabletech/docker-images/pull/1295
 [#1296]: https://github.com/stackabletech/docker-images/pull/1296
 [#1300]: https://github.com/stackabletech/docker-images/pull/1300
 [#1301]: https://github.com/stackabletech/docker-images/pull/1301
+[#1304]: https://github.com/stackabletech/docker-images/pull/1304
+[#1308]: https://github.com/stackabletech/docker-images/pull/1308
+[#1309]: https://github.com/stackabletech/docker-images/pull/1309
+[#1311]: https://github.com/stackabletech/docker-images/pull/1311
+[#1313]: https://github.com/stackabletech/docker-images/pull/1313
+[#1314]: https://github.com/stackabletech/docker-images/pull/1314
+[#1315]: https://github.com/stackabletech/docker-images/pull/1315
+[#1316]: https://github.com/stackabletech/docker-images/pull/1316
+[#1318]: https://github.com/stackabletech/docker-images/pull/1318
+[#1319]: https://github.com/stackabletech/docker-images/pull/1319
+[#1320]: https://github.com/stackabletech/docker-images/pull/1320
+[#1322]: https://github.com/stackabletech/docker-images/pull/1322
+[#1323]: https://github.com/stackabletech/docker-images/pull/1323
+[#1326]: https://github.com/stackabletech/docker-images/pull/1326
+[#1330]: https://github.com/stackabletech/docker-images/pull/1330
 
 ## [25.7.0] - 2025-07-23
 

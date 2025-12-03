@@ -48,7 +48,7 @@ pub enum Error {
 }
 
 /// This is the `boil build` command handler function.
-pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
+pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Error> {
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
     // Validation
     ensure!(
@@ -77,10 +77,12 @@ pub fn run_command(args: BuildArguments, config: Config) -> Result<(), Error> {
     // or by building the image ourself.
 
     // Finally invoke the docker buildx bake command
+    #[allow(deprecated)]
     let mut child = Command::new("docker")
         .arg("buildx")
         .arg("bake")
         .arg_if(args.load, "--load")
+        .args(args.rest)
         .arg("--file")
         .arg("-")
         .stdin(Stdio::piped())

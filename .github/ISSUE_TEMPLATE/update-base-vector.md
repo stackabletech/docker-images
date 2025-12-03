@@ -34,8 +34,9 @@ Add/Change/Remove anything that isn't applicable anymore
 ## Update tasks
 
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update the `stackable-devel/boil-config.toml` for the applicable toolchain version for the vector builder.
 - [ ] Update all `boil-config.toml` files which reference vector.
-- [ ] Upload new version (see `vector/upload_new_vector_version.sh`).
+- [ ] Add any patches required for this version (delete patches for removed versions).
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.

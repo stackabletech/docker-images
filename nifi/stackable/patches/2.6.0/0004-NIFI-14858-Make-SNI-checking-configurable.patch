@@ -81,7 +81,7 @@ index 9e85c05d22..89d81813f4 100644
      }
  
 +    public boolean isWebHttpsSniRequired() {
-+        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_REQUIRED, "true"));
++        return Boolean.parseBoolean(getProperty(WEB_HTTPS_SNI_REQUIRED, "false"));
 +    }
 +
 +    public boolean isWebHttpsSniHostCheck() {
