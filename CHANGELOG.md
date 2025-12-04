@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- zookeeper: apply patch [ZOOKEEPER-4276](https://github.com/apache/zookeeper/pull/2117) for ZooKeeper 3.9.4 ([#1359]).
 
 ### Removed
 
@@ -28,6 +29,7 @@ All notable changes to this project will be documented in this file.
 [#1354]: https://github.com/stackabletech/docker-images/pull/1354
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
+[#1359]: https://github.com/stackabletech/docker-images/pull/1359
 
 ## [25.11.0] - 2025-11-07
 
