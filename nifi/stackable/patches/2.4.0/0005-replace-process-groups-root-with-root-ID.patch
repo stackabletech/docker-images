@@ -1,4 +1,4 @@
-From cd8d70c7fc112bfe1cd4478bb477b15e70744da1 Mon Sep 17 00:00:00 2001
+From ed80d426e85c7b741d865f866092e89b61742c10 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Fri, 10 Oct 2025 15:28:56 +0200
 Subject: replace process groups root with root ID
@@ -43,18 +43,10 @@ index 0000000000..3039c97497
 +    void onRootGroupLoaded();
 +}
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
-index 5363bb5619..db377bb9d3 100644
+index 5363bb5619..a03a18d444 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
-@@ -16,6 +16,7 @@
-  */
- package org.apache.nifi.authorization;
- 
-+import com.google.common.base.Strings;
- import org.apache.commons.lang3.StringUtils;
- import org.apache.nifi.authorization.annotation.AuthorizerContext;
- import org.apache.nifi.authorization.exception.AuthorizationAccessException;
-@@ -29,6 +30,7 @@ import org.apache.nifi.authorization.resource.ResourceType;
+@@ -29,6 +29,7 @@ import org.apache.nifi.authorization.resource.ResourceType;
  import org.apache.nifi.authorization.util.IdentityMapping;
  import org.apache.nifi.authorization.util.IdentityMappingUtil;
  import org.apache.nifi.components.PropertyValue;
@@ -62,7 +54,7 @@ index 5363bb5619..db377bb9d3 100644
  import org.apache.nifi.util.FlowInfo;
  import org.apache.nifi.util.FlowParser;
  import org.apache.nifi.util.NiFiProperties;
-@@ -77,6 +79,8 @@ import java.util.concurrent.atomic.AtomicReference;
+@@ -77,6 +78,8 @@ import java.util.concurrent.atomic.AtomicReference;
  import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  
@@ -71,7 +63,7 @@ index 5363bb5619..db377bb9d3 100644
  public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvider {
  
      private static final Logger logger = LoggerFactory.getLogger(FileAccessPolicyProvider.class);
-@@ -133,6 +137,9 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
+@@ -133,6 +136,9 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
      public void initialize(AccessPolicyProviderInitializationContext initializationContext) throws AuthorizerCreationException {
          userGroupProviderLookup = initializationContext.getUserGroupProviderLookup();
  
@@ -81,7 +73,7 @@ index 5363bb5619..db377bb9d3 100644
          try {
              final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
              authorizationsSchema = schemaFactory.newSchema(FileAccessPolicyProvider.class.getResource(AUTHORIZATIONS_XSD));
-@@ -744,6 +751,42 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
+@@ -744,6 +750,43 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
          }
      }
  
@@ -92,7 +84,8 @@ index 5363bb5619..db377bb9d3 100644
 +     */
 +    public void replaceWithRootGroupId() throws JAXBException {
 +        String placeholder = this.properties.getProperty(ROOT_PROCESS_GROUP_PLACEHOLDER, "");
-+        if (!Strings.isNullOrEmpty(placeholder)) {
++
++        if (StringUtils.isNotBlank(placeholder)) {
 +            if (rootGroupId == null) {
 +                logger.info("Parsing flow as rootGroupId is not yet defined");
 +                parseFlow();
