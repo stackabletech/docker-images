@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
+- zookeeper: Remove `3.9.3` ([#1359]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
