@@ -1,19 +1,19 @@
-From 8ad3983c91711e04629e608337b2d7e87fcfc243 Mon Sep 17 00:00:00 2001
+From 71e28fc959dbdfc1c314630ace3fc74425a95bd6 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Tue, 9 Dec 2025 18:02:34 +0100
 Subject: refactor-topology-provider
 
 ---
- .../hadoop/StackableTopologyProvider.java     | 834 ++++++++----------
+ .../hadoop/StackableTopologyProvider.java     | 841 ++++++++----------
  .../tech/stackable/hadoop/TopologyCache.java  |  88 ++
  .../tech/stackable/hadoop/TopologyLabel.java  | 116 +++
  .../tech/stackable/hadoop/TopologyUtils.java  |  21 +
- 4 files changed, 584 insertions(+), 475 deletions(-)
+ 4 files changed, 590 insertions(+), 476 deletions(-)
  create mode 100644 src/main/java/tech/stackable/hadoop/TopologyCache.java
  create mode 100644 src/main/java/tech/stackable/hadoop/TopologyLabel.java
 
 diff --git a/src/main/java/tech/stackable/hadoop/StackableTopologyProvider.java b/src/main/java/tech/stackable/hadoop/StackableTopologyProvider.java
-index 4d1e917..b6f7877 100644
+index 4d1e917..0885796 100644
 --- a/src/main/java/tech/stackable/hadoop/StackableTopologyProvider.java
 +++ b/src/main/java/tech/stackable/hadoop/StackableTopologyProvider.java
 @@ -1,7 +1,5 @@
@@ -33,7 +33,7 @@ index 4d1e917..b6f7877 100644
  import java.util.stream.Collectors;
  import org.apache.hadoop.net.DNSToSwitchMapping;
  import org.slf4j.Logger;
-@@ -18,330 +14,257 @@ import org.slf4j.LoggerFactory;
+@@ -18,330 +14,250 @@ import org.slf4j.LoggerFactory;
  
  /**
   * An implementation of the org.apache.hadoop.net.DNSToSwitchMapping that is used to create a
@@ -510,20 +510,14 @@ index 4d1e917..b6f7877 100644
 -        for (String ingressAddress : TopologyUtils.getIngressAddresses(listener)) {
 -          this.listenerKeyCache.put(ingressAddress, listener);
 -        }
+-      }
+-    } else {
+-      LOG.debug("Listener cache contains [{}]", names);
 +  private String resolveListenerToDatanode(String name) {
 +    GenericKubernetesResource listener = cache.getListener(name);
 +    if (listener == null) {
 +      LOG.debug("Not a listener: {}", name);
 +      return name;
-+    }
-+    List<String> ingressAddresses = TopologyUtils.getIngressAddresses(listener);
-+    for (String ingressAddress : ingressAddresses) {
-+      LOG.debug("Address [{}]", ingressAddress);
-+      if (name.equalsIgnoreCase(ingressAddress)) {
-+        return resolveListenerEndpoint(listener);
-       }
--    } else {
--      LOG.debug("Listener cache contains [{}]", names);
      }
 -    ConcurrentMap<String, GenericKubernetesResource> listeners = this.listenerKeyCache.asMap();
 -
@@ -534,8 +528,8 @@ index 4d1e917..b6f7877 100644
 -      listenerToDataNodeNames.add(resolvedName);
 -    }
 -    return listenerToDataNodeNames;
-+    LOG.info("Not a listener, returning [{}]", name);
-+    return name;
++    // We found a listener, so we can resolve it directly
++    return resolveListenerEndpoint(listener);
    }
  
 -  private GenericKubernetesResourceList getListeners() {
@@ -563,7 +557,7 @@ index 4d1e917..b6f7877 100644
      ResourceDefinitionContext listenerCrd =
          new ResourceDefinitionContext.Builder()
              .withGroup("listeners.stackable.tech")
-@@ -353,168 +276,174 @@ public class StackableTopologyProvider implements DNSToSwitchMapping {
+@@ -353,168 +269,186 @@ public class StackableTopologyProvider implements DNSToSwitchMapping {
      return client.genericKubernetesResources(listenerCrd).list();
    }
  
@@ -673,7 +667,19 @@ index 4d1e917..b6f7877 100644
 +  }
 +
 +  private String findColocatedDatanode(Pod clientPod, Map<String, String> nodeToDatanodeIp) {
-+    return nodeToDatanodeIp.get(clientPod.getSpec().getNodeName());
++    String clientNodeName = clientPod.getSpec().getNodeName();
++
++    if (clientNodeName == null) {
++      LOG.warn("Client pod {} not yet assigned to node", clientPod.getMetadata().getName());
++      return null;
++    }
++
++    String datanodeIp = nodeToDatanodeIp.get(clientNodeName);
++    if (datanodeIp == null) {
++      LOG.debug("No datanode found on node {}", clientNodeName);
++    }
++
++    return datanodeIp;
 +  }
 +
 +  private String resolveToIpAddress(String hostname) {
@@ -870,7 +876,7 @@ index 4d1e917..b6f7877 100644
        Map<String, String> nodeLabels = node.getMetadata().getLabels();
        LOG.debug("Labels for node [{}]:[{}]....", nodeName, nodeLabels);
  
-@@ -526,78 +455,33 @@ public class StackableTopologyProvider implements DNSToSwitchMapping {
+@@ -526,78 +460,33 @@ public class StackableTopologyProvider implements DNSToSwitchMapping {
      return result;
    }
  
