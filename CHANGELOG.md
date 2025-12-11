@@ -8,20 +8,28 @@ All notable changes to this project will be documented in this file.
 
 - superset: Add 6.0.0-rc2 ([#1337]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
+- hive: Add `4.2.0` ([#1356]).
+- nifi: Add patches to replace process group root ID placeholder ([#1358]).
 
 ### Changed
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
+- testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
+- hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 
 ### Removed
 
-- hive: Remove `4.0.0` ([#1340]).
+- opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
-[#1343]: https://github.com/stackabletech/docker-images/pull/1343
 [#1340]: https://github.com/stackabletech/docker-images/pull/1340
+[#1343]: https://github.com/stackabletech/docker-images/pull/1343
+[#1354]: https://github.com/stackabletech/docker-images/pull/1354
+[#1356]: https://github.com/stackabletech/docker-images/pull/1356
+[#1357]: https://github.com/stackabletech/docker-images/pull/1357
+[#1358]: https://github.com/stackabletech/docker-images/pull/1358
 
 ## [25.11.0] - 2025-11-07
 

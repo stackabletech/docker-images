@@ -45,10 +45,6 @@ ENV NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 # thus taking a bit (which is annoying while development)
 RUN /stackable/patchable --images-repo-root=src checkout hive ${PRODUCT_VERSION} > /tmp/HIVE_SOURCE_DIR
 
-# Use bash for regex machting, otherwise docker lint is complaining:
-# hive/Dockerfile:51 SC3014 warning: In POSIX sh, == in place of = is undefined.
-SHELL ["/bin/bash", "-c"]
-
 # Make expensive maven build a separate layer for better caching
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
@@ -84,7 +80,6 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz
     mv standalone-metastore/metastore-server/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
-
     # TODO: Remove once the fix https://github.com/apache/hive/pull/5419 is merged and released
     # The schemaTool.sh is still pointing to the class location from Hive < 4.0.0, it seems like it was forgotten to update it
     sed -i -e 's/CLASS=org.apache.hadoop.hive.metastore.tools.MetastoreSchemaTool/CLASS=org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool/' /stackable/apache-hive-metastore-${NEW_VERSION}-bin/bin/ext/schemaTool.sh
@@ -239,7 +234,7 @@ USER ${STACKABLE_USER_UID}
 
 ENV HIVE_HOME=/stackable/hive-metastore
 ENV HADOOP_HOME=/stackable/hadoop
-ENV PATH="${PATH}":/stackable/hadoop/bin:/stackable/hive-metastore/bin
+ENV PATH="${PATH}:${HADOOP_HOME}/bin:${HIVE_HOME}/bin"
 
 # The following 2 env-vars are required for common hadoop scripts even if the respective libraries are never used.
 # We set them here to a sensible default.

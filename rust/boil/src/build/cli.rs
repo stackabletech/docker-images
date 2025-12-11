@@ -28,7 +28,7 @@ pub struct BuildArguments {
     /// The image version being built.
     #[arg(
         short, long,
-        value_parser = parse_image_version,
+        value_parser = BuildArguments::parse_image_version,
         default_value_t = Self::default_image_version(),
         help_heading = "Image Options"
     )]
@@ -112,15 +112,33 @@ pub struct BuildArguments {
     pub strip_architecture: bool,
 
     /// Loads the image into the local image store.
+    ///
+    /// DEPRECATED: Use -- --load instead.
     #[arg(long, help_heading = "Build Options")]
+    #[deprecated(since = "0.1.7", note = "Use -- --load instead")]
     pub load: bool,
 
     /// Dry run. This does not build the image(s) but instead prints out the bakefile.
     #[arg(short, long, alias = "dry")]
     pub dry_run: bool,
+
+    /// Arguments passed after '--' which are directly passed to the Docker command.
+    ///
+    /// Care needs to be taken, because these arguments can override/modify the behaviour defined
+    /// via the generated Bakefile. A few save arguments include but are not limited to: --load,
+    /// --no-cache, --progress.
+    #[arg(raw = true)]
+    pub rest: Vec<String>,
 }
 
 impl BuildArguments {
+    fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
+        let version = Version::from_str(input).context(ParseVersionSnafu)?;
+        ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
+
+        Ok(version)
+    }
+
     fn default_image_version() -> Version {
         "0.0.0-dev".parse().expect("must be a valid SemVer")
     }
@@ -149,13 +167,6 @@ pub enum ParseImageVersionError {
 
     #[snafu(display("semantic version must not contain build metadata"))]
     ContainsBuildMetadata,
-}
-
-pub fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
-    let version = Version::from_str(input).context(ParseVersionSnafu)?;
-    ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
-
-    Ok(version)
 }
 
 #[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]
