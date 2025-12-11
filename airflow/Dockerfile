@@ -4,10 +4,14 @@
 # - SecretsUsedInArgOrEnv : OPA_AUTH_MANAGER is a false positive and breaks the build.
 
 ARG GIT_SYNC_VERSION
+ARG UV_VERSION
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC_VERSION} AS gitsync-image
+
+# TODO (@NickLarsenNZ): Get the image into our registry
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-image
 
 FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
@@ -15,19 +19,15 @@ FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
 ARG PYTHON_VERSION
-ARG UV_VERSION
+ARG STACKABLE_USER_UID
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
 WORKDIR /tmp/opa-auth-manager
 
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
+
 RUN <<EOF
-microdnf update
-microdnf install python3-pip
-microdnf clean all
-
-pip install --no-cache-dir uv==${UV_VERSION}
-
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
 
@@ -46,7 +46,6 @@ ARG STACKABLE_USER_UID
 ARG NODEJS_VERSION
 ARG S3FS_VERSION
 ARG CYCLONEDX_BOM_VERSION
-ARG UV_VERSION
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
@@ -61,6 +60,8 @@ ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
 ARG AIRFLOW_EXTRAS_EXTERNAL_SERVICES=""
 ARG AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE=""
 ARG AIRFLOW_EXTRAS_OTHER=""
+
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN microdnf update && \
     microdnf install \
@@ -77,9 +78,9 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python3 \
-        python3-devel \
-        python3-pip \
+        # python3 \
+        # python3-devel \
+        # python3-pip \
         # python${PYTHON_VERSION}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
@@ -109,12 +110,6 @@ AIRFLOW_EXTRAS="$AIRFLOW_EXTRAS_CORE,$AIRFLOW_EXTRAS_META,$AIRFLOW_EXTRAS_PROVID
 
 # Removing duplicates
 AIRFLOW_EXTRAS=$(echo "$AIRFLOW_EXTRAS" | tr ',' '\n' | awk 'NF > 0 {if (!seen[$0]++) print $0}' | tr '\n' ',' | sed 's/,$//')
-
-# TODO: Use uv ${UV_VERSION} from Nexus instead of pip
-# Upgrade pip to the latest version
-# Also install uv to get support for build constraints and venv for a given python version
-pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir uv==${UV_VERSION}
 
 uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
 source /stackable/app/bin/activate
@@ -201,7 +196,6 @@ ARG TINI_VERSION
 ARG TARGETARCH
 ARG SHARED_STATSD_EXPORTER_VERSION
 ARG STACKABLE_USER_UID
-ARG UV_VERSION
 
 LABEL name="Apache Airflow" \
     maintainer="info@stackable.tech" \
@@ -227,8 +221,7 @@ COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync ${HOME}/git-
 
 COPY airflow/licenses /licenses
 
-# TODO (@NickLarsenNZ): Get the image into our registry
-COPY --from=ghcr.io/astral-sh/uv:0.9.10 --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 # Update image and install needed packages
 RUN <<EOF
