@@ -112,7 +112,7 @@ AIRFLOW_EXTRAS="$AIRFLOW_EXTRAS_CORE,$AIRFLOW_EXTRAS_META,$AIRFLOW_EXTRAS_PROVID
 AIRFLOW_EXTRAS=$(echo "$AIRFLOW_EXTRAS" | tr ',' '\n' | awk 'NF > 0 {if (!seen[$0]++) print $0}' | tr '\n' ',' | sed 's/,$//')
 
 uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
-source /stackable/app/bin/activate
+. /stackable/app/bin/activate
 
 # Another project manager
 uv tool install hatch
@@ -254,7 +254,7 @@ export XDG_DATA_HOME=/usr/local/share
 export XDG_CACHE_HOME=/var/cache
 uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
 chown -R "${STACKABLE_USER_UID}:0" /stackable/app/bin
-source /stackable/app/bin/activate
+. /stackable/app/bin/activate
 # uv python install "${PYTHON_VERSION}" --no-cache -v
 # uv python pin "${PYTHON_VERSION}" --no-cache -v
 
