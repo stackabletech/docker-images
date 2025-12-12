@@ -78,10 +78,6 @@ RUN microdnf update && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        # python3 \
-        # python3-devel \
-        # python3-pip \
-        # python${PYTHON_VERSION}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
         # Needed for Airflow UI assets
@@ -230,7 +226,6 @@ microdnf update
 # git: Needed for the gitsync functionality
 # openldap: Needed for authentication of clients against LDAP servers
 # openssh-clients: We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
-# python: Airflow needs Python
 microdnf install \
   ca-certificates \
   cyrus-sasl \
@@ -255,8 +250,6 @@ export XDG_CACHE_HOME=/var/cache
 uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
 chown -R "${STACKABLE_USER_UID}:0" /stackable/app/bin
 . /stackable/app/bin/activate
-# uv python install "${PYTHON_VERSION}" --no-cache -v
-# uv python pin "${PYTHON_VERSION}" --no-cache -v
 
 # fix missing permissions
 chmod a+x /entrypoint.sh
