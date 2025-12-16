@@ -1,23 +1,31 @@
-[tool.poetry]
+[project]
 name = "opa-authorizer"
 version = "0.1.0"
 description = ""
-authors = ["Benedikt Labrenz <benedikt.labrenz@stackable.tech>"]
+authors = [{ name = "Benedikt Labrenz", email = "benedikt.labrenz@stackable.tech" }]
+requires-python = ">=3.9.0,<3.13"
 readme = "README.md"
+dependencies = [
+    "cachetools>=5.5.0,<6",
+    "overrides>=7.7.0,<8",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9.0,<3.13"
-cachetools = "^5.5.0"
-overrides = "^7.7.0"
+[dependency-groups]
+dev = [
+    "pylint>=3.3.1,<4",
+    "apache-superset>=4.0,<4.1",
+]
+test = [
+    "pytest-mock>=3.10.0,<4",
+    "pytest>=8.3.3,<9",
+]
 
-[tool.poetry.group.dev.dependencies]
-pylint = "^3.3.1"
-apache-superset = "~4.0"
-
-[tool.poetry.group.test.dependencies]
-pytest-mock = "^3.10.0"
-pytest = "^8.3.3"
+[tool.uv]
+default-groups = [
+    "dev",
+    "test",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
