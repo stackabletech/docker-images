@@ -71,4 +71,4 @@ curl --fail -o /dev/null --progress-bar -u "$NEXUS_USER:$NEXUS_PASSWORD" --uploa
 
 echo "Successfully uploaded Maven $VERSION to Nexus"
 echo "https://repo.stackable.tech/service/rest/repository/browse/packages/maven/"
-echo "https://github.com/prometheus/maven/releases/tag/$VERSION"
+echo "https://github.com/apache/maven/releases/tag/maven-$VERSION"

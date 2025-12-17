@@ -9,8 +9,7 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.4.1/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
-uv-version = "0.7.3"
-nodejs-version = "20"
+uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 
 [versions."4.1.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -23,8 +22,7 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
-uv-version = "0.7.3"
-nodejs-version = "20"
+uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 
 [versions."4.1.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -37,8 +35,7 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
-uv-version = "0.7.3"
-nodejs-version = "20"
+uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 
 [versions."6.0.0-rc2".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -51,5 +48,4 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.11"
-uv-version = "0.7.3"
-nodejs-version = "20"
+uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
