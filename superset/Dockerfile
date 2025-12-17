@@ -3,8 +3,7 @@
 
 ARG UV_VERSION
 
-# TODO (@NickLarsenNZ): Get the image into our registry
-FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-image
+FROM oci.stackable.tech/sdp/astral-sh/uv:${UV_VERSION} AS uv-image
 
 FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
