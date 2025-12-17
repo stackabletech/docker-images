@@ -9,7 +9,7 @@ For some reason npm tries to use a newer version of luxon than the version in th
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/superset-frontend/package.json b/superset-frontend/package.json
-index 066ce89764..cd6ca2a53f 100644
+index 066ce8976..cd6ca2a53 100644
 --- a/superset-frontend/package.json
 +++ b/superset-frontend/package.json
 @@ -148,7 +148,7 @@
