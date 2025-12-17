@@ -10,7 +10,6 @@ cyclonedx-bom-version = "6.0.0"
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
-nodejs-version = "20"
 
 [versions."4.1.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -24,7 +23,6 @@ cyclonedx-bom-version = "6.0.0"
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
-nodejs-version = "20"
 
 [versions."4.1.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -38,7 +36,6 @@ cyclonedx-bom-version = "6.0.0"
 authlib-version = "1.2.1"
 python-version = "3.9"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
-nodejs-version = "20"
 
 [versions."6.0.0-rc2".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -52,4 +49,3 @@ cyclonedx-bom-version = "6.0.0"
 authlib-version = "1.2.1"
 python-version = "3.11"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
-nodejs-version = "20"
