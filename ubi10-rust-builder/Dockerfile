@@ -5,7 +5,6 @@
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
 FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:28ec2f4662bdc4b0d4893ef0d8aebf36a5165dfb1d1dc9f46319bd8a03ed3365 AS builder
-# todo
 LABEL maintainer="Stackable GmbH"
 
 # Pin the rustup version to avoid unexpected breaking changes.
