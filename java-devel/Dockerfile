@@ -17,7 +17,6 @@ ARG MAVEN_VERSION="3.9.11"
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
 [Adoptium]
-[Adoptium]
 name=Adoptium
 # The adoptium mirror times-out often, so we have created a pull-through cache
 # baseurl=https://packages.adoptium.net/artifactory/rpm/rhel/\$releasever/\$basearch
