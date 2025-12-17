@@ -12,8 +12,6 @@ tini-version = "0.19.0"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
-nodejs-version = "20"
-nvm-version = "0.40.3"
 
 [versions."2.10.5".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -29,8 +27,6 @@ tini-version = "0.19.0"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
-nodejs-version = "20"
-nvm-version = "0.40.3"
 
 [versions."3.0.1".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -46,8 +42,6 @@ tini-version = "0.19.0"
 uv-version = "0.9.10" # When changing this version, you will need to use the mirror workflow to get the image into our registry
 airflow-extras-other = "async,amazon,celery,cncf-kubernetes,docker,elasticsearch,fab,ftp,grpc,hashicorp,http,ldap,google,microsoft-azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,trino"
 opa-auth-manager = "airflow-3"
-nodejs-version = "20"
-nvm-version = "0.40.3"
 
 [versions."3.0.6".local-images]
 "shared/statsd-exporter" = "0.28.0"
@@ -82,5 +76,3 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-nodejs-version = "20"
-nvm-version = "0.40.3"
