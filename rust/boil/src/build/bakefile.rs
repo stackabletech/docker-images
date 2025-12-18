@@ -24,8 +24,8 @@ use crate::{
         image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
         platform::TargetPlatform,
     },
-    config::{self, Config},
-    utils::{format_image_manifest_uri, format_image_repository_uri},
+    config::{self, Config, Metadata},
+    utils,
 };
 
 pub const COMMON_TARGET_NAME: &str = "common--target";
@@ -272,23 +272,28 @@ impl Bakefile {
     }
 
     /// Creates the common target, containing shared data, which will be inherited by other targets.
-    fn common_target(args: &cli::BuildArguments, config: Config) -> Result<BakefileTarget, Error> {
+    fn common_target(
+        args: &cli::BuildArguments,
+        build_arguments: BuildArguments,
+        metadata: &Metadata,
+    ) -> Result<BakefileTarget, Error> {
         let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
         let date_time = Self::now()?;
 
         // Load build arguments from a file if the user requested it
-        let mut build_arguments = args.build_arguments.clone();
+        let mut user_build_arguments = args.build_arguments.clone();
         if let Some(path) = &args.build_arguments_file {
             let build_arguments_from_file =
                 BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
-            build_arguments.extend(build_arguments_from_file);
+            user_build_arguments.extend(build_arguments_from_file);
         }
 
         let target = BakefileTarget::common(
             date_time,
             revision,
-            config,
             build_arguments,
+            metadata,
+            user_build_arguments,
             args.image_version.base_prerelease(),
         );
 
@@ -303,12 +308,46 @@ impl Bakefile {
         let mut bakefile_targets = BTreeMap::new();
         let mut groups: BTreeMap<String, BakefileGroup> = BTreeMap::new();
 
+        // Destructure config so that we can move and borrow fields separately.
+        let Config {
+            build_arguments,
+            metadata,
+        } = config;
+
         // Create a common target, which contains shared data, like annotations, arguments, labels, etc...
-        let common_target = Self::common_target(args, config)?;
+        let common_target = Self::common_target(args, build_arguments, &metadata)?;
         bakefile_targets.insert(COMMON_TARGET_NAME.to_owned(), common_target);
+
+        // The image registry, eg. `oci.stackable.tech` or `localhost`
+        let image_registry = if args.use_localhost_registry {
+            &HostPort::localhost()
+        } else {
+            &args.registry
+        };
 
         for (image_name, image_versions) in targets.into_iter() {
             for (image_version, (image_options, is_entry)) in image_versions {
+                let image_repository_uri = utils::format_image_repository_uri(
+                    image_registry,
+                    &args.registry_namespace,
+                    &image_name,
+                );
+
+                let image_index_manifest_tag = utils::format_image_index_manifest_tag(
+                    &image_version,
+                    &metadata.vendor_tag_prefix,
+                    &args.image_version,
+                );
+
+                let image_manifest_tag = utils::format_image_manifest_tag(
+                    &image_index_manifest_tag,
+                    args.target_platform.architecture(),
+                    args.strip_architecture,
+                );
+
+                let image_manifest_uri =
+                    utils::format_image_manifest_uri(&image_repository_uri, &image_manifest_tag);
+
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
                 let mut build_arguments = BuildArguments::new();
@@ -317,11 +356,8 @@ impl Bakefile {
                     .local_images
                     .iter()
                     .map(|(image_name, image_version)| {
-                        BuildArgument::new(
-                            format!(
-                                "{image_name}_VERSION",
-                                image_name = image_name.to_uppercase().replace('-', "_")
-                            ),
+                        BuildArgument::local_image_version(
+                            image_name.to_string(),
                             image_version.to_string(),
                         )
                     })
@@ -334,27 +370,22 @@ impl Bakefile {
                     "PRODUCT_VERSION".to_owned(),
                     image_version.to_string(),
                 ));
-
-                // The image registry, eg. `oci.stackable.tech` or `localhost`
-                let image_registry = if args.use_localhost_registry {
-                    &HostPort::localhost()
-                } else {
-                    &args.registry
-                };
-
-                let image_repository_uri = format_image_repository_uri(
-                    image_registry,
-                    &args.registry_namespace,
-                    &image_name,
-                );
-
-                let image_manifest_uri = format_image_manifest_uri(
-                    &image_repository_uri,
-                    &image_version,
-                    &args.image_version,
-                    args.target_platform.architecture(),
-                    args.strip_architecture,
-                );
+                build_arguments.insert(BuildArgument::new(
+                    "IMAGE_REPOSITORY_URI".to_owned(),
+                    image_repository_uri,
+                ));
+                build_arguments.insert(BuildArgument::new(
+                    "IMAGE_INDEX_MANIFEST_TAG".to_owned(),
+                    image_index_manifest_tag,
+                ));
+                build_arguments.insert(BuildArgument::new(
+                    "IMAGE_MANIFEST_TAG".to_owned(),
+                    image_manifest_tag,
+                ));
+                build_arguments.insert(BuildArgument::new(
+                    "IMAGE_MANIFEST_URI".to_owned(),
+                    image_manifest_uri.clone(),
+                ));
 
                 // By using a cap-std Dir, we can ensure that the paths provided must be relative to
                 // the appropriate image folder and wont escape it by providing absolute or relative
@@ -399,8 +430,11 @@ impl Bakefile {
                     })
                     .collect();
 
-                let annotations =
-                    BakefileTarget::image_version_annotation(&image_version, &args.image_version);
+                let annotations = BakefileTarget::image_version_annotation(
+                    &image_version,
+                    &metadata.vendor_tag_prefix,
+                    &args.image_version,
+                );
 
                 let target = BakefileTarget {
                     tags: vec![image_manifest_uri],
@@ -533,31 +567,50 @@ impl BakefileTarget {
     fn common(
         date_time: String,
         revision: String,
-        config: Config,
-        build_arguments: Vec<BuildArgument>,
+        build_arguments: BuildArguments,
+        metadata: &Metadata,
+        user_build_arguments: Vec<BuildArgument>,
         release_version: String,
     ) -> Self {
         let config::Metadata {
-            documentation,
+            documentation: docs,
             licenses,
             authors,
             source,
             vendor,
-        } = config.metadata;
+            ..
+        } = metadata;
 
         // Annotations describe OCI image components.
-        let annotations = vec![
+        // Add annotations which are always present.
+        let mut annotations = vec![
             format!("{ANNOTATION_CREATED}={date_time}"),
-            format!("{ANNOTATION_AUTHORS}={authors}"),
-            format!("{ANNOTATION_DOCUMENTATION}={documentation}"),
-            format!("{ANNOTATION_SOURCE}={source}"),
             format!("{ANNOTATION_REVISION}={revision}"),
-            format!("{ANNOTATION_VENDOR}={vendor}"),
-            format!("{ANNOTATION_LICENSES}={licenses}"),
         ];
 
-        let mut arguments = config.build_arguments;
-        arguments.extend(build_arguments);
+        // Add optional annotations.
+        if let Some(authors) = authors {
+            annotations.push(format!("{ANNOTATION_AUTHORS}={authors}"));
+        }
+
+        if let Some(docs) = docs {
+            annotations.push(format!("{ANNOTATION_DOCUMENTATION}={docs}"));
+        }
+
+        if let Some(source) = source {
+            annotations.push(format!("{ANNOTATION_SOURCE}={source}"));
+        }
+
+        if let Some(licenses) = licenses {
+            annotations.push(format!("{ANNOTATION_LICENSES}={licenses}"));
+        }
+
+        if let Some(vendor) = vendor {
+            annotations.push(format!("{ANNOTATION_VENDOR}={vendor}"));
+        }
+
+        let mut arguments = build_arguments;
+        arguments.extend(user_build_arguments);
         arguments.insert(BuildArgument::new(
             "RELEASE_VERSION".to_owned(),
             release_version,
@@ -580,12 +633,18 @@ impl BakefileTarget {
         }
     }
 
-    fn image_version_annotation(image_version: &str, sdp_image_version: &Version) -> Vec<String> {
-        vec![
-            // TODO (@Techassi): Move this version formatting into a function
-            // TODO (@Techassi): Make this vendor agnostic, don't hard-code stackable here
-            format!("{ANNOTATION_VERSION}={image_version}-stackable{sdp_image_version}"),
-        ]
+    fn image_version_annotation(
+        image_version: &str,
+        vendor_tag_prefix: &str,
+        vendor_image_version: &Version,
+    ) -> Vec<String> {
+        let image_index_manifest_tag = utils::format_image_index_manifest_tag(
+            image_version,
+            vendor_tag_prefix,
+            vendor_image_version,
+        );
+
+        vec![format!("{ANNOTATION_VERSION}={image_index_manifest_tag}")]
     }
 }
 

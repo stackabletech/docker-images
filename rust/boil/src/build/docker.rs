@@ -30,6 +30,10 @@ impl BuildArgument {
         Self((key, value))
     }
 
+    pub fn local_image_version(image_name: String, image_version: String) -> Self {
+        Self::new(format!("{image_name}_VERSION"), image_version)
+    }
+
     fn format_key(key: impl AsRef<str>) -> String {
         key.as_ref().replace(['-', '/'], "_").to_uppercase()
     }

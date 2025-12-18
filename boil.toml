@@ -8,6 +8,7 @@ DELETE_CACHES = "true"
 documentation = "https://docs.stackable.tech/home/stable/"
 source = "https://github.com/stackabletech/docker-images/"
 authors = "Stackable GmbH <info@stackable.tech>"
+vendor-tag-prefix = "stackable"
 vendor = "Stackable GmbH"
 licenses = "Apache-2.0"
 

@@ -14,19 +14,32 @@ pub fn format_image_repository_uri(
 }
 
 /// Formats and returns the image manifest URI, eg. `oci.stackable.tech/sdp/opa:1.4.2-stackable25.7.0-amd64`.
-pub fn format_image_manifest_uri(
-    image_repository_uri: &str,
+pub fn format_image_manifest_uri(image_repository_uri: &str, image_manifest_tag: &str) -> String {
+    format!("{image_repository_uri}:{image_manifest_tag}")
+}
+
+/// Formats and returns the image index manifest tag, eg. `1.4.2-stackable25.7.0`.
+pub fn format_image_index_manifest_tag(
     image_version: &str,
-    sdp_image_version: &Version,
+    vendor_tag_prefix: &str,
+    vendor_image_version: &Version,
+) -> String {
+    format!("{image_version}-{vendor_tag_prefix}{vendor_image_version}")
+}
+
+/// Formats and returns the image manifest tag, eg. `1.4.2-stackable25.7.0-amd64`.
+///
+/// The `strip_architecture` parameter controls if the architecture is included in the tag.
+pub fn format_image_manifest_tag(
+    image_index_manifest_tag: &str,
+    // TODO (@Techassi): Maybe turn this into an Option to get rid of the bool
     architecture: &Architecture,
     strip_architecture: bool,
 ) -> String {
     if strip_architecture {
-        format!("{image_repository_uri}:{image_version}-stackable{sdp_image_version}")
+        image_index_manifest_tag.to_owned()
     } else {
-        format!(
-            "{image_repository_uri}:{image_version}-stackable{sdp_image_version}-{architecture}"
-        )
+        format!("{image_index_manifest_tag}-{architecture}")
     }
 }
 

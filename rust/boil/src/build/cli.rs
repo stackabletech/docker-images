@@ -22,9 +22,7 @@ pub struct BuildArguments {
     #[arg(help_heading = "Image Options", required = true)]
     pub images: Vec<Image>,
 
-    // The action currently does the wrong thing here. It includes the
-    // architecture even though it should come from the --target-platform arg.
-    // The release arg is NOT needed, because this version IS the release version.
+    // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
     /// The image version being built.
     #[arg(
         short, long,
