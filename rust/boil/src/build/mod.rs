@@ -57,7 +57,7 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     );
 
     // Create bakefile
-    let bakefile = Bakefile::from_args(&args, config).context(CreateBakefileSnafu)?;
+    let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
     let count = image_manifest_uris.len();
 
