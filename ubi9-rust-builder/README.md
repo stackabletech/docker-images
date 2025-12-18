@@ -1,4 +1,4 @@
-# ubi10-rust-builder
+# ubi9-rust-builder
 
 These images are meant to be used in multi-stage builds as a base image for projects building Rust projects.
 They are automatically rebuilt and pushed every night and also on every push to the main branch, in addition a build can be triggered using GitHub Actions.
@@ -10,9 +10,9 @@ This will bake in the current stable Rust version at the time this image was bui
 ## Example usage
 
 ```dockerfile
-FROM oci.stackable.tech/sdp/ubi10-rust-builder AS builder
+FROM oci.stackable.tech/ubi9-rust-builder AS builder
 
-FROM registry.access.redhat.com/ubi10/ubi-minimal AS operator
+FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
 LABEL maintainer="Stackable GmbH"
 
 # Update image
