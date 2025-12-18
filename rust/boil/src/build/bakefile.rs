@@ -250,10 +250,10 @@ impl Bakefile {
     ///
     /// This will only create targets for selected entry images and their dependencies. There is no
     /// need to filter anything out afterwards. The filtering is done automatically internally.
-    pub fn from_args(args: &cli::BuildArguments, config: Config) -> Result<Self, Error> {
+    pub fn from_cli_args(cli_args: &cli::BuildArguments, config: Config) -> Result<Self, Error> {
         let targets =
-            Targets::set(&args.images, TargetsOptions::default()).context(CreateGraphSnafu)?;
-        Self::from_targets(targets, args, config)
+            Targets::set(&cli_args.images, TargetsOptions::default()).context(CreateGraphSnafu)?;
+        Self::from_targets(targets, cli_args, config)
     }
 
     /// Returns all image manifest URIs for entry images.
@@ -273,28 +273,28 @@ impl Bakefile {
 
     /// Creates the common target, containing shared data, which will be inherited by other targets.
     fn common_target(
-        args: &cli::BuildArguments,
-        build_arguments: BuildArguments,
+        cli_args: &cli::BuildArguments,
+        container_build_args: BuildArguments,
         metadata: &Metadata,
     ) -> Result<BakefileTarget, Error> {
         let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
         let date_time = Self::now()?;
 
         // Load build arguments from a file if the user requested it
-        let mut user_build_arguments = args.build_arguments.clone();
-        if let Some(path) = &args.build_arguments_file {
+        let mut user_container_build_args = cli_args.build_arguments.clone();
+        if let Some(path) = &cli_args.build_arguments_file {
             let build_arguments_from_file =
                 BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
-            user_build_arguments.extend(build_arguments_from_file);
+            user_container_build_args.extend(build_arguments_from_file);
         }
 
         let target = BakefileTarget::common(
             date_time,
             revision,
-            build_arguments,
+            cli_args.image_version.base_prerelease(),
+            container_build_args,
+            user_container_build_args,
             metadata,
-            user_build_arguments,
-            args.image_version.base_prerelease(),
         );
 
         Ok(target)
@@ -302,7 +302,7 @@ impl Bakefile {
 
     fn from_targets(
         targets: Targets,
-        args: &cli::BuildArguments,
+        cli_args: &cli::BuildArguments,
         config: Config,
     ) -> Result<Self, Error> {
         let mut bakefile_targets = BTreeMap::new();
@@ -315,34 +315,34 @@ impl Bakefile {
         } = config;
 
         // Create a common target, which contains shared data, like annotations, arguments, labels, etc...
-        let common_target = Self::common_target(args, build_arguments, &metadata)?;
+        let common_target = Self::common_target(cli_args, build_arguments, &metadata)?;
         bakefile_targets.insert(COMMON_TARGET_NAME.to_owned(), common_target);
 
         // The image registry, eg. `oci.stackable.tech` or `localhost`
-        let image_registry = if args.use_localhost_registry {
+        let image_registry = if cli_args.use_localhost_registry {
             &HostPort::localhost()
         } else {
-            &args.registry
+            &cli_args.registry
         };
 
         for (image_name, image_versions) in targets.into_iter() {
             for (image_version, (image_options, is_entry)) in image_versions {
                 let image_repository_uri = utils::format_image_repository_uri(
                     image_registry,
-                    &args.registry_namespace,
+                    &cli_args.registry_namespace,
                     &image_name,
                 );
 
                 let image_index_manifest_tag = utils::format_image_index_manifest_tag(
                     &image_version,
                     &metadata.vendor_tag_prefix,
-                    &args.image_version,
+                    &cli_args.image_version,
                 );
 
                 let image_manifest_tag = utils::format_image_manifest_tag(
                     &image_index_manifest_tag,
-                    args.target_platform.architecture(),
-                    args.strip_architecture,
+                    cli_args.target_platform.architecture(),
+                    cli_args.strip_architecture,
                 );
 
                 let image_manifest_uri =
@@ -404,13 +404,13 @@ impl Bakefile {
                     PathBuf::new().join(&image_name).join(custom_path)
                 } else {
                     ensure!(
-                        image_dir.exists(&args.target_containerfile),
+                        image_dir.exists(&cli_args.target_containerfile),
                         NoSuchContainerfileExistsSnafu { path: image_name }
                     );
 
                     PathBuf::new()
                         .join(&image_name)
-                        .join(&args.target_containerfile)
+                        .join(&cli_args.target_containerfile)
                 };
 
                 let target_name = if is_entry {
@@ -433,13 +433,13 @@ impl Bakefile {
                 let annotations = BakefileTarget::image_version_annotation(
                     &image_version,
                     &metadata.vendor_tag_prefix,
-                    &args.image_version,
+                    &cli_args.image_version,
                 );
 
                 let target = BakefileTarget {
                     tags: vec![image_manifest_uri],
                     arguments: build_arguments,
-                    platforms: vec![args.target_platform.clone()],
+                    platforms: vec![cli_args.target_platform.clone()],
                     // NOTE (@Techassi): Should this instead be scoped to the folder of the image we build
                     context: Some(PathBuf::from(".")),
                     dockerfile: Some(dockerfile_path),
@@ -567,10 +567,10 @@ impl BakefileTarget {
     fn common(
         date_time: String,
         revision: String,
-        build_arguments: BuildArguments,
-        metadata: &Metadata,
-        user_build_arguments: Vec<BuildArgument>,
         release_version: String,
+        container_build_args: BuildArguments,
+        user_container_build_args: Vec<BuildArgument>,
+        metadata: &Metadata,
     ) -> Self {
         let config::Metadata {
             documentation: docs,
@@ -609,8 +609,8 @@ impl BakefileTarget {
             annotations.push(format!("{ANNOTATION_VENDOR}={vendor}"));
         }
 
-        let mut arguments = build_arguments;
-        arguments.extend(user_build_arguments);
+        let mut arguments = container_build_args;
+        arguments.extend(user_container_build_args);
         arguments.insert(BuildArgument::new(
             "RELEASE_VERSION".to_owned(),
             release_version,
