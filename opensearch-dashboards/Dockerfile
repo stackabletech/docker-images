@@ -218,7 +218,7 @@ LABEL org.opencontainers.image.title="${NAME}"
 LABEL org.opencontainers.image.description="${DESCRIPTION}"
 # https://docs.openshift.com/container-platform/4.16/openshift_images/create-images.html#defining-image-metadata
 # https://github.com/projectatomic/ContainerApplicationGenericLabels/blob/master/vendor/redhat/labels.md
-LABEL io.openshift.tags="ubi10,stackable,opensearch-dashboards,opensearch"
+LABEL io.openshift.tags="ubi9,stackable,opensearch-dashboards,opensearch"
 LABEL io.k8s.description="${DESCRIPTION}"
 LABEL io.k8s.display-name="${NAME}"
 

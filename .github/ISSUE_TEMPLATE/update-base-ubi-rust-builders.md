@@ -51,7 +51,7 @@ Add/Change/Remove anything that isn't applicable anymore
 > This list should be completed by the assignee(s), once respective PRs have been merged. Once all items have been
 > checked, the issue can be moved into _Development: Done_.
 
-- [ ] Done for [ubi10-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi10-rust-builder/Dockerfile)
+- [ ] Done for [ubi9-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi9-rust-builder/Dockerfile)
 - [ ] Can build the image locally
 - [ ] Can build an operator image
 
@@ -59,7 +59,7 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-docker build -t oci.stackable.tech/sdp/ubi10-rust-builder . -f ubi10-rust-builder/Dockerfile
+docker build -t oci.stackable.tech/sdp/ubi9-rust-builder . -f ubi9-rust-builder/Dockerfile
 
 # Change directory into the an operator repository and ensure the image can build
 docker build . -f docker/Dockerfile

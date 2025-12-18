@@ -1,33 +1,26 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
-# check=error=true;skip=InvalidDefaultArgInFrom
-
-ARG UV_VERSION
-
-FROM oci.stackable.tech/sdp/astral-sh/uv:${UV_VERSION} AS uv-image
+# check=error=true
 
 FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
 FROM local-image/stackable-devel AS opa-authorizer-builder
 
 ARG PYTHON_VERSION
-ARG STACKABLE_USER_UID
 
 COPY superset/stackable/opa-authorizer /tmp/opa-authorizer
-
-COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN <<EOF
 microdnf update
 microdnf install \
     gcc \
-    gcc-c++
+    gcc-c++ \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-devel \
+    python${PYTHON_VERSION}-pip
 microdnf clean all
 rm -rf /var/cache/yum
 
-uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
-. /stackable/app/bin/activate
-
-uv pip install \
+pip${PYTHON_VERSION} install \
     --no-cache-dir \
     --upgrade \
     poetry==2.1.1 \
@@ -35,10 +28,9 @@ uv pip install \
 
 cd /tmp/opa-authorizer
 
-# Warnings are disabled because they come from various third party testing libraries
-# that we have no control over.
-uv run pytest --disable-warnings
-uv build
+poetry sync
+poetry run pytest
+poetry build
 EOF
 
 FROM local-image/stackable-devel AS builder
@@ -50,11 +42,11 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
 ARG UV_VERSION
+ARG NODEJS_VERSION
 ARG STACKABLE_USER_UID
 
-COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
-
-RUN microdnf update \
+RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
+    microdnf update \
     && microdnf install \
         cyrus-sasl-devel \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
@@ -69,6 +61,10 @@ RUN microdnf update \
         libffi-devel \
         openldap-devel \
         openssl-devel \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-devel \
+        python${PYTHON_VERSION}-pip \
+        python${PYTHON_VERSION}-wheel \
         libpq-devel \
         # Needed to build Superset UI assets
         npm \
@@ -96,8 +92,13 @@ WORKDIR /stackable
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
 RUN <<EOF
-uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
-. /stackable/app/bin/activate
+python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
+
+source /stackable/app/bin/activate
+
+# Upgrade pip to the latest version
+# Also install uv to get support for build constraints
+pip install --no-cache-dir --upgrade pip setuptools==75.2.0 uv==${UV_VERSION}
 
 cd "$(/stackable/patchable --images-repo-root=src checkout superset ${PRODUCT_VERSION})"
 
@@ -116,7 +117,7 @@ uv pip install --no-cache-dir build
 # Build superset wheel from superset root folder
 # This picks up the UI assets from the npm build
 cd ..
-uv build
+python${PYTHON_VERSION} -m build --wheel
 uv pip install --no-cache-dir dist/apache_superset-*-py3-none-any.whl --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
 # Install additional dependencies
@@ -197,27 +198,20 @@ COPY --from=builder --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter /stackable/statsd_exporter
 COPY --from=statsd_exporter-builder --chown=${STACKABLE_USER_UID}:0 /statsd_exporter/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
 
-COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
-
 RUN <<EOF
 microdnf update
 microdnf install \
   cyrus-sasl \
   openldap \
   openldap-clients \
-  openssl-libs
+  openssl-libs \
+  openssl-pkcs11 \
+  "python${PYTHON_VERSION}"
 
 microdnf clean all
 rm -rf /var/cache/yum
 
 chmod g=u /stackable/statsd_exporter /stackable/statsd_exporter-${SHARED_STATSD_EXPORTER_VERSION}.cdx.json
-
-# There is currently no way to tell `uv` where to write to, and it assumes `$HOME` for the XDG paths.
-export XDG_DATA_HOME=/usr/local/share
-export XDG_CACHE_HOME=/var/cache
-uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
-chown -R "${STACKABLE_USER_UID}:0" /stackable/app/bin
-. /stackable/app/bin/activate
 EOF
 
 # ----------------------------------------
