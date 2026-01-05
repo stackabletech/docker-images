@@ -22,12 +22,20 @@ on:
 
 jobs:
   build_image:
-    name: Reusable Workflow
+    name: Reusable Workflow (${{ matrix.product-name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        product-name:
+          - testing-tools
+          - testing-tools/nifi
+          - testing-tools/trino
+          - testing-tools/hive
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     with:
-      product-name: testing-tools
+      product-name: ${{ matrix.product-name }}
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
