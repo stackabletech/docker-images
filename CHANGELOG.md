@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
+- testing-tools: build testing tools subimages in workflow ([#1366]).
 
 ### Changed
 
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file.
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
+[#1366]: https://github.com/stackabletech/docker-images/pull/1366
 
 ## [25.11.0] - 2025-11-07
 
