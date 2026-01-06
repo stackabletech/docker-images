@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- testing-tools: fix: add kubectl and openssl ([#1367]).
 
 ### Removed
 
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
 [#1366]: https://github.com/stackabletech/docker-images/pull/1366
+[#1367]: https://github.com/stackabletech/docker-images/pull/1367
 
 ## [25.11.0] - 2025-11-07
 
