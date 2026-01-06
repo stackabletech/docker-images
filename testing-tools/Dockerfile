@@ -74,6 +74,7 @@ python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
 ln -s /usr/bin/python3.12 /usr/bin/python
 
 # Install kubectl
+# Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
 curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"
 install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm kubectl
