@@ -8,7 +8,9 @@ FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:28ec2f4662bdc4b0d4893ef
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
+ARG KUBECTL_VERSION
 ARG RELEASE_VERSION
+ARG TARGETARCH
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
@@ -49,6 +51,7 @@ microdnf install \
   gcc \
   make \
   pkg-config \
+  openssl \
   openssl-devel \
   libxml2-devel \
   libxslt-devel \
@@ -69,6 +72,11 @@ python3.12 -m pip install --no-cache-dir --upgrade pip
 python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
 
 ln -s /usr/bin/python3.12 /usr/bin/python
+
+# Install kubectl
+curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"
+install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+rm kubectl
 
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils
