@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
+- vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
 
 ### Removed
 
@@ -36,6 +37,7 @@ All notable changes to this project will be documented in this file.
 [#1366]: https://github.com/stackabletech/docker-images/pull/1366
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1386]: https://github.com/stackabletech/docker-images/pull/1386
+[#1387]: https://github.com/stackabletech/docker-images/pull/1387
 
 ## [25.11.0] - 2025-11-07
 
