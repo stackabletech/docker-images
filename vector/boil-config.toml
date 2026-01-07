@@ -1,4 +1,6 @@
 [versions."0.52.0".local-images]
+# We need to point to a special version of stackable-devel which will have the
+# correct toolchain to build vector.
 stackable-devel = "vector-build"
 stackable-base = "1.0.0"
 
