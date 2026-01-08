@@ -1,6 +1,6 @@
 [versions."2.9.3".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.49.0"
+vector = "0.52.0"
 stackable-devel = "1.0.0"
 
 [versions."2.9.3".build-arguments]
@@ -16,7 +16,7 @@ nodejs-version = "20"
 
 [versions."2.10.5".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.49.0"
+vector = "0.52.0"
 stackable-devel = "1.0.0"
 
 [versions."2.10.5".build-arguments]
@@ -32,7 +32,7 @@ nodejs-version = "20"
 
 [versions."3.0.1".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.49.0"
+vector = "0.52.0"
 stackable-devel = "1.0.0"
 
 [versions."3.0.1".build-arguments]
@@ -48,7 +48,7 @@ nodejs-version = "20"
 
 [versions."3.0.6".local-images]
 "shared/statsd-exporter" = "0.28.0"
-vector = "0.49.0"
+vector = "0.52.0"
 stackable-devel = "1.0.0"
 
 [versions."3.0.6".build-arguments]
@@ -61,22 +61,22 @@ uv-version = "0.7.8"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below. The lists will be concatenated and duplicates removed in the dockerfile.
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#core-airflow-extras
-airflow-extras-core="async,graphviz,kerberos,otel,sentry,standard,statsd"
+airflow-extras-core = "async,graphviz,kerberos,otel,sentry,standard,statsd"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#meta-airflow-package-extras
-airflow-extras-meta="aiobotocore,cloudpickle,github-enterprise,google-auth,graphviz,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
+airflow-extras-meta = "aiobotocore,cloudpickle,github-enterprise,google-auth,graphviz,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#apache-software-extras
-airflow-extras-provider-apache="apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot"
+airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#external-services-extras
-airflow-extras-external-services="airbyte,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,weaviate,yandex,ydb,zendesk"
+airflow-extras-external-services = "airbyte,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,weaviate,yandex,ydb,zendesk"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#locally-installed-software-extras
-airflow-extras-locally-installed-software="arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
+airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.0.6/extra-packages-ref.html#other-extras
-airflow-extras-other="common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
+airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
 nodejs-version = "20"

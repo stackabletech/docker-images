@@ -1,7 +1,7 @@
 [versions."4.0.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"
-vector = "0.49.0"
+vector = "0.52.0"
 
 [versions."4.0.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
@@ -15,7 +15,7 @@ nodejs-version = "20"
 [versions."4.1.2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"
-vector = "0.49.0"
+vector = "0.52.0"
 
 [versions."4.1.2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
@@ -29,7 +29,7 @@ nodejs-version = "20"
 [versions."4.1.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"
-vector = "0.49.0"
+vector = "0.52.0"
 
 [versions."4.1.4".build-arguments]
 cyclonedx-bom-version = "6.0.0"
@@ -43,7 +43,7 @@ nodejs-version = "20"
 [versions."6.0.0-rc2".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"
-vector = "0.49.0"
+vector = "0.52.0"
 
 [versions."6.0.0-rc2".build-arguments]
 cyclonedx-bom-version = "6.0.0"
