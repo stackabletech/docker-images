@@ -1,0 +1,76 @@
+From b5d1f426400ef2ad72421f24049d04dea2670119 Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Tue, 2 Sep 2025 12:01:22 +0200
+Subject: stop applying formatting plugin
+
+---
+ benchmarks/build.gradle               | 9 ---------
+ build.gradle                          | 1 -
+ plugins/arrow-flight-rpc/build.gradle | 7 -------
+ qa/wildfly/build.gradle               | 4 ----
+ 4 files changed, 21 deletions(-)
+
+diff --git a/benchmarks/build.gradle b/benchmarks/build.gradle
+index 732e77934b4..47a7c1b1066 100644
+--- a/benchmarks/build.gradle
++++ b/benchmarks/build.gradle
+@@ -76,14 +76,5 @@ thirdPartyAudit.ignoreViolations(
+   'org.openjdk.jmh.util.Utils'
+ )
+ 
+-spotless {
+-  java {
+-    // IDEs can sometimes run annotation processors that leave files in
+-    // here, causing Spotless to complain. Even though this path ought not
+-    // to exist, exclude it anyway in order to avoid spurious failures.
+-    targetExclude 'src/main/generated/**/*.java'
+-  }
+-}
+-
+ // Add support for incubator modules on supported Java versions.
+ run.jvmArgs += ['--add-modules=jdk.incubator.vector']
+diff --git a/build.gradle b/build.gradle
+index 2561f996549..1c95ad6630f 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -66,7 +66,6 @@ apply from: 'gradle/build-complete.gradle'
+ apply from: 'gradle/runtime-jdk-provision.gradle'
+ apply from: 'gradle/ide.gradle'
+ apply from: 'gradle/forbidden-dependencies.gradle'
+-apply from: 'gradle/formatting.gradle'
+ apply from: 'gradle/local-distribution.gradle'
+ apply from: 'gradle/run.gradle'
+ apply from: 'gradle/missing-javadoc.gradle'
+diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
+index 52b1ed328d5..0cb47b98e7f 100644
+--- a/plugins/arrow-flight-rpc/build.gradle
++++ b/plugins/arrow-flight-rpc/build.gradle
+@@ -103,13 +103,6 @@ internalClusterTest {
+   jvmArgs += ["--add-opens", "java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED"]
+ }
+ 
+-spotless {
+-  java {
+-    // Files to exclude from formatting
+-    targetExclude 'src/main/java/org/apache/arrow/flight/**/*.java'
+-  }
+-}
+-
+ 
+ tasks.named("dependencyLicenses").configure {
+   mapping from: /netty-.*/, to: 'netty'
+diff --git a/qa/wildfly/build.gradle b/qa/wildfly/build.gradle
+index 0606c3ccbff..0bc4540d579 100644
+--- a/qa/wildfly/build.gradle
++++ b/qa/wildfly/build.gradle
+@@ -88,10 +88,6 @@ preProcessFixture {
+   dependsOn war, opensearch_distributions.docker
+ }
+ 
+-tasks.named('spotlessJava').configure {
+-  mustRunAfter preProcessFixture
+-}
+-
+ dockerCompose {
+   def composeFiles = ['docker-compose.yml']
+   if (BuildParams.isInFipsJvm()) {

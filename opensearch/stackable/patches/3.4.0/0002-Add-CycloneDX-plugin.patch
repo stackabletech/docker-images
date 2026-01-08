@@ -1,0 +1,38 @@
+From 39dd08b7b1b994ebbabcd42b7f8ec9cde803d2c9 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Mon, 21 Jul 2025 12:45:43 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index a6dc4348bdd..2561f996549 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -59,6 +59,7 @@ plugins {
+   id "org.gradle.test-retry" version "1.6.2" apply false
+   id "test-report-aggregation"
+   id 'jacoco-report-aggregation'
++  id 'org.cyclonedx.bom' version '1.8.2'
+ }
+ 
+ apply from: 'gradle/build-complete.gradle'
+@@ -83,6 +84,16 @@ allprojects {
+   description = "OpenSearch subproject ${project.path}"
+ }
+ 
++cyclonedxBom {
++    includeConfigs = ["runtimeClasspath"]
++    includeLicenseText = false
++    skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    projectType = "application"
++    schemaVersion = "1.6"
++    outputFormat = "json"
++    componentVersion = VersionProperties.getOpenSearch()
++}
++
+ configure(allprojects - project(':distribution:archives:integ-test-zip')) {
+   project.pluginManager.withPlugin('nebula.maven-base-publish') {
+     if (project.pluginManager.hasPlugin('opensearch.build') == false) {
