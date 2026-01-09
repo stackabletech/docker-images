@@ -212,7 +212,7 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-builder \
-    /stackable/src/opensearch/patchable-work/worktree/${PRODUCT_VERSION}/build/reports/bom.json \
+    /stackable/src/opensearch/patchable-work/worktree/${PRODUCT_VERSION}/build/reports/cyclonedx/bom.json \
     /stackable/opensearch-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \

@@ -1,38 +1,230 @@
-From 39dd08b7b1b994ebbabcd42b7f8ec9cde803d2c9 Mon Sep 17 00:00:00 2001
+From 01222c4ee63ab87bfa9cb39b70513bd7da99daf2 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Mon, 21 Jul 2025 12:45:43 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ build.gradle                           | 14 ++++++++++++++
+ buildSrc/build.gradle                  |  2 +-
+ gradle/libs.versions.toml              |  7 ++++---
+ libs/dissect/build.gradle              |  2 +-
+ plugins/arrow-flight-rpc/build.gradle  |  2 +-
+ plugins/crypto-kms/build.gradle        |  2 +-
+ plugins/discovery-ec2/build.gradle     |  2 +-
+ plugins/ingestion-kafka/build.gradle   |  2 +-
+ plugins/ingestion-kinesis/build.gradle |  4 ++--
+ plugins/repository-azure/build.gradle  |  2 +-
+ plugins/repository-s3/build.gradle     |  2 +-
+ qa/os/build.gradle                     |  2 +-
+ qa/wildfly/build.gradle                |  2 +-
+ 13 files changed, 30 insertions(+), 15 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index a6dc4348bdd..2561f996549 100644
+index a6dc4348bdd..c9dd3168bc7 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -59,6 +59,7 @@ plugins {
    id "org.gradle.test-retry" version "1.6.2" apply false
    id "test-report-aggregation"
    id 'jacoco-report-aggregation'
-+  id 'org.cyclonedx.bom' version '1.8.2'
++  id 'org.cyclonedx.bom' version '3.1.0'
  }
  
  apply from: 'gradle/build-complete.gradle'
-@@ -83,6 +84,16 @@ allprojects {
+@@ -81,6 +82,19 @@ allprojects {
+   group = 'org.opensearch'
+   version = VersionProperties.getOpenSearch()
    description = "OpenSearch subproject ${project.path}"
- }
- 
-+cyclonedxBom {
++
++  cyclonedxDirectBom {
 +    includeConfigs = ["runtimeClasspath"]
-+    includeLicenseText = false
 +    skipConfigs = ["compileClasspath", "testCompileClasspath"]
-+    projectType = "application"
-+    schemaVersion = "1.6"
-+    outputFormat = "json"
-+    componentVersion = VersionProperties.getOpenSearch()
++  }
 +}
 +
++cyclonedxBom {
++    includeLicenseText = false
++    projectType = "application"
++    schemaVersion = org.cyclonedx.Version.VERSION_16
++    // outputFormat = "json"
++    componentVersion = VersionProperties.getOpenSearch()
+ }
+ 
  configure(allprojects - project(':distribution:archives:integ-test-zip')) {
-   project.pluginManager.withPlugin('nebula.maven-base-publish') {
-     if (project.pluginManager.hasPlugin('opensearch.build') == false) {
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index fdf98e29bd6..76403740f00 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -118,7 +118,7 @@ dependencies {
+   api 'com.avast.gradle:gradle-docker-compose-plugin:0.17.12'
+   api "org.yaml:snakeyaml:${props.getProperty('snakeyaml')}"
+   api 'org.apache.maven:maven-model:3.9.6'
+-  api 'com.networknt:json-schema-validator:1.2.0'
++  api 'com.networknt:json-schema-validator:1.5.9'
+   api 'org.jruby.jcodings:jcodings:1.0.58'
+   api 'org.jruby.joni:joni:2.2.3'
+   api "com.fasterxml.jackson.core:jackson-databind:${props.getProperty('jackson_databind')}"
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index a4835c9f29c..1c940c1dd35 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -8,8 +8,9 @@ bundled_jdk = "25.0.1+8"
+ # optional dependencies
+ spatial4j         = "0.7"
+ jts               = "1.15.0"
+-jackson           = "2.18.2"
+-jackson_databind  = "2.18.2"
++jackson           = "2.20.1"
++jackson_annotations = "2.20"
++jackson_databind  = "2.20.1"
+ snakeyaml         = "2.1"
+ icu4j             = "77.1"
+ supercsv          = "2.4.0"
+@@ -114,7 +115,7 @@ bouncycastle-util = { group = "org.bouncycastle", name = "bcutil-fips", version.
+ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+ hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
+ hdrhistogram = { group = "org.hdrhistogram", name = "HdrHistogram", version.ref = "hdrhistogram" }
+-jackson-annotation = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
++jackson-annotation = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson_annotations" }
+ jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson_databind" }
+ jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
+ jakartaannotation = { group = "jakarta.annotation", name = "jakarta.annotation-api", version.ref = "jakarta_annotation" }
+diff --git a/libs/dissect/build.gradle b/libs/dissect/build.gradle
+index dc98d2820ef..09c49ef7ff2 100644
+--- a/libs/dissect/build.gradle
++++ b/libs/dissect/build.gradle
+@@ -33,7 +33,7 @@ dependencies {
+     exclude group: 'org.opensearch', module: 'opensearch-dissect'
+   }
+   testImplementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+-  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   testImplementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+ }
+ 
+diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
+index 52b1ed328d5..335af2a716e 100644
+--- a/plugins/arrow-flight-rpc/build.gradle
++++ b/plugins/arrow-flight-rpc/build.gradle
+@@ -35,7 +35,7 @@ dependencies {
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+   api "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "commons-codec:commons-codec:${versions.commonscodec}"
+ 
+   // arrow flight dependencies.
+diff --git a/plugins/crypto-kms/build.gradle b/plugins/crypto-kms/build.gradle
+index 9d3b3ba534c..910b0eb132e 100644
+--- a/plugins/crypto-kms/build.gradle
++++ b/plugins/crypto-kms/build.gradle
+@@ -59,7 +59,7 @@ dependencies {
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+   api "commons-codec:commons-codec:${versions.commonscodec}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "org.reactivestreams:reactive-streams:${versions.reactivestreams}"
+ }
+ 
+diff --git a/plugins/discovery-ec2/build.gradle b/plugins/discovery-ec2/build.gradle
+index ac05f42a72e..29175754e1b 100644
+--- a/plugins/discovery-ec2/build.gradle
++++ b/plugins/discovery-ec2/build.gradle
+@@ -73,7 +73,7 @@ dependencies {
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+   api "commons-codec:commons-codec:${versions.commonscodec}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "org.reactivestreams:reactive-streams:${versions.reactivestreams}"
+   testFipsRuntimeOnly "org.bouncycastle:bc-fips:${versions.bouncycastle_jce}"
+   testFipsRuntimeOnly "org.bouncycastle:bctls-fips:${versions.bouncycastle_tls}"
+diff --git a/plugins/ingestion-kafka/build.gradle b/plugins/ingestion-kafka/build.gradle
+index abd1b1a5c03..2c79d156f81 100644
+--- a/plugins/ingestion-kafka/build.gradle
++++ b/plugins/ingestion-kafka/build.gradle
+@@ -36,7 +36,7 @@ dependencies {
+   testImplementation "com.github.docker-java:docker-java-api:${versions.docker}"
+   testImplementation "com.github.docker-java:docker-java-transport:${versions.docker}"
+   testImplementation "com.github.docker-java:docker-java-transport-zerodep:${versions.docker}"
+-  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   testImplementation "org.testcontainers:testcontainers:${versions.testcontainers}"
+   testImplementation "org.testcontainers:kafka:${versions.testcontainers}"
+   testImplementation "org.rnorth.duct-tape:duct-tape:${versions.ducttape}"
+diff --git a/plugins/ingestion-kinesis/build.gradle b/plugins/ingestion-kinesis/build.gradle
+index 5142cf6860a..2fbf58494ab 100644
+--- a/plugins/ingestion-kinesis/build.gradle
++++ b/plugins/ingestion-kinesis/build.gradle
+@@ -65,7 +65,7 @@ dependencies {
+   api "commons-codec:commons-codec:${versions.commonscodec}"
+   api "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${versions.jackson}"
+   api "joda-time:joda-time:${versions.joda}"
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+@@ -89,7 +89,7 @@ dependencies {
+   testImplementation "com.github.docker-java:docker-java-api:${versions.docker}"
+   testImplementation "com.github.docker-java:docker-java-transport:${versions.docker}"
+   testImplementation "com.github.docker-java:docker-java-transport-zerodep:${versions.docker}"
+-  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   testImplementation "org.testcontainers:testcontainers:${versions.testcontainers}"
+   testImplementation "org.testcontainers:localstack:${versions.testcontainers}"
+   testImplementation "org.rnorth.duct-tape:duct-tape:${versions.ducttape}"
+diff --git a/plugins/repository-azure/build.gradle b/plugins/repository-azure/build.gradle
+index ab78de7497b..fc9064ffea1 100644
+--- a/plugins/repository-azure/build.gradle
++++ b/plugins/repository-azure/build.gradle
+@@ -76,7 +76,7 @@ dependencies {
+   api "io.projectreactor.netty:reactor-netty-core:${versions.reactor_netty}"
+   api "io.projectreactor.netty:reactor-netty-http:${versions.reactor_netty}"
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+   api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
+   api "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${versions.jackson}"
+diff --git a/plugins/repository-s3/build.gradle b/plugins/repository-s3/build.gradle
+index 9ab82327780..846441eeb68 100644
+--- a/plugins/repository-s3/build.gradle
++++ b/plugins/repository-s3/build.gradle
+@@ -88,7 +88,7 @@ dependencies {
+   api "commons-codec:commons-codec:${versions.commonscodec}"
+   api "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${versions.jackson}"
+   api "joda-time:joda-time:${versions.joda}"
+   api "org.slf4j:slf4j-api:${versions.slf4j}"
+diff --git a/qa/os/build.gradle b/qa/os/build.gradle
+index 082ed527757..6901a824a57 100644
+--- a/qa/os/build.gradle
++++ b/qa/os/build.gradle
+@@ -50,7 +50,7 @@ dependencies {
+   api project(':libs:opensearch-common')
+   api project(':libs:opensearch-core')
+ 
+-  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  testImplementation "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   testImplementation "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+   testImplementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson_databind}"
+ }
+diff --git a/qa/wildfly/build.gradle b/qa/wildfly/build.gradle
+index 0606c3ccbff..4a7fe6b9407 100644
+--- a/qa/wildfly/build.gradle
++++ b/qa/wildfly/build.gradle
+@@ -54,7 +54,7 @@ dependencies {
+     exclude group: 'com.fasterxml.jackson.dataformat'
+     exclude group: 'com.fasterxml.jackson.module'
+   }
+-  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
++  api "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson_annotations}"
+   api "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+   api "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-base:${versions.jackson}"
+   api "com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider:${versions.jackson}"
