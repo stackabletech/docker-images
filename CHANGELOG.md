@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file.
 
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 
+### Fixed
+
+- testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
+
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
 [#1340]: https://github.com/stackabletech/docker-images/pull/1340
@@ -40,6 +44,7 @@ All notable changes to this project will be documented in this file.
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
 [#1386]: https://github.com/stackabletech/docker-images/pull/1386
 [#1387]: https://github.com/stackabletech/docker-images/pull/1387
+[#1388]: https://github.com/stackabletech/docker-images/pull/1388
 
 ## [25.11.0] - 2025-11-07
 
