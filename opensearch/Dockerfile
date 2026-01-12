@@ -84,6 +84,7 @@ RUN <<EOF
 unzip opensearch-security-${OPENSEARCH_SECURITY_PLUGIN_VERSION}.zip
 rm opensearch-security-${OPENSEARCH_SECURITY_PLUGIN_VERSION}.zip
 mv config /stackable/opensearch-${PRODUCT_VERSION}/config/opensearch-security
+chmod 755 tools/*.sh
 EOF
 
 WORKDIR /stackable/opensearch-prometheus-exporter
