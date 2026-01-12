@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#XXXX]).
+- testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
 [#1386]: https://github.com/stackabletech/docker-images/pull/1386
+[#1388]: https://github.com/stackabletech/docker-images/pull/1388
 
 ## [25.11.0] - 2025-11-07
 
