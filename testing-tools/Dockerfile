@@ -63,7 +63,9 @@ microdnf install \
   curl \
   tar \
   zip \
-  unzip
+  unzip \
+  `# Required to do test assertions of files` \
+  diffutils
 
 microdnf clean all
 rm -rf /var/cache/yum
