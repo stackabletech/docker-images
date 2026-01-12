@@ -48,6 +48,9 @@ RUN <<EOF
 microdnf update
 
 microdnf install \
+  `# This installs kinit needed in kerberos tests.` \
+  krb5-workstation \
+  krb5-devel
   gcc \
   make \
   pkg-config \
