@@ -21,10 +21,16 @@ All notable changes to this project will be documented in this file.
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
 - ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
+- vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
 
 ### Removed
 
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
+
+### Fixed
+
+- testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
+- testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -38,6 +44,9 @@ All notable changes to this project will be documented in this file.
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
 [#1386]: https://github.com/stackabletech/docker-images/pull/1386
+[#1387]: https://github.com/stackabletech/docker-images/pull/1387
+[#1388]: https://github.com/stackabletech/docker-images/pull/1388
+[#1389]: https://github.com/stackabletech/docker-images/pull/1389
 
 ## [25.11.0] - 2025-11-07
 

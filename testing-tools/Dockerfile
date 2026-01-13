@@ -48,6 +48,9 @@ RUN <<EOF
 microdnf update
 
 microdnf install \
+  `# This installs kinit needed in kerberos tests.` \
+  krb5-workstation \
+  krb5-devel \
   gcc \
   make \
   pkg-config \
@@ -63,7 +66,9 @@ microdnf install \
   curl \
   tar \
   zip \
-  unzip
+  unzip \
+  `# Required to do test assertions of files` \
+  diffutils
 
 microdnf clean all
 rm -rf /var/cache/yum
