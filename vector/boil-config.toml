@@ -1,8 +1,10 @@
-[versions."0.49.0".local-images]
+[versions."0.52.0".local-images]
+# We need to point to a special version of stackable-devel which will have the
+# correct toolchain to build vector.
 stackable-devel = "vector-build"
 stackable-base = "1.0.0"
 
-[versions."0.49.0".build-arguments]
+[versions."0.52.0".build-arguments]
 # See .scripts/upload_new_protoc_version.sh
 # Unsure which version is used by vector. They seem to install `buf` in workflows.
 protoc-version = "31.1"

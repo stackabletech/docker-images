@@ -25,10 +25,6 @@ COPY testing-tools/hive/requirements.txt /stackable/hive/requirements.txt
 RUN <<EOF
 microdnf update
 
-microdnf install \
-  krb5-workstation \
-  krb5-devel
-
 microdnf clean all
 rm -rf /var/cache/yum
 
