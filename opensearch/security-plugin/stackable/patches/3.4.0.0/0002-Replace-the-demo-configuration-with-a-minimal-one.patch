@@ -1,4 +1,4 @@
-From e618ff7073e9a12b2f69b6db64f322514660fa6d Mon Sep 17 00:00:00 2001
+From 8239b8fdcbc0471d6c3891d11e9ad5f32488bc29 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Fri, 29 Aug 2025 15:43:25 +0200
 Subject: Replace the demo configuration with a minimal one

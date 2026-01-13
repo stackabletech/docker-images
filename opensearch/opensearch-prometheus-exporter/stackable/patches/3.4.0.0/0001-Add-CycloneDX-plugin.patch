@@ -1,22 +1,22 @@
-From 43679767099ab3a785e5093c73680ed5009fcfd2 Mon Sep 17 00:00:00 2001
+From 3f41ca69b26548c060f79a50327ef94e252196c9 Mon Sep 17 00:00:00 2001
 From: Benedikt Labrenz <benedikt@labrenz.org>
 Date: Tue, 12 Aug 2025 14:59:12 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ build.gradle | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index e23dde9..8415315 100644
+index e23dde9..2b16bb8 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -35,6 +35,20 @@ buildscript {
+@@ -35,6 +35,21 @@ buildscript {
      }
  }
  
 +plugins {
-+    id "org.cyclonedx.bom" version "2.3.1"
++    id "org.cyclonedx.bom" version "2.4.1"
 +}
 +
 +cyclonedxBom {
@@ -25,6 +25,7 @@ index e23dde9..8415315 100644
 +    skipConfigs = ["compileClasspath", "testCompileClasspath"]
 +    projectType = "application"
 +    schemaVersion = "1.6"
++    jsonOutput = file("build/reports/cyclonedx/bom.json")
 +    outputFormat = "json"
 +    componentVersion = versions.version
 +}

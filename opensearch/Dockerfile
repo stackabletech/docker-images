@@ -218,12 +218,12 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-security-plugin \
-    /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN_VERSION}/build/reports/bom.json \
+    /stackable/src/opensearch/security-plugin/patchable-work/worktree/${OPENSEARCH_SECURITY_PLUGIN_VERSION}/build/reports/cyclonedx/bom.json \
     /stackable/opensearch-security-${OPENSEARCH_SECURITY_PLUGIN_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-prometheus-exporter \
-    /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}/build/reports/bom.json \
+    /stackable/src/opensearch/opensearch-prometheus-exporter/patchable-work/worktree/${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}/build/reports/cyclonedx/bom.json \
     /stackable/opensearch-prometheus-exporter-${OPENSEARCH_OPENSEARCH_PROMETHEUS_EXPORTER_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \

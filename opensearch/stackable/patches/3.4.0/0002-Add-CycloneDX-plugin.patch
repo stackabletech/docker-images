@@ -1,10 +1,10 @@
-From 01222c4ee63ab87bfa9cb39b70513bd7da99daf2 Mon Sep 17 00:00:00 2001
+From dfa42b3aeba004f8a66acbcdc0f7840a0394a618 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Mon, 21 Jul 2025 12:45:43 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle                           | 14 ++++++++++++++
+ build.gradle                           | 13 +++++++++++++
  buildSrc/build.gradle                  |  2 +-
  gradle/libs.versions.toml              |  7 ++++---
  libs/dissect/build.gradle              |  2 +-
@@ -17,10 +17,10 @@ Subject: Add CycloneDX plugin
  plugins/repository-s3/build.gradle     |  2 +-
  qa/os/build.gradle                     |  2 +-
  qa/wildfly/build.gradle                |  2 +-
- 13 files changed, 30 insertions(+), 15 deletions(-)
+ 13 files changed, 29 insertions(+), 15 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index a6dc4348bdd..c9dd3168bc7 100644
+index a6dc4348bdd..926ea970423 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -59,6 +59,7 @@ plugins {
@@ -31,7 +31,7 @@ index a6dc4348bdd..c9dd3168bc7 100644
  }
  
  apply from: 'gradle/build-complete.gradle'
-@@ -81,6 +82,19 @@ allprojects {
+@@ -81,6 +82,18 @@ allprojects {
    group = 'org.opensearch'
    version = VersionProperties.getOpenSearch()
    description = "OpenSearch subproject ${project.path}"
@@ -43,11 +43,10 @@ index a6dc4348bdd..c9dd3168bc7 100644
 +}
 +
 +cyclonedxBom {
-+    includeLicenseText = false
-+    projectType = "application"
-+    schemaVersion = org.cyclonedx.Version.VERSION_16
-+    // outputFormat = "json"
-+    componentVersion = VersionProperties.getOpenSearch()
++  includeLicenseText = false
++  projectType = "application"
++  schemaVersion = org.cyclonedx.Version.VERSION_16
++  componentVersion = VersionProperties.getOpenSearch()
  }
  
  configure(allprojects - project(':distribution:archives:integ-test-zip')) {

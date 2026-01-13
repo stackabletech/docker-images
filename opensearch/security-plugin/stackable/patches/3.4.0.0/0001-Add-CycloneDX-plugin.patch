@@ -1,38 +1,38 @@
-From 9af5f63f8624d3744079ba032ab105b4f256cb68 Mon Sep 17 00:00:00 2001
+From 870b5dac41602586d987a6dd6b45f0b58e0f30e7 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Tue, 22 Jul 2025 09:52:55 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ build.gradle | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index af480ede..73e27030 100644
+index af480ede..b3c0ad34 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -69,6 +69,7 @@ plugins {
+@@ -69,11 +69,24 @@ plugins {
      id 'eclipse'
      id "com.github.spotbugs" version "6.4.4"
      id "com.google.osdetector" version "1.7.3"
-+    id "org.cyclonedx.bom" version "2.3.1"
++    id "org.cyclonedx.bom" version "3.1.0"
  }
  
  allprojects {
-@@ -85,6 +86,16 @@ apply from: 'gradle/formatting.gradle'
- licenseFile = rootProject.file('LICENSE.txt')
- noticeFile = rootProject.file('NOTICE.txt')
- 
-+cyclonedxBom {
-+    includeConfigs = ["runtimeClasspath"]
-+    includeLicenseText = false
-+    skipConfigs = ["compileClasspath", "testCompileClasspath"]
-+    projectType = "application"
-+    schemaVersion = "1.6"
-+    outputFormat = "json"
-+    componentVersion = opensearch_build
+     group = "org.opensearch"
+     version = opensearch_build
++
++    cyclonedxDirectBom {
++        includeConfigs = ["runtimeClasspath"]
++        skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    }
 +}
 +
- spotbugs {
-     includeFilter = file('spotbugs-include.xml')
++cyclonedxBom {
++    includeLicenseText = false
++    projectType = "application"
++    schemaVersion = org.cyclonedx.Version.VERSION_16
++    componentVersion = opensearch_build
  }
+ 
+ apply plugin: 'opensearch.opensearchplugin'
