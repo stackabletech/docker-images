@@ -1,17 +1,17 @@
-From 57c1974f0c25ea3e9d1f92dfebdc707c5ec56801 Mon Sep 17 00:00:00 2001
+From 3f41ca69b26548c060f79a50327ef94e252196c9 Mon Sep 17 00:00:00 2001
 From: Benedikt Labrenz <benedikt@labrenz.org>
 Date: Tue, 12 Aug 2025 14:59:12 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ build.gradle | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 6c09118..5401612 100644
+index e23dde9..2b16bb8 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -63,6 +63,21 @@ buildscript {
+@@ -35,6 +35,21 @@ buildscript {
      }
  }
  
@@ -33,10 +33,3 @@ index 6c09118..5401612 100644
  apply plugin: 'java'
  apply plugin: 'idea'
  apply plugin: 'opensearch.opensearchplugin'
-@@ -340,4 +355,4 @@ task bwcTestSuite(type: RestIntegTestTask) {
- 
- run {
-     useCluster testClusters.integTest
--}
-\ No newline at end of file
-+}
