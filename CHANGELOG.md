@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
 - opensearch: Add `3.4.0` ([#1391]).
+- opensearch-dashboards: Add `3.4.0` ([#1392]).
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
 
@@ -52,6 +53,7 @@ All notable changes to this project will be documented in this file.
 [#1388]: https://github.com/stackabletech/docker-images/pull/1388
 [#1389]: https://github.com/stackabletech/docker-images/pull/1389
 [#1391]: https://github.com/stackabletech/docker-images/pull/1391
+[#1392]: https://github.com/stackabletech/docker-images/pull/1392
 [#1393]: https://github.com/stackabletech/docker-images/pull/1393
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395

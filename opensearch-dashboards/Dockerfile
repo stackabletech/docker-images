@@ -127,15 +127,17 @@ COPY \
 
 # tar - extract OpenSearch Dashboards from archive & create source code archive
 # unzip - extract plugin from archive
+# xz - extract Node package
 # yarn - build Opensearch Dashboards
 # cdxgen - generate CycloneDX SBOM
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar unzip
+microdnf install tar unzip xz
 microdnf clean all
 rm -rf /var/cache/yum
-curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.gz" | tar -xzC /usr/local --strip-components=1
+curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/usr/local --strip-components=1
 npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
 EOF
 
