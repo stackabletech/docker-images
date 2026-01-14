@@ -8,5 +8,7 @@ stackable-base = "1.0.0"
 # See .scripts/upload_new_protoc_version.sh
 # Unsure which version is used by vector. They seem to install `buf` in workflows.
 protoc-version = "31.1"
+# See here: https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/i/
+# Note: In UBI10, this should change to 4.23.9.0-4.el10
 inotify-tools = "3.22.1.0-1.el9"
 rpm-release = "1"
