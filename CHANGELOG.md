@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
 - opensearch: Add `3.4.0` ([#1391]).
 - testing-tools: build testing tools subimages in workflow ([#1366]).
+- kafka: Add `4.1.1` ([#1395]).
 
 ### Changed
 
@@ -28,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
+- kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
 
 ### Fixed
 
@@ -52,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#1391]: https://github.com/stackabletech/docker-images/pull/1391
 [#1393]: https://github.com/stackabletech/docker-images/pull/1393
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
+[#1395]: https://github.com/stackabletech/docker-images/pull/1395
 
 ## [25.11.0] - 2025-11-07
 
