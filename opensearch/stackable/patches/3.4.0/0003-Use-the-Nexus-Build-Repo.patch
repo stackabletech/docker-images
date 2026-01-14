@@ -1,4 +1,4 @@
-From fbb9ec1774e9a6b904d9598bd54385059ad81407 Mon Sep 17 00:00:00 2001
+From bfe54fa3e3ab7f6242e7053d4ea7bd508fed4a79 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Wed, 6 Aug 2025 13:12:12 +0200
 Subject: Use the Nexus Build Repo
@@ -17,7 +17,7 @@ Subject: Use the Nexus Build Repo
  10 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index e8459443e8a..08633faf7ca 100644
+index 76403740f00..0e8a478b3d9 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
 @@ -94,7 +94,9 @@ tasks.withType(JavaCompile).configureEach {
@@ -101,7 +101,7 @@ index a0093eb1d2c..8267594fb64 100644
  
  // todo remove offending rules
 diff --git a/buildSrc/src/testKit/testingConventions/build.gradle b/buildSrc/src/testKit/testingConventions/build.gradle
-index 676960bcc8b..e9e3557b4a6 100644
+index afd3f06a4ed..cb5a8154303 100644
 --- a/buildSrc/src/testKit/testingConventions/build.gradle
 +++ b/buildSrc/src/testKit/testingConventions/build.gradle
 @@ -18,7 +18,9 @@ allprojects {
@@ -114,7 +114,7 @@ index 676960bcc8b..e9e3557b4a6 100644
 +    }
    }
    dependencies {
-     testImplementation "junit:junit:4.13.2"
+     testImplementation "junit:junit:${versions.junit}"
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
 index caaaa6bd1ac..e9a107cf125 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/build.gradle
@@ -131,7 +131,7 @@ index caaaa6bd1ac..e9a107cf125 100644
  
  dependencies {
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
-index 83bec727b15..6825bd03bfc 100644
+index 00d52021688..ba5f9ee2d76 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 +++ b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 @@ -13,7 +13,9 @@ plugins {
@@ -159,7 +159,7 @@ index 9639c7d7048..3bd6ed063ba 100644
 +    }
  }
 diff --git a/gradle/code-coverage.gradle b/gradle/code-coverage.gradle
-index 582ed36ba44..96dceb38e91 100644
+index 11a8a1253e1..8ae530d4773 100644
 --- a/gradle/code-coverage.gradle
 +++ b/gradle/code-coverage.gradle
 @@ -9,7 +9,9 @@

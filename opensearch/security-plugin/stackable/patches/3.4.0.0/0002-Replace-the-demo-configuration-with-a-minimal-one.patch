@@ -1,4 +1,4 @@
-From e89bcee9cd38349034e7de25dd35541cb5ecda79 Mon Sep 17 00:00:00 2001
+From 8239b8fdcbc0471d6c3891d11e9ad5f32488bc29 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Fri, 29 Aug 2025 15:43:25 +0200
 Subject: Replace the demo configuration with a minimal one
@@ -7,14 +7,14 @@ Subject: Replace the demo configuration with a minimal one
  config/action_groups.yml      |   3 +-
  config/allowlist.yml          |  64 +---
  config/audit.yml              |  84 +-----
- config/config.yml             | 248 +---------------
+ config/config.yml             | 253 +---------------
  config/internal_users.yml     |  61 +---
  config/nodes_dn.yml           |   8 +-
  config/opensearch.yml.example | 228 --------------
- config/roles.yml              | 538 +---------------------------------
+ config/roles.yml              | 549 +---------------------------------
  config/roles_mapping.yml      |  47 +--
  config/tenants.yml            |   9 +-
- 10 files changed, 17 insertions(+), 1273 deletions(-)
+ 10 files changed, 17 insertions(+), 1289 deletions(-)
  delete mode 100644 config/opensearch.yml.example
 
 diff --git a/config/action_groups.yml b/config/action_groups.yml
@@ -196,10 +196,10 @@ index dcfbad8d..9033c5a6 100644
 -      - kibanaserver
 +  enabled: false
 diff --git a/config/config.yml b/config/config.yml
-index 1493a0d7..a3a46ef2 100644
+index abd7edde..a3a46ef2 100644
 --- a/config/config.yml
 +++ b/config/config.yml
-@@ -1,250 +1,10 @@
+@@ -1,255 +1,10 @@
  ---
 -
 -# This is the main OpenSearch Security configuration file where authentication
@@ -333,6 +333,7 @@ index 1493a0d7..a3a46ef2 100644
 -          type: jwt
 -          challenge: false
 -          config:
+-            jwks_uri: 'https://your-jwks-endpoint.com/.well-known/jwks.json'
 -            signing_key: "base64 encoded HMAC key or public RSA/ECDSA pem key"
 -            jwt_header: "Authorization"
 -            jwt_url_parameter: null
@@ -350,6 +351,10 @@ index 1493a0d7..a3a46ef2 100644
 -          type: clientcert
 -          config:
 -            username_attribute: cn #optional, if omitted DN becomes username
+-            # skip_users config is used to skip cert based authentication for certain users where they can fall back to other authentication backends
+-            #skip_users:
+-            #  - "DC=de,L=test,O=users,OU=bridge,CN=dashboard"
+-
 -          challenge: false
 -        authentication_backend:
 -          type: noop
@@ -773,10 +778,10 @@ index d02a2544..00000000
 -# Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
 -# plugins.security.system_indices.indices: ['.opendistro-alerting-config', '.opendistro-ism-*', '.opendistro-reports-*', '.opensearch-notifications-*', '.opensearch-notebooks', '.opensearch-observability', '.opendistro-asynchronous-search-response*', '.replication-metadata-store']
 diff --git a/config/roles.yml b/config/roles.yml
-index c65e2a83..5f8152a3 100644
+index ff09b706..5f8152a3 100644
 --- a/config/roles.yml
 +++ b/config/roles.yml
-@@ -1,538 +1,4 @@
+@@ -1,549 +1,4 @@
 +---
  _meta:
 -  type: "roles"
@@ -799,6 +804,7 @@ index c65e2a83..5f8152a3 100644
 -    - 'restapi:admin/config/update'
 -    - 'restapi:admin/internalusers'
 -    - 'restapi:admin/nodesdn'
+-    - 'restapi:admin/resource_sharing/migrate'
 -    - 'restapi:admin/roles'
 -    - 'restapi:admin/rolesmapping'
 -    - 'restapi:admin/ssl/certs/info'
@@ -816,6 +822,9 @@ index c65e2a83..5f8152a3 100644
 -    - 'cluster:admin/opensearch/alerting/comments/search'
 -    - 'cluster:admin/opensearch/alerting/findings/get'
 -    - 'cluster:admin/opensearch/alerting/remote/indexes/get'
+-    - 'cluster:admin/opensearch/alerting/v2/alerts/get'
+-    - 'cluster:admin/opensearch/alerting/v2/monitor/get'
+-    - 'cluster:admin/opensearch/alerting/v2/monitor/search'
 -    - 'cluster:admin/opensearch/alerting/workflow/get'
 -    - 'cluster:admin/opensearch/alerting/workflow_alerts/get'
 -
@@ -850,6 +859,7 @@ index c65e2a83..5f8152a3 100644
 -  cluster_permissions:
 -    - 'cluster:admin/opendistro/ad/detector/info'
 -    - 'cluster:admin/opendistro/ad/detector/search'
+-    - 'cluster:admin/opendistro/ad/detector/suggest'
 -    - 'cluster:admin/opendistro/ad/detector/validate'
 -    - 'cluster:admin/opendistro/ad/detectors/get'
 -    - 'cluster:admin/opendistro/ad/result/search'
@@ -1232,10 +1242,10 @@ index c65e2a83..5f8152a3 100644
 -query_insights_full_access:
 -  reserved: true
 -  cluster_permissions:
--    - 'cluster:admin/opensearch/insights/top_queries/*'
+-    - 'cluster:admin/opensearch/insights/*'
 -  index_permissions:
 -    - index_patterns:
--        - 'top_queries_by_*'
+-        - 'top_queries-*'
 -      allowed_actions:
 -        - "indices_all"
 -
@@ -1263,7 +1273,7 @@ index c65e2a83..5f8152a3 100644
 -        - '*'
 -      allowed_actions:
 -        - 'indices:admin/mappings/get'
--        - 'indices:data/read/search*'
+-        - 'indices:data/read/*'
 -
 -# Allow users to read Search Relevance resources
 -search_relevance_read_access:
@@ -1273,6 +1283,12 @@ index c65e2a83..5f8152a3 100644
 -    - 'cluster:admin/opensearch/search_relevance/judgment/get'
 -    - 'cluster:admin/opensearch/search_relevance/queryset/get'
 -    - 'cluster:admin/opensearch/search_relevance/search_configuration/get'
+-  index_permissions:
+-    - index_patterns:
+-        - 'search-relevance-*'
+-      allowed_actions:
+-        - 'indices:admin/mappings/get'
+-        - 'indices:data/read/*'
 -
 -# Allow users to read Forecast resources
 -forecast_read_access:
