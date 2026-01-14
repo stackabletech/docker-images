@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
+- superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 
 ### Fixed
 
@@ -48,6 +49,7 @@ All notable changes to this project will be documented in this file.
 [#1388]: https://github.com/stackabletech/docker-images/pull/1388
 [#1389]: https://github.com/stackabletech/docker-images/pull/1389
 [#1393]: https://github.com/stackabletech/docker-images/pull/1393
+[#1394]: https://github.com/stackabletech/docker-images/pull/1394
 
 ## [25.11.0] - 2025-11-07
 
