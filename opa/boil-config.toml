@@ -6,10 +6,10 @@ vector = "0.52.0"
 [versions."1.8.0".build-arguments]
 golang-version = "1.24.6"
 
-# Version 1.4.2
-[versions."1.4.2".local-images]
+# Version 1.12.2
+[versions."1.12.2".local-images]
 stackable-devel = "1.0.0"
 vector = "0.52.0"
 
-[versions."1.4.2".build-arguments]
-golang-version = "1.23.9"
+[versions."1.12.2".build-arguments]
+golang-version = "1.24.6"

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - superset: Add 6.0.0 ([#1337], [#1393]).
+- opa: Add 1.12.2 ([#1396]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
@@ -31,6 +32,8 @@ All notable changes to this project will be documented in this file.
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
+- opa: remove 1.4.2 ([#1396]).
+
 
 ### Fixed
 
@@ -57,6 +60,8 @@ All notable changes to this project will be documented in this file.
 [#1393]: https://github.com/stackabletech/docker-images/pull/1393
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
+[#1396]: https://github.com/stackabletech/docker-images/pull/1396
+
 
 ## [25.11.0] - 2025-11-07
 
