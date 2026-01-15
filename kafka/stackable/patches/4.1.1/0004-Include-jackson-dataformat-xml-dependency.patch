@@ -1,4 +1,4 @@
-From f35a5e1087d0efeefbdf7c9a44a436e2e9f7429d Mon Sep 17 00:00:00 2001
+From e908b273dc6844f5cd4e6af5bc16622674457d9d Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Thu, 25 Sep 2025 11:13:20 +0200
 Subject: Include jackson dataformat xml dependency
