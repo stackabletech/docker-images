@@ -272,11 +272,16 @@ WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/ext
 
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-curl --fail https://repo.stackable.tech/repository/packages/jackson-dataformat-xml/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
+mvn dependency:get -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
+cp /stackable/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
   -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
-curl --fail https://repo.stackable.tech/repository/packages/stax2-api/stax2-api-${STAX2_API_VERSION}.jar \
+
+mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
+cp /stackable/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
   -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
-curl --fail https://repo.stackable.tech/repository/packages/woodstox-core/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
+
+mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
+cp /stackable/.m2/repository/org/codehaus/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
   -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
 
 # Get the correct `tini` binary for our architecture.
