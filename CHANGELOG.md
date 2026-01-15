@@ -34,7 +34,6 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
 - opa: remove 1.4.2 ([#1396]).
 
-
 ### Fixed
 
 - testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
@@ -61,7 +60,6 @@ All notable changes to this project will be documented in this file.
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
-
 
 ## [25.11.0] - 2025-11-07
 
