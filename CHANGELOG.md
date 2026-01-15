@@ -32,7 +32,8 @@ All notable changes to this project will be documented in this file.
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
-- opa: remove 1.4.2 ([#1396]).
+- opa: Remove `1.4.2` ([#1396]).
+- zookeeper: Remove `3.9.3` ([#1401]).
 
 ### Fixed
 
@@ -60,6 +61,7 @@ All notable changes to this project will be documented in this file.
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
+[#1401]: https://github.com/stackabletech/docker-images/pull/1401
 
 ## [25.11.0] - 2025-11-07
 
