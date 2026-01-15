@@ -10,11 +10,8 @@ vector = "0.52.0"
 [versions."21".local-images]
 vector = "0.52.0"
 
-[versions."22".local-images]
-vector = "0.52.0"
-
-[versions."23".local-images]
-vector = "0.52.0"
-
 [versions."24".local-images]
+vector = "0.52.0"
+
+[versions."25".local-images]
 vector = "0.52.0"

@@ -10,11 +10,9 @@ stackable-devel = "1.0.0"
 [versions."21".local-images]
 stackable-devel = "1.0.0"
 
-[versions."22".local-images]
-stackable-devel = "1.0.0"
-
-[versions."23".local-images]
-stackable-devel = "1.0.0"
 
 [versions."24".local-images]
+stackable-devel = "1.0.0"
+
+[versions."25".local-images]
 stackable-devel = "1.0.0"

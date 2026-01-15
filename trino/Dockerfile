@@ -8,6 +8,7 @@ FROM local-image/trino/trino AS trino-builder
 FROM local-image/java-base
 
 ARG PRODUCT_VERSION
+ARG TRINO_STORAGE_CONNECTOR_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG JMX_EXPORTER_VERSION
@@ -38,9 +39,9 @@ EOF
 COPY --from=trino-builder --chown=${STACKABLE_USER_UID}:0 /stackable/trino-server /stackable/trino-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 trino/licenses /licenses
 
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT_VERSION}/target/trino-storage-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/trino-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/plugin/trino-storage-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${PRODUCT_VERSION}/target/bom.json /stackable/trino-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/plugin/trino-storage-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/trino-storage-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
-COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${TRINO_STORAGE_CONNECTOR_VERSION}/target/trino-storage-${TRINO_STORAGE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION} /stackable/trino-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/plugin/trino-storage-${TRINO_STORAGE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/src/trino-storage-connector/patchable-work/worktree/${TRINO_STORAGE_CONNECTOR_VERSION}/target/bom.json /stackable/trino-server-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/plugin/trino-storage-${TRINO_STORAGE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}/trino-storage-${TRINO_STORAGE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY --from=trino-storage-connector-image --chown=${STACKABLE_USER_UID}:0 /stackable/trino-storage-connector-${TRINO_STORAGE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/stackable/jmx /stackable/jmx
 
