@@ -40,6 +40,8 @@ All notable changes to this project will be documented in this file.
 - opa: remove 1.4.2 ([#1396]).
 - spark: Remove `3.5.6` and `4.0.1` ([#1402]).
 - spark-connect-client: Remove `3.5.6` and `4.0.1` ([#1402]).
+- opa: Remove `1.4.2` ([#1396]).
+- zookeeper: Remove `3.9.3` ([#1401]).
 
 ### Fixed
 
@@ -68,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
 [#1402]: https://github.com/stackabletech/docker-images/pull/1402
+[#1401]: https://github.com/stackabletech/docker-images/pull/1401
 
 ## [25.11.0] - 2025-11-07
 
