@@ -18,3 +18,6 @@ stackable-devel = "1.0.0"
 
 [versions."24".local-images]
 stackable-devel = "1.0.0"
+
+[versions."25".local-images]
+stackable-devel = "1.0.0"
