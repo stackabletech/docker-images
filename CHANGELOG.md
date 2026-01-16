@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Add `3.4.0` ([#1392]).
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
+- spark: Add `4.1.1`, use one Dockerfile per version and remove all HBase deps from the Spark4 image ([#1402]).
 
 ### Changed
 
@@ -33,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
 - opa: remove 1.4.2 ([#1396]).
+- spark: Remove `3.5.6` and `4.0.1` ([#1402]).
 
 ### Fixed
 
@@ -60,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
+[#1402]: https://github.com/stackabletech/docker-images/pull/1402
 
 ## [25.11.0] - 2025-11-07
 
