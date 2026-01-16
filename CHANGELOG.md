@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Add `3.4.0` ([#1392]).
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
-- spark: Add `4.1.1`, use one Dockerfile per version and remove all HBase deps from the Spark4 image ([#1402]).
+- spark: Add `4.1.1` ([#1402]).
 
 ### Changed
 
@@ -27,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - trino: Backport Kafka offset handling to 477 ([#1373]).
 - ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
 - vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
+- spark: Use one Dockerfile per major product version ([#1402]).
+  Remove all HBase dependencies from the Spark 4 image.
+  Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
 
 ### Removed
 

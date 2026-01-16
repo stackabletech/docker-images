@@ -66,26 +66,15 @@ RUN <<EOF
     MAVEN_BIN="/usr/bin/mvn"
     export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
 
-    case "${PRODUCT_VERSION}" in
-        4*)
-            # The Spark 4 script has a --connect option which is not available in Spark 3.
-            # This option is required to build Spark Connect.
-            # Also this option breaks the Spark 3 build so we ensure it's only provided here.
-            ./dev/make-distribution.sh \
-            --mvn "${MAVEN_BIN}" \
-            --connect \
-            -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE_VERSION}" \
-            -DskipTests \
-            -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
-            ;;
-        *)
-            ./dev/make-distribution.sh \
-            --mvn "${MAVEN_BIN}" \
-            -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE_VERSION}" \
-            -DskipTests \
-            -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
-            ;;
-    esac
+    # The Spark 4 script has a --connect option which is not available in Spark 3.
+    # This option is required to build Spark Connect.
+    # Also this option breaks the Spark 3 build so we ensure it's only provided here.
+    ./dev/make-distribution.sh \
+    --mvn "${MAVEN_BIN}" \
+    --connect \
+    -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE_VERSION}" \
+    -DskipTests \
+    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
 EOF
@@ -99,18 +88,9 @@ RUN <<EOF
     mkdir -p dist/connect
     cd dist/connect
 
-    case "${PRODUCT_VERSION}" in
-        4*)
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            ;;
-        *)
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/connector/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/connector/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/connector/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
-            ;;
-    esac
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
 
     # This link is needed by the operator and is kept for backwards compatibility.
     # TODO: remove it at some time in the future.
@@ -144,16 +124,16 @@ WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/ext
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
 mvn dependency:get -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
-cp /stackable/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
-  -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
+cp /root/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
 
 mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
-cp /stackable/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
-  -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
+cp /root/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
 
-mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
-cp /stackable/.m2/repository/org/codehaus/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
-  -o /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
+mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
+cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}" \
