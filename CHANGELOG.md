@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
 - spark: Add `4.1.1` ([#1402]).
+- spark-connect-client: Add `4.1.1` ([#1402]).
 
 ### Changed
 
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
 - opa: remove 1.4.2 ([#1396]).
 - spark: Remove `3.5.6` and `4.0.1` ([#1402]).
+- spark-connect-client: Remove `3.5.6` and `4.0.1` ([#1402]).
 
 ### Fixed
 
