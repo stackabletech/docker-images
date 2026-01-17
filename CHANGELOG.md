@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.1.1` ([#1395]).
 - spark: Add `4.1.1` ([#1402]).
 - spark-connect-client: Add `4.1.1` ([#1402]).
+- spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
 
 ### Changed
 
