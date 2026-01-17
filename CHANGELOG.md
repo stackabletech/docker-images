@@ -70,8 +70,8 @@ All notable changes to this project will be documented in this file.
 [#1394]: https://github.com/stackabletech/docker-images/pull/1394
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
-[#1402]: https://github.com/stackabletech/docker-images/pull/1402
 [#1401]: https://github.com/stackabletech/docker-images/pull/1401
+[#1402]: https://github.com/stackabletech/docker-images/pull/1402
 
 ## [25.11.0] - 2025-11-07
 
