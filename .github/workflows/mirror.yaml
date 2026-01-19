@@ -36,7 +36,7 @@ jobs:
           - amd64
           - arm64
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -57,7 +57,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
+        uses: stackabletech/actions/publish-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -73,7 +73,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -84,7 +84,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@976e8c293cb59f391dbf8563ab28e965e79ca36d # v0.10.4
+        uses: stackabletech/actions/publish-image-index-manifest@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
