@@ -71,7 +71,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     spark/env
 
 RUN <<EOF
-
 cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${PRODUCT_VERSION})"/spark
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
