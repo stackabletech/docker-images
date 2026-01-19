@@ -5,6 +5,13 @@ java-base = "17"
 [versions."3.5.7".build-arguments]
 python-version = "3.11"
 
+[versions."4.0.1".local-images]
+spark-k8s = "4.0.1"
+java-base = "21"
+
+[versions."4.0.1".build-arguments]
+python-version = "3.12"
+
 [versions."4.1.1".local-images]
 spark-k8s = "4.1.1"
 java-base = "21"
