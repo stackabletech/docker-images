@@ -15,28 +15,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
 
       - name: Generate Changelog
         id: changelog
-        uses: orhun/git-cliff-action@d77b37db2e3f7398432d34b72a12aa3e2ba87e51 # v4.6.0
+        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4.7.0
         with:
           config: rust/boil/cliff.toml
           args: --latest --strip header
 
       - name: Create Draft Release
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           body: ${{ steps.changelog.outputs.content }}
           draft: true
 
   build:
     name: Build boil
-    needs:
-      - create-release
+    needs: [create-release]
     strategy:
       fail-fast: false
       matrix:
@@ -47,7 +46,7 @@ jobs:
     runs-on: ${{ matrix.targets.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
@@ -67,7 +66,16 @@ jobs:
         run: mv "target/$TARGET/release/boil" "boil-$TARGET"
 
       - name: Upload Artifact to Release
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        with:
+          files: boil-${{ matrix.targets.target }}
+          draft: true
+
+  finish-release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finish Release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           draft: false
-          files: boil-${{ matrix.targets.target }}
