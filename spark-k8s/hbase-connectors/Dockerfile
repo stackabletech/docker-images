@@ -89,7 +89,7 @@ export JDK_JAVA_OPTIONS="\
     --add-opens java.base/java.lang=ALL-UNNAMED \
     --add-opens java.base/java.util=ALL-UNNAMED"
 
-source /stackable/spark/env
+. /stackable/spark/env
 
 # Build the Spark HBase connector
 # Skip the tests because the MiniHBaseCluster does not get ready for
