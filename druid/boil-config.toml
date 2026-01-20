@@ -1,3 +1,4 @@
+# LTS since 24.11
 [versions."30.0.1".local-images]
 # https://druid.apache.org/docs/30.0.1/operations/java/
 java-base = "17"
@@ -13,5 +14,16 @@ java-base = "17"
 java-devel = "17"
 "hadoop/hadoop" = "3.4.1"
 
+# Deprecated since 26.3
 [versions."34.0.0".build-arguments]
+authorizer-version = "0.7.0"
+
+# Supported
+[versions."35.0.1".local-images]
+# https://druid.apache.org/docs/35.0.1/operations/java/
+java-base = "21"
+java-devel = "21"
+"hadoop/hadoop" = "3.4.2"
+
+[versions."35.0.1".build-arguments]
 authorizer-version = "0.7.0"
