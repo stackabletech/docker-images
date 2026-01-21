@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `1.4.2` ([#1396]).
 - zookeeper: Remove `3.9.3` ([#1401]).
 - trino: Remove `451` and `476` ([#1403]).
+- hbase: Remove `2.6.2` ([#1408]).
 
 ### Fixed
 
@@ -69,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#1401]: https://github.com/stackabletech/docker-images/pull/1401
 [#1403]: https://github.com/stackabletech/docker-images/pull/1403
 [#1405]: https://github.com/stackabletech/docker-images/pull/1405
+[#1408]: https://github.com/stackabletech/docker-images/pull/1408
 
 ## [25.11.0] - 2025-11-07
 
