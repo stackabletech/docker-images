@@ -1,0 +1,10 @@
+[versions."1.0.1_3"]
+containerfile = "Dockerfile"
+
+[versions."1.0.1_3".local-images]
+java-devel = "17"
+
+[versions."1.0.1_3".build-arguments]
+spark-version = "3.5.7"
+hadoop-version = "3.4.2"
+hbase-version = "2.6.3"
