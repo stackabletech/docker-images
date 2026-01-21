@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Add `3.4.0` ([#1392]).
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
+- trino: Add `479` ([#1403]).
 
 ### Changed
 
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
+- trino-cli: Bump to `479` ([#1403]).
 - ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
 - vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
 
@@ -36,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
 - opa: Remove `1.4.2` ([#1396]).
 - zookeeper: Remove `3.9.3` ([#1401]).
+- trino: Remove `451` and `476` ([#1403]).
 
 ### Fixed
 
@@ -64,6 +67,7 @@ All notable changes to this project will be documented in this file.
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
 [#1401]: https://github.com/stackabletech/docker-images/pull/1401
+[#1403]: https://github.com/stackabletech/docker-images/pull/1403
 [#1405]: https://github.com/stackabletech/docker-images/pull/1405
 
 ## [25.11.0] - 2025-11-07
