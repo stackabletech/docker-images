@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: Add 3.1.5 ([#1405]).
 - superset: Add 6.0.0 ([#1337], [#1393]).
 - opa: Add 1.12.2 ([#1396]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
@@ -18,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `4.1.1` ([#1402]).
 - spark-connect-client: Add `4.1.1` ([#1402]).
 - spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
+- trino: Add `479` ([#1403]).
 
 ### Changed
 
@@ -27,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
+- trino-cli: Bump to `479` ([#1403]).
 - ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
 - vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
 - spark: Use one Dockerfile per major product version ([#1402]).
@@ -35,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+- airflow: Remove 2.10.5 and 3.0.1 ([#1405]).
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
@@ -43,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Remove `3.5.6` ([#1402]).
 - opa: Remove `1.4.2` ([#1396]).
 - zookeeper: Remove `3.9.3` ([#1401]).
+- trino: Remove `451` and `476` ([#1403]).
 
 ### Fixed
 
@@ -72,6 +77,8 @@ All notable changes to this project will be documented in this file.
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
 [#1401]: https://github.com/stackabletech/docker-images/pull/1401
 [#1402]: https://github.com/stackabletech/docker-images/pull/1402
+[#1403]: https://github.com/stackabletech/docker-images/pull/1403
+[#1405]: https://github.com/stackabletech/docker-images/pull/1405
 
 ## [25.11.0] - 2025-11-07
 
