@@ -42,7 +42,6 @@ All notable changes to this project will be documented in this file.
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
-- opa: remove 1.4.2 ([#1396]).
 - spark: Remove `3.5.6` ([#1402]).
 - spark-connect-client: Remove `3.5.6` ([#1402]).
 - opa: Remove `1.4.2` ([#1396]).
