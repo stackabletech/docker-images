@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- airflow: Add 3.1.5 ([#1405]).
 - druid: Add 35.0.1 ([#1406]).
 - superset: Add 6.0.0 ([#1337], [#1393]).
 - opa: Add 1.12.2 ([#1396]).
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
+- airflow: Remove 2.10.5 and 3.0.1 ([#1405]).
 - druid: Remove 33.0.0 ([#1406]).
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
@@ -64,6 +66,7 @@ All notable changes to this project will be documented in this file.
 [#1395]: https://github.com/stackabletech/docker-images/pull/1395
 [#1396]: https://github.com/stackabletech/docker-images/pull/1396
 [#1401]: https://github.com/stackabletech/docker-images/pull/1401
+[#1405]: https://github.com/stackabletech/docker-images/pull/1405
 [#1406]: https://github.com/stackabletech/docker-images/pull/1406
 
 ## [25.11.0] - 2025-11-07
