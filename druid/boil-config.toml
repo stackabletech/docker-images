@@ -12,7 +12,7 @@ authorizer-version = "0.7.0"
 # https://druid.apache.org/docs/34.0.0/operations/java/
 java-base = "17"
 java-devel = "17"
-"hadoop/hadoop" = "3.4.1"
+"hadoop/hadoop" = "3.4.2"
 
 # Deprecated since 26.3
 [versions."34.0.0".build-arguments]
