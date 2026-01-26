@@ -1,37 +1,37 @@
-From 2259629e248db402a660b42d7eca75f17e164b7f Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Mon, 17 Feb 2025 16:42:34 +0100
+From 587430dc804bf991e1175cbff25288b18f64aa1a Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Tue, 23 Sep 2025 09:31:00 +0200
 Subject: Stop building unused extensions.
 
 By default Druid builds all community extensions and then discards them
 while assembling the final distribution. This patch removes unused
 extensions from the build.
 ---
- pom.xml | 31 -------------------------------
- 1 file changed, 31 deletions(-)
+ pom.xml | 30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 09daa8b2e9..df781fac63 100644
+index 29f0c12301..b291470096 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -226,38 +226,7 @@
-         <module>extensions-core/druid-catalog</module>
-         <module>extensions-core/testing-tools</module>
+@@ -230,38 +230,8 @@
+         <module>extensions-core/druid-testcontainers</module>
          <!-- Community extensions -->
--        <module>extensions-contrib/compressed-bigdecimal</module>
+         <module>extensions-contrib/compressed-bigdecimal</module>
 -        <module>extensions-contrib/influx-extensions</module>
 -        <module>extensions-contrib/cassandra-storage</module>
 -        <module>extensions-contrib/dropwizard-emitter</module>
 -        <module>extensions-contrib/cloudfiles-extensions</module>
 -        <module>extensions-contrib/graphite-emitter</module>
 -        <module>extensions-contrib/distinctcount</module>
+-        <module>extensions-contrib/druid-exact-count-bitmap</module>
 -        <module>extensions-contrib/statsd-emitter</module>
 -        <module>extensions-contrib/time-min-max</module>
 -        <module>extensions-contrib/virtual-columns</module>
 -        <module>extensions-contrib/thrift-extensions</module>
 -        <module>extensions-contrib/ambari-metrics-emitter</module>
 -        <module>extensions-contrib/sqlserver-metadata-storage</module>
--        <module>extensions-contrib/kafka-emitter</module>
+         <module>extensions-contrib/kafka-emitter</module>
 -        <module>extensions-contrib/redis-cache</module>
 -        <module>extensions-contrib/opentsdb-emitter</module>
 -        <module>extensions-contrib/materialized-view-maintenance</module>
