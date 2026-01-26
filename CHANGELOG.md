@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: build testing tools subimages in workflow ([#1366]).
 - kafka: Add `4.1.1` ([#1395]).
 - trino: Add `479` ([#1403]).
+- hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
 
 ### Changed
 

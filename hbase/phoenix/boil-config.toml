@@ -7,3 +7,13 @@ java-devel = "11"
 phoenix-version = "5.2.1"
 hbase-profile = "2.6"
 delete-caches = "true"
+
+[versions."5.3.0-hbase2.6.4".local-images]
+"hbase/hbase" = "2.6.4"
+"hadoop/hadoop" = "3.4.2"
+java-devel = "11"
+
+[versions."5.3.0-hbase2.6.4".build-arguments]
+phoenix-version = "5.3.0"
+hbase-profile = "2.6"
+delete-caches = "true"
