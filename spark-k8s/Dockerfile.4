@@ -150,8 +150,6 @@ chmod -R g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/ass
 chmod -R g=u /stackable/jmx
 EOF
 
-# TODO: java-base installs the Adoptium dnf repo and the Termurin jre which is not needed here.
-# To reduce the size of this image, the Adoptium repo could be moved to stackable-base instead.
 FROM local-image/java-base AS final
 
 ARG PRODUCT_VERSION
@@ -189,6 +187,11 @@ COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
 
 RUN <<EOF
 microdnf update
+
+# Remove the JRE that was installed by local-image/java-base.
+# The JRE which is not enough for Spark because some functionality requires the JDK.
+# Also having both JRE and JDK installed causes conflicts with Java 21 because they have slightly different versions in the Adoptium repository.
+microdnf remove "temurin-${JAVA_VERSION}-jre"
 
 # procps:
 #    Required for spark startup scripts.

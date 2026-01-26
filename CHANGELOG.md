@@ -53,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Remove `3.9.3` ([#1401]).
 - trino: Remove `451` and `476` ([#1403]).
 - hbase: Remove `2.6.2` ([#1408]).
+- spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
 
 ### Fixed
 
@@ -87,6 +88,7 @@ All notable changes to this project will be documented in this file.
 [#1406]: https://github.com/stackabletech/docker-images/pull/1406
 [#1408]: https://github.com/stackabletech/docker-images/pull/1408
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
+[#1410]: https://github.com/stackabletech/docker-images/pull/1410
 
 ## [25.11.0] - 2025-11-07
 
