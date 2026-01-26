@@ -189,7 +189,7 @@ RUN <<EOF
 microdnf update
 
 # Remove the JRE that was installed by local-image/java-base.
-# The JRE which is not enough for Spark because some functionality requires the JDK.
+# The JRE is not enough for Spark because some functionality requires the JDK.
 # Also having both JRE and JDK installed causes conflicts with Java 21 because they have slightly different versions in the Adoptium repository.
 microdnf remove "temurin-${JAVA_VERSION}-jre"
 
