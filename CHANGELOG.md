@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
+- druid: Bump HDFS to 3.4.2 for 34.0.0 ([#1409]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
@@ -42,6 +43,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: Remove 2.10.5 and 3.0.1 ([#1405]).
 - druid: Remove 33.0.0 ([#1406]).
+- hdfs: Remove 3.4.1 ([#1409]).
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
 - superset: Remove 4.0.2 and 4.1.2 ([#1394]).
 - kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
@@ -84,6 +86,7 @@ All notable changes to this project will be documented in this file.
 [#1405]: https://github.com/stackabletech/docker-images/pull/1405
 [#1406]: https://github.com/stackabletech/docker-images/pull/1406
 [#1408]: https://github.com/stackabletech/docker-images/pull/1408
+[#1409]: https://github.com/stackabletech/docker-images/pull/1409
 
 ## [25.11.0] - 2025-11-07
 

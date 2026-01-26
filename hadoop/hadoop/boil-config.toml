@@ -4,12 +4,6 @@ java-devel = "11"
 [versions."3.3.6".build-arguments]
 protobuf-version = "3.7.1"
 
-[versions."3.4.1".local-images]
-java-devel = "11"
-
-[versions."3.4.1".build-arguments]
-protobuf-version = "3.7.1"
-
 [versions."3.4.2".local-images]
 java-devel = "11"
 
