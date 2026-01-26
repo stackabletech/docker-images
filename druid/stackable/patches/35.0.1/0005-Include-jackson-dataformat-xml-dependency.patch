@@ -1,6 +1,6 @@
-From 3df406a5c0d69a24d3ae8e4ef372fab058bf5279 Mon Sep 17 00:00:00 2001
-From: Lars Francke <git@lars-francke.de>
-Date: Mon, 17 Feb 2025 16:42:49 +0100
+From 76e1f86cdcf58fcfdbd17d601d5dd9bafe55c241 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Tue, 23 Sep 2025 09:42:41 +0200
 Subject: Include jackson-dataformat-xml dependency.
 
 This allows us to use XmlLayout for Log4jV2.
@@ -12,7 +12,7 @@ build.
  1 file changed, 5 insertions(+)
 
 diff --git a/server/pom.xml b/server/pom.xml
-index 468a40d9f0..0ffcfd60b9 100644
+index dcaa891caa..583e187c37 100644
 --- a/server/pom.xml
 +++ b/server/pom.xml
 @@ -218,6 +218,11 @@
