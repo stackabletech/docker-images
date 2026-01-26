@@ -1,4 +1,4 @@
-From 21b16c876a30be29ad8450f1092b676137e2a0d1 Mon Sep 17 00:00:00 2001
+From c23733bc2fb0e47a14d1132a1dfb1a6c59035959 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 12 Jul 2024 17:30:12 -0400
 Subject: Include jackson-dataformat-xml.
@@ -12,10 +12,10 @@ it.
  2 files changed, 17 insertions(+)
 
 diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
-index 1564851b85..0786288a84 100644
+index f2080226f0..b4013a6203 100644
 --- a/hbase-assembly/pom.xml
 +++ b/hbase-assembly/pom.xml
-@@ -222,6 +222,11 @@
+@@ -221,6 +221,11 @@
        <groupId>org.apache.logging.log4j</groupId>
        <artifactId>log4j-core</artifactId>
      </dependency>
@@ -28,10 +28,10 @@ index 1564851b85..0786288a84 100644
        <groupId>org.apache.logging.log4j</groupId>
        <artifactId>log4j-slf4j-impl</artifactId>
 diff --git a/pom.xml b/pom.xml
-index e78b9eb5d5..69bdb12b71 100644
+index a874b731ae..b2523efedf 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1159,6 +1159,11 @@
+@@ -1182,6 +1182,11 @@
          <artifactId>log4j-core</artifactId>
          <version>${log4j2.version}</version>
        </dependency>
@@ -43,7 +43,7 @@ index e78b9eb5d5..69bdb12b71 100644
        <dependency>
          <groupId>org.apache.logging.log4j</groupId>
          <artifactId>log4j-slf4j-impl</artifactId>
-@@ -1169,6 +1174,13 @@
+@@ -1192,6 +1197,13 @@
          <artifactId>log4j-1.2-api</artifactId>
          <version>${log4j2.version}</version>
        </dependency>

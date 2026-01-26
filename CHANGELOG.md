@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Add `4.1.1` ([#1402]).
 - spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
 - trino: Add `479` ([#1403]).
+- hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
 
 ### Changed
 
@@ -51,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove `1.4.2` ([#1396]).
 - zookeeper: Remove `3.9.3` ([#1401]).
 - trino: Remove `451` and `476` ([#1403]).
+- hbase: Remove `2.6.2` ([#1408]).
 
 ### Fixed
 
@@ -83,6 +85,7 @@ All notable changes to this project will be documented in this file.
 [#1403]: https://github.com/stackabletech/docker-images/pull/1403
 [#1405]: https://github.com/stackabletech/docker-images/pull/1405
 [#1406]: https://github.com/stackabletech/docker-images/pull/1406
+[#1408]: https://github.com/stackabletech/docker-images/pull/1408
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
 
 ## [25.11.0] - 2025-11-07
