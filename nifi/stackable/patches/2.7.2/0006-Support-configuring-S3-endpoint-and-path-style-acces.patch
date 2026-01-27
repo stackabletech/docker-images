@@ -1,32 +1,35 @@
-From 7de5bab2c73dd41c6b05320987e9cc1f422ed6c0 Mon Sep 17 00:00:00 2001
+From b1f266eba4ae63ba23c254193f176362a2aafa52 Mon Sep 17 00:00:00 2001
 From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
 Date: Tue, 27 Jan 2026 13:16:16 +0100
 Subject: Support configuring S3 endpoint and path style access in Iceberg S3
 
 ---
- .../iceberg/aws/S3IcebergFileIOProvider.java  | 26 ++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ .../iceberg/aws/S3IcebergFileIOProvider.java  | 29 ++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
-index 6581993c22..7df6b9dd4a 100644
+index 6581993c22..61b73cba39 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
-@@ -102,12 +102,29 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
+@@ -102,12 +102,32 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
              )
              .build();
  
-+    private static final PropertyDescriptor ENDPOINT = new PropertyDescriptor.Builder()
-+            .name("Endpoint")
-+            .description("Custom S3 endpoint in the format of an URL, e.g. \"http://minio:9000\"")
++    static final PropertyDescriptor ENDPOINT_OVERRIDE = new PropertyDescriptor.Builder()
++            .name("Endpoint Override URL")
++            .description("Endpoint URL to use instead of the AWS default including scheme, host, port, and path. " +
++                    "The AWS libraries select an endpoint URL based on the AWS region, but this property overrides " +
++                    "the selected endpoint URL, allowing use with other S3-compatible endpoints.")
 +            .expressionLanguageSupported(ExpressionLanguageScope.ENVIRONMENT)
-+            .addValidator(StandardValidators.URL_VALIDATOR)
 +            .required(false)
++            .addValidator(StandardValidators.URL_VALIDATOR)
 +            .build();
 +
-+    private static final PropertyDescriptor PATH_STYLE_ACCESS = new PropertyDescriptor.Builder()
-+            .name("Path style access")
-+            .description("Enable S3 path style access by disabling the default virtual hosting behavior")
-+            .allowableValues("false", "true")
++    static final PropertyDescriptor USE_PATH_STYLE_ACCESS = new PropertyDescriptor.Builder()
++            .name("Use Path Style Access")
++            .description("Path-style access can be enforced by setting this property to true. Set it to true if your endpoint does not support " +
++                    "virtual-hosted-style requests, only path-style requests.")
++            .allowableValues("true", "false")
 +            .defaultValue(String.valueOf(S3FileIOProperties.PATH_STYLE_ACCESS_DEFAULT))
 +            .build();
 +
@@ -37,20 +40,20 @@ index 6581993c22..7df6b9dd4a 100644
              SESSION_TOKEN,
 -            CLIENT_REGION
 +            CLIENT_REGION,
-+            ENDPOINT,
-+            PATH_STYLE_ACCESS
++            ENDPOINT_OVERRIDE,
++            USE_PATH_STYLE_ACCESS
      );
  
      private final Map<String, String> standardProperties = new ConcurrentHashMap<>();
-@@ -159,6 +176,13 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
+@@ -159,6 +179,13 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
              }
          }
  
-+        if (context.getProperty(ENDPOINT).isSet()) {
-+            final String endpoint = context.getProperty(ENDPOINT).evaluateAttributeExpressions().getValue();
++        if (context.getProperty(ENDPOINT_OVERRIDE).isSet()) {
++            final String endpoint = context.getProperty(ENDPOINT_OVERRIDE).evaluateAttributeExpressions().getValue();
 +            contextProperties.put(S3FileIOProperties.ENDPOINT, endpoint);
 +        }
-+        final String pathStyleAccess = context.getProperty(PATH_STYLE_ACCESS).getValue();
++        final String pathStyleAccess = context.getProperty(USE_PATH_STYLE_ACCESS).getValue();
 +        contextProperties.put(S3FileIOProperties.PATH_STYLE_ACCESS, pathStyleAccess);
 +
          // HttpURLConnection Client Type avoids additional dependencies
