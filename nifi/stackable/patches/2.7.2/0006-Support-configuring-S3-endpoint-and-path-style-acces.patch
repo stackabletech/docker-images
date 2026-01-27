@@ -1,0 +1,58 @@
+From 7de5bab2c73dd41c6b05320987e9cc1f422ed6c0 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Tue, 27 Jan 2026 13:16:16 +0100
+Subject: Support configuring S3 endpoint and path style access in Iceberg S3
+
+---
+ .../iceberg/aws/S3IcebergFileIOProvider.java  | 26 ++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
+
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
+index 6581993c22..7df6b9dd4a 100644
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
++++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-aws/src/main/java/org/apache/nifi/services/iceberg/aws/S3IcebergFileIOProvider.java
+@@ -102,12 +102,29 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
+             )
+             .build();
+ 
++    private static final PropertyDescriptor ENDPOINT = new PropertyDescriptor.Builder()
++            .name("Endpoint")
++            .description("Custom S3 endpoint in the format of an URL, e.g. \"http://minio:9000\"")
++            .expressionLanguageSupported(ExpressionLanguageScope.ENVIRONMENT)
++            .addValidator(StandardValidators.URL_VALIDATOR)
++            .required(false)
++            .build();
++
++    private static final PropertyDescriptor PATH_STYLE_ACCESS = new PropertyDescriptor.Builder()
++            .name("Path style access")
++            .description("Enable S3 path style access by disabling the default virtual hosting behavior")
++            .allowableValues("false", "true")
++            .defaultValue(String.valueOf(S3FileIOProperties.PATH_STYLE_ACCESS_DEFAULT))
++            .build();
++
+     private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(
+             AUTHENTICATION_STRATEGY,
+             ACCESS_KEY_ID,
+             SECRET_ACCESS_KEY,
+             SESSION_TOKEN,
+-            CLIENT_REGION
++            CLIENT_REGION,
++            ENDPOINT,
++            PATH_STYLE_ACCESS
+     );
+ 
+     private final Map<String, String> standardProperties = new ConcurrentHashMap<>();
+@@ -159,6 +176,13 @@ public class S3IcebergFileIOProvider extends AbstractControllerService implement
+             }
+         }
+ 
++        if (context.getProperty(ENDPOINT).isSet()) {
++            final String endpoint = context.getProperty(ENDPOINT).evaluateAttributeExpressions().getValue();
++            contextProperties.put(S3FileIOProperties.ENDPOINT, endpoint);
++        }
++        final String pathStyleAccess = context.getProperty(PATH_STYLE_ACCESS).getValue();
++        contextProperties.put(S3FileIOProperties.PATH_STYLE_ACCESS, pathStyleAccess);
++
+         // HttpURLConnection Client Type avoids additional dependencies
+         contextProperties.put(HttpClientProperties.CLIENT_TYPE, HttpClientProperties.CLIENT_TYPE_URLCONNECTION);
+ 
