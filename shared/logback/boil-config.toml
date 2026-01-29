@@ -9,3 +9,6 @@ java-devel = "21"
 
 [versions."1.5.18".local-images]
 java-devel = "21"
+
+[versions."1.5.24".local-images]
+java-devel = "21"

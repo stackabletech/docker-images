@@ -107,8 +107,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 nifi/nifi-iceberg-bundle/stackable/patches/
 RUN <<EOF
 mkdir -p /stackable
 
-# NiFI 1.x natively supports Iceberg, no need to build an iceberg-bundle for it
-if [[ "${PRODUCT_VERSION}" != 1.* ]] ; then
+# Only build nifi-iceberg-bundle in case it is needed/supported
+if [[ -n "${NIFI_ICEBERG_BUNDLE_VERSION:-}" ]] ; then
     cd "$(/stackable/patchable --images-repo-root=src checkout nifi/nifi-iceberg-bundle ${NIFI_ICEBERG_BUNDLE_VERSION})"
 
     # Create snapshot of the source code including custom patches
