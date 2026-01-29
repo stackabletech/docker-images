@@ -1,7 +1,7 @@
 [versions."1.28.1".local-images]
 java-base = "11"
 java-devel = "11"
-"shared/logback" = "1.3.14"
+"shared/logback" = "1.3.14" # https://github.com/apache/nifi/blob/rel/nifi-1.28.1/pom.xml#L146
 
 [versions."1.28.1".build-arguments]
 git-sync-version = "v4.4.1"
@@ -12,7 +12,7 @@ nifi-opa-authorizer-plugin-version = "0.4.0-wip"
 [versions."2.6.0".local-images]
 java-base = "21"
 java-devel = "21"
-"shared/logback" = "1.5.18"
+"shared/logback" = "1.5.18" # https://github.com/apache/nifi/blob/rel/nifi-2.6.0/pom.xml#L156
 
 [versions."2.6.0".build-arguments]
 git-sync-version = "v4.4.1"
@@ -27,7 +27,7 @@ nifi-iceberg-bundle-version = "0.0.5"
 [versions."2.7.2".local-images]
 java-base = "21" # As stated in GitHub README
 java-devel = "21"
-"shared/logback" = "1.5.24" # https://github.com/apache/nifi/blob/d4a1c6267c022cded8cc5dfb05da27315962d303/pom.xml#L167
+"shared/logback" = "1.5.24" # https://github.com/apache/nifi/blob/rel/nifi-2.7.2/pom.xml#L167
 
 [versions."2.7.2".build-arguments]
 git-sync-version = "v4.4.1"
