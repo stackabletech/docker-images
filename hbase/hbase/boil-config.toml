@@ -1,17 +1,17 @@
-[versions."2.6.2".local-images]
-"hadoop/hadoop" = "3.4.1"
-java-base = "11"
-java-devel = "11"
-
-[versions."2.6.2".build-arguments]
-async-profiler-version = "2.9"
-delete-caches = "true"
-
 [versions."2.6.3".local-images]
 "hadoop/hadoop" = "3.4.2"
 java-base = "11"
 java-devel = "11"
 
 [versions."2.6.3".build-arguments]
+async-profiler-version = "2.9"
+delete-caches = "true"
+
+[versions."2.6.4".local-images]
+"hadoop/hadoop" = "3.4.2"
+java-base = "11"
+java-devel = "11"
+
+[versions."2.6.4".build-arguments]
 async-profiler-version = "2.9"
 delete-caches = "true"
