@@ -7,7 +7,7 @@ java-devel = "11"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0-wip"
+nifi-opa-authorizer-plugin-version = "0.4.0"
 
 [versions."2.6.0".local-images]
 java-base = "21"
@@ -18,7 +18,7 @@ java-devel = "21"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0-wip"
+nifi-opa-authorizer-plugin-version = "0.4.0"
 
 # Release a new version here: https://github.com/stackabletech/nifi-iceberg-bundle
 # Checkout a Patchable version (patch-series) for the new tag
@@ -33,4 +33,4 @@ java-devel = "21"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0-wip"
+nifi-opa-authorizer-plugin-version = "0.4.0"
