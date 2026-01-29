@@ -1,7 +1,8 @@
-From b1f266eba4ae63ba23c254193f176362a2aafa52 Mon Sep 17 00:00:00 2001
+From 40534dfcde4b39428b51f0fb2f440aae6e7434c6 Mon Sep 17 00:00:00 2001
 From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
 Date: Tue, 27 Jan 2026 13:16:16 +0100
-Subject: Support configuring S3 endpoint and path style access in Iceberg S3
+Subject: NIFI-15524 Support configuring S3 endpoint/path style acces in
+ Iceberg
 
 ---
  .../iceberg/aws/S3IcebergFileIOProvider.java  | 29 ++++++++++++++++++-
