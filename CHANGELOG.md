@@ -56,8 +56,8 @@ All notable changes to this project will be documented in this file.
 - trino: Remove `451` and `476` ([#1403]).
 - hbase: Remove `2.6.2` ([#1408]).
 - spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
-- spark: Remove `3.5.7` ([#1414]).
-- spark-connect-client: Remove `3.5.7` ([#1414]).
+- spark: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
+- spark-connect-client: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
 
 ### Fixed
 
@@ -94,6 +94,7 @@ All notable changes to this project will be documented in this file.
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
 [#1410]: https://github.com/stackabletech/docker-images/pull/1410
 [#1414]: https://github.com/stackabletech/docker-images/pull/1414
+[#1423]: https://github.com/stackabletech/docker-images/pull/1414
 
 ## [25.11.0] - 2025-11-07
 
