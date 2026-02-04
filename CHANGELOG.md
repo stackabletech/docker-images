@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 - spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
 - trino: Add `479` ([#1403]).
 - hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
+- spark: Add `3.5.8` ([#1414]).
+- spark-connect-client: Add `3.5.8` ([#1414]).
 
 ### Changed
 
@@ -54,6 +56,8 @@ All notable changes to this project will be documented in this file.
 - trino: Remove `451` and `476` ([#1403]).
 - hbase: Remove `2.6.2` ([#1408]).
 - spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
+- spark: Remove `3.5.7` ([#1414]).
+- spark-connect-client: Remove `3.5.7` ([#1414]).
 
 ### Fixed
 
@@ -89,6 +93,7 @@ All notable changes to this project will be documented in this file.
 [#1408]: https://github.com/stackabletech/docker-images/pull/1408
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
 [#1410]: https://github.com/stackabletech/docker-images/pull/1410
+[#1414]: https://github.com/stackabletech/docker-images/pull/1414
 
 ## [25.11.0] - 2025-11-07
 
