@@ -5,6 +5,6 @@ containerfile = "Dockerfile"
 java-devel = "17"
 
 [versions."1.0.1_3".build-arguments]
-spark-version = "3.5.7"
+spark-version = "3.5.8"
 hadoop-version = "3.4.2"
 hbase-version = "2.6.3"

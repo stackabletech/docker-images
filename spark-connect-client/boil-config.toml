@@ -1,8 +1,8 @@
-[versions."3.5.7".local-images]
-spark-k8s = "3.5.7"
+[versions."3.5.8".local-images]
+spark-k8s = "3.5.8"
 java-base = "17"
 
-[versions."3.5.7".build-arguments]
+[versions."3.5.8".build-arguments]
 python-version = "3.11"
 
 [versions."4.0.1".local-images]

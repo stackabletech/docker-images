@@ -1,14 +1,14 @@
-[versions."3.5.7"]
+[versions."3.5.8"]
 containerfile = "Dockerfile.3"
 
-[versions."3.5.7".local-images]
+[versions."3.5.8".local-images]
 "hadoop/hadoop" = "3.4.2"
 java-base = "17"
 java-devel = "17"
 hbase = "2.6.3"
 "spark-k8s/hbase-connectors" = "1.0.1_3"
 
-[versions."3.5.7".build-arguments]
+[versions."3.5.8".build-arguments]
 python-version = "3.11"
 aws-java-sdk-bundle-version = "2.29.52"   # needs to match the version shipped by Hadoop
 azure-storage-version = "7.0.1"           # needs to match the version shipped by Hadoop
