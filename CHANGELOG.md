@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Add 3.1.6 ([#1405], [#1422]).
 - druid: Add 35.0.1 ([#1406]).
 - superset: Add 6.0.0 ([#1337], [#1393]).
-- opa: Add 1.12.2 ([#1396]).
+- opa: Add 1.12.3 ([#1396], [#1424]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
@@ -98,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1414]: https://github.com/stackabletech/docker-images/pull/1414
 [#1423]: https://github.com/stackabletech/docker-images/pull/1414
 [#1422]: https://github.com/stackabletech/docker-images/pull/1422
+[#1424]: https://github.com/stackabletech/docker-images/pull/1424
 [#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [25.11.0] - 2025-11-07
