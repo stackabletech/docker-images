@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
 - spark: Add `3.5.8` ([#1414]).
 - spark-connect-client: Add `3.5.8` ([#1414]).
+- hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#XXXX]).
 
 ### Changed
 
@@ -40,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - spark: Use one Dockerfile per major product version ([#1402]).
   Remove all HBase dependencies from the Spark 4 image.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
+- hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#XXXX]).
 
 ### Removed
 
@@ -96,6 +98,7 @@ All notable changes to this project will be documented in this file.
 [#1414]: https://github.com/stackabletech/docker-images/pull/1414
 [#1423]: https://github.com/stackabletech/docker-images/pull/1414
 [#1422]: https://github.com/stackabletech/docker-images/pull/1422
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [25.11.0] - 2025-11-07
 
