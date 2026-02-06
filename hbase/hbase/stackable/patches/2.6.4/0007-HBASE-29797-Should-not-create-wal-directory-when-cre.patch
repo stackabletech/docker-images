@@ -1,0 +1,672 @@
+From 4eb9a746551f3567cd80cdeb25205ef4a86c6668 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Thu, 5 Feb 2026 14:32:03 +0100
+Subject: HBASE-29797 Should not create wal directory when creating WAL
+ instance
+
+Cherry-picked from https://github.com/apache/hbase/pull/7589
+---
+ hbase-server/pom.xml                          |  5 ++
+ .../hbase/master/region/MasterRegion.java     |  2 +-
+ .../hbase/regionserver/HRegionServer.java     |  4 +-
+ .../hbase/regionserver/wal/AbstractFSWAL.java |  6 +-
+ .../apache/hadoop/hbase/wal/WALFactory.java   | 34 +++++++-
+ .../hadoop/hbase/HBaseTestingUtility.java     |  5 +-
+ .../hadoop/hbase/master/TestWALFencing.java   | 81 +++++++++++++++++++
+ .../regionserver/TestCompactionPolicy.java    |  1 +
+ .../regionserver/TestFailedAppendAndSync.java |  1 +
+ .../hbase/regionserver/TestHRegion.java       | 22 ++---
+ .../hbase/regionserver/TestLogRoller.java     |  5 +-
+ .../hbase/regionserver/TestWALLockup.java     |  2 +
+ .../regionserver/wal/AbstractTestFSWAL.java   |  7 +-
+ .../wal/AbstractTestWALReplay.java            |  1 +
+ .../wal/TestAsyncFSWALDurability.java         |  2 +-
+ .../wal/TestAsyncFSWALRollStuck.java          |  1 +
+ .../regionserver/wal/TestAsyncWALReplay.java  |  4 +-
+ .../hbase/regionserver/wal/TestFSHLog.java    |  3 +
+ .../wal/TestFSHLogDurability.java             |  2 +-
+ .../hbase/regionserver/wal/TestWALReplay.java |  4 +-
+ .../wal/WALDurabilityTestBase.java            |  8 +-
+ .../hadoop/hbase/wal/TestWALFactory.java      | 15 ++--
+ .../hadoop/hbase/wal/TestWALSplitToHFile.java |  5 +-
+ pom.xml                                       |  7 ++
+ 24 files changed, 190 insertions(+), 37 deletions(-)
+ create mode 100644 hbase-server/src/test/java/org/apache/hadoop/hbase/master/TestWALFencing.java
+
+diff --git a/hbase-server/pom.xml b/hbase-server/pom.xml
+index 6585117cc5..64e3c3a477 100644
+--- a/hbase-server/pom.xml
++++ b/hbase-server/pom.xml
+@@ -312,6 +312,11 @@
+       <artifactId>junit-vintage-engine</artifactId>
+       <scope>test</scope>
+     </dependency>
++    <dependency>
++      <groupId>org.awaitility</groupId>
++      <artifactId>awaitility</artifactId>
++      <scope>test</scope>
++    </dependency>
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-core</artifactId>
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/region/MasterRegion.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/region/MasterRegion.java
+index 7fd7f6fa5c..0cef601d5b 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/region/MasterRegion.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/region/MasterRegion.java
+@@ -468,7 +468,7 @@ public final class MasterRegion {
+       params.archivedWalSuffix(), params.rollPeriodMs(), params.flushSize());
+     walRoller.start();
+ 
+-    WALFactory walFactory = new WALFactory(conf, server.getServerName().toString());
++    WALFactory walFactory = new WALFactory(conf, server.getServerName().toString(), server);
+     Path tableDir = CommonFSUtils.getTableDir(rootDir, td.getTableName());
+     Path initializingFlag = new Path(tableDir, INITIALIZING_FLAG);
+     Path initializedFlag = new Path(tableDir, INITIALIZED_FLAG);
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+index f9ef9d8473..ec0f94975e 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
+@@ -2126,8 +2126,8 @@ public class HRegionServer extends Thread
+       throw new RegionServerRunningException(
+         "Region server has already created directory at " + this.serverName.toString());
+     }
+-    // Always create wal directory as now we need this when master restarts to find out the live
+-    // region servers.
++    // Create wal directory here and we will never create it again in other places. This is
++    // important to make sure that our fencing way takes effect. See HBASE-29797 for more details.
+     if (!this.walFs.mkdirs(logDir)) {
+       throw new IOException("Can not create wal directory " + logDir);
+     }
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
+index 76e292bd85..efa151dd6f 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
+@@ -424,10 +424,8 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+     this.conf = conf;
+     this.abortable = abortable;
+ 
+-    if (!fs.exists(walDir) && !fs.mkdirs(walDir)) {
+-      throw new IOException("Unable to mkdir " + walDir);
+-    }
+-
++    // Here we only crate archive dir, without wal dir. This is to make sure that our fencing way
++    // takes effect. See HBASE-29797 for more details.
+     if (!fs.exists(this.walArchiveDir)) {
+       if (!fs.mkdirs(this.walArchiveDir)) {
+         throw new IOException("Unable to mkdir " + this.walArchiveDir);
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/wal/WALFactory.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/wal/WALFactory.java
+index 11a6c18042..cedeb46f43 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/wal/WALFactory.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/wal/WALFactory.java
+@@ -17,6 +17,7 @@
+  */
+ package org.apache.hadoop.hbase.wal;
+ 
++import com.google.errorprone.annotations.RestrictedApi;
+ import java.io.IOException;
+ import java.io.InterruptedIOException;
+ import java.util.List;
+@@ -31,6 +32,7 @@ import org.apache.hadoop.hbase.regionserver.wal.MetricsWAL;
+ import org.apache.hadoop.hbase.regionserver.wal.ProtobufWALStreamReader;
+ import org.apache.hadoop.hbase.regionserver.wal.ProtobufWALTailingReader;
+ import org.apache.hadoop.hbase.util.CancelableProgressable;
++import org.apache.hadoop.hbase.util.CommonFSUtils;
+ import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
+ import org.apache.hadoop.hbase.util.LeaseNotRecoveredException;
+ import org.apache.hadoop.hbase.wal.WALProvider.Writer;
+@@ -203,8 +205,10 @@ public class WALFactory {
+     return provider;
+   }
+ 
++  @RestrictedApi(explanation = "Should only be called in tests", link = "",
++      allowedOnPath = ".*/src/test/.*|.*/HBaseTestingUtility.java|.*/WALPerformanceEvaluation.java")
+   public WALFactory(Configuration conf, String factoryId) throws IOException {
+-    this(conf, factoryId, null);
++    this(conf, factoryId, null, true);
+   }
+ 
+   /**
+@@ -213,6 +217,30 @@ public class WALFactory {
+    * @param abortable the server to abort
+    */
+   public WALFactory(Configuration conf, String factoryId, Abortable abortable) throws IOException {
++    this(conf, factoryId, abortable, false);
++  }
++
++  private static void createWALDirectory(Configuration conf, String factoryId) throws IOException {
++    FileSystem walFs = CommonFSUtils.getWALFileSystem(conf);
++    Path walRootDir = CommonFSUtils.getWALRootDir(conf);
++    Path walDir = new Path(walRootDir, AbstractFSWALProvider.getWALDirectoryName(factoryId));
++    if (!walFs.exists(walDir) && !walFs.mkdirs(walDir)) {
++      throw new IOException("Can not create wal directory " + walDir);
++    }
++  }
++
++  /**
++   * @param conf               must not be null, will keep a reference to read params in later
++   *                           reader/writer instances.
++   * @param factoryId          a unique identifier for this factory. used i.e. by filesystem
++   *                           implementations to make a directory
++   * @param abortable          the server associated with this WAL file
++   * @param createWalDirectory pass {@code true} for testing purpose, to create the wal directory
++   *                           automatically. In normal code path, we should create it in
++   *                           HRegionServer setup.
++   */
++  private WALFactory(Configuration conf, String factoryId, Abortable abortable,
++    boolean createWalDirectory) throws IOException {
+     // until we've moved reader/writer construction down into providers, this initialization must
+     // happen prior to provider initialization, in case they need to instantiate a reader/writer.
+     timeoutMillis = conf.getInt("hbase.hlog.open.timeout", 300000);
+@@ -229,6 +257,10 @@ public class WALFactory {
+     this.abortable = abortable;
+     // end required early initialization
+     if (conf.getBoolean(WAL_ENABLED, true)) {
++      if (createWalDirectory) {
++        // for testing only
++        createWALDirectory(conf, factoryId);
++      }
+       provider = getProvider(WAL_PROVIDER, DEFAULT_WAL_PROVIDER, null);
+     } else {
+       // special handling of existing configuration behavior.
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/HBaseTestingUtility.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/HBaseTestingUtility.java
+index 7cb985aee9..51cce84e6f 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/HBaseTestingUtility.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/HBaseTestingUtility.java
+@@ -2582,8 +2582,9 @@ public class HBaseTestingUtility extends HBaseZKTestingUtility {
+     // The WAL subsystem will use the default rootDir rather than the passed in rootDir
+     // unless I pass along via the conf.
+     Configuration confForWAL = new Configuration(conf);
+-    confForWAL.set(HConstants.HBASE_DIR, rootDir.toString());
+-    return new WALFactory(confForWAL, "hregion-" + RandomStringUtils.randomNumeric(8)).getWAL(hri);
++    CommonFSUtils.setRootDir(confForWAL, rootDir);
++    return new WALFactory(confForWAL, "hregion-" + RandomStringUtils.insecure().nextNumeric(8))
++      .getWAL(hri);
+   }
+ 
+   /**
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/master/TestWALFencing.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/master/TestWALFencing.java
+new file mode 100644
+index 0000000000..9341dcd5d9
+--- /dev/null
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/master/TestWALFencing.java
+@@ -0,0 +1,81 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.hadoop.hbase.master;
++
++import static org.awaitility.Awaitility.await;
++
++import java.io.IOException;
++import java.time.Duration;
++import java.util.Collections;
++import org.apache.hadoop.fs.FileStatus;
++import org.apache.hadoop.fs.Path;
++import org.apache.hadoop.hbase.HBaseTestingUtility;
++import org.apache.hadoop.hbase.TableName;
++import org.apache.hadoop.hbase.client.RegionInfo;
++import org.apache.hadoop.hbase.regionserver.HRegionServer;
++import org.apache.hadoop.hbase.regionserver.Region;
++import org.apache.hadoop.hbase.testclassification.MasterTests;
++import org.apache.hadoop.hbase.testclassification.MediumTests;
++import org.apache.hadoop.hbase.util.RecoverLeaseFSUtils;
++import org.junit.jupiter.api.AfterAll;
++import org.junit.jupiter.api.BeforeAll;
++import org.junit.jupiter.api.Tag;
++import org.junit.jupiter.api.Test;
++
++/**
++ * Testcase for HBASE-29797, where the lazy initialized WALProvider may recreate the WAL directory
++ * and cause our fencing way loses efficacy.
++ */
++@Tag(MasterTests.TAG)
++@Tag(MediumTests.TAG)
++public class TestWALFencing {
++
++  private static final HBaseTestingUtility UTIL = new HBaseTestingUtility();
++
++  @BeforeAll
++  public static void setUp() throws Exception {
++    UTIL.startMiniCluster(3);
++    UTIL.getAdmin().balancerSwitch(false, true);
++  }
++
++  @AfterAll
++  public static void tearDown() throws IOException {
++    UTIL.shutdownMiniCluster();
++  }
++
++  @Test
++  public void testMoveMeta() throws Exception {
++    HRegionServer metaRs = UTIL.getRSForFirstRegionInTable(TableName.META_TABLE_NAME);
++    HRegionServer otherRs = UTIL.getOtherRegionServer(metaRs);
++    // do fencing here, i.e, kill otherRs
++    Path splittingDir = UTIL.getMiniHBaseCluster().getMaster().getMasterWalManager()
++      .getLogDirs(Collections.singleton(otherRs.getServerName())).get(0);
++    for (FileStatus walFile : otherRs.getWALFileSystem().listStatus(splittingDir)) {
++      RecoverLeaseFSUtils.recoverFileLease(otherRs.getWALFileSystem(), walFile.getPath(),
++        otherRs.getConfiguration());
++    }
++    // move meta region to otherRs, which should fail and crash otherRs, and then master will try to
++    // assign meta region to another rs
++    RegionInfo metaRegionInfo = metaRs.getRegions().stream().map(Region::getRegionInfo)
++      .filter(RegionInfo::isMetaRegion).findAny().get();
++    UTIL.getAdmin().move(metaRegionInfo.getEncodedNameAsBytes(), otherRs.getServerName());
++    // make sure that meta region is not on otherRs
++    await().during(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(6))
++      .until(() -> otherRs.getRegions(TableName.META_TABLE_NAME).isEmpty());
++  }
++}
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestCompactionPolicy.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestCompactionPolicy.java
+index 5d764df9eb..a9d48e2360 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestCompactionPolicy.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestCompactionPolicy.java
+@@ -99,6 +99,7 @@ public class TestCompactionPolicy {
+     htd.addFamily(hcd);
+     HRegionInfo info = new HRegionInfo(htd.getTableName(), null, null, false);
+ 
++    fs.mkdirs(new Path(basedir, logName));
+     hlog = new FSHLog(fs, basedir, logName, conf);
+     ChunkCreator.initialize(MemStoreLAB.CHUNK_SIZE_DEFAULT, false, 0, 0, 0, null,
+       MemStoreLAB.INDEX_CHUNK_SIZE_PERCENTAGE_DEFAULT);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestFailedAppendAndSync.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestFailedAppendAndSync.java
+index 676151f3eb..a460aa4922 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestFailedAppendAndSync.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestFailedAppendAndSync.java
+@@ -194,6 +194,7 @@ public class TestFailedAppendAndSync {
+     // the test.
+     FileSystem fs = FileSystem.get(CONF);
+     Path rootDir = new Path(dir + getName());
++    fs.mkdirs(new Path(rootDir, getName()));
+     DodgyFSLog dodgyWAL = new DodgyFSLog(fs, services, rootDir, getName(), CONF);
+     dodgyWAL.init();
+     LogRoller logRoller = new LogRoller(services);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestHRegion.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestHRegion.java
+index 1d53a7d652..68b6c4919a 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestHRegion.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestHRegion.java
+@@ -368,8 +368,9 @@ public class TestHRegion {
+     }
+ 
+     FileSystem fs = FileSystem.get(CONF);
+-    Path rootDir = new Path(dir + "testMemstoreSnapshotSize");
+-    MyFaultyFSLog faultyLog = new MyFaultyFSLog(fs, rootDir, "testMemstoreSnapshotSize", CONF);
++    Path rootDir = new Path(dir + method);
++    fs.mkdirs(new Path(rootDir, method));
++    MyFaultyFSLog faultyLog = new MyFaultyFSLog(fs, rootDir, method, CONF);
+     region = initHRegion(tableName, null, null, CONF, false, Durability.SYNC_WAL, faultyLog,
+       COLUMN_FAMILY_BYTES);
+ 
+@@ -412,10 +413,10 @@ public class TestHRegion {
+ 
+   @Test
+   public void testMemstoreSizeAccountingWithFailedPostBatchMutate() throws IOException {
+-    String testName = "testMemstoreSizeAccountingWithFailedPostBatchMutate";
+     FileSystem fs = FileSystem.get(CONF);
+-    Path rootDir = new Path(dir + testName);
+-    FSHLog hLog = new FSHLog(fs, rootDir, testName, CONF);
++    Path rootDir = new Path(dir + method);
++    fs.mkdirs(new Path(rootDir, method));
++    FSHLog hLog = new FSHLog(fs, rootDir, method, CONF);
+     hLog.init();
+     HRegion region = initHRegion(tableName, null, null, CONF, false, Durability.SYNC_WAL, hLog,
+       COLUMN_FAMILY_BYTES);
+@@ -1251,8 +1252,10 @@ public class TestHRegion {
+         };
+       }
+     }
+-    FailAppendFlushMarkerWAL wal = new FailAppendFlushMarkerWAL(FileSystem.get(walConf),
+-      CommonFSUtils.getRootDir(walConf), method, walConf);
++    FileSystem fs = FileSystem.get(walConf);
++    Path rootDir = CommonFSUtils.getRootDir(walConf);
++    fs.mkdirs(new Path(rootDir, method));
++    FailAppendFlushMarkerWAL wal = new FailAppendFlushMarkerWAL(fs, rootDir, method, walConf);
+     wal.init();
+     this.region = initHRegion(tableName, HConstants.EMPTY_START_ROW, HConstants.EMPTY_END_ROW, CONF,
+       false, Durability.USE_DEFAULT, wal, family);
+@@ -3353,8 +3356,9 @@ public class TestHRegion {
+   @Test
+   public void testDataInMemoryWithoutWAL() throws IOException {
+     FileSystem fs = FileSystem.get(CONF);
+-    Path rootDir = new Path(dir + "testDataInMemoryWithoutWAL");
+-    FSHLog hLog = new FSHLog(fs, rootDir, "testDataInMemoryWithoutWAL", CONF);
++    Path rootDir = new Path(dir + method);
++    fs.mkdirs(new Path(rootDir, method));
++    FSHLog hLog = new FSHLog(fs, rootDir, method, CONF);
+     hLog.init();
+     // This chunk creation is done throughout the code base. Do we want to move it into core?
+     // It is missing from this test. W/o it we NPE.
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestLogRoller.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestLogRoller.java
+index 154b2a839b..f1d0aa4c6f 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestLogRoller.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestLogRoller.java
+@@ -58,12 +58,13 @@ public class TestLogRoller {
+   private static FileSystem FS;
+ 
+   @Before
+-  public void setup() throws Exception {
++  public void setUp() throws Exception {
+     CONF = TEST_UTIL.getConfiguration();
+     CONF.setInt("hbase.regionserver.logroll.period", LOG_ROLL_PERIOD);
+     CONF.setInt(HConstants.THREAD_WAKE_FREQUENCY, 300);
+     ROOT_DIR = TEST_UTIL.getRandomDir();
+     FS = FileSystem.get(CONF);
++    FS.mkdirs(new Path(ROOT_DIR, LOG_DIR));
+     RegionServerServices services = Mockito.mock(RegionServerServices.class);
+     Mockito.when(services.getConfiguration()).thenReturn(CONF);
+     ROLLER = new LogRoller(services);
+@@ -74,7 +75,7 @@ public class TestLogRoller {
+   public void tearDown() throws Exception {
+     ROLLER.close();
+     FS.close();
+-    TEST_UTIL.shutdownMiniCluster();
++    TEST_UTIL.cleanupTestDir();
+   }
+ 
+   /**
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestWALLockup.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestWALLockup.java
+index 7925fe0073..731781bfc1 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestWALLockup.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/TestWALLockup.java
+@@ -216,6 +216,7 @@ public class TestWALLockup {
+     // OK. Now I have my mocked up Server & RegionServerServices and dodgy WAL, go ahead with test.
+     FileSystem fs = FileSystem.get(CONF);
+     Path rootDir = new Path(dir + getName());
++    fs.mkdirs(new Path(rootDir, getName()));
+     DodgyFSLog dodgyWAL = new DodgyFSLog(fs, rootDir, getName(), CONF);
+     dodgyWAL.init();
+     Path originalWAL = dodgyWAL.getCurrentFileName();
+@@ -394,6 +395,7 @@ public class TestWALLockup {
+     // OK. Now I have my mocked up Server & RegionServerServices and dodgy WAL, go ahead with test.
+     FileSystem fs = FileSystem.get(CONF);
+     Path rootDir = new Path(dir + getName());
++    fs.mkdirs(new Path(rootDir, getName()));
+     final DodgyFSLog dodgyWAL = new DodgyFSLog(fs, rootDir, getName(), CONF);
+     dodgyWAL.init();
+     // I need a log roller running.
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
+index 1f04e2718b..ea1d6e6de0 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
+@@ -120,6 +120,7 @@ public abstract class AbstractTestFSWAL {
+     final Path hbaseWALDir = TEST_UTIL.createWALRootDir();
+     DIR = new Path(hbaseWALDir, currentTest.getMethodName());
+     assertNotEquals(hbaseDir, hbaseWALDir);
++    FS.mkdirs(DIR);
+   }
+ 
+   @BeforeClass
+@@ -392,9 +393,8 @@ public abstract class AbstractTestFSWAL {
+   @Test(expected = IOException.class)
+   public void testFailedToCreateWALIfParentRenamed()
+     throws IOException, CommonFSUtils.StreamLacksCapabilityException {
+-    final String name = "testFailedToCreateWALIfParentRenamed";
+-    AbstractFSWAL<?> wal = newWAL(FS, CommonFSUtils.getWALRootDir(CONF), name,
+-      HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null);
++    AbstractFSWAL<?> wal = newWAL(FS, CommonFSUtils.getWALRootDir(CONF),
++      currentTest.getMethodName(), HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null);
+     long filenum = EnvironmentEdgeManager.currentTime();
+     Path path = wal.computeFilename(filenum);
+     wal.createWriterInstance(path);
+@@ -535,6 +535,7 @@ public abstract class AbstractTestFSWAL {
+ 
+   private AbstractFSWAL<?> createHoldingWAL(String testName, AtomicBoolean startHoldingForAppend,
+     CountDownLatch holdAppend) throws IOException {
++    FS.mkdirs(new Path(CommonFSUtils.getRootDir(CONF), testName));
+     AbstractFSWAL<?> wal = newWAL(FS, CommonFSUtils.getRootDir(CONF), testName,
+       HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null);
+     wal.init();
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestWALReplay.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestWALReplay.java
+index d93970c620..4bf3d93dda 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestWALReplay.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestWALReplay.java
+@@ -1030,6 +1030,7 @@ public abstract class AbstractTestWALReplay {
+   }
+ 
+   private MockWAL createMockWAL() throws IOException {
++    fs.mkdirs(new Path(hbaseRootDir, logName));
+     MockWAL wal = new MockWAL(fs, hbaseRootDir, logName, conf);
+     wal.init();
+     // Set down maximum recovery so we dfsclient doesn't linger retrying something
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALDurability.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALDurability.java
+index 8402617c44..3e4a58ce84 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALDurability.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALDurability.java
+@@ -57,7 +57,7 @@ public class TestAsyncFSWALDurability extends WALDurabilityTestBase<CustomAsyncF
+   }
+ 
+   @Override
+-  protected CustomAsyncFSWAL getWAL(FileSystem fs, Path root, String logDir, Configuration conf)
++  protected CustomAsyncFSWAL getWAL0(FileSystem fs, Path root, String logDir, Configuration conf)
+     throws IOException {
+     CustomAsyncFSWAL wal =
+       new CustomAsyncFSWAL(fs, root, logDir, conf, GROUP, NioSocketChannel.class);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALRollStuck.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALRollStuck.java
+index 2ef80db0e2..91ca37a282 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALRollStuck.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncFSWALRollStuck.java
+@@ -162,6 +162,7 @@ public class TestAsyncFSWALRollStuck {
+       }
+ 
+     };
++    UTIL.getTestFileSystem().mkdirs(new Path(rootDir, "log"));
+     WAL = new AsyncFSWAL(UTIL.getTestFileSystem(), rootDir, "log", "oldlog", conf,
+       Arrays.asList(listener), true, null, null, EVENT_LOOP_GROUP, CHANNEL_CLASS);
+     WAL.init();
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncWALReplay.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncWALReplay.java
+index ec2fb58a48..6ef56e426b 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncWALReplay.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestAsyncWALReplay.java
+@@ -69,7 +69,9 @@ public class TestAsyncWALReplay extends AbstractTestWALReplay {
+ 
+   @Override
+   protected WAL createWAL(Configuration c, Path hbaseRootDir, String logName) throws IOException {
+-    AsyncFSWAL asyncFSWAL = new AsyncFSWAL(FileSystem.get(c), hbaseRootDir, logName,
++    FileSystem fs = hbaseRootDir.getFileSystem(c);
++    fs.mkdirs(new Path(hbaseRootDir, logName));
++    AsyncFSWAL asyncFSWAL = new AsyncFSWAL(fs, hbaseRootDir, logName,
+       HConstants.HREGION_OLDLOGDIR_NAME, c, null, true, null, null, GROUP, CHANNEL_CLASS);
+     asyncFSWAL.init();
+     return asyncFSWAL;
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLog.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLog.java
+index 6f9ed7edcb..0196ab7499 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLog.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLog.java
+@@ -110,6 +110,7 @@ public class TestFSHLog extends AbstractTestFSWAL {
+   public void testSyncRunnerIndexOverflow() throws IOException, NoSuchFieldException,
+     SecurityException, IllegalArgumentException, IllegalAccessException {
+     final String name = this.name.getMethodName();
++    FS.mkdirs(new Path(CommonFSUtils.getRootDir(CONF), name));
+     FSHLog log = new FSHLog(FS, CommonFSUtils.getRootDir(CONF), name,
+       HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null);
+     log.init();
+@@ -240,6 +241,7 @@ public class TestFSHLog extends AbstractTestFSWAL {
+     final CountDownLatch flushFinished = new CountDownLatch(1);
+     final CountDownLatch putFinished = new CountDownLatch(1);
+ 
++    FS.mkdirs(new Path(CommonFSUtils.getRootDir(CONF), name));
+     try (FSHLog log = new FSHLog(FS, CommonFSUtils.getRootDir(CONF), name,
+       HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null)) {
+       log.init();
+@@ -353,6 +355,7 @@ public class TestFSHLog extends AbstractTestFSWAL {
+     }
+     final byte[] b = Bytes.toBytes("b");
+     String name = this.name.getMethodName();
++    FS.mkdirs(new Path(CommonFSUtils.getRootDir(CONF), name));
+     // Have a FSHLog writer implementation that fails during close
+     try (FSHLog log = new FSHLog(FS, CommonFSUtils.getRootDir(CONF), name,
+       HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null)) {
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLogDurability.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLogDurability.java
+index 777b7b3f3d..9b04565080 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLogDurability.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestFSHLogDurability.java
+@@ -36,7 +36,7 @@ public class TestFSHLogDurability extends WALDurabilityTestBase<CustomFSHLog> {
+     HBaseClassTestRule.forClass(TestFSHLogDurability.class);
+ 
+   @Override
+-  protected CustomFSHLog getWAL(FileSystem fs, Path root, String logDir, Configuration conf)
++  protected CustomFSHLog getWAL0(FileSystem fs, Path root, String logDir, Configuration conf)
+     throws IOException {
+     CustomFSHLog wal = new CustomFSHLog(fs, root, logDir, conf);
+     wal.init();
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestWALReplay.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestWALReplay.java
+index 8adf15876a..ef2932d4c4 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestWALReplay.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestWALReplay.java
+@@ -47,7 +47,9 @@ public class TestWALReplay extends AbstractTestWALReplay {
+ 
+   @Override
+   protected WAL createWAL(Configuration c, Path hbaseRootDir, String logName) throws IOException {
+-    FSHLog wal = new FSHLog(FileSystem.get(c), hbaseRootDir, logName, c);
++    FileSystem fs = hbaseRootDir.getFileSystem(c);
++    fs.mkdirs(new Path(hbaseRootDir, logName));
++    FSHLog wal = new FSHLog(fs, hbaseRootDir, logName, c);
+     wal.init();
+     // Set down maximum recovery so we dfsclient doesn't linger retrying something
+     // long gone.
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/WALDurabilityTestBase.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/WALDurabilityTestBase.java
+index 81ac0bfbfd..e731fabbea 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/WALDurabilityTestBase.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/WALDurabilityTestBase.java
+@@ -69,7 +69,13 @@ public abstract class WALDurabilityTestBase<T extends WAL> {
+     TEST_UTIL.cleanupTestDir();
+   }
+ 
+-  protected abstract T getWAL(FileSystem fs, Path root, String logDir, Configuration conf)
++  protected final T getWAL(FileSystem fs, Path root, String logDir, Configuration conf)
++    throws IOException {
++    fs.mkdirs(new Path(root, logDir));
++    return getWAL0(fs, root, logDir, conf);
++  }
++
++  protected abstract T getWAL0(FileSystem fs, Path root, String logDir, Configuration conf)
+     throws IOException;
+ 
+   protected abstract void resetSyncFlag(T wal);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALFactory.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALFactory.java
+index 1afdc6e0fa..11c1667466 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALFactory.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALFactory.java
+@@ -621,7 +621,7 @@ public class TestWALFactory {
+   @Test
+   public void testWALProviders() throws IOException {
+     Configuration conf = new Configuration();
+-    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString());
++    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString(), null);
+     assertEquals(walFactory.getWALProvider().getClass(), walFactory.getMetaProvider().getClass());
+   }
+ 
+@@ -629,7 +629,7 @@ public class TestWALFactory {
+   public void testOnlySetWALProvider() throws IOException {
+     Configuration conf = new Configuration();
+     conf.set(WAL_PROVIDER, WALFactory.Providers.multiwal.name());
+-    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString());
++    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString(), null);
+ 
+     assertEquals(WALFactory.Providers.multiwal.clazz, walFactory.getWALProvider().getClass());
+     assertEquals(WALFactory.Providers.multiwal.clazz, walFactory.getMetaProvider().getClass());
+@@ -639,7 +639,7 @@ public class TestWALFactory {
+   public void testOnlySetMetaWALProvider() throws IOException {
+     Configuration conf = new Configuration();
+     conf.set(META_WAL_PROVIDER, WALFactory.Providers.asyncfs.name());
+-    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString());
++    WALFactory walFactory = new WALFactory(conf, this.currentServername.toString(), null);
+ 
+     assertEquals(WALFactory.Providers.defaultProvider.clazz,
+       walFactory.getWALProvider().getClass());
+@@ -650,14 +650,15 @@ public class TestWALFactory {
+   public void testDefaultProvider() throws IOException {
+     final Configuration conf = new Configuration();
+     // AsyncFSWal is the default, we should be able to request any WAL.
+-    final WALFactory normalWalFactory = new WALFactory(conf, this.currentServername.toString());
++    final WALFactory normalWalFactory =
++      new WALFactory(conf, this.currentServername.toString(), null);
+     Class<? extends WALProvider> fshLogProvider =
+       normalWalFactory.getProviderClass(WALFactory.WAL_PROVIDER, Providers.filesystem.name());
+     assertEquals(Providers.filesystem.clazz, fshLogProvider);
+ 
+     // Imagine a world where MultiWAL is the default
+     final WALFactory customizedWalFactory =
+-      new WALFactory(conf, this.currentServername.toString()) {
++      new WALFactory(conf, this.currentServername.toString(), null) {
+         @Override
+         Providers getDefaultProvider() {
+           return Providers.multiwal;
+@@ -673,7 +674,7 @@ public class TestWALFactory {
+   public void testCustomProvider() throws IOException {
+     final Configuration config = new Configuration();
+     config.set(WALFactory.WAL_PROVIDER, IOTestProvider.class.getName());
+-    final WALFactory walFactory = new WALFactory(config, this.currentServername.toString());
++    final WALFactory walFactory = new WALFactory(config, this.currentServername.toString(), null);
+     Class<? extends WALProvider> walProvider =
+       walFactory.getProviderClass(WALFactory.WAL_PROVIDER, Providers.filesystem.name());
+     assertEquals(IOTestProvider.class, walProvider);
+@@ -685,7 +686,7 @@ public class TestWALFactory {
+   public void testCustomMetaProvider() throws IOException {
+     final Configuration config = new Configuration();
+     config.set(WALFactory.META_WAL_PROVIDER, IOTestProvider.class.getName());
+-    final WALFactory walFactory = new WALFactory(config, this.currentServername.toString());
++    final WALFactory walFactory = new WALFactory(config, this.currentServername.toString(), null);
+     Class<? extends WALProvider> walProvider =
+       walFactory.getProviderClass(WALFactory.WAL_PROVIDER, Providers.filesystem.name());
+     assertEquals(Providers.filesystem.clazz, walProvider);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALSplitToHFile.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALSplitToHFile.java
+index 9bd4e32279..cac63289ed 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALSplitToHFile.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/wal/TestWALSplitToHFile.java
+@@ -171,12 +171,15 @@ public class TestWALSplitToHFile {
+   }
+ 
+   private WAL createWAL(Configuration c, Path hbaseRootDir, String logName) throws IOException {
+-    FSHLog wal = new FSHLog(FileSystem.get(c), hbaseRootDir, logName, c);
++    FileSystem fs = hbaseRootDir.getFileSystem(c);
++    fs.mkdirs(new Path(hbaseRootDir, logName));
++    FSHLog wal = new FSHLog(fs, hbaseRootDir, logName, c);
+     wal.init();
+     return wal;
+   }
+ 
+   private WAL createWAL(FileSystem fs, Path hbaseRootDir, String logName) throws IOException {
++    fs.mkdirs(new Path(hbaseRootDir, logName));
+     FSHLog wal = new FSHLog(fs, hbaseRootDir, logName, this.conf);
+     wal.init();
+     return wal;
+diff --git a/pom.xml b/pom.xml
+index a0f1dea8fd..568bc41540 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -598,6 +598,7 @@
+     <jruby.version>9.3.15.0</jruby.version>
+     <junit.jupiter.version>5.13.4</junit.jupiter.version>
+     <junit.vintage.version>5.13.4</junit.vintage.version>
++    <awaitility.version>4.3.0</awaitility.version>
+     <hamcrest.version>1.3</hamcrest.version>
+     <opentelemetry.version>1.49.0</opentelemetry.version>
+     <opentelemetry-semconv.version>1.29.0-alpha</opentelemetry-semconv.version>
+@@ -1416,6 +1417,12 @@
+         <version>${junit.vintage.version}</version>
+         <scope>test</scope>
+       </dependency>
++      <dependency>
++        <groupId>org.awaitility</groupId>
++        <artifactId>awaitility</artifactId>
++        <version>${awaitility.version}</version>
++        <scope>test</scope>
++      </dependency>
+       <dependency>
+         <groupId>org.hamcrest</groupId>
+         <artifactId>hamcrest-core</artifactId>
