@@ -24,13 +24,13 @@ index 69af92e..5bfad33 100644
 +
 +      To build successfully we also need to use -Dmaven.test.skip=true to skip building the tests.
 +    -->
-+    <!--dependency>
++    <!-- dependency>
        <groupId>org.apache.hbase</groupId>
        <artifactId>hbase-testing-util</artifactId>
        <version>${hbase.version}</version>
        <scope>test</scope>
 -    </dependency>
-+    </dependency-->
++    </dependency -->
      <dependency>
        <groupId>org.mockito</groupId>
        <artifactId>mockito-core</artifactId>
@@ -44,13 +44,13 @@ index f9d94e8..3b9da09 100644
      </dependency>
 -    <dependency>
 +    <!-- See the hbase-hbck2/pom.xml for an explanation of why this is commented out -->
-+    <!--dependency>
++    <!-- dependency>
        <groupId>org.apache.hbase</groupId>
        <artifactId>hbase-testing-util</artifactId>
        <version>${hbase.version}</version>
        <scope>test</scope>
 -    </dependency>
-+    </dependency-->
++    </dependency -->
      <dependency>
        <groupId>org.mockito</groupId>
        <artifactId>mockito-core</artifactId>
