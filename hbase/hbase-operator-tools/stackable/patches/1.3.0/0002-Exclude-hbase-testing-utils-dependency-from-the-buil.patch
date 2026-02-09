@@ -19,7 +19,9 @@ index 69af92e..5bfad33 100644
 -    <dependency>
 +    <!-- Starting with Hbase 2.6.2, this brings in a dependency that is not publicly available:
 +        org.apache.directory.jdbm:apacheds-jdbm1:bundle:2.0.0-M2
++
 +      Since we do not run the tests, we exclude this dependency.
++
 +      To build successfully we also need to use -Dmaven.test.skip=true to skip building the tests.
 +    -->
 +    <!--dependency>

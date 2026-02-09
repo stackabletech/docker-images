@@ -3,6 +3,9 @@ From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Mon, 9 Feb 2026 18:24:16 +0100
 Subject: Configure git-commit-id-plugin to use native git
 
+This fixes the problem that jgit cannot handle worktrees and the build fails.
+
+See https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
 ---
  hbase-hbck2/pom.xml | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
