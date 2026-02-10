@@ -1,4 +1,4 @@
-From f9e952767faf3032c0d4e729e51b5901fcf1a0e1 Mon Sep 17 00:00:00 2001
+From b589c5bae43f401c3c49a5c4b4d106c09343d32b Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Tue, 6 May 2025 17:58:34 +0200
 Subject: Exclude hbase-testing-utils dependency from the build.
@@ -9,7 +9,7 @@ Subject: Exclude hbase-testing-utils dependency from the build.
  2 files changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/hbase-hbck2/pom.xml b/hbase-hbck2/pom.xml
-index 1d57225..fd0018c 100644
+index 69af92e..7bebf32 100644
 --- a/hbase-hbck2/pom.xml
 +++ b/hbase-hbck2/pom.xml
 @@ -114,12 +114,19 @@
@@ -35,7 +35,7 @@ index 1d57225..fd0018c 100644
        <groupId>org.mockito</groupId>
        <artifactId>mockito-core</artifactId>
 diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
-index 55ef075..eeebe14 100644
+index f9d94e8..1644c30 100644
 --- a/hbase-tools/pom.xml
 +++ b/hbase-tools/pom.xml
 @@ -103,12 +103,13 @@
