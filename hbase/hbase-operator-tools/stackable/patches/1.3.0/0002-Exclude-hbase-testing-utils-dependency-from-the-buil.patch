@@ -1,18 +1,18 @@
-From 6eedb5a2a3db365ce9cd4574dd8bee32a444c53f Mon Sep 17 00:00:00 2001
-From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
-Date: Mon, 9 Feb 2026 18:21:26 +0100
-Subject: Exclude hbase testing utils dependency from the build
+From f9e952767faf3032c0d4e729e51b5901fcf1a0e1 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Tue, 6 May 2025 17:58:34 +0200
+Subject: Exclude hbase-testing-utils dependency from the build.
 
 ---
- hbase-hbck2/pom.xml | 9 +++++++--
- hbase-tools/pom.xml | 5 +++--
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ hbase-hbck2/pom.xml | 11 +++++++++--
+ hbase-tools/pom.xml |  5 +++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/hbase-hbck2/pom.xml b/hbase-hbck2/pom.xml
-index 69af92e..5bfad33 100644
+index 1d57225..fd0018c 100644
 --- a/hbase-hbck2/pom.xml
 +++ b/hbase-hbck2/pom.xml
-@@ -114,12 +114,17 @@
+@@ -114,12 +114,19 @@
          </exclusion>
        </exclusions>
      </dependency>
@@ -35,7 +35,7 @@ index 69af92e..5bfad33 100644
        <groupId>org.mockito</groupId>
        <artifactId>mockito-core</artifactId>
 diff --git a/hbase-tools/pom.xml b/hbase-tools/pom.xml
-index f9d94e8..3b9da09 100644
+index 55ef075..eeebe14 100644
 --- a/hbase-tools/pom.xml
 +++ b/hbase-tools/pom.xml
 @@ -103,12 +103,13 @@
