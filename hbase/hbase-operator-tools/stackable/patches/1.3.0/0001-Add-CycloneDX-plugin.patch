@@ -1,6 +1,6 @@
-From 8616ee8b26bfbba285a36b91eb41a203a49b222a Mon Sep 17 00:00:00 2001
-From: dervoeti <lukas.krug@stackable.tech>
-Date: Thu, 13 Mar 2025 22:07:31 +0100
+From 44fd77d1f20a78dcc34ac9360ab8b4ed1e1d12af Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Mon, 9 Feb 2026 18:15:04 +0100
 Subject: Add CycloneDX plugin
 
 ---
@@ -8,10 +8,10 @@ Subject: Add CycloneDX plugin
  1 file changed, 17 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index caa032a..0025687 100644
+index 46e7f89..4903bb2 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -549,6 +549,23 @@
+@@ -557,6 +557,23 @@
            </formats>
          </configuration>
        </plugin>
@@ -25,10 +25,10 @@ index caa032a..0025687 100644
 +        </configuration>
 +        <executions>
 +          <execution>
-+          <goals>
-+            <goal>makeBom</goal>
-+          </goals>
-+          <phase>package</phase>
++            <goals>
++              <goal>makeBom</goal>
++            </goals>
++            <phase>package</phase>
 +          </execution>
 +        </executions>
 +      </plugin>
