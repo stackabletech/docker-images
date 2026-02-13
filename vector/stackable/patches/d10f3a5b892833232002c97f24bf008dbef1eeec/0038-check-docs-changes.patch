@@ -1,0 +1,23 @@
+From e5370c4acf1e62b970cb950d9f40d4630b6de3ae Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 6 Jan 2026 18:41:30 +0000
+Subject: check-docs changes
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ website/cue/reference/components/sinks/azure_logs_ingestion.cue | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/website/cue/reference/components/sinks/azure_logs_ingestion.cue b/website/cue/reference/components/sinks/azure_logs_ingestion.cue
+index f3f34deef..0b3fec118 100644
+--- a/website/cue/reference/components/sinks/azure_logs_ingestion.cue
++++ b/website/cue/reference/components/sinks/azure_logs_ingestion.cue
+@@ -71,7 +71,7 @@ components: sinks: azure_logs_ingestion: {
+ 		notices: []
+ 	}
+ 
+-	configuration: base.components.sinks.azure_logs_ingestion.configuration
++	configuration: generated.components.sinks.azure_logs_ingestion.configuration
+ 
+ 	input: {
+ 		logs:    true

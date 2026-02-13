@@ -1,0 +1,22 @@
+From 1609a631cc1b2e2b3e1abd556455dcb20a4ad28b Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sat, 2 Nov 2024 23:30:57 +0000
+Subject: spelling mistake
+
+---
+ src/sinks/azure_logs_ingestion/service.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 757ccc5a7..7c593c456 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -150,7 +150,7 @@ impl AzureLogsIngestionService {
+             }
+ 
+             if res.status() == StatusCode::UNAUTHORIZED {
+-                return Err("Azure returned 401 Unauthorised. Check that the token_scope matches the soverign cloud endpoint.".into());
++                return Err("Azure returned 401 Unauthorised. Check that the token_scope matches the sovereign cloud endpoint.".into());
+             }
+ 
+             if res.status() == StatusCode::FORBIDDEN {

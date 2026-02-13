@@ -1,0 +1,96 @@
+From 6f4a72cb3bd578f2a765e18823fe5f709e695227 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 22 Apr 2025 19:48:16 +0000
+Subject: check-fmt lint
+
+---
+ src/sinks/azure_logs_ingestion/config.rs  | 10 +++++-----
+ src/sinks/azure_logs_ingestion/service.rs | 19 ++++++++-----------
+ 2 files changed, 13 insertions(+), 16 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index f602838e1..77a0baea1 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -1,4 +1,3 @@
+-
+ use std::sync::Arc;
+ 
+ use azure_core::auth::TokenCredential;
+@@ -41,7 +40,9 @@ pub struct AzureLogsIngestionConfig {
+     /// The [Data collection endpoint URI][endpoint] associated with the Log Analytics workspace.
+     ///
+     /// [endpoint]: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-overview
+-    #[configurable(metadata(docs::examples = "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"))]
++    #[configurable(metadata(
++        docs::examples = "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
++    ))]
+     pub endpoint: String,
+ 
+     /// The [Data collection rule immutable ID][dcr_immutable_id] for the Data collection endpoint.
+@@ -117,7 +118,6 @@ impl Default for AzureLogsIngestionConfig {
+ }
+ 
+ impl AzureLogsIngestionConfig {
+-
+     pub(super) async fn build_inner(
+         &self,
+         cx: SinkContext,
+@@ -176,7 +176,6 @@ impl_generate_config_from_default!(AzureLogsIngestionConfig);
+ #[typetag::serde(name = "azure_logs_ingestion")]
+ impl SinkConfig for AzureLogsIngestionConfig {
+     async fn build(&self, cx: SinkContext) -> crate::Result<(VectorSink, Healthcheck)> {
+-
+         let endpoint: UriSerde = self.endpoint.parse()?;
+         self.build_inner(
+             cx,
+@@ -185,7 +184,8 @@ impl SinkConfig for AzureLogsIngestionConfig {
+             self.stream_name.clone(),
+             self.token_scope.clone(),
+             self.timestamp_field.clone(),
+-        ).await
++        )
++        .await
+     }
+ 
+     fn input(&self) -> Input {
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 7c593c456..60ce84b7a 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -1,7 +1,7 @@
++use futures::executor;
++use std::sync::Arc;
+ use std::sync::LazyLock;
+ use std::task::{Context, Poll};
+-use std::sync::Arc;
+-use futures::executor;
+ 
+ use azure_core::auth::TokenCredential;
+ 
+@@ -121,19 +121,16 @@ impl AzureLogsIngestionService {
+         let mut request = Request::post(&self.endpoint).body(Body::from(body))?;
+ 
+         // TODO: make this an option, for soverign clouds
+-        let access_token = executor::block_on(self.credential
+-            .get_token(&[&self.token_scope]))
++        let access_token = executor::block_on(self.credential.get_token(&[&self.token_scope]))
+             .expect("failed to get access token from credential");
+-        
++
+         let bearer = format!("Bearer {}", access_token.token.secret());
+ 
+         *request.headers_mut() = self.default_headers.clone();
+-        request
+-            .headers_mut()
+-            .insert(
+-                header::AUTHORIZATION,
+-                HeaderValue::from_str(&bearer).unwrap()
+-            );
++        request.headers_mut().insert(
++            header::AUTHORIZATION,
++            HeaderValue::from_str(&bearer).unwrap(),
++        );
+ 
+         Ok(request)
+     }

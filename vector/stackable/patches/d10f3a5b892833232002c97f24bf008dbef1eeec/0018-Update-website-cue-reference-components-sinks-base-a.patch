@@ -1,0 +1,24 @@
+From 993af5c670acae8ba21c0fba732c8b5287071b8a Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 13 May 2025 06:38:52 +1200
+Subject: Update
+ website/cue/reference/components/sinks/base/azure_logs_ingestion.cue
+
+Co-authored-by: Rosa Trieu <107086888+rtrieu@users.noreply.github.com>
+---
+ .../components/sinks/generated/azure_logs_ingestion.cue         | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+index 3251ef421..364e09fb9 100644
+--- a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
++++ b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+@@ -36,7 +36,7 @@ base: components: sinks: azure_logs_ingestion: configuration: {
+ 					The maximum size of a batch that is processed by a sink.
+ 
+ 					This is based on the uncompressed size of the batched events, before they are
+-					serialized/compressed.
++					serialized or compressed.
+ 					"""
+ 				required: false
+ 				type: uint: {

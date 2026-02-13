@@ -1,0 +1,35 @@
+From c74b179b5b549a886ffbf94fcf695f9790a34d98 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 6 Jan 2026 18:42:02 +0000
+Subject: check-clippy changes
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/service.rs | 1 +
+ src/sinks/azure_logs_ingestion/tests.rs   | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 85990aa7c..154646189 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -157,6 +157,7 @@ impl AzureLogsIngestionService {
+             }
+ 
+             if res.status() == StatusCode::BAD_REQUEST {
++                #[allow(deprecated)]
+                 let body_bytes: Bytes = hyper::body::to_bytes(res.into_body()).await.unwrap();
+                 let body_string: String = String::from_utf8(body_bytes.to_vec()).unwrap();
+                 let err_string: String = format!("Azure returned 400 Bad Request: {body_string}");
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index e1a6b13d1..b157f7f12 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -265,6 +265,7 @@ async fn correct_request() {
+     let (parts, body) = request.into_parts();
+     assert_eq!(&parts.method.to_string(), "POST");
+ 
++    #[allow(deprecated)]
+     let body = body::to_bytes(body).await.unwrap();
+     let body_json: serde_json::Value = serde_json::from_slice(&body[..]).unwrap();
+     let expected_json = serde_json::json!([

@@ -1,0 +1,71 @@
+From 98743a5d252cff6e41b32873f57566438dd97272 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 14 Dec 2025 17:04:04 +0000
+Subject: add user-assigned managed identity support
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs | 19 +++++++++++++++++--
+ src/sinks/azure_logs_ingestion/tests.rs  |  1 +
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index e3584a784..a9ee958a8 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -10,7 +10,9 @@ use azure_identity::{
+     AzureCliCredential,
+     ClientSecretCredential,
+     ManagedIdentityCredential,
+-    WorkloadIdentityCredential,
++    ManagedIdentityCredentialOptions,
++    UserAssignedId,
++    WorkloadIdentityCredential
+ };
+ use vector_lib::{
+     schema,
+@@ -172,6 +174,11 @@ pub enum AzureAuthentication {
+         #[configurable(metadata(docs::examples = "managedidentity"))]
+         #[configurable(metadata(docs::examples = "workloadidentity"))]
+         azure_credential_kind: String,
++
++        /// The User Assigned Managed Identity (Client ID) to use. Only applicable when `azure_credential_kind` is `managedidentity`.
++        #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
++        #[serde(default, skip_serializing_if = "Option::is_none")]
++        user_assigned_managed_identity_id: Option<String>,
+     }
+ }
+ 
+@@ -213,11 +220,19 @@ impl AzureAuthentication {
+ 
+             Self::SpecificAzureCredential {
+                 azure_credential_kind,
++                user_assigned_managed_identity_id,
+             } => {
+                 let credential: Arc<dyn TokenCredential> = match azure_credential_kind.replace(' ', "").to_lowercase().as_str() {
+                     #[cfg(not(target_arch = "wasm32"))]
+                     azure_credential_kinds::AZURE_CLI => AzureCliCredential::new(None)?,
+-                    azure_credential_kinds::MANAGED_IDENTITY => ManagedIdentityCredential::new(None)?,
++                    azure_credential_kinds::MANAGED_IDENTITY => {
++                        let mut options = ManagedIdentityCredentialOptions::default();
++                        if user_assigned_managed_identity_id.is_some() {
++                            options.user_assigned_id = Some(UserAssignedId::ClientId(user_assigned_managed_identity_id.clone().unwrap()));
++                        }
++                        
++                        ManagedIdentityCredential::new(Some(options))?
++                    }
+                     azure_credential_kinds::WORKLOAD_IDENTITY => WorkloadIdentityCredential::new(None)?,
+                     _ => {
+                         return Err(Error::with_message(ErrorKind::Credential, || {
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index c8b5526d6..769857fb3 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -137,6 +137,7 @@ fn basic_config_with_managed_identity() {
+     match &config.auth {
+         crate::sinks::azure_logs_ingestion::config::AzureAuthentication::SpecificAzureCredential {
+             azure_credential_kind,
++            user_assigned_managed_identity_id: _,
+         } => {
+             assert_eq!(azure_credential_kind, "managedidentity");
+         }

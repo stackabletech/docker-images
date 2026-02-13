@@ -1,0 +1,50 @@
+From a651e1013ee76cba6e2cc847a3dad360b5f03bd4 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 14 Dec 2025 17:45:44 +0000
+Subject: update docs, spelling
+
+---
+ .github/actions/spelling/expect.txt                       | 3 +++
+ .../reference/components/sinks/azure_logs_ingestion.cue   | 8 +++++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/.github/actions/spelling/expect.txt b/.github/actions/spelling/expect.txt
+index edc77d73e..a01a11078 100644
+--- a/.github/actions/spelling/expect.txt
++++ b/.github/actions/spelling/expect.txt
+@@ -331,6 +331,8 @@ majorly
+ makecache
+ Makefiles
+ mallocs
++managedidentity
++managedidentityclientassertion
+ markdownify
+ marketo
+ maxbin
+@@ -654,6 +656,7 @@ wkkmmawf
+ wmem
+ woooooow
+ woothee
++workloadidentity
+ workstreams
+ writeback
+ wtcache
+diff --git a/website/cue/reference/components/sinks/azure_logs_ingestion.cue b/website/cue/reference/components/sinks/azure_logs_ingestion.cue
+index 7e53b0e72..f3f34deef 100644
+--- a/website/cue/reference/components/sinks/azure_logs_ingestion.cue
++++ b/website/cue/reference/components/sinks/azure_logs_ingestion.cue
+@@ -6,9 +6,11 @@ components: sinks: azure_logs_ingestion: {
+ 	description: """
+ 		This sink uses the Azure Monitor Logs Ingestion API to send log events to a Log Analytics Workspace.
+ 
+-		The `azure_identity` crate is used for authentication, which supports the standard Azure authentication types
+-		(Workload Identity, Managed Identity, Azure CLI, Service Principal with Certificate or Secret, etc.) through
+-		environment variables.
++		The `azure_identity` crate is used for authentication, which supports standard Azure authentication types
++		(Service Principal, Managed Identity, Workload Identity, Azure CLI, etc.). However, because this crate
++		implements `DefaultAzureCredential` differently to other language SDKs, the authentication type must be
++		explicitly configured: either using `azure_tenant_id`, `azure_client_id`, `azure_client_secret`, or selecting
++		one of the `azure_credential_kind` options.
+ 		"""
+ 
+ 	classes: {

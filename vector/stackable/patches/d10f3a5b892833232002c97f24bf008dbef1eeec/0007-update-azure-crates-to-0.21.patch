@@ -1,0 +1,57 @@
+From 4bc02a1634657a55fc112a77b0dd258661281a50 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sat, 2 Nov 2024 03:49:11 +0000
+Subject: update azure crates to 0.21
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ Cargo.lock | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 953cffb65..9463af6a9 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -874,6 +874,25 @@ dependencies = [
+  "windows-sys 0.48.0",
+ ]
+ 
++[[package]]
++name = "async-process"
++version = "2.3.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "63255f1dc2381611000436537bbedfe83183faa303a5a0edaf191edef06526bb"
++dependencies = [
++ "async-channel 2.3.1",
++ "async-io 2.1.0",
++ "async-lock 3.4.0",
++ "async-signal",
++ "async-task",
++ "blocking",
++ "cfg-if",
++ "event-listener 5.3.1",
++ "futures-lite 2.4.0",
++ "rustix 0.38.37",
++ "tracing 0.1.40",
++]
++
+ [[package]]
+ name = "async-reactor-trait"
+ version = "1.1.0"
+@@ -1701,6 +1720,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "f35444aeeb91e29ca82d04dbb8ad904570f837c82093454dc1989c64a33554a7"
+ dependencies = [
+  "async-lock 3.4.0",
++ "async-process 2.3.0",
+  "async-trait",
+  "azure_core_macros",
+  "bytes 1.10.1",
+@@ -10464,7 +10484,7 @@ dependencies = [
+  "async-io 1.13.0",
+  "async-lock 2.8.0",
+  "async-net",
+- "async-process",
++ "async-process 1.8.1",
+  "blocking",
+  "futures-lite 1.13.0",
+ ]

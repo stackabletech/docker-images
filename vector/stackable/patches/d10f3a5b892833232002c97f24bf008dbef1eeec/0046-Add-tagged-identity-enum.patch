@@ -1,0 +1,283 @@
+From f866310e5708b588a924ed54516c0af41620f37c Mon Sep 17 00:00:00 2001
+From: Thomas <thomas.schneider@datadoghq.com>
+Date: Wed, 11 Feb 2026 17:40:36 -0500
+Subject: Add tagged identity enum
+
+---
+ src/sinks/azure_logs_ingestion/config.rs      | 161 +++++++++---------
+ src/sinks/azure_logs_ingestion/tests.rs       |  13 +-
+ .../sinks/generated/azure_logs_ingestion.cue  |  22 ++-
+ 3 files changed, 97 insertions(+), 99 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 73d6d47e2..1ca5f2272 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -129,14 +129,6 @@ impl Default for AzureLogsIngestionConfig {
+     }
+ }
+ 
+-mod azure_credential_kinds {
+-    #[cfg(not(target_arch = "wasm32"))]
+-    pub const AZURE_CLI: &str = "azurecli";
+-    pub const MANAGED_IDENTITY: &str = "managedidentity";
+-    pub const MANAGED_IDENTITY_CLIENT_ASSERTION: &str = "managedidentityclientassertion";
+-    pub const WORKLOAD_IDENTITY: &str = "workloadidentity";
+-}
+-
+ /// Configuration of the authentication strategy for interacting with Azure services.
+ #[configurable_component]
+ #[derive(Clone, Debug, Derivative, Eq, PartialEq)]
+@@ -160,29 +152,49 @@ pub enum AzureAuthentication {
+     },
+ 
+     /// Use credentials from environment variables
+-    SpecificAzureCredential {
+-        /// The kind of Azure credential to use.
+-        #[configurable(metadata(docs::examples = "azurecli"))]
+-        #[configurable(metadata(docs::examples = "managedidentity"))]
+-        #[configurable(metadata(docs::examples = "managedidentityclientassertion"))]
+-        #[configurable(metadata(docs::examples = "workloadidentity"))]
+-        azure_credential_kind: String,
+-
+-        /// The User Assigned Managed Identity (Client ID) to use. Only applicable when `azure_credential_kind` is `managedidentity` or `managedidentityclientassertion`.
++    #[configurable(metadata(docs::enum_tag_description = "The kind of Azure credential to use."))]
++    Specific(SpecificAzureCredential),
++}
++
++/// Specific Azure credential types.
++#[configurable_component]
++#[derive(Clone, Debug, Eq, PartialEq)]
++#[serde(
++    tag = "azure_credential_kind",
++    rename_all = "lowercase",
++    deny_unknown_fields
++)]
++pub enum SpecificAzureCredential {
++    /// Use Azure CLI credentials
++    #[cfg(not(target_arch = "wasm32"))]
++    AzureCli {},
++
++    /// Use Managed Identity credentials
++    ManagedIdentity {
++        /// The User Assigned Managed Identity (Client ID) to use.
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         #[serde(default, skip_serializing_if = "Option::is_none")]
+         user_assigned_managed_identity_id: Option<String>,
++    },
+ 
+-        /// The target Tenant ID to use. Only applicable when `azure_credential_kind` is `managedidentityclientassertion`.
++    /// Use Managed Identity with Client Assertion credentials
++    ManagedIdentityClientAssertion {
++        /// The User Assigned Managed Identity (Client ID) to use for the managed identity.
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         #[serde(default, skip_serializing_if = "Option::is_none")]
+-        client_assertion_tenant_id: Option<String>,
++        user_assigned_managed_identity_id: Option<String>,
+ 
+-        /// The target Client ID to use. Only applicable when `azure_credential_kind` is `managedidentityclientassertion`.
++        /// The target Tenant ID to use.
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+-        #[serde(default, skip_serializing_if = "Option::is_none")]
+-        client_assertion_client_id: Option<String>,
++        client_assertion_tenant_id: String,
++
++        /// The target Client ID to use.
++        #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
++        client_assertion_client_id: String,
+     },
++
++    /// Use Workload Identity credentials
++    WorkloadIdentity {},
+ }
+ 
+ #[derive(Debug)]
+@@ -244,74 +256,55 @@ impl AzureAuthentication {
+                 Ok(credential)
+             }
+ 
+-            Self::SpecificAzureCredential {
+-                azure_credential_kind,
++            Self::Specific(specific) => specific.credential().await,
++        }
++    }
++}
++
++impl SpecificAzureCredential {
++    /// Returns the provider for the credentials based on the specific credential type.
++    pub async fn credential(&self) -> azure_core::Result<Arc<dyn TokenCredential>> {
++        let credential: Arc<dyn TokenCredential> = match self {
++            #[cfg(not(target_arch = "wasm32"))]
++            Self::AzureCli {} => AzureCliCredential::new(None)?,
++
++            Self::ManagedIdentity {
++                user_assigned_managed_identity_id,
++            } => {
++                let mut options = ManagedIdentityCredentialOptions::default();
++                if let Some(id) = user_assigned_managed_identity_id {
++                    options.user_assigned_id = Some(UserAssignedId::ClientId(id.clone()));
++                }
++                ManagedIdentityCredential::new(Some(options))?
++            }
++
++            Self::ManagedIdentityClientAssertion {
+                 user_assigned_managed_identity_id,
+                 client_assertion_tenant_id,
+                 client_assertion_client_id,
+             } => {
+-                let credential: Arc<dyn TokenCredential> = match azure_credential_kind
+-                    .replace(' ', "")
+-                    .to_lowercase()
+-                    .as_str()
+-                {
+-                    #[cfg(not(target_arch = "wasm32"))]
+-                    azure_credential_kinds::AZURE_CLI => AzureCliCredential::new(None)?,
+-                    azure_credential_kinds::MANAGED_IDENTITY => {
+-                        let mut options = ManagedIdentityCredentialOptions::default();
+-                        if user_assigned_managed_identity_id.is_some() {
+-                            options.user_assigned_id = Some(UserAssignedId::ClientId(
+-                                user_assigned_managed_identity_id.clone().unwrap(),
+-                            ));
+-                        }
+-
+-                        ManagedIdentityCredential::new(Some(options))?
+-                    }
+-                    azure_credential_kinds::MANAGED_IDENTITY_CLIENT_ASSERTION => {
+-                        if client_assertion_tenant_id.is_none()
+-                            || client_assertion_client_id.is_none()
+-                        {
+-                            return Err(Error::with_message(ErrorKind::Credential,
+-                                "`auth.client_assertion_tenant_id` and `auth.client_assertion_client_id` must be set when using `auth.azure_credential_kind` of `managedidentityclientassertion`".to_string()
+-                            ));
+-                        }
+-
+-                        let mut options = ManagedIdentityCredentialOptions::default();
+-                        if user_assigned_managed_identity_id.is_some() {
+-                            options.user_assigned_id = Some(UserAssignedId::ClientId(
+-                                user_assigned_managed_identity_id.clone().unwrap(),
+-                            ));
+-                        }
+-                        let msi: Arc<dyn TokenCredential> =
+-                            ManagedIdentityCredential::new(Some(options))?;
+-                        let assertion = ManagedIdentityClientAssertion {
+-                            credential: msi,
+-                            // Future: make this configurable for sovereign clouds? (no way to test...)
+-                            scope: "api://AzureADTokenExchange/.default".to_string(),
+-                        };
+-
+-                        ClientAssertionCredential::new(
+-                            client_assertion_tenant_id.clone().unwrap(),
+-                            client_assertion_client_id.clone().unwrap(),
+-                            assertion,
+-                            None,
+-                        )?
+-                    }
+-                    azure_credential_kinds::WORKLOAD_IDENTITY => {
+-                        WorkloadIdentityCredential::new(None)?
+-                    }
+-                    _ => {
+-                        return Err(Error::with_message(
+-                            ErrorKind::Credential,
+-                            format!(
+-                                "`auth.azure_credential_kind` `{azure_credential_kind}` is unknown/unsupported"
+-                            ),
+-                        ));
+-                    }
++                let mut options = ManagedIdentityCredentialOptions::default();
++                if let Some(id) = user_assigned_managed_identity_id {
++                    options.user_assigned_id = Some(UserAssignedId::ClientId(id.clone()));
++                }
++                let msi: Arc<dyn TokenCredential> = ManagedIdentityCredential::new(Some(options))?;
++                let assertion = ManagedIdentityClientAssertion {
++                    credential: msi,
++                    // Future: make this configurable for sovereign clouds? (no way to test...)
++                    scope: "api://AzureADTokenExchange/.default".to_string(),
+                 };
+-                Ok(credential)
++
++                ClientAssertionCredential::new(
++                    client_assertion_tenant_id.clone(),
++                    client_assertion_client_id.clone(),
++                    assertion,
++                    None,
++                )?
+             }
+-        }
++
++            Self::WorkloadIdentity {} => WorkloadIdentityCredential::new(None)?,
++        };
++        Ok(credential)
+     }
+ }
+ 
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index cb8216661..597b7c701 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -146,15 +146,12 @@ fn basic_config_with_managed_identity() {
+     assert_eq!(config.timestamp_field, "TimeGenerated");
+ 
+     match &config.auth {
+-        crate::sinks::azure_logs_ingestion::config::AzureAuthentication::SpecificAzureCredential {
+-            azure_credential_kind,
+-            user_assigned_managed_identity_id: _,
+-            client_assertion_tenant_id: _,
+-            client_assertion_client_id: _,
+-        } => {
+-            assert_eq!(azure_credential_kind, "managedidentity");
++        crate::sinks::azure_logs_ingestion::config::AzureAuthentication::Specific(
++            crate::sinks::azure_logs_ingestion::config::SpecificAzureCredential::ManagedIdentity { .. }
++        ) => {
++            // Expected variant
+         }
+-        _ => panic!("Expected SpecificAzureCredential variant"),
++        _ => panic!("Expected Specific(ManagedIdentity) variant"),
+     }
+ }
+ 
+diff --git a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+index 90de0a667..c8b6f8164 100644
+--- a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
++++ b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+@@ -50,7 +50,12 @@ generated: components: sinks: azure_logs_ingestion: configuration: {
+ 			azure_credential_kind: {
+ 				description: "The kind of Azure credential to use."
+ 				required:    true
+-				type: string: examples: ["azurecli", "managedidentity", "managedidentityclientassertion", "workloadidentity"]
++				type: string: enum: {
++					azurecli:                       "Use Azure CLI credentials"
++					managedidentity:                "Use Managed Identity credentials"
++					managedidentityclientassertion: "Use Managed Identity with Client Assertion credentials"
++					workloadidentity:               "Use Workload Identity credentials"
++				}
+ 			}
+ 			azure_tenant_id: {
+ 				description: "The [Azure Tenant ID][azure_tenant_id]."
+@@ -61,18 +66,21 @@ generated: components: sinks: azure_logs_ingestion: configuration: {
+ 				}
+ 			}
+ 			client_assertion_client_id: {
+-				description: "The target Client ID to use. Only applicable when `azure_credential_kind` is `managedidentityclientassertion`."
+-				required:    false
++				description:   "The target Client ID to use."
++				relevant_when: "azure_credential_kind = \"managedidentityclientassertion\""
++				required:      true
+ 				type: string: examples: ["00000000-0000-0000-0000-000000000000"]
+ 			}
+ 			client_assertion_tenant_id: {
+-				description: "The target Tenant ID to use. Only applicable when `azure_credential_kind` is `managedidentityclientassertion`."
+-				required:    false
++				description:   "The target Tenant ID to use."
++				relevant_when: "azure_credential_kind = \"managedidentityclientassertion\""
++				required:      true
+ 				type: string: examples: ["00000000-0000-0000-0000-000000000000"]
+ 			}
+ 			user_assigned_managed_identity_id: {
+-				description: "The User Assigned Managed Identity (Client ID) to use. Only applicable when `azure_credential_kind` is `managedidentity` or `managedidentityclientassertion`."
+-				required:    false
++				description:   "The User Assigned Managed Identity (Client ID) to use."
++				relevant_when: "azure_credential_kind = \"managedidentity\" or azure_credential_kind = \"managedidentityclientassertion\""
++				required:      false
+ 				type: string: examples: ["00000000-0000-0000-0000-000000000000"]
+ 			}
+ 		}

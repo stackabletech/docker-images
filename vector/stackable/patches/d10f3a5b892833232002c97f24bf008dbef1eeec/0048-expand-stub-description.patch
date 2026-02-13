@@ -1,0 +1,21 @@
+From 9413eb38be94e1acfd5925470bbc6643264b29a7 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Thu, 12 Feb 2026 06:48:17 +0000
+Subject: expand stub description
+
+---
+ .../docs/reference/configuration/sinks/azure_logs_ingestion.md  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md b/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
+index 9700a444d..256f69065 100644
+--- a/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
++++ b/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
+@@ -1,6 +1,6 @@
+ ---
+ title: Azure Logs Ingestion
+-description: TODO
++description: Publish log events to the [Azure Monitor Log Ingestion API](https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview), so they can be used in Log Analytics or Sentinel.
+ component_kind: sink
+ layout: component
+ tags: ["azure", "monitor", "component", "sink", "logs", "ingestion"]

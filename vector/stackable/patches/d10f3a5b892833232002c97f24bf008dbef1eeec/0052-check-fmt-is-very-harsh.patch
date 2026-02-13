@@ -1,0 +1,37 @@
+From c6862835371790195d2ff6356721f8b60dde24bd Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Thu, 12 Feb 2026 08:52:42 +0000
+Subject: check fmt is very harsh...
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index aaa74d3c8..76a8645e6 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -139,19 +139,19 @@ pub enum AzureAuthentication {
+     #[derivative(Default)]
+     ClientSecretCredential {
+         /// The [Azure Tenant ID][azure_tenant_id].
+-        /// 
++        ///
+         /// [azure_tenant_id]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         azure_tenant_id: String,
+ 
+         /// The [Azure Client ID][azure_client_id].
+-        /// 
++        ///
+         /// [azure_client_id]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         azure_client_id: String,
+ 
+         /// The [Azure Client Secret][azure_client_secret].
+-        /// 
++        ///
+         /// [azure_client_secret]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00-00~000000-0000000~0000000000000000000"))]
+         azure_client_secret: SensitiveString,

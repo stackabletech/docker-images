@@ -1,0 +1,153 @@
+From 70043e9f841b36946e6f3b6e4ea2ba3faabe5d71 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 20 Apr 2025 22:28:19 +0000
+Subject: Add configurable timestamp field
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs | 19 ++++++++++++++
+ src/sinks/azure_logs_ingestion/sink.rs   | 32 ++++++++++++++++++++----
+ 2 files changed, 46 insertions(+), 5 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 86c478a49..95a6f88bb 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -26,6 +26,10 @@ pub(super) fn default_scope() -> String {
+     "https://monitor.azure.com/.default".into()
+ }
+ 
++pub(super) fn default_timestamp_field() -> String {
++    "TimeGenerated".into()
++}
++
+ /// Configuration for the `azure_logs_ingestion` sink.
+ #[configurable_component(sink(
+     "azure_logs_ingestion",
+@@ -60,6 +64,17 @@ pub struct AzureLogsIngestionConfig {
+     #[serde(default = "default_scope")]
+     pub(super) token_scope: String,
+ 
++    /// The destination field (column) for the timestamp.
++    ///
++    /// The setting of `log_schema.timestamp_key`, usually `timestamp`, is used as the source.
++    /// Most schemas use `TimeGenerated`, but some use `Timestamp` (legacy) or `EventStartTime` (ASIM) [std_columns].
++    ///
++    /// [std_columns]: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-standard-columns#timegenerated
++    #[configurable(metadata(docs::examples = "EventStartTime"))]
++    #[configurable(metadata(docs::examples = "Timestamp"))]
++    #[serde(default = "default_timestamp_field")]
++    pub timestamp_field: String,
++
+     #[configurable(derived)]
+     #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+     pub encoding: Transformer,
+@@ -91,6 +106,7 @@ impl Default for AzureLogsIngestionConfig {
+             dcr_immutable_id: Default::default(),
+             stream_name: Default::default(),
+             token_scope: default_scope(),
++            timestamp_field: default_timestamp_field(),
+             encoding: Default::default(),
+             batch: Default::default(),
+             request: Default::default(),
+@@ -109,6 +125,7 @@ impl AzureLogsIngestionConfig {
+         dcr_immutable_id: String,
+         stream_name: String,
+         token_scope: String,
++        timestamp_field: String,
+     ) -> crate::Result<(VectorSink, Healthcheck)> {
+         let endpoint = endpoint.with_default_parts().uri;
+         let protocol = get_http_scheme_from_uri(&endpoint).to_string();
+@@ -145,6 +162,7 @@ impl AzureLogsIngestionConfig {
+             batch_settings,
+             self.encoding.clone(),
+             service,
++            timestamp_field,
+             protocol,
+         );
+ 
+@@ -166,6 +184,7 @@ impl SinkConfig for AzureLogsIngestionConfig {
+             self.dcr_immutable_id.clone(),
+             self.stream_name.clone(),
+             self.token_scope.clone(),
++            self.timestamp_field.clone(),
+         ).await
+     }
+ 
+diff --git a/src/sinks/azure_logs_ingestion/sink.rs b/src/sinks/azure_logs_ingestion/sink.rs
+index e86e1d27b..6168ef516 100644
+--- a/src/sinks/azure_logs_ingestion/sink.rs
++++ b/src/sinks/azure_logs_ingestion/sink.rs
+@@ -2,6 +2,7 @@ use std::{fmt::Debug, io};
+ 
+ use bytes::Bytes;
+ use vector_lib::codecs::{encoding::Framer, CharacterDelimitedEncoder, JsonSerializerConfig};
++use vector_lib::lookup::PathPrefix;
+ 
+ use crate::sinks::prelude::*;
+ 
+@@ -25,11 +26,12 @@ where
+         batch_settings: BatcherSettings,
+         transformer: Transformer,
+         service: S,
++        timestamp_field: String,
+         protocol: String,
+     ) -> Self {
+         Self {
+             batch_settings,
+-            encoding: JsonEncoding::new(transformer),
++            encoding: JsonEncoding::new(transformer, timestamp_field),
+             service,
+             protocol,
+         }
+@@ -76,16 +78,17 @@ where
+     }
+ }
+ 
+-/// Customized encoding specific to the Azure Logs Ingestion sink, as the API does not support full
+-/// 9-digit nanosecond precision timestamps.
++/// Customized encoding specific to the Azure Logs Ingestion sink.
+ #[derive(Clone, Debug)]
+ pub(super) struct JsonEncoding {
++    timestamp_field: String,
+     encoder: (Transformer, Encoder<Framer>),
+ }
+ 
+ impl JsonEncoding {
+-    pub fn new(transformer: Transformer) -> Self {
++    pub fn new(transformer: Transformer, timestamp_field: String) -> Self {
+         Self {
++            timestamp_field,
+             encoder: (
+                 transformer,
+                 Encoder::<Framer>::new(
+@@ -100,9 +103,28 @@ impl JsonEncoding {
+ impl crate::sinks::util::encoding::Encoder<Vec<Event>> for JsonEncoding {
+     fn encode_input(
+         &self,
+-        input: Vec<Event>,
++        mut input: Vec<Event>,
+         writer: &mut dyn io::Write,
+     ) -> io::Result<(usize, GroupedCountByteSize)> {
++        for event in input.iter_mut() {
++            let log = event.as_mut_log();
++
++            // `.remove_timestamp()` will return the `timestamp` value regardless of location in Event or
++            // Metadata, the following `insert()` ensures it's encoded in the request.
++            let timestamp = if let Some(Value::Timestamp(ts)) = log.remove_timestamp() {
++                ts
++            } else {
++                chrono::Utc::now()
++            };
++
++            log.insert(
++                (PathPrefix::Event, self.timestamp_field.as_str()),
++                serde_json::Value::String(
++                    timestamp.to_rfc3339_opts(chrono::SecondsFormat::Micros, true),
++                ),
++            );
++        }
++
+         self.encoder.encode_input(input, writer)
+     }
+ }

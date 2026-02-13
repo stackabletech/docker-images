@@ -1,0 +1,79 @@
+From e0ba9281a5296f955a2e9cbd3618b2a3a6fc48c5 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 14 Dec 2025 02:58:54 +0000
+Subject: improve error messages
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs  | 20 +++++++++++++++++---
+ src/sinks/azure_logs_ingestion/service.rs |  5 ++---
+ 2 files changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 8b32de24a..e3584a784 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -186,6 +186,21 @@ impl AzureAuthentication {
+                 azure_client_id,
+                 azure_client_secret,
+             } => {
++                if azure_tenant_id == "" {
++                    return Err(Error::with_message(ErrorKind::Credential, || {
++                        format!("`auth.azure_tenant_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                    }))
++                }
++                if azure_client_id == "" {
++                    return Err(Error::with_message(ErrorKind::Credential, || {
++                        format!("`auth.azure_client_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                    }))
++                }
++                if azure_client_secret.inner() == "" {
++                    return Err(Error::with_message(ErrorKind::Credential, || {
++                        format!("`auth.azure_client_secret` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                    }))
++                }
+                 let secret: String = azure_client_secret.inner().into();
+                 let credential = ClientSecretCredential::new(
+                     &azure_tenant_id.clone(),
+@@ -206,7 +221,7 @@ impl AzureAuthentication {
+                     azure_credential_kinds::WORKLOAD_IDENTITY => WorkloadIdentityCredential::new(None)?,
+                     _ => {
+                         return Err(Error::with_message(ErrorKind::Credential, || {
+-                            format!("unknown/unsupported azure_credential_kind `{}`", azure_credential_kind)
++                            format!("`auth.azure_credential_kind` `{azure_credential_kind}` is unknown/unsupported")
+                         }))
+                     }
+                 };
+@@ -276,8 +291,7 @@ impl SinkConfig for AzureLogsIngestionConfig {
+     async fn build(&self, cx: SinkContext) -> crate::Result<(VectorSink, Healthcheck)> {
+         let endpoint: UriSerde = self.endpoint.parse()?;
+ 
+-        let credential: Arc<dyn TokenCredential> = self.auth.credential().await
+-            .expect("Failed to create credential");
++        let credential: Arc<dyn TokenCredential> = self.auth.credential().await?;
+ 
+         self.build_inner(
+             cx,
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 07f1d63cb..883dcaf35 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -123,8 +123,7 @@ impl AzureLogsIngestionService {
+         let access_token: AccessToken = self
+             .credential
+             .get_token(&[&self.token_scope], None)
+-            .await
+-            .expect("failed to get access token from credential");
++            .await?;
+ 
+         let bearer = format!("Bearer {}", access_token.token.secret());
+ 
+@@ -157,7 +156,7 @@ impl AzureLogsIngestionService {
+             }
+ 
+             if res.status() == StatusCode::NOT_FOUND {
+-                return Err("Azure returned 404 Not Found. Either the URL provided is incorrect, or the request is too large".into());
++                return Err("Azure returned 404 Not Found. Either the URL provided is incorrect, or the request is too large.".into());
+             }
+ 
+             if res.status() == StatusCode::BAD_REQUEST {

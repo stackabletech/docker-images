@@ -1,0 +1,22 @@
+From e1a61da6161e1bdcf60d12ae052001caffbc6746 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Fri, 17 Jan 2025 22:06:03 +1300
+Subject: add reminder from upstream changes
+
+---
+ src/sinks/azure_logs_ingestion/config.rs | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 711ceae98..0b2a8f3aa 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -123,6 +123,8 @@ impl AzureLogsIngestionConfig {
+         // https://github.com/Azure/azure-sdk-for-rust/blob/main/sdk/identity/azure_identity/CHANGELOG.md
+         let credential: Arc<dyn TokenCredential> = azure_identity::create_credential()?;
+ 
++        // TODO this needs to change with toolchain 1.83.0, as per commit ca084cc (#22068)
++        //let tls_settings = TlsSettings::from_options(self.tls.as_ref())?;
+         let tls_settings = TlsSettings::from_options(&self.tls)?;
+         let client = HttpClient::new(Some(tls_settings), &cx.proxy)?;
+ 

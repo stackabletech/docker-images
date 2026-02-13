@@ -1,0 +1,434 @@
+From 088393e257be3f61cf4bd0bd844dcd27fbd0ba0c Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 6 Jan 2026 17:26:32 +0000
+Subject: check-fmt changes
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs  |  66 +++++++------
+ src/sinks/azure_logs_ingestion/service.rs |   7 +-
+ src/sinks/azure_logs_ingestion/sink.rs    |   2 +-
+ src/sinks/azure_logs_ingestion/tests.rs   | 113 +++++++++++++---------
+ 4 files changed, 105 insertions(+), 83 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index d4f621637..a867bf9b6 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -1,26 +1,21 @@
+ use std::sync::Arc;
+ 
+ use azure_core::credentials::TokenCredential;
+-use azure_core::{
+-    error::ErrorKind,
+-    Error,
+-};
++use azure_core::{Error, error::ErrorKind};
+ 
+ use azure_identity::{
+-    AzureCliCredential, ClientAssertion, ClientAssertionCredential, ClientSecretCredential, ManagedIdentityCredential, ManagedIdentityCredentialOptions, UserAssignedId, WorkloadIdentityCredential
+-};
+-use vector_lib::{
+-    schema,
+-    configurable::configurable_component,
+-    sensitive_string::SensitiveString,
++    AzureCliCredential, ClientAssertion, ClientAssertionCredential, ClientSecretCredential,
++    ManagedIdentityCredential, ManagedIdentityCredentialOptions, UserAssignedId,
++    WorkloadIdentityCredential,
+ };
++use vector_lib::{configurable::configurable_component, schema, sensitive_string::SensitiveString};
+ use vrl::value::Kind;
+ 
+ use crate::{
+-    http::{get_http_scheme_from_uri, HttpClient},
++    http::{HttpClient, get_http_scheme_from_uri},
+     sinks::{
+         prelude::*,
+-        util::{http::HttpStatusRetryLogic, RealtimeSizeBasedDefaultBatchSettings, UriSerde},
++        util::{RealtimeSizeBasedDefaultBatchSettings, UriSerde, http::HttpStatusRetryLogic},
+     },
+ };
+ 
+@@ -186,7 +181,7 @@ pub enum AzureAuthentication {
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         #[serde(default, skip_serializing_if = "Option::is_none")]
+         client_assertion_client_id: Option<String>,
+-    }
++    },
+ }
+ 
+ #[derive(Debug)]
+@@ -211,9 +206,7 @@ impl ClientAssertion for ManagedIdentityClientAssertion {
+ 
+ impl AzureAuthentication {
+     /// Returns the provider for the credentials based on the authentication mechanism chosen.
+-    pub async fn credential(
+-        &self,
+-    ) -> azure_core::Result<Arc<dyn TokenCredential>> {
++    pub async fn credential(&self) -> azure_core::Result<Arc<dyn TokenCredential>> {
+         match self {
+             Self::ClientSecretCredential {
+                 azure_tenant_id,
+@@ -223,17 +216,17 @@ impl AzureAuthentication {
+                 if azure_tenant_id.is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+                         "`auth.azure_tenant_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+-                    }))
++                    }));
+                 }
+                 if azure_client_id.is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+                         "`auth.azure_client_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+-                    }))
++                    }));
+                 }
+                 if azure_client_secret.inner().is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+                         "`auth.azure_client_secret` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+-                    }))
++                    }));
+                 }
+                 let secret: String = azure_client_secret.inner().into();
+                 let credential = ClientSecretCredential::new(
+@@ -251,29 +244,40 @@ impl AzureAuthentication {
+                 client_assertion_tenant_id,
+                 client_assertion_client_id,
+             } => {
+-                let credential: Arc<dyn TokenCredential> = match azure_credential_kind.replace(' ', "").to_lowercase().as_str() {
++                let credential: Arc<dyn TokenCredential> = match azure_credential_kind
++                    .replace(' ', "")
++                    .to_lowercase()
++                    .as_str()
++                {
+                     #[cfg(not(target_arch = "wasm32"))]
+                     azure_credential_kinds::AZURE_CLI => AzureCliCredential::new(None)?,
+                     azure_credential_kinds::MANAGED_IDENTITY => {
+                         let mut options = ManagedIdentityCredentialOptions::default();
+                         if user_assigned_managed_identity_id.is_some() {
+-                            options.user_assigned_id = Some(UserAssignedId::ClientId(user_assigned_managed_identity_id.clone().unwrap()));
++                            options.user_assigned_id = Some(UserAssignedId::ClientId(
++                                user_assigned_managed_identity_id.clone().unwrap(),
++                            ));
+                         }
+-                        
++
+                         ManagedIdentityCredential::new(Some(options))?
+                     }
+                     azure_credential_kinds::MANAGED_IDENTITY_CLIENT_ASSERTION => {
+-                        if client_assertion_tenant_id.is_none() || client_assertion_client_id.is_none() {
++                        if client_assertion_tenant_id.is_none()
++                            || client_assertion_client_id.is_none()
++                        {
+                             return Err(Error::with_message(ErrorKind::Credential, || {
+                                 "`auth.client_assertion_tenant_id` and `auth.client_assertion_client_id` must be set when using `auth.azure_credential_kind` of `managedidentityclientassertion`".to_string()
+-                            }))
++                            }));
+                         }
+ 
+                         let mut options = ManagedIdentityCredentialOptions::default();
+                         if user_assigned_managed_identity_id.is_some() {
+-                            options.user_assigned_id = Some(UserAssignedId::ClientId(user_assigned_managed_identity_id.clone().unwrap()));
++                            options.user_assigned_id = Some(UserAssignedId::ClientId(
++                                user_assigned_managed_identity_id.clone().unwrap(),
++                            ));
+                         }
+-                        let msi: Arc<dyn TokenCredential> = ManagedIdentityCredential::new(Some(options))?;
++                        let msi: Arc<dyn TokenCredential> =
++                            ManagedIdentityCredential::new(Some(options))?;
+                         let assertion = ManagedIdentityClientAssertion {
+                             credential: msi,
+                             // Future: make this configurable for sovereign clouds? (no way to test...)
+@@ -287,11 +291,15 @@ impl AzureAuthentication {
+                             None,
+                         )?
+                     }
+-                    azure_credential_kinds::WORKLOAD_IDENTITY => WorkloadIdentityCredential::new(None)?,
++                    azure_credential_kinds::WORKLOAD_IDENTITY => {
++                        WorkloadIdentityCredential::new(None)?
++                    }
+                     _ => {
+                         return Err(Error::with_message(ErrorKind::Credential, || {
+-                            format!("`auth.azure_credential_kind` `{azure_credential_kind}` is unknown/unsupported")
+-                        }))
++                            format!(
++                                "`auth.azure_credential_kind` `{azure_credential_kind}` is unknown/unsupported"
++                            )
++                        }));
+                     }
+                 };
+                 Ok(credential)
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 883dcaf35..85990aa7c 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -2,15 +2,12 @@ use std::sync::Arc;
+ use std::sync::LazyLock;
+ use std::task::{Context, Poll};
+ 
+-use azure_core::credentials::{
+-    AccessToken,
+-    TokenCredential,
+-};
++use azure_core::credentials::{AccessToken, TokenCredential};
+ 
+ use bytes::Bytes;
+ use http::{
+-    header::{self, HeaderMap},
+     HeaderValue, Request, StatusCode, Uri,
++    header::{self, HeaderMap},
+ };
+ use hyper::Body;
+ use tracing::Instrument;
+diff --git a/src/sinks/azure_logs_ingestion/sink.rs b/src/sinks/azure_logs_ingestion/sink.rs
+index 6168ef516..5493e4821 100644
+--- a/src/sinks/azure_logs_ingestion/sink.rs
++++ b/src/sinks/azure_logs_ingestion/sink.rs
+@@ -1,7 +1,7 @@
+ use std::{fmt::Debug, io};
+ 
+ use bytes::Bytes;
+-use vector_lib::codecs::{encoding::Framer, CharacterDelimitedEncoder, JsonSerializerConfig};
++use vector_lib::codecs::{CharacterDelimitedEncoder, JsonSerializerConfig, encoding::Framer};
+ use vector_lib::lookup::PathPrefix;
+ 
+ use crate::sinks::prelude::*;
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index f73a06a59..e1a6b13d1 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -1,16 +1,14 @@
+-use std::time::Duration;
+ use futures::stream;
+ use http::Response;
+ use hyper::body;
++use std::time::Duration;
+ use tokio::time::timeout;
+ use vector_lib::config::log_schema;
+ 
+ use azure_core::credentials::{AccessToken, TokenCredential};
+ use azure_core::date::OffsetDateTime;
+ use azure_identity::{
+-    ClientSecretCredential,
+-    ClientSecretCredentialOptions,
+-    TokenCredentialOptions,
++    ClientSecretCredential, ClientSecretCredentialOptions, TokenCredentialOptions,
+ };
+ 
+ use super::config::AzureLogsIngestionConfig;
+@@ -19,15 +17,11 @@ use crate::{
+     event::LogEvent,
+     sinks::prelude::*,
+     test_util::{
+-        components::{
+-            run_and_assert_sink_compliance,
+-            SINK_TAGS,
+-        },
++        components::{SINK_TAGS, run_and_assert_sink_compliance},
+         http::spawn_blackhole_http_server,
+     },
+ };
+ 
+-
+ #[test]
+ fn generate_config() {
+     crate::test_util::test_generate_config::<AzureLogsIngestionConfig>();
+@@ -40,11 +34,18 @@ async fn basic_config_error_with_no_auth() {
+             endpoint = "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
+             dcr_immutable_id = "dcr-00000000000000000000000000000000"
+             stream_name = "Custom-UnitTest"
+-        "#)
+-        .expect("Config parsing failed");
+-    
+-    assert_eq!(config.endpoint, "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com");
+-    assert_eq!(config.dcr_immutable_id, "dcr-00000000000000000000000000000000");
++        "#,
++    )
++    .expect("Config parsing failed");
++
++    assert_eq!(
++        config.endpoint,
++        "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
++    );
++    assert_eq!(
++        config.dcr_immutable_id,
++        "dcr-00000000000000000000000000000000"
++    );
+     assert_eq!(config.stream_name, "Custom-UnitTest");
+     assert_eq!(config.token_scope, "https://monitor.azure.com/.default");
+     assert_eq!(config.timestamp_field, "TimeGenerated");
+@@ -76,7 +77,6 @@ async fn basic_config_error_with_no_auth() {
+             );
+         }
+     }
+-
+ }
+ 
+ #[test]
+@@ -86,16 +86,23 @@ fn basic_config_with_client_credentials() {
+             endpoint = "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
+             dcr_immutable_id = "dcr-00000000000000000000000000000000"
+             stream_name = "Custom-UnitTest"
+-            
++
+             [auth]
+             azure_tenant_id = "00000000-0000-0000-0000-000000000000"
+             azure_client_id = "mock-client-id"
+             azure_client_secret = "mock-client-secret"
+-        "#)
+-        .expect("Config parsing failed");
+-    
+-    assert_eq!(config.endpoint, "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com");
+-    assert_eq!(config.dcr_immutable_id, "dcr-00000000000000000000000000000000");
++        "#,
++    )
++    .expect("Config parsing failed");
++
++    assert_eq!(
++        config.endpoint,
++        "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
++    );
++    assert_eq!(
++        config.dcr_immutable_id,
++        "dcr-00000000000000000000000000000000"
++    );
+     assert_eq!(config.stream_name, "Custom-UnitTest");
+     assert_eq!(config.token_scope, "https://monitor.azure.com/.default");
+     assert_eq!(config.timestamp_field, "TimeGenerated");
+@@ -122,14 +129,21 @@ fn basic_config_with_managed_identity() {
+             endpoint = "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
+             dcr_immutable_id = "dcr-00000000000000000000000000000000"
+             stream_name = "Custom-UnitTest"
+-            
++
+             [auth]
+             azure_credential_kind = "managedidentity"
+-        "#)
+-        .expect("Config parsing failed");
+-    
+-    assert_eq!(config.endpoint, "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com");
+-    assert_eq!(config.dcr_immutable_id, "dcr-00000000000000000000000000000000");
++        "#,
++    )
++    .expect("Config parsing failed");
++
++    assert_eq!(
++        config.endpoint,
++        "https://my-dce-5kyl.eastus-1.ingest.monitor.azure.com"
++    );
++    assert_eq!(
++        config.dcr_immutable_id,
++        "dcr-00000000000000000000000000000000"
++    );
+     assert_eq!(config.stream_name, "Custom-UnitTest");
+     assert_eq!(config.token_scope, "https://monitor.azure.com/.default");
+     assert_eq!(config.timestamp_field, "TimeGenerated");
+@@ -163,7 +177,6 @@ fn insert_timestamp_kv(log: &mut LogEvent) -> (String, String) {
+ 
+ #[tokio::test]
+ async fn correct_request() {
+-
+     // Other tests can use `create_mock_credential`, we're going to run this end-to-end test with our own mock OAuth endpoint as well
+     let (authority_tx, mut _authority_rx) = tokio::sync::mpsc::channel(1);
+     let mock_token_authority = spawn_blackhole_http_server(move |request| {
+@@ -174,12 +187,13 @@ async fn correct_request() {
+                 "access_token": "mock-access-token",
+                 "token_type": "Bearer",
+                 "expires_in": 3600
+-            }).to_string();
++            })
++            .to_string();
+ 
+             Ok(Response::builder()
+-            .header("Content-Type", "application/json")
+-            .body(body.into())
+-            .unwrap())
++                .header("Content-Type", "application/json")
++                .body(body.into())
++                .unwrap())
+         }
+     })
+     .await;
+@@ -192,9 +206,7 @@ async fn correct_request() {
+         "00000000-0000-0000-0000-000000000000",
+         "mock-client-id".into(),
+         "mock-client-secret".into(),
+-        Some(ClientSecretCredentialOptions {
+-            credential_options,
+-        }),
++        Some(ClientSecretCredentialOptions { credential_options }),
+     )
+     .expect("failed to create ClientSecretCredential");
+ 
+@@ -208,8 +220,9 @@ async fn correct_request() {
+             azure_tenant_id = "00000000-0000-0000-0000-000000000000"
+             azure_client_id = "mock-client-id"
+             azure_client_secret = "mock-client-secret"
+-        "#)
+-        .unwrap();
++        "#,
++    )
++    .unwrap();
+ 
+     let mut log1 = [("message", "hello")].iter().copied().collect::<LogEvent>();
+     let (_timestamp_key1, timestamp_value1) = insert_timestamp_kv(&mut log1);
+@@ -274,7 +287,6 @@ async fn correct_request() {
+         &parts.uri.path_and_query().unwrap().to_string(),
+         "/dataCollectionRules/dcr-00000000000000000000000000000000/streams/Custom-UnitTest?api-version=2023-01-01"
+     );
+-
+ }
+ 
+ fn create_mock_credential() -> impl TokenCredential {
+@@ -300,7 +312,6 @@ fn create_mock_credential() -> impl TokenCredential {
+ 
+ #[tokio::test]
+ async fn mock_healthcheck_with_403_response() {
+-
+     let config: AzureLogsIngestionConfig = toml::from_str(
+         r#"
+             endpoint = "http://localhost:9001"
+@@ -311,8 +322,9 @@ async fn mock_healthcheck_with_403_response() {
+             azure_tenant_id = "00000000-0000-0000-0000-000000000000"
+             azure_client_id = "mock-client-id"
+             azure_client_secret = "mock-client-secret"
+-        "#)
+-        .unwrap();
++        "#,
++    )
++    .unwrap();
+ 
+     let mut log1 = [("message", "hello")].iter().copied().collect::<LogEvent>();
+     let (_timestamp_key1, _timestamp_value1) = insert_timestamp_kv(&mut log1);
+@@ -324,13 +336,14 @@ async fn mock_healthcheck_with_403_response() {
+             endpoint_tx.send(request).await.unwrap();
+             let body = serde_json::json!({
+                 "error": "bla",
+-            }).to_string();
++            })
++            .to_string();
+ 
+             Ok(Response::builder()
+-            .status(403)
+-            .header("Content-Type", "application/json")
+-            .body(body.into())
+-            .unwrap())
++                .status(403)
++                .header("Content-Type", "application/json")
++                .body(body.into())
++                .unwrap())
+         }
+     })
+     .await;
+@@ -353,5 +366,9 @@ async fn mock_healthcheck_with_403_response() {
+ 
+     let hc_err = healthcheck.await.unwrap_err();
+     let err_str = hc_err.to_string();
+-    assert!(err_str.contains("Forbidden"), "Healthcheck error does not contain 'Forbidden': {}", err_str);
+-}
+\ No newline at end of file
++    assert!(
++        err_str.contains("Forbidden"),
++        "Healthcheck error does not contain 'Forbidden': {}",
++        err_str
++    );
++}

@@ -1,0 +1,23 @@
+From f3f818a725b834a88f839b27044e0bb078937c6c Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Mon, 12 May 2025 18:52:13 +0000
+Subject: expand on what Azure resources are required
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ website/cue/reference/components/sinks/azure_monitor_logs.cue | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/website/cue/reference/components/sinks/azure_monitor_logs.cue b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+index a982b44a8..4df5dedc1 100644
+--- a/website/cue/reference/components/sinks/azure_monitor_logs.cue
++++ b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+@@ -61,7 +61,7 @@ components: sinks: azure_monitor_logs: {
+ 			"""
+ 				The upstream Data Collector API [has been deprecated](urls.azure_monitor_data_collector_deprecation),
+ 				and will stop working in September 2026. Consider migrating to the `azure_logs_ingestion` sink, which
+-				requires additional Azure resources.
++				requires creating Data Collection Endpoint and Data Collection Rule resources in Azure.
+ 			"""
+ 		]
+ 		notices: []

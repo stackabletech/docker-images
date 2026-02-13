@@ -1,0 +1,35 @@
+From d5e4aab6d1d25d3ae0a04e7379fd3dd44a24e952 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Thu, 12 Feb 2026 08:47:13 +0000
+Subject: missing url refs
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 1ca5f2272..aaa74d3c8 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -139,14 +139,20 @@ pub enum AzureAuthentication {
+     #[derivative(Default)]
+     ClientSecretCredential {
+         /// The [Azure Tenant ID][azure_tenant_id].
++        /// 
++        /// [azure_tenant_id]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         azure_tenant_id: String,
+ 
+         /// The [Azure Client ID][azure_client_id].
++        /// 
++        /// [azure_client_id]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+         azure_client_id: String,
+ 
+         /// The [Azure Client Secret][azure_client_secret].
++        /// 
++        /// [azure_client_secret]: https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal
+         #[configurable(metadata(docs::examples = "00-00~000000-0000000~0000000000000000000"))]
+         azure_client_secret: SensitiveString,
+     },

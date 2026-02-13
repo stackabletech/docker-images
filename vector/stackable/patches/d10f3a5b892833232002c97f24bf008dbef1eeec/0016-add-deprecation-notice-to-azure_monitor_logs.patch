@@ -1,0 +1,22 @@
+From 94acadc15a377d0306455fed7da2e6c774e34e4a Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 22 Apr 2025 20:02:33 +0000
+Subject: add deprecation notice to azure_monitor_logs
+
+---
+ website/cue/reference/components/sinks/azure_monitor_logs.cue | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/website/cue/reference/components/sinks/azure_monitor_logs.cue b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+index b1ad0e0f6..a982b44a8 100644
+--- a/website/cue/reference/components/sinks/azure_monitor_logs.cue
++++ b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+@@ -6,7 +6,7 @@ components: sinks: azure_monitor_logs: {
+ 	classes: {
+ 		commonly_used: false
+ 		delivery:      "at_least_once"
+-		development:   "beta"
++		development:   "deprecated"
+ 		egress_method: "batch"
+ 		service_providers: ["Azure"]
+ 		stateful: false

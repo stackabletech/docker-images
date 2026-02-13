@@ -1,0 +1,33 @@
+From 5728d59bc699db739f7c000d5af6b97d4331affb Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 20 Apr 2025 23:17:32 +0000
+Subject: Update metadata
+
+check-spelling run (pull_request_target) for feature-azure_logs_ingestion
+
+Signed-off-by: check-spelling-bot <check-spelling-bot@users.noreply.github.com>
+on-behalf-of: @check-spelling <check-spelling-bot@check-spelling.dev>
+---
+ .github/actions/spelling/expect.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/.github/actions/spelling/expect.txt b/.github/actions/spelling/expect.txt
+index 1d68a6978..edc77d73e 100644
+--- a/.github/actions/spelling/expect.txt
++++ b/.github/actions/spelling/expect.txt
+@@ -16,6 +16,7 @@ appname
+ aqf
+ architecting
+ archs
++ASIM
+ assertverify
+ atag
+ aton
+@@ -129,6 +130,7 @@ datasources
+ datid
+ datname
+ DBserver
++dcr
+ ddagent
+ ddev
+ ddmetrics

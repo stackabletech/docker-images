@@ -1,0 +1,93 @@
+From c97f99ed13ad81579da1e81b4f2c12d7bbbe10b7 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Fri, 30 Jan 2026 21:39:37 +0000
+Subject: make check fixes
+
+---
+ LICENSE-3rdparty.csv                     |  1 +
+ src/sinks/azure_logs_ingestion/config.rs | 27 ++++++++++++------------
+ 2 files changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/LICENSE-3rdparty.csv b/LICENSE-3rdparty.csv
+index 7e2d08bbf..eeec9b14f 100644
+--- a/LICENSE-3rdparty.csv
++++ b/LICENSE-3rdparty.csv
+@@ -104,6 +104,7 @@ axum,https://github.com/tokio-rs/axum,MIT,The axum Authors
+ axum-core,https://github.com/tokio-rs/axum,MIT,The axum-core Authors
+ azure_core,https://github.com/azure/azure-sdk-for-rust,MIT,Microsoft
+ azure_core_macros,https://github.com/azure/azure-sdk-for-rust,MIT,Microsoft
++azure_identity,https://github.com/azure/azure-sdk-for-rust,MIT,Microsoft
+ azure_storage_blob,https://github.com/azure/azure-sdk-for-rust,MIT,Microsoft
+ backoff,https://github.com/ihrwein/backoff,MIT OR Apache-2.0,Tibor Benke <ihrwein@gmail.com>
+ backon,https://github.com/Xuanwo/backon,Apache-2.0,The backon Authors
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index e39516c4d..73d6d47e2 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -194,15 +194,15 @@ struct ManagedIdentityClientAssertion {
+ #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
+ #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+ impl ClientAssertion for ManagedIdentityClientAssertion {
+-    async fn secret(
+-        &self,
+-        options: Option<ClientMethodOptions<'_>>,
+-    ) -> azure_core::Result<String> {
++    async fn secret(&self, options: Option<ClientMethodOptions<'_>>) -> azure_core::Result<String> {
+         Ok(self
+             .credential
+-            .get_token(&[&self.scope], Some(TokenRequestOptions {
+-                method_options: options.unwrap_or_default(),
+-            }))
++            .get_token(
++                &[&self.scope],
++                Some(TokenRequestOptions {
++                    method_options: options.unwrap_or_default(),
++                }),
++            )
+             .await?
+             .token
+             .secret()
+@@ -220,17 +220,17 @@ impl AzureAuthentication {
+                 azure_client_secret,
+             } => {
+                 if azure_tenant_id.is_empty() {
+-                    return Err(Error::with_message(ErrorKind::Credential, 
++                    return Err(Error::with_message(ErrorKind::Credential,
+                         "`auth.azure_tenant_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     ));
+                 }
+                 if azure_client_id.is_empty() {
+-                    return Err(Error::with_message(ErrorKind::Credential, 
++                    return Err(Error::with_message(ErrorKind::Credential,
+                         "`auth.azure_client_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     ));
+                 }
+                 if azure_client_secret.inner().is_empty() {
+-                    return Err(Error::with_message(ErrorKind::Credential, 
++                    return Err(Error::with_message(ErrorKind::Credential,
+                         "`auth.azure_client_secret` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     ));
+                 }
+@@ -271,7 +271,7 @@ impl AzureAuthentication {
+                         if client_assertion_tenant_id.is_none()
+                             || client_assertion_client_id.is_none()
+                         {
+-                            return Err(Error::with_message(ErrorKind::Credential, 
++                            return Err(Error::with_message(ErrorKind::Credential,
+                                 "`auth.client_assertion_tenant_id` and `auth.client_assertion_client_id` must be set when using `auth.azure_credential_kind` of `managedidentityclientassertion`".to_string()
+                             ));
+                         }
+@@ -301,10 +301,11 @@ impl AzureAuthentication {
+                         WorkloadIdentityCredential::new(None)?
+                     }
+                     _ => {
+-                        return Err(Error::with_message(ErrorKind::Credential, 
++                        return Err(Error::with_message(
++                            ErrorKind::Credential,
+                             format!(
+                                 "`auth.azure_credential_kind` `{azure_credential_kind}` is unknown/unsupported"
+-                            )
++                            ),
+                         ));
+                     }
+                 };

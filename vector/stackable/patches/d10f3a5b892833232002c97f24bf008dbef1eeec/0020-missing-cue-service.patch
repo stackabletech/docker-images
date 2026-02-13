@@ -1,0 +1,47 @@
+From f258cc9b3357737c8db32138012fd50d53b5f043 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 13 May 2025 10:26:06 +0000
+Subject: missing cue service
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ .../reference/components/sinks/azure_monitor_logs.cue  |  8 ++++----
+ .../cue/reference/services/azure_logs_ingestion.cue    | 10 ++++++++++
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+ create mode 100644 website/cue/reference/services/azure_logs_ingestion.cue
+
+diff --git a/website/cue/reference/components/sinks/azure_monitor_logs.cue b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+index 4df5dedc1..e764495d9 100644
+--- a/website/cue/reference/components/sinks/azure_monitor_logs.cue
++++ b/website/cue/reference/components/sinks/azure_monitor_logs.cue
+@@ -59,10 +59,10 @@ components: sinks: azure_monitor_logs: {
+ 		requirements: []
+ 		warnings: [
+ 			"""
+-				The upstream Data Collector API [has been deprecated](urls.azure_monitor_data_collector_deprecation),
+-				and will stop working in September 2026. Consider migrating to the `azure_logs_ingestion` sink, which
+-				requires creating Data Collection Endpoint and Data Collection Rule resources in Azure.
+-			"""
++					The upstream Data Collector API [has been deprecated](urls.azure_monitor_data_collector_deprecation),
++					and will stop working in September 2026. Consider migrating to the `azure_logs_ingestion` sink, which
++					requires creating Data Collection Endpoint and Data Collection Rule resources in Azure.
++				""",
+ 		]
+ 		notices: []
+ 	}
+diff --git a/website/cue/reference/services/azure_logs_ingestion.cue b/website/cue/reference/services/azure_logs_ingestion.cue
+new file mode 100644
+index 000000000..45f76912e
+--- /dev/null
++++ b/website/cue/reference/services/azure_logs_ingestion.cue
+@@ -0,0 +1,10 @@
++package metadata
++
++services: azure_logs_ingestion: {
++	name:     "Azure Logs Ingestion"
++	thing:    "a \(name) account"
++	url:      urls.azure_monitor
++	versions: null
++
++	description: "[Azure Monitor](\(urls.azure_monitor)) is a service in Azure that provides performance and availability monitoring for applications and services in Azure, other cloud environments, or on-premises. Azure Monitor collects data from multiple sources into a common data platform (Log Analytics) where it can be analyzed for trends and anomalies."
++}

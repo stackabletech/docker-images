@@ -1,0 +1,20 @@
+From fa2f4946a15d60e34f8b608bab0e69aeabe338e2 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 20 Apr 2025 23:17:39 +0000
+Subject: add changelog fragment
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ changelog.d/22912_add_azure_logs_ingestion.feature.md | 3 +++
+ 1 file changed, 3 insertions(+)
+ create mode 100644 changelog.d/22912_add_azure_logs_ingestion.feature.md
+
+diff --git a/changelog.d/22912_add_azure_logs_ingestion.feature.md b/changelog.d/22912_add_azure_logs_ingestion.feature.md
+new file mode 100644
+index 000000000..0cc46d5e4
+--- /dev/null
++++ b/changelog.d/22912_add_azure_logs_ingestion.feature.md
+@@ -0,0 +1,3 @@
++Add support for the Azure Monitor Logs Ingestion API through a new `azure_logs_ingestion` sink.
++
++authors: jlaundry

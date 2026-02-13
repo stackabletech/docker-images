@@ -1,0 +1,213 @@
+From 40e43ef23cdaa735cdff9ae7e34979515c244b0e Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Sun, 7 Dec 2025 18:22:01 +0000
+Subject: move the auth config into a struct
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs      | 117 ++++++++++++++----
+ .../sinks/generated/azure_logs_ingestion.cue  |  35 ++++++
+ 2 files changed, 131 insertions(+), 21 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 6f9dea703..f50997d9b 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -1,7 +1,17 @@
+ use std::sync::Arc;
+ 
+ use azure_core::credentials::TokenCredential;
+-use azure_identity::ClientSecretCredential;
++use azure_core::{
++    error::ErrorKind,
++    Error,
++};
++
++use azure_identity::{
++    AzureCliCredential,
++    ClientSecretCredential,
++    ManagedIdentityCredential,
++    WorkloadIdentityCredential,
++};
+ use vector_lib::configurable::configurable_component;
+ use vector_lib::schema;
+ use vrl::value::Kind;
+@@ -58,17 +68,9 @@ pub struct AzureLogsIngestionConfig {
+     #[configurable(metadata(docs::examples = "Custom-MyTable"))]
+     pub stream_name: String,
+ 
+-    /// The [Azure Tenant ID][azure_tenant_id].
+-    #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+-    pub azure_tenant_id: String,
+-
+-    /// The [Azure Client ID][azure_client_id].
+-    #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
+-    pub azure_client_id: String,
+-
+-    /// The [Azure Client Secret][azure_client_secret].
+-    #[configurable(metadata(docs::examples = "00-00~000000-0000000~0000000000000000000"))]
+-    pub azure_client_secret: String,
++    #[configurable(derived)]
++    #[serde(default)]
++    pub auth: AzureAuthentication,
+ 
+     /// [Token scope][token_scope] for dedicated Azure regions.
+     ///
+@@ -119,9 +121,7 @@ impl Default for AzureLogsIngestionConfig {
+             endpoint: Default::default(),
+             dcr_immutable_id: Default::default(),
+             stream_name: Default::default(),
+-            azure_tenant_id: Default::default(),
+-            azure_client_id: Default::default(),
+-            azure_client_secret: Default::default(),
++            auth: Default::default(),
+             token_scope: default_scope(),
+             timestamp_field: default_timestamp_field(),
+             encoding: Default::default(),
+@@ -133,6 +133,85 @@ impl Default for AzureLogsIngestionConfig {
+     }
+ }
+ 
++mod azure_credential_kinds {
++    #[cfg(not(target_arch = "wasm32"))]
++    pub const AZURE_CLI: &str = "azurecli";
++    pub const MANAGED_IDENTITY: &str = "managedidentity";
++    pub const WORKLOAD_IDENTITY: &str = "workloadidentity";
++}
++
++/// Configuration of the authentication strategy for interacting with Azure services.
++#[configurable_component]
++#[derive(Clone, Debug, Derivative, Eq, PartialEq)]
++#[derivative(Default)]
++#[serde(deny_unknown_fields, untagged)]
++pub enum AzureAuthentication {
++    /// Use client credentials
++    #[derivative(Default)]
++    ClientSecretCredential {
++        /// The [Azure Tenant ID][azure_tenant_id].
++        #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
++        azure_tenant_id: String,
++
++        /// The [Azure Client ID][azure_client_id].
++        #[configurable(metadata(docs::examples = "00000000-0000-0000-0000-000000000000"))]
++        azure_client_id: String,
++
++        /// The [Azure Client Secret][azure_client_secret].
++        #[configurable(metadata(docs::examples = "00-00~000000-0000000~0000000000000000000"))]
++        azure_client_secret: String,
++    },
++
++    /// Use credentials from environment variables
++    SpecificAzureCredential {
++        /// The kind of Azure credential to use.
++        #[configurable(metadata(docs::examples = "azurecli"))]
++        #[configurable(metadata(docs::examples = "managedidentity"))]
++        #[configurable(metadata(docs::examples = "workloadidentity"))]
++        azure_credential_kind: String,
++    }
++}
++
++impl AzureAuthentication {
++    /// Returns the provider for the credentials based on the authentication mechanism chosen.
++    pub async fn credential(
++        &self,
++    ) -> azure_core::Result<Arc<dyn TokenCredential>> {
++        match self {
++            Self::ClientSecretCredential {
++                azure_tenant_id,
++                azure_client_id,
++                azure_client_secret,
++            } => {
++                let credential = ClientSecretCredential::new(
++                    &azure_tenant_id.clone(),
++                    azure_client_id.clone(),
++                    azure_client_secret.clone().into(),
++                    None,
++                )?;
++                Ok(credential)
++            }
++
++            Self::SpecificAzureCredential {
++                azure_credential_kind,
++            } => {
++                let credential: Arc<dyn TokenCredential> = match azure_credential_kind.replace(' ', "").to_lowercase().as_str() {
++                    #[cfg(not(target_arch = "wasm32"))]
++                    azure_credential_kinds::AZURE_CLI => AzureCliCredential::new(None)?,
++                    azure_credential_kinds::MANAGED_IDENTITY => ManagedIdentityCredential::new(None)?,
++                    azure_credential_kinds::WORKLOAD_IDENTITY => WorkloadIdentityCredential::new(None)?,
++                    _ => {
++                        return Err(Error::with_message(ErrorKind::Credential, || {
++                            format!("unknown/unsupported azure_credential_kind `{}`", azure_credential_kind)
++                        }))
++                    }
++                };
++                Ok(credential)
++            }
++        }
++    }
++}
++
+ impl AzureLogsIngestionConfig {
+     pub(super) async fn build_inner(
+         &self,
+@@ -193,12 +272,8 @@ impl SinkConfig for AzureLogsIngestionConfig {
+     async fn build(&self, cx: SinkContext) -> crate::Result<(VectorSink, Healthcheck)> {
+         let endpoint: UriSerde = self.endpoint.parse()?;
+ 
+-        let credential: Arc<dyn TokenCredential> = ClientSecretCredential::new(
+-            &self.azure_tenant_id.clone(),
+-            self.azure_client_id.clone(),
+-            self.azure_client_secret.clone().into(),
+-            None,
+-        )?;
++        let credential: Arc<dyn TokenCredential> = self.auth.credential().await
++            .expect("Failed to create credential");
+ 
+         self.build_inner(
+             cx,
+diff --git a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+index 364e09fb9..4baefab54 100644
+--- a/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
++++ b/website/cue/reference/components/sinks/generated/azure_logs_ingestion.cue
+@@ -27,6 +27,41 @@ base: components: sinks: azure_logs_ingestion: configuration: {
+ 			type: bool: {}
+ 		}
+ 	}
++	auth: {
++		description: "Configuration of the authentication strategy for interacting with Azure services."
++		required:    false
++		type: object: options: {
++			azure_client_id: {
++				description: "The [Azure Client ID][azure_client_id]."
++				required:    false
++				type: string: {
++					default: ""
++					examples: ["00000000-0000-0000-0000-000000000000"]
++				}
++			}
++			azure_client_secret: {
++				description: "The [Azure Client Secret][azure_client_secret]."
++				required:    false
++				type: string: {
++					default: ""
++					examples: ["00-00~000000-0000000~0000000000000000000"]
++				}
++			}
++			azure_credential_kind: {
++				description: "The kind of Azure credential to use."
++				required:    true
++				type: string: examples: ["azurecli", "managedidentity", "workloadidentity"]
++			}
++			azure_tenant_id: {
++				description: "The [Azure Tenant ID][azure_tenant_id]."
++				required:    false
++				type: string: {
++					default: ""
++					examples: ["00000000-0000-0000-0000-000000000000"]
++				}
++			}
++		}
++	}
+ 	batch: {
+ 		description: "Event batching behavior."
+ 		required:    false

@@ -1,0 +1,30 @@
+From 731d3e642b94d55ba431a59ea9b5108a834775f7 Mon Sep 17 00:00:00 2001
+From: Thomas <thomas.schneider@datadoghq.com>
+Date: Wed, 11 Feb 2026 17:40:53 -0500
+Subject: Add stub azure_logs_ingestion.md
+
+---
+ .../configuration/sinks/azure_logs_ingestion.md    | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
+
+diff --git a/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md b/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
+new file mode 100644
+index 000000000..9700a444d
+--- /dev/null
++++ b/website/content/en/docs/reference/configuration/sinks/azure_logs_ingestion.md
+@@ -0,0 +1,14 @@
++---
++title: Azure Logs Ingestion
++description: TODO
++component_kind: sink
++layout: component
++tags: ["azure", "monitor", "component", "sink", "logs", "ingestion"]
++---
++
++{{/*
++This doc is generated using:
++
++1. The template in layouts/docs/component.html
++2. The relevant CUE data in cue/reference/components/...
++*/}}

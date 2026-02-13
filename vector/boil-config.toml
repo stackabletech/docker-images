@@ -12,3 +12,18 @@ protoc-version = "31.1"
 # Note: In UBI10, this should change to 4.23.9.0-4.el10
 inotify-tools = "3.22.1.0-1.el9"
 rpm-release = "1"
+
+[versions."d10f3a5b892833232002c97f24bf008dbef1eeec".local-images]
+# We need to point to a special version of stackable-devel which will have the
+# correct toolchain to build vector.
+stackable-devel = "vector-build"
+stackable-base = "1.0.0"
+
+[versions."d10f3a5b892833232002c97f24bf008dbef1eeec".build-arguments]
+# See .scripts/upload_new_protoc_version.sh
+# Unsure which version is used by vector. They seem to install `buf` in workflows.
+protoc-version = "31.1"
+# See here: https://dl.fedoraproject.org/pub/epel/9/Everything/x86_64/Packages/i/
+# Note: In UBI10, this should change to 4.23.9.0-4.el10
+inotify-tools = "3.22.1.0-1.el9"
+rpm-release = "1"

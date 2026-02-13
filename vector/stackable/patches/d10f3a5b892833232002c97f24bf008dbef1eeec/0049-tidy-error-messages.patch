@@ -1,0 +1,91 @@
+From 7cdf1be94de62af9a3e24ac979402ad6194cc0ef Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Thu, 12 Feb 2026 08:20:33 +0000
+Subject: tidy error messages
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/service.rs | 35 ++++++++---------------
+ src/sinks/azure_logs_ingestion/tests.rs   |  9 ++++--
+ 2 files changed, 19 insertions(+), 25 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/service.rs b/src/sinks/azure_logs_ingestion/service.rs
+index 261683c38..c4f900c02 100644
+--- a/src/sinks/azure_logs_ingestion/service.rs
++++ b/src/sinks/azure_logs_ingestion/service.rs
+@@ -140,30 +140,19 @@ impl AzureLogsIngestionService {
+             let request = service.build_request(Bytes::from("[]")).await?;
+             let res = client.call(request).in_current_span().await?;
+ 
+-            if res.status().is_server_error() {
+-                return Err("Azure returned a server error".into());
++            match res.status() {
++                 StatusCode::NO_CONTENT => Ok(()),
++                 StatusCode::UNAUTHORIZED => Err("Azure returned 401 Unauthorised. Check that the token_scope matches the sovereign cloud endpoint.".into()),
++                 StatusCode::FORBIDDEN => Err("Azure returned 403 Forbidden. Verify that the credential has the Monitoring Metrics Publisher role on the Data Collection Rule.".into()),
++                 StatusCode::NOT_FOUND => Err("Azure returned 404 Not Found. Either the URL provided is incorrect, or the request is too large.".into()),
++                 _ => {
++                    let status = res.status();
++                    let body_bytes: Bytes = http_body::Body::collect(res.into_body()).await?.to_bytes();
++                    let body_string: String = String::from_utf8(body_bytes.to_vec()).unwrap();
++                    let err_string: String = format!("Azure returned {status}: {body_string}");
++                    Err(err_string.into())
++                }
+             }
+-
+-            if res.status() == StatusCode::UNAUTHORIZED {
+-                return Err("Azure returned 401 Unauthorised. Check that the token_scope matches the sovereign cloud endpoint.".into());
+-            }
+-
+-            if res.status() == StatusCode::FORBIDDEN {
+-                return Err("Azure returned 403 Forbidden. Verify that the credential has the Monitoring Metrics Publisher role on the Data Collection Rule.".into());
+-            }
+-
+-            if res.status() == StatusCode::NOT_FOUND {
+-                return Err("Azure returned 404 Not Found. Either the URL provided is incorrect, or the request is too large.".into());
+-            }
+-
+-            if res.status() == StatusCode::BAD_REQUEST {
+-                let body_bytes: Bytes = http_body::Body::collect(res.into_body()).await?.to_bytes();
+-                let body_string: String = String::from_utf8(body_bytes.to_vec()).unwrap();
+-                let err_string: String = format!("Azure returned 400 Bad Request: {body_string}");
+-                return Err(err_string.into());
+-            }
+-
+-            Ok(())
+         })
+     }
+ }
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index 597b7c701..e95ce81ed 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -198,14 +198,17 @@ async fn correct_request() {
+         let endpoint_tx = endpoint_tx.clone();
+         async move {
+             endpoint_tx.send(request).await.unwrap();
+-            Ok(Response::new(hyper::Body::empty()))
++            Ok(Response::builder()
++                .status(204)
++                .body(hyper::Body::empty())
++                .unwrap())
+         }
+     })
+     .await;
+ 
+     let context = SinkContext::default();
+ 
+-    let (sink, _healthcheck) = config
++    let (sink, healthcheck) = config
+         .build_inner(
+             context,
+             mock_endpoint.into(),
+@@ -245,6 +248,8 @@ async fn correct_request() {
+     ]);
+     assert_eq!(body_json, expected_json);
+ 
++    let _healthcheck_message = healthcheck.await.expect("Healthcheck failed");
++
+     let headers = parts.headers;
+     let authorization = headers.get("Authorization").unwrap();
+     assert_eq!(authorization.to_str().unwrap(), "Bearer mock-access-token");

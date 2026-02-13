@@ -1,0 +1,86 @@
+From b834ae9281f3735628e9a54760d470d4a13a1179 Mon Sep 17 00:00:00 2001
+From: Jed Laundry <jlaundry@jlaundry.com>
+Date: Tue, 16 Dec 2025 19:03:39 +0000
+Subject: clippy changes
+
+Signed-off-by: Jed Laundry <jlaundry@jlaundry.com>
+---
+ src/sinks/azure_logs_ingestion/config.rs | 15 ++++++++-------
+ src/sinks/azure_logs_ingestion/tests.rs  |  6 +-----
+ 2 files changed, 9 insertions(+), 12 deletions(-)
+
+diff --git a/src/sinks/azure_logs_ingestion/config.rs b/src/sinks/azure_logs_ingestion/config.rs
+index 7b742c497..d4f621637 100644
+--- a/src/sinks/azure_logs_ingestion/config.rs
++++ b/src/sinks/azure_logs_ingestion/config.rs
+@@ -220,19 +220,19 @@ impl AzureAuthentication {
+                 azure_client_id,
+                 azure_client_secret,
+             } => {
+-                if azure_tenant_id == "" {
++                if azure_tenant_id.is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+-                        format!("`auth.azure_tenant_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                        "`auth.azure_tenant_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     }))
+                 }
+-                if azure_client_id == "" {
++                if azure_client_id.is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+-                        format!("`auth.azure_client_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                        "`auth.azure_client_id` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     }))
+                 }
+-                if azure_client_secret.inner() == "" {
++                if azure_client_secret.inner().is_empty() {
+                     return Err(Error::with_message(ErrorKind::Credential, || {
+-                        format!("`auth.azure_client_secret` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.")
++                        "`auth.azure_client_secret` is blank; either use `auth.azure_credential_kind`, or provide tenant ID, client ID, and secret.".to_string()
+                     }))
+                 }
+                 let secret: String = azure_client_secret.inner().into();
+@@ -265,7 +265,7 @@ impl AzureAuthentication {
+                     azure_credential_kinds::MANAGED_IDENTITY_CLIENT_ASSERTION => {
+                         if client_assertion_tenant_id.is_none() || client_assertion_client_id.is_none() {
+                             return Err(Error::with_message(ErrorKind::Credential, || {
+-                                format!("`auth.client_assertion_tenant_id` and `auth.client_assertion_client_id` must be set when using `auth.azure_credential_kind` of `managedidentityclientassertion`")
++                                "`auth.client_assertion_tenant_id` and `auth.client_assertion_client_id` must be set when using `auth.azure_credential_kind` of `managedidentityclientassertion`".to_string()
+                             }))
+                         }
+ 
+@@ -301,6 +301,7 @@ impl AzureAuthentication {
+ }
+ 
+ impl AzureLogsIngestionConfig {
++    #[allow(clippy::too_many_arguments)]
+     pub(super) async fn build_inner(
+         &self,
+         cx: SinkContext,
+diff --git a/src/sinks/azure_logs_ingestion/tests.rs b/src/sinks/azure_logs_ingestion/tests.rs
+index cd11e2ddd..f73a06a59 100644
+--- a/src/sinks/azure_logs_ingestion/tests.rs
++++ b/src/sinks/azure_logs_ingestion/tests.rs
+@@ -184,8 +184,6 @@ async fn correct_request() {
+     })
+     .await;
+ 
+-    println!("Mock token authority running at {}", mock_token_authority.to_string());
+-
+     let mut credential_options = TokenCredentialOptions::default();
+     //credential_options.set_authority_host("http://127.0.0.1:9001".into());
+     credential_options.set_authority_host(mock_token_authority.to_string());
+@@ -195,13 +193,11 @@ async fn correct_request() {
+         "mock-client-id".into(),
+         "mock-client-secret".into(),
+         Some(ClientSecretCredentialOptions {
+-            credential_options: credential_options,
++            credential_options,
+         }),
+     )
+     .expect("failed to create ClientSecretCredential");
+ 
+-    println!("Created ClientSecretCredential");
+-
+     let config: AzureLogsIngestionConfig = toml::from_str(
+         r#"
+             endpoint = "http://localhost:9001"
