@@ -50,6 +50,7 @@ jobs:
           file: ./${{ matrix.ubi-version }}-rust-builder/Dockerfile
           push: true
           tags: oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder:${{ env.TAG }}
+          provenance: false
       - name: Sign the published builder image
         shell: bash
         env:
