@@ -159,7 +159,7 @@ uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 
 # Setuptools 82+ removed pkg_resources, which is still needed by Superset 4.x
 # dependencies. Re-pin after all other installs in case newer versions
-# have been in by other dependencies.
+# have been pulled in by other dependencies.
 # See https://setuptools.pypa.io/en/stable/history.html#v82-0-0
 uv pip install --no-cache-dir setuptools==75.2.0
 
