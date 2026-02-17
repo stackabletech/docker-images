@@ -1,0 +1,682 @@
+From 44d4242155c5efe0a000b7061e50cd7864b0c81c Mon Sep 17 00:00:00 2001
+From: exceptionfactory <exceptionfactory@apache.org>
+Date: Sat, 7 Feb 2026 09:52:21 -0600
+Subject: NIFI-15567 Streamlined Component Authorizable Evaluation Methods
+
+- Added AuthorizeComponentReference class with shared methods for evaluating authorized configuration operations and referenced Controller Services
+- Updated create and update operations for Components using shared methods
+
+This closes #10871.
+
+Signed-off-by: Pierre Villard <pierre.villard.fr@gmail.com>
+---
+ .../AuthorizeComponentReference.java          | 86 ++++++++++++++++++
+ .../AuthorizeParameterReference.java          | 22 -----
+ .../StandardNiFiWebConfigurationContext.java  | 30 +++----
+ .../nifi/web/api/ControllerResource.java      | 88 +++++--------------
+ .../web/api/ControllerServiceResource.java    |  9 +-
+ .../web/api/ParameterProviderResource.java    |  6 +-
+ .../nifi/web/api/ProcessGroupResource.java    | 54 +++---------
+ .../nifi/web/api/ProcessorResource.java       |  9 +-
+ .../nifi/web/api/ReportingTaskResource.java   |  7 +-
+ .../AuthorizeComponentReferenceTest.java      | 82 +++++++++++++++++
+ 10 files changed, 229 insertions(+), 164 deletions(-)
+ create mode 100644 nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java
+ create mode 100644 nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java
+
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java
+new file mode 100644
+index 0000000000..5de5d8ccd9
+--- /dev/null
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java
+@@ -0,0 +1,86 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.nifi.authorization;
++
++import org.apache.nifi.authorization.resource.Authorizable;
++import org.apache.nifi.authorization.user.NiFiUser;
++import org.apache.nifi.authorization.user.NiFiUserUtils;
++import org.apache.nifi.web.api.dto.BundleDTO;
++
++import java.util.Map;
++
++public final class AuthorizeComponentReference {
++    /**
++     * Authorize configuration of specified Component Type including restrictions and referenced Controller Services
++     *
++     * @param authorizer Authorizer responsible for handling decisions
++     * @param authorizableLookup Authorizable Lookup for resolving referenced Controller Services
++     * @param componentType Component Type to be evaluated
++     * @param componentBundle Component Bundle to be evaluated
++     * @param properties Component configuration properties or null when not available for evaluation
++     * @param parameterContext Parameter Context or null when not available for evaluation
++     */
++    public static void authorizeComponentConfiguration(
++            final Authorizer authorizer,
++            final AuthorizableLookup authorizableLookup,
++            final String componentType,
++            final BundleDTO componentBundle,
++            final Map<String, String> properties,
++            final Authorizable parameterContext
++    ) {
++        ComponentAuthorizable authorizable = null;
++        try {
++            authorizable = authorizableLookup.getConfigurableComponent(componentType, componentBundle);
++            authorizeComponentConfiguration(authorizer, authorizableLookup, authorizable, properties, parameterContext);
++        } finally {
++            if (authorizable != null) {
++                authorizable.cleanUpResources();
++            }
++        }
++    }
++
++    /**
++     * Authorize configuration of specified Component including restrictions and referenced Controller Services
++     *
++     * @param authorizer Authorizer responsible for handling decisions
++     * @param authorizableLookup Authorizable Lookup for resolving referenced Controller Services
++     * @param componentAuthorizable Component Authorizable to be evaluated
++     * @param properties Component configuration properties required
++     * @param parameterContext Parameter Context or null when not available for evaluation
++     */
++    public static void authorizeComponentConfiguration(
++            final Authorizer authorizer,
++            final AuthorizableLookup authorizableLookup,
++            final ComponentAuthorizable componentAuthorizable,
++            final Map<String, String> properties,
++            final Authorizable parameterContext
++    ) {
++        final NiFiUser user = NiFiUserUtils.getNiFiUser();
++
++        if (componentAuthorizable.isRestricted()) {
++            componentAuthorizable.getRestrictedAuthorizables().forEach(restrictionAuthorizable ->
++                    restrictionAuthorizable.authorize(authorizer, RequestAction.WRITE, user)
++            );
++        }
++
++        AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, componentAuthorizable, authorizer, authorizableLookup);
++
++        if (parameterContext != null) {
++            AuthorizeParameterReference.authorizeParameterReferences(properties, authorizer, parameterContext, user);
++        }
++    }
++}
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
+index fb89bc37fd..572e6605a9 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
+@@ -28,10 +28,6 @@ import org.apache.nifi.parameter.ParameterTokenList;
+ import org.apache.nifi.flow.VersionedParameter;
+ import org.apache.nifi.flow.VersionedParameterContext;
+ import org.apache.nifi.web.NiFiServiceFacade;
+-import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+-import org.apache.nifi.web.api.dto.FlowSnippetDTO;
+-import org.apache.nifi.web.api.dto.ProcessorConfigDTO;
+-import org.apache.nifi.web.api.dto.ProcessorDTO;
+ 
+ import java.util.List;
+ import java.util.Map;
+@@ -105,24 +101,6 @@ public class AuthorizeParameterReference {
+         }
+     }
+ 
+-    public static void authorizeParameterReferences(final FlowSnippetDTO flowSnippet, final Authorizer authorizer, final Authorizable parameterContextAuthorizable, final NiFiUser user) {
+-        for (final ProcessorDTO processorDto : flowSnippet.getProcessors()) {
+-            final ProcessorConfigDTO configDto = processorDto.getConfig();
+-            if (configDto == null) {
+-                continue;
+-            }
+-
+-            authorizeParameterReferences(configDto.getProperties(), authorizer, parameterContextAuthorizable, user);
+-        }
+-
+-        for (final ControllerServiceDTO serviceDto : flowSnippet.getControllerServices()) {
+-            authorizeParameterReferences(serviceDto.getProperties(), authorizer, parameterContextAuthorizable, user);
+-        }
+-
+-        // Note: there is no need to recurse here because when a snippet is instantiated, if there are any components in child Process Groups, a new Process Group will be created
+-        // without any Parameter Context, so there is no need to perform any authorization beyond the top-level group where the instantiation is occurring.
+-    }
+-
+     /**
+      * If any parameter is referenced by the given component node, will authorize user against the given group's Parameter context
+      * @param destinationGroup the group that the component is being moved to
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
+index 89b122ba67..9a94e3bef4 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
+@@ -27,7 +27,7 @@ import org.apache.nifi.action.StandardRequestDetails;
+ import org.apache.nifi.action.component.details.FlowChangeExtensionDetails;
+ import org.apache.nifi.action.details.FlowChangeConfigureDetails;
+ import org.apache.nifi.admin.service.AuditService;
+-import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeParameterReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+@@ -44,6 +44,7 @@ import org.apache.nifi.cluster.protocol.NodeIdentifier;
+ import org.apache.nifi.controller.ControllerService;
+ import org.apache.nifi.controller.reporting.ReportingTaskProvider;
+ import org.apache.nifi.controller.service.ControllerServiceProvider;
++import org.apache.nifi.parameter.ParameterContext;
+ import org.apache.nifi.util.NiFiProperties;
+ import org.apache.nifi.web.api.ApplicationResource.ReplicationTarget;
+ import org.apache.nifi.web.api.dto.AllowableValueDTO;
+@@ -425,12 +426,9 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
+                 final ComponentAuthorizable authorizable = lookup.getProcessor(id);
+                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                // authorize any referenced service
+-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, authorizable, authorizer, lookup);
+-
+-                // authorize any parameter references
+-                AuthorizeParameterReference.authorizeParameterReferences(properties, authorizer, authorizable.getParameterContext(), user);
+-                AuthorizeParameterReference.authorizeParameterReferences(annotationData, authorizer, authorizable.getParameterContext(), user);
++                final ParameterContext parameterContext = authorizable.getParameterContext();
++                AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, parameterContext);
++                AuthorizeParameterReference.authorizeParameterReferences(annotationData, authorizer, parameterContext, user);
+             });
+ 
+             ProcessorEntity entity;
+@@ -610,12 +608,9 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
+                 final ComponentAuthorizable authorizable = lookup.getControllerService(id);
+                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                // authorize any referenced service
+-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, authorizable, authorizer, lookup);
+-
+-                // authorize any parameter references
+-                AuthorizeParameterReference.authorizeParameterReferences(properties, authorizer, authorizable.getParameterContext(), user);
+-                AuthorizeParameterReference.authorizeParameterReferences(annotationData, authorizer, authorizable.getParameterContext(), user);
++                final ParameterContext parameterContext = authorizable.getParameterContext();
++                AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, parameterContext);
++                AuthorizeParameterReference.authorizeParameterReferences(annotationData, authorizer, parameterContext, user);
+             });
+ 
+             ControllerServiceEntity entity;
+@@ -758,8 +753,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
+                 final ComponentAuthorizable authorizable = lookup.getReportingTask(id);
+                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                // authorize any referenced service
+-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, authorizable, authorizer, lookup);
++                AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, null);
+             });
+ 
+             ReportingTaskEntity entity;
+@@ -903,8 +897,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
+                 final ComponentAuthorizable authorizable = lookup.getParameterProvider(id);
+                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                // authorize any referenced service
+-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, authorizable, authorizer, lookup);
++                AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, null);
+             });
+ 
+             ParameterProviderEntity entity;
+@@ -1047,8 +1040,7 @@ public class StandardNiFiWebConfigurationContext implements NiFiWebConfiguration
+                 final ComponentAuthorizable authorizable = lookup.getParameterProvider(id);
+                 authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                // authorize any referenced service
+-                AuthorizeControllerServiceReference.authorizeControllerServiceReferences(properties, authorizable, authorizer, lookup);
++                AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, null);
+             });
+ 
+             FlowRegistryClientEntity entity;
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
+index f507fbb5ad..3ce020565b 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
+@@ -40,6 +40,7 @@ import jakarta.ws.rs.core.MediaType;
+ import jakarta.ws.rs.core.Response;
+ import jakarta.ws.rs.core.StreamingOutput;
+ import org.apache.commons.lang3.StringUtils;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+@@ -69,6 +70,7 @@ import org.apache.nifi.web.api.concurrent.StandardAsynchronousWebRequest;
+ import org.apache.nifi.web.api.concurrent.StandardUpdateStep;
+ import org.apache.nifi.web.api.concurrent.UpdateStep;
+ import org.apache.nifi.web.api.dto.BulletinDTO;
++import org.apache.nifi.web.api.dto.BundleDTO;
+ import org.apache.nifi.web.api.dto.ClusterDTO;
+ import org.apache.nifi.web.api.dto.ComponentStateDTO;
+ import org.apache.nifi.web.api.dto.ConfigVerificationResultDTO;
+@@ -123,6 +125,7 @@ import java.net.URI;
+ import java.util.Collections;
+ import java.util.Date;
+ import java.util.List;
++import java.util.Map;
+ import java.util.Set;
+ import java.util.UUID;
+ import java.util.concurrent.TimeUnit;
+@@ -319,22 +322,10 @@ public class ControllerResource extends ApplicationResource {
+                 lookup -> {
+                     authorizeController(RequestAction.WRITE);
+ 
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestParameterProvider.getType(), requestParameterProvider.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        if (requestParameterProvider.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestParameterProvider.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final String componentType = requestParameterProvider.getType();
++                    final BundleDTO bundle = requestParameterProvider.getBundle();
++                    final Map<String, String> properties = requestParameterProvider.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, null);
+                 },
+                 () -> serviceFacade.verifyCreateParameterProvider(requestParameterProvider),
+                 (parameterProviderEntity) -> {
+@@ -418,22 +409,10 @@ public class ControllerResource extends ApplicationResource {
+                 lookup -> {
+                     authorizeController(RequestAction.WRITE);
+ 
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestReportingTask.getType(), requestReportingTask.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        if (requestReportingTask.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestReportingTask.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final String componentType = requestReportingTask.getType();
++                    final BundleDTO bundle = requestReportingTask.getBundle();
++                    final Map<String, String> properties = requestReportingTask.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, null);
+                 },
+                 () -> serviceFacade.verifyCreateReportingTask(requestReportingTask),
+                 (reportingTaskEntity) -> {
+@@ -582,22 +561,10 @@ public class ControllerResource extends ApplicationResource {
+                 lookup -> {
+                     authorizeController(RequestAction.WRITE);
+ 
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestFlowAnalysisRule.getType(), requestFlowAnalysisRule.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        if (requestFlowAnalysisRule.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestFlowAnalysisRule.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final String componentType = requestFlowAnalysisRule.getType();
++                    final BundleDTO bundle = requestFlowAnalysisRule.getBundle();
++                    final Map<String, String> properties = requestFlowAnalysisRule.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, null);
+                 },
+                 () -> serviceFacade.verifyCreateFlowAnalysisRule(requestFlowAnalysisRule),
+                 (flowAnalysisRuleEntity) -> {
+@@ -748,9 +715,8 @@ public class ControllerResource extends ApplicationResource {
+                     authorizeController(RequestAction.WRITE);
+ 
+                     final ComponentAuthorizable authorizable = lookup.getFlowAnalysisRule(id);
+-
+-                    // authorize any referenced services
+-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestFlowAnalysisRuleDTO.getProperties(), authorizable, authorizer, lookup);
++                    final Map<String, String> componentProperties = requestFlowAnalysisRuleDTO.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, componentProperties, null);
+                 },
+                 () -> serviceFacade.verifyUpdateFlowAnalysisRule(requestFlowAnalysisRuleDTO),
+                 (revision, flowAnalysisRuleEntity) -> {
+@@ -2032,22 +1998,10 @@ public class ControllerResource extends ApplicationResource {
+                 lookup -> {
+                     authorizeController(RequestAction.WRITE);
+ 
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestControllerService.getType(), requestControllerService.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        if (requestControllerService.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerService.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final String componentType = requestControllerService.getType();
++                    final BundleDTO bundle = requestControllerService.getBundle();
++                    final Map<String, String> properties = requestControllerService.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, null);
+                 },
+                 () -> serviceFacade.verifyCreateControllerService(requestControllerService),
+                 (controllerServiceEntity) -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
+index 3e6fd20347..4855bd475f 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
+@@ -39,8 +39,8 @@ import jakarta.ws.rs.core.Context;
+ import jakarta.ws.rs.core.MediaType;
+ import jakarta.ws.rs.core.Response;
+ import org.apache.commons.lang3.StringUtils;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+-import org.apache.nifi.authorization.AuthorizeParameterReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+ import org.apache.nifi.authorization.RequestAction;
+@@ -652,10 +652,9 @@ public class ControllerServiceResource extends ApplicationResource {
+                     final ComponentAuthorizable authorizable = lookup.getControllerService(id);
+                     authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                    // authorize any referenced services
+-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerServiceDTO.getProperties(), authorizable, authorizer, lookup);
+-                    AuthorizeParameterReference.authorizeParameterReferences(requestControllerServiceDTO.getProperties(), authorizer, authorizable.getParameterContext(),
+-                            NiFiUserUtils.getNiFiUser());
++                    final Map<String, String> properties = requestControllerServiceDTO.getProperties();
++                    final Authorizable parameterContext = authorizable.getParameterContext();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceDTO),
+                 (revision, controllerServiceEntity) -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
+index da78992a9b..88d308c9fb 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
+@@ -42,6 +42,7 @@ import jakarta.ws.rs.core.MediaType;
+ import jakarta.ws.rs.core.Response;
+ import org.apache.commons.lang3.StringUtils;
+ import org.apache.nifi.authorization.AuthorizableLookup;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+@@ -567,8 +568,9 @@ public class ParameterProviderResource extends AbstractParameterResource {
+                     final ComponentAuthorizable authorizable = lookup.getParameterProvider(id);
+                     authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                    // authorize any referenced services
+-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestParameterProviderDTO.getProperties(), authorizable, authorizer, lookup);
++                    final Authorizable parameterContext = authorizable.getParameterContext();
++                    final Map<String, String> componentProperties = requestParameterProviderDTO.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, componentProperties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyUpdateParameterProvider(requestParameterProviderDTO),
+                 (revision, parameterProviderEntity) -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
+index 308b9520f2..6955b3f7c9 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
+@@ -45,6 +45,7 @@ import jakarta.ws.rs.core.Response.Status;
+ import jakarta.ws.rs.core.UriBuilder;
+ import org.apache.commons.lang3.StringUtils;
+ import org.apache.nifi.authorization.AuthorizableLookup;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+ import org.apache.nifi.authorization.AuthorizeParameterProviders;
+ import org.apache.nifi.authorization.AuthorizeParameterReference;
+@@ -81,6 +82,7 @@ import org.apache.nifi.web.ResourceNotFoundException;
+ import org.apache.nifi.web.Revision;
+ import org.apache.nifi.web.api.concurrent.AsyncRequestManager;
+ import org.apache.nifi.web.api.concurrent.RequestManager;
++import org.apache.nifi.web.api.dto.BundleDTO;
+ import org.apache.nifi.web.api.dto.ConnectionDTO;
+ import org.apache.nifi.web.api.dto.ControllerServiceDTO;
+ import org.apache.nifi.web.api.dto.DropRequestDTO;
+@@ -137,6 +139,7 @@ import org.springframework.stereotype.Controller;
+ import java.io.IOException;
+ import java.io.InputStream;
+ import java.net.URI;
++import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.List;
+@@ -1313,28 +1316,11 @@ public class ProcessGroupResource extends FlowUpdateResource<ProcessGroupImportE
+                     processGroup.authorize(authorizer, RequestAction.WRITE, user);
+ 
+                     final Authorizable parameterContext = groupAuthorizable.getProcessGroup().getParameterContext();
+-                    final ProcessorConfigDTO configDto = requestProcessor.getConfig();
+-                    if (parameterContext != null && configDto != null) {
+-                        AuthorizeParameterReference.authorizeParameterReferences(configDto.getProperties(), authorizer, parameterContext, user);
+-                    }
+-
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestProcessor.getType(), requestProcessor.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        final ProcessorConfigDTO config = requestProcessor.getConfig();
+-                        if (config != null && config.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(config.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final ProcessorConfigDTO config = requestProcessor.getConfig();
++                    final Map<String, String> properties = config == null ? Collections.emptyMap() : config.getProperties();
++                    final String componentType = requestProcessor.getType();
++                    final BundleDTO bundle = requestProcessor.getBundle();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyCreateProcessor(requestProcessor),
+                 processorEntity -> {
+@@ -2541,26 +2527,10 @@ public class ProcessGroupResource extends FlowUpdateResource<ProcessGroupImportE
+                     processGroup.authorize(authorizer, RequestAction.WRITE, user);
+ 
+                     final Authorizable parameterContext = groupAuthorizable.getProcessGroup().getParameterContext();
+-                    if (parameterContext != null) {
+-                        AuthorizeParameterReference.authorizeParameterReferences(requestControllerService.getProperties(), authorizer, parameterContext, user);
+-                    }
+-
+-                    ComponentAuthorizable authorizable = null;
+-                    try {
+-                        authorizable = lookup.getConfigurableComponent(requestControllerService.getType(), requestControllerService.getBundle());
+-
+-                        if (authorizable.isRestricted()) {
+-                            authorizeRestrictions(authorizer, authorizable);
+-                        }
+-
+-                        if (requestControllerService.getProperties() != null) {
+-                            AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestControllerService.getProperties(), authorizable, authorizer, lookup);
+-                        }
+-                    } finally {
+-                        if (authorizable != null) {
+-                            authorizable.cleanUpResources();
+-                        }
+-                    }
++                    final String componentType = requestControllerService.getType();
++                    final BundleDTO bundle = requestControllerService.getBundle();
++                    final Map<String, String> properties = requestControllerService.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, componentType, bundle, properties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyCreateControllerService(requestControllerService),
+                 controllerServiceEntity -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
+index 07d8103fe0..be81a6c8f5 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
+@@ -39,8 +39,8 @@ import jakarta.ws.rs.core.Context;
+ import jakarta.ws.rs.core.MediaType;
+ import jakarta.ws.rs.core.Response;
+ import org.apache.commons.lang3.StringUtils;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+-import org.apache.nifi.authorization.AuthorizeParameterReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+ import org.apache.nifi.authorization.RequestAction;
+@@ -868,10 +868,9 @@ public class ProcessorResource extends ApplicationResource {
+                     authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, user);
+ 
+                     final ProcessorConfigDTO config = requestProcessorDTO.getConfig();
+-                    if (config != null) {
+-                        AuthorizeControllerServiceReference.authorizeControllerServiceReferences(config.getProperties(), authorizable, authorizer, lookup);
+-                        AuthorizeParameterReference.authorizeParameterReferences(config.getProperties(), authorizer, authorizable.getParameterContext(), user);
+-                    }
++                    final Map<String, String> properties = config == null ? Collections.emptyMap() : config.getProperties();
++                    final Authorizable parameterContext = authorizable.getParameterContext();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, properties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyUpdateProcessor(requestProcessorDTO),
+                 (revision, processorEntity) -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
+index 7b98fa8a36..bfd27953f5 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
+@@ -39,6 +39,7 @@ import jakarta.ws.rs.core.Context;
+ import jakarta.ws.rs.core.MediaType;
+ import jakarta.ws.rs.core.Response;
+ import org.apache.commons.lang3.StringUtils;
++import org.apache.nifi.authorization.AuthorizeComponentReference;
+ import org.apache.nifi.authorization.AuthorizeControllerServiceReference;
+ import org.apache.nifi.authorization.Authorizer;
+ import org.apache.nifi.authorization.ComponentAuthorizable;
+@@ -81,6 +82,7 @@ import org.springframework.stereotype.Controller;
+ 
+ import java.util.Collections;
+ import java.util.List;
++import java.util.Map;
+ import java.util.Set;
+ import java.util.concurrent.TimeUnit;
+ import java.util.function.Consumer;
+@@ -458,8 +460,9 @@ public class ReportingTaskResource extends ApplicationResource {
+                     final ComponentAuthorizable authorizable = lookup.getReportingTask(id);
+                     authorizable.getAuthorizable().authorize(authorizer, RequestAction.WRITE, NiFiUserUtils.getNiFiUser());
+ 
+-                    // authorize any referenced services
+-                    AuthorizeControllerServiceReference.authorizeControllerServiceReferences(requestReportingTaskDTO.getProperties(), authorizable, authorizer, lookup);
++                    final Authorizable parameterContext = authorizable.getParameterContext();
++                    final Map<String, String> componentProperties = requestReportingTaskDTO.getProperties();
++                    AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, lookup, authorizable, componentProperties, parameterContext);
+                 },
+                 () -> serviceFacade.verifyUpdateReportingTask(requestReportingTaskDTO),
+                 (revision, reportingTaskEntity) -> {
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java
+new file mode 100644
+index 0000000000..6aa694bbda
+--- /dev/null
++++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java
+@@ -0,0 +1,82 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.apache.nifi.authorization;
++
++import org.apache.nifi.authorization.resource.Authorizable;
++import org.apache.nifi.web.api.dto.BundleDTO;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.mockito.Mock;
++import org.mockito.junit.jupiter.MockitoExtension;
++
++import java.util.Map;
++import java.util.Set;
++
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.ArgumentMatchers.eq;
++import static org.mockito.Mockito.never;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
++
++@ExtendWith(MockitoExtension.class)
++class AuthorizeComponentReferenceTest {
++    private static final String COMPONENT_TYPE = ComponentAuthorizable.class.getName();
++
++    private static final BundleDTO COMPONENT_BUNDLE = new BundleDTO();
++
++    @Mock
++    private Authorizer authorizer;
++
++    @Mock
++    private AuthorizableLookup authorizableLookup;
++
++    @Mock
++    private ComponentAuthorizable componentAuthorizable;
++
++    @Mock
++    private Authorizable restrictedAuthorizable;
++
++    @Mock
++    private Authorizable parameterContext;
++
++    @Test
++    void testAuthorizeComponentConfigurationComponentType() {
++        when(authorizableLookup.getConfigurableComponent(eq(COMPONENT_TYPE), eq(COMPONENT_BUNDLE))).thenReturn(componentAuthorizable);
++
++        AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, authorizableLookup, COMPONENT_TYPE, COMPONENT_BUNDLE, Map.of(), parameterContext);
++
++        verify(componentAuthorizable).cleanUpResources();
++    }
++
++    @Test
++    void testAuthorizeComponentConfigurationComponentAuthorizable() {
++        AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, authorizableLookup, componentAuthorizable, Map.of(), parameterContext);
++
++        verify(componentAuthorizable, never()).cleanUpResources();
++    }
++
++    @Test
++    void testAuthorizeComponentConfigurationRestricted() {
++        when(componentAuthorizable.isRestricted()).thenReturn(true);
++        when(componentAuthorizable.getRestrictedAuthorizables()).thenReturn(Set.of(restrictedAuthorizable));
++
++        AuthorizeComponentReference.authorizeComponentConfiguration(authorizer, authorizableLookup, componentAuthorizable, null, null);
++
++        verify(restrictedAuthorizable).authorize(eq(authorizer), eq(RequestAction.WRITE), any());
++        verify(componentAuthorizable, never()).cleanUpResources();
++    }
++}
