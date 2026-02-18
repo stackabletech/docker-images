@@ -2,6 +2,8 @@
 # Beautiful Soup pulls data out of HTML.
 beautifulsoup4==4.14.2
 requests==2.32.5
+# Needed to run Python tests
+pytest==9.0.2
 
 # Packages that were previously installed as system packages
 certifi==2025.11.12

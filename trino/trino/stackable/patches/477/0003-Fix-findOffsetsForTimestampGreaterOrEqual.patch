@@ -1,0 +1,26 @@
+From a46ead926108b561ca6fa6b193dd38db5a8cb125 Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Wed, 7 Jan 2026 13:30:17 +0100
+Subject: Fix findOffsetsForTimestampGreaterOrEqual
+
+Back-port of https://github.com/trinodb/trino/pull/26789
+
+Co-authored-by: Mateusz "Serafin" Gajewski <github@wendigo.pl>
+---
+ .../main/java/io/trino/plugin/kafka/KafkaFilterManager.java    | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/plugin/trino-kafka/src/main/java/io/trino/plugin/kafka/KafkaFilterManager.java b/plugin/trino-kafka/src/main/java/io/trino/plugin/kafka/KafkaFilterManager.java
+index 5c853d9011..25d3c83301 100644
+--- a/plugin/trino-kafka/src/main/java/io/trino/plugin/kafka/KafkaFilterManager.java
++++ b/plugin/trino-kafka/src/main/java/io/trino/plugin/kafka/KafkaFilterManager.java
+@@ -182,8 +182,7 @@ public class KafkaFilterManager
+     {
+         Map<TopicPartition, OffsetAndTimestamp> topicPartitionOffsetAndTimestamps = kafkaConsumer.offsetsForTimes(timestamps);
+         return topicPartitionOffsetAndTimestamps.entrySet().stream()
+-                .collect(toMap(Map.Entry::getKey, entry -> Optional.of(entry.getValue())
+-                        .map(OffsetAndTimestamp::offset)));
++                .collect(toMap(Map.Entry::getKey, entry -> Optional.ofNullable(entry.getValue()).map(OffsetAndTimestamp::offset)));
+     }
+ 
+     private static Map<TopicPartition, Long> overridePartitionBeginOffsets(Map<TopicPartition, Long> partitionBeginOffsets,

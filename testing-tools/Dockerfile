@@ -4,11 +4,13 @@
 # Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-this-image
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:28ec2f4662bdc4b0d4893ef0d8aebf36a5165dfb1d1dc9f46319bd8a03ed3365
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:67aafc6c9c44374e1baf340110d4c835457d59a0444c068ba9ac6431a6d9e7ac
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
+ARG KUBECTL_VERSION
 ARG RELEASE_VERSION
+ARG TARGETARCH
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
@@ -46,9 +48,13 @@ RUN <<EOF
 microdnf update
 
 microdnf install \
+  `# This installs kinit needed in kerberos tests.` \
+  krb5-workstation \
+  krb5-devel \
   gcc \
   make \
   pkg-config \
+  openssl \
   openssl-devel \
   libxml2-devel \
   libxslt-devel \
@@ -60,7 +66,9 @@ microdnf install \
   curl \
   tar \
   zip \
-  unzip
+  unzip \
+  `# Required to do test assertions of files` \
+  diffutils
 
 microdnf clean all
 rm -rf /var/cache/yum
@@ -69,6 +77,12 @@ python3.12 -m pip install --no-cache-dir --upgrade pip
 python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
 
 ln -s /usr/bin/python3.12 /usr/bin/python
+
+# Install kubectl
+# Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
+curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl"
+install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+rm kubectl
 
 # Added only temporarily to create the user and group, removed again below
 microdnf install shadow-utils

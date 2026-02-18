@@ -1,14 +1,14 @@
-From b216d37795bbf81a5ebad73101d8081a8f93068c Mon Sep 17 00:00:00 2001
+From f144c1c90fd432bda1e9e934bdb641dbf54988b6 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Mon, 21 Jul 2025 12:45:43 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ build.gradle | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index e7988cb852f..4c2f2374a99 100644
+index e7988cb852f..7975584f690 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -58,6 +58,7 @@ plugins {
@@ -19,18 +19,19 @@ index e7988cb852f..4c2f2374a99 100644
  }
  
  apply from: 'gradle/build-complete.gradle'
-@@ -77,6 +78,16 @@ allprojects {
+@@ -77,6 +78,17 @@ allprojects {
    description = "OpenSearch subproject ${project.path}"
  }
  
 +cyclonedxBom {
-+    includeConfigs = ["runtimeClasspath"]
-+    includeLicenseText = false
-+    skipConfigs = ["compileClasspath", "testCompileClasspath"]
-+    projectType = "application"
-+    schemaVersion = "1.6"
-+    outputFormat = "json"
-+    componentVersion = VersionProperties.getOpenSearch()
++  includeConfigs = ["runtimeClasspath"]
++  includeLicenseText = false
++  skipConfigs = ["compileClasspath", "testCompileClasspath"]
++  projectType = "application"
++  schemaVersion = "1.6"
++  destination = file("build/reports/cyclonedx")
++  outputFormat = "json"
++  componentVersion = VersionProperties.getOpenSearch()
 +}
 +
  configure(allprojects - project(':distribution:archives:integ-test-zip')) {

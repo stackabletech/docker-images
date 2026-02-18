@@ -1,0 +1,1407 @@
+From 8239b8fdcbc0471d6c3891d11e9ad5f32488bc29 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Fri, 29 Aug 2025 15:43:25 +0200
+Subject: Replace the demo configuration with a minimal one
+
+---
+ config/action_groups.yml      |   3 +-
+ config/allowlist.yml          |  64 +---
+ config/audit.yml              |  84 +-----
+ config/config.yml             | 253 +---------------
+ config/internal_users.yml     |  61 +---
+ config/nodes_dn.yml           |   8 +-
+ config/opensearch.yml.example | 228 --------------
+ config/roles.yml              | 549 +---------------------------------
+ config/roles_mapping.yml      |  47 +--
+ config/tenants.yml            |   9 +-
+ 10 files changed, 17 insertions(+), 1289 deletions(-)
+ delete mode 100644 config/opensearch.yml.example
+
+diff --git a/config/action_groups.yml b/config/action_groups.yml
+index 7c40612b..43f33f62 100644
+--- a/config/action_groups.yml
++++ b/config/action_groups.yml
+@@ -1,3 +1,4 @@
++---
+ _meta:
+-  type: "actiongroups"
++  type: actiongroups
+   config_version: 2
+diff --git a/config/allowlist.yml b/config/allowlist.yml
+index e669557d..f7f1bfb1 100644
+--- a/config/allowlist.yml
++++ b/config/allowlist.yml
+@@ -1,69 +1,7 @@
+ ---
+ _meta:
+-  type: "allowlist"
++  type: allowlist
+   config_version: 2
+ 
+-# Description:
+-# enabled - feature flag.
+-# if enabled is false, the allowlisting feature is removed.
+-# This is like removing the check that checks if an API is allowlisted.
+-# This is equivalent to continuing with the usual access control checks, and removing all the code that implements allowlisting.
+-# if enabled is true, then all users except SuperAdmin can access only the APIs in requests
+-# SuperAdmin can access all APIs.
+-# SuperAdmin is defined by the SuperAdmin certificate, which is configured in the opensearch.yml setting: plugins.security.authcz.admin_dn:
+-# Refer to the example setting in opensearch.yml.example, and the opendistro documentation to know more about configuring SuperAdmin.
+-#
+-# requests - map of allowlisted endpoints, and the allowlisted HTTP requests for those endpoints
+-
+-# Examples showing how to configure this yml file (make sure the _meta data from above is also there):
+-# Example 1:
+-# To enable allowlisting and allowlist GET /_cluster/settings
+-#
+-#config:
+-#  enabled: true
+-#  requests:
+-#    /_cluster/settings:
+-#      - GET
+-#
+-# Example 2:
+-# If you want to allowlist multiple request methods for /_cluster/settings (GET,PUT):
+-#
+-#config:
+-#  enabled: true
+-#  requests:
+-#    /_cluster/settings:
+-#      - GET
+-#      - PUT
+-#
+-# Example 3:
+-# If you want to allowlist other APIs as well, for example GET /_cat/nodes, and GET /_cat/shards:
+-#
+-#config:
+-#  enabled: true
+-#  requests:
+-#    /_cluster/settings:
+-#      - GET
+-#      - PUT
+-#    /_cat/nodes:
+-#      - GET
+-#    /_cat/shards:
+-#      - GET
+-#
+-# Example 4:
+-# If you want to disable the allowlisting feature, set enabled to false.
+-#  enabled: false
+-#  requests:
+-#    /_cluster/settings:
+-#      - GET
+-#
+-#At this point, all APIs become allowlisted because the feature to allowlist is off, so requests is irrelevant.
+-
+-
+-#this name must be config
+ config:
+   enabled: false
+-  requests:
+-    /_cluster/settings:
+-      - GET
+-    /_cat/nodes:
+-      - GET
+diff --git a/config/audit.yml b/config/audit.yml
+index dcfbad8d..9033c5a6 100644
+--- a/config/audit.yml
++++ b/config/audit.yml
+@@ -1,85 +1,7 @@
++---
+ _meta:
+-  type: "audit"
++  type: audit
+   config_version: 2
+ 
+ config:
+-  # enable/disable audit logging
+-  enabled: true
+-
+-  audit:
+-    # Enable/disable REST API auditing
+-    enable_rest: true
+-
+-    # Categories to exclude from REST API auditing
+-    disabled_rest_categories:
+-      - AUTHENTICATED
+-      - GRANTED_PRIVILEGES
+-
+-    # Enable/disable Transport API auditing
+-    enable_transport: true
+-
+-    # Categories to exclude from Transport API auditing
+-    disabled_transport_categories:
+-      - AUTHENTICATED
+-      - GRANTED_PRIVILEGES
+-
+-    # Users to be excluded from auditing. Wildcard patterns are supported. Eg:
+-    # ignore_users: ["test-user", "employee-*"]
+-    ignore_users:
+-      - kibanaserver
+-
+-    # Requests to be excluded from auditing. Wildcard patterns are supported. Eg:
+-    # ignore_requests: ["indices:data/read/*", "SearchRequest"]
+-    ignore_requests: []
+-
+-    # Log individual operations in a bulk request
+-    resolve_bulk_requests: false
+-
+-    # Include the body of the request (if available) for both REST and the transport layer
+-    log_request_body: true
+-
+-    # Logs all indices affected by a request. Resolves aliases and wildcards/date patterns
+-    resolve_indices: true
+-
+-    # Exclude sensitive headers from being included in the logs. Eg: Authorization
+-    exclude_sensitive_headers: true
+-
+-  compliance:
+-    # enable/disable compliance
+-    enabled: true
+-
+-    # Log updates to internal security changes
+-    internal_config: true
+-
+-    # Log external config files for the node
+-    external_config: false
+-
+-    # Log only metadata of the document for read events
+-    read_metadata_only: true
+-
+-    # Map of indexes and fields to monitor for read events. Wildcard patterns are supported for both index names and fields. Eg:
+-    # read_watched_fields: {
+-    #   "twitter": ["message"]
+-    #   "logs-*": ["id", "attr*"]
+-    # }
+-    read_watched_fields: {}
+-
+-    # List of users to ignore for read events. Wildcard patterns are supported. Eg:
+-    # read_ignore_users: ["test-user", "employee-*"]
+-    read_ignore_users:
+-      - kibanaserver
+-
+-    # Log only metadata of the document for write events
+-    write_metadata_only: true
+-
+-    # Log only diffs for document updates
+-    write_log_diffs: false
+-
+-    # List of indices to watch for write events. Wildcard patterns are supported
+-    # write_watched_indices: ["twitter", "logs-*"]
+-    write_watched_indices: []
+-
+-    # List of users to ignore for write events. Wildcard patterns are supported. Eg:
+-    # write_ignore_users: ["test-user", "employee-*"]
+-    write_ignore_users:
+-      - kibanaserver
++  enabled: false
+diff --git a/config/config.yml b/config/config.yml
+index abd7edde..a3a46ef2 100644
+--- a/config/config.yml
++++ b/config/config.yml
+@@ -1,255 +1,10 @@
+ ---
+-
+-# This is the main OpenSearch Security configuration file where authentication
+-# and authorization is defined.
+-#
+-# You need to configure at least one authentication domain in the authc of this file.
+-# An authentication domain is responsible for extracting the user credentials from
+-# the request and for validating them against an authentication backend like Active Directory for example.
+-#
+-# If more than one authentication domain is configured the first one which succeeds wins.
+-# If all authentication domains fail then the request is unauthenticated.
+-# In this case an exception is thrown and/or the HTTP status is set to 401.
+-#
+-# After authentication authorization (authz) will be applied. There can be zero or more authorizers which collect
+-# the roles from a given backend for the authenticated user.
+-#
+-# Both, authc and auth can be enabled/disabled separately for REST and TRANSPORT layer. Default is true for both.
+-#        http_enabled: true
+-#        transport_enabled: true
+-#
+-# For HTTP it is possible to allow anonymous authentication. If that is the case then the HTTP authenticators try to
+-# find user credentials in the HTTP request. If credentials are found then the user gets regularly authenticated.
+-# If none can be found the user will be authenticated as an "anonymous" user. This user has always the username "anonymous"
+-# and one role named "anonymous_backendrole".
+-# If you enable anonymous authentication all HTTP authenticators will not challenge.
+-#
+-#
+-# Note: If you define more than one HTTP authenticators make sure to put non-challenging authenticators like "proxy" or "clientcert"
+-# first and the challenging one last.
+-# Because it's not possible to challenge a client with two different authentication methods (for example
+-# Kerberos and Basic) only one can have the challenge flag set to true. You can cope with this situation
+-# by using pre-authentication, e.g. sending a HTTP Basic authentication header in the request.
+-#
+-# Default value of the challenge flag is true.
+-#
+-#
+-# HTTP
+-#   basic (challenging)
+-#   proxy (not challenging, needs xff)
+-#   kerberos (challenging)
+-#   clientcert (not challenging, needs https)
+-#   jwt (not challenging)
+-#   host (not challenging) #DEPRECATED, will be removed in a future version.
+-#                          host based authentication is configurable in roles_mapping
+-
+-# Authc
+-#   internal
+-#   noop
+-#   ldap
+-
+-# Authz
+-#   ldap
+-#   noop
+-
+-
+-
+ _meta:
+-  type: "config"
++  type: config
+   config_version: 2
+ 
+ config:
+   dynamic:
+-    # Set filtered_alias_mode to 'disallow' to forbid more than 2 filtered aliases per index
+-    # Set filtered_alias_mode to 'warn' to allow more than 2 filtered aliases per index but warns about it (default)
+-    # Set filtered_alias_mode to 'nowarn' to allow more than 2 filtered aliases per index silently
+-    #filtered_alias_mode: warn
+-    #do_not_fail_on_forbidden: false
+-    #kibana:
+-    # Kibana multitenancy
+-    #multitenancy_enabled: true
+-    #private_tenant_enabled: true
+-    #default_tenant: ""
+-    #server_username: kibanaserver
+-    #index: '.kibana'
+-    http:
+-      anonymous_auth_enabled: false
+-      xff:
+-        enabled: false
+-        internalProxies: '192\.168\.0\.10|192\.168\.0\.11' # regex pattern
+-        #internalProxies: '.*' # trust all internal proxies, regex pattern
+-        #remoteIpHeader:  'x-forwarded-for'
+-        ###### see https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html for regex help
+-        ###### more information about XFF https://en.wikipedia.org/wiki/X-Forwarded-For
+-        ###### and here https://tools.ietf.org/html/rfc7239
+-        ###### and https://tomcat.apache.org/tomcat-8.0-doc/config/valve.html#Remote_IP_Valve
+-    authc:
+-      kerberos_auth_domain:
+-        http_enabled: false
+-        transport_enabled: false
+-        order: 6
+-        http_authenticator:
+-          type: kerberos
+-          challenge: true
+-          config:
+-            # If true a lot of kerberos/security related debugging output will be logged to standard out
+-            krb_debug: false
+-            # If true then the realm will be stripped from the user name
+-            strip_realm_from_principal: true
+-        authentication_backend:
+-          type: noop
+-      basic_internal_auth_domain:
+-        description: "Authenticate via HTTP Basic against internal users database"
+-        http_enabled: true
+-        transport_enabled: true
+-        order: 4
+-        http_authenticator:
+-          type: basic
+-          challenge: true
+-        authentication_backend:
+-          type: intern
+-      proxy_auth_domain:
+-        description: "Authenticate via proxy"
+-        http_enabled: false
+-        transport_enabled: false
+-        order: 3
+-        http_authenticator:
+-          type: proxy
+-          challenge: false
+-          config:
+-            user_header: "x-proxy-user"
+-            roles_header: "x-proxy-roles"
+-        authentication_backend:
+-          type: noop
+-      jwt_auth_domain:
+-        description: "Authenticate via Json Web Token"
+-        http_enabled: false
+-        transport_enabled: false
+-        order: 0
+-        http_authenticator:
+-          type: jwt
+-          challenge: false
+-          config:
+-            jwks_uri: 'https://your-jwks-endpoint.com/.well-known/jwks.json'
+-            signing_key: "base64 encoded HMAC key or public RSA/ECDSA pem key"
+-            jwt_header: "Authorization"
+-            jwt_url_parameter: null
+-            jwt_clock_skew_tolerance_seconds: 30
+-            roles_key: null
+-            subject_key: null
+-        authentication_backend:
+-          type: noop
+-      clientcert_auth_domain:
+-        description: "Authenticate via SSL client certificates"
+-        http_enabled: false
+-        transport_enabled: false
+-        order: 2
+-        http_authenticator:
+-          type: clientcert
+-          config:
+-            username_attribute: cn #optional, if omitted DN becomes username
+-            # skip_users config is used to skip cert based authentication for certain users where they can fall back to other authentication backends
+-            #skip_users:
+-            #  - "DC=de,L=test,O=users,OU=bridge,CN=dashboard"
+-
+-          challenge: false
+-        authentication_backend:
+-          type: noop
+-      ldap:
+-        description: "Authenticate via LDAP or Active Directory"
+-        http_enabled: false
+-        transport_enabled: false
+-        order: 5
+-        http_authenticator:
+-          type: basic
+-          challenge: false
+-        authentication_backend:
+-          # LDAP authentication backend (authenticate users against a LDAP or Active Directory)
+-          type: ldap
+-          config:
+-            # enable ldaps
+-            enable_ssl: false
+-            # enable start tls, enable_ssl should be false
+-            enable_start_tls: false
+-            # send client certificate
+-            enable_ssl_client_auth: false
+-            # verify ldap hostname
+-            verify_hostnames: true
+-            hosts:
+-            - localhost:8389
+-            bind_dn: null
+-            password: null
+-            userbase: 'ou=people,dc=example,dc=com'
+-            # Filter to search for users (currently in the whole subtree beneath userbase)
+-            # {0} is substituted with the username
+-            usersearch: '(sAMAccountName={0})'
+-            # Use this attribute from the user as username (if not set then DN is used)
+-            username_attribute: null
+-    authz:
+-      roles_from_myldap:
+-        description: "Authorize via LDAP or Active Directory"
+-        http_enabled: false
+-        transport_enabled: false
+-        authorization_backend:
+-          # LDAP authorization backend (gather roles from a LDAP or Active Directory, you have to configure the above LDAP authentication backend settings too)
+-          type: ldap
+-          config:
+-            # enable ldaps
+-            enable_ssl: false
+-            # enable start tls, enable_ssl should be false
+-            enable_start_tls: false
+-            # send client certificate
+-            enable_ssl_client_auth: false
+-            # verify ldap hostname
+-            verify_hostnames: true
+-            hosts:
+-            - localhost:8389
+-            bind_dn: null
+-            password: null
+-            rolebase: 'ou=groups,dc=example,dc=com'
+-            # Filter to search for roles (currently in the whole subtree beneath rolebase)
+-            # {0} is substituted with the DN of the user
+-            # {1} is substituted with the username
+-            # {2} is substituted with an attribute value from user's directory entry, of the authenticated user. Use userroleattribute to specify the name of the attribute
+-            rolesearch: '(member={0})'
+-            # Specify the name of the attribute which value should be substituted with {2} above
+-            userroleattribute: null
+-            # Roles as an attribute of the user entry
+-            userrolename: disabled
+-            #userrolename: memberOf
+-            # The attribute in a role entry containing the name of that role, Default is "name".
+-            # Can also be "dn" to use the full DN as rolename.
+-            rolename: cn
+-            # Resolve nested roles transitive (roles which are members of other roles and so on ...)
+-            resolve_nested_roles: true
+-            userbase: 'ou=people,dc=example,dc=com'
+-            # Filter to search for users (currently in the whole subtree beneath userbase)
+-            # {0} is substituted with the username
+-            usersearch: '(uid={0})'
+-            # Skip users matching a user name, a wildcard or a regex pattern
+-            #skip_users:
+-            #  - 'cn=Michael Jackson,ou*people,o=TEST'
+-            #  - '/\S*/'
+-      roles_from_another_ldap:
+-        description: "Authorize via another Active Directory"
+-        http_enabled: false
+-        transport_enabled: false
+-        authorization_backend:
+-          type: ldap
+-          #config goes here ...
+-  #    auth_failure_listeners:
+-  #      ip_rate_limiting:
+-  #        type: ip
+-  #        allowed_tries: 10
+-  #        time_window_seconds: 3600
+-  #        block_expiry_seconds: 600
+-  #        max_blocked_clients: 100000
+-  #        max_tracked_clients: 100000
+-  #      internal_authentication_backend_limiting:
+-  #        type: username
+-  #        authentication_backend: intern
+-  #        allowed_tries: 10
+-  #        time_window_seconds: 3600
+-  #        block_expiry_seconds: 600
+-  #        max_blocked_clients: 100000
+-  #        max_tracked_clients: 100000
++    http: {}
++    authc: {}
++    authz: {}
+diff --git a/config/internal_users.yml b/config/internal_users.yml
+index f4d31e52..8ea240e0 100644
+--- a/config/internal_users.yml
++++ b/config/internal_users.yml
+@@ -1,63 +1,4 @@
+ ---
+-# This is the internal user database
+-# The hash value is a bcrypt hash and can be generated with plugin/tools/hash.sh
+-
+ _meta:
+-  type: "internalusers"
++  type: internalusers
+   config_version: 2
+-
+-# Define your internal users here
+-
+-## Demo users
+-
+-admin:
+-  hash: "$2a$12$VcCDgh2NDk07JGN0rjGbM.Ad41qVR/YFJcgHp0UGns5JDymv..TOG"
+-  reserved: true
+-  backend_roles:
+-  - "admin"
+-  description: "Demo admin user"
+-
+-anomalyadmin:
+-  hash: "$2y$12$TRwAAJgnNo67w3rVUz4FIeLx9Dy/llB79zf9I15CKJ9vkM4ZzAd3."
+-  reserved: false
+-  opendistro_security_roles:
+-  - "anomaly_full_access"
+-  description: "Demo anomaly admin user, using internal role"
+-
+-kibanaserver:
+-  hash: "$2a$12$4AcgAt3xwOWadA5s5blL6ev39OXDNhmOesEoo33eZtrq2N0YrU3H."
+-  reserved: true
+-  description: "Demo OpenSearch Dashboards user"
+-
+-kibanaro:
+-  hash: "$2a$12$JJSXNfTowz7Uu5ttXfeYpeYE0arACvcwlPBStB1F.MI7f0U9Z4DGC"
+-  reserved: false
+-  backend_roles:
+-  - "kibanauser"
+-  - "readall"
+-  attributes:
+-    attribute1: "value1"
+-    attribute2: "value2"
+-    attribute3: "value3"
+-  description: "Demo OpenSearch Dashboards read only user, using external role mapping"
+-
+-logstash:
+-  hash: "$2a$12$u1ShR4l4uBS3Uv59Pa2y5.1uQuZBrZtmNfqB3iM/.jL0XoV9sghS2"
+-  reserved: false
+-  backend_roles:
+-  - "logstash"
+-  description: "Demo logstash user, using external role mapping"
+-
+-readall:
+-  hash: "$2a$12$ae4ycwzwvLtZxwZ82RmiEunBbIPiAmGZduBAjKN0TXdwQFtCwARz2"
+-  reserved: false
+-  backend_roles:
+-  - "readall"
+-  description: "Demo readall user, using external role mapping"
+-
+-snapshotrestore:
+-  hash: "$2y$12$DpwmetHKwgYnorbgdvORCenv4NAK8cPUg8AI6pxLCuWf/ALc0.v7W"
+-  reserved: false
+-  backend_roles:
+-  - "snapshotrestore"
+-  description: "Demo snapshotrestore user, using external role mapping"
+diff --git a/config/nodes_dn.yml b/config/nodes_dn.yml
+index 7f8304cf..2cbb0b7e 100644
+--- a/config/nodes_dn.yml
++++ b/config/nodes_dn.yml
+@@ -1,8 +1,4 @@
++---
+ _meta:
+-  type: "nodesdn"
++  type: nodesdn
+   config_version: 2
+-
+-# Define nodesdn mapping name and corresponding values
+-# cluster1:
+-#   nodes_dn:
+-#       - CN=*.example.com
+diff --git a/config/opensearch.yml.example b/config/opensearch.yml.example
+deleted file mode 100644
+index d02a2544..00000000
+--- a/config/opensearch.yml.example
++++ /dev/null
+@@ -1,228 +0,0 @@
+-############## OpenSearch Security configuration ###############
+-
+-###########################################################
+-# Add the following settings to your standard opensearch.yml
+-# alongside with the OpenSearch Security TLS settings.
+-# Settings must always be the same on all nodes in the cluster.
+-
+-############## Common configuration settings ##############
+-
+-# Specify a list of DNs which denote the other nodes in the cluster.
+-# This settings support wildcards and regular expressions
+-# The list of DNs are also read from security index **in addition** to the yml configuration if
+-# plugins.security.nodes_dn_dynamic_config_enabled is true.
+-# NOTE: This setting only has effect if 'plugins.security.cert.intercluster_request_evaluator_class' is not set.
+-plugins.security.nodes_dn:
+-  - "CN=*.example.com, OU=SSL, O=Test, L=Test, C=DE"
+-  - "CN=node.other.com, OU=SSL, O=Test, L=Test, C=DE"
+-
+-# The nodes_dn_dynamic_config_enabled settings is geared towards cross_cluster usecases where there is a need to
+-# manage the allowlisted nodes_dn without having to restart the nodes everytime a new cross_cluster remote is configured
+-# Setting nodes_dn_dynamic_config_enabled to true enables **super-admin callable** /_opendistro/_security/api/nodesdn APIs
+-# which provide means to update/retrieve nodesdn dynamically.
+-#
+-# NOTE: The overall allowlisted nodes_dn evaluated comes from both the plugins.security.nodes_dn and the ones stored
+-# in security index.
+-# (default: false)
+-# NOTE2: This setting only has effect if 'plugins.security.cert.intercluster_request_evaluator_class' is not set.
+-plugins.security.nodes_dn_dynamic_config_enabled: false
+-
+-# Defines the DNs (distinguished names) of certificates
+-# to which admin privileges should be assigned (mandatory)
+-plugins.security.authcz.admin_dn:
+-  - "CN=kirk,OU=client,O=client,l=tEst, C=De"
+-
+-# Define how backend roles should be mapped to Security roles
+-# MAPPING_ONLY - mappings must be configured explicitely in roles_mapping.yml (default)
+-# BACKENDROLES_ONLY - backend roles are mapped to Security roles directly. Settings in roles_mapping.yml have no effect.
+-# BOTH - backend roles are mapped to Security roles mapped directly and via roles_mapping.yml in addition
+-plugins.security.roles_mapping_resolution: MAPPING_ONLY
+-
+-############## REST Management API configuration settings ##############
+-# Enable or disable role based access to the REST management API
+-# Default is that no role is allowed to access the REST management API.
+-#plugins.security.restapi.roles_enabled: ["all_access","xyz_role"]
+-
+-# Disable particular endpoints and their HTTP methods for roles. 
+-# By default all endpoints/methods are allowed.
+-#plugins.security.restapi.endpoints_disabled.<role>.<endpoint>: <array of http methods>
+-# Example:
+-#plugins.security.restapi.endpoints_disabled.all_access.ACTIONGROUPS: ["PUT","POST","DELETE"]
+-#plugins.security.restapi.endpoints_disabled.xyz_role.LICENSE: ["DELETE"]
+-
+-# The following endpoints exist:
+-# ACTIONGROUPS
+-# CACHE
+-# CONFIG
+-# ROLES
+-# ROLESMAPPING
+-# INTERNALUSERS
+-# SYSTEMINFO
+-# PERMISSIONSINFO
+-
+-############## Auditlog configuration settings ##############
+-# General settings
+-
+-# Enable/disable rest request logging (default: true)
+-#plugins.security.audit.enable_rest: true
+-# Enable/disable transport request logging (default: false)
+-#plugins.security.audit.enable_transport: false
+-# Enable/disable bulk request logging (default: false)
+-# If enabled all subrequests in bulk requests will be logged too
+-#plugins.security.audit.resolve_bulk_requests: false
+-# Disable some categories
+-#plugins.security.audit.config.disabled_categories: ["AUTHENTICATED","GRANTED_PRIVILEGES"]
+-# Disable some requests (wildcard or regex of actions or rest request paths)
+-#plugins.security.audit.ignore_requests: ["indices:data/read/*","*_bulk"]
+-# Tune threadpool size, default is 10
+-#plugins.security.audit.threadpool.size: 10
+-# Tune threadpool max size queue length, default is 100000
+-#plugins.security.audit.threadpool.max_queue_len: 100000
+-
+-# Ignore users, e.g. do not log audit requests from that users (default: no ignored users)
+-#plugins.security.audit.ignore_users: ['kibanaserver','some*user','/also.*regex possible/']"
+-
+-# Destination of the auditlog events
+-plugins.security.audit.type: internal_opensearch
+-#plugins.security.audit.type: external_opensearch
+-#plugins.security.audit.type: debug
+-#plugins.security.audit.type: webhook
+-
+-# external_opensearch settings
+-#plugins.security.audit.config.http_endpoints: ['localhost:9200','localhost:9201','localhost:9202']"
+-# Auditlog index can be a static one or one with a date pattern (default is 'auditlog6')
+-#plugins.security.audit.config.index: auditlog6 # make sure you secure this index properly
+-#plugins.security.audit.config.index: "'auditlog6-'YYYY.MM.dd" #rotates index daily - make sure you secure this index properly
+-#plugins.security.audit.config.type: auditlog
+-#plugins.security.audit.config.username: auditloguser
+-#plugins.security.audit.config.password: auditlogpassword
+-#plugins.security.audit.config.enable_ssl: false
+-#plugins.security.audit.config.verify_hostnames: false
+-#plugins.security.audit.config.enable_ssl_client_auth: false
+-#plugins.security.audit.config.cert_alias: mycert
+-#plugins.security.audit.config.pemkey_filepath: key.pem
+-#plugins.security.audit.config.pemkey_content: <...pem base 64 content>
+-#plugins.security.audit.config.pemkey_password: secret
+-#plugins.security.audit.config.pemcert_filepath: cert.pem
+-#plugins.security.audit.config.pemcert_content: <...pem base 64 content>
+-#plugins.security.audit.config.pemtrustedcas_filepath: ca.pem
+-#plugins.security.audit.config.pemtrustedcas_content: <...pem base 64 content>
+-
+-# webhook settings
+-#plugins.security.audit.config.webhook.url: "http://mywebhook/endpoint"
+-# One of URL_PARAMETER_GET,URL_PARAMETER_POST,TEXT,JSON,SLACK
+-#plugins.security.audit.config.webhook.format: JSON
+-#plugins.security.audit.config.webhook.ssl.verify: false
+-#plugins.security.audit.config.webhook.ssl.pemtrustedcas_filepath: ca.pem
+-#plugins.security.audit.config.webhook.ssl.pemtrustedcas_content: <...pem base 64 content>
+-
+-# log4j settings
+-#plugins.security.audit.config.log4j.logger_name: auditlogger
+-#plugins.security.audit.config.log4j.level: INFO
+-
+-############## Kerberos configuration settings ##############
+-# If Kerberos authentication should be used you have to configure:
+-
+-# The Path to the krb5.conf file
+-# Can be absolute or relative to the OpenSearch config directory
+-#plugins.security.kerberos.krb5_filepath: '/etc/krb5.conf'
+-            
+-# The Path to the keytab where the acceptor_principal credentials are stored.           
+-# Must be relative to the OpenSearch config directory
+-#plugins.security.kerberos.acceptor_keytab_filepath: 'eskeytab.tab'
+-
+-# Acceptor (Server) Principal name, must be present in acceptor_keytab_path file
+-#plugins.security.kerberos.acceptor_principal: 'HTTP/localhost'
+-
+-############## Advanced configuration settings ##############
+-# Enable transport layer impersonation
+-# Allow DNs (distinguished names) to impersonate as other users
+-#plugins.security.authcz.impersonation_dn:
+-#  "CN=spock,OU=client,O=client,L=Test,C=DE":
+-#    - worf
+-#  "cn=webuser,ou=IT,ou=IT,dc=company,dc=com":
+-#    - user2
+-#    - user1
+-
+-# Enable rest layer impersonation
+-# Allow users to impersonate as other users
+-#plugins.security.authcz.rest_impersonation_user:
+-#  "picard":
+-#    - worf
+-#  "john":
+-#    - steve
+-#    - martin
+-
+-# If this is set to true OpenSearch Security will automatically initialize the configuration index
+-# with the files in the config directory if the index does not exist.
+-# WARNING: This will use well-known default passwords.
+-#          Use only in a private network/environment.
+-#plugins.security.allow_default_init_securityindex: false
+-
+-# If this is set to true then allow to startup with demo certificates.
+-# These are certificates issued by floragunn GmbH for demo purposes.
+-# WARNING: This certificates are well known and therefore unsafe
+-#          Use only in a private network/environment.
+-#plugins.security.allow_unsafe_democertificates: false
+-
+-
+-
+-# Password strength rules for password complexity. 
+-# If you want to set up password strength rules for internal users, you can use the below settings for it. 
+-# Password validation rules can be configured through regex. In the below regex example, a user must need 
+-# a password with minimum 8 characters length and must include minimum one uppercase, one lower case, one digit, and one special character. 
+-# And a custom error message can be configured, in case if a password is not created according to the password strength rule.   
+-# plugins.security.restapi.password_validation_regex: '(?=.*[A-Z])(?=.*[^a-zA-Z\d])(?=.*[0-9])(?=.*[a-z]).{8,}'
+-# plugins.security.restapi.password_validation_error_message: "A password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
+-
+-
+-############## Expert settings ##############
+-# WARNING: Expert settings, do only use if you know what you are doing
+-# If you set wrong values here this this could be a security risk
+-# or make OpenSearch Security stop working
+-
+-# Name of the index where .opendistro_security stores its configuration.
+-
+-#plugins.security.config_index_name: .opendistro_security
+-
+-# This defines the OID of server node certificates
+-#plugins.security.cert.oid: '1.2.3.4.5.5'
+-
+-# This specifies the implementation of org.opensearch.security.transport.InterClusterRequestEvaluator
+-# that is used to determine inter-cluster request.
+-# Instances of org.opensearch.security.transport.InterClusterRequestEvaluator must implement a single argument
+-# constructor that takes an org.opensearch.common.settings.Settings
+-#plugins.security.cert.intercluster_request_evaluator_class: org.opensearch.security.transport.DefaultInterClusterRequestEvaluator
+-
+-# By default, normal users can restore snapshots if they have the priviliges 'cluster:admin/snapshot/restore', 
+-# 'indices:admin/create', and 'indices:data/write/index' for the indices to be restored.
+-# To disable snapshot restore for normal users set 'plugins.security.enable_snapshot_restore_privilege: false'.
+-# This makes it so that only snapshot restore requests signed by an admin TLS certificate are accepted.
+-# A snapshot can only be restored when it does not contain global state and does not restore the '.opendistro_security' index
+-# If 'plugins.security.check_snapshot_restore_write_privileges: false' is set then the additional indices checks are omitted.
+-#plugins.security.enable_snapshot_restore_privilege: true
+-#plugins.security.check_snapshot_restore_write_privileges: true
+-
+-# Authentication cache timeout in minutes (A value of 0 disables caching, default is 60)
+-#plugins.security.cache.ttl_minutes: 60
+-
+-# Disable OpenSearch Security
+-# WARNING: This can expose your configuration (including passwords) to the public.
+-#plugins.security.disabled: false
+-
+-
+-# Protected indices are even more secure than normal indices. These indices require a role to access like any other index, but they require an additional role
+-# to be visible, listed in the plugins.security.protected_indices.roles setting.
+-# Enable protected indices
+-# plugins.security.protected_indices.enabled: true
+-# Specify a list of roles a user must be member of to touch any protected index.
+-# plugins.security.protected_indices.roles: ['all_access']
+-# Specify a list of indices to mark as protected. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
+-# plugins.security.protected_indices.indices: []
+-
+-# System indices are similar to security index, except the contents are not encrypted.
+-# Indices configured as system indices can be accessed by only super-admin and no role will provide access to these indices.
+-# Enable system indices
+-# plugins.security.system_indices.enabled: true
+-# Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
+-# plugins.security.system_indices.indices: ['.opendistro-alerting-config', '.opendistro-ism-*', '.opendistro-reports-*', '.opensearch-notifications-*', '.opensearch-notebooks', '.opensearch-observability', '.opendistro-asynchronous-search-response*', '.replication-metadata-store']
+diff --git a/config/roles.yml b/config/roles.yml
+index ff09b706..5f8152a3 100644
+--- a/config/roles.yml
++++ b/config/roles.yml
+@@ -1,549 +1,4 @@
++---
+ _meta:
+-  type: "roles"
++  type: roles
+   config_version: 2
+-
+-# Restrict users so they can only view visualization and dashboard on OpenSearchDashboards
+-kibana_read_only:
+-  reserved: true
+-
+-# The security REST API access role is used to assign specific users access to change the security settings through the REST API.
+-security_rest_api_access:
+-  reserved: true
+-
+-security_rest_api_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'restapi:admin/actiongroups'
+-    - 'restapi:admin/allowlist'
+-    - 'restapi:admin/config/update'
+-    - 'restapi:admin/internalusers'
+-    - 'restapi:admin/nodesdn'
+-    - 'restapi:admin/resource_sharing/migrate'
+-    - 'restapi:admin/roles'
+-    - 'restapi:admin/rolesmapping'
+-    - 'restapi:admin/ssl/certs/info'
+-    - 'restapi:admin/ssl/certs/reload'
+-    - 'restapi:admin/tenants'
+-
+-# Allows users to view monitors, destinations and alerts
+-alerting_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/alerting/alerts/get'
+-    - 'cluster:admin/opendistro/alerting/destination/get'
+-    - 'cluster:admin/opendistro/alerting/monitor/get'
+-    - 'cluster:admin/opendistro/alerting/monitor/search'
+-    - 'cluster:admin/opensearch/alerting/comments/search'
+-    - 'cluster:admin/opensearch/alerting/findings/get'
+-    - 'cluster:admin/opensearch/alerting/remote/indexes/get'
+-    - 'cluster:admin/opensearch/alerting/v2/alerts/get'
+-    - 'cluster:admin/opensearch/alerting/v2/monitor/get'
+-    - 'cluster:admin/opensearch/alerting/v2/monitor/search'
+-    - 'cluster:admin/opensearch/alerting/workflow/get'
+-    - 'cluster:admin/opensearch/alerting/workflow_alerts/get'
+-
+-# Allows users to view and acknowledge alerts
+-alerting_ack_alerts:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/alerting/alerts/*'
+-    - 'cluster:admin/opendistro/alerting/chained_alerts/*'
+-    - 'cluster:admin/opendistro/alerting/workflow_alerts/*'
+-    - 'cluster:admin/opensearch/alerting/comments/*'
+-
+-# Allows users to use all alerting functionality
+-alerting_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/alerting/*'
+-    - 'cluster:admin/opensearch/alerting/*'
+-    - 'cluster:admin/opensearch/notifications/feature/publish'
+-    - 'cluster_monitor'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/aliases/get'
+-        - 'indices:admin/mappings/get'
+-        - 'indices_monitor'
+-
+-# Allow users to read Anomaly Detection detectors and results
+-anomaly_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/ad/detector/info'
+-    - 'cluster:admin/opendistro/ad/detector/search'
+-    - 'cluster:admin/opendistro/ad/detector/suggest'
+-    - 'cluster:admin/opendistro/ad/detector/validate'
+-    - 'cluster:admin/opendistro/ad/detectors/get'
+-    - 'cluster:admin/opendistro/ad/result/search'
+-    - 'cluster:admin/opendistro/ad/result/topAnomalies'
+-    - 'cluster:admin/opendistro/ad/tasks/search'
+-
+-# Allows users to use all Anomaly Detection functionality
+-anomaly_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - "cluster:admin/ingest/pipeline/delete"
+-    - "cluster:admin/ingest/pipeline/put"
+-    - 'cluster:admin/opendistro/ad/*'
+-    - 'cluster_monitor'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/aliases/get'
+-        - 'indices:admin/mappings/fields/get'
+-        - 'indices:admin/mappings/fields/get*'
+-        - 'indices:admin/mappings/get'
+-        - 'indices:admin/resolve/index'
+-        - 'indices:admin/setting/put'
+-        - 'indices:data/read/field_caps*'
+-        - 'indices:data/read/search'
+-        - 'indices_monitor'
+-
+-# Allow users to execute read only k-NN actions
+-knn_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/knn_get_model_action'
+-    - 'cluster:admin/knn_search_model_action'
+-    - 'cluster:admin/knn_stats_action'
+-
+-# Allow users to use all k-NN functionality
+-knn_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/knn_delete_model_action'
+-    - 'cluster:admin/knn_get_model_action'
+-    - 'cluster:admin/knn_remove_model_from_cache_action'
+-    - 'cluster:admin/knn_search_model_action'
+-    - 'cluster:admin/knn_stats_action'
+-    - 'cluster:admin/knn_training_job_route_decision_info_action'
+-    - 'cluster:admin/knn_training_job_router_action'
+-    - 'cluster:admin/knn_training_model_action'
+-    - 'cluster:admin/knn_update_model_graveyard_action'
+-    - 'cluster:admin/knn_warmup_action'
+-
+-# Allow users to execute read only ip2geo datasource action
+-ip2geo_datasource_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/geospatial/datasource/get'
+-
+-# Allow users to use all ip2geo datasource action
+-ip2geo_datasource_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/geospatial/datasource/*'
+-
+-# Allows users to read Notebooks
+-notebooks_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/notebooks/get'
+-    - 'cluster:admin/opendistro/notebooks/list'
+-
+-# Allows users to all Notebooks functionality
+-notebooks_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/notebooks/create'
+-    - 'cluster:admin/opendistro/notebooks/delete'
+-    - 'cluster:admin/opendistro/notebooks/get'
+-    - 'cluster:admin/opendistro/notebooks/list'
+-    - 'cluster:admin/opendistro/notebooks/update'
+-
+-# Allows users to read observability objects
+-observability_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/observability/get'
+-
+-# Allows users to all Observability functionality
+-observability_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/observability/create'
+-    - 'cluster:admin/opensearch/observability/delete'
+-    - 'cluster:admin/opensearch/observability/get'
+-    - 'cluster:admin/opensearch/observability/update'
+-
+-# Allows users to all PPL functionality
+-ppl_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/ppl'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/mappings/get'
+-        - 'indices:data/read/search*'
+-        - 'indices:monitor/settings/get'
+-
+-# Allows users to read and download Reports
+-reports_instances_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/reports/instance/get'
+-    - 'cluster:admin/opendistro/reports/instance/list'
+-    - 'cluster:admin/opendistro/reports/menu/download'
+-
+-# Allows users to read and download Reports and Report-definitions
+-reports_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/reports/definition/get'
+-    - 'cluster:admin/opendistro/reports/definition/list'
+-    - 'cluster:admin/opendistro/reports/instance/get'
+-    - 'cluster:admin/opendistro/reports/instance/list'
+-    - 'cluster:admin/opendistro/reports/menu/download'
+-
+-# Allows users to all Reports functionality
+-reports_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/reports/definition/create'
+-    - 'cluster:admin/opendistro/reports/definition/delete'
+-    - 'cluster:admin/opendistro/reports/definition/get'
+-    - 'cluster:admin/opendistro/reports/definition/list'
+-    - 'cluster:admin/opendistro/reports/definition/on_demand'
+-    - 'cluster:admin/opendistro/reports/definition/update'
+-    - 'cluster:admin/opendistro/reports/instance/get'
+-    - 'cluster:admin/opendistro/reports/instance/list'
+-    - 'cluster:admin/opendistro/reports/menu/download'
+-
+-# Allows users to use all asynchronous-search functionality
+-asynchronous_search_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/asynchronous_search/*'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:data/read/search*'
+-
+-# Allows users to read stored asynchronous-search results
+-asynchronous_search_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opendistro/asynchronous_search/get'
+-
+-# Allows user to use all index_management actions - ism policies, rollups, transforms
+-index_management_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - "cluster:admin/opendistro/ism/*"
+-    - "cluster:admin/opendistro/rollup/*"
+-    - "cluster:admin/opendistro/transform/*"
+-    - "cluster:admin/opensearch/controlcenter/lron/*"
+-    - "cluster:admin/opensearch/notifications/channels/get"
+-    - "cluster:admin/opensearch/notifications/feature/publish"
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/opensearch/ism/*'
+-        - 'indices:internal/plugins/replication/index/stop'
+-
+-# Allows users to use all cross cluster replication functionality at leader cluster
+-cross_cluster_replication_leader_full_access:
+-  reserved: true
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - "indices:admin/plugins/replication/index/setup/validate"
+-        - "indices:data/read/plugins/replication/changes"
+-        - "indices:data/read/plugins/replication/file_chunk"
+-
+-# Allows users to use all cross cluster replication functionality at follower cluster
+-cross_cluster_replication_follower_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - "cluster:admin/plugins/replication/autofollow/update"
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - "indices:admin/plugins/replication/index/pause"
+-        - "indices:admin/plugins/replication/index/resume"
+-        - "indices:admin/plugins/replication/index/setup/validate"
+-        - "indices:admin/plugins/replication/index/start"
+-        - "indices:admin/plugins/replication/index/status_check"
+-        - "indices:admin/plugins/replication/index/stop"
+-        - "indices:admin/plugins/replication/index/update"
+-        - "indices:data/write/plugins/replication/changes"
+-
+-# Allows users to use all cross cluster search functionality at remote cluster
+-cross_cluster_search_remote_full_access:
+-  reserved: true
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/shards/search_shards'
+-        - 'indices:data/read/search'
+-
+-# Allow users to operate query assistant
+-query_assistant_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/ml/config/get'
+-    - 'cluster:admin/opensearch/ml/execute'
+-    - 'cluster:admin/opensearch/ml/predict'
+-    - 'cluster:admin/opensearch/ppl'
+-
+-# Allow users to read ML stats/models/tasks
+-ml_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/ml/config/get'
+-    - 'cluster:admin/opensearch/ml/connectors/get'
+-    - 'cluster:admin/opensearch/ml/connectors/search'
+-    - 'cluster:admin/opensearch/ml/controllers/get'
+-    - 'cluster:admin/opensearch/ml/memory/conversation/get'
+-    - 'cluster:admin/opensearch/ml/memory/conversation/interaction/search'
+-    - 'cluster:admin/opensearch/ml/memory/conversation/list'
+-    - 'cluster:admin/opensearch/ml/memory/conversation/search'
+-    - 'cluster:admin/opensearch/ml/memory/interaction/get'
+-    - 'cluster:admin/opensearch/ml/memory/interaction/list'
+-    - 'cluster:admin/opensearch/ml/memory/trace/get'
+-    - 'cluster:admin/opensearch/ml/model_groups/get'
+-    - 'cluster:admin/opensearch/ml/model_groups/search'
+-    - 'cluster:admin/opensearch/ml/models/get'
+-    - 'cluster:admin/opensearch/ml/models/search'
+-    - 'cluster:admin/opensearch/ml/profile/nodes'
+-    - 'cluster:admin/opensearch/ml/stats/nodes'
+-    - 'cluster:admin/opensearch/ml/tasks/get'
+-    - 'cluster:admin/opensearch/ml/tasks/search'
+-    - 'cluster:admin/opensearch/ml/tools/get'
+-    - 'cluster:admin/opensearch/ml/tools/list'
+-
+-# Allows users to use all ML functionality
+-ml_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/ml/*'
+-    - 'cluster_monitor'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices_monitor'
+-
+-# Allows users to use all Notifications functionality
+-notifications_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/notifications/*'
+-
+-# Allows users to read Notifications config/channels
+-notifications_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/notifications/channels/get'
+-    - 'cluster:admin/opensearch/notifications/configs/get'
+-    - 'cluster:admin/opensearch/notifications/features'
+-
+-# Allows users to use all snapshot management functionality
+-snapshot_management_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/notifications/feature/publish'
+-    - 'cluster:admin/opensearch/snapshot_management/*'
+-    - 'cluster:admin/repository/*'
+-    - 'cluster:admin/snapshot/*'
+-
+-# Allows users to see snapshots, repositories, and snapshot management policies
+-snapshot_management_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/snapshot_management/policy/explain'
+-    - 'cluster:admin/opensearch/snapshot_management/policy/get'
+-    - 'cluster:admin/opensearch/snapshot_management/policy/search'
+-    - 'cluster:admin/repository/get'
+-    - 'cluster:admin/snapshot/get'
+-
+-# Allows user to use point in time functionality
+-point_in_time_full_access:
+-  reserved: true
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'manage_point_in_time'
+-
+-# Allows users to see security analytics detectors and others
+-security_analytics_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/securityanalytics/alerts/get'
+-    - 'cluster:admin/opensearch/securityanalytics/correlationAlerts/get'
+-    - 'cluster:admin/opensearch/securityanalytics/correlations/findings'
+-    - 'cluster:admin/opensearch/securityanalytics/correlations/list'
+-    - 'cluster:admin/opensearch/securityanalytics/detector/get'
+-    - 'cluster:admin/opensearch/securityanalytics/detector/search'
+-    - 'cluster:admin/opensearch/securityanalytics/findings/get'
+-    - 'cluster:admin/opensearch/securityanalytics/logtype/search'
+-    - 'cluster:admin/opensearch/securityanalytics/mapping/get'
+-    - 'cluster:admin/opensearch/securityanalytics/mapping/view/get'
+-    - 'cluster:admin/opensearch/securityanalytics/rule/get'
+-    - 'cluster:admin/opensearch/securityanalytics/rule/search'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/alerts/get'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/iocs/findings/get'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/iocs/list'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/monitors/search'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/sources/get'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/sources/search'
+-
+-# Allows users to use all security analytics functionality
+-security_analytics_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/securityanalytics/alerts/*'
+-    - 'cluster:admin/opensearch/securityanalytics/connections/*'
+-    - 'cluster:admin/opensearch/securityanalytics/correlationAlerts/*'
+-    - 'cluster:admin/opensearch/securityanalytics/correlations/*'
+-    - 'cluster:admin/opensearch/securityanalytics/detector/*'
+-    - 'cluster:admin/opensearch/securityanalytics/findings/*'
+-    - 'cluster:admin/opensearch/securityanalytics/logtype/*'
+-    - 'cluster:admin/opensearch/securityanalytics/mapping/*'
+-    - 'cluster:admin/opensearch/securityanalytics/rule/*'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/*'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/mapping/put'
+-        - 'indices:admin/mappings/get'
+-
+-# Allows users to view and acknowledge alerts
+-security_analytics_ack_alerts:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/securityanalytics/alerts/*'
+-    - 'cluster:admin/opensearch/securityanalytics/correlationAlerts/*'
+-    - 'cluster:admin/opensearch/securityanalytics/threatintel/alerts/*'
+-
+-# Allows users to use all Flow Framework functionality
+-flow_framework_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/flow_framework/*'
+-    - 'cluster_monitor'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/aliases/get'
+-        - 'indices:admin/mappings/get'
+-        - 'indices_monitor'
+-
+-# Allow users to read flow framework's workflows and their state
+-flow_framework_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/flow_framework/workflow/get'
+-    - 'cluster:admin/opensearch/flow_framework/workflow/search'
+-    - 'cluster:admin/opensearch/flow_framework/workflow_state/get'
+-    - 'cluster:admin/opensearch/flow_framework/workflow_state/search'
+-    - 'cluster:admin/opensearch/flow_framework/workflow_step/get'
+-
+-# Allows users to use all query insights APIs
+-query_insights_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/insights/*'
+-  index_permissions:
+-    - index_patterns:
+-        - 'top_queries-*'
+-      allowed_actions:
+-        - "indices_all"
+-
+-# Allow users to execute read only LTR actions
+-ltr_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - cluster:admin/ltr/caches/stats
+-    - cluster:admin/ltr/featurestore/list
+-    - cluster:admin/ltr/stats
+-
+-# Allow users to execute all LTR actions
+-ltr_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - cluster:admin/ltr/*
+-
+-# Allow users to use all Search Relevance functionalities
+-search_relevance_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/search_relevance/*'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/mappings/get'
+-        - 'indices:data/read/*'
+-
+-# Allow users to read Search Relevance resources
+-search_relevance_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/opensearch/search_relevance/experiment/get'
+-    - 'cluster:admin/opensearch/search_relevance/judgment/get'
+-    - 'cluster:admin/opensearch/search_relevance/queryset/get'
+-    - 'cluster:admin/opensearch/search_relevance/search_configuration/get'
+-  index_permissions:
+-    - index_patterns:
+-        - 'search-relevance-*'
+-      allowed_actions:
+-        - 'indices:admin/mappings/get'
+-        - 'indices:data/read/*'
+-
+-# Allow users to read Forecast resources
+-forecast_read_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/plugin/forecast/forecaster/info'
+-    - 'cluster:admin/plugin/forecast/forecaster/stats'
+-    - 'cluster:admin/plugin/forecast/forecaster/suggest'
+-    - 'cluster:admin/plugin/forecast/forecaster/validate'
+-    - 'cluster:admin/plugin/forecast/forecasters/get'
+-    - 'cluster:admin/plugin/forecast/forecasters/info'
+-    - 'cluster:admin/plugin/forecast/forecasters/search'
+-    - 'cluster:admin/plugin/forecast/result/topForecasts'
+-    - 'cluster:admin/plugin/forecast/tasks/search'
+-  index_permissions:
+-    - index_patterns:
+-        - 'opensearch-forecast-result*'
+-      allowed_actions:
+-        - 'indices:admin/mappings/fields/get*'
+-        - 'indices:admin/resolve/index'
+-        - 'indices:data/read*'
+-
+-# Allows users to use all Forecasting functionality
+-forecast_full_access:
+-  reserved: true
+-  cluster_permissions:
+-    - 'cluster:admin/plugin/forecast/*'
+-    - 'cluster:admin/settings/update'
+-    - 'cluster_monitor'
+-  index_permissions:
+-    - index_patterns:
+-        - '*'
+-      allowed_actions:
+-        - 'indices:admin/aliases/get'
+-        - 'indices:admin/mapping/get'
+-        - 'indices:admin/mapping/put'
+-        - 'indices:admin/mappings/fields/get*'
+-        - 'indices:admin/mappings/get'
+-        - 'indices:admin/resolve/index'
+-        - 'indices:data/read*'
+-        - 'indices:data/read/field_caps*'
+-        - 'indices:data/read/search'
+-        - 'indices:data/write*'
+-        - 'indices_monitor'
+diff --git a/config/roles_mapping.yml b/config/roles_mapping.yml
+index 89f46bf2..22a1f231 100644
+--- a/config/roles_mapping.yml
++++ b/config/roles_mapping.yml
+@@ -1,49 +1,4 @@
+ ---
+-# In this file users, backendroles and hosts can be mapped to Security roles.
+-# Permissions for OpenSearch roles are configured in roles.yml
+-
+ _meta:
+-  type: "rolesmapping"
++  type: rolesmapping
+   config_version: 2
+-
+-# Define your roles mapping here
+-
+-## Demo roles mapping
+-
+-all_access:
+-  reserved: false
+-  backend_roles:
+-  - "admin"
+-  description: "Maps admin to all_access"
+-
+-own_index:
+-  reserved: false
+-  users:
+-  - "*"
+-  description: "Allow full access to an index named like the username"
+-
+-logstash:
+-  reserved: false
+-  backend_roles:
+-  - "logstash"
+-
+-kibana_user:
+-  reserved: false
+-  backend_roles:
+-  - "kibanauser"
+-  description: "Maps kibanauser to kibana_user"
+-
+-readall:
+-  reserved: false
+-  backend_roles:
+-  - "readall"
+-
+-manage_snapshots:
+-  reserved: false
+-  backend_roles:
+-  - "snapshotrestore"
+-
+-kibana_server:
+-  reserved: true
+-  users:
+-  - "kibanaserver"
+diff --git a/config/tenants.yml b/config/tenants.yml
+index 04104dce..d98bd71d 100644
+--- a/config/tenants.yml
++++ b/config/tenants.yml
+@@ -1,11 +1,4 @@
+ ---
+ _meta:
+-  type: "tenants"
++  type: tenants
+   config_version: 2
+-
+-# Define your tenants here
+-
+-## Demo tenants
+-admin_tenant:
+-  reserved: false
+-  description: "Demo tenant for admin user"

@@ -168,7 +168,11 @@ uv pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
-cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
+if [ "$PRODUCT_VERSION" == "2.9.3" ] || [ "$PRODUCT_VERSION" == "3.0.6" ]; then
+  cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
+else
+  cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
+fi
 uv pip uninstall cyclonedx-bom
 
 # Break circular dependencies by removing the apache-airflow dependency from the providers

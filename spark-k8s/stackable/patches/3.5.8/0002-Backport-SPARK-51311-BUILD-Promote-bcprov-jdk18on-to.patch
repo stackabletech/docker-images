@@ -1,0 +1,83 @@
+From 49abdb63abc57d1b905dbd333d4b0ac487d42ae7 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Tue, 22 Jul 2025 17:34:03 +0200
+Subject: Backport [SPARK-51311][BUILD] Promote bcprov-jdk18on to compile scope
+
+---
+ LICENSE-binary                           |  1 +
+ assembly/pom.xml                         | 14 ++++++++++++++
+ dev/deps/spark-deps-hadoop-3-hive-2.3    |  1 +
+ licenses-binary/LICENSE-bouncycastle.txt | 13 +++++++++++++
+ 4 files changed, 29 insertions(+)
+ create mode 100644 licenses-binary/LICENSE-bouncycastle.txt
+
+diff --git a/LICENSE-binary b/LICENSE-binary
+index 05645977a0b..9834cf333f7 100644
+--- a/LICENSE-binary
++++ b/LICENSE-binary
+@@ -480,6 +480,7 @@ org.typelevel:algebra_2.12:jar
+ org.typelevel:cats-kernel_2.12
+ org.typelevel:machinist_2.12
+ net.razorvine:pickle
++org.bouncycastle:bcprov-jdk18on
+ org.slf4j:jcl-over-slf4j
+ org.slf4j:jul-to-slf4j
+ org.slf4j:slf4j-api
+diff --git a/assembly/pom.xml b/assembly/pom.xml
+index 1533c2f0c2d..d75faf07900 100644
+--- a/assembly/pom.xml
++++ b/assembly/pom.xml
+@@ -85,8 +85,22 @@
+       <artifactId>guava</artifactId>
+       <scope>${hadoop.deps.scope}</scope>
+     </dependency>
++
++    <!--
++      Adapted from https://github.com/apache/spark/pull/50077
++
++      SPARK-51311: HDFS-15098 (3.4.0) adds hard dependency on bcprov-jdk18on, Spark fails to submit
++      to Kerberized cluster without this dependency, until HADOOP-19152 (3.5.0, unreleased)
++      -->
++    <dependency>
++      <groupId>org.bouncycastle</groupId>
++      <artifactId>bcprov-jdk18on</artifactId>
++      <scope>${hadoop.deps.scope}</scope>
++    </dependency>
++
+   </dependencies>
+ 
++
+   <build>
+     <plugins>
+       <plugin>
+diff --git a/dev/deps/spark-deps-hadoop-3-hive-2.3 b/dev/deps/spark-deps-hadoop-3-hive-2.3
+index b4d91a1b161..b7409dd53fa 100644
+--- a/dev/deps/spark-deps-hadoop-3-hive-2.3
++++ b/dev/deps/spark-deps-hadoop-3-hive-2.3
+@@ -28,6 +28,7 @@ aws-java-sdk-bundle/1.12.262//aws-java-sdk-bundle-1.12.262.jar
+ azure-data-lake-store-sdk/2.3.9//azure-data-lake-store-sdk-2.3.9.jar
+ azure-keyvault-core/1.0.0//azure-keyvault-core-1.0.0.jar
+ azure-storage/7.0.1//azure-storage-7.0.1.jar
++bcprov-jdk18on/1.77//bcprov-jdk18on-1.77.jar
+ blas/3.0.3//blas-3.0.3.jar
+ bonecp/0.8.0.RELEASE//bonecp-0.8.0.RELEASE.jar
+ breeze-macros_2.12/2.1.0//breeze-macros_2.12-2.1.0.jar
+diff --git a/licenses-binary/LICENSE-bouncycastle.txt b/licenses-binary/LICENSE-bouncycastle.txt
+new file mode 100644
+index 00000000000..277dcd1ebbb
+--- /dev/null
++++ b/licenses-binary/LICENSE-bouncycastle.txt
+@@ -0,0 +1,13 @@
++Copyright (c) 2000-2024 The Legion of the Bouncy Castle Inc. (https://www.bouncycastle.org).
++Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
++associated documentation files (the "Software"), to deal in the Software without restriction,
++including without limitation the rights to use, copy, modify, merge, publish, distribute,
++sub license, and/or sell copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions: The above copyright notice and this
++permission notice shall be included in all copies or substantial portions of the Software.
++
++**THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
++NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
++DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
++OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.**

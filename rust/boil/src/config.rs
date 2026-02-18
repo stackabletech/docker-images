@@ -30,10 +30,28 @@ impl Config {
 // NOTE (@Techassi): Think about if these metadata fields should be required or optional. If they
 // are optional, the appropriate annotations are only emitted if set.
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Metadata {
-    pub documentation: Url,
-    pub licenses: String,
-    pub authors: String,
-    pub vendor: String,
-    pub source: Url,
+    /// The URL to the documentation page.
+    pub documentation: Option<Url>,
+
+    /// One ore more licenses used for images using the SPDX format.
+    pub licenses: Option<String>,
+
+    /// One or more authors of images.
+    ///
+    /// It is recommended to use the "NAME <EMAIL>" format.
+    pub authors: Option<String>,
+
+    /// The vendor who builds the images.
+    pub vendor: Option<String>,
+
+    /// The vendor prefix used in the image (index) manifest tag.
+    ///
+    /// Defaults to an empty string.
+    #[serde(default)]
+    pub vendor_tag_prefix: String,
+
+    /// The version control source of the images.
+    pub source: Option<Url>,
 }

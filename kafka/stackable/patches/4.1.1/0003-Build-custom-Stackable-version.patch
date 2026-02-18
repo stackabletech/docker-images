@@ -1,0 +1,103 @@
+From a9fbe72e176442b91376cb42b2f263589db57276 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 14 Jan 2026 12:58:54 +0100
+Subject: Build custom Stackable version
+
+---
+ committer-tools/kafka-merge-pr.py                              | 2 +-
+ docs/js/templateData.js                                        | 2 +-
+ gradle.properties                                              | 2 +-
+ streams/quickstart/java/pom.xml                                | 2 +-
+ .../java/src/main/resources/archetype-resources/pom.xml        | 2 +-
+ streams/quickstart/pom.xml                                     | 3 ++-
+ tests/kafkatest/__init__.py                                    | 2 +-
+ 7 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/committer-tools/kafka-merge-pr.py b/committer-tools/kafka-merge-pr.py
+index 1b181ed1d6..41fac8ba68 100755
+--- a/committer-tools/kafka-merge-pr.py
++++ b/committer-tools/kafka-merge-pr.py
+@@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
+ 
+ DEV_BRANCH_NAME = "trunk"
+ 
+-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "4.1.1")
++DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "4.1.1-stackable0.0.0-dev")
+ 
+ ORIGINAL_HEAD = ""
+ 
+diff --git a/docs/js/templateData.js b/docs/js/templateData.js
+index d63a81b503..5b3ded927b 100644
+--- a/docs/js/templateData.js
++++ b/docs/js/templateData.js
+@@ -19,6 +19,6 @@ limitations under the License.
+ var context={
+     "version": "41",
+     "dotVersion": "4.1",
+-    "fullDotVersion": "4.1.1",
++    "fullDotVersion": "4.1.1-stackable0.0.0-dev",
+     "scalaVersion": "2.13"
+ };
+diff --git a/gradle.properties b/gradle.properties
+index 005a86fa63..295ae5bc1f 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -23,7 +23,7 @@ group=org.apache.kafka
+ #  - streams/quickstart/pom.xml
+ #  - streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+ #  - streams/quickstart/java/pom.xml
+-version=4.1.1
++version=4.1.1-stackable0.0.0-dev
+ scalaVersion=2.13.16
+ # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
+ swaggerVersion=2.2.25
+diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
+index fc1aad5ee4..0335ea3760 100644
+--- a/streams/quickstart/java/pom.xml
++++ b/streams/quickstart/java/pom.xml
+@@ -26,7 +26,7 @@
+     <parent>
+         <groupId>org.apache.kafka</groupId>
+         <artifactId>streams-quickstart</artifactId>
+-        <version>4.1.1</version>
++        <version>4.1.1-stackable0.0.0-dev</version>
+         <relativePath>..</relativePath>
+     </parent>
+ 
+diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+index 4cab1223a7..0688fa4ccb 100644
+--- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
++++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+@@ -29,7 +29,7 @@
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <kafka.version>4.1.1</kafka.version>
++        <kafka.version>4.1.1-stackable0.0.0-dev</kafka.version>
+         <slf4j.version>2.0.16</slf4j.version>
+     </properties>
+ 
+diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
+index eef0727480..845281cce9 100644
+--- a/streams/quickstart/pom.xml
++++ b/streams/quickstart/pom.xml
+@@ -22,7 +22,8 @@
+     <groupId>org.apache.kafka</groupId>
+     <artifactId>streams-quickstart</artifactId>
+     <packaging>pom</packaging>
+-    <version>4.1.1</version>
++    <version>4.1.1-stackable0.0.0-dev</version>
++
+ 
+     <name>Kafka Streams :: Quickstart</name>
+ 
+diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
+index 9484aec27d..213f9eb9aa 100644
+--- a/tests/kafkatest/__init__.py
++++ b/tests/kafkatest/__init__.py
+@@ -22,4 +22,4 @@
+ # Instead, in development branches, the version should have a suffix of the form ".devN"
+ #
+ # For example, when Kafka is at version 1.0.0-SNAPSHOT, this should be something like "1.0.0.dev0"
+-__version__ = '4.1.1'
++__version__ = '4.1.1-stackable0.0.0-dev'

@@ -28,9 +28,11 @@ Add/Change/Remove anything that isn't applicable anymore
 ## Update tasks
 
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
-- [ ] Upload new version (see `hive/upload_new_hive_version.sh`).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Update other dependencies if applicable (eg: jmx_exporter, aws_java_sdk_bundle, etc).
+- [ ] Initialize new product versions with patchable and add patches if applicable.
+- [ ] Delete old patch directories.
+- [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.

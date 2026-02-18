@@ -22,7 +22,9 @@ microdnf install \
     `# tar needed to create the source code snapshot before building the Rust code` \
     tar \
     `# needed for rdkafka-sys` \
-    cyrus-sasl-devel
+    cyrus-sasl-devel \
+    `# needed for vector build (zstd-sys/bindgen)` \
+    clang
 microdnf clean all
 rm -rf /var/cache/yum
 EOF

@@ -6,21 +6,66 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- superset: Add 6.0.0-rc2 ([#1337]).
+- airflow: Add 3.1.6 ([#1405], [#1422]).
+- druid: Add 35.0.1 ([#1406]).
+- superset: Add 6.0.0 ([#1337], [#1393]).
+- opa: Add 1.12.3 ([#1396], [#1424]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
+- opensearch: Add `3.4.0` ([#1391]).
+- opensearch-dashboards: Add `3.4.0` ([#1392]).
+- testing-tools: build testing tools subimages in workflow ([#1366]).
+- kafka: Add `4.1.1` ([#1395]).
+- spark: Add `4.1.1` ([#1402]).
+- spark-connect-client: Add `4.1.1` ([#1402]).
+- spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
+- trino: Add `479` ([#1403]).
+- hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
+- spark: Add `3.5.8` ([#1414]).
+- spark-connect-client: Add `3.5.8` ([#1414]).
+- hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#1425]).
 
 ### Changed
 
 - airflow: Extend list of providers for 3.0.6 ([#1336])
 - airflow: Bump celery version to 5.5.3 for Airflow 3.x ([#1343]).
+- druid: Bump HDFS to 3.4.2 for 34.0.0 ([#1409]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- testing-tools: fix: add kubectl and openssl ([#1367]).
+- trino: Backport Kafka offset handling to 477 ([#1373]).
+- trino-cli: Bump to `479` ([#1403]).
+- ubi: Bumped ubi9 and ubi10 hashes ([#1386]).
+- vector: Bumped from 0.49.0 to 0.52.0 ([#1387]).
+- spark: Use one Dockerfile per major product version ([#1402]).
+  Remove all HBase dependencies from the Spark 4 image.
+  Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
+- hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
 
 ### Removed
 
+- airflow: Remove 2.10.5 and 3.0.1 ([#1405]).
+- druid: Remove 33.0.0 ([#1406]).
+- hdfs: Remove 3.4.1 ([#1409]).
 - opensearch: Remove the `performance-analyzer` plugin from the OpenSearch image ([#1357]).
+- superset: Remove 4.0.2 and 4.1.2 ([#1394]).
+- kafka: Remove `3.7.2` and `4.1.0` ([#1395]).
+- spark: Remove `3.5.6` ([#1402]).
+- spark-connect-client: Remove `3.5.6` ([#1402]).
+- opa: Remove `1.4.2` ([#1396]).
+- zookeeper: Remove `3.9.3` ([#1401]).
+- trino: Remove `451` and `476` ([#1403]).
+- hbase: Remove `2.6.2` ([#1408]).
+- spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
+- spark: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
+- spark-connect-client: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
+
+### Fixed
+
+- testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
+- testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
+- hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -30,6 +75,33 @@ All notable changes to this project will be documented in this file.
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
+[#1366]: https://github.com/stackabletech/docker-images/pull/1366
+[#1367]: https://github.com/stackabletech/docker-images/pull/1367
+[#1373]: https://github.com/stackabletech/docker-images/pull/1373
+[#1386]: https://github.com/stackabletech/docker-images/pull/1386
+[#1387]: https://github.com/stackabletech/docker-images/pull/1387
+[#1388]: https://github.com/stackabletech/docker-images/pull/1388
+[#1389]: https://github.com/stackabletech/docker-images/pull/1389
+[#1391]: https://github.com/stackabletech/docker-images/pull/1391
+[#1392]: https://github.com/stackabletech/docker-images/pull/1392
+[#1393]: https://github.com/stackabletech/docker-images/pull/1393
+[#1394]: https://github.com/stackabletech/docker-images/pull/1394
+[#1395]: https://github.com/stackabletech/docker-images/pull/1395
+[#1396]: https://github.com/stackabletech/docker-images/pull/1396
+[#1401]: https://github.com/stackabletech/docker-images/pull/1401
+[#1402]: https://github.com/stackabletech/docker-images/pull/1402
+[#1403]: https://github.com/stackabletech/docker-images/pull/1403
+[#1405]: https://github.com/stackabletech/docker-images/pull/1405
+[#1406]: https://github.com/stackabletech/docker-images/pull/1406
+[#1408]: https://github.com/stackabletech/docker-images/pull/1408
+[#1409]: https://github.com/stackabletech/docker-images/pull/1409
+[#1410]: https://github.com/stackabletech/docker-images/pull/1410
+[#1414]: https://github.com/stackabletech/docker-images/pull/1414
+[#1423]: https://github.com/stackabletech/docker-images/pull/1414
+[#1422]: https://github.com/stackabletech/docker-images/pull/1422
+[#1424]: https://github.com/stackabletech/docker-images/pull/1424
+[#1425]: https://github.com/stackabletech/docker-images/pull/1425
+[#1426]: https://github.com/stackabletech/docker-images/pull/1426
 
 ## [25.11.0] - 2025-11-07
 

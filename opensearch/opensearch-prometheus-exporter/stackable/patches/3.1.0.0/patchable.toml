@@ -1,1 +1,2 @@
+mirror = "https://github.com/stackabletech/opensearch-prometheus-exporter"
 base = "df60b43e34d0f7fba6be9e003924a413764df85e"

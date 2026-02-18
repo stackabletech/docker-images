@@ -1,22 +1,22 @@
-From f89f753d1bc03598bfe129c367233fec6daee078 Mon Sep 17 00:00:00 2001
+From 57c1974f0c25ea3e9d1f92dfebdc707c5ec56801 Mon Sep 17 00:00:00 2001
 From: Benedikt Labrenz <benedikt@labrenz.org>
 Date: Tue, 12 Aug 2025 14:59:12 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ build.gradle | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
-index 6c09118..d47ae14 100644
+index 6c09118..5401612 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -63,6 +63,20 @@ buildscript {
+@@ -63,6 +63,21 @@ buildscript {
      }
  }
  
 +plugins {
-+    id "org.cyclonedx.bom" version "2.3.1"
++    id "org.cyclonedx.bom" version "2.4.1"
 +}
 +
 +cyclonedxBom {
@@ -25,6 +25,7 @@ index 6c09118..d47ae14 100644
 +    skipConfigs = ["compileClasspath", "testCompileClasspath"]
 +    projectType = "application"
 +    schemaVersion = "1.6"
++    jsonOutput = file("build/reports/cyclonedx/bom.json")
 +    outputFormat = "json"
 +    componentVersion = versions.version
 +}
@@ -32,3 +33,10 @@ index 6c09118..d47ae14 100644
  apply plugin: 'java'
  apply plugin: 'idea'
  apply plugin: 'opensearch.opensearchplugin'
+@@ -340,4 +355,4 @@ task bwcTestSuite(type: RestIntegTestTask) {
+ 
+ run {
+     useCluster testClusters.integTest
+-}
+\ No newline at end of file
++}

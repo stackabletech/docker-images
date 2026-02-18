@@ -9,16 +9,6 @@ async-profiler-version = "2.9"
 jmx-exporter-version = "1.3.0"
 hdfs-utils-version = "0.4.0"
 
-[versions."3.4.1".local-images]
-"hadoop/hadoop" = "3.4.1"
-java-base = "11"
-java-devel = "11"
-
-[versions."3.4.1".build-arguments]
-async-profiler-version = "2.9"
-jmx-exporter-version = "1.3.0"
-hdfs-utils-version = "0.4.1"
-
 [versions."3.4.2".local-images]
 "hadoop/hadoop" = "3.4.2"
 java-base = "11"
