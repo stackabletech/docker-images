@@ -10,7 +10,7 @@ on:
       - "Cargo.*"
 
 env:
-  RUST_VERSION: 1.89.0
+  RUST_VERSION: 1.92.0
 
 jobs:
   # This job is always run to ensure we don't miss any new upstream advisories
