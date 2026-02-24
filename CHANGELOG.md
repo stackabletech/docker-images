@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
   Remove all HBase dependencies from the Spark 4 image.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
 - hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
+- nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
 
 ### Removed
 
@@ -66,6 +67,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
 - testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
 - hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
+- superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -102,6 +104,8 @@ All notable changes to this project will be documented in this file.
 [#1424]: https://github.com/stackabletech/docker-images/pull/1424
 [#1425]: https://github.com/stackabletech/docker-images/pull/1425
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
+[#1428]: https://github.com/stackabletech/docker-images/pull/1428
+[#1429]: https://github.com/stackabletech/docker-images/pull/1429
 
 ## [25.11.0] - 2025-11-07
 

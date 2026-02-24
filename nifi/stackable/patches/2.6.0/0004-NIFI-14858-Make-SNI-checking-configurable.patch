@@ -1,4 +1,4 @@
-From 22fff64167758481f7c66a85bc86df1467928e00 Mon Sep 17 00:00:00 2001
+From b1cf1b8747c3d877c2aeca1892be0708355a6676 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Wed, 13 Aug 2025 14:16:55 +0200
 Subject: NIFI-14858: Make SNI checking configurable
@@ -64,7 +64,7 @@ index 26d09706a1..132973cad5 100644
          }
  
 diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-index 9e85c05d22..89d81813f4 100644
+index 9e85c05d22..9c26cb7eb3 100644
 --- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 +++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 @@ -205,6 +205,8 @@ public class NiFiProperties extends ApplicationProperties {

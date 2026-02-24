@@ -141,7 +141,7 @@ uv pip install --no-cache-dir \
 
 # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
 # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
-# We only want to bump this for the 4.0.x line, as the others already have updated and we don't want to accidentially downgrade the version
+# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentially downgrade the version
 if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
     echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135"
     uv pip install gunicorn==22.0.0
@@ -156,6 +156,12 @@ if [ -n "$AUTHLIB_VERSION" ]; then
 fi
 
 uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
+
+# Setuptools 82+ removed pkg_resources, which is still needed by Superset 4.x
+# dependencies. Re-pin after all other installs in case newer versions
+# have been pulled in by other dependencies.
+# See https://setuptools.pypa.io/en/stable/history.html#v82-0-0
+uv pip install --no-cache-dir setuptools==75.2.0
 
 cyclonedx-py environment --schema-version 1.5 --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
 uv pip uninstall cyclonedx-bom
