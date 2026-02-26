@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
 - ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
 - stackable-base: Bump ubi9 image hash ([#1433]).
-- stackable-devel: Bump ubi9 image hash ([#1433]).
+- stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
 
 ### Removed
 
@@ -112,6 +112,7 @@ All notable changes to this project will be documented in this file.
 [#1429]: https://github.com/stackabletech/docker-images/pull/1429
 [#1432]: https://github.com/stackabletech/docker-images/pull/1432
 [#1433]: https://github.com/stackabletech/docker-images/pull/1433
+[#1435]: https://github.com/stackabletech/docker-images/pull/1435
 
 ## [25.11.0] - 2025-11-07
 
