@@ -69,6 +69,8 @@ RUN microdnf update \
     # tar needed to create the source code snapshot before building the Rust code
     tar \
     unzip \
+    # gzip needed by the tar command in the ONBUILD step
+    gzip \
   && microdnf clean all \
   && rm -rf /var/cache/yum
 
