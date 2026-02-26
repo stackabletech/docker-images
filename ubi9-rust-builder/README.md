@@ -10,7 +10,7 @@ This will bake in the current stable Rust version at the time this image was bui
 ## Example usage
 
 ```dockerfile
-FROM oci.stackable.tech/ubi9-rust-builder AS builder
+FROM oci.stackable.tech/sdp/ubi9-rust-builder AS builder
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal AS operator
 LABEL maintainer="Stackable GmbH"

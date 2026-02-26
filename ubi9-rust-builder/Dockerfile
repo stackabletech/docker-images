@@ -3,7 +3,10 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:bb08f2300cb8d12a7eb91dddf28ea63692b3ec99e7f0fa71a1b300f2756ea829 AS builder
+# The website is broken, so you can use this to find it:
+# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
+# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -11,17 +14,17 @@ LABEL maintainer="Stackable GmbH"
 # See https://github.com/rust-lang/rustup/blob/4514d36fcc9c42416176111cd841c86f7ec44b2c/rustup-init.sh#L91
 # Find the latest version here: https://github.com/rust-lang/rustup/blob/master/CHANGELOG.md
 # renovate: datasource=github-tags packageName=rust-lang/rustup
-ENV RUSTUP_VERSION=1.28.2
+ENV RUSTUP_VERSION=1.29.0
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.89.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.93.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.1
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
