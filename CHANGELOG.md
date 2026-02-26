@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `3.5.8` ([#1414]).
 - spark-connect-client: Add `3.5.8` ([#1414]).
 - hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#1425]).
+- ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
 
@@ -43,6 +44,7 @@ All notable changes to this project will be documented in this file.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
 - hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
 - nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
+- ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
 
 ### Removed
 
@@ -106,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
 [#1428]: https://github.com/stackabletech/docker-images/pull/1428
 [#1429]: https://github.com/stackabletech/docker-images/pull/1429
+[#1432]: https://github.com/stackabletech/docker-images/pull/1432
 
 ## [25.11.0] - 2025-11-07
 
