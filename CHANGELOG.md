@@ -72,6 +72,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
 - hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
 - superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
+- ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -113,6 +114,7 @@ All notable changes to this project will be documented in this file.
 [#1432]: https://github.com/stackabletech/docker-images/pull/1432
 [#1433]: https://github.com/stackabletech/docker-images/pull/1433
 [#1435]: https://github.com/stackabletech/docker-images/pull/1435
+[#1436]: https://github.com/stackabletech/docker-images/pull/1436
 
 ## [25.11.0] - 2025-11-07
 
