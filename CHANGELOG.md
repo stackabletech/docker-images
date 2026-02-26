@@ -44,7 +44,7 @@ All notable changes to this project will be documented in this file.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
 - hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
 - nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
-- ubi9-rust-builder: Bump rustup, rust toolchain and cargo auditble versions ([#1432]).
+- ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
 
 ### Removed
 
