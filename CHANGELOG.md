@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - spark-connect-client: Add `3.5.8` ([#1414]).
 - hbase: Backport HBASE-29797 to all HBase versions (`2.6.3` and `2.6.4`) ([#1425]).
 - druid: Make clientAuthenticationMethod configurable in Druid 35.0.1 ([#1431]).
+- ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
 
@@ -44,6 +45,9 @@ All notable changes to this project will be documented in this file.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
 - hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
 - nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
+- ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
+- stackable-base: Bump ubi9 image hash ([#1433]).
+- stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
 
 ### Removed
 
@@ -69,6 +73,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
 - hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
 - superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
+- ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -107,6 +112,11 @@ All notable changes to this project will be documented in this file.
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
 [#1428]: https://github.com/stackabletech/docker-images/pull/1428
 [#1429]: https://github.com/stackabletech/docker-images/pull/1429
+[#1431]: https://github.com/stackabletech/docker-images/pull/1431
+[#1432]: https://github.com/stackabletech/docker-images/pull/1432
+[#1433]: https://github.com/stackabletech/docker-images/pull/1433
+[#1435]: https://github.com/stackabletech/docker-images/pull/1435
+[#1436]: https://github.com/stackabletech/docker-images/pull/1436
 
 ## [25.11.0] - 2025-11-07
 
