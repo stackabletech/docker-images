@@ -119,7 +119,11 @@ source /stackable/app/bin/activate
 # Also install uv to get support for build constraints
 pip install --no-cache-dir --upgrade pip
 pip install --no-cache-dir uv==${UV_VERSION}
-uv tool install hatch
+
+# Pin virtualenv due to a breaking change in 21.0.0 which is pulled
+# in by hatch.
+# See https://github.com/pypa/hatch/issues/2193
+uv tool install hatch --with "virtualenv<21"
 
 cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VERSION})"
 
