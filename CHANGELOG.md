@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - druid: Bump HDFS to 3.4.2 for 34.0.0 ([#1409]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- hadoop: Bump to `hdfs-utils` 0.5.0 ([#1360]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
 - trino-cli: Bump to `479` ([#1403]).
@@ -83,6 +84,7 @@ All notable changes to this project will be documented in this file.
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
+[#1360]: https://github.com/stackabletech/docker-images/pull/1360
 [#1366]: https://github.com/stackabletech/docker-images/pull/1366
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
