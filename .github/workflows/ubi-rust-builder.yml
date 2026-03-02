@@ -106,10 +106,6 @@ jobs:
           # Uses the keyless signing flow with Github Actions as identity provider
           cosign sign -y "$MANIFEST_LIST_NAME@$DIGEST"
 
-      - name: Fail on purpose
-        shell: bash
-        run: 'false'
-
   notify:
     name: Failure Notification
     needs: [build, publish_manifests]
