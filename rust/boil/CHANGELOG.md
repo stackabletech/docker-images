@@ -4,6 +4,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7] - 2026-03-03
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.6..boil-0.1.7)
+
+### Features
+
+- Provide more build args ([#1365](https://github.com/stackabletech/docker-images/pull/1365)).
+
+### Bug Fixes
+
+- RUSTSEC-2026-0007 and 2026-0009 ([#1434](https://github.com/stackabletech/docker-images/pull/1434)).
+
+### Miscellaneous
+
+- Adjust git-cliff config.
+
 ## [0.1.6] - 2025-11-07
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.5..boil-0.1.6)
