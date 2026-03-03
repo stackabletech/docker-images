@@ -59,7 +59,7 @@ jobs:
         with:
           persist-credentials: false
       - id: shard
-        uses: stackabletech/actions/shard@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/shard@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -85,11 +85,11 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/free-disk-space@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/build-product-image@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
@@ -97,7 +97,7 @@ jobs:
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -123,7 +123,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image-index-manifest@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -138,7 +138,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/send-slack-notification@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
