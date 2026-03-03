@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous
 
-- Adjust git-cliff config.
+- Adjust git-cliff config ([#1441](https://github.com/stackabletech/docker-images/pull/1441)).
 
 ## [0.1.6] - 2025-11-07
 
