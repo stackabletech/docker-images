@@ -1,4 +1,4 @@
-From 1fe22dcc974b52d83b8288d5279c3aa8c41a1243 Mon Sep 17 00:00:00 2001
+From 1b21f7709cf3bfafecd9f75ffadf6b6dc7391055 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Wed, 22 Oct 2025 15:27:29 +0200
 Subject: fix: pin esbuild to fix NiFi 2.6.0 build

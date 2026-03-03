@@ -6,10 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- airflow: Add 3.1.5 ([#1405]).
+- airflow: Add 3.1.6 ([#1405], [#1422]).
 - druid: Add 35.0.1 ([#1406]).
 - superset: Add 6.0.0 ([#1337], [#1393]).
-- opa: Add 1.12.2 ([#1396]).
+- opa: Add 1.12.3 ([#1396], [#1424]).
 - hive: Build [hive-metastore-opa-authorizer](https://github.com/boschglobal/hive-metastore-opa-authorizer) from source and add to image ([#1340]).
 - hive: Add `4.2.0` ([#1356]).
 - nifi: Add patches to replace process group root ID placeholder ([#1358]).
@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file.
 - spark-k8s/hbase-connectors: new image extracted from spark dockerfile ([#1402]).
 - trino: Add `479` ([#1403]).
 - hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
+- spark: Add `3.5.8` ([#1414]).
+- spark-connect-client: Add `3.5.8` ([#1414]).
+- hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#1425]).
+- ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
 
@@ -30,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - druid: Bump HDFS to 3.4.2 for 34.0.0 ([#1409]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- hadoop: Bump to `hdfs-utils` 0.5.0 ([#1360]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
 - trino-cli: Bump to `479` ([#1403]).
@@ -38,6 +43,11 @@ All notable changes to this project will be documented in this file.
 - spark: Use one Dockerfile per major product version ([#1402]).
   Remove all HBase dependencies from the Spark 4 image.
   Pull logging dependencies with `mvn` instead of `curl` to remove manual maintenance in Nexus `packages`.
+- hbase: Update `hbase-operator-tools` from `1.3.0-fd5a5fb` to `1.3.0` ([#1425]).
+- nifi: Backported NiFi-15567 to NiFi 2.6.0 and 2.7.2 to fix CVE CVE-2026-25903 ([#1429]).
+- ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
+- stackable-base: Bump ubi9 image hash ([#1433]).
+- stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
 
 ### Removed
 
@@ -56,11 +66,17 @@ All notable changes to this project will be documented in this file.
 - spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
 - vector: Remove the Vector state directory `/stackable/vector/var` because the state should be
   persisted in the log directory ([#1413]).
+- spark: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
+- spark-connect-client: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
 
 ### Fixed
 
 - testing-tools: Re-add `pytest` Python package as well as `diffutils` package ([#1388]).
 - testing-tools: Move Kerberos packages from testing-tools/hive to parent since they provide `kinit` which is needed in other tests too (ex. HBase). ([#1389]).
+- hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
+- superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
+- ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
+- airflow: Pin virtualenv to prevent hatch pulling in a version with a breaking change ([#1437]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -70,6 +86,7 @@ All notable changes to this project will be documented in this file.
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
+[#1360]: https://github.com/stackabletech/docker-images/pull/1360
 [#1366]: https://github.com/stackabletech/docker-images/pull/1366
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
@@ -92,6 +109,19 @@ All notable changes to this project will be documented in this file.
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
 [#1410]: https://github.com/stackabletech/docker-images/pull/1410
 [#1413]: https://github.com/stackabletech/docker-images/pull/1413
+[#1414]: https://github.com/stackabletech/docker-images/pull/1414
+[#1422]: https://github.com/stackabletech/docker-images/pull/1422
+[#1423]: https://github.com/stackabletech/docker-images/pull/1414
+[#1424]: https://github.com/stackabletech/docker-images/pull/1424
+[#1425]: https://github.com/stackabletech/docker-images/pull/1425
+[#1426]: https://github.com/stackabletech/docker-images/pull/1426
+[#1428]: https://github.com/stackabletech/docker-images/pull/1428
+[#1429]: https://github.com/stackabletech/docker-images/pull/1429
+[#1432]: https://github.com/stackabletech/docker-images/pull/1432
+[#1433]: https://github.com/stackabletech/docker-images/pull/1433
+[#1435]: https://github.com/stackabletech/docker-images/pull/1435
+[#1436]: https://github.com/stackabletech/docker-images/pull/1436
+[#1437]: https://github.com/stackabletech/docker-images/pull/1437
 
 ## [25.11.0] - 2025-11-07
 

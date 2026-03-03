@@ -52,12 +52,12 @@ opa-auth-manager = "airflow-3"
 nodejs-version = "20"
 
 # Supported
-[versions."3.1.5".local-images]
+[versions."3.1.6".local-images]
 "shared/statsd-exporter" = "0.28.0"
 vector = "0.52.0"
 stackable-devel = "1.0.0"
 
-[versions."3.1.5".build-arguments]
+[versions."3.1.6".build-arguments]
 # NOTE (@Techassi): Maybe this version can be bumped
 python-version = "3.12"
 git-sync-version = "v4.5.1"

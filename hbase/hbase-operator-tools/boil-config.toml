@@ -1,21 +1,21 @@
-[versions."1.3.0-fd5a5fb-hbase2.6.3".local-images]
+[versions."1.3.0-hbase2.6.3".local-images]
 "hadoop/hadoop" = "3.4.2"
 "hbase/hbase" = "2.6.3"
 "java-devel" = "11"
 
-[versions."1.3.0-fd5a5fb-hbase2.6.3".build-arguments]
-hbase-operator-tools-version = "1.3.0-fd5a5fb"
+[versions."1.3.0-hbase2.6.3".build-arguments]
+hbase-operator-tools-version = "1.3.0"
 hbase-thirdparty-version = "4.1.9"
 delete-caches = "true"
 
 # Note: The next Hbase version should use 1.4.0 if it is released.
 # At the time of writing, the latest commit is b22878f.
-[versions."1.3.0-fd5a5fb-hbase2.6.4".local-images]
+[versions."1.3.0-hbase2.6.4".local-images]
 "hadoop/hadoop" = "3.4.2"
 "hbase/hbase" = "2.6.4"
 "java-devel" = "11"
 
-[versions."1.3.0-fd5a5fb-hbase2.6.4".build-arguments]
-hbase-operator-tools-version = "1.3.0-fd5a5fb"
+[versions."1.3.0-hbase2.6.4".build-arguments]
+hbase-operator-tools-version = "1.3.0"
 hbase-thirdparty-version = "4.1.9"
 delete-caches = "true"

@@ -12,3 +12,9 @@ SDP 24.7 included Phoenix built from the master branch from commit [4afe457](htt
 Repository: [hbase-operator-tools](https://github.com/apache/hbase-operator-tools)
 
 This is now mirrored and built from source using `patchable`.
+
+## Back-porting upstream changes
+
+Care needs to be taken when back-porting upstream changes due to changing dependencies.
+A patch for multiple versions (that share the same major.minor version) may not work if dependencies have been introduced in the meantime.
+e.g. HBASE-29797 can be applied to 2.6.4 directly, but not to 2.6.3 as test libraries were introduced between those versions.

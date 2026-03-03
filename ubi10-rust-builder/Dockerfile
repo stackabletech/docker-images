@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
+# Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-the-image
+# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
+# rather than just the "Image Digest" that references the image for the selected architecture.
 # The website is broken, so you can use this to find it:
-# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
-# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
+# curl https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c \
+# | grep -oE 'registry.redhat.io/ubi10/ubi-minimal@sha256:[a-z0-9]{64}'
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:a74a7a92d3069bfac09c6882087771fc7db59fa9d8e16f14f4e012fe7288554c AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -68,6 +69,8 @@ RUN microdnf update \
     # tar needed to create the source code snapshot before building the Rust code
     tar \
     unzip \
+    # gzip needed by the tar command in the ONBUILD step
+    gzip \
   && microdnf clean all \
   && rm -rf /var/cache/yum
 

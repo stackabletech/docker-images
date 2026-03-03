@@ -11,7 +11,10 @@
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:6fc28bcb6776e387d7a35a2056d9d2b985dc4e26031e98a2bd35a7137cd6fd71
+# The website is broken, so you can use this to find it:
+# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
+# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -44,14 +47,14 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # TODO (@NickLarsenNZ): Move the version into boil-config.toml once renovate can look there
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.89.0
+ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.93.0
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=${RUST_DEFAULT_TOOLCHAIN_VERSION}
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.1
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
 
 RUN <<EOF
 microdnf update
