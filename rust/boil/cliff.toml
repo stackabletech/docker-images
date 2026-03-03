@@ -28,7 +28,7 @@ commit_parsers = [
   { message = "^fix\\(.*boil.*\\)", group = "<!-- 1 --> Bug Fixes" },
   { message = "^docs?\\(.*boil.*\\)", group = "<!-- 2 --> Documentation" },
   { message = "^(perf|refactor|test)\\(.*boil.*\\)", group = "<!-- 3 --> Improvements" },
-  { message = "^chore\\(.*boil.*\\): Improve", group = "<!-- 3 --> Improvements" },
+  { message = "^chore\\(.*boil.*\\): [Ii]mprove", group = "<!-- 3 --> Improvements" },
   { message = "^chore\\(.*boil.*\\)", group = "<!-- 4 --> Miscellaneous" },
 ]
 
