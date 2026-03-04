@@ -56,7 +56,7 @@ if git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-git add rust/boil/CHANGELOG.md rust/boil/Cargo.*
+git add rust/boil/CHANGELOG.md rust/boil/Cargo.* Cargo.lock
 git commit --message "chore(boil): Release $CLEANED_BUMPED_VERSION" --no-verify --gpg-sign
 
 echo "Pushing changes and raising PR"
