@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
 - stackable-base: Bump ubi9 image hash ([#1433]).
 - stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
+- stackable-base: Bump `config-utils` to `0.3.0` and `cert-tools` to `0.1.1` ([#XXXX]).
 
 ### Removed
 
@@ -122,6 +123,7 @@ All notable changes to this project will be documented in this file.
 [#1435]: https://github.com/stackabletech/docker-images/pull/1435
 [#1436]: https://github.com/stackabletech/docker-images/pull/1436
 [#1437]: https://github.com/stackabletech/docker-images/pull/1437
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [25.11.0] - 2025-11-07
 
