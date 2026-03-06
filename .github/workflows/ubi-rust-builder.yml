@@ -113,7 +113,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/send-slack-notification@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
