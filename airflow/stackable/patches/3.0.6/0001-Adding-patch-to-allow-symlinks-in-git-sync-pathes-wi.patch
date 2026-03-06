@@ -1,0 +1,50 @@
+From fcc1689f60a11ce13252daa2196ce8d6dec05783 Mon Sep 17 00:00:00 2001
+From: Maxi Wittich <maximilian.wittich@stackable.tech>
+Date: Fri, 6 Mar 2026 15:03:02 +0100
+Subject: Adding patch to allow symlinks in git-sync pathes without error und
+ siblings
+
+---
+ airflow-core/src/airflow/utils/file.py | 28 +++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/airflow-core/src/airflow/utils/file.py b/airflow-core/src/airflow/utils/file.py
+index 12138043b8..9ef680fc28 100644
+--- a/airflow-core/src/airflow/utils/file.py
++++ b/airflow-core/src/airflow/utils/file.py
+@@ -199,17 +199,25 @@ def _find_path_from_directory(
+                 # so that later patterns can override earlier patterns
+                 patterns = list(dict.fromkeys(patterns))
+ 
+-        dirs[:] = [subdir for subdir in dirs if not ignore_rule_type.match(Path(root) / subdir, patterns)]
+-
+-        # explicit loop for infinite recursion detection since we are following symlinks in this walk
+-        for sd in dirs:
+-            dirpath = (Path(root) / sd).resolve()
++        dirs_sorted = sorted(dirs, key=lambda d: not (Path(root) / d).is_symlink())
++        accepted_dirs: list[str] = []
++        for subdir in dirs_sorted:
++            if ignore_rule_type.match(Path(root) / subdir, patterns):
++                continue
++            dirpath = (Path(root) / subdir).resolve()
+             if dirpath in patterns_by_dir:
+-                raise RuntimeError(
+-                    "Detected recursive loop when walking DAG directory "
+-                    f"{base_dir_path}: {dirpath} has appeared more than once."
+-                )
+-            patterns_by_dir.update({dirpath: patterns.copy()})
++                log.debug(
++                    "Skipping %s: already visited via resolved path %s. "
++                    "This is expected when a symlink and its target are siblings "
++                    "(e.g. a git-sync versioned directory alongside its 'link' symlink). ",
++                    Path(root) / subdir,
++                    dirpath,
++                 )
++                continue
++            patterns_by_dir[dirpath] = patterns.copy()
++            accepted_dirs.append(subdir)
++        # Only adding unique subdirs 
++        dirs[:] = accepted_dirs
+ 
+         for file in files:
+             if file != ignore_file_name:
