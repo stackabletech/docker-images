@@ -1,0 +1,50 @@
+From e603aa6796140984b2949081a74a9b280170ffd3 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Mon, 9 Mar 2026 10:11:28 +0100
+Subject: Allow overriding the logging configuration
+
+---
+ .../src/airflow_shared/logging/structlog.py      | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/shared/logging/src/airflow_shared/logging/structlog.py b/shared/logging/src/airflow_shared/logging/structlog.py
+index 2d901b8303..e192308545 100644
+--- a/shared/logging/src/airflow_shared/logging/structlog.py
++++ b/shared/logging/src/airflow_shared/logging/structlog.py
+@@ -376,6 +376,18 @@ def structlog_processors(
+     return shared_processors, console, console
+ 
+ 
++def update_config(
++    config: dict,
++    updates: Mapping,
++):
++    for key, value in updates.items():
++        if isinstance(value, Mapping):
++            config[key] = update_config(config.get(key, {}), value)
++        else:
++            config[key] = value
++    return config
++
++
+ def configure_logging(
+     *,
+     json_output: bool = False,
+@@ -494,7 +506,7 @@ def configure_logging(
+ 
+     import logging.config
+ 
+-    config = {**stdlib_config}
++    config = {}
+     config.setdefault("version", 1)
+     config.setdefault("disable_existing_loggers", False)
+     config["formatters"] = {**config.get("formatters", {})}
+@@ -547,6 +559,8 @@ def configure_logging(
+         "propagate": True,
+     }
+ 
++    update_config(config, stdlib_config)
++
+     logging.config.dictConfig(config)
+ 
+ 
