@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `3.5.8` ([#1414]).
 - spark-connect-client: Add `3.5.8` ([#1414]).
 - hbase: Backport HBASE-29797 to all HBase versions (`2.6.3` and `2.6.4`) ([#1425]).
-- druid: Make clientAuthenticationMethod configurable in Druid 35.0.1 ([#1431]).
+- druid: Make the `clientAuthenticationMethod` configurable in Druid `35.0.1` ([#1431]).
 - ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
