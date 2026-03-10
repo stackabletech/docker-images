@@ -14,7 +14,7 @@ FROM local-image/stackable-devel AS rust-binaries
 ENV CONFIG_UTILS_VERSION=0.3.0
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.2.0
+ENV CONTAINERDEBUG_VERSION=0.3.0
 # Find the latest version here: https://github.com/stackabletech/secret-operator/tags
 # I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
 # so I was unable to add a renovate hint.
