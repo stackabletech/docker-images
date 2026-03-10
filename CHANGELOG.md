@@ -24,7 +24,8 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
 - spark: Add `3.5.8` ([#1414]).
 - spark-connect-client: Add `3.5.8` ([#1414]).
-- hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#1425]).
+- hbase: Backport HBASE-29797 to all HBase versions (`2.6.3` and `2.6.4`) ([#1425]).
+- druid: Make the `clientAuthenticationMethod` configurable in Druid `35.0.1` ([#1431]).
 - ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
@@ -119,6 +120,7 @@ All notable changes to this project will be documented in this file.
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
 [#1428]: https://github.com/stackabletech/docker-images/pull/1428
 [#1429]: https://github.com/stackabletech/docker-images/pull/1429
+[#1431]: https://github.com/stackabletech/docker-images/pull/1431
 [#1432]: https://github.com/stackabletech/docker-images/pull/1432
 [#1433]: https://github.com/stackabletech/docker-images/pull/1433
 [#1435]: https://github.com/stackabletech/docker-images/pull/1435
