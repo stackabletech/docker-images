@@ -1,0 +1,429 @@
+From 33efb0019ab0705aa5e207fa8e1a7eb5b341d6d2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Mon, 9 Mar 2026 18:24:04 +0100
+Subject: HBASE-XXXXX Add WAL roll trigger based on filesystem sync count
+
+Motivation:
+When running HBase on Azure ADLS (Azure Data Lake Storage), each blob
+has a hard limit of 50,000 append operations. WAL files are written via
+append calls, with each filesystem-level sync constituting one append.
+The existing WAL rotation triggers (time-based, size-based, slow-sync)
+do not account for this append count limit, which can cause WAL writes
+to fail with errors once the limit is exceeded.
+
+Changes:
+Add a new configurable WAL rotation trigger that rolls the WAL file
+after a specified number of filesystem-level syncs. This is implemented
+by tracking syncs via an AtomicInteger counter in AbstractFSWAL that
+increments in postSync() (the common chokepoint for both FSHLog and
+AsyncFSWAL) and resets to zero on each successful roll.
+
+A new doCheckSyncCount() method is called from FSHLog.checkLogRoll()
+and AsyncFSWAL.syncCompleted() alongside the existing size and
+slow-sync checks. A new SYNC_COUNT value is added to the
+RollRequestReason enum, with corresponding metrics wired through
+MetricsWALSource, MetricsWALSourceImpl, and MetricsWAL.
+
+New configuration parameter:
+  hbase.regionserver.wal.roll.on.sync.count
+    Maximum number of filesystem-level syncs allowed per WAL file
+    before triggering a rotation. When the count is reached, a log
+    roll is requested with reason SYNC_COUNT. The counter resets to
+    zero after each successful roll. Set to 0 (default) to disable.
+    Recommended value for ADLS: 40000 (leaving margin below the
+    50,000 limit, since other roll triggers may fire first).
+
+New metric:
+  syncCountRollRequest
+    Counts how many times a WAL roll was requested due to the
+    filesystem sync count threshold being reached.
+
+Files changed:
+  WALActionsListener.java      - SYNC_COUNT enum value
+  MetricsWALSource.java        - metric constant and interface method
+  MetricsWALSourceImpl.java    - metric counter implementation
+  MetricsWAL.java              - switch case for SYNC_COUNT
+  AbstractFSWAL.java           - config, counter, postSync increment,
+                                 roll reset, doCheckSyncCount()
+  FSHLog.java                  - wired into checkLogRoll()
+  AsyncFSWAL.java              - wired into syncCompleted()
+  TestMetricsWAL.java          - updated for SYNC_COUNT
+  AbstractTestFSWAL.java       - unit tests for threshold logic
+  AbstractTestLogRolling.java  - integration test with LogRoller
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+---
+ .../regionserver/wal/MetricsWALSource.java    |  5 ++
+ .../wal/MetricsWALSourceImpl.java             |  8 +++
+ .../hbase/regionserver/wal/AbstractFSWAL.java | 23 ++++++++
+ .../hbase/regionserver/wal/AsyncFSWAL.java    |  3 ++
+ .../hadoop/hbase/regionserver/wal/FSHLog.java |  3 ++
+ .../hbase/regionserver/wal/MetricsWAL.java    |  3 ++
+ .../regionserver/wal/WALActionsListener.java  |  2 +
+ .../regionserver/wal/AbstractTestFSWAL.java   | 39 ++++++++++++++
+ .../wal/AbstractTestLogRolling.java           | 53 +++++++++++++++++++
+ .../regionserver/wal/TestMetricsWAL.java      |  7 ++-
+ 10 files changed, 144 insertions(+), 2 deletions(-)
+
+diff --git a/hbase-hadoop-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSource.java b/hbase-hadoop-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSource.java
+index ce4cd8f161..3763b460ce 100644
+--- a/hbase-hadoop-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSource.java
++++ b/hbase-hadoop-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSource.java
+@@ -71,6 +71,9 @@ public interface MetricsWALSource extends BaseSource {
+   String SIZE_ROLL_REQUESTED = "sizeRollRequest";
+   String SIZE_ROLL_REQUESTED_DESC =
+     "How many times a roll was requested due to file size roll threshold.";
++  String SYNC_COUNT_ROLL_REQUESTED = "syncCountRollRequest";
++  String SYNC_COUNT_ROLL_REQUESTED_DESC =
++    "How many times a roll was requested due to filesystem sync count threshold.";
+   String WRITTEN_BYTES = "writtenBytes";
+   String WRITTEN_BYTES_DESC = "Size (in bytes) of the data written to the WAL.";
+   String SUCCESSFUL_LOG_ROLLS = "successfulLogRolls";
+@@ -113,6 +116,8 @@ public interface MetricsWALSource extends BaseSource {
+ 
+   void incrementSizeLogRoll();
+ 
++  void incrementSyncCountLogRoll();
++
+   void incrementWrittenBytes(long val);
+ 
+   /**
+diff --git a/hbase-hadoop2-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSourceImpl.java b/hbase-hadoop2-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSourceImpl.java
+index 9400eb7d22..9098625112 100644
+--- a/hbase-hadoop2-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSourceImpl.java
++++ b/hbase-hadoop2-compat/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWALSourceImpl.java
+@@ -43,6 +43,7 @@ public class MetricsWALSourceImpl extends BaseSourceImpl implements MetricsWALSo
+   private final MutableFastCounter lowReplicationRollRequested;
+   private final MutableFastCounter slowSyncRollRequested;
+   private final MutableFastCounter sizeRollRequested;
++  private final MutableFastCounter syncCountRollRequested;
+   private final MutableFastCounter writtenBytes;
+   private final MutableFastCounter successfulLogRolls;
+   // Per table metrics.
+@@ -74,6 +75,8 @@ public class MetricsWALSourceImpl extends BaseSourceImpl implements MetricsWALSo
+       SLOW_SYNC_ROLL_REQUESTED_DESC, 0L);
+     sizeRollRequested =
+       this.getMetricsRegistry().newCounter(SIZE_ROLL_REQUESTED, SIZE_ROLL_REQUESTED_DESC, 0L);
++    syncCountRollRequested = this.getMetricsRegistry().newCounter(SYNC_COUNT_ROLL_REQUESTED,
++      SYNC_COUNT_ROLL_REQUESTED_DESC, 0L);
+     writtenBytes = this.getMetricsRegistry().newCounter(WRITTEN_BYTES, WRITTEN_BYTES_DESC, 0L);
+     successfulLogRolls =
+       this.getMetricsRegistry().newCounter(SUCCESSFUL_LOG_ROLLS, SUCCESSFUL_LOG_ROLLS_DESC, 0L);
+@@ -149,6 +152,11 @@ public class MetricsWALSourceImpl extends BaseSourceImpl implements MetricsWALSo
+     sizeRollRequested.incr();
+   }
+ 
++  @Override
++  public void incrementSyncCountLogRoll() {
++    syncCountRollRequested.incr();
++  }
++
+   @Override
+   public long getSlowAppendCount() {
+     return slowAppendCount.value();
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
+index efa151dd6f..0e7a369922 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AbstractFSWAL.java
+@@ -20,6 +20,7 @@ package org.apache.hadoop.hbase.regionserver.wal;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.ERROR;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.LOW_REPLICATION;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SLOW_SYNC;
++import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SYNC_COUNT;
+ import static org.apache.hadoop.hbase.trace.HBaseSemanticAttributes.WAL_IMPL;
+ import static org.apache.hadoop.hbase.wal.AbstractFSWALProvider.WAL_FILE_NAME_DELIMITER;
+ import static org.apache.hbase.thirdparty.com.google.common.base.Preconditions.checkArgument;
+@@ -140,6 +141,9 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+   protected static final String SLOW_SYNC_ROLL_INTERVAL_MS =
+     "hbase.regionserver.wal.slowsync.roll.interval.ms";
+   protected static final int DEFAULT_SLOW_SYNC_ROLL_INTERVAL_MS = 60 * 1000; // in ms, 1 minute
++  protected static final String ROLL_ON_SYNC_COUNT_KEY =
++    "hbase.regionserver.wal.roll.on.sync.count";
++  protected static final int DEFAULT_ROLL_ON_SYNC_COUNT = 0; // 0 = disabled
+ 
+   public static final String WAL_SYNC_TIMEOUT_MS = "hbase.regionserver.wal.sync.timeout";
+   protected static final int DEFAULT_WAL_SYNC_TIMEOUT_MS = 5 * 60 * 1000; // in ms, 5min
+@@ -219,6 +223,8 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+   protected final int slowSyncRollThreshold;
+   protected final int slowSyncCheckInterval;
+   protected final AtomicInteger slowSyncCount = new AtomicInteger();
++  protected final int rollOnSyncCount;
++  protected final AtomicInteger fsSyncCount = new AtomicInteger();
+ 
+   private final long walSyncTimeoutNs;
+ 
+@@ -507,6 +513,7 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+       conf.getInt(SLOW_SYNC_ROLL_THRESHOLD, DEFAULT_SLOW_SYNC_ROLL_THRESHOLD);
+     this.slowSyncCheckInterval =
+       conf.getInt(SLOW_SYNC_ROLL_INTERVAL_MS, DEFAULT_SLOW_SYNC_ROLL_INTERVAL_MS);
++    this.rollOnSyncCount = conf.getInt(ROLL_ON_SYNC_COUNT_KEY, DEFAULT_ROLL_ON_SYNC_COUNT);
+     this.walSyncTimeoutNs = TimeUnit.MILLISECONDS.toNanos(conf.getLong(WAL_SYNC_TIMEOUT_MS,
+       conf.getLong("hbase.regionserver.hlog.sync.timeout", DEFAULT_WAL_SYNC_TIMEOUT_MS)));
+     this.syncFutureCache = new SyncFutureCache(conf);
+@@ -927,6 +934,7 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+         // We got a new writer, so reset the slow sync count
+         lastTimeCheckSlowSync = EnvironmentEdgeManager.currentTime();
+         slowSyncCount.set(0);
++        fsSyncCount.set(0);
+         // Can we delete any of the old log files?
+         if (getNumRolledLogFiles() > 0) {
+           cleanOldLogs();
+@@ -1174,6 +1182,7 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+   }
+ 
+   protected final void postSync(final long timeInNanos, final int handlerSyncs) {
++    fsSyncCount.incrementAndGet();
+     if (timeInNanos > this.slowSyncNs) {
+       String msg = new StringBuilder().append("Slow sync cost: ")
+         .append(TimeUnit.NANOSECONDS.toMillis(timeInNanos)).append(" ms, current pipeline: ")
+@@ -1353,6 +1362,20 @@ public abstract class AbstractFSWAL<W extends WriterBase> implements WAL {
+     return result;
+   }
+ 
++  /** Returns true if we exceeded the max sync count for the current WAL file */
++  protected boolean doCheckSyncCount() {
++    if (rollOnSyncCount <= 0) {
++      return false;
++    }
++    int count = fsSyncCount.get();
++    if (count >= rollOnSyncCount) {
++      LOG.warn("Requesting log roll because sync count threshold reached; count=" + count
++        + ", threshold=" + rollOnSyncCount);
++      return true;
++    }
++    return false;
++  }
++
+   public void checkLogLowReplication(long checkInterval) {
+     long now = EnvironmentEdgeManager.currentTime();
+     if (now - lastTimeCheckLowReplication < checkInterval) {
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AsyncFSWAL.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AsyncFSWAL.java
+index c4ccb21d2a..908caa76ea 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AsyncFSWAL.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/AsyncFSWAL.java
+@@ -19,6 +19,7 @@ package org.apache.hadoop.hbase.regionserver.wal;
+ 
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.ERROR;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SIZE;
++import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SYNC_COUNT;
+ import static org.apache.hadoop.hbase.util.FutureUtils.addListener;
+ 
+ import com.lmax.disruptor.RingBuffer;
+@@ -392,6 +393,8 @@ public class AsyncFSWAL extends AbstractFSWAL<AsyncWriter> {
+           + ", logrollsize=" + logrollsize);
+       }
+       requestLogRoll(SIZE);
++    } else if (!isLogRollRequested() && doCheckSyncCount()) {
++      requestLogRoll(SYNC_COUNT);
+     }
+   }
+ 
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/FSHLog.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/FSHLog.java
+index bf6a6fe165..e50de68598 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/FSHLog.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/FSHLog.java
+@@ -21,6 +21,7 @@ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRe
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.LOW_REPLICATION;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SIZE;
+ import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SLOW_SYNC;
++import static org.apache.hadoop.hbase.regionserver.wal.WALActionsListener.RollRequestReason.SYNC_COUNT;
+ 
+ import com.lmax.disruptor.BlockingWaitStrategy;
+ import com.lmax.disruptor.EventHandler;
+@@ -722,6 +723,8 @@ public class FSHLog extends AbstractFSWAL<Writer> {
+       } else if (doCheckSlowSync()) {
+         // We log this already in checkSlowSync
+         requestLogRoll(SLOW_SYNC);
++      } else if (doCheckSyncCount()) {
++        requestLogRoll(SYNC_COUNT);
+       }
+     } finally {
+       rollWriterLock.unlock();
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWAL.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWAL.java
+index 44241d9289..2f331a6b0d 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWAL.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/MetricsWAL.java
+@@ -83,6 +83,9 @@ public class MetricsWAL implements WALActionsListener {
+       case SLOW_SYNC:
+         source.incrementSlowSyncLogRoll();
+         break;
++      case SYNC_COUNT:
++        source.incrementSyncCountLogRoll();
++        break;
+       default:
+         break;
+     }
+diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/WALActionsListener.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/WALActionsListener.java
+index 901ada7801..7e95e6eab5 100644
+--- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/WALActionsListener.java
++++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/wal/WALActionsListener.java
+@@ -39,6 +39,8 @@ public interface WALActionsListener {
+     LOW_REPLICATION,
+     /** Too much time spent waiting for sync. */
+     SLOW_SYNC,
++    /** Number of filesystem syncs exceeded configured threshold. */
++    SYNC_COUNT,
+     /** I/O or other error. */
+     ERROR
+   };
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
+index ea1d6e6de0..8068509579 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestFSWAL.java
+@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
+ import static org.junit.Assert.assertNotEquals;
+ import static org.junit.Assert.assertNotNull;
+ import static org.junit.Assert.assertNull;
++import static org.junit.Assert.assertFalse;
+ import static org.junit.Assert.assertTrue;
+ import static org.junit.Assert.fail;
+ import static org.mockito.Mockito.mock;
+@@ -46,6 +47,7 @@ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.stream.Collectors;
++import java.util.concurrent.TimeUnit;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.FileStatus;
+ import org.apache.hadoop.fs.FileSystem;
+@@ -685,6 +687,43 @@ public abstract class AbstractTestFSWAL {
+     }
+   }
+ 
++  @Test
++  public void testSyncCountRollThreshold() throws Exception {
++    Configuration conf = new Configuration(CONF);
++    conf.setInt("hbase.regionserver.wal.roll.on.sync.count", 5);
++    AbstractFSWAL<?> wal = newWAL(FS, CommonFSUtils.getWALRootDir(conf), DIR.toString(),
++      HConstants.HREGION_OLDLOGDIR_NAME, conf, null, true, null, null);
++    try {
++      // Simulate 4 syncs - should not trigger
++      for (int i = 0; i < 4; i++) {
++        wal.postSync(TimeUnit.MILLISECONDS.toNanos(1), 1);
++      }
++      assertFalse("Roll should not be requested before reaching threshold",
++        wal.doCheckSyncCount());
++
++      // 5th sync pushes us to the threshold
++      wal.postSync(TimeUnit.MILLISECONDS.toNanos(1), 1);
++      assertTrue("Roll should be requested after reaching threshold", wal.doCheckSyncCount());
++    } finally {
++      wal.close();
++    }
++  }
++
++  @Test
++  public void testSyncCountRollDisabledByDefault() throws Exception {
++    AbstractFSWAL<?> wal = newWAL(FS, CommonFSUtils.getWALRootDir(CONF), DIR.toString(),
++      HConstants.HREGION_OLDLOGDIR_NAME, CONF, null, true, null, null);
++    try {
++      // Default config - doCheckSyncCount should always return false
++      for (int i = 0; i < 100; i++) {
++        wal.postSync(TimeUnit.MILLISECONDS.toNanos(1), 1);
++      }
++      assertFalse("Sync count roll should be disabled by default", wal.doCheckSyncCount());
++    } finally {
++      wal.close();
++    }
++  }
++
+   public static final class FlushSpecificStoresPolicy extends FlushPolicy {
+ 
+     @Override
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestLogRolling.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestLogRolling.java
+index b06fbb51b7..a2e0e57e25 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestLogRolling.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/AbstractTestLogRolling.java
+@@ -138,6 +138,9 @@ public abstract class AbstractTestLogRolling {
+     // For slow sync threshold test: roll once after a sync above this threshold
+     conf.setInt(FSHLog.ROLL_ON_SYNC_TIME_MS, 5000);
+ 
++    // For sync count threshold test: set high enough not to affect other tests
++    conf.setInt(AbstractFSWAL.ROLL_ON_SYNC_COUNT_KEY, 10000);
++
+     // Slow sync executor.
+     EXECUTOR = Executors
+       .newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("Slow-sync-%d")
+@@ -387,6 +390,56 @@ public abstract class AbstractTestLogRolling {
+     }
+   }
+ 
++  @Test
++  public void testSyncCountLogRolling() throws Exception {
++    this.tableName = getName();
++    this.server = cluster.getRegionServerThreads().get(0).getRegionServer();
++
++    Table table = createTestTable(this.tableName);
++    server = TEST_UTIL.getRSForFirstRegionInTable(table.getName());
++
++    RegionInfo region = server.getRegions(TableName.valueOf(tableName)).get(0).getRegionInfo();
++    final AbstractFSWAL<?> log = (AbstractFSWAL<?>) server.getWAL(region);
++
++    final AtomicBoolean syncCountRollRequested = new AtomicBoolean(false);
++    log.registerWALActionsListener(new WALActionsListener() {
++      @Override
++      public void logRollRequested(RollRequestReason reason) {
++        if (reason == RollRequestReason.SYNC_COUNT) {
++          syncCountRollRequested.set(true);
++        }
++      }
++    });
++
++    // Roll to start fresh and reset sync count
++    log.rollWriter(true);
++    final WALProvider.WriterBase oldWriter = log.getWriter();
++
++    // Set fsSyncCount just below the threshold (10000) so a few writes push it over.
++    // This avoids needing thousands of writes and keeps the test fast.
++    log.fsSyncCount.set(9995);
++
++    // A handful of writes will push the sync count past the 10000 threshold
++    for (int i = 0; i < 20; i++) {
++      doPut(table, i);
++    }
++
++    // Give the roller a chance to act
++    TEST_UTIL.waitFor(10000, 100, new Waiter.ExplainingPredicate<Exception>() {
++      @Override
++      public boolean evaluate() throws Exception {
++        return log.getWriter() != oldWriter;
++      }
++
++      @Override
++      public String explainFailure() throws Exception {
++        return "Waited too long for sync count triggered WAL roll";
++      }
++    });
++
++    assertTrue("Expected a sync count roll request", syncCountRollRequested.get());
++  }
++
+   protected void doPut(Table table, int i) throws IOException {
+     Put put = new Put(Bytes.toBytes("row" + String.format("%1$04d", i)));
+     put.addColumn(HConstants.CATALOG_FAMILY, null, value);
+diff --git a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestMetricsWAL.java b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestMetricsWAL.java
+index e430964afd..ce79959c4e 100644
+--- a/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestMetricsWAL.java
++++ b/hbase-server/src/test/java/org/apache/hadoop/hbase/regionserver/wal/TestMetricsWAL.java
+@@ -55,9 +55,10 @@ public class TestMetricsWAL {
+     metricsWAL.logRollRequested(WALActionsListener.RollRequestReason.LOW_REPLICATION);
+     metricsWAL.logRollRequested(WALActionsListener.RollRequestReason.SLOW_SYNC);
+     metricsWAL.logRollRequested(WALActionsListener.RollRequestReason.SIZE);
++    metricsWAL.logRollRequested(WALActionsListener.RollRequestReason.SYNC_COUNT);
+ 
+-    // Log roll was requested four times
+-    verify(source, times(4)).incrementLogRollRequested();
++    // Log roll was requested five times
++    verify(source, times(5)).incrementLogRollRequested();
+     // One was because of an IO error.
+     verify(source, times(1)).incrementErrorLogRoll();
+     // One was because of low replication on the hlog.
+@@ -66,6 +67,8 @@ public class TestMetricsWAL {
+     verify(source, times(1)).incrementSlowSyncLogRoll();
+     // One was because of hlog file length limit.
+     verify(source, times(1)).incrementSizeLogRoll();
++    // One was because of sync count threshold.
++    verify(source, times(1)).incrementSyncCountLogRoll();
+   }
+ 
+   @Test
