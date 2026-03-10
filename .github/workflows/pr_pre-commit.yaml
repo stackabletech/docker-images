@@ -18,7 +18,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+      - uses: stackabletech/actions/run-pre-commit@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           rust: ${{ env.RUST_TOOLCHAIN_VERSION }}

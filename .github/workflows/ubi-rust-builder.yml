@@ -66,8 +66,8 @@ jobs:
           # Uses the keyless signing flow with Github Actions as identity provider
           cosign sign -y "oci.stackable.tech/sdp/${{ matrix.ubi-version }}-rust-builder@$DIGEST"
 
-  create_manifest:
-    name: Create and Push Image Index Manifest
+  publish_manifests:
+    name: Build/Publish Image Index Manifest
     needs: ["build"]
     permissions:
       id-token: write
@@ -108,41 +108,15 @@ jobs:
 
   notify:
     name: Failure Notification
-    needs: [build, create_manifest]
+    needs: [build, publish_manifests]
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
-      - uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v1.27.0
+      - name: Send Notification
+        uses: stackabletech/actions/send-slack-notification@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
-          channel-id: "C07UG6JH44F" # notifications-container-images
-          payload: |
-            {
-              "text": "*${{ github.workflow }}* failed (attempt ${{ github.run_attempt }})",
-              "attachments": [
-                {
-                  "pretext": "See the details below for a summary of which job(s) failed.",
-                  "color": "#aa0000",
-                  "fields": [
-                    {
-                      "title": "Build",
-                      "short": true,
-                      "value": "${{ needs.build.result }}"
-                    },
-                    {
-                      "title": "Create Manifest",
-                      "short": true,
-                      "value": "${{ needs.create_manifest.result }}"
-                    }
-                  ],
-                  "actions": [
-                    {
-                      "type": "button",
-                      "text": "Go to workflow run",
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+          publish-manifests-result: ${{ needs.publish_manifests.result }}
+          build-result: ${{ needs.build.result }}
+          slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+          channel-id: C07UG6JH44F # notifications-container-images
+          type: container-image-build

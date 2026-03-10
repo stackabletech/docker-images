@@ -111,12 +111,6 @@ ARCH="${ARCH/arm64/aarch64}"
 rpm --install \
     "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm"
 
-# Create the directory /stackable/vector/var.
-# This directory is set by operator-rs in the parameter `data_dir`
-# of the Vector configuration. The directory is used for persisting
-# Vector state, such as on-disk buffers, file checkpoints, and more.
-# Vector needs write permissions.
-mkdir --parents /stackable/vector/var
 chown --recursive ${STACKABLE_USER_UID}:0 /stackable/
 # Set correct permissions
 chmod -R g=u /stackable

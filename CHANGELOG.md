@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - druid: Bump HDFS to 3.4.2 for 34.0.0 ([#1409]).
 - testing-tools: refactoring: Split image into multiple images, remove unnecessary components and switch to UBI as base image ([#1354]).
 - hive: fixed 4.0.1 shaded hive-metastore-opa-authorizer jar by relocating dependencies ([#1356]).
+- hadoop: Bump to `hdfs-utils` 0.5.0 ([#1360]).
 - testing-tools: fix: add kubectl and openssl ([#1367]).
 - trino: Backport Kafka offset handling to 477 ([#1373]).
 - trino-cli: Bump to `479` ([#1403]).
@@ -48,6 +49,8 @@ All notable changes to this project will be documented in this file.
 - ubi9-rust-builder: Bump rust toolchain and cargo auditable versions ([#1432]).
 - stackable-base: Bump ubi9 image hash ([#1433]).
 - stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
+- stackable-base: Bump `config-utils` to `0.3.0` and `cert-tools` to `0.1.1` ([#1442]).
+- stackable-base: Bump `containerdebug` `0.3.0` ([#1447]).
 
 ### Removed
 
@@ -64,6 +67,8 @@ All notable changes to this project will be documented in this file.
 - trino: Remove `451` and `476` ([#1403]).
 - hbase: Remove `2.6.2` ([#1408]).
 - spark: remove the JRE before installing the JDK to prevent version conflicts ([#1410]).
+- vector: Remove the Vector state directory `/stackable/vector/var` because the state should be
+  persisted in the log directory ([#1413]).
 - spark: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
 - spark-connect-client: Remove `3.5.7` in ([#1414]) but restored in ([#1423]).
 
@@ -74,6 +79,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Removed test class from backport HBASE-29797 to HBase version `2.6.3` ([#1426]).
 - superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
 - ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
+- airflow: Pin virtualenv to prevent hatch pulling in a version with a breaking change ([#1437]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -83,6 +89,7 @@ All notable changes to this project will be documented in this file.
 [#1356]: https://github.com/stackabletech/docker-images/pull/1356
 [#1357]: https://github.com/stackabletech/docker-images/pull/1357
 [#1358]: https://github.com/stackabletech/docker-images/pull/1358
+[#1360]: https://github.com/stackabletech/docker-images/pull/1360
 [#1366]: https://github.com/stackabletech/docker-images/pull/1366
 [#1367]: https://github.com/stackabletech/docker-images/pull/1367
 [#1373]: https://github.com/stackabletech/docker-images/pull/1373
@@ -104,9 +111,10 @@ All notable changes to this project will be documented in this file.
 [#1408]: https://github.com/stackabletech/docker-images/pull/1408
 [#1409]: https://github.com/stackabletech/docker-images/pull/1409
 [#1410]: https://github.com/stackabletech/docker-images/pull/1410
+[#1413]: https://github.com/stackabletech/docker-images/pull/1413
 [#1414]: https://github.com/stackabletech/docker-images/pull/1414
-[#1423]: https://github.com/stackabletech/docker-images/pull/1414
 [#1422]: https://github.com/stackabletech/docker-images/pull/1422
+[#1423]: https://github.com/stackabletech/docker-images/pull/1414
 [#1424]: https://github.com/stackabletech/docker-images/pull/1424
 [#1425]: https://github.com/stackabletech/docker-images/pull/1425
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
@@ -117,6 +125,9 @@ All notable changes to this project will be documented in this file.
 [#1433]: https://github.com/stackabletech/docker-images/pull/1433
 [#1435]: https://github.com/stackabletech/docker-images/pull/1435
 [#1436]: https://github.com/stackabletech/docker-images/pull/1436
+[#1437]: https://github.com/stackabletech/docker-images/pull/1437
+[#1442]: https://github.com/stackabletech/docker-images/pull/1442
+[#1447]: https://github.com/stackabletech/docker-images/pull/1447
 
 ## [25.11.0] - 2025-11-07
 
