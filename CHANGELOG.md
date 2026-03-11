@@ -80,6 +80,7 @@ All notable changes to this project will be documented in this file.
 - superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
 - ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
 - airflow: Pin virtualenv to prevent hatch pulling in a version with a breaking change ([#1437]).
+- airflow: Allow overriding the logging configuration in Airflow 3.1.x ([#1445]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -127,6 +128,7 @@ All notable changes to this project will be documented in this file.
 [#1436]: https://github.com/stackabletech/docker-images/pull/1436
 [#1437]: https://github.com/stackabletech/docker-images/pull/1437
 [#1442]: https://github.com/stackabletech/docker-images/pull/1442
+[#1445]: https://github.com/stackabletech/docker-images/pull/1445
 [#1447]: https://github.com/stackabletech/docker-images/pull/1447
 
 ## [25.11.0] - 2025-11-07
