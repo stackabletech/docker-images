@@ -1,13 +1,15 @@
-FROM stackable/image/hbase/hbase AS hbase-builder
+FROM local-image/hbase/hbase AS hbase-builder
 
-FROM stackable/image/hadoop AS hadoop-builder
+FROM local-image/hadoop/hadoop AS hadoop-builder
 
-FROM stackable/image/java-devel
+FROM local-image/java-devel
 
-ARG PRODUCT
-ARG RELEASE
-ARG HBASE_THIRDPARTY
-ARG HBASE_HBASE
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG HBASE_THIRDPARTY_VERSION
+ARG HBASE_HBASE_VERSION
+# Reassign the arg to `HBASE_VERSION` for better readability.
+ENV HBASE_VERSION=${HBASE_HBASE_VERSION}
 ARG STACKABLE_USER_UID
 ARG HBASE_OPERATOR_TOOLS_VERSION
 
@@ -19,10 +21,11 @@ ARG DELETE_CACHES="true"
 # The variable names are intentionally passed to envsubst in single-quotes,
 # so that they are not expanded. Disabling ShellCheck rules in a Dockerfile
 # does not work, so please ignore the according warning (SC2016).
-COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbck2.env /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/bin/hbck2.env /stackable/bin/
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/patchable.toml /stackable/src/hbase/hbase-operator-tools/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION} /stackable/src/hbase/hbase-operator-tools/stackable/patches/${HBASE_OPERATOR_TOOLS_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/hbase-entrypoint.sh /stackable/bin/
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase-operator-tools/stackable/conf/log4j2-hbck.properties /tmp/log4j2-hbck.properties
 
 COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hbase /stackable/patched-libs/maven/org/apache/hbase
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs/maven/org/apache/hadoop /stackable/patched-libs/maven/org/apache/hadoop
@@ -32,16 +35,16 @@ WORKDIR /stackable
 
 # Cache mounts are owned by root by default
 # We need to explicitly give the uid to use
-RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase-operator-tools-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-tools ${HBASE_OPERATOR_TOOLS_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE}"
-FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT}-stackable${RELEASE}" # This includes the HBase version and the Stackable release suffix
-PATCHED_HBASE_VERSION="${HBASE_HBASE}-stackable${RELEASE}"
+NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE_VERSION}"
+FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}" # This includes the HBase version and the Stackable release suffix
+PATCHED_HBASE_VERSION="${HBASE_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn versions:set -DnewVersion=$NEW_VERSION
 
@@ -49,10 +52,8 @@ mvn versions:set -DnewVersion=$NEW_VERSION
 tar -czf /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}-src.tar.gz .
 
 mvn \
-  --batch-mode \
-  --no-transfer-progress \
   -Dhbase.version=${PATCHED_HBASE_VERSION} \
-  -Dhbase-thirdparty.version=${HBASE_THIRDPARTY} \
+  -Dhbase-thirdparty.version=${HBASE_THIRDPARTY_VERSION} \
   -DskipTests \
   -Dmaven.test.skip=true \
   package assembly:single
@@ -83,6 +84,9 @@ if [ "${DELETE_CACHES}" = "true" ] ; then
   rm -rf /stackable/.npm/*
   rm -rf /stackable/.cache/*
 fi
+
+mkdir -p /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}/conf
+mv /tmp/log4j2-hbck.properties /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}/conf/log4j2-hbck.properties
 
 # set correct groups
 chmod --recursive g=u /stackable

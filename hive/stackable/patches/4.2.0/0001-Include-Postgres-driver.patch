@@ -1,0 +1,34 @@
+From f7913f5ee840dc277301fcb0f18e04be7849ab5c Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Tue, 25 Nov 2025 11:29:03 +0100
+Subject: Include Postgres driver
+
+---
+ standalone-metastore/metastore-server/pom.xml | 1 -
+ standalone-metastore/pom.xml                  | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
+index fa2418f205..0e24b3ebc9 100644
+--- a/standalone-metastore/metastore-server/pom.xml
++++ b/standalone-metastore/metastore-server/pom.xml
+@@ -338,7 +338,6 @@
+     <dependency>
+       <groupId>org.postgresql</groupId>
+       <artifactId>postgresql</artifactId>
+-      <optional>true</optional>
+     </dependency>
+     <dependency>
+       <groupId>org.eclipse.jetty</groupId>
+diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
+index bd6f2227b6..0bf9d09c0b 100644
+--- a/standalone-metastore/pom.xml
++++ b/standalone-metastore/pom.xml
+@@ -435,7 +435,6 @@
+         <groupId>org.postgresql</groupId>
+         <artifactId>postgresql</artifactId>
+         <version>${postgres.version}</version>
+-        <scope>runtime</scope>
+       </dependency>
+       <dependency>
+         <groupId>org.apache.httpcomponents</groupId>

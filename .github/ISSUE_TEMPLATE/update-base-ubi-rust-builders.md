@@ -4,7 +4,7 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(ubi-rust-builders): Update container images ahead of Stackable Release YY.M.X
+  chore(ubi-rust-builders): Update image for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
@@ -17,7 +17,7 @@ developers need newer versions , which could be multiple times in a release.
 If there are no bumps in a release, we can still rely on SecObserve and Renovate
 to alert us to security vulnerabilities.
 -->
-Part of #xxx.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -27,7 +27,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - Remove: `y.y.y`
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
@@ -52,6 +52,7 @@ Add/Change/Remove anything that isn't applicable anymore
 > checked, the issue can be moved into _Development: Done_.
 
 - [ ] Done for [ubi9-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi9-rust-builder/Dockerfile)
+- [ ] Done for [ubi10-rust-builder/Dockerfile](https://github.com/stackabletech/docker-images/blob/main/ubi10-rust-builder/Dockerfile)
 - [ ] Can build the image locally
 - [ ] Can build an operator image
 
@@ -60,6 +61,7 @@ Add/Change/Remove anything that isn't applicable anymore
 
 ```shell
 docker build -t oci.stackable.tech/sdp/ubi9-rust-builder . -f ubi9-rust-builder/Dockerfile
+docker build -t oci.stackable.tech/sdp/ubi10-rust-builder . -f ubi10-rust-builder/Dockerfile
 
 # Change directory into the an operator repository and ensure the image can build
 docker build . -f docker/Dockerfile

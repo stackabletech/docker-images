@@ -1,0 +1,2 @@
+upstream = "https://github.com/vectordotdev/vector.git"
+default-mirror = "https://github.com/stackabletech/vector.git"

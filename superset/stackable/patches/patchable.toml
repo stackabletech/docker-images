@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/superset.git"
+default-mirror = "https://github.com/stackabletech/superset.git"

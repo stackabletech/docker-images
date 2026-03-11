@@ -1,0 +1,40 @@
+From 897f67b3bd6f200affe80423a37c7de202f13782 Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Tue, 25 Nov 2025 14:44:35 +0100
+Subject: Add httpcomponents.core5 to hive-standalone-metastore
+
+Required for the REST Catalog.
+---
+ standalone-metastore/metastore-rest-catalog/pom.xml | 5 +++++
+ standalone-metastore/pom.xml                        | 2 ++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/standalone-metastore/metastore-rest-catalog/pom.xml b/standalone-metastore/metastore-rest-catalog/pom.xml
+index c1692e7ba2..ad6cecb535 100644
+--- a/standalone-metastore/metastore-rest-catalog/pom.xml
++++ b/standalone-metastore/metastore-rest-catalog/pom.xml
+@@ -26,6 +26,11 @@
+     <iceberg.version>1.9.1</iceberg.version>
+   </properties>
+   <dependencies>
++    <dependency>
++      <groupId>org.apache.httpcomponents.core5</groupId>
++      <artifactId>httpcore5</artifactId>
++      <version>${httpcomponents5.core.version}</version>
++    </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-server</artifactId>
+diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
+index 34eb45fb96..94b883b801 100644
+--- a/standalone-metastore/pom.xml
++++ b/standalone-metastore/pom.xml
+@@ -117,6 +117,8 @@
+     <slf4j.version>1.7.30</slf4j.version>
+     <httpcomponents.core.version>4.4.13</httpcomponents.core.version>
+     <httpcomponents.client.version>4.5.13</httpcomponents.client.version>
++    <!-- Required for REST Catalog. Should be in sync with Iceberg. -->
++    <httpcomponents5.core.version>5.3.1</httpcomponents5.core.version>
+     <pac4j-core.version>4.5.8</pac4j-core.version>
+     <nimbus-oauth.version>11.28</nimbus-oauth.version>
+     <jetty.version>9.4.57.v20241219</jetty.version>

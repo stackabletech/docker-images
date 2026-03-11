@@ -7,14 +7,13 @@ use git2::{Oid, Repository};
 use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_indicatif::suspend_tracing_indicatif;
 
+#[cfg(doc)]
+use crate::repo::ensure_worktree_is_at;
 use crate::{
     error::{self, CommitId},
     patch_mail::{self, mailinfo, mailsplit},
     utils::raw_git_cmd,
 };
-
-#[cfg(doc)]
-use crate::repo::ensure_worktree_is_at;
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -61,14 +60,18 @@ pub enum Error {
         source: git2::Error,
         parent_commit: error::CommitId,
     },
-    #[snafu(display("failed to apply patch {patch_email_file:?} (from {patch_file:?}) to parent commit {parent_commit}"))]
+    #[snafu(display(
+        "failed to apply patch {patch_email_file:?} (from {patch_file:?}) to parent commit {parent_commit}"
+    ))]
     ApplyPatch {
         source: git2::Error,
         parent_commit: error::CommitId,
         patch_email_file: PathBuf,
         patch_file: PathBuf,
     },
-    #[snafu(display("failed to write tree for patch {patch_email_file:?} (from {patch_file:?}) applied to parent commit {parent_commit}"))]
+    #[snafu(display(
+        "failed to write tree for patch {patch_email_file:?} (from {patch_file:?}) applied to parent commit {parent_commit}"
+    ))]
     WritePatchedTree {
         source: git2::Error,
         parent_commit: error::CommitId,
@@ -77,7 +80,9 @@ pub enum Error {
     },
     #[snafu(display("failed to read patched tree {tree}"))]
     ReadPatchedTree { source: git2::Error, tree: Oid },
-    #[snafu(display("failed to write commit for patch {patch_email_file:?} (from {patch_file:?}) applied to parent commit {parent_commit}"))]
+    #[snafu(display(
+        "failed to write commit for patch {patch_email_file:?} (from {patch_file:?}) applied to parent commit {parent_commit}"
+    ))]
     WriteCommit {
         source: git2::Error,
         parent_commit: error::CommitId,

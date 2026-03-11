@@ -1,0 +1,57 @@
+From 124575963f02242904d655cfde7d05375c2c2d26 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 5 Nov 2025 12:27:34 +0100
+Subject: fix: move buffer into function to prevent race
+
+---
+ src/main/java/org/apache/log4j/helpers/Transform.java |  4 ++--
+ src/main/java/org/apache/log4j/xml/XMLLayout.java     | 10 +---------
+ 2 files changed, 3 insertions(+), 11 deletions(-)
+
+diff --git a/src/main/java/org/apache/log4j/helpers/Transform.java b/src/main/java/org/apache/log4j/helpers/Transform.java
+index ad77e165..5f0aba25 100644
+--- a/src/main/java/org/apache/log4j/helpers/Transform.java
++++ b/src/main/java/org/apache/log4j/helpers/Transform.java
+@@ -76,11 +76,11 @@ public class Transform {
+     /**
+      * Ensures that embeded CDEnd strings (]]&gt;) are handled properly within message, NDC and throwable tag text.
+      *
+-     * @param buf StringBuffer holding the XML data to this point. The initial CDStart (&lt;![CDATA[) and final CDEnd
++     * @param buf StringBuilder holding the XML data to this point. The initial CDStart (&lt;![CDATA[) and final CDEnd
+      *            (]]&gt;) of the CDATA section are the responsibility of the calling method.
+      * @param str The String that is inserted into an existing CDATA Section within buf.
+      */
+-    static public void appendEscapingCDATA(final StringBuffer buf, final String str) {
++    static public void appendEscapingCDATA(final StringBuilder buf, final String str) {
+         if (str != null) {
+             int end = str.indexOf(CDATA_END);
+             if (end < 0) {
+diff --git a/src/main/java/org/apache/log4j/xml/XMLLayout.java b/src/main/java/org/apache/log4j/xml/XMLLayout.java
+index 4f0d99f3..35ef30d8 100644
+--- a/src/main/java/org/apache/log4j/xml/XMLLayout.java
++++ b/src/main/java/org/apache/log4j/xml/XMLLayout.java
+@@ -64,9 +64,7 @@ import java.util.Arrays;
+ public class XMLLayout extends Layout {
+ 
+     private final int DEFAULT_SIZE = 256;
+-    private final int UPPER_LIMIT = 2048;
+ 
+-    private StringBuffer buf = new StringBuffer(DEFAULT_SIZE);
+     private boolean locationInfo = false;
+     private boolean properties = false;
+ 
+@@ -121,13 +119,7 @@ public class XMLLayout extends Layout {
+      */
+     public String format(final LoggingEvent event) {
+ 
+-        // Reset working buffer. If the buffer is too large, then we need a new
+-        // one in order to avoid the penalty of creating a large array.
+-        if (buf.capacity() > UPPER_LIMIT) {
+-            buf = new StringBuffer(DEFAULT_SIZE);
+-        } else {
+-            buf.setLength(0);
+-        }
++        StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
+ 
+         // We yield to the \r\n heresy.
+ 

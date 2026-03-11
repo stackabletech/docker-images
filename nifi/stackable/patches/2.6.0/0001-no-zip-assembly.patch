@@ -1,0 +1,21 @@
+From e20550884c2d7002013b9427c219128fe416263b Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 17 Feb 2025 17:26:20 +0100
+Subject: no zip assembly
+
+---
+ nifi-assembly/pom.xml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/nifi-assembly/pom.xml b/nifi-assembly/pom.xml
+index dc7fe6fff3..911cbc83d3 100644
+--- a/nifi-assembly/pom.xml
++++ b/nifi-assembly/pom.xml
+@@ -66,7 +66,6 @@ language governing permissions and limitations under the License. -->
+                             <tarLongFileMode>posix</tarLongFileMode>
+                             <formats>
+                                 <format>dir</format>
+-                                <format>zip</format>
+                             </formats>
+                         </configuration>
+                     </execution>

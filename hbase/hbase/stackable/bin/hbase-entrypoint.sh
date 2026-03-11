@@ -20,6 +20,7 @@ HBASE_UI_PORT_NAME="$4"
 
 # Needed for regionmover service and for hbase-site.xml (see below)
 HBASE_SERVICE_HOST=$(cat /stackable/listener/default-address/address)
+export HBASE_SERVICE_HOST
 
 REGION_MOVER_OPTS="--regionserverhost ${HBASE_SERVICE_HOST}:${HBASE_ROLE_SERVICE_PORT} --operation unload ${REGION_MOVER_OPTS}"
 
@@ -57,9 +58,9 @@ wait_for_termination() {
   set -e
 }
 
-# ##################################################################################################
+# #############################################################################
 # main
-# ##################################################################################################
+# #############################################################################
 mkdir -p /stackable/conf
 cp /stackable/tmp/hdfs/hdfs-site.xml /stackable/conf
 cp /stackable/tmp/hdfs/core-site.xml /stackable/conf
@@ -70,20 +71,20 @@ cp /stackable/tmp/log_config/log4j* /stackable/conf
 if [ -f /stackable/kerberos/krb5.conf ]; then
   KERBEROS_REALM=$(grep -oP 'default_realm = \K.*' /stackable/kerberos/krb5.conf)
   export KERBEROS_REALM
+  # the hdfs discovery files are not written by the hbase operator and use
+  # the dot notation, so they cannot be used with config-utils
   sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/core-site.xml
-  sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hbase-site.xml
   sed -i -e s/\$\{env\.KERBEROS_REALM\}/"${KERBEROS_REALM}"/g /stackable/conf/hdfs-site.xml
 fi
 
 # Service endpoints
 HBASE_SERVICE_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_PORT_NAME}")
 HBASE_INFO_PORT=$(cat /stackable/listener/default-address/ports/"${HBASE_UI_PORT_NAME}")
-HBASE_LISTENER_ENDPOINT="$HBASE_SERVICE_HOST:$HBASE_INFO_PORT"
 
-sed -i -e s/\$\{HBASE_SERVICE_HOST\}/"${HBASE_SERVICE_HOST}"/g /stackable/conf/hbase-site.xml
-sed -i -e s/\$\{HBASE_SERVICE_PORT\}/"${HBASE_SERVICE_PORT}"/g /stackable/conf/hbase-site.xml
-sed -i -e s/\$\{HBASE_LISTENER_ENDPOINT\}/"${HBASE_LISTENER_ENDPOINT}"/g /stackable/conf/hbase-site.xml
-sed -i -e s/\$\{HBASE_INFO_PORT\}/"${HBASE_INFO_PORT}"/g /stackable/conf/hbase-site.xml
+export HBASE_SERVICE_PORT
+export HBASE_INFO_PORT
+
+config-utils template /stackable/conf/hbase-site.xml
 
 rm -f "${STACKABLE_LOG_DIR}/_vector/shutdown"
 prepare_signal_handlers

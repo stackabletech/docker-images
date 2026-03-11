@@ -1,0 +1,121 @@
+From c2426a9169f22bd9b955bcde779ce2c248b5f8c0 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Thu, 5 Feb 2026 15:00:23 +0100
+Subject: feat: add configurable clientAuthenticationMethod to druid-pac4j OIDC
+ config
+
+---
+ .../druid/security/pac4j/OIDCConfig.java      | 13 ++++++++-
+ .../security/pac4j/Pac4jAuthenticator.java    |  5 ++++
+ .../druid/security/pac4j/OIDCConfigTest.java  | 28 +++++++++++++++++++
+ 3 files changed, 45 insertions(+), 1 deletion(-)
+
+diff --git a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
+index 50b04455db..d83e04717a 100644
+--- a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
++++ b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
+@@ -44,13 +44,17 @@ public class OIDCConfig
+   @JsonProperty
+   private final String scope;
+ 
++  @JsonProperty
++  private final String clientAuthenticationMethod;
++
+   @JsonCreator
+   public OIDCConfig(
+       @JsonProperty("clientID") String clientID,
+       @JsonProperty("clientSecret") PasswordProvider clientSecret,
+       @JsonProperty("discoveryURI") String discoveryURI,
+       @JsonProperty("oidcClaim") String oidcClaim,
+-      @JsonProperty("scope") @Nullable String scope
++      @JsonProperty("scope") @Nullable String scope,
++      @JsonProperty("clientAuthenticationMethod") @Nullable String clientAuthenticationMethod
+   )
+   {
+     this.clientID = Preconditions.checkNotNull(clientID, "null clientID");
+@@ -58,6 +62,7 @@ public class OIDCConfig
+     this.discoveryURI = Preconditions.checkNotNull(discoveryURI, "null discoveryURI");
+     this.oidcClaim = oidcClaim == null ? DEFAULT_SCOPE : oidcClaim;
+     this.scope = scope;
++    this.clientAuthenticationMethod = clientAuthenticationMethod;
+   }
+ 
+   @JsonProperty
+@@ -89,4 +94,10 @@ public class OIDCConfig
+   {
+     return scope;
+   }
++
++  @JsonProperty
++  public String getClientAuthenticationMethod()
++  {
++    return clientAuthenticationMethod;
++  }
+ }
+diff --git a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
+index ef30f4c7e6..59a6fa0782 100644
+--- a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
++++ b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
+@@ -27,6 +27,7 @@ import com.google.common.base.Supplier;
+ import com.google.common.base.Suppliers;
+ import com.google.common.primitives.Ints;
+ import com.google.inject.Provider;
++import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod;
+ import com.nimbusds.oauth2.sdk.http.HTTPRequest;
+ import org.apache.druid.server.security.AuthenticationResult;
+ import org.apache.druid.server.security.Authenticator;
+@@ -132,6 +133,10 @@ public class Pac4jAuthenticator implements Authenticator
+     oidcConf.setSecret(oidcConfig.getClientSecret().getPassword());
+     oidcConf.setDiscoveryURI(oidcConfig.getDiscoveryURI());
+     oidcConf.setScope(oidcConfig.getScope());
++    if (oidcConfig.getClientAuthenticationMethod() != null) {
++      oidcConf.setClientAuthenticationMethod(
++          ClientAuthenticationMethod.parse(oidcConfig.getClientAuthenticationMethod()));
++    }
+     oidcConf.setExpireSessionWithToken(true);
+     oidcConf.setUseNonce(true);
+     oidcConf.setReadTimeout(Ints.checkedCast(pac4jCommonConfig.getReadTimeout().getMillis()));
+diff --git a/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java b/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
+index c4192c020d..0b6128e61b 100644
+--- a/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
++++ b/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
+@@ -46,6 +46,7 @@ public class OIDCConfigTest
+     Assert.assertEquals("testdiscoveryuri", conf.getDiscoveryURI());
+     Assert.assertEquals("name", conf.getOidcClaim());
+     Assert.assertEquals("testscope", conf.getScope());
++    Assert.assertNull(conf.getClientAuthenticationMethod());
+   }
+ 
+   @Test
+@@ -72,4 +73,31 @@ public class OIDCConfigTest
+     Assert.assertEquals("email", conf.getOidcClaim());
+     Assert.assertEquals("testscope", conf.getScope());
+   }
++
++  @Test
++  public void testSerdeWithClientAuthenticationMethod() throws Exception
++  {
++    ObjectMapper jsonMapper = new ObjectMapper();
++
++    String jsonStr = "{\n"
++                     + "  \"clientID\": \"testid\",\n"
++                     + "  \"clientSecret\": \"testsecret\",\n"
++                     + "  \"discoveryURI\": \"testdiscoveryuri\",\n"
++                     + "  \"oidcClaim\": \"email\",\n"
++                     + "  \"scope\": \"testscope\",\n"
++                     + "  \"clientAuthenticationMethod\": \"client_secret_post\"\n"
++                     + "}\n";
++
++    OIDCConfig conf = jsonMapper.readValue(
++        jsonMapper.writeValueAsString(jsonMapper.readValue(jsonStr, OIDCConfig.class)),
++        OIDCConfig.class
++    );
++
++    Assert.assertEquals("testid", conf.getClientID());
++    Assert.assertEquals("testsecret", conf.getClientSecret().getPassword());
++    Assert.assertEquals("testdiscoveryuri", conf.getDiscoveryURI());
++    Assert.assertEquals("email", conf.getOidcClaim());
++    Assert.assertEquals("testscope", conf.getScope());
++    Assert.assertEquals("client_secret_post", conf.getClientAuthenticationMethod());
++  }
+ }

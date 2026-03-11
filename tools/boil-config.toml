@@ -1,0 +1,7 @@
+[versions."1.0.0".local-images]
+stackable-base = "1.0.0"
+
+[versions."1.0.0".build-arguments]
+kubectl-version = "1.34.1"
+yq-version = "4.47.2"
+jq-version = "1.8.1"

@@ -9,8 +9,8 @@ use std::{
 
 use git2::{Diff, Repository, Signature};
 use snafu::{OptionExt as _, ResultExt, Snafu};
-use tempfile::{tempdir, NamedTempFile};
-use time::{format_description::well_known::Rfc2822, OffsetDateTime};
+use tempfile::{NamedTempFile, tempdir};
+use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tracing_indicatif::suspend_tracing_indicatif;
 
 use crate::utils::raw_git_cmd;

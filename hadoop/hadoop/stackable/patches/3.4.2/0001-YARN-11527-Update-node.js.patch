@@ -1,0 +1,22 @@
+From c4dbb05b4f92f93c7e8f11d6a622b73f40f4664c Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Wed, 10 Sep 2025 14:18:38 +0200
+Subject: YARN-11527-Update-node.js
+
+---
+ hadoop-project/pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index b9eacd5ba3..70f64bf55c 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -234,7 +234,7 @@
+     <jsonschema2pojo.version>1.0.2</jsonschema2pojo.version>
+     <woodstox.version>5.4.0</woodstox.version>
+     <nimbus-jose-jwt.version>9.37.2</nimbus-jose-jwt.version>
+-    <nodejs.version>v12.22.1</nodejs.version>
++    <nodejs.version>v14.17.0</nodejs.version>
+     <yarnpkg.version>v1.22.5</yarnpkg.version>
+     <apache-ant.version>1.10.13</apache-ant.version>
+     <jmh.version>1.20</jmh.version>

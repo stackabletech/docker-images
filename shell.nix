@@ -4,13 +4,11 @@
   pkgs ? import nixpkgs { },
 }:
 
-let
-  bake = pkgs.callPackage (sources.image-tools + "/image-tools.nix") { };
-in
 pkgs.mkShell {
   packages = [
-    bake
-    pkgs.nodejs_20
+    pkgs.cargo
+    pkgs.rustc
+    pkgs.nodejs
   ];
 
   buildInputs = [
@@ -22,5 +20,4 @@ pkgs.mkShell {
     # Required for libraries to be discoverable
     pkgs.pkg-config
   ];
-
 }

@@ -1,0 +1,246 @@
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true
+
+# hadoop-builder: Provides Hadoop libraries
+FROM local-image/hadoop/hadoop AS hadoop-builder
+
+# spark-source-builder: Clone the Spark source code and apply patches
+FROM local-image/java-devel AS spark-source-builder
+
+ARG PRODUCT_VERSION
+ARG RELEASE_VERSION
+ARG STACKABLE_USER_UID
+
+WORKDIR /stackable
+
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/patchable.toml /stackable/src/spark-k8s/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/patches/${PRODUCT_VERSION} /stackable/src/spark-k8s/stackable/patches/${PRODUCT_VERSION}
+
+RUN <<EOF
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT_VERSION})"
+
+NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
+
+mvn versions:set -DnewVersion=$NEW_VERSION
+
+# Create snapshot of the source code including custom patches
+tar -czf /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
+chmod g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz
+EOF
+
+# spark-builder: Build Spark into /stackable/spark-${PRODUCT_VERSION}/dist,
+# download additional JARs and perform checks
+FROM local-image/java-devel AS spark-builder
+
+ARG PRODUCT_VERSION
+ARG HADOOP_HADOOP_VERSION
+# Reassign the arg to `HADOOP_VERSION` for better readability.
+ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ARG AWS_JAVA_SDK_BUNDLE_VERSION
+ARG AZURE_STORAGE_VERSION
+ARG AZURE_KEYVAULT_CORE_VERSION
+ARG JACKSON_DATAFORMAT_XML_VERSION
+ARG STAX2_API_VERSION
+ARG WOODSTOX_CORE_VERSION
+ARG JMX_EXPORTER_VERSION
+ARG TARGETARCH
+ARG TINI_VERSION
+ARG RELEASE_VERSION
+ARG STACKABLE_USER_UID
+
+WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
+    /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT_VERSION} \
+    ./
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+
+# >>> Build spark
+RUN <<EOF
+    # Make Maven aware of custom Stackable libraries
+    mv /stackable/patched-libs/maven /root/.m2/repository
+
+    ORIGINAL_VERSION="${PRODUCT_VERSION}"
+    NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
+
+    MAVEN_BIN="/usr/bin/mvn"
+    export MAVEN_OPTS="-Xss64m -Xmx2g -XX:ReservedCodeCacheSize=1g"
+
+    # The Spark 4 script has a --connect option which is not available in Spark 3.
+    # This option is required to build Spark Connect.
+    # Also this option breaks the Spark 3 build so we ensure it's only provided here.
+    ./dev/make-distribution.sh \
+    --mvn "${MAVEN_BIN}" \
+    --connect \
+    -Dhadoop.version="${HADOOP_VERSION}-stackable${RELEASE_VERSION}" \
+    -DskipTests \
+    -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
+
+    sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
+EOF
+
+# To avoid classpath conflicts with existing spark applications,
+# we create a new dist/connect folder, and copy spark connect jars here.
+RUN <<EOF
+
+    SCALA_BINARY_VERSION=$(grep "scala.binary.version" pom.xml | head -n1 | awk -F '[<>]' '{print $3}')
+
+    mkdir -p dist/connect
+    cd dist/connect
+
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/server/target/spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/common/target/spark-connect-common_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
+    cp "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/sql/connect/client/jvm/target/spark-connect-client-jvm_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" .
+
+    # This link is needed by the operator and is kept for backwards compatibility.
+    # TODO: remove it at some time in the future.
+    ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}.jar"
+    # Link to the spark-connect jar without the stackable suffix and scala version.
+    # This link supersedes the previous link.
+    ln -s "spark-connect_${SCALA_BINARY_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.jar" "spark-connect-${PRODUCT_VERSION}.jar"
+EOF
+
+# <<< Build spark
+
+WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/jars
+
+# Copy modules required for s3a://
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar \
+    ./
+
+# Copy modules required for abfs://
+COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar \
+    /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar \
+    ./
+
+COPY spark-k8s/stackable/jmx /stackable/jmx
+
+WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars
+
+RUN <<EOF
+# Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
+mvn dependency:get -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
+cp /root/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
+
+mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
+cp /root/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
+
+mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
+cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
+
+# Get the correct `tini` binary for our architecture.
+curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}" \
+  -o /usr/bin/tini
+chmod +x /usr/bin/tini
+
+# JMX Exporter
+curl --fail "https://repo.stackable.tech/repository/packages/jmx-exporter/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" \
+  -o "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
+ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
+
+chmod -R g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist
+chmod -R g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json
+chmod -R g=u /stackable/jmx
+EOF
+
+FROM local-image/java-base AS final
+
+ARG PRODUCT_VERSION
+ARG PYTHON_VERSION
+ARG RELEASE_VERSION
+ARG JMX_EXPORTER_VERSION
+ARG STACKABLE_USER_UID
+
+LABEL name="Apache Spark" \
+    maintainer="info@stackable.tech" \
+    vendor="Stackable GmbH" \
+    version="${PRODUCT_VERSION}" \
+    release="${RELEASE_VERSION}" \
+    summary="The Stackable image for Apache Spark with PySpark support." \
+    description="This image is deployed by the Stackable Operator for Apache Spark on Kubernetes."
+
+
+ENV HOME=/stackable
+ENV SPARK_HOME=/stackable/spark
+# Override the java-base version of JAVA_HOME to point to the jdk.
+ENV JAVA_HOME="/usr/lib/jvm/temurin-${JAVA_VERSION}-jdk"
+ENV PATH=$SPARK_HOME/bin:$JAVA_HOME/bin:$PATH
+ENV PYSPARK_PYTHON=/usr/bin/python
+ENV PYTHONPATH=$SPARK_HOME/python
+
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist /stackable/spark
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
+COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
+
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/run-spark.sh /stackable/run-spark.sh
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/licenses /licenses
+
+RUN <<EOF
+microdnf update
+
+# Remove the JRE that was installed by local-image/java-base.
+# The JRE is not enough for Spark because some functionality requires the JDK.
+# Also having both JRE and JDK installed causes conflicts with Java 21 because they have slightly different versions in the Adoptium repository.
+microdnf remove "temurin-${JAVA_VERSION}-jre"
+
+# procps:
+#    Required for spark startup scripts.
+# temurin-{version}-jdk:
+#    Needed by the Spark UI to display process information using "jps" and "jmap".
+#    Spark-Connect needs "javac" to compile auto-generated classes on the fly.
+microdnf install --nodocs \
+  gzip \
+  hostname \
+  procps \
+  "python${PYTHON_VERSION}" \
+  "python${PYTHON_VERSION}-pip" \
+  zip \
+  "temurin-${JAVA_VERSION}-jdk"
+microdnf clean all
+rm -rf /var/cache/yum
+
+ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
+ln -s /usr/bin/pip-${PYTHON_VERSION} /usr/bin/pip
+
+# Symlink example jar, so that we can easily use it in tests
+ln -s /stackable/spark/examples/jars/spark-examples_*.jar /stackable/spark/examples/jars/spark-examples.jar
+chown -h ${STACKABLE_USER_UID}:0 /stackable/spark/examples/jars/spark-examples.jar
+
+# fix permissions
+chmod g=u /stackable/spark
+chmod g=u /stackable/jmx
+chmod g=u /stackable/run-spark.sh
+chmod g=u /stackable/*-src.tar.gz
+EOF
+
+# ----------------------------------------
+# Checks
+# This section is to run final checks to ensure the created final images
+# adhere to several minimal requirements like:
+# - check file permissions and ownerships
+# ----------------------------------------
+
+# Check that permissions and ownership in /stackable are set correctly
+# This will fail and stop the build if any mismatches are found.
+RUN <<EOF
+/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
+EOF
+
+# ----------------------------------------
+# Attention: Do not perform any file based actions (copying/creating etc.) below this comment because the permissions would not be checked.
+# ----------------------------------------
+
+USER ${STACKABLE_USER_UID}
+
+WORKDIR ${SPARK_HOME}
+ENTRYPOINT [ "/stackable/run-spark.sh" ]

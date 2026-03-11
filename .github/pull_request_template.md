@@ -22,9 +22,9 @@ Please make sure all these things are done and tick the boxes
 The image can be built and uploaded to the kind cluster with the following commands:
 
 ```shell
-bake --product <product> --image-version <stackable-image-version>
-kind load docker-image <image-tagged-with-the-major-version> --name=<name-of-your-test-cluster>
+boil build <IMAGE> --image-version <RELEASE_VERSION> --strip-architecture --load
+kind load docker-image <MANIFEST_URI> --name=<name-of-your-test-cluster>
 ```
 
-See the output of `bake` to retrieve the image tag for `<image-tagged-with-the-major-version>`.
+See the output of `boil` to retrieve the image manifest URI for `<MANIFEST_URI>`.
 </details>

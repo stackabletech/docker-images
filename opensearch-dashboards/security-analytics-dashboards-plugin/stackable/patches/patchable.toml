@@ -1,0 +1,2 @@
+upstream = "https://github.com/opensearch-project/security-analytics-dashboards-plugin"
+default-mirror = "https://github.com/stackabletech/security-analytics-dashboards-plugin"

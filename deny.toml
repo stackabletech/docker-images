@@ -1,0 +1,57 @@
+# This file is the source of truth for all our repos!
+# This includes repos not templated by operator-templating, please copy/paste the file for this repos.
+
+# TIP: Use "cargo deny check" to check if everything is fine
+
+[graph]
+targets = [
+  { triple = "x86_64-unknown-linux-gnu" },
+  { triple = "aarch64-unknown-linux-gnu" },
+  { triple = "x86_64-unknown-linux-musl" },
+  { triple = "aarch64-apple-darwin" },
+  { triple = "x86_64-apple-darwin" },
+]
+
+[advisories]
+yanked = "deny"
+
+[bans]
+multiple-versions = "allow"
+
+[licenses]
+unused-allowed-license = "allow"
+confidence-threshold = 1.0
+allow = [
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "CC0-1.0",
+  "ISC",
+  "LicenseRef-ring",
+  "LicenseRef-webpki",
+  "MIT",
+  "MPL-2.0",
+  "OpenSSL",           # Needed for the ring and/or aws-lc-sys crate. See https://github.com/stackabletech/operator-templating/pull/464 for details
+  "Unicode-3.0",
+  "Unicode-DFS-2016",
+  "Zlib",
+  "Unlicense",
+]
+private = { ignore = true }
+
+[[licenses.clarify]]
+name = "ring"
+expression = "LicenseRef-ring"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+[[licenses.clarify]]
+name = "webpki"
+expression = "LicenseRef-webpki"
+license-files = [{ path = "LICENSE", hash = 0x001c7e6c }]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+
+[sources.allow-org]
+github = ["stackabletech"]

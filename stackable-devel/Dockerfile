@@ -11,10 +11,13 @@
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:383329bf9c4f968e87e85d30ba3a5cb988a3bbde28b8e4932dcd3a025fd9c98c
+# The website is broken, so you can use this to find it:
+# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
+# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
 
 # intentionally unused
-ARG PRODUCT
+ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 ARG STACKABLE_USER_NAME
@@ -42,14 +45,16 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
+# TODO (@NickLarsenNZ): Move the version into boil-config.toml once renovate can look there
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.87.0
+ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.93.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=${RUST_DEFAULT_TOOLCHAIN_VERSION}
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
 
 RUN <<EOF
 microdnf update
@@ -93,7 +98,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 
 # WARNING (@NickLarsenNZ): We should pin the rustup version
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain "$RUST_DEFAULT_TOOLCHAIN_VERSION"
-. "$HOME/.cargo/env" && cargo --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION" && rustup toolchain install
+. "$HOME/.cargo/env" && cargo --locked --quiet install cargo-cyclonedx@"$CARGO_CYCLONEDX_CRATE_VERSION" cargo-auditable@"$CARGO_AUDITABLE_CRATE_VERSION" && rustup toolchain install
 EOF
 
 
@@ -115,3 +120,16 @@ microdnf clean all
 chown ${STACKABLE_USER_UID}:0 /stackable/patchable
 rm -rf /patchable
 EOF
+
+# Make sure NPM and YARN use our build mirror
+# In theory YARN should (I believe) fall back to the npmrc file but we want to make sure...
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.npmrc /stackable/.npmrc
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.npmrc /root/.npmrc
+
+# YARN v1
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc /stackable/.yarnrc
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc /root/.yarnrc
+
+# YARN v2++
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /stackable/.yarnrc.yml
+COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.yarnrc.yml /root/.yarnrc.yml

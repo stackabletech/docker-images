@@ -4,14 +4,14 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(airflow): Update container images ahead of Stackable Release YY.M.X
+  chore(airflow): Update major/minor|patch versions for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of #xxx.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 <!--
 This gives hints to the person doing the work.
@@ -21,13 +21,13 @@ Add/Change/Remove anything that isn't applicable anymore
 - Remove: `y.y.y`
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
 ## Update tasks
 
-- [ ] Update `versions.py` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
+- [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Download new constraints file (see `airflow/download_constraints.sh`).
 - [ ] Update other dependencies if applicable (eg: python, statsd_exporter, cyclonedx-bom, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
@@ -62,10 +62,8 @@ Add/Change/Remove anything that isn't applicable anymore
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product airflow=x.y.z # where x.y.z is the new version added in this PR
+# Where x.y.z is the new version added in this PR
+boil build airflow=x.y.z --strip-architecture --load
 
 kind load docker-image oci.stackable.tech/sdp/airflow:x.y.z-stackable0.0.0-dev
 
