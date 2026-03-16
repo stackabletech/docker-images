@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- hbase: Update `hbase-opa-authorizer` from `0.2.0` ([#1446]).
+
+[#1446]: https://github.com/stackabletech/docker-images/pull/1446
+
 ## [26.3.0] - 2026-03-16
 
 ## [26.3.0-rc1] - 2026-03-16
