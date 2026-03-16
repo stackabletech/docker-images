@@ -1,36 +1,11 @@
-use clap::{Args, Command, CommandFactory, ValueEnum};
+use clap::{Command, CommandFactory};
 use clap_complete::{
     Generator,
     Shell::{Bash, Elvish, Fish, Zsh},
 };
 use clap_complete_nushell::Nushell;
 
-use crate::cli::Cli;
-
-#[derive(Debug, Args)]
-pub struct CompletionsArguments {
-    /// Shell to generate completions for.
-    #[arg(value_enum)]
-    pub shell: Shell,
-}
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum Shell {
-    /// Bourne Again SHell
-    Bash,
-
-    /// Elvish shell
-    Elvish,
-
-    /// Friendly Interactive SHell
-    Fish,
-
-    /// Z SHell
-    Zsh,
-
-    /// Nushell
-    Nushell,
-}
+use crate::cli::{Cli, CompletionsArguments, Shell};
 
 /// This is the `boil completions` command handler function.
 pub fn run_command(arguments: CompletionsArguments) {

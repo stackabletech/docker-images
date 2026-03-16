@@ -2,7 +2,13 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::{build::cli::BuildArguments, completions::CompletionsArguments, show::ShowArguments};
+mod build;
+mod completions;
+mod image;
+
+pub use build::*;
+pub use completions::*;
+pub use image::*;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -30,7 +36,10 @@ pub enum Command {
     Build(Box<BuildArguments>),
 
     /// Display various structured outputs in JSON format.
-    Show(ShowArguments),
+    Image(ImageArguments),
+
+    /// Alias for `image list`.
+    Images(ImageListArguments),
 
     /// Generate shell completions.
     Completions(CompletionsArguments),
