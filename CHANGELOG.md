@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [26.3.0] - 2026-03-16
+
+## [26.3.0-rc1] - 2026-03-16
+
 ### Added
 
 - airflow: Add 3.1.6 ([#1405], [#1422]).
@@ -24,7 +28,8 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `2.6.4` (and phoenix `5.3.0`) ([#1408]).
 - spark: Add `3.5.8` ([#1414]).
 - spark-connect-client: Add `3.5.8` ([#1414]).
-- hbase: Backport HBASE-29797 to all HBAse versions (`2.6.3` and `2.6.4`) ([#1425]).
+- hbase: Backport HBASE-29797 to all HBase versions (`2.6.3` and `2.6.4`) ([#1425]).
+- druid: Make the `clientAuthenticationMethod` configurable in Druid `35.0.1` ([#1431]).
 - ubi10-rust-builder: Add new ubi10 base image for operators to begin using ([#1432]).
 
 ### Changed
@@ -49,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - stackable-base: Bump ubi9 image hash ([#1433]).
 - stackable-devel: Bump ubi9 image hash, update rust toolchain ([#1433], [#1435]).
 - stackable-base: Bump `config-utils` to `0.3.0` and `cert-tools` to `0.1.1` ([#1442]).
+- stackable-base: Bump `containerdebug` `0.3.0` ([#1447]).
 
 ### Removed
 
@@ -78,6 +84,7 @@ All notable changes to this project will be documented in this file.
 - superset: Pin setup-tools to ensure pkg_resources are installed (needed for `4.1.4` builds) ([#1428]).
 - ubi10-rust-builder: Add gzip dependency for the ONBUILD step ([#1436]).
 - airflow: Pin virtualenv to prevent hatch pulling in a version with a breaking change ([#1437]).
+- airflow: Allow overriding the logging configuration in Airflow 3.1.x ([#1445]).
 
 [#1336]: https://github.com/stackabletech/docker-images/pull/1336
 [#1337]: https://github.com/stackabletech/docker-images/pull/1337
@@ -118,12 +125,15 @@ All notable changes to this project will be documented in this file.
 [#1426]: https://github.com/stackabletech/docker-images/pull/1426
 [#1428]: https://github.com/stackabletech/docker-images/pull/1428
 [#1429]: https://github.com/stackabletech/docker-images/pull/1429
+[#1431]: https://github.com/stackabletech/docker-images/pull/1431
 [#1432]: https://github.com/stackabletech/docker-images/pull/1432
 [#1433]: https://github.com/stackabletech/docker-images/pull/1433
 [#1435]: https://github.com/stackabletech/docker-images/pull/1435
 [#1436]: https://github.com/stackabletech/docker-images/pull/1436
 [#1437]: https://github.com/stackabletech/docker-images/pull/1437
 [#1442]: https://github.com/stackabletech/docker-images/pull/1442
+[#1445]: https://github.com/stackabletech/docker-images/pull/1445
+[#1447]: https://github.com/stackabletech/docker-images/pull/1447
 
 ## [25.11.0] - 2025-11-07
 
