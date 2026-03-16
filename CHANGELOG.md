@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- hbase: Update `hbase-opa-authorizer` from `0.2.0` ([#1446]).
+- hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` ([#1446]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 
