@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- opensearch: Scope CycloneDX SBOM to shipped components only, eliminating false positive CVEs from unshipped plugins ([#1452]).
+
+[#1452]: https://github.com/stackabletech/docker-images/pull/1452
+
 ## [26.3.0] - 2026-03-16
 
 ## [26.3.0-rc1] - 2026-03-16
