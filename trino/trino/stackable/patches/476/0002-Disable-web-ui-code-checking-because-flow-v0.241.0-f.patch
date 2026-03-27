@@ -10,7 +10,7 @@ Subject: Disable web-ui code checking, because flow v0.241.0 for non-x86
  1 file changed, 22 deletions(-)
 
 diff --git a/core/trino-web-ui/pom.xml b/core/trino-web-ui/pom.xml
-index a783c8f989..bea233cfb9 100644
+index a783c8f9892..bea233cfb9e 100644
 --- a/core/trino-web-ui/pom.xml
 +++ b/core/trino-web-ui/pom.xml
 @@ -103,28 +103,6 @@

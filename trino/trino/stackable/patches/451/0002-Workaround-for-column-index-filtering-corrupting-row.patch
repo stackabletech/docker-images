@@ -1,0 +1,39 @@
+From 4b0ab3fb780e8d56cb0a56ab994f005bf26bfb7e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Thu, 26 Mar 2026 15:33:28 +0100
+Subject: Workaround for column index filtering corrupting row positions
+
+When Parquet column index filtering is active, pages whose min/max stats
+don't overlap the predicate are skipped. This causes lastBatchStartRow()
+to return positions relative to the filtered output rather than physical
+file positions. The incorrect row numbers propagate to the $row_id
+synthetic column used by Delta Lake (and other connectors) during
+row-level deletes, resulting in wrong rows being deleted.
+
+Disable column index filtering when the row number column is requested
+as a workaround until a proper fix that correctly maps filtered positions
+back to physical file positions can be implemented.
+
+Fixes https://github.com/trinodb/trino/issues/28885
+
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+---
+ .../trino/plugin/hive/parquet/ParquetPageSourceFactory.java  | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/plugin/trino-hive/src/main/java/io/trino/plugin/hive/parquet/ParquetPageSourceFactory.java b/plugin/trino-hive/src/main/java/io/trino/plugin/hive/parquet/ParquetPageSourceFactory.java
+index 82136a0ad0e..15ddf145bd2 100644
+--- a/plugin/trino-hive/src/main/java/io/trino/plugin/hive/parquet/ParquetPageSourceFactory.java
++++ b/plugin/trino-hive/src/main/java/io/trino/plugin/hive/parquet/ParquetPageSourceFactory.java
+@@ -279,7 +279,10 @@ public class ParquetPageSourceFactory
+                     finalDataSource,
+                     timeZone,
+                     memoryContext,
+-                    options,
++                    // Column index filtering causes lastBatchStartRow() to produce filtered-output
++                    // positions rather than physical file positions, corrupting the row number column.
++                    // Disable column index when row numbers are requested to ensure correct positions.
++                    appendRowNumberColumn ? ParquetReaderOptions.builder(options).withUseColumnIndex(false).build() : options,
+                     exception -> handleException(dataSourceId, exception),
+                     // We avoid using disjuncts of parquetPredicate for page pruning in ParquetReader as currently column indexes
+                     // are not present in the Parquet files which are read with disjunct predicates.
