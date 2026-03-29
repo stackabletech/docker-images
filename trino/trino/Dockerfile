@@ -5,6 +5,7 @@ FROM stackable/image/java-devel AS trino-builder
 ARG PRODUCT
 ARG RELEASE
 ARG STACKABLE_USER_UID
+ARG RUN_TESTS=false
 
 WORKDIR /stackable
 
@@ -53,6 +54,18 @@ fi
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
   -Ddep.presto-jdbc-under-test=${NEW_VERSION} \
   --projects="$SKIP_PROJECTS"
+
+if [ "$RUN_TESTS" = "true" ]; then
+  echo "Running full Trino test suite..."
+  ./mvnw \
+    --batch-mode \
+    --no-transfer-progress \
+    verify \
+    -Dcheckstyle.skip \
+    -Dmaven.javadoc.skip=true \
+    -Ddep.presto-jdbc-under-test=${NEW_VERSION} \
+    --projects="$SKIP_PROJECTS"
+fi
 
 mkdir -p /stackable/patched-libs/maven/io
 cp -r /root/.m2/repository/io/trino /stackable/patched-libs/maven/io
