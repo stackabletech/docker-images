@@ -1,4 +1,4 @@
-From 772115dbe7c2e39069cb7fd527f0ce042ede9763 Mon Sep 17 00:00:00 2001
+From c3c9abdf3acad91028da5aa87470bfac4e2525a3 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 30 Mar 2026 10:56:06 +0200
 Subject: Fix deleting incorrect records in Delta Lake
@@ -8,13 +8,13 @@ only available starting with Trino 481.
 ---
  .../plugin/deltalake/DeltaLakeMetadata.java   |   2 +-
  .../DeltaLakePageSourceProvider.java          |   2 +-
- .../deltalake/DeltaLakeTableHandle.java       |  26 ++++++++++++++++++
+ .../deltalake/DeltaLakeTableHandle.java       |  27 ++++++++++++++++++
  .../plugin/deltalake/TestDeltaLakeBasic.java  |  21 ++++++++++++++
  .../deltalake/large_parquet_file/README.md    |  12 ++++++++
  .../_delta_log/00000000000000000000.json      |   3 ++
  .../_delta_log/00000000000000000001.json      |   2 ++
  ...4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet | Bin 0 -> 728 bytes
- 8 files changed, 66 insertions(+), 2 deletions(-)
+ 8 files changed, 67 insertions(+), 2 deletions(-)
  create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/README.md
  create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000000.json
  create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000001.json
@@ -47,7 +47,7 @@ index 9e0f75ec116..906efe496f0 100644
                  .withVectorizedDecodingEnabled(isParquetVectorizedDecodingEnabled(session))
                  .build();
 diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
-index 205cfcec48e..6b78c0e21bf 100644
+index 205cfcec48e..6583623858a 100644
 --- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
 +++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
 @@ -31,6 +31,7 @@ import java.util.Optional;
@@ -66,7 +66,7 @@ index 205cfcec48e..6b78c0e21bf 100644
          UPDATE,
          DELETE
      }
-@@ -212,6 +214,30 @@ public class DeltaLakeTableHandle
+@@ -212,6 +214,31 @@ public class DeltaLakeTableHandle
                  vendedCredentials);
      }
  
@@ -91,7 +91,8 @@ index 205cfcec48e..6b78c0e21bf 100644
 +                isOptimize,
 +                maxScannedFileSize,
 +                readVersion,
-+                timeTravel);
++                timeTravel,
++                vendedCredentials);
 +    }
 +
      @Override
