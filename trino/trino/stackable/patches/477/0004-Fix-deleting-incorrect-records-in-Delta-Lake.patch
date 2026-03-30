@@ -3,7 +3,7 @@ From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 30 Mar 2026 10:56:06 +0200
 Subject: Fix deleting incorrect records in Delta Lake
 
-This is backport of https://github.com/trinodb/trino/pull/28907 which is
+This is a backport of https://github.com/trinodb/trino/pull/28907 which is
 only available starting with Trino 481.
 ---
  .../plugin/deltalake/DeltaLakeMetadata.java   |   2 +-
