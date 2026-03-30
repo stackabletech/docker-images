@@ -1,7 +1,7 @@
 From 9a33a76a2172f035e71a25d5eb2f3ead844115c2 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 30 Mar 2026 10:40:11 +0200
-Subject: Fix deleting incorect records in Delta Lake
+Subject: Fix deleting incorrect records in Delta Lake
 
 This is a manual backport of https://github.com/trinodb/trino/pull/28907
 which is only available starting with Trino 481.

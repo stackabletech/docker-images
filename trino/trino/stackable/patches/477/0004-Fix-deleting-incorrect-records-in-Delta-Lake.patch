@@ -1,0 +1,186 @@
+From 772115dbe7c2e39069cb7fd527f0ce042ede9763 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Mon, 30 Mar 2026 10:56:06 +0200
+Subject: Fix deleting incorrect records in Delta Lake
+
+This is backport of https://github.com/trinodb/trino/pull/28907 which is
+only available starting with Trino 481.
+---
+ .../plugin/deltalake/DeltaLakeMetadata.java   |   2 +-
+ .../DeltaLakePageSourceProvider.java          |   2 +-
+ .../deltalake/DeltaLakeTableHandle.java       |  26 ++++++++++++++++++
+ .../plugin/deltalake/TestDeltaLakeBasic.java  |  21 ++++++++++++++
+ .../deltalake/large_parquet_file/README.md    |  12 ++++++++
+ .../_delta_log/00000000000000000000.json      |   3 ++
+ .../_delta_log/00000000000000000001.json      |   2 ++
+ ...4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet | Bin 0 -> 728 bytes
+ 8 files changed, 66 insertions(+), 2 deletions(-)
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/README.md
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000000.json
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000001.json
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/part-00000-2e1c15db-7523-4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet
+
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
+index 1f336bd1257..98892ff6110 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
+@@ -2591,7 +2591,7 @@ public class DeltaLakeMetadata
+         DeltaLakeInsertTableHandle insertHandle = createInsertHandle(retryMode, handle, inputColumns);
+ 
+         Map<String, DeletionVectorEntry> deletionVectors = loadDeletionVectors(session, handle);
+-        return new DeltaLakeMergeTableHandle(handle, insertHandle, deletionVectors, findShallowCloneSourceTableLocation(session, handle));
++        return new DeltaLakeMergeTableHandle(handle.forMerge(), insertHandle, deletionVectors, findShallowCloneSourceTableLocation(session, handle));
+     }
+ 
+     private Optional<String> findShallowCloneSourceTableLocation(ConnectorSession session, DeltaLakeTableHandle handle)
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakePageSourceProvider.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakePageSourceProvider.java
+index 9e0f75ec116..906efe496f0 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakePageSourceProvider.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakePageSourceProvider.java
+@@ -226,7 +226,7 @@ public class DeltaLakePageSourceProvider
+                 .withMaxReadBlockSize(getParquetMaxReadBlockSize(session))
+                 .withMaxReadBlockRowCount(getParquetMaxReadBlockRowCount(session))
+                 .withSmallFileThreshold(getParquetSmallFileThreshold(session))
+-                .withUseColumnIndex(split.getDeletionVector().isEmpty() && isParquetUseColumnIndex(session))
++                .withUseColumnIndex(table.getWriteType().isEmpty() && split.getDeletionVector().isEmpty() && isParquetUseColumnIndex(session))
+                 .withIgnoreStatistics(isParquetIgnoreStatistics(session))
+                 .withVectorizedDecodingEnabled(isParquetVectorizedDecodingEnabled(session))
+                 .build();
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
+index 205cfcec48e..6b78c0e21bf 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTableHandle.java
+@@ -31,6 +31,7 @@ import java.util.Optional;
+ import java.util.Set;
+ 
+ import static com.google.common.base.Preconditions.checkArgument;
++import static io.trino.plugin.deltalake.DeltaLakeTableHandle.WriteType.MERGE;
+ import static io.trino.plugin.deltalake.DeltaLakeTableHandle.WriteType.UPDATE;
+ import static java.util.Objects.requireNonNull;
+ 
+@@ -40,6 +41,7 @@ public class DeltaLakeTableHandle
+     // Insert is not included here because it uses a separate TableHandle type
+     public enum WriteType
+     {
++        MERGE,
+         UPDATE,
+         DELETE
+     }
+@@ -212,6 +214,30 @@ public class DeltaLakeTableHandle
+                 vendedCredentials);
+     }
+ 
++    public DeltaLakeTableHandle forMerge()
++    {
++        return new DeltaLakeTableHandle(
++                schemaName,
++                tableName,
++                managed,
++                location,
++                metadataEntry,
++                protocolEntry,
++                enforcedPartitionConstraint,
++                nonPartitionConstraint,
++                constraintColumns,
++                Optional.of(MERGE),
++                projectedColumns,
++                updatedColumns,
++                updateRowIdColumns,
++                analyzeHandle,
++                recordScannedFiles,
++                isOptimize,
++                maxScannedFileSize,
++                readVersion,
++                timeTravel);
++    }
++
+     @Override
+     public SchemaTableName schemaTableName()
+     {
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
+index 27db0930313..cd01bfe1de2 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
+@@ -1537,6 +1537,27 @@ public class TestDeltaLakeBasic
+         assertUpdate("DROP TABLE " + tableName);
+     }
+ 
++    @Test // regression test for https://github.com/trinodb/trino/issues/28885
++    public void testDeleteFromLargeParquetFile()
++            throws Exception
++    {
++        String tableName = "delete_from_large_parquet_file_" + randomNameSuffix();
++
++        Path tableLocation = catalogDir.resolve(tableName);
++        copyDirectoryContents(new File(Resources.getResource("deltalake/large_parquet_file").toURI()).toPath(), tableLocation);
++        assertUpdate("CALL system.register_table('%s', '%s', '%s')".formatted(getSession().getSchema().orElseThrow(), tableName, tableLocation.toUri()));
++
++        assertThat(query("SELECT count(*) FROM " + tableName + " WHERE data = 5"))
++                .matches("VALUES BIGINT '5000'");
++
++        assertUpdate("DELETE FROM " + tableName + " WHERE data = 5", 5000);
++
++        assertThat(query("SELECT count(*) FROM " + tableName + " WHERE data = 5"))
++                .matches("VALUES BIGINT '0'");
++
++        assertUpdate("DROP TABLE " + tableName);
++    }
++
+     /**
+      * @see deltalake.liquid_clustering
+      */
+diff --git a/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/README.md b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/README.md
+new file mode 100644
+index 00000000000..c06589d44ad
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/README.md
+@@ -0,0 +1,12 @@
++Data generated using Delta Lake 4.0.0:
++
++```sql
++CREATE TABLE test_large_parquet
++(data INT)
++USING delta 
++LOCATION 's3://test-bucket/test_large_parquet';
++
++INSERT INTO test_large_parquet
++SELECT id / 5000 FROM RANGE(0, 50000)
++DISTRIBUTE BY 1;
++```
+diff --git a/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000000.json b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000000.json
+new file mode 100644
+index 00000000000..5f057f64adc
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000000.json
+@@ -0,0 +1,3 @@
++{"commitInfo":{"timestamp":1774686576505,"operation":"CREATE TABLE","operationParameters":{"partitionBy":"[]","clusterBy":"[]","description":null,"isManaged":"false","properties":"{}"},"isolationLevel":"Serializable","isBlindAppend":true,"operationMetrics":{},"engineInfo":"Apache-Spark/4.0.0 Delta-Lake/4.0.0","txnId":"1cd74e1c-d2e0-4b5a-a1ec-cb160b52c0c9"}}
++{"metaData":{"id":"26c72ddc-b89c-424c-8099-44e8da080d57","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"data\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{},"createdTime":1774686576349}}
++{"protocol":{"minReaderVersion":1,"minWriterVersion":2}}
+diff --git a/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000001.json b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000001.json
+new file mode 100644
+index 00000000000..db2d77c6173
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/_delta_log/00000000000000000001.json
+@@ -0,0 +1,2 @@
++{"commitInfo":{"timestamp":1774686583256,"operation":"WRITE","operationParameters":{"mode":"Append","partitionBy":"[]"},"readVersion":0,"isolationLevel":"Serializable","isBlindAppend":true,"operationMetrics":{"numFiles":"1","numOutputRows":"50000","numOutputBytes":"728"},"engineInfo":"Apache-Spark/4.0.0 Delta-Lake/4.0.0","txnId":"f231fd6c-67d7-4d6c-b0af-5f9801b16769"}}
++{"add":{"path":"part-00000-2e1c15db-7523-4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet","partitionValues":{},"size":728,"modificationTime":1774686583000,"dataChange":true,"stats":"{\"numRecords\":50000,\"minValues\":{\"data\":0},\"maxValues\":{\"data\":9},\"nullCount\":{\"data\":0}}"}}
+diff --git a/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/part-00000-2e1c15db-7523-4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet b/plugin/trino-delta-lake/src/test/resources/deltalake/large_parquet_file/part-00000-2e1c15db-7523-4d6b-b4e5-eb56bab9ca7f-c000.snappy.parquet
+new file mode 100644
+index 0000000000000000000000000000000000000000..a93217a5925798e1f1ccb31a67c40bd10bf7dd20
+GIT binary patch
+literal 728
+zcmZ{f!D|yi6vn@uOtxDPz4R?Rut*p%v=WzWn@y8Ygx<u%5=w7Hbdzq{&?HSa8%0V$
+zdJ;5cPo9G8Me*cOatwke@t;s{UKBiw%-Vt=9v;Jc-}k=xz2^3gOPrdtOJCo-`gnDV
+zR)_<uGXT&4FaS9K96%m`4qyp@0bm&bfo_sR@1B17&TLxD8FA9d0H~=}7IUVt#7E+5
+ziO&*0cj2FY`uW`Wk3X0AJn{31uP6Qzfv%IJ58vKC%iEOBw9EW!HI<*vG>s>|k@(BP
+zWsHez3a&J+7)6a|_==flz)V!tyt<gP#hj%xO>`7yR_RQG*fP&FdSC+PXZ0%0e9vgt
+zeDZ?>#6;=NmC-PWj_!}zhhaY;24Xju#rK0afSFEpVGFwmo0#wnor^yTF(sM5n0cNn
+zo@qtHwlW|~vBJdaUmZk=IB}H>buhNpvfLulsScR0Io&p2<S5ag0@JBpG|cndidwX+
+z<LJN%hC%x<bTUroVHl0N#{(;0amr2^*4jUg(Miu42GPkljGgHCk<$<3K%Haloyz#}
+zFq92BilcEmmL=KghQ0lfZ0w!NLC{x{a>~-Bu{(&vgD{dMIT-hPL8}+aMjVa9lDtfn
+zjnm2G-UQa&i$8DmqrwGb!F62ESud=%#@*h2q2|@YpzT(@R=L)xuWxn&x8l{y?Tw9A
+a+v`*|tCh0XX;o`$!nOgt)PUypj{6$`)ub^1
+
+literal 0
+HcmV?d00001
+
