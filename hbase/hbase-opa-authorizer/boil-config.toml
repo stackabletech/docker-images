@@ -1,5 +1,5 @@
-[versions."0.1.0".local-images]
+[versions."0.2.0".local-images]
 java-devel = "11"
 
-[versions."0.1.0".build-arguments]
+[versions."0.2.0".build-arguments]
 delete-caches = "true"
