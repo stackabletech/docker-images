@@ -1,0 +1,21 @@
+From 50ff72c780a56be1df8bc813c0c7e6934e153e4f Mon Sep 17 00:00:00 2001
+From: Techassi <git@techassi.dev>
+Date: Wed, 21 Jan 2026 11:32:20 +0100
+Subject: Stop building the embedded integration tests
+
+---
+ pom.xml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/pom.xml b/pom.xml
+index d8774c490c..ffe309c3b9 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -244,7 +244,6 @@
+         <!-- Revised integration tests -->
+         <module>integration-tests-ex/tools</module>
+         <module>quidem-ut</module>
+-        <module>embedded-tests</module>
+     </modules>
+ 
+     <repositories>

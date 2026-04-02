@@ -1,0 +1,37 @@
+From e9b5503e9c952ab691952fb14724ac55a6890420 Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Mon, 24 Nov 2025 18:05:16 +0100
+Subject: Relocate jline in shading plugin
+
+For Hive 4.0.1 the dependency loading is a mess. We explicitly shade jline to avoid a schematool dependency problem:
+
+Exception in thread "main" java.lang.NoSuchMethodError: 'void org.jline.reader.impl.completer.StringsCompleter.<init>(org.jline.reader.Candidate[])'
+    at sqlline.SqlLineOpts.setOptionCompleters(SqlLineOpts.java:160)
+    at sqlline.Application.getCommandHandlers(Application.java:294)
+    at sqlline.SqlLine$Config.<init>(SqlLine.java:1946)
+    at sqlline.SqlLine.setAppConfig(SqlLine.java:1875)
+    at sqlline.SqlLine.<init>(SqlLine.java:229)
+    at org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool.execSql(MetastoreSchemaTool.java:313)
+
+This does not affect versions >= 4.1.x since the non shaded jar is used.  
+---
+ hms-v4/pom.xml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/hms-v4/pom.xml b/hms-v4/pom.xml
+index 4ebeac4..b2940ab 100644
+--- a/hms-v4/pom.xml
++++ b/hms-v4/pom.xml
+@@ -67,6 +67,12 @@
+                                     </excludes>
+                                 </filter>
+                             </filters>
++                            <relocations>
++                                <relocation>
++                                    <pattern>org.jline</pattern>
++                                    <shadedPattern>com.bosch.bdps.jline</shadedPattern>
++                                </relocation>
++                            </relocations>
+                         </configuration>
+                     </execution>
+                 </executions>

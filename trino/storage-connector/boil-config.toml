@@ -1,0 +1,7 @@
+[versions."477".local-images]
+"trino/trino" = "477"
+java-devel = "24"
+
+[versions."479".local-images]
+"trino/trino" = "479"
+java-devel = "25"

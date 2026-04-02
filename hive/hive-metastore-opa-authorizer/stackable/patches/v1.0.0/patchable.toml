@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/hive-metastore-opa-authorizer"
+base = "1925fee7512d4afba4a9d83c303aa241d0e5412e"

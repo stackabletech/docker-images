@@ -3,29 +3,32 @@
 
 # Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
 # IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:92b1d5747a93608b6adb64dfd54515c3c5a360802db4706765ff3d8470df6290 AS builder
+# The website is broken, so you can use this to find it:
+# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
+# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
 # Pin the rustup version to avoid unexpected breaking changes.
 # See https://github.com/rust-lang/rustup/blob/4514d36fcc9c42416176111cd841c86f7ec44b2c/rustup-init.sh#L91
-# Find the latest version here: https://github.com/rust-lang/rustup/blob/master/CHANGELOG.md
+# Find the latest version here: https://github.com/rust-lang/rustup/tags
 # renovate: datasource=github-tags packageName=rust-lang/rustup
-ENV RUSTUP_VERSION=1.28.1
+ENV RUSTUP_VERSION=1.28.2
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.85.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.93.0
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.6.6
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=30.2
+ENV PROTOC_VERSION=31.1
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -62,6 +65,8 @@ RUN microdnf update \
     openssl-devel \
     pkg-config \
     systemd-devel \
+    # tar needed to create the source code snapshot before building the Rust code
+    tar \
     unzip \
   && microdnf clean all \
   && rm -rf /var/cache/yum
@@ -97,6 +102,7 @@ ONBUILD COPY . /src
 
 ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
+tar -czf /app/stackable-src.tar.gz .
 cargo auditable --quiet build --release --workspace
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
 

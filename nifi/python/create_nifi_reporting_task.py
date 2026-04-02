@@ -47,8 +47,9 @@ def find_reporting_task(name: str, port: str):
     return None
 
 
-def create_reporting_task(name: str, port: str, version: str):
+def create_reporting_task(name: str, port: str):
     """Create a ReportingTask"""
+    nifi_version = nipyapi.system.get_system_diagnostics().system_diagnostics.aggregate_snapshot.version_info.ni_fi_version
     task = nipyapi.nifi.models.reporting_task_entity.ReportingTaskEntity(
         revision=nipyapi.nifi.models.revision_dto.RevisionDTO(version=0),
         disconnected_node_acknowledged=False,
@@ -56,7 +57,9 @@ def create_reporting_task(name: str, port: str, version: str):
             name=name,
             type="org.apache.nifi.reporting.prometheus.PrometheusReportingTask",
             bundle=nipyapi.nifi.models.bundle_dto.BundleDTO(
-                group="org.apache.nifi", artifact="nifi-prometheus-nar", version=version
+                group="org.apache.nifi",
+                artifact="nifi-prometheus-nar",
+                version=nifi_version,
             ),
             properties={
                 "prometheus-reporting-task-metrics-endpoint-port": port,
@@ -126,9 +129,6 @@ def main():
         "-p", "--password", required=True, help="Password for the user."
     )
     all_args.add_argument(
-        "-v", "--nifi_version", required=True, help="The NiFi product version."
-    )
-    all_args.add_argument(
         "-c",
         "--cert",
         required=True,
@@ -158,9 +158,7 @@ def main():
     reporting_task = find_reporting_task(name=task_name, port=port)
 
     if reporting_task is None:
-        reporting_task = create_reporting_task(
-            name=task_name, port=port, version=args["nifi_version"]
-        )
+        reporting_task = create_reporting_task(name=task_name, port=port)
         print(
             get_reporting_task_name(task=reporting_task)
             + " [%s] -> CREATED" % reporting_task.id

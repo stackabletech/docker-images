@@ -1,0 +1,2 @@
+upstream = "https://github.com/opensearch-project/anomaly-detection-dashboards-plugin"
+default-mirror = "https://github.com/stackabletech/anomaly-detection-dashboards-plugin"

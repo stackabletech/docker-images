@@ -1,0 +1,31 @@
+From 782c0d5b814d3095668b2c01244e84463d507915 Mon Sep 17 00:00:00 2001
+From: Techassi <git@techassi.dev>
+Date: Tue, 16 Dec 2025 10:01:19 +0100
+Subject: pin sax to 1.2.4
+
+This is a similar issue to what we already discovered in #1315
+and #1316. For more details, see the linked PRs.
+---
+ superset-frontend/package.json | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/superset-frontend/package.json b/superset-frontend/package.json
+index cd6ca2a53..0f59fff60 100644
+--- a/superset-frontend/package.json
++++ b/superset-frontend/package.json
+@@ -365,11 +365,12 @@
+       "ansi-regex": "^4.1.1"
+     },
+     "puppeteer": "^22.4.1",
+-    "@types/react": "^16.9.53"
++    "@types/react": "^16.9.53",
++    "sax": "1.2.4"
+   },
+   "readme": "ERROR: No README data found!",
+   "scarfSettings": {
+     "allowTopLevel": true
+   },
+   "_id": "superset@0.0.0-dev"
+-}
++}
+\ No newline at end of file

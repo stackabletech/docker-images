@@ -27,6 +27,8 @@ EXPECTED_UID=$2
 EXPECTED_GID=$3
 
 error_flag=0
+ownership_errors=0
+permission_errors=0
 
 # Check ownership
 while IFS= read -r -d '' entry; do
@@ -38,6 +40,7 @@ while IFS= read -r -d '' entry; do
         file=${remainder#* }
         echo "Ownership mismatch:  $file (Expected: $EXPECTED_UID:$EXPECTED_GID, Found: $uid:$gid)"
         error_flag=1
+        ((ownership_errors++))
     fi
 done < <(find "$DIRECTORY" -printf "%U %G %p\0")
 
@@ -48,13 +51,15 @@ while IFS= read -r -d '' entry; do
 
     if [[ "$owner_perms" != "$group_perms" ]]; then
         file="${entry:11}"
-        echo "Permission mismatch: $file (Owner: $owner_perms, Group: $group_perms)"
+        echo "Permission mismatch: $file (Owner: $owner_perms, Group: $group_perms, Expected: owner=group)"
         error_flag=1
+        ((permission_errors++))
     fi
 done < <(find "$DIRECTORY" -printf "%M %p\0")
 
 if [[ $error_flag -ne 0 ]]; then
     echo "Permission and Ownership checks failed for $DIRECTORY!"
+    echo "Found $ownership_errors ownership mismatches and $permission_errors permission mismatches"
     exit 1
 fi
 

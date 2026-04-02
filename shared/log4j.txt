@@ -1,3 +1,0 @@
-Source of the Scanner: https://github.com/lunasec-io/lunasec/tree/master/lunatrace/cli/cmd/log4shell
-
-License: Apache-2

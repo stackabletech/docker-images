@@ -9,7 +9,9 @@ on:
     - cron: '0 0 1/2 * *' # https://crontab.guru/#0_0_1/2_*_*
   push:
     branches: [main]
-    tags: ['*']
+    tags:
+      - "[0-9][0-9].[0-9]+.[0-9]+"
+      - "[0-9][0-9].[0-9]+.[0-9]+-rc[0-9]+"
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
@@ -20,12 +22,20 @@ on:
 
 jobs:
   build_image:
-    name: Reusable Workflow
+    name: Reusable Workflow (${{ matrix.product-name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        product-name:
+          - testing-tools
+          - testing-tools/nifi
+          - testing-tools/trino
+          - testing-tools/hive
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     with:
-      product-name: testing-tools
+      product-name: ${{ matrix.product-name }}
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp

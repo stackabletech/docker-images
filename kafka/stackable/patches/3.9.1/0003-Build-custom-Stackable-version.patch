@@ -1,0 +1,116 @@
+From 89fe680ede7726e0df32f0ba1fb90a4216af7c69 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 18 Jun 2025 12:17:53 +0200
+Subject: Build custom Stackable version
+
+---
+ docs/configuration.html                                         | 2 +-
+ docs/js/templateData.js                                         | 2 +-
+ gradle.properties                                               | 2 +-
+ streams/quickstart/java/pom.xml                                 | 2 +-
+ .../java/src/main/resources/archetype-resources/pom.xml         | 2 +-
+ streams/quickstart/pom.xml                                      | 2 +-
+ tests/kafkatest/__init__.py                                     | 2 +-
+ tests/kafkatest/version.py                                      | 2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/docs/configuration.html b/docs/configuration.html
+index f7c99623de..266236b54a 100644
+--- a/docs/configuration.html
++++ b/docs/configuration.html
+@@ -296,7 +296,7 @@
+       <p>If users want to only enable some URLs, users need to explicitly set the system property like below.
+       <p><pre><code class="language-bash">-Dorg.apache.kafka.sasl.oauthbearer.allowed.urls=https://www.example.com,file:///tmp/token</code></pre>
+       <table><tbody>
+-      <tr><th>Since:</th><td>3.9.1</td></tr>
++      <tr><th>Since:</th><td>3.9.1-stackable0.0.0-dev</td></tr>
+       <tr><th>Default Value:</th><td>All URLs are allowed</td></tr>
+       </tbody></table>
+     </li>
+diff --git a/docs/js/templateData.js b/docs/js/templateData.js
+index a1ed4601c7..57c854db36 100644
+--- a/docs/js/templateData.js
++++ b/docs/js/templateData.js
+@@ -19,6 +19,6 @@ limitations under the License.
+ var context={
+     "version": "39",
+     "dotVersion": "3.9",
+-    "fullDotVersion": "3.9.1",
++    "fullDotVersion": "3.9.1-stackable0.0.0-dev",
+     "scalaVersion": "2.13"
+ };
+diff --git a/gradle.properties b/gradle.properties
+index 05598137fd..3f660d4ee5 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -23,7 +23,7 @@ group=org.apache.kafka
+ #  - streams/quickstart/pom.xml
+ #  - streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+ #  - streams/quickstart/java/pom.xml
+-version=3.9.1
++version=3.9.1-stackable0.0.0-dev
+ scalaVersion=2.13.15
+ # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
+ # New version of Swagger 2.2.14 requires minimum JDK 11.
+diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
+index 3d404de9c3..92735dffbc 100644
+--- a/streams/quickstart/java/pom.xml
++++ b/streams/quickstart/java/pom.xml
+@@ -26,7 +26,7 @@
+     <parent>
+         <groupId>org.apache.kafka</groupId>
+         <artifactId>streams-quickstart</artifactId>
+-        <version>3.9.1</version>
++        <version>3.9.1-stackable0.0.0-dev</version>
+         <relativePath>..</relativePath>
+     </parent>
+ 
+diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+index 26af0e1dc3..b55640c1f0 100644
+--- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
++++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+@@ -29,7 +29,7 @@
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <kafka.version>3.9.1</kafka.version>
++        <kafka.version>3.9.1-stackable0.0.0-dev</kafka.version>
+         <slf4j.version>1.7.36</slf4j.version>
+     </properties>
+ 
+diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
+index f524e00445..05e8eee91a 100644
+--- a/streams/quickstart/pom.xml
++++ b/streams/quickstart/pom.xml
+@@ -22,7 +22,7 @@
+     <groupId>org.apache.kafka</groupId>
+     <artifactId>streams-quickstart</artifactId>
+     <packaging>pom</packaging>
+-    <version>3.9.1</version>
++    <version>3.9.1-stackable0.0.0-dev</version>
+ 
+     <name>Kafka Streams :: Quickstart</name>
+ 
+diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
+index a8e4d4515c..36068eeb1a 100644
+--- a/tests/kafkatest/__init__.py
++++ b/tests/kafkatest/__init__.py
+@@ -22,4 +22,4 @@
+ # Instead, in development branches, the version should have a suffix of the form ".devN"
+ #
+ # For example, when Kafka is at version 1.0.0-SNAPSHOT, this should be something like "1.0.0.dev0"
+-__version__ = '3.9.1'
++__version__ = '3.9.1-stackable0.0.0-dev'
+diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
+index 99cb278226..cd8bcfab4b 100644
+--- a/tests/kafkatest/version.py
++++ b/tests/kafkatest/version.py
+@@ -122,7 +122,7 @@ def get_version(node=None):
+         return DEV_BRANCH
+ 
+ DEV_BRANCH = KafkaVersion("dev")
+-DEV_VERSION = KafkaVersion("3.9.1-SNAPSHOT")
++DEV_VERSION = KafkaVersion("3.9.1-stackable0.0.0-dev")
+ 
+ # This should match the LATEST_PRODUCTION version defined in MetadataVersion.java
+ LATEST_STABLE_METADATA_VERSION = "3.9-IV0"

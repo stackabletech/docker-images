@@ -1,0 +1,228 @@
+From 92d41a5e103e46f9cf889821461842a1310c2ba0 Mon Sep 17 00:00:00 2001
+From: Benedikt Labrenz <benedikt@labrenz.org>
+Date: Wed, 16 Jul 2025 14:29:10 +0200
+Subject: opensearch home
+
+---
+ .../docker/src/docker/bin/docker-entrypoint.sh | 12 ++++++------
+ distribution/packages/build.gradle             | 18 +++++++++---------
+ .../packages/src/common/env/opensearch         |  2 +-
+ .../packages/src/common/scripts/postinst       |  6 +++---
+ .../packages/src/common/scripts/postrm         |  8 ++++----
+ .../src/common/systemd/opensearch.service      |  4 ++--
+ 6 files changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/distribution/docker/src/docker/bin/docker-entrypoint.sh b/distribution/docker/src/docker/bin/docker-entrypoint.sh
+index 59603462ac9..2e5cc42be34 100644
+--- a/distribution/docker/src/docker/bin/docker-entrypoint.sh
++++ b/distribution/docker/src/docker/bin/docker-entrypoint.sh
+@@ -46,7 +46,7 @@ fi
+ # This is also sourced in opensearch-env, and is only needed here
+ # as well because we use ELASTIC_PASSWORD below. Sourcing this script
+ # is idempotent.
+-source /usr/share/opensearch/bin/opensearch-env-from-file
++source /stackable/opensearch/bin/opensearch-env-from-file
+ 
+ if [[ -f bin/opensearch-users ]]; then
+   # Check for the ELASTIC_PASSWORD environment variable to set the
+@@ -56,7 +56,7 @@ if [[ -f bin/opensearch-users ]]; then
+   # enabled, but we have no way of knowing which node we are yet. We'll just
+   # honor the variable if it's present.
+   if [[ -n "$ELASTIC_PASSWORD" ]]; then
+-    [[ -f /usr/share/opensearch/config/opensearch.keystore ]] || (run_as_other_user_if_needed opensearch-keystore create)
++    [[ -f /stackable/opensearch/config/opensearch.keystore ]] || (run_as_other_user_if_needed opensearch-keystore create)
+     if ! (run_as_other_user_if_needed opensearch-keystore has-passwd --silent) ; then
+       # keystore is unencrypted
+       if ! (run_as_other_user_if_needed opensearch-keystore list | grep -q '^bootstrap.password$'); then
+@@ -73,7 +73,7 @@ if [[ -f bin/opensearch-users ]]; then
+   fi
+ fi
+ 
+-if ls "/usr/share/opensearch/lib" | grep -E -q "bc-fips.*\.jar"; then
++if ls "/stackable/opensearch/lib" | grep -E -q "bc-fips.*\.jar"; then
+   # If BouncyCastle FIPS is detected - enforcing keystore password policy.
+ 
+   if [[ -z "$KEYSTORE_PASSWORD" ]]; then
+@@ -81,7 +81,7 @@ if ls "/usr/share/opensearch/lib" | grep -E -q "bc-fips.*\.jar"; then
+     exit 1
+   fi
+ 
+-  if [[ ! -f /usr/share/opensearch/config/opensearch.keystore ]]; then
++  if [[ ! -f /stackable/opensearch/config/opensearch.keystore ]]; then
+     # Keystore not found - creating with password.
+     COMMANDS="$(printf "%s\n%s" "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD")"
+     echo "$COMMANDS" | run_as_other_user_if_needed opensearch-keystore create -p
+@@ -99,8 +99,8 @@ fi
+ if [[ "$(id -u)" == "0" ]]; then
+   # If requested and running as root, mutate the ownership of bind-mounts
+   if [[ -n "$TAKE_FILE_OWNERSHIP" ]]; then
+-    chown -R 1000:0 /usr/share/opensearch/{data,logs}
++    chown -R 1000:0 /stackable/opensearch/{data,logs}
+   fi
+ fi
+ 
+-run_as_other_user_if_needed /usr/share/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
++run_as_other_user_if_needed /stackable/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
+diff --git a/distribution/packages/build.gradle b/distribution/packages/build.gradle
+index a02f907f86a..eb9c048f32c 100644
+--- a/distribution/packages/build.gradle
++++ b/distribution/packages/build.gradle
+@@ -88,7 +88,7 @@ void addProcessFilesTask(String type, boolean jdk) {
+       // create empty dirs, we set the permissions when configuring the packages
+       mkdir "${packagingFiles}/var/log/opensearch"
+       mkdir "${packagingFiles}/var/lib/opensearch"
+-      mkdir "${packagingFiles}/usr/share/opensearch/plugins"
++      mkdir "${packagingFiles}/stackable/opensearch/plugins"
+ 
+       // bare empty dir for /etc/opensearch and /etc/opensearch/jvm.options.d
+       mkdir "${packagingFiles}/opensearch"
+@@ -154,7 +154,7 @@ Closure commonPackageConfig(String type, boolean jdk, String architecture) {
+ 
+     // top level "into" directive is not inherited from ospackage for some reason, so we must
+     // specify it again explicitly for copying common files
+-    into('/usr/share/opensearch') {
++    into('/stackable/opensearch') {
+       into('bin') {
+         with binFiles(type, jdk)
+       }
+@@ -198,7 +198,7 @@ Closure commonPackageConfig(String type, boolean jdk, String architecture) {
+ 
+     // license files
+     if (type == 'deb') {
+-      into("/usr/share/doc/${packageName}") {
++      into("/stackable/doc/${packageName}") {
+         from "${packagingFiles}/copyright"
+         filePermissions {
+           unix 0644
+@@ -206,7 +206,7 @@ Closure commonPackageConfig(String type, boolean jdk, String architecture) {
+       }
+     } else {
+       assert type == 'rpm'
+-      into('/usr/share/opensearch') {
++      into('/stackable/opensearch') {
+         from(rootProject.file('licenses')) {
+           include 'APACHE-LICENSE-2.0.txt'
+           rename { 'LICENSE.txt' }
+@@ -277,7 +277,7 @@ Closure commonPackageConfig(String type, boolean jdk, String architecture) {
+         unix 0644
+       }
+     }
+-    into('/usr/share/opensearch/bin') {
++    into('/stackable/opensearch/bin') {
+       from "${packagingFiles}/systemd/systemd-entrypoint"
+       filePermissions {
+         unix 0755
+@@ -312,9 +312,9 @@ Closure commonPackageConfig(String type, boolean jdk, String architecture) {
+     }
+     copyEmptyDir('/var/log/opensearch', 'opensearch', 'opensearch', 0750)
+     copyEmptyDir('/var/lib/opensearch', 'opensearch', 'opensearch', 0750)
+-    copyEmptyDir('/usr/share/opensearch/plugins', 'root', 'root', 0755)
++    copyEmptyDir('/stackable/opensearch/plugins', 'root', 'root', 0755)
+ 
+-    into '/usr/share/opensearch'
++    into '/stackable/opensearch'
+     with noticeFile(jdk)
+   }
+ }
+@@ -348,7 +348,7 @@ ospackage {
+   user = 'root'
+   permissionGroup = 'root'
+ 
+-  into '/usr/share/opensearch'
++  into '/stackable/opensearch'
+ }
+ 
+ Closure commonDebConfig(boolean jdk, String architecture) {
+@@ -368,7 +368,7 @@ Closure commonDebConfig(boolean jdk, String architecture) {
+     requires 'libc6'
+     requires 'adduser'
+ 
+-    into('/usr/share/lintian/overrides') {
++    into('/stackable/lintian/overrides') {
+       from('src/deb/lintian/opensearch')
+       filePermissions {
+         unix 0644
+diff --git a/distribution/packages/src/common/env/opensearch b/distribution/packages/src/common/env/opensearch
+index a8b68297669..bd5ad77ded1 100644
+--- a/distribution/packages/src/common/env/opensearch
++++ b/distribution/packages/src/common/env/opensearch
+@@ -3,7 +3,7 @@
+ ################################
+ 
+ # OpenSearch home directory
+-OPENSEARCH_HOME=/usr/share/opensearch
++OPENSEARCH_HOME=/stackable/opensearch
+ 
+ # OpenSearch Java path
+ #OPENSEARCH_JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto
+diff --git a/distribution/packages/src/common/scripts/postinst b/distribution/packages/src/common/scripts/postinst
+index 308e86b8502..54baa373520 100644
+--- a/distribution/packages/src/common/scripts/postinst
++++ b/distribution/packages/src/common/scripts/postinst
+@@ -103,16 +103,16 @@ fi
+ # the equivalent code for rpm is in posttrans
+ if [ "$PACKAGE" = "deb" ]; then
+     if [ ! -f "${OPENSEARCH_PATH_CONF}"/opensearch.keystore ]; then
+-        /usr/share/opensearch/bin/opensearch-keystore create
++        /stackable/opensearch/bin/opensearch-keystore create
+         chown root:opensearch "${OPENSEARCH_PATH_CONF}"/opensearch.keystore
+         chmod 660 "${OPENSEARCH_PATH_CONF}"/opensearch.keystore
+         md5sum "${OPENSEARCH_PATH_CONF}"/opensearch.keystore > "${OPENSEARCH_PATH_CONF}"/.opensearch.keystore.initial_md5sum
+     else
+-        if /usr/share/opensearch/bin/opensearch-keystore has-passwd --silent ; then
++        if /stackable/opensearch/bin/opensearch-keystore has-passwd --silent ; then
+           echo "### Warning: unable to upgrade encrypted keystore" 1>&2
+           echo " Please run opensearch-keystore upgrade and enter password" 1>&2
+         else
+-          /usr/share/opensearch/bin/opensearch-keystore upgrade
++          /stackable/opensearch/bin/opensearch-keystore upgrade
+         fi
+     fi
+ fi
+diff --git a/distribution/packages/src/common/scripts/postrm b/distribution/packages/src/common/scripts/postrm
+index 75eded92a8e..7d494d5bf19 100644
+--- a/distribution/packages/src/common/scripts/postrm
++++ b/distribution/packages/src/common/scripts/postrm
+@@ -59,16 +59,16 @@ if [ "$REMOVE_DIRS" = "true" ]; then
+         echo " OK"
+     fi
+ 
+-    if [ -d /usr/share/opensearch/plugins ]; then
++    if [ -d /stackable/opensearch/plugins ]; then
+         echo -n "Deleting plugins directory..."
+-        rm -rf /usr/share/opensearch/plugins
++        rm -rf /stackable/opensearch/plugins
+         echo " OK"
+     fi
+ 
+     # plugins may have contained bin files
+-    if [ -d /usr/share/opensearch/bin ]; then
++    if [ -d /stackable/opensearch/bin ]; then
+         echo -n "Deleting plugin bin directories..."
+-        rm -rf /usr/share/opensearch/bin
++        rm -rf /stackable/opensearch/bin
+         echo " OK"
+     fi
+ 
+diff --git a/distribution/packages/src/common/systemd/opensearch.service b/distribution/packages/src/common/systemd/opensearch.service
+index 760fc39723f..c1781a24945 100644
+--- a/distribution/packages/src/common/systemd/opensearch.service
++++ b/distribution/packages/src/common/systemd/opensearch.service
+@@ -21,7 +21,7 @@ PrivateTmp=true
+ EnvironmentFile=-/etc/default/opensearch
+ EnvironmentFile=-/etc/sysconfig/opensearch
+ 
+-WorkingDirectory=/usr/share/opensearch
++WorkingDirectory=/stackable/opensearch
+ 
+ User=opensearch
+ Group=opensearch
+@@ -29,7 +29,7 @@ Group=opensearch
+ ExecStartPre=/bin/mkdir -p /dev/shm/performanceanalyzer
+ ExecStartPre=/bin/chown opensearch:opensearch /dev/shm/performanceanalyzer
+ 
+-ExecStart=/usr/share/opensearch/bin/systemd-entrypoint -p ${PID_DIR}/opensearch.pid --quiet
++ExecStart=/stackable/opensearch/bin/systemd-entrypoint -p ${PID_DIR}/opensearch.pid --quiet
+ 
+ # StandardOutput is configured to redirect to journalctl since
+ # some error messages may be logged in standard output before

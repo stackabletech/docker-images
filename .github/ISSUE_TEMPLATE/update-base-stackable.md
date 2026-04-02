@@ -4,17 +4,17 @@ about: >-
   This template contains instructions specific to updating this product and/or
   container image(s).
 title: >-
-  chore(stackable-base): Update container images ahead of Stackable Release YY.M.X
+  chore(stackable-base): Update image for YY.M.X
 labels: []
 # Currently, projects cannot be assigned via front-matter.
 projects: ['stackabletech/10']
 assignees: ''
 ---
 
-Part of #xxx.
+Part of <https://github.com/stackabletech/docker-images/issues/xxx>.
 
 > [!TIP]
-> Please add the `scheduled-for/20XX-XX` label, and add to the [Stackable Engineering][1] project.
+> Please add the `scheduled-for/YY.M.X` label, and add to the [Stackable Engineering][1] project.
 >
 > [1]: https://github.com/orgs/stackabletech/projects/10
 
@@ -55,10 +55,8 @@ Part of #xxx.
 <summary>Testing instructions</summary>
 
 ```shell
-# See the latest version at https://pypi.org/project/image-tools-stackabletech/
-pip install image-tools-stackabletech==0.0.16
-
-bake --product vector=x.y.z # where x.y.z is a valid version
+# Where x.y.z is a valid version
+boil build vector=x.y.z --strip-architecture --load
 ```
 
 </details>

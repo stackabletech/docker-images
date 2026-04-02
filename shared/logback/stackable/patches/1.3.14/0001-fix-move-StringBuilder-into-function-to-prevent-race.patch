@@ -1,0 +1,38 @@
+From 2ee74eaf5645576ec0a604941591c9ae09a92a43 Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Wed, 22 Oct 2025 11:13:02 +0200
+Subject: fix: move StringBuilder into function to prevent race conditions
+
+---
+ .../java/ch/qos/logback/classic/log4j/XMLLayout.java   | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java b/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
+index 4bc04388a..405f4ef26 100644
+--- a/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
++++ b/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
+@@ -38,9 +38,7 @@ import ch.qos.logback.core.helpers.Transform;
+ public class XMLLayout extends LayoutBase<ILoggingEvent> {
+ 
+     private final int DEFAULT_SIZE = 256;
+-    private final int UPPER_LIMIT = 2048;
+ 
+-    private StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
+     private boolean locationInfo = false;
+     private boolean properties = false;
+ 
+@@ -96,13 +94,7 @@ public class XMLLayout extends LayoutBase<ILoggingEvent> {
+      */
+     public String doLayout(ILoggingEvent event) {
+ 
+-        // Reset working buffer. If the buffer is too large, then we need a new
+-        // one in order to avoid the penalty of creating a large array.
+-        if (buf.capacity() > UPPER_LIMIT) {
+-            buf = new StringBuilder(DEFAULT_SIZE);
+-        } else {
+-            buf.setLength(0);
+-        }
++        StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
+ 
+         // We yield to the \r\n heresy.
+ 
