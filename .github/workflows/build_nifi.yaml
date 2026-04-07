@@ -24,6 +24,8 @@ on:
       - .github/workflows/build_nifi.yaml
       - .github/workflows/reusable_build_image.yaml
 
+permissions: {}
+
 jobs:
   build_image:
     name: Reusable Workflow

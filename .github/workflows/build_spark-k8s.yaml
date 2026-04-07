@@ -25,6 +25,8 @@ on:
       - .github/workflows/build_spark-k8s.yaml
       - .github/workflows/reusable_build_image.yaml
 
+permissions: {}
+
 jobs:
   build_image:
     name: Reusable Workflow

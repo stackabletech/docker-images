@@ -25,14 +25,19 @@ on:
         description: The Slack token used to post failure notifications
         required: true
 
+permissions: {}
+
 jobs:
   generate_runner_dimension:
     name: Generate Runner Dimension
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
       - id: runners
         shell: bash
         env:
@@ -54,10 +59,13 @@ jobs:
   generate_version_dimension:
     name: Generate Version Dimension
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
       - id: shard
         uses: stackabletech/actions/shard@7fb064db885e006f6a9eeff69c7cd5ff5dea68bc # v0.13.0
         with:
@@ -72,6 +80,7 @@ jobs:
       - generate_runner_dimension
     permissions:
       id-token: write
+      contents: read
     runs-on: ${{ matrix.runner.name }}
     strategy:
       fail-fast: false
@@ -111,6 +120,7 @@ jobs:
     needs: [generate_version_dimension, build]
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

@@ -25,6 +25,8 @@ on:
       - .github/workflows/build_opensearch.yaml
       - .github/workflows/reusable_build_image.yaml
 
+permissions: {}
+
 jobs:
   build_image:
     name: Reusable Workflow

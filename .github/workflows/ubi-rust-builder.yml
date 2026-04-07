@@ -17,10 +17,13 @@ on:
     - cron: "30 4 * * *"
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   build:
     permissions:
       id-token: write
+      contents: read
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -71,6 +74,7 @@ jobs:
     needs: ["build"]
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

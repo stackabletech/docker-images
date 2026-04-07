@@ -6,7 +6,7 @@ run-name: |
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 2 2/2 * *' # https://crontab.guru/#0_2_2/2_*_*
+    - cron: "0 2 2/2 * *" # https://crontab.guru/#0_2_2/2_*_*
   push:
     branches: [main]
     tags:
@@ -19,6 +19,8 @@ on:
       - .github/actions/**
       - .github/workflows/build_krb5.yaml
       - .github/workflows/reusable_build_image.yaml
+
+permissions: {}
 
 jobs:
   build_image:
