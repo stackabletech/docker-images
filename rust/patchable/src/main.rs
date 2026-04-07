@@ -5,7 +5,11 @@ mod repo;
 mod utils;
 
 use core::str;
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{
+    fs::File,
+    io::{IsTerminal, Write},
+    path::PathBuf,
+};
 
 use git2::{Oid, Repository};
 use serde::{Deserialize, Serialize};
@@ -327,7 +331,11 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 #[snafu::report]
 fn main() -> Result<()> {
     tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_writer(std::io::stderr))
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_ansi(std::io::stdout().is_terminal())
+                .with_writer(std::io::stderr),
+        )
         .with(IndicatifLayer::new())
         .with(
             tracing_subscriber::EnvFilter::builder()
