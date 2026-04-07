@@ -6,7 +6,7 @@ run-name: |
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 1 2/2 * *" # https://crontab.guru/#0_1_2/2_*_*
+    - cron: 0 1 2/2 * * # https://crontab.guru/#0_1_2/2_*_*
   push:
     branches: [main]
     tags:

@@ -14,7 +14,7 @@ on:
       - .github/workflows/ubi-rust-builder.yml
       - .github/workflows/reusable_build_image.yaml
   schedule:
-    - cron: "30 4 * * *"
+    - cron: 30 4 * * *
   workflow_dispatch:
 
 permissions: {}
@@ -28,8 +28,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: ["ubuntu-latest", "ubicloud-standard-8-arm-ubuntu-2404"]
-        ubi-version: ["ubi9", "ubi10"]
+        runner:
+          - ubuntu-latest
+          - ubicloud-standard-8-arm-ubuntu-2404
+        ubi-version:
+          - ubi9
+          - ubi10
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -71,7 +75,7 @@ jobs:
 
   publish_manifests:
     name: Build/Publish Image Index Manifest
-    needs: ["build"]
+    needs: [build]
     permissions:
       id-token: write
       contents: read
@@ -79,7 +83,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ubi-version: ["ubi9", "ubi10"]
+        ubi-version:
+          - ubi9
+          - ubi10
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
