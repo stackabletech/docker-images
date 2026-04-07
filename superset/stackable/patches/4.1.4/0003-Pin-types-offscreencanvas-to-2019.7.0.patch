@@ -1,0 +1,22 @@
+From de686d44116e76753c45efea2faed4e187032c4f Mon Sep 17 00:00:00 2001
+From: Techassi <git@techassi.dev>
+Date: Tue, 7 Apr 2026 08:56:30 +0200
+Subject: Pin @types/offscreencanvas to 2019.7.0
+
+This is again a similar issue like #1363.
+---
+ superset-frontend/package.json | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/superset-frontend/package.json b/superset-frontend/package.json
+index 0f59fff60..bc2746107 100644
+--- a/superset-frontend/package.json
++++ b/superset-frontend/package.json
+@@ -365,6 +365,7 @@
+       "ansi-regex": "^4.1.1"
+     },
+     "puppeteer": "^22.4.1",
++    "@types/offscreencanvas": "2019.7.0",
+     "@types/react": "^16.9.53",
+     "sax": "1.2.4"
+   },
