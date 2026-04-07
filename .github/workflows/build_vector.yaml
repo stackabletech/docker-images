@@ -30,6 +30,7 @@ jobs:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     permissions:
+      id-token: write
       contents: read
     with:
       product-name: vector
