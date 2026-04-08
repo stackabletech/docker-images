@@ -86,7 +86,7 @@ WORKDIR /stackable
 RUN <<EOF
 # Download nvm to manage Node and npm installation
 curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o /stackable/nvm.sh
-source /stackable/nvm.sh
+. /stackable/nvm.sh
 
 # Install the specified version of Node (including the latest compatible version of npm)
 nvm install "$NODEJS_VERSION" --latest-npm
@@ -102,7 +102,7 @@ EOF
 # hadolint ignore=DL3042
 RUN <<EOF
 # This makes node and npm available in the path
-source /stackable/nvm.sh
+. /stackable/nvm.sh
 
 python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
