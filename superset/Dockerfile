@@ -43,10 +43,10 @@ ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
+ARG NVM_VERSION
 ARG STACKABLE_USER_UID
 
-RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
-    microdnf update \
+RUN microdnf update \
     && microdnf install \
         cyrus-sasl-devel \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
@@ -66,9 +66,6 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         python${PYTHON_VERSION}-pip \
         python${PYTHON_VERSION}-wheel \
         libpq-devel \
-        # Needed to build Superset UI assets
-        npm \
-        nodejs \
         # Needed to create the source code snapshot
         tar \
         # Needed by `npm run build`:
@@ -86,12 +83,27 @@ COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSIO
 
 WORKDIR /stackable
 
+RUN <<EOF
+# Download nvm to manage Node and npm installation
+curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o /stackable/nvm.sh
+source /stackable/nvm.sh
+
+# Install the specified version of Node (including the latest compatible version of npm)
+nvm install "$NODEJS_VERSION" --latest-npm
+
+node --version
+npm --version
+EOF
+
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
 # DL3042 false-positive, --no-chache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
 RUN <<EOF
+# This makes node and npm available in the path
+source /stackable/nvm.sh
+
 python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
 source /stackable/app/bin/activate
