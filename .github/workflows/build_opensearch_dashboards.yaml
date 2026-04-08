@@ -6,7 +6,7 @@ run-name: |
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 2/2 * *" # https://crontab.guru/#0_0_2/2_*_*
+    - cron: 0 0 2/2 * * # https://crontab.guru/#0_0_2/2_*_*
   push:
     branches: [main]
     tags:
@@ -23,6 +23,8 @@ on:
       - .github/workflows/build_opensearch_dashboards.yaml
       - .github/workflows/reusable_build_image.yaml
 
+permissions: {}
+
 jobs:
   build_image:
     name: Reusable Workflow
@@ -30,6 +32,9 @@ jobs:
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    permissions:
+      id-token: write
+      contents: read
     with:
       product-name: opensearch-dashboards
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}

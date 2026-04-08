@@ -21,6 +21,8 @@ on:
         type: string
         required: true
 
+permissions: {}
+
 jobs:
   mirror-image:
     # even though we are dealing with multi-arch images, we can do all
@@ -29,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +74,7 @@ jobs:
     needs: [mirror-image]
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1

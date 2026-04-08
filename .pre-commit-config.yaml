@@ -52,6 +52,12 @@ repos:
     hooks:
       - id: hadolint
 
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: 7fc963270df722f37707d47ff41265fe8f460822 # v1.20.0
+    hooks:
+      - id: zizmor
+        args: ["--no-progress", "--min-confidence", "medium"]
+
   - repo: local
     hooks:
       - id: update-readme-badges
