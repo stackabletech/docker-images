@@ -46,9 +46,9 @@ ENV PROTOBUF_HOME=/opt/protobuf
 ENV PATH="${PATH}:/opt/protobuf/bin"
 
 WORKDIR /build
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/patches/patchable.toml /build/src/hadoop/hadoop/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/patches/${PRODUCT_VERSION} /build/src/hadoop/hadoop/stackable/patches/${PRODUCT_VERSION}
-COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/fuse_dfs_wrapper /build
+COPY --chown=${STACKABLE_USER_UID}:0 precompiled/hadoop/stackable/patches/patchable.toml /build/src/precompiled/hadoop/stackable/patches/patchable.toml
+COPY --chown=${STACKABLE_USER_UID}:0 precompiled/hadoop/stackable/patches/${PRODUCT_VERSION} /build/src/precompiled/hadoop/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 precompiled/hadoop/stackable/fuse_dfs_wrapper /build
 USER ${STACKABLE_USER_UID}
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -56,7 +56,7 @@ USER ${STACKABLE_USER_UID}
 # jar files will be stripped if they are needed elsewhere e.g. share/hadoop/yarn will not be part of the build, but yarn jars
 # will still exist in share/hadoop/tools as they would be needed by the resource estimator tool. Such jars are removed in a later step.
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout hadoop/hadoop ${PRODUCT_VERSION})"
+cd "$(/stackable/patchable --images-repo-root=src checkout precompiled/hadoop ${PRODUCT_VERSION})"
 
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
