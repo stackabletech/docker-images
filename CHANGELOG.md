@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+
+### Fixed
+
+- trino: Backport fix for wrong deletes in Delta Lake ([#1453]).
+- opensearch: Scope CycloneDX SBOM to shipped components only, eliminating false positive CVEs from unshipped plugins ([#1452]).
+
+[#1446]: https://github.com/stackabletech/docker-images/pull/1446
+[#1452]: https://github.com/stackabletech/docker-images/pull/1452
+[#1453]: https://github.com/stackabletech/docker-images/pull/1453
+[#1454]: https://github.com/stackabletech/docker-images/pull/1454
+
+## [26.3.0] - 2026-03-16
+
+## [26.3.0-rc1] - 2026-03-16
+
 ### Added
 
 - airflow: Add 3.1.6 ([#1405], [#1422]).
