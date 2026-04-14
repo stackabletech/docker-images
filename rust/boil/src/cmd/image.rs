@@ -3,11 +3,9 @@ use std::{collections::BTreeMap, io::IsTerminal};
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    build::bakefile::{Targets, TargetsError, TargetsOptions},
-    show::images::cli::{Pretty, ShowImagesArguments},
+    cli::{ImageListArguments, Pretty},
+    core::bakefile::{self, Targets, TargetsOptions},
 };
-
-pub mod cli;
 
 #[derive(Debug, Snafu)]
 pub enum Error {
@@ -15,11 +13,11 @@ pub enum Error {
     SerializeList { source: serde_json::Error },
 
     #[snafu(display("failed to build list of targets"))]
-    BuildTargets { source: TargetsError },
+    BuildTargets { source: bakefile::TargetsError },
 }
 
 /// This is the `boil show images` command handler function.
-pub fn run_command(arguments: ShowImagesArguments) -> Result<(), Error> {
+pub fn list_images(arguments: ImageListArguments) -> Result<(), Error> {
     let list: BTreeMap<_, _> = if arguments.image.is_empty() {
         Targets::all(TargetsOptions { only_entry: true })
             .context(BuildTargetsSnafu)?
