@@ -26,6 +26,7 @@ pub enum ParseImageSelectorError {
     AbsolutePath,
 }
 
+/// Represents an image selector (`<NAME>=<VERSION>[,<VERSION>...]`) used as a CLI argument.
 #[derive(Clone, Debug)]
 pub struct ImageSelector {
     pub name: String,
