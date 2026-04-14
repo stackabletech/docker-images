@@ -117,6 +117,7 @@ mod tests {
     // TODO (@Techassi): These tests are currently commented out because rstest
     // contains a bug related to the Rust's core library and the local core
     // module. It is fixed upstream, but not released yet.
+    // Upstream fix PR: https://github.com/la10736/rstest/pull/336
     // use rstest::rstest;
 
     // use super::*;
