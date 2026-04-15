@@ -80,7 +80,7 @@ tar -czf /stackable/vector-${NEW_VERSION}-src.tar.gz .
 #   - opentelemetry: Ship logs to an OTLP endpoint
 #   - console/blackhole: Useful for debugging and are "cheap"
 # Other:
-#   - api: Needed for /health checks
+#   - api: Needed for /health checks (or /graphql queries)
 #   - unix: Enables jemalloc allocator on Linux for better performance
 cargo auditable --quiet build --release --no-default-features --features "
   sources-file,
