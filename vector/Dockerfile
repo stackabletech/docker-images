@@ -63,9 +63,38 @@ tar -czf /stackable/vector-${NEW_VERSION}-src.tar.gz .
 
 . "$HOME/.cargo/env"
 
-# Build vector with default features
-# TODO (@NickLarsenNZ): Consider reducing the feature-set to only what we need in the sidecar.
-cargo auditable --quiet build --release
+# Build vector with a minimal feature-set for use as a log-shipping sidecar.
+# We only need to read logs from disk (file source) and ship them to either
+# a Vector aggregator (vector sink) or an OTLP endpoint (opentelemetry sink).
+#
+# Sources:
+#   - file: Read log files from disk (core use case)
+#   - internal_logs: Vector's own log output
+# Transforms:
+#   - remap: VRL-based log parsing and structuring (used by operator-generated configs)
+#   - filter: Drop unwanted log lines
+#   - route: Route logs to different sinks based on conditions. It's currently not used,
+#     but might be helpful in the future.
+# Sinks:
+#   - vector: Ship logs to a Vector aggregator
+#   - opentelemetry: Ship logs to an OTLP endpoint
+#   - console/blackhole: Useful for debugging and are "cheap"
+# Other:
+#   - api: Needed for /health checks
+#   - unix: Enables jemalloc allocator on Linux for better performance
+cargo auditable --quiet build --release --no-default-features --features "
+  sources-file,
+  sources-internal_logs,
+  transforms-remap,
+  transforms-filter,
+  transforms-route,
+  sinks-vector,
+  sinks-opentelemetry,
+  sinks-console,
+  sinks-blackhole,
+  api,
+  unix
+"
 
 # Generate SBOMs and copy them to /app (via a script)
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
