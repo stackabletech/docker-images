@@ -11,5 +11,3 @@ authors = "Stackable GmbH <info@stackable.tech>"
 vendor-tag-prefix = "stackable"
 vendor = "Stackable GmbH"
 licenses = "Apache-2.0"
-
-[docker-config]
