@@ -2,10 +2,11 @@ use std::{
     fmt::{Debug, Display},
     path::PathBuf,
     str::FromStr,
+    sync::LazyLock,
 };
 
 use clap::{Args, ValueHint, value_parser};
-use semver::Version;
+use regex::Regex;
 use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
 use url::Host;
@@ -30,7 +31,7 @@ pub struct BuildArguments {
         default_value_t = Self::default_image_version(),
         help_heading = "Image Options"
     )]
-    pub image_version: Version,
+    pub image_version: String,
 
     /// Target platform of the image.
     #[arg(
@@ -129,16 +130,29 @@ pub struct BuildArguments {
     pub rest: Vec<String>,
 }
 
-impl BuildArguments {
-    fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
-        let version = Version::from_str(input).context(ParseVersionSnafu)?;
-        ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
+// This is derived from the general rule where the length of the tag can be up to 128 chars
+// But that checking needs to be at a higher layer.
+static VALID_IMAGE_TAG: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$").expect("regex is valid"));
 
-        Ok(version)
+impl BuildArguments {
+    /// Ensure that the given version will be valid for use in the image tag
+    fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
+        // TODO (@NickLarsenNZ): Probably want to minus the characters used in front (x.y.z-stackable).
+        // But maybe that validation needs to go up a layer.
+        if version.len() > 128 {
+            return VersionTooLongSnafu.fail();
+        }
+
+        if !VALID_IMAGE_TAG.is_match(version) {
+            return ParseVersionSnafu { version }.fail();
+        }
+
+        Ok(version.to_owned())
     }
 
-    fn default_image_version() -> Version {
-        "0.0.0-dev".parse().expect("must be a valid SemVer")
+    fn default_image_version() -> String {
+        "0.0.0-dev".to_owned()
     }
 
     fn default_registry() -> HostPort {
@@ -160,11 +174,11 @@ impl BuildArguments {
 
 #[derive(Debug, Snafu)]
 pub enum ParseImageVersionError {
-    #[snafu(display("failed to parse semantic version"))]
-    ParseVersion { source: semver::Error },
+    #[snafu(display("The version exceeds the 128 character limit"))]
+    VersionTooLong,
 
-    #[snafu(display("semantic version must not contain build metadata"))]
-    ContainsBuildMetadata,
+    #[snafu(display("invalid image tag characters for {version:?}"))]
+    ParseVersion { version: String },
 }
 
 #[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]
