@@ -9,7 +9,7 @@ license = "Apache-2.0"
 
 [workspace.dependencies]
 cap-std = "4.0.2"
-clap = { version = "4.5.41", features = ["derive", "env"] }
+clap = { version = "4.5.41", features = ["derive"] }
 clap_complete = "4.5.55"
 clap_complete_nushell = "4.5.8"
 git2 = { version = "0.20.1", features = ["vendored-openssl"] }

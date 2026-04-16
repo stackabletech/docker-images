@@ -8,7 +8,7 @@ use crate::{
     config::Config,
     core::bakefile::{self, Targets, TargetsOptions},
     models::TagList,
-    utils::format_image_index_manifest_tag,
+    utils::{format_image_index_manifest_tag, format_registry_token_env_var_name},
 };
 
 #[derive(Debug, Snafu)]
@@ -95,55 +95,58 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
         .context(BuildTargetsSnafu)?
     };
 
-    let registry_token = std::env::var("REGISTRY_TOKEN").ok().map(SecretString::from);
+    let mut registry_tokens = BTreeMap::new();
     let client = reqwest::ClientBuilder::new()
         .build()
         .context(BuildClientSnafu)?;
 
     for (image_name, (image_config, _)) in targets {
-        // TODO (@Techassi): Do these checks for all registries
-        let Some((registry, registry_options)) = image_config.metadata.registries.first_key_value()
-        else {
-            continue;
-        };
+        for (registry, registry_options) in image_config.metadata.registries {
+            // Add tokens to a map so that we don't need construct the key and retrieve the value
+            // over and over again.
+            let registry_token = registry_tokens.entry(registry.clone()).or_insert_with(|| {
+                let name = format_registry_token_env_var_name(&registry);
+                std::env::var(name).ok().map(SecretString::from)
+            });
 
-        println!(
-            "Checking for {registry}/{registry_namespace}/{image_name}",
-            registry_namespace = registry_options.namespace,
-        );
+            println!(
+                "Checking for {registry}/{registry_namespace}/{image_name}",
+                registry_namespace = registry_options.namespace,
+            );
 
-        let url = format!(
-            "https://{registry}/v2/{registry_namespace}/{image_name}/tags/list",
-            registry_namespace = registry_options.namespace,
-        );
-        let request = client.get(url);
+            let url = format!(
+                "https://{registry}/v2/{registry_namespace}/{image_name}/tags/list",
+                registry_namespace = registry_options.namespace,
+            );
+            let request = client.get(url);
 
-        let request = match &registry_token {
-            Some(registry_token) => request.bearer_auth(registry_token.expose_secret()),
-            None => request,
-        };
+            let request = match &registry_token {
+                Some(registry_token) => request.bearer_auth(registry_token.expose_secret()),
+                None => request,
+            };
 
-        let tag_list: TagList = request
-            .send()
-            .await
-            .context(SendRequestSnafu)?
-            .json()
-            .await
-            .context(DeserializeResponseSnafu)?;
+            let tag_list: TagList = request
+                .send()
+                .await
+                .context(SendRequestSnafu)?
+                .json()
+                .await
+                .context(DeserializeResponseSnafu)?;
 
-        ensure!(
-            image_config.versions.iter().all(|(image_version, _)| {
-                let index_manifest_tag = format_image_index_manifest_tag(
-                    image_version,
-                    &config.metadata.vendor_tag_prefix,
-                    &arguments.image_version,
-                );
+            ensure!(
+                image_config.versions.iter().all(|(image_version, _)| {
+                    let index_manifest_tag = format_image_index_manifest_tag(
+                        image_version,
+                        &config.metadata.vendor_tag_prefix,
+                        &arguments.image_version,
+                    );
 
-                println!("- {image_name}:{index_manifest_tag}");
-                tag_list.tags.contains(&index_manifest_tag)
-            }),
-            MissingVersionSnafu { image_name }
-        );
+                    println!("- {image_name}:{index_manifest_tag}");
+                    tag_list.tags.contains(&index_manifest_tag)
+                }),
+                MissingVersionSnafu { image_name }
+            );
+        }
     }
 
     Ok(())

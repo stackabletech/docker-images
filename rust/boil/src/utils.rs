@@ -43,6 +43,14 @@ pub fn format_image_manifest_tag(
     }
 }
 
+/// Formats and returns the registry-specific env var name, eg. `BOIL_REGISTRY_TOKEN_OCI_STACKABLE_TECH`.
+pub fn format_registry_token_env_var_name(registry_uri: &str) -> String {
+    format!(
+        "BOIL_REGISTRY_TOKEN_{registry_uri}",
+        registry_uri = registry_uri.replace(['.', '#'], "_").to_uppercase()
+    )
+}
+
 pub trait CommandExt {
     /// Adds an argument to the command if the `predicate` is `true`.
     fn arg_if<S>(&mut self, predicate: bool, arg: S) -> &mut Self
