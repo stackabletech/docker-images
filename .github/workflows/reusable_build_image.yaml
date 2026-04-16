@@ -135,6 +135,8 @@ jobs:
     name: Failure Notification
     needs: [generate_version_dimension, build, publish_manifests]
     runs-on: ubuntu-latest
+    # TODO (@NickLarsenNZ): Allow a condition from input so that we can always
+    # be notified of new builds for precompiled product images.
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
