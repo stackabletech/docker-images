@@ -1,0 +1,51 @@
+---
+name: Compile Hadoop
+run-name: |
+  Compile Hadoop (attempt #${{ github.run_attempt }})
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - precompiled/hadoop/**
+      # I don't think there's any reason to rebuild just because the workflow changed.
+      # If the version is compiled (for that patch set), then it needs no rebuild.
+      # - .github/actions/**
+      # - .github/workflows/precompile_hadoop.yaml
+      # - .github/workflows/reusable_build_image.yaml
+
+permissions: {}
+
+jobs:
+  # This is a separate job so that it remains consistent if a rerun of failed jobs is needed.
+  # It is used in place of the "sdp-version" passed to the build action.
+  generate_build_timestamp:
+    name: Generate unix timestamp
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        id: unix_timestamp
+        run: |
+          set -euo pipefail
+          UNIX_TIMESTAMP=$(date +%s)
+          echo "unix_timestamp=$UNIX_TIMESTAMP" | tee -a "$GITHUB_OUTPUT"
+    outputs:
+      unix_timestamp: ${{ steps.unix_timestamp.outputs.unix_timestamp }}
+
+  build_image:
+    name: Reusable Workflow
+    uses: ./.github/workflows/reusable_build_image.yaml
+    needs: [generate_build_timestamp]
+    secrets:
+      harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_PRECOMPILED_GITHUB_ACTION_BUILD_SECRET }}
+      slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    permissions:
+      # Needed for cosign (sign and attest)
+      id-token: write
+      # Needed for checkout
+      contents: read
+    with:
+      product-name: hadoop
+      sdp-version: ${{ needs.generate_build_timestamp.outputs.unix_timestamp }}
+      registry-namespace: precompiled
