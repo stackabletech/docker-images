@@ -15,6 +15,8 @@ on:
       # - .github/workflows/precompile_hadoop.yaml
       # - .github/workflows/reusable_build_image.yaml
 
+permissions: {}
+
 jobs:
   # This is a separate job so that it remains consistent if a rerun of failed jobs is needed.
   # It is used in place of the "sdp-version" passed to the build action.
@@ -38,6 +40,11 @@ jobs:
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_PRECOMPILED_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
+    permissions:
+      # Needed for cosign (sign and attest)
+      id-token: write
+      # Needed for checkout
+      contents: read
     with:
       product-name: hadoop
       sdp-version: ${{ needs.generate_build_timestamp.outputs.unix_timestamp }}
