@@ -78,7 +78,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
             &arguments.image,
             TargetsOptions {
                 only_entry: true,
-                flat: false,
+                flat: true,
             },
         )
         .context(BuildTargetsSnafu)?

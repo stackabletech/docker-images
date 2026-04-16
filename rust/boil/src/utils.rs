@@ -47,7 +47,7 @@ pub fn format_image_manifest_tag(
 pub fn format_registry_token_env_var_name(registry_uri: &str) -> String {
     format!(
         "BOIL_REGISTRY_TOKEN_{registry_uri}",
-        registry_uri = registry_uri.replace(['.', '#'], "_").to_uppercase()
+        registry_uri = registry_uri.replace(['.', '-'], "_").to_uppercase()
     )
 }
 
