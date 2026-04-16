@@ -4,6 +4,9 @@ name: pre-commit
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 env:
   # Keep in sync with across other repos like operator-rs and operator-templating
   RUST_TOOLCHAIN_VERSION: "nightly-2025-10-23"
@@ -18,7 +21,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: stackabletech/actions/run-pre-commit@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+
+      - uses: stackabletech/actions/run-pre-commit@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           rust: ${{ env.RUST_TOOLCHAIN_VERSION }}

@@ -1,3 +1,4 @@
+---
 on:
   workflow_call:
     inputs:
@@ -25,14 +26,19 @@ on:
         description: The Slack token used to post failure notifications
         required: true
 
+permissions: {}
+
 jobs:
   generate_runner_dimension:
     name: Generate Runner Dimension
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
       - id: runners
         shell: bash
         env:
@@ -54,12 +60,15 @@ jobs:
   generate_version_dimension:
     name: Generate Version Dimension
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
+
       - id: shard
-        uses: stackabletech/actions/shard@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/shard@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -72,6 +81,7 @@ jobs:
       - generate_runner_dimension
     permissions:
       id-token: write
+      contents: read
     runs-on: ${{ matrix.runner.name }}
     strategy:
       fail-fast: false
@@ -85,11 +95,11 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/free-disk-space@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/build-product-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
@@ -97,7 +107,7 @@ jobs:
           sdp-version: ${{ inputs.sdp-version }}
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -111,6 +121,7 @@ jobs:
     needs: [generate_version_dimension, build]
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -123,7 +134,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -140,7 +151,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/send-slack-notification@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}

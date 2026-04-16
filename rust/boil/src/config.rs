@@ -4,7 +4,7 @@ use serde::Deserialize;
 use snafu::{ResultExt, Snafu};
 use url::Url;
 
-use crate::build::docker::BuildArguments;
+use crate::core::docker;
 
 #[derive(Debug, Snafu)]
 pub enum ConfigError {
@@ -16,7 +16,7 @@ pub enum ConfigError {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
-    pub build_arguments: BuildArguments,
+    pub build_arguments: docker::BuildArguments,
     pub metadata: Metadata,
 }
 

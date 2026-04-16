@@ -10,9 +10,9 @@ use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
 use url::Host;
 
-use crate::build::{
+use crate::core::{
     docker::BuildArgument,
-    image::Image,
+    image::ImageSelector,
     platform::{Architecture, TargetPlatform},
 };
 
@@ -20,7 +20,7 @@ use crate::build::{
 pub struct BuildArguments {
     /// The image(s) which should be build. The format is name[=version,...].
     #[arg(help_heading = "Image Options", required = true)]
-    pub images: Vec<Image>,
+    pub images: Vec<ImageSelector>,
 
     // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
     /// The image version being built.

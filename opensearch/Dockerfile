@@ -63,6 +63,10 @@ NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 tar -czf /stackable/opensearch-${NEW_VERSION}-src.tar.gz .
 ./scripts/build.sh -v "${PRODUCT_VERSION}" -s false -a "${ARCH}"
 tar -xzf "artifacts/dist/opensearch-min-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz" -C /stackable
+# NOTE: When adding more core plugins here, also update the CycloneDX SBOM patch
+# (stackable/patches/<version>/0005-Scope-CycloneDX-SBOM-to-shipped-components-only.patch)
+# to include them in the shippedPlugins list, otherwise their dependencies will
+# be missing from the SBOM.
 unzip artifacts/core-plugins/repository-s3-${PRODUCT_VERSION}.zip -d /stackable/opensearch-${PRODUCT_VERSION}/plugins/repository-s3/
 mv /stackable/opensearch-${PRODUCT_VERSION}/plugins/repository-s3/config /stackable/opensearch-${PRODUCT_VERSION}/config/repository-s3
 unzip artifacts/core-plugins/telemetry-otel-${PRODUCT_VERSION}.zip -d /stackable/opensearch-${PRODUCT_VERSION}/plugins/telemetry-otel/

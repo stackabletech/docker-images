@@ -63,9 +63,38 @@ tar -czf /stackable/vector-${NEW_VERSION}-src.tar.gz .
 
 . "$HOME/.cargo/env"
 
-# Build vector with default features
-# TODO (@NickLarsenNZ): Consider reducing the feature-set to only what we need in the sidecar.
-cargo auditable --quiet build --release
+# Build vector with a minimal feature-set for use as a log-shipping sidecar.
+# We only need to read logs from disk (file source) and ship them to either
+# a Vector aggregator (vector sink) or an OTLP endpoint (opentelemetry sink).
+#
+# Sources:
+#   - file: Read log files from disk (core use case)
+#   - internal_logs: Vector's own log output
+# Transforms:
+#   - remap: VRL-based log parsing and structuring (used by operator-generated configs)
+#   - filter: Drop unwanted log lines
+#   - route: Route logs to different sinks based on conditions. It's currently not used,
+#     but might be helpful in the future.
+# Sinks:
+#   - vector: Ship logs to a Vector aggregator
+#   - opentelemetry: Ship logs to an OTLP endpoint
+#   - console/blackhole: Useful for debugging and are "cheap"
+# Other:
+#   - api: Needed for /health checks (or /graphql queries)
+#   - unix: Enables jemalloc allocator on Linux for better performance
+cargo auditable --quiet build --release --no-default-features --features "
+  sources-file,
+  sources-internal_logs,
+  transforms-remap,
+  transforms-filter,
+  transforms-route,
+  sinks-vector,
+  sinks-opentelemetry,
+  sinks-console,
+  sinks-blackhole,
+  api,
+  unix
+"
 
 # Generate SBOMs and copy them to /app (via a script)
 cargo cyclonedx --all --spec-version 1.5 --describe binaries
@@ -111,12 +140,6 @@ ARCH="${ARCH/arm64/aarch64}"
 rpm --install \
     "https://repo.stackable.tech/repository/packages/inotify-tools/inotify-tools-${INOTIFY_TOOLS}.${ARCH}.rpm"
 
-# Create the directory /stackable/vector/var.
-# This directory is set by operator-rs in the parameter `data_dir`
-# of the Vector configuration. The directory is used for persisting
-# Vector state, such as on-disk buffers, file checkpoints, and more.
-# Vector needs write permissions.
-mkdir --parents /stackable/vector/var
 chown --recursive ${STACKABLE_USER_UID}:0 /stackable/
 # Set correct permissions
 chmod -R g=u /stackable

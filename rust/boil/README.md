@@ -26,11 +26,8 @@ boil build airflow opa
 
 # Display a list of all images and their declared versions as structured JSON
 # output
-boil show images
+boil image list
 
 # Display a list of versions of the image located in the 'airflow' folder
-boil show images airflow
-
-# Soon (hopefully) implemented
-boil show graph
+boil image list airflow
 ```

@@ -21,6 +21,8 @@ on:
         type: string
         required: true
 
+permissions: {}
+
 jobs:
   mirror-image:
     # even though we are dealing with multi-arch images, we can do all
@@ -29,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -57,7 +60,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish Container Image on oci.stackable.tech
-        uses: stackabletech/actions/publish-image@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -71,6 +74,7 @@ jobs:
     needs: [mirror-image]
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -84,7 +88,7 @@ jobs:
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
-        uses: stackabletech/actions/publish-image-index-manifest@c34dbb4f27b274736c7d2edc6f6f30a03d03edf5 # v0.12.2
+        uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
