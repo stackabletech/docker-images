@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, io::IsTerminal};
 
 use secrecy::{ExposeSecret, SecretString};
-use snafu::{ResultExt, Snafu, ensure};
+use snafu::{ResultExt, Snafu};
 
 use crate::{
     cli::{ImageCheckArguments, ImageListArguments, Pretty},
@@ -14,33 +14,22 @@ use crate::{
 #[derive(Debug, Snafu)]
 pub enum Error {
     #[snafu(display("failed to serialize list as JSON"))]
-    SerializeList {
-        source: serde_json::Error,
-    },
+    SerializeList { source: serde_json::Error },
 
     #[snafu(display("failed to build list of targets"))]
-    BuildTargets {
-        source: bakefile::TargetsError,
-    },
+    BuildTargets { source: bakefile::TargetsError },
 
     #[snafu(display("failed to build request client"))]
-    BuildClient {
-        source: reqwest::Error,
-    },
+    BuildClient { source: reqwest::Error },
 
     #[snafu(display("failed to send request"))]
-    SendRequest {
-        source: reqwest::Error,
-    },
+    SendRequest { source: reqwest::Error },
 
     #[snafu(display("failed to deserialize response"))]
-    DeserializeResponse {
-        source: reqwest::Error,
-    },
+    DeserializeResponse { source: reqwest::Error },
 
-    MissingVersion {
-        image_name: String,
-    },
+    #[snafu(display("missing images found: \n {missing_images}", missing_images = missing_images.join("\n")))]
+    MissingVersion { missing_images: Vec<String> },
 }
 
 /// This is the `boil show images` command handler function.
@@ -100,6 +89,8 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
         .build()
         .context(BuildClientSnafu)?;
 
+    let mut missing_images = Vec::new();
+
     for (image_name, (image_config, _)) in targets {
         for (registry, registry_options) in image_config.metadata.registries {
             // Add tokens to a map so that we don't need construct the key and retrieve the value
@@ -110,7 +101,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
             });
 
             println!(
-                "Checking for {registry}/{registry_namespace}/{image_name}",
+                "Checking {registry}/{registry_namespace}/{image_name}",
                 registry_namespace = registry_options.namespace,
             );
 
@@ -133,20 +124,25 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
                 .await
                 .context(DeserializeResponseSnafu)?;
 
-            ensure!(
-                image_config.versions.iter().all(|(image_version, _)| {
-                    let index_manifest_tag = format_image_index_manifest_tag(
-                        image_version,
-                        &config.metadata.vendor_tag_prefix,
-                        &arguments.image_version,
-                    );
+            for (image_version, _) in image_config.versions.iter() {
+                let index_manifest_tag = format_image_index_manifest_tag(
+                    image_version,
+                    &config.metadata.vendor_tag_prefix,
+                    &arguments.image_version,
+                );
 
-                    println!("- {image_name}:{index_manifest_tag}");
-                    tag_list.tags.contains(&index_manifest_tag)
-                }),
-                MissingVersionSnafu { image_name }
-            );
+                let image_identifier = format!("{image_name}:{index_manifest_tag}");
+
+                println!("- {image_identifier}");
+                if !tag_list.tags.contains(&index_manifest_tag) {
+                    missing_images.push(image_identifier);
+                }
+            }
         }
+    }
+
+    if !missing_images.is_empty() {
+        return MissingVersionSnafu { missing_images }.fail();
     }
 
     Ok(())
