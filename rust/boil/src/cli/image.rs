@@ -11,7 +11,12 @@ pub struct ImageArguments {
 
 #[derive(Debug, Subcommand)]
 pub enum ImageCommand {
+    /// Lists images known by boil with all available versions.
     List(ImageListArguments),
+
+    /// Checks if all images known by boil are available in the specified registries.
+    ///
+    /// Access tokens must be provided with the following name: `BOIL_REGISTRY_TOKEN_<REGISTRY_URI>`.
     Check(ImageCheckArguments),
 }
 
