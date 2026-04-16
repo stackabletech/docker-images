@@ -18,13 +18,14 @@ use time::format_description::well_known::Rfc3339;
 
 use crate::{
     VersionExt,
-    build::{
-        cli::{self, HostPort},
-        docker::{BuildArgument, BuildArguments, LABEL_BUILD_DATE, ParseBuildArgumentsError},
-        image::{Image, ImageConfig, ImageConfigError, ImageOptions, VersionOptionsPair},
+    cli::{self, HostPort},
+    config::{self, Config, Metadata},
+    constants::DOCKER_LABEL_BUILD_DATE,
+    core::{
+        docker,
+        image::{ImageConfig, ImageConfigError, ImageOptions, ImageSelector, VersionOptionsPair},
         platform::TargetPlatform,
     },
-    config::{self, Config, Metadata},
     utils,
 };
 
@@ -55,7 +56,9 @@ pub enum Error {
     CreateGraph { source: TargetsError },
 
     #[snafu(display("failed to parse build arguments"))]
-    ParseBuildArguments { source: ParseBuildArgumentsError },
+    ParseBuildArguments {
+        source: docker::ParseBuildArgumentsError,
+    },
 
     #[snafu(display("failed to locate containerfile relative to the {path:?} directory"))]
     NoSuchContainerfileExists { path: String },
@@ -162,7 +165,7 @@ impl Targets {
     /// Returns a filtered set out of all targets by looking up selected image config files.
     ///
     /// The search behaviour can be customized using the provided [`TargetsOptions`].
-    pub fn set(images: &[Image], options: TargetsOptions) -> Result<Self, TargetsError> {
+    pub fn set(images: &[ImageSelector], options: TargetsOptions) -> Result<Self, TargetsError> {
         let mut targets = Self::default();
 
         for image in images {
@@ -274,7 +277,7 @@ impl Bakefile {
     /// Creates the common target, containing shared data, which will be inherited by other targets.
     fn common_target(
         cli_args: &cli::BuildArguments,
-        container_build_args: BuildArguments,
+        container_build_args: docker::BuildArguments,
         metadata: &Metadata,
     ) -> Result<BakefileTarget, Error> {
         let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
@@ -284,7 +287,7 @@ impl Bakefile {
         let mut user_container_build_args = cli_args.build_arguments.clone();
         if let Some(path) = &cli_args.build_arguments_file {
             let build_arguments_from_file =
-                BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
+                docker::BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
             user_container_build_args.extend(build_arguments_from_file);
         }
 
@@ -350,13 +353,13 @@ impl Bakefile {
 
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
-                let mut build_arguments = BuildArguments::new();
+                let mut build_arguments = docker::BuildArguments::new();
 
                 let local_version_docker_args: Vec<_> = image_options
                     .local_images
                     .iter()
                     .map(|(image_name, image_version)| {
-                        BuildArgument::local_image_version(
+                        docker::BuildArgument::local_image_version(
                             image_name.to_string(),
                             image_version.to_string(),
                         )
@@ -366,23 +369,23 @@ impl Bakefile {
                 build_arguments.extend(image_options.build_arguments);
                 build_arguments.extend(local_version_docker_args);
                 // TODO (@Techassi): Rename this to IMAGE_VERSION
-                build_arguments.insert(BuildArgument::new(
+                build_arguments.insert(docker::BuildArgument::new(
                     "PRODUCT_VERSION".to_owned(),
                     image_version.to_string(),
                 ));
-                build_arguments.insert(BuildArgument::new(
+                build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_REPOSITORY_URI".to_owned(),
                     image_repository_uri,
                 ));
-                build_arguments.insert(BuildArgument::new(
+                build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_INDEX_MANIFEST_TAG".to_owned(),
                     image_index_manifest_tag,
                 ));
-                build_arguments.insert(BuildArgument::new(
+                build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_MANIFEST_TAG".to_owned(),
                     image_manifest_tag,
                 ));
-                build_arguments.insert(BuildArgument::new(
+                build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_MANIFEST_URI".to_owned(),
                     image_manifest_uri.clone(),
                 ));
@@ -518,8 +521,11 @@ impl Bakefile {
 #[derive(Debug, Default, Serialize)]
 pub struct BakefileTarget {
     /// Defines build arguments for the target.
-    #[serde(rename = "args", skip_serializing_if = "BuildArguments::is_empty")]
-    pub arguments: BuildArguments,
+    #[serde(
+        rename = "args",
+        skip_serializing_if = "docker::BuildArguments::is_empty"
+    )]
+    pub arguments: docker::BuildArguments,
 
     /// Adds annotations to images built with bake.
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -568,8 +574,8 @@ impl BakefileTarget {
         date_time: String,
         revision: String,
         release_version: String,
-        container_build_args: BuildArguments,
-        user_container_build_args: Vec<BuildArgument>,
+        container_build_args: docker::BuildArguments,
+        user_container_build_args: Vec<docker::BuildArgument>,
         metadata: &Metadata,
     ) -> Self {
         let config::Metadata {
@@ -611,7 +617,7 @@ impl BakefileTarget {
 
         let mut arguments = container_build_args;
         arguments.extend(user_container_build_args);
-        arguments.insert(BuildArgument::new(
+        arguments.insert(docker::BuildArgument::new(
             "RELEASE_VERSION".to_owned(),
             release_version,
         ));
@@ -622,7 +628,7 @@ impl BakefileTarget {
         let labels = BTreeMap::from([
             (ANNOTATION_CREATED.to_owned(), date_time.clone()),
             (ANNOTATION_REVISION.to_owned(), revision),
-            (LABEL_BUILD_DATE.to_owned(), date_time),
+            (DOCKER_LABEL_BUILD_DATE.to_owned(), date_time),
         ]);
 
         Self {

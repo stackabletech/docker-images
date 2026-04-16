@@ -6,16 +6,11 @@ use std::{
 use snafu::{OptionExt, ResultExt, Snafu, ensure};
 
 use crate::{
-    build::{bakefile::Bakefile, cli::BuildArguments},
+    cli::BuildArguments,
     config::Config,
+    core::bakefile::{self, Bakefile},
     utils::CommandExt,
 };
-
-pub mod bakefile;
-pub mod cli;
-pub mod docker;
-pub mod image;
-pub mod platform;
 
 #[derive(Debug, Snafu)]
 pub enum Error {

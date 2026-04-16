@@ -9,10 +9,10 @@ use std::{
 use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu, ensure};
 
-use crate::{IfContext, build::docker::BuildArguments};
+use crate::{IfContext, core::docker};
 
 #[derive(Debug, PartialEq, Snafu)]
-pub enum ParseImageError {
+pub enum ParseImageSelectorError {
     #[snafu(display("input must not be empty"))]
     EmptyInput,
 
@@ -26,14 +26,15 @@ pub enum ParseImageError {
     AbsolutePath,
 }
 
+/// Represents an image selector (`<NAME>=<VERSION>[,<VERSION>...]`) used as a CLI argument.
 #[derive(Clone, Debug)]
-pub struct Image {
+pub struct ImageSelector {
     pub name: String,
     pub versions: Vec<String>,
 }
 
-impl FromStr for Image {
-    type Err = ParseImageError;
+impl FromStr for ImageSelector {
+    type Err = ParseImageSelectorError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         // Get rid of any leading and traling whitespace
@@ -69,7 +70,7 @@ impl FromStr for Image {
     }
 }
 
-impl Display for Image {
+impl Display for ImageSelector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.versions.is_empty() {
             f.write_str(&self.name)
@@ -84,7 +85,7 @@ impl Display for Image {
     }
 }
 
-impl Image {
+impl ImageSelector {
     fn new(name: String, versions: Vec<String>) -> Self {
         Self { name, versions }
     }
@@ -181,7 +182,7 @@ pub struct ImageOptions {
     // NOTE (@Techassi): Potentially add a dependencies field here which will be automatically be
     // suffixed with _VERSION.
     #[serde(default)]
-    pub build_arguments: BuildArguments,
+    pub build_arguments: docker::BuildArguments,
 
     /// A custom path to a Dockerfile/Containerfile for a particular version of an image.
     ///
@@ -223,19 +224,23 @@ mod tests {
     #[case("name=1.2.3", &["1.2.3"])]
     #[case("name", &[])]
     fn valid(#[case] input: &str, #[case] expected_versions: &[&str]) {
-        let Image { versions, .. } = Image::from_str(input).expect("must be a valid image");
+        let ImageSelector { versions, .. } =
+            ImageSelector::from_str(input).expect("must be a valid image");
         assert_eq!(versions, expected_versions);
     }
 
     #[rstest]
-    #[case("double/equal/image=1.2.3=4.5.6", ParseImageError::InvalidFormat)]
-    #[case("~/image/folder/with/tilde", ParseImageError::UnsupportedChars)]
-    #[case("/absolute/image/folder", ParseImageError::AbsolutePath)]
-    #[case("empty/version/image=", ParseImageError::InvalidFormat)]
-    #[case("   ", ParseImageError::EmptyInput)]
-    #[case("", ParseImageError::EmptyInput)]
-    fn invalid(#[case] input: &str, #[case] expected_error: ParseImageError) {
-        let error = Image::from_str(input).expect_err("invalid image must not parse");
+    #[case(
+        "double/equal/image=1.2.3=4.5.6",
+        ParseImageSelectorError::InvalidFormat
+    )]
+    #[case("~/image/folder/with/tilde", ParseImageSelectorError::UnsupportedChars)]
+    #[case("/absolute/image/folder", ParseImageSelectorError::AbsolutePath)]
+    #[case("empty/version/image=", ParseImageSelectorError::InvalidFormat)]
+    #[case("   ", ParseImageSelectorError::EmptyInput)]
+    #[case("", ParseImageSelectorError::EmptyInput)]
+    fn invalid(#[case] input: &str, #[case] expected_error: ParseImageSelectorError) {
+        let error = ImageSelector::from_str(input).expect_err("invalid image must not parse");
         assert_eq!(error, expected_error);
     }
 }

@@ -4,7 +4,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.1.7] - 2026-03-03
+## [0.2.0] - 2026-04-14
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.7..boil-0.2.0)
+
+### Improvements
+
+- **BREAKING:** Refactor internal code structure ([#1451](https://github.com/stackabletech/docker-images/pull/1451)).
+
+## [0.1.7] - 2026-03-04
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.6..boil-0.1.7)
 
