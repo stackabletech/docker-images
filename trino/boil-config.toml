@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 [versions."477".local-images]
 java-base = "24"
 "trino/trino" = "477"
