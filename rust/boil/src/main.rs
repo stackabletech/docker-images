@@ -3,16 +3,16 @@ use semver::Version;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    cli::{Cli, Command, ImageArguments, ImageCommand},
+    cli::{Cli, Command, ImageCommand},
     config::Config,
 };
 
-// Common modules
 mod cli;
 mod cmd;
 mod config;
 mod constants;
 mod core;
+mod models;
 mod utils;
 
 /// This trait extends functionailty provided by [`snafu`].
@@ -101,10 +101,16 @@ async fn main() -> Result<(), Error> {
             let config = Config::from_file(&cli.config_path).context(ReadConfigSnafu)?;
             cmd::build::run_command(arguments, config).context(BuildSnafu)
         }
-        Command::Images(arguments)
-        | Command::Image(ImageArguments {
-            command: ImageCommand::List(arguments),
-        }) => cmd::image::list_images(arguments).context(ImageSnafu),
+        Command::Image(arguments) => match arguments.command {
+            ImageCommand::List(arguments) => cmd::image::list_images(arguments).context(ImageSnafu),
+            ImageCommand::Check(arguments) => {
+                let config = Config::from_file(&cli.config_path).context(ReadConfigSnafu)?;
+                cmd::image::check_images(arguments, config)
+                    .await
+                    .context(ImageSnafu)
+            }
+        },
+        Command::Images(arguments) => cmd::image::list_images(arguments).context(ImageSnafu),
         Command::Completions(arguments) => {
             cmd::completions::run_command(arguments);
             Ok(())

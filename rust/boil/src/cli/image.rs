@@ -1,6 +1,7 @@
 use clap::{Args, Subcommand, ValueEnum};
+use semver::Version;
 
-use crate::core::image::ImageSelector;
+use crate::{cli::Cli, core::image::ImageSelector};
 
 #[derive(Debug, Args)]
 pub struct ImageArguments {
@@ -11,6 +12,7 @@ pub struct ImageArguments {
 #[derive(Debug, Subcommand)]
 pub enum ImageCommand {
     List(ImageListArguments),
+    Check(ImageCheckArguments),
 }
 
 #[derive(Debug, Args)]
@@ -21,6 +23,22 @@ pub struct ImageListArguments {
     /// Pretty print the structured output.
     #[arg(long, value_enum, default_value_t = Pretty::default())]
     pub pretty: Pretty,
+}
+
+#[derive(Debug, Args)]
+pub struct ImageCheckArguments {
+    /// Optionally specify one or more images to check. Checks all images by default.
+    pub image: Vec<ImageSelector>,
+
+    // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
+    /// The image version being built.
+    #[arg(
+        short, long,
+        value_parser = Cli::parse_image_version,
+        default_value_t = Cli::default_image_version(),
+        help_heading = "Image Options"
+    )]
+    pub image_version: Version,
 }
 
 // #[derive(Clone, Debug, Default, strum::Display, strum::EnumString)]

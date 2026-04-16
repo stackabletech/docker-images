@@ -10,10 +10,13 @@ use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
 use url::Host;
 
-use crate::core::{
-    docker::BuildArgument,
-    image::ImageSelector,
-    platform::{Architecture, TargetPlatform},
+use crate::{
+    cli::Cli,
+    core::{
+        docker::BuildArgument,
+        image::ImageSelector,
+        platform::{Architecture, TargetPlatform},
+    },
 };
 
 #[derive(Debug, Args)]
@@ -26,8 +29,8 @@ pub struct BuildArguments {
     /// The image version being built.
     #[arg(
         short, long,
-        value_parser = BuildArguments::parse_image_version,
-        default_value_t = Self::default_image_version(),
+        value_parser = Cli::parse_image_version,
+        default_value_t = Cli::default_image_version(),
         help_heading = "Image Options"
     )]
     pub image_version: Version,
@@ -45,7 +48,7 @@ pub struct BuildArguments {
     /// The format is host[:port].
     #[arg(
         short, long,
-        default_value_t = Self::default_registry(),
+        default_value_t = Cli::default_registry(),
         value_hint = ValueHint::Hostname,
         help_heading = "Registry Options"
     )]
@@ -130,24 +133,6 @@ pub struct BuildArguments {
 }
 
 impl BuildArguments {
-    fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
-        let version = Version::from_str(input).context(ParseVersionSnafu)?;
-        ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
-
-        Ok(version)
-    }
-
-    fn default_image_version() -> Version {
-        "0.0.0-dev".parse().expect("must be a valid SemVer")
-    }
-
-    fn default_registry() -> HostPort {
-        HostPort {
-            host: Host::Domain(String::from("oci.stackable.tech")),
-            port: None,
-        }
-    }
-
     // TODO: Auto-detect this
     fn default_architecture() -> TargetPlatform {
         TargetPlatform::Linux(Architecture::Amd64)
@@ -156,15 +141,6 @@ impl BuildArguments {
     fn default_target_containerfile() -> PathBuf {
         PathBuf::from("Dockerfile")
     }
-}
-
-#[derive(Debug, Snafu)]
-pub enum ParseImageVersionError {
-    #[snafu(display("failed to parse semantic version"))]
-    ParseVersion { source: semver::Error },
-
-    #[snafu(display("semantic version must not contain build metadata"))]
-    ContainsBuildMetadata,
 }
 
 #[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]

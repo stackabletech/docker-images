@@ -17,7 +17,7 @@ pub enum ConfigError {
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
     pub build_arguments: docker::BuildArguments,
-    pub metadata: Metadata,
+    pub metadata: MetadataOptions,
 }
 
 impl Config {
@@ -31,7 +31,7 @@ impl Config {
 // are optional, the appropriate annotations are only emitted if set.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct Metadata {
+pub struct MetadataOptions {
     /// The URL to the documentation page.
     pub documentation: Option<Url>,
 

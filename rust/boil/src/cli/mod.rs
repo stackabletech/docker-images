@@ -1,6 +1,8 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use clap::{Parser, Subcommand};
+use semver::Version;
+use snafu::{ResultExt, Snafu, ensure};
 
 mod build;
 mod completions;
@@ -9,6 +11,16 @@ mod image;
 pub use build::*;
 pub use completions::*;
 pub use image::*;
+use url::Host;
+
+#[derive(Debug, Snafu)]
+pub enum ParseImageVersionError {
+    #[snafu(display("failed to parse semantic version"))]
+    ParseVersion { source: semver::Error },
+
+    #[snafu(display("semantic version must not contain build metadata"))]
+    ContainsBuildMetadata,
+}
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -24,6 +36,26 @@ pub struct Cli {
 impl Cli {
     fn default_config_path() -> PathBuf {
         PathBuf::from("./boil.toml")
+    }
+
+    pub(super) fn default_image_version() -> Version {
+        "0.0.0-dev"
+            .parse()
+            .expect("static string must be a valid SemVer")
+    }
+
+    pub(super) fn default_registry() -> HostPort {
+        HostPort {
+            host: Host::Domain(String::from("oci.stackable.tech")),
+            port: None,
+        }
+    }
+
+    pub(super) fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
+        let version = Version::from_str(input).context(ParseVersionSnafu)?;
+        ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
+
+        Ok(version)
     }
 }
 
