@@ -6,8 +6,7 @@
 
 pkgs.mkShell {
   packages = with pkgs; [
-    cargo
-    rustc
+    rustup
     nodejs
     zizmor
   ];
