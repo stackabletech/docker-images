@@ -133,17 +133,11 @@ pub struct BuildArguments {
 // This is derived from the general rule where the length of the tag can be up to 128 chars
 // But that checking needs to be at a higher layer.
 static VALID_IMAGE_TAG: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$").expect("regex is valid"));
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
 
 impl BuildArguments {
     /// Ensure that the given version will be valid for use in the image tag
     fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
-        // TODO (@NickLarsenNZ): Probably want to minus the characters used in front (x.y.z-stackable).
-        // But maybe that validation needs to go up a layer.
-        if version.len() > 128 {
-            return VersionTooLongSnafu.fail();
-        }
-
         if !VALID_IMAGE_TAG.is_match(version) {
             return ParseVersionSnafu { version }.fail();
         }
@@ -174,9 +168,6 @@ impl BuildArguments {
 
 #[derive(Debug, Snafu)]
 pub enum ParseImageVersionError {
-    #[snafu(display("The version exceeds the 128 character limit"))]
-    VersionTooLong,
-
     #[snafu(display("invalid image tag characters for {version:?}"))]
     ParseVersion { version: String },
 }
