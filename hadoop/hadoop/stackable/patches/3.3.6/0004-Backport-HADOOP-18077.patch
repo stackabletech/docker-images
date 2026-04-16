@@ -1,0 +1,57 @@
+From 14ea43b731dcbc77f3bedc26529198787b399dea Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Tue, 6 Feb 2024 16:10:54 +0100
+Subject: Backport HADOOP-18077
+
+---
+ .../src/main/java/org/apache/hadoop/http/HttpServer2.java | 6 ++++--
+ .../org/apache/hadoop/http/ProfilerDisabledServlet.java   | 8 +++++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
+index 1f66a7e809..96794086cb 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
+@@ -745,10 +745,11 @@ public final class HttpServer2 implements FilterContainer {
+ 
+     addDefaultServlets();
+     addPrometheusServlet(conf);
+-    addAsyncProfilerServlet(contexts);
++    addAsyncProfilerServlet(contexts, conf);
+   }
+ 
+-  private void addAsyncProfilerServlet(ContextHandlerCollection contexts) throws IOException {
++  private void addAsyncProfilerServlet(ContextHandlerCollection contexts, Configuration conf)
++      throws IOException {
+     final String asyncProfilerHome = ProfileServlet.getAsyncProfilerHome();
+     if (asyncProfilerHome != null && !asyncProfilerHome.trim().isEmpty()) {
+       addServlet("prof", "/prof", ProfileServlet.class);
+@@ -760,6 +761,7 @@ public final class HttpServer2 implements FilterContainer {
+       genCtx.addServlet(ProfileOutputServlet.class, "/*");
+       genCtx.setResourceBase(tmpDir.toAbsolutePath().toString());
+       genCtx.setDisplayName("prof-output-hadoop");
++      setContextAttributes(genCtx, conf);
+     } else {
+       addServlet("prof", "/prof", ProfilerDisabledServlet.class);
+       LOG.info("ASYNC_PROFILER_HOME environment variable and async.profiler.home system property "
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
+index 459485ffa5..c488b57499 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
+@@ -36,9 +36,15 @@ public class ProfilerDisabledServlet extends HttpServlet {
+       throws IOException {
+     resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+     ProfileServlet.setResponseHeader(resp);
++    // TODO : Replace github.com link with
++    //  https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/
++    //  AsyncProfilerServlet.html once Async profiler changes are released
++    //  in 3.x (3.4.0 as of today).
+     resp.getWriter().write("The profiler servlet was disabled at startup.\n\n"
+         + "Please ensure the prerequisites for the Profiler Servlet have been installed and the\n"
+-        + "environment is properly configured.");
++        + "environment is properly configured. \n\n"
++        + "For more details, please refer to: https://github.com/apache/hadoop/blob/trunk/"
++        + "hadoop-common-project/hadoop-common/src/site/markdown/AsyncProfilerServlet.md");
+   }
+ 
+ }

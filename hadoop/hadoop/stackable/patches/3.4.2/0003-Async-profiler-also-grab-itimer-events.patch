@@ -1,0 +1,29 @@
+From ab9550bd7b71c16c381a105a22732f6e71f2dba6 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Wed, 10 Sep 2025 14:39:20 +0200
+Subject: Async-profiler-also-grab-itimer-events
+
+---
+ .../src/main/java/org/apache/hadoop/http/ProfileServlet.java    | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
+index ce53274151..909892ff90 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
+@@ -76,6 +76,7 @@ import org.apache.hadoop.util.ProcessUtils;
+  * Following event types are supported (default is 'cpu') (NOTE: not all OS'es support all events)
+  * // Perf events:
+  * //    cpu
++ * //    itimer
+  * //    page-faults
+  * //    context-switches
+  * //    cycles
+@@ -118,6 +119,7 @@ public class ProfileServlet extends HttpServlet {
+   private enum Event {
+ 
+     CPU("cpu"),
++    ITIMER("itimer"),
+     ALLOC("alloc"),
+     LOCK("lock"),
+     PAGE_FAULTS("page-faults"),
