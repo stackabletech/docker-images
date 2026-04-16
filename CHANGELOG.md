@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- nifi: Add version `2.9.0` ([#XXXX]).
+- nifi: Add version `2.9.0` ([#1463]).
 
 ### Changed
 
@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
 [#1453]: https://github.com/stackabletech/docker-images/pull/1453
 [#1454]: https://github.com/stackabletech/docker-images/pull/1454
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1463]: https://github.com/stackabletech/docker-images/pull/1463
 
 ## [26.3.0] - 2026-03-16
 
