@@ -7,7 +7,7 @@ java-devel = "11"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0"
+nifi-opa-authorizer-plugin-version = "0.5.0"
 
 [versions."2.6.0".local-images]
 java-base = "21"
@@ -18,7 +18,7 @@ java-devel = "21"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0"
+nifi-opa-authorizer-plugin-version = "0.5.0"
 
 # Release a new version here: https://github.com/stackabletech/nifi-iceberg-bundle
 # Checkout a Patchable version (patch-series) for the new tag
@@ -33,4 +33,15 @@ java-devel = "21"
 git-sync-version = "v4.4.1"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
-nifi-opa-authorizer-plugin-version = "0.4.0"
+nifi-opa-authorizer-plugin-version = "0.5.0"
+
+[versions."2.9.0".local-images]
+java-base = "21" # As stated in GitHub README
+java-devel = "21"
+"shared/logback" = "1.5.32" # https://github.com/apache/nifi/blob/rel/nifi-2.9.0/pom.xml#L171
+
+[versions."2.9.0".build-arguments]
+git-sync-version = "v4.4.1"
+# Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
+# Checkout a Patchable version (patch-series) for the new tag
+nifi-opa-authorizer-plugin-version = "0.5.0"

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- nifi: Add version `2.9.0` ([#XXXX]).
+
 ### Changed
 
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
@@ -17,6 +21,7 @@ All notable changes to this project will be documented in this file.
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
 [#1453]: https://github.com/stackabletech/docker-images/pull/1453
 [#1454]: https://github.com/stackabletech/docker-images/pull/1454
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [26.3.0] - 2026-03-16
 
