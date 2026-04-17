@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-04-17
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.0..boil-0.2.1)
+
+### Features
+
+- Relax vendor version constraint ([#1469](https://github.com/stackabletech/docker-images/pull/1469)).
+
 ## [0.2.0] - 2026-04-14
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.1.7..boil-0.2.0)

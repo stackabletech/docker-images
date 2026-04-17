@@ -12,7 +12,7 @@ ARG STACKABLE_USER_UID
 
 # Find the latest version here: https://github.com/apache/maven/releases
 # renovate: datasource=github-tags packageName=apache/maven
-ARG MAVEN_VERSION="3.9.11"
+ARG MAVEN_VERSION="3.9.14"
 
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo

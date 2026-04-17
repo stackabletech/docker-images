@@ -1,5 +1,4 @@
 use clap::Parser;
-use semver::Version;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
@@ -43,39 +42,6 @@ impl<T> IfContext for T {
             true => Ok(self),
             false => Err(context.into_error(snafu::NoneError)),
         }
-    }
-}
-
-pub trait VersionExt {
-    /// Returns the base of a [`Version`] as a string, eg. `1.2.3`.
-    fn base(&self) -> String;
-
-    /// Returns the base and prerelease of a [`Version`] as a string, eg. `1.2.3-rc.1`.
-    fn base_prerelease(&self) -> String;
-}
-
-impl VersionExt for Version {
-    fn base(&self) -> String {
-        let Self {
-            major,
-            minor,
-            patch,
-            ..
-        } = self;
-
-        format!("{major}.{minor}.{patch}")
-    }
-
-    fn base_prerelease(&self) -> String {
-        let mut base = self.base();
-
-        // Well, that was a big doozy, ruined the whole release...
-        if !self.pre.is_empty() {
-            base.push('-');
-            base.push_str(&self.pre);
-        }
-
-        base
     }
 }
 

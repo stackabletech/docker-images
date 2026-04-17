@@ -11,13 +11,11 @@ use oci_spec::image::{
     ANNOTATION_AUTHORS, ANNOTATION_CREATED, ANNOTATION_DOCUMENTATION, ANNOTATION_LICENSES,
     ANNOTATION_REVISION, ANNOTATION_SOURCE, ANNOTATION_VENDOR, ANNOTATION_VERSION,
 };
-use semver::Version;
 use serde::Serialize;
 use snafu::{OptionExt, ResultExt, Snafu, ensure};
 use time::format_description::well_known::Rfc3339;
 
 use crate::{
-    VersionExt,
     cli::{self, HostPort},
     config::{self, Config, MetadataOptions},
     constants::DOCKER_LABEL_BUILD_DATE,
@@ -305,7 +303,7 @@ impl Bakefile {
         let target = BakefileTarget::common(
             date_time,
             revision,
-            cli_args.image_version.base_prerelease(),
+            cli_args.image_version.clone(),
             container_build_args,
             user_container_build_args,
             metadata,
@@ -654,7 +652,7 @@ impl BakefileTarget {
     fn image_version_annotation(
         image_version: &str,
         vendor_tag_prefix: &str,
-        vendor_image_version: &Version,
+        vendor_image_version: &str,
     ) -> Vec<String> {
         let image_index_manifest_tag = utils::format_image_index_manifest_tag(
             image_version,

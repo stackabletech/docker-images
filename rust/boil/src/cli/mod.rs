@@ -1,8 +1,8 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{path::PathBuf, sync::LazyLock};
 
 use clap::{Parser, Subcommand};
-use semver::Version;
-use snafu::{ResultExt, Snafu, ensure};
+use regex::Regex;
+use snafu::Snafu;
 
 mod build;
 mod completions;
@@ -13,13 +13,16 @@ pub use completions::*;
 pub use image::*;
 use url::Host;
 
+// This is derived from the general rule where the length of the tag can be up to 128 chars
+// See: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
+// But that checking needs to be at a higher layer.
+static VALID_IMAGE_TAG: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
+
 #[derive(Debug, Snafu)]
 pub enum ParseImageVersionError {
-    #[snafu(display("failed to parse semantic version"))]
-    ParseVersion { source: semver::Error },
-
-    #[snafu(display("semantic version must not contain build metadata"))]
-    ContainsBuildMetadata,
+    #[snafu(display("invalid image tag characters for {version:?}"))]
+    ParseVersion { version: String },
 }
 
 #[derive(Debug, Parser)]
@@ -38,10 +41,8 @@ impl Cli {
         PathBuf::from("./boil.toml")
     }
 
-    pub(super) fn default_image_version() -> Version {
-        "0.0.0-dev"
-            .parse()
-            .expect("static string must be a valid SemVer")
+    pub(super) fn default_image_version() -> String {
+        "0.0.0-dev".to_owned()
     }
 
     pub(super) fn default_registry() -> HostPort {
@@ -51,11 +52,13 @@ impl Cli {
         }
     }
 
-    pub(super) fn parse_image_version(input: &str) -> Result<Version, ParseImageVersionError> {
-        let version = Version::from_str(input).context(ParseVersionSnafu)?;
-        ensure!(version.build.is_empty(), ContainsBuildMetadataSnafu);
+    /// Ensure that the given version will be valid for use in the image tag
+    pub(super) fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
+        if !VALID_IMAGE_TAG.is_match(version) {
+            return ParseVersionSnafu { version }.fail();
+        }
 
-        Ok(version)
+        Ok(version.to_owned())
     }
 }
 

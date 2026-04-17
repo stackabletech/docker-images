@@ -1,5 +1,4 @@
 use clap::{Args, Subcommand, ValueEnum};
-use semver::Version;
 
 use crate::{cli::Cli, core::image::ImageSelector};
 
@@ -43,7 +42,7 @@ pub struct ImageCheckArguments {
         default_value_t = Cli::default_image_version(),
         help_heading = "Image Options"
     )]
-    pub image_version: Version,
+    pub image_version: String,
 }
 
 // #[derive(Clone, Debug, Default, strum::Display, strum::EnumString)]

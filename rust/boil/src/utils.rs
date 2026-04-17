@@ -1,7 +1,5 @@
 use std::process::Command;
 
-use semver::Version;
-
 use crate::{cli::HostPort, core::platform::Architecture};
 
 /// Formats and returns the image repository URI, eg. `oci.stackable.tech/sdp/opa`.
@@ -22,7 +20,7 @@ pub fn format_image_manifest_uri(image_repository_uri: &str, image_manifest_tag:
 pub fn format_image_index_manifest_tag(
     image_version: &str,
     vendor_tag_prefix: &str,
-    vendor_image_version: &Version,
+    vendor_image_version: &str,
 ) -> String {
     format!("{image_version}-{vendor_tag_prefix}{vendor_image_version}")
 }

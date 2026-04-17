@@ -5,19 +5,20 @@
 }:
 
 pkgs.mkShell {
-  packages = [
-    pkgs.cargo
-    pkgs.rustc
-    pkgs.nodejs
+  packages = with pkgs; [
+    rustup
+    nodejs
+    zizmor
+    git-cliff
   ];
 
-  buildInputs = [
+  buildInputs = with pkgs; [
     # Required by patchable
-    pkgs.openssl
+    openssl
   ];
 
-  nativeBuildInputs = [
+  nativeBuildInputs = with pkgs; [
     # Required for libraries to be discoverable
-    pkgs.pkg-config
+    pkg-config
   ];
 }

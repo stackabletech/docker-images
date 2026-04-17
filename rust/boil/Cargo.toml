@@ -1,6 +1,6 @@
 [package]
 name = "boil"
-version = "0.2.0" # Managed by .scripts/release_boil.sh
+version = "0.2.1" # Managed by .scripts/release_boil.sh
 edition = "2024"
 authors.workspace = true
 license.workspace = true
@@ -16,8 +16,8 @@ git2.workspace = true
 glob.workspace = true
 oci-spec.workspace = true
 reqwest.workspace = true
+regex.workspace = true
 secrecy.workspace = true
-semver.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 snafu.workspace = true

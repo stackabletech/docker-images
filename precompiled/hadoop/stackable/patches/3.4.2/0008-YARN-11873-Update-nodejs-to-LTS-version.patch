@@ -1,0 +1,22 @@
+From 08a7206a29f212e1f0e3bd81e0cb0be7907907a4 Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Wed, 1 Oct 2025 17:28:41 +0200
+Subject: Update nodejs to LTS version
+
+---
+ hadoop-project/pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index 2e21ff7394..a7d5faf760 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -234,7 +234,7 @@
+     <jsonschema2pojo.version>1.0.2</jsonschema2pojo.version>
+     <woodstox.version>5.4.0</woodstox.version>
+     <nimbus-jose-jwt.version>9.37.4</nimbus-jose-jwt.version>
+-    <nodejs.version>v14.17.0</nodejs.version>
++    <nodejs.version>v22.20.0</nodejs.version>
+     <yarnpkg.version>v1.22.5</yarnpkg.version>
+     <apache-ant.version>1.10.13</apache-ant.version>
+     <jmh.version>1.20</jmh.version>

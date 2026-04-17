@@ -1,0 +1,2 @@
+upstream = "https://github.com/apache/hadoop.git"
+default-mirror = "https://github.com/stackabletech/hadoop.git"

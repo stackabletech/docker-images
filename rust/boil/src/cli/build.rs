@@ -5,7 +5,6 @@ use std::{
 };
 
 use clap::{Args, ValueHint, value_parser};
-use semver::Version;
 use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
 use url::Host;
@@ -33,7 +32,7 @@ pub struct BuildArguments {
         default_value_t = Cli::default_image_version(),
         help_heading = "Image Options"
     )]
-    pub image_version: Version,
+    pub image_version: String,
 
     /// Target platform of the image.
     #[arg(
