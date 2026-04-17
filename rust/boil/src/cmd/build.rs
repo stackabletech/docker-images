@@ -45,12 +45,6 @@ pub enum Error {
 /// This is the `boil build` command handler function.
 pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Error> {
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
-    // Validation
-    ensure!(
-        args.image_version.build.is_empty(),
-        InvalidImageVersionSnafu
-    );
-
     // Create bakefile
     let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
