@@ -46,6 +46,6 @@ jobs:
       # Needed for checkout
       contents: read
     with:
-      product-name: hadoop
+      product-name: precompiled/hadoop
       sdp-version: ${{ needs.generate_build_timestamp.outputs.unix_timestamp }}
       registry-namespace: precompiled
