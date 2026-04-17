@@ -131,6 +131,7 @@ pub struct BuildArguments {
 }
 
 // This is derived from the general rule where the length of the tag can be up to 128 chars
+// See: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
 // But that checking needs to be at a higher layer.
 static VALID_IMAGE_TAG: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
