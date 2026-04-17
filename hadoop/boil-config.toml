@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 # Not part of SDP 25.7.0, but still required for hbase, hive, spark-k8s
 [versions."3.3.6".local-images]
 "hadoop/hadoop" = "3.3.6"

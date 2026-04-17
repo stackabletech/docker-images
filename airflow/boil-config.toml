@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 # Deprecated since SDP 25.11
 [versions."2.9.3".local-images]
 "shared/statsd-exporter" = "0.28.0"

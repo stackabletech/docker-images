@@ -2,19 +2,20 @@ use std::{
     fmt::{Debug, Display},
     path::PathBuf,
     str::FromStr,
-    sync::LazyLock,
 };
 
 use clap::{Args, ValueHint, value_parser};
-use regex::Regex;
 use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
 use url::Host;
 
-use crate::core::{
-    docker::BuildArgument,
-    image::ImageSelector,
-    platform::{Architecture, TargetPlatform},
+use crate::{
+    cli::Cli,
+    core::{
+        docker::BuildArgument,
+        image::ImageSelector,
+        platform::{Architecture, TargetPlatform},
+    },
 };
 
 #[derive(Debug, Args)]
@@ -27,8 +28,8 @@ pub struct BuildArguments {
     /// The image version being built.
     #[arg(
         short, long,
-        value_parser = BuildArguments::parse_image_version,
-        default_value_t = Self::default_image_version(),
+        value_parser = Cli::parse_image_version,
+        default_value_t = Cli::default_image_version(),
         help_heading = "Image Options"
     )]
     pub image_version: String,
@@ -46,7 +47,7 @@ pub struct BuildArguments {
     /// The format is host[:port].
     #[arg(
         short, long,
-        default_value_t = Self::default_registry(),
+        default_value_t = Cli::default_registry(),
         value_hint = ValueHint::Hostname,
         help_heading = "Registry Options"
     )]
@@ -130,33 +131,7 @@ pub struct BuildArguments {
     pub rest: Vec<String>,
 }
 
-// This is derived from the general rule where the length of the tag can be up to 128 chars
-// See: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
-// But that checking needs to be at a higher layer.
-static VALID_IMAGE_TAG: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
-
 impl BuildArguments {
-    /// Ensure that the given version will be valid for use in the image tag
-    fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
-        if !VALID_IMAGE_TAG.is_match(version) {
-            return ParseVersionSnafu { version }.fail();
-        }
-
-        Ok(version.to_owned())
-    }
-
-    fn default_image_version() -> String {
-        "0.0.0-dev".to_owned()
-    }
-
-    fn default_registry() -> HostPort {
-        HostPort {
-            host: Host::Domain(String::from("oci.stackable.tech")),
-            port: None,
-        }
-    }
-
     // TODO: Auto-detect this
     fn default_architecture() -> TargetPlatform {
         TargetPlatform::Linux(Architecture::Amd64)
@@ -165,12 +140,6 @@ impl BuildArguments {
     fn default_target_containerfile() -> PathBuf {
         PathBuf::from("Dockerfile")
     }
-}
-
-#[derive(Debug, Snafu)]
-pub enum ParseImageVersionError {
-    #[snafu(display("invalid image tag characters for {version:?}"))]
-    ParseVersion { version: String },
 }
 
 #[derive(Debug, PartialEq, Snafu, EnumDiscriminants)]

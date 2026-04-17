@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 [versions."3.9.4".local-images]
 java-base = "17"
 java-devel = "11"

@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 # Version 1.8.0
 [versions."1.8.0".local-images]
 stackable-devel = "1.0.0"

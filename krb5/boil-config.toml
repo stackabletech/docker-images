@@ -1,1 +1,4 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 [versions."1.21.1"]

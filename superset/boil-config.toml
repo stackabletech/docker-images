@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 [versions."4.1.4".local-images]
 "shared/statsd-exporter" = "0.28.0"
 stackable-devel = "1.0.0"

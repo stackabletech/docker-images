@@ -1,7 +1,7 @@
 use std::{
     collections::BTreeMap,
     fmt::Display,
-    ops::Deref,
+    ops::{Deref, DerefMut},
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -9,7 +9,7 @@ use std::{
 use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu, ensure};
 
-use crate::{IfContext, core::docker};
+use crate::core::docker;
 
 #[derive(Debug, PartialEq, Snafu)]
 pub enum ParseImageSelectorError {
@@ -115,9 +115,9 @@ pub enum ImageConfigError {
 
 #[derive(Debug, Deserialize)]
 pub struct ImageConfig {
-    // TODO (@Techassi): Eventually support this
-    // #[serde(default)]
-    // pub metadata: ImageMetadata,
+    #[serde(default)]
+    pub metadata: ImageMetadata,
+
     pub versions: ImageVersions,
 }
 
@@ -126,31 +126,20 @@ impl ImageConfig {
     pub const ALL_CONFIGS_GLOB_PATTERN: &str = "**/boil-config.toml";
     /// The default image config file name.
     pub const DEFAULT_FILE_NAME: &str = "boil-config.toml";
+    /// This glob pattern matches all (top-level) image configs.
+    pub const FLAT_CONFIG_GLOB_PATTERN: &str = "*/boil-config.toml";
 
-    pub fn filter_by_version<V>(
-        self,
-        versions: &[V],
-    ) -> Result<Vec<VersionOptionsPair>, ImageConfigError>
+    /// This function removes versions in the config filtered out by `versions`.
+    pub fn filter_by_version<V>(&mut self, versions: &[V]) -> Result<(), ImageConfigError>
     where
         V: AsRef<str> + PartialEq,
     {
-        let versions: Vec<_> = self
-            .pairs()
-            .filter(|(image_version, _)| {
-                versions.is_empty() || versions.iter().any(|v| v.as_ref() == image_version)
-            })
-            .map(Into::into)
-            .collect();
+        self.versions.retain(|image_version, _| {
+            versions.is_empty() || versions.iter().any(|v| v.as_ref() == image_version)
+        });
 
-        versions.if_context(|v| !v.is_empty(), EmptyFilterSnafu)
-    }
-
-    pub fn all(self) -> Vec<VersionOptionsPair> {
-        self.pairs().map(Into::into).collect()
-    }
-
-    fn pairs(self) -> impl Iterator<Item = (String, ImageOptions)> {
-        self.versions.0.into_iter()
+        ensure!(!self.versions.is_empty(), EmptyFilterSnafu);
+        Ok(())
     }
 }
 
@@ -163,19 +152,34 @@ impl ImageConfig {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ImageVersions(BTreeMap<String, ImageOptions>);
+pub struct ImageVersions(BTreeMap<String, ImageVersionOptions>);
 
 impl Deref for ImageVersions {
-    type Target = BTreeMap<String, ImageOptions>;
+    type Target = BTreeMap<String, ImageVersionOptions>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
+impl DerefMut for ImageVersions {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl IntoIterator for ImageVersions {
+    type IntoIter = std::collections::btree_map::IntoIter<String, ImageVersionOptions>;
+    type Item = (String, ImageVersionOptions);
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct ImageOptions {
+pub struct ImageVersionOptions {
     #[serde(default)]
     pub local_images: BTreeMap<String, String>,
 
@@ -192,19 +196,16 @@ pub struct ImageOptions {
     pub dockerfile: Option<PathBuf>,
 }
 
-#[derive(Debug)]
-pub struct VersionOptionsPair {
-    pub version: String,
-    pub options: ImageOptions,
+#[derive(Debug, Default, Deserialize)]
+pub struct ImageMetadata {
+    /// A map of registries an image is published to and various options configurable for each one.
+    #[serde(default)]
+    pub registries: BTreeMap<String, RegistryOptions>,
 }
 
-impl From<(String, ImageOptions)> for VersionOptionsPair {
-    fn from(value: (String, ImageOptions)) -> Self {
-        VersionOptionsPair {
-            version: value.0,
-            options: value.1,
-        }
-    }
+#[derive(Debug, Deserialize)]
+pub struct RegistryOptions {
+    pub namespace: String,
 }
 
 #[cfg(test)]

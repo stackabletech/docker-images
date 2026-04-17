@@ -1,3 +1,6 @@
+[metadata.registries]
+"oci.stackable.tech" = { namespace = "sdp" }
+
 [versions."1.0.0".local-images]
 stackable-base = "1.0.0"
 "kafka/kcat" = "1.7.0"

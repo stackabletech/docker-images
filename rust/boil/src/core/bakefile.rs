@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, btree_map::Entry},
     fmt::Debug,
     ops::{Deref, DerefMut},
     path::PathBuf,
@@ -17,11 +17,11 @@ use time::format_description::well_known::Rfc3339;
 
 use crate::{
     cli::{self, HostPort},
-    config::{self, Config, Metadata},
+    config::{self, Config, MetadataOptions},
     constants::DOCKER_LABEL_BUILD_DATE,
     core::{
         docker,
-        image::{ImageConfig, ImageConfigError, ImageOptions, ImageSelector, VersionOptionsPair},
+        image::{ImageConfig, ImageConfigError, ImageSelector},
         platform::TargetPlatform,
     },
     utils,
@@ -82,19 +82,25 @@ pub enum TargetsError {
 
 #[derive(Debug, Default)]
 pub struct TargetsOptions {
+    /// Only select the entry images (selected by the image selector). This is particular useful for
+    /// the image list command.
     pub only_entry: bool,
+
+    /// If a non recursive glob pattern should be used meaning only the top-level directories will
+    /// be searched for config files.
+    pub non_recursive: bool,
 }
 
 /// Contains targets selected by the user.
 ///
-/// This is a map which uses the image/target name as the key. Each key points to another map,
-/// which contains one entry per version of the target. Each value contains the image options and
-/// a boolean flag to indicate if this target is an entry target.
+/// This is a map which uses the image/target name as the key. Each key points to image config
+/// containing filtered versions. Additionally, each value contains a boolean flag to indicate if
+/// this target is an entry target.
 #[derive(Debug, Default)]
-pub struct Targets(BTreeMap<String, BTreeMap<String, (ImageOptions, bool)>>);
+pub struct Targets(BTreeMap<String, (ImageConfig, bool)>);
 
 impl Deref for Targets {
-    type Target = BTreeMap<String, BTreeMap<String, (ImageOptions, bool)>>;
+    type Target = BTreeMap<String, (ImageConfig, bool)>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -108,9 +114,8 @@ impl DerefMut for Targets {
 }
 
 impl IntoIterator for Targets {
-    type IntoIter =
-        std::collections::btree_map::IntoIter<String, BTreeMap<String, (ImageOptions, bool)>>;
-    type Item = (String, BTreeMap<String, (ImageOptions, bool)>);
+    type IntoIter = std::collections::btree_map::IntoIter<String, (ImageConfig, bool)>;
+    type Item = (String, (ImageConfig, bool));
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -134,9 +139,13 @@ impl Targets {
     // See https://github.com/rust-lang/rust-clippy/pull/15445
     #[allow(clippy::unwrap_in_result)]
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
-        let image_config_paths = glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)
-            .expect("constant glob pattern must be valid")
-            .filter_map(Result::ok);
+        let image_config_paths = if options.non_recursive {
+            glob(ImageConfig::FLAT_CONFIG_GLOB_PATTERN)
+        } else {
+            glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)
+        }
+        .expect("constant glob pattern must be valid")
+        .filter_map(Result::ok);
 
         let mut targets = Self::default();
 
@@ -152,9 +161,7 @@ impl Targets {
                 .to_string_lossy()
                 .into_owned();
 
-            let pairs = image_config.all();
-
-            targets.insert_targets(image_name.to_owned(), pairs, &options, true)?;
+            targets.insert_targets(image_name.to_owned(), image_config, &options, true)?;
         }
 
         Ok(targets)
@@ -176,15 +183,15 @@ impl Targets {
 
             // Read the image config which defines supported image versions and their dependencies as
             // well as other values.
-            let image_config =
+            let mut image_config =
                 ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
             // Create a list of image versions we need to generate targets for in the bakefile.
-            let pairs = image_config
+            image_config
                 .filter_by_version(&image.versions)
                 .context(InvalidImageVersionSnafu)?;
 
-            targets.insert_targets(image.name.clone(), pairs, &options, true)?;
+            targets.insert_targets(image.name.clone(), image_config, &options, true)?;
         }
 
         Ok(targets)
@@ -193,21 +200,17 @@ impl Targets {
     fn insert_targets(
         &mut self,
         image_name: String,
-        pairs: Vec<VersionOptionsPair>,
+        config: ImageConfig,
         options: &TargetsOptions,
         is_entry: bool,
     ) -> Result<(), TargetsError> {
-        for VersionOptionsPair {
-            version: image_version,
-            options: image_options,
-        } in pairs
-        {
+        for image_options in (*config.versions).values() {
             if !options.only_entry {
                 // TODO (@Techassi): Add cycle detection
                 for (image_name, image_version) in &image_options.local_images {
                     if self
                         .get(image_name)
-                        .is_some_and(|image_versions| image_versions.contains_key(image_version))
+                        .is_some_and(|(config, _)| config.versions.contains_key(image_version))
                     {
                         continue;
                     }
@@ -216,21 +219,29 @@ impl Targets {
                         .join(image_name)
                         .join(ImageConfig::DEFAULT_FILE_NAME);
 
-                    let image_config =
+                    let mut image_config =
                         ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
-                    let pairs = image_config
+                    image_config
                         .filter_by_version(&[image_version])
                         .context(InvalidImageVersionSnafu)?;
 
                     // Wowzers, recursion!
-                    self.insert_targets(image_name.clone(), pairs, options, false)?;
+                    self.insert_targets(image_name.clone(), image_config, options, false)?;
                 }
             }
+        }
 
-            self.entry(image_name.clone())
-                .or_default()
-                .insert(image_version, (image_options, is_entry));
+        // We explicitly use the entry API without using the combinator functions because of issues
+        // regarding partial moves and borrowing.
+        match self.entry(image_name) {
+            Entry::Vacant(entry) => {
+                entry.insert((config, is_entry));
+            }
+            Entry::Occupied(mut entry) => {
+                let (exiting_config, _) = entry.get_mut();
+                exiting_config.versions.extend(config.versions);
+            }
         }
 
         Ok(())
@@ -276,7 +287,7 @@ impl Bakefile {
     fn common_target(
         cli_args: &cli::BuildArguments,
         container_build_args: docker::BuildArguments,
-        metadata: &Metadata,
+        metadata: &MetadataOptions,
     ) -> Result<BakefileTarget, Error> {
         let revision = Self::git_head_revision().context(GetRevisionSnafu)?;
         let date_time = Self::now()?;
@@ -313,6 +324,7 @@ impl Bakefile {
         let Config {
             build_arguments,
             metadata,
+            ..
         } = config;
 
         // Create a common target, which contains shared data, like annotations, arguments, labels, etc...
@@ -326,8 +338,8 @@ impl Bakefile {
             &cli_args.registry
         };
 
-        for (image_name, image_versions) in targets.into_iter() {
-            for (image_version, (image_options, is_entry)) in image_versions {
+        for (image_name, (image_config, is_entry)) in targets.into_iter() {
+            for (image_version, image_options) in image_config.versions {
                 let image_repository_uri = utils::format_image_repository_uri(
                     image_registry,
                     &cli_args.registry_namespace,
@@ -574,9 +586,9 @@ impl BakefileTarget {
         release_version: String,
         container_build_args: docker::BuildArguments,
         user_container_build_args: Vec<docker::BuildArgument>,
-        metadata: &Metadata,
+        metadata: &MetadataOptions,
     ) -> Self {
-        let config::Metadata {
+        let config::MetadataOptions {
             documentation: docs,
             licenses,
             authors,
