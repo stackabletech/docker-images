@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- hadoop: Use `precompiled/hadoop` for faster image builds ([#1472]).
 
 ### Fixed
 
@@ -24,6 +25,7 @@ All notable changes to this project will be documented in this file.
 [#1454]: https://github.com/stackabletech/docker-images/pull/1454
 [#1463]: https://github.com/stackabletech/docker-images/pull/1463
 [#1466]: https://github.com/stackabletech/docker-images/pull/1466
+[#1472]: https://github.com/stackabletech/docker-images/pull/1472
 
 ## [26.3.0] - 2026-03-16
 
