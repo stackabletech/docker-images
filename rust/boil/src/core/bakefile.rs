@@ -88,7 +88,7 @@ pub struct TargetsOptions {
 
     /// If a flat glob pattern should be used meaning only the top-level directories will be
     /// searched for config files.
-    pub flat: bool,
+    pub non_recursive: bool,
 }
 
 /// Contains targets selected by the user.
@@ -139,7 +139,7 @@ impl Targets {
     // See https://github.com/rust-lang/rust-clippy/pull/15445
     #[allow(clippy::unwrap_in_result)]
     pub fn all(options: TargetsOptions) -> Result<Self, TargetsError> {
-        let image_config_paths = if options.flat {
+        let image_config_paths = if options.non_recursive {
             glob(ImageConfig::FLAT_CONFIG_GLOB_PATTERN)
         } else {
             glob(ImageConfig::ALL_CONFIGS_GLOB_PATTERN)

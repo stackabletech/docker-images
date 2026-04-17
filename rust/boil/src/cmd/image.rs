@@ -37,7 +37,7 @@ pub fn list_images(arguments: ImageListArguments) -> Result<(), Error> {
     let targets = if arguments.image.is_empty() {
         Targets::all(TargetsOptions {
             only_entry: true,
-            flat: false,
+            non_recursive: false,
         })
         .context(BuildTargetsSnafu)?
     } else {
@@ -45,7 +45,7 @@ pub fn list_images(arguments: ImageListArguments) -> Result<(), Error> {
             &arguments.image,
             TargetsOptions {
                 only_entry: true,
-                flat: false,
+                non_recursive: false,
             },
         )
         .context(BuildTargetsSnafu)?
@@ -70,7 +70,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
     let targets = if arguments.image.is_empty() {
         Targets::all(TargetsOptions {
             only_entry: true,
-            flat: true,
+            non_recursive: true,
         })
         .context(BuildTargetsSnafu)?
     } else {
@@ -78,7 +78,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
             &arguments.image,
             TargetsOptions {
                 only_entry: true,
-                flat: true,
+                non_recursive: true,
             },
         )
         .context(BuildTargetsSnafu)?
