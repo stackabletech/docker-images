@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
-# check=error=true
+# check=error=true;skip=InvalidDefaultArgInFrom
 
-FROM local-image/hadoop/hadoop AS hadoop-builder
+ARG PRECOMPILED_HADOOP_VERSION
+ARG PRECOMPILED_HADOOP_TS
+FROM oci.stackable.tech/precompiled/hadoop:${PRECOMPILED_HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS} AS hadoop-builder
 
 FROM local-image/java-devel AS hdfs-utils-builder
 
@@ -9,11 +11,9 @@ ARG HDFS_UTILS_VERSION
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
-ARG HADOOP_HADOOP_VERSION
+ARG PRECOMPILED_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-# It is passed as `HADOOP_HADOOP_VERSION`, because boil-config.toml has to contain `hadoop/hadoop` to establish a dependency on the Hadoop builder.
-# The value of `hadoop/hadoop` is transformed by `bake` and automatically passed as `HADOOP_HADOOP_VERSION` arg.
-ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ENV HADOOP_VERSION=${PRECOMPILED_HADOOP_VERSION}
 
 # Starting with hdfs-utils 0.4.0 we need to use Java 17 for compilation.
 # We can not simply use java-devel with Java 17, as it is also used to compile Hadoop in this
@@ -69,9 +69,9 @@ FROM local-image/java-base AS final
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
-ARG HADOOP_HADOOP_VERSION
+ARG PRECOMPILED_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
-ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ENV HADOOP_VERSION=${PRECOMPILED_HADOOP_VERSION}
 ARG HDFS_UTILS_VERSION
 ARG STACKABLE_USER_UID
 ARG ASYNC_PROFILER_VERSION
