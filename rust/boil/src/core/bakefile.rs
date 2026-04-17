@@ -84,18 +84,20 @@ pub enum TargetsError {
 
 #[derive(Debug, Default)]
 pub struct TargetsOptions {
+    /// Only select the entry images (selected by the image selector). This is particular useful for
+    /// the image list command.
     pub only_entry: bool,
 
-    /// If a flat glob pattern should be used meaning only the top-level directories will be
-    /// searched for config files.
+    /// If a non recursive glob pattern should be used meaning only the top-level directories will
+    /// be searched for config files.
     pub non_recursive: bool,
 }
 
 /// Contains targets selected by the user.
 ///
-/// This is a map which uses the image/target name as the key. Each key points to another map,
-/// which contains one entry per version of the target. Each value contains the image options and
-/// a boolean flag to indicate if this target is an entry target.
+/// This is a map which uses the image/target name as the key. Each key points to image config
+/// containing filtered versions. Additionally, each value contains a boolean flag to indicate if
+/// this target is an entry target.
 #[derive(Debug, Default)]
 pub struct Targets(BTreeMap<String, (ImageConfig, bool)>);
 
