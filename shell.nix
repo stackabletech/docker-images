@@ -9,6 +9,7 @@ pkgs.mkShell {
     rustup
     nodejs
     zizmor
+    git-cliff
   ];
 
   buildInputs = with pkgs; [
