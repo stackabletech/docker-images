@@ -135,8 +135,13 @@ chmod -x "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar"
 ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /stackable/jmx/jmx_prometheus_javaagent.jar
 
 # Set correct permissions and ownerships
-chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}"
-chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}"
+chown --recursive ${STACKABLE_USER_UID}:0 \
+/stackable/hadoop /stackable/jmx /stackable/async-profiler \
+"/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}" \
+/stackable/boost
+chmod --recursive g=u /stackable/jmx /stackable/async-profiler \
+"/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}" \
+/stackable/boost
 
 # Workaround for https://issues.apache.org/jira/browse/HADOOP-12845
 # The problem is that our stackable-devel image does contain the openssl-devel package
