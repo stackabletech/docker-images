@@ -12,6 +12,7 @@ ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG PRECOMPILED_HADOOP_VERSION
+ARG PRECOMPILED_HADOOP_TS
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${PRECOMPILED_HADOOP_VERSION}
 
@@ -54,7 +55,7 @@ tar -czf /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz .
 mvn \
     clean package \
     -P hadoop-${HADOOP_VERSION} \
-    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
+    -Dhadoop.version=${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS} \
     -DskipTests \
     -Dmaven.javadoc.skip=true
 
@@ -70,6 +71,7 @@ FROM local-image/java-base AS final
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG PRECOMPILED_HADOOP_VERSION
+ARG PRECOMPILED_HADOOP_TS
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${PRECOMPILED_HADOOP_VERSION}
 ARG HDFS_UTILS_VERSION
@@ -88,10 +90,10 @@ LABEL \
     summary="The Stackable image for Apache Hadoop." \
     description="This image is deployed by the Stackable Operator for Apache Hadoop / HDFS."
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS} /stackable/hadoop-${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS_VERSION}.jar
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar /stackable/hadoop-${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS_VERSION}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/stackable/jmx /stackable/jmx
@@ -119,7 +121,7 @@ rm -rf /var/cache/yum
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
 echo "user_allow_other" > /etc/fuse.conf
 
-ln -s "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}" /stackable/hadoop
+ln -s "/stackable/hadoop-${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS}" /stackable/hadoop
 
 # async-profiler
 ARCH="${TARGETARCH/amd64/x64}"
@@ -133,7 +135,7 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /sta
 
 # Set correct permissions and ownerships
 chown --recursive ${STACKABLE_USER_UID}:0 /stackable/hadoop /stackable/jmx /stackable/async-profiler "/stackable/async-profiler-${ASYNC_PROFILER_VERSION}-${TARGETOS}-${ARCH}"
-chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}"
+chmod --recursive g=u /stackable/jmx /stackable/async-profiler "/stackable/hadoop-${HADOOP_VERSION}-stackable${PRECOMPILED_HADOOP_TS}"
 
 # Workaround for https://issues.apache.org/jira/browse/HADOOP-12845
 # The problem is that our stackable-devel image does contain the openssl-devel package

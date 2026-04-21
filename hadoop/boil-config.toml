@@ -10,7 +10,7 @@ java-devel = "11"
 precompiled-hadoop-version = "3.3.6"
 # Find the latest build timestamp here:
 # https://oci.stackable.tech/harbor/projects/52/repositories/hadoop/artifacts-tab
-precompiled_hadoop_ts = "1776412753"
+precompiled_hadoop_ts = "1776755865"
 async-profiler-version = "2.9"
 jmx-exporter-version = "1.3.0"
 hdfs-utils-version = "0.4.0"
@@ -23,7 +23,7 @@ java-devel = "11"
 precompiled-hadoop-version = "3.4.2"
 # Find the latest build timestamp here:
 # https://oci.stackable.tech/harbor/projects/52/repositories/hadoop/artifacts-tab
-precompiled_hadoop_ts = "1776412753"
+precompiled_hadoop_ts = "1776755865"
 async-profiler-version = "2.9"
 jmx-exporter-version = "1.3.0"
 hdfs-utils-version = "0.5.0"
