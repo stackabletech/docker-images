@@ -4,6 +4,13 @@
 # The boost library is a runtime dependency of the Hadoop native code
 # but is not available in the RedHat UBI10 or EPEL10 repositories, so we need to build
 # it ourselves.
+#
+# NOTE: We use a published source bundle instead of the patchable workflow
+#       because boost uses git submodules for it's build system
+#       and patchable doesn't support these.
+#       The source bundle contains everything needed to build b2 (the build system)
+#       and boost except for dependencies which are automatically discovered.
+#
 FROM local-image/stackable-base AS boost-builder
 
 ARG BOOST_VERSION
@@ -18,7 +25,8 @@ microdnf clean all
 
 BOOST_UNDERSCORE="$(echo "${BOOST_VERSION}" | tr '.' '_')"
 BOOST_TARBALL="boost_${BOOST_UNDERSCORE}.tar.bz2"
-BOOST_URL="https://archives.boost.io/release/${BOOST_VERSION}/source/${BOOST_TARBALL}"
+# See .scripts/upload_new_boost_version.sh for how this artifact got there.
+BOOST_URL="https://repo.stackable.tech/repository/packages/boost/${BOOST_TARBALL}"
 
 mkdir -p /stackable/boost
 curl -fsSL "${BOOST_URL}" -o "${BOOST_TARBALL}"
