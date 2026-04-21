@@ -3,7 +3,15 @@ on:
   workflow_call:
     inputs:
       product-name:
+        description: The boil product directory name (e.g. "hadoop" or "precompiled/hadoop")
         required: true
+        type: string
+      image-name:
+        description: |
+          The image name used in the OCI registry. Defaults to product-name if not set.
+          This is used when the boil directory is nested (eg: precompiled/hadoop) but
+          the parent directory will be used as the namespace (eg: precompiled).
+        default: ""
         type: string
       sdp-version:
         required: true
@@ -112,10 +120,14 @@ jobs:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
-          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
+          # NOTE (@NickLarsenNZ): This fallback is just for now so we can support both repo level
+          # image folders that go under the sdp namespace AND nested image folders that contain the
+          # namespace (for example precommit/hadoop).
+          # In future, we probably want to encode this information in the boil config metadata per
+          # registry so we don't have to do such gymnastics in the workflow.
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
           source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
-
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
     needs: [generate_version_dimension, build]
@@ -139,7 +151,12 @@ jobs:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
-          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
+          # NOTE (@NickLarsenNZ): This fallback is just for now so we can support both repo level
+          # image folders that go under the sdp namespace AND nested image folders that contain the
+          # namespace (for example precommit/hadoop).
+          # In future, we probably want to encode this information in the boil config metadata per
+          # registry so we don't have to do such gymnastics in the workflow.
+          image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
   notify:
