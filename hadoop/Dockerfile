@@ -90,6 +90,7 @@ LABEL \
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION} /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/*-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/boost /stackable/boost
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}.jar /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/common/lib/hdfs-utils-${HDFS_UTILS_VERSION}.jar
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hdfs-utils-builder /stackable/hdfs-utils-${HDFS_UTILS_VERSION}-src.tar.gz /stackable
@@ -105,9 +106,11 @@ microdnf update
 # tar is required for `kubectl cp` which can be used to copy the log files
 # or profiler flamegraph from the Pod
 # It is already installed in the base image but leaving here for documentation purposes
+# libstdc++ is a runtime dependency for boost
 microdnf install \
   fuse \
   fuse-libs \
+  libstdc++ \
   tar
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
@@ -162,7 +165,7 @@ EOF
 USER ${STACKABLE_USER_UID}
 
 ENV HOME=/stackable
-ENV LD_LIBRARY_PATH=/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
+ENV LD_LIBRARY_PATH=/stackable/boost/lib:/stackable/hadoop/lib/native:/usr/lib/jvm/jre/lib/server
 ENV PATH="${PATH}":/stackable/hadoop/bin
 ENV HADOOP_HOME=/stackable/hadoop
 ENV HADOOP_CONF_DIR=/stackable/config
@@ -174,6 +177,8 @@ ENV ASYNC_PROFILER_HOME=/stackable/async-profiler
 # if HADOOP_YARN_HOME does not exist at all, so we set it here to a sensible default.
 ENV HADOOP_YARN_HOME=/stackable/hadoop
 ENV HADOOP_MAPRED_HOME=/stackable/hadoop
+ENV BOOST_ROOT=/stackable/boost
+ENV CPATH=/stackable/boost/include
 
 WORKDIR /stackable/hadoop
 CMD ["echo", "This image is not meant to be 'run' directly."]
