@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466]).
+- hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466], [#1474]).
 - nifi: Add version `2.9.0` ([#1463]).
 
 ### Changed
@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 [#1463]: https://github.com/stackabletech/docker-images/pull/1463
 [#1466]: https://github.com/stackabletech/docker-images/pull/1466
 [#1472]: https://github.com/stackabletech/docker-images/pull/1472
+[#1474]: https://github.com/stackabletech/docker-images/pull/1474
 
 ## [26.3.0] - 2026-03-16
 
