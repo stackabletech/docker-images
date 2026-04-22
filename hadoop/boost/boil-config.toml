@@ -1,0 +1,5 @@
+[versions."1.78.0".local-images]
+stackable-base = "1.0.0"
+
+[versions."1.78.0".build-arguments]
+boost-version = "1.78.0"

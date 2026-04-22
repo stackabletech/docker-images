@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
+FROM local-image/hadoop/boost AS boost-builder
 FROM local-image/java-devel AS hadoop-builder
 
 ARG PRODUCT_VERSION
@@ -14,16 +15,20 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/patchable
 COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/${PROTOBUF_VERSION} /stackable/src/shared/protobuf/stackable/patches/${PROTOBUF_VERSION}
 
 RUN <<EOF
-rpm --install --replacepkgs https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-microdnf update
-# boost is a build dependency starting in Hadoop 3.4.0 if compiling native code
-# automake and libtool are required to build protobuf
-microdnf install boost1.78-devel automake libtool
+# libstdc++ is a runtime dependency for boost,
+# automake and libtool are needed to build protobuf
+microdnf install libstdc++ automake libtool
 microdnf clean all
 rm -rf /var/cache/yum
 mkdir /opt/protobuf
 chown ${STACKABLE_USER_UID}:0 /opt/protobuf
 EOF
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=boost-builder /stackable/boost /stackable/boost
+
+ENV BOOST_ROOT=/stackable/boost
+ENV LD_LIBRARY_PATH=/stackable/boost/lib
+ENV CPATH=/stackable/boost/include
 
 USER ${STACKABLE_USER_UID}
 # This Protobuf version is the exact version as used in the Hadoop Dockerfile

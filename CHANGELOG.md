@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- hadoop: Build the boost library from source instead of installing the EPEL package ([#1475]).
+          This is a requirement for the adoption of UBI 10 as base image because the package is not available there.
 
 ### Fixed
 
@@ -25,6 +27,7 @@ All notable changes to this project will be documented in this file.
 [#1463]: https://github.com/stackabletech/docker-images/pull/1463
 [#1466]: https://github.com/stackabletech/docker-images/pull/1466
 [#1474]: https://github.com/stackabletech/docker-images/pull/1474
+[#1475]: https://github.com/stackabletech/docker-images/pull/1475
 
 ## [26.3.0] - 2026-03-16
 
