@@ -6,7 +6,7 @@
 # it ourselves.
 #
 # NOTE: We use a published source bundle instead of the patchable workflow
-#       because boost uses git submodules for it's build system
+#       because boost uses git submodules for its build system
 #       and patchable doesn't support these.
 #       The source bundle contains everything needed to build b2 (the build system)
 #       and boost except for dependencies which are automatically discovered.

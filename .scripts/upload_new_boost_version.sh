@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script mirrors the boostorg/boost source bundle for the given version to Nexus.
 # The boost source bundle is architecture independent.
-# It contains it's own build system (b2) which is also built from source before building boost itself, so we don't need to worry about architecture specific builds.
+# It contains its own build system (b2) which is also built from source before building boost itself, so we don't need to worry about architecture specific builds.
 # This artifact is used by the hadoop/boost local image.
 
 
