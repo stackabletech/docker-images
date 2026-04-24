@@ -14,7 +14,7 @@ assignees: ''
 <!-- Update this with the parent tracking issue for the release -->
 Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
-### Tooling updates
+## Tooling updates
 
 > [!TIP]
 >
