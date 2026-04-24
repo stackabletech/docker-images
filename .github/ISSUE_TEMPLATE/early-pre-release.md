@@ -1,7 +1,7 @@
 ---
 name: Early Pre-Release Container Image Updates
 about: This template can be used to track the container image updates leading up to the next Stackable release
-title: "chore(tracking): Update major/minor|patch versions for YY.M.X"
+title: "tracking: Update major/minor|patch versions for YY.M.X"
 labels: ['epic']
 assignees: ''
 ---
@@ -13,6 +13,28 @@ assignees: ''
 
 <!-- Update this with the parent tracking issue for the release -->
 Part of <https://github.com/stackabletech/issues/issues/xxx>.
+
+## Tooling updates
+
+> [!TIP]
+>
+> - Rust version bump
+> - Cargo dependency bumps
+> - Cutting a release and using that in docker-images.
+
+- [ ] containerdebug
+- [ ] config-utils
+
+## Items which don't have a tracking issue
+
+- [ ] protoc updated in UBI Builder Dockerfiles (The earlier the better)
+- [ ] jmx_exporter (validate via hdfs-operator smoke tests)
+- [ ] krb5
+- [ ] tools (update the versions in version.py)
+- [ ] testing-tools (update the base, maybe keycloak)
+- [ ] statsd_exporter
+- [ ] csi-provisioner for secret-operator
+- [ ] csi-provisioner for listener-operator
 
 > [!NOTE]
 > Update the product versions based on what has been decided upon in the _Product Spreadsheet[^1]_.
@@ -61,13 +83,3 @@ Part of <https://github.com/stackabletech/issues/issues/xxx>.
 - [ ] [Create issue from template: update-product-superset.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-superset.md)
 - [ ] [Create issue from template: update-product-trino.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-trino.md)
 - [ ] [Create issue from template: update-product-zookeeper.md](https://github.com/stackabletech/docker-images/issues/new?template=update-product-zookeeper.md)
-
-## Additional items which don't have a tracking issue
-
-- [ ] jmx_exporter (validate via hdfs-operator smoke tests)
-- [ ] krb5
-- [ ] tools (update the versions in version.py)
-- [ ] testing-tools (update the base, maybe keycloak)
-- [ ] statsd_exporter
-- [ ] csi-provisioner for secret-operator
-- [ ] csi-provisioner for listener-operator
