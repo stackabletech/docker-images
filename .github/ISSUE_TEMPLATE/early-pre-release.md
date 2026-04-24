@@ -64,6 +64,7 @@ Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
 ## Additional items which don't have a tracking issue
 
+- [ ] protoc updated in UBI Builder Dockerfiles (The earlier the better)
 - [ ] jmx_exporter (validate via hdfs-operator smoke tests)
 - [ ] krb5
 - [ ] tools (update the versions in version.py)
