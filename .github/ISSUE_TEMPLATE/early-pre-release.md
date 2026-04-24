@@ -14,6 +14,17 @@ assignees: ''
 <!-- Update this with the parent tracking issue for the release -->
 Part of <https://github.com/stackabletech/issues/issues/xxx>.
 
+### Tooling updates
+
+> [!TIP]
+>
+> - Rust version bump
+> - Cargo dependency bumps
+> - Cutting a release and using that in docker-images.
+
+- [ ] containerdebug
+- [ ] config-utils
+
 ## Items which don't have a tracking issue
 
 - [ ] protoc updated in UBI Builder Dockerfiles (The earlier the better)
