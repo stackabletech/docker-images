@@ -34,6 +34,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update other dependencies if applicable (eg: python, jmx_exporter, aws_java_sdk_bundle, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update the version in the SparkApplication within the [stackable-airflow/dags](https://github.com/stackable-airflow/dags) private repository.
 
 ## Related Pull Requests
 
