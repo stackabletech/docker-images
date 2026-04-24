@@ -57,7 +57,7 @@ we should also make new versions of Java available for use.
 
 - [ ] Can build a product image that uses the new version(s)
 - [ ] Both `java-base` and `java-devel` have the same Java versions in `boil-config.toml`
-- [ ] Kuttl smoke test passes locally for a product using the new Java version
+- [ ] All kuttl tests pass locally for a product using the new Java version
 
 <details>
 <summary>Testing instructions</summary>

@@ -55,7 +55,7 @@ Add/Change/Remove anything that isn't applicable anymore
 > checked, the issue can be moved into _Development: Done_.
 
 - [ ] Can build image (either locally, or in CI)
-- [ ] Kuttl smoke tests passes (either locally, or in CI)
+- [ ] All kuttl tests pass (either locally, or in CI)
 - [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
