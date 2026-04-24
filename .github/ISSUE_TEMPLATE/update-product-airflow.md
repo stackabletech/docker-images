@@ -33,7 +33,11 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
-- [ ] Update the [stackable-airflow/dags](https://github.com/stackable-airflow/dags) private repository if needed.
+
+> [!TIP]
+> The tests might fail to pull an image if the spark version is not updated in the private repo as part
+> of the Spark version bumps.
+> This is usually only discoverable after branching, because there are always old versions for 0.0.0-dev.
 
 ## Related Pull Requests
 
