@@ -1,7 +1,7 @@
 ---
 name: Early Pre-Release Container Image Updates
 about: This template can be used to track the container image updates leading up to the next Stackable release
-title: "chore(tracking): Update major/minor|patch versions for YY.M.X"
+title: "tracking: Update major/minor|patch versions for YY.M.X"
 labels: ['epic']
 assignees: ''
 ---
