@@ -1,0 +1,65 @@
+From bc590ca0aceb644e0bd03d48ff48e77897bccfad Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Wed, 29 Apr 2026 17:32:02 +0200
+Subject: check services are disabled before calling updateControllerService
+
+---
+ ...tandardVersionedComponentSynchronizer.java | 40 ++++++++++++++++---
+ 1 file changed, 34 insertions(+), 6 deletions(-)
+
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
+index 092d2f7e7b..dbdbe166f3 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
+@@ -745,17 +745,45 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen
+             updateControllerService(addedService, proposedService, topLevelGroup);
+         }
+ 
+-        // Update all of the Controller Services to match the VersionedControllerService
++        // Update all Controller Services to match the VersionedControllerService.
++        // Services may be ENABLED here if the outer "affected components" pass did not
++        // disable them (e.g. COMPONENT_ADDED diffs are skipped by AffectedComponentSet).
++        // We must disable before calling updateControllerService, which calls setProperties
++        // which calls verifyModifiable and throws IllegalStateException on ENABLED services.
++        final long stopTimeout = System.currentTimeMillis() + syncOptions.getComponentStopTimeout().toMillis();
+         for (final Map.Entry<ControllerServiceNode, VersionedControllerService> entry : services.entrySet()) {
+             final ControllerServiceNode service = entry.getKey();
+             final VersionedControllerService proposedService = entry.getValue();
+ 
+             if (updatedVersionedComponentIds.contains(proposedService.getIdentifier())) {
+-                updateControllerService(service, proposedService, topLevelGroup);
+-                // Any existing component that is modified during synchronization may have its properties reverted to a pre-migration state,
+-                // so we then add it to the set to allow migrateProperties to be called again to get it back to the migrated state
+-                createdAndModifiedExtensions.add(new CreatedOrModifiedExtension(service, getPropertyValues(service)));
+-                LOG.info("Updated {}", service);
++                final Set<ComponentNode> referencesToRestart = new HashSet<>();
++                final Set<ControllerServiceNode> servicesToRestart = new HashSet<>();
++
++                try {
++                    try {
++                        stopControllerService(service, proposedService, stopTimeout,
++                                syncOptions.getComponentStopTimeoutAction(),
++                                referencesToRestart, servicesToRestart, syncOptions);
++                    } catch (final FlowSynchronizationException | TimeoutException e) {
++                        LOG.error("Failed to stop Controller Service {} before updating", service, e);
++                        throw new RuntimeException(e);
++                    } catch (final InterruptedException e) {
++                        Thread.currentThread().interrupt();
++                        LOG.error("Interrupted while stopping Controller Service {}", service, e);
++                        throw new RuntimeException(e);
++                    }
++                    updateControllerService(service, proposedService, topLevelGroup);
++                    createdAndModifiedExtensions.add(new CreatedOrModifiedExtension(service, getPropertyValues(service)));
++                    LOG.info("Updated {}", service);
++                } finally {
++                    // Re-enable services and restart components that were stopped for the update,
++                    // restoring the controller to its pre-update running state.
++                    if (proposedService.getScheduledState() != org.apache.nifi.flow.ScheduledState.DISABLED) {
++                        context.getControllerServiceProvider().enableControllerServicesAsync(servicesToRestart);
++                        context.getControllerServiceProvider().scheduleReferencingComponents(
++                                service, referencesToRestart, context.getComponentScheduler());
++                    }
++                }
+             }
+         }
+ 
