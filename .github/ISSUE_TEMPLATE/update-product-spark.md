@@ -34,6 +34,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update other dependencies if applicable (eg: python, jmx_exporter, aws_java_sdk_bundle, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update the version in the SparkApplication within the [stackable-airflow/dags](https://github.com/stackable-airflow/dags) private repository.
 
 ## Related Pull Requests
 
@@ -54,7 +55,7 @@ Add/Change/Remove anything that isn't applicable anymore
 > checked, the issue can be moved into _Development: Done_.
 
 - [ ] Can build image (either locally, or in CI)
-- [ ] Kuttl smoke tests passes (either locally, or in CI)
+- [ ] All kuttl tests pass (either locally, or in CI)
 - [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue

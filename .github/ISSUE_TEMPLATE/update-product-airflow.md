@@ -34,6 +34,11 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Ensure prerequisites are up to date (required-external-components.adoc).
 - [ ] Update the version in demos. Add the PR(s) to the list below.
 
+> [!TIP]
+> The tests might fail to pull an image if the spark version is not updated in the private repo as part
+> of the Spark version bumps.
+> This is usually only discoverable after branching, because there are always old versions for 0.0.0-dev.
+
 ## Related Pull Requests
 
 > [!TIP]
@@ -53,7 +58,7 @@ Add/Change/Remove anything that isn't applicable anymore
 > checked, the issue can be moved into _Development: Done_.
 
 - [ ] Can build image (either locally, or in CI)
-- [ ] Kuttl smoke tests passes (either locally, or in CI)
+- [ ] All kuttl tests pass (either locally, or in CI)
 - [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue

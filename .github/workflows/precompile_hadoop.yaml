@@ -47,5 +47,6 @@ jobs:
       contents: read
     with:
       product-name: precompiled/hadoop
-      sdp-version: ${{ needs.generate_build_timestamp.outputs.unix_timestamp }}
       registry-namespace: precompiled
+      image-name: hadoop
+      sdp-version: ${{ needs.generate_build_timestamp.outputs.unix_timestamp }}

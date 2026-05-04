@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466]).
+- hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466], [#1474]).
 - nifi: Add version `2.9.0` ([#1463]).
 
 ### Changed
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - trino: Backport fix for wrong deletes in Delta Lake ([#1453]).
 - opensearch: Scope CycloneDX SBOM to shipped components only, eliminating false positive CVEs from unshipped plugins ([#1452]).
 - vector: Look for SBOM in correct location ([#1471]).
+- vector: Use correct license ([#1476]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -26,6 +27,8 @@ All notable changes to this project will be documented in this file.
 [#1463]: https://github.com/stackabletech/docker-images/pull/1463
 [#1466]: https://github.com/stackabletech/docker-images/pull/1466
 [#1471]: https://github.com/stackabletech/docker-images/pull/1471
+[#1474]: https://github.com/stackabletech/docker-images/pull/1474
+[#1476]: https://github.com/stackabletech/docker-images/pull/1476
 
 ## [26.3.0] - 2026-03-16
 
