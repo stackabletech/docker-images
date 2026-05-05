@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466], [#1474]).
 - nifi: Add version `2.9.0` ([#1463]).
+- nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
 
 ### Changed
