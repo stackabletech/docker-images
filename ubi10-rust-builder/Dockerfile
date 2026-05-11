@@ -7,7 +7,7 @@
 # The website is broken, so you can use this to find it:
 # curl https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c \
 # | grep -oE 'registry.redhat.io/ubi10/ubi-minimal@sha256:[a-z0-9]{64}'
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:a74a7a92d3069bfac09c6882087771fc7db59fa9d8e16f14f4e012fe7288554c AS builder
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:a41db89ac688576827fbd3e8e3ef145fd7f4db28d7f533c154f96224fcd20595 AS builder
 
 LABEL maintainer="Stackable GmbH"
 

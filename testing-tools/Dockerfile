@@ -4,7 +4,7 @@
 # Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-this-image
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:67aafc6c9c44374e1baf340110d4c835457d59a0444c068ba9ac6431a6d9e7ac
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:a41db89ac688576827fbd3e8e3ef145fd7f4db28d7f533c154f96224fcd20595
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
