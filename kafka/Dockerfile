@@ -44,9 +44,9 @@ tar -czf /stackable/kafka-${NEW_VERSION}-src.tar.gz .
 # We don't specify "-x test" to skip the tests, as we might bump some Kafka internal dependencies in the future and
 # it's a good idea to run the tests in this case.
 ./gradlew clean releaseTarGz
-./gradlew cyclonedxBom
+#./gradlew cyclonedxBom
 tar -xf core/build/distributions/kafka_${SCALA_VERSION}-${NEW_VERSION}.tgz -C /stackable
-cp build/reports/bom.json /stackable/kafka_${SCALA_VERSION}-${NEW_VERSION}.cdx.json
+#cp build/reports/bom.json /stackable/kafka_${SCALA_VERSION}-${NEW_VERSION}.cdx.json
 rm -rf /stackable/kafka_${SCALA_VERSION}-${NEW_VERSION}/site-docs/
 (cd .. && rm -rf ${PRODUCT_VERSION})
 
@@ -79,7 +79,7 @@ LABEL \
   description="This image is deployed by the Stackable Operator for Apache Kafka."
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
-COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+#COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/kafka_${SCALA_VERSION}-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/kafka-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz  /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kafka-builder /stackable/jmx/ /stackable/jmx/
 COPY --chown=${STACKABLE_USER_UID}:0 --from=kcat /stackable/kcat /stackable/bin/kcat-${KAFKA_KCAT_VERSION}
