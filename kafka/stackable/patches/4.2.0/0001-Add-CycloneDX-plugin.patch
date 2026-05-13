@@ -1,0 +1,65 @@
+From 855ddc9cdffe2a838f9dc7d05064cf8b74144d36 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 13 May 2026 16:30:33 +0300
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 44 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
+
+diff --git a/build.gradle b/build.gradle
+index 2b27f3af75..6a5e74a2bd 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,8 +41,50 @@ plugins {
+   id 'org.scoverage' version '8.1' apply false
+   id 'com.gradleup.shadow' version '8.3.9' apply false
+   id 'com.diffplug.spotless' version "8.0.0"
++  id 'org.cyclonedx.bom' version '1.10.0'
++}
++
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = "application"
++    // Specified the version of the CycloneDX specification to use. Defaults to '1.5'
++    schemaVersion = "1.5"
++    // Boms destination directory. Defaults to 'build/reports'
++    destination = file("build/reports")
++    // The file name for the generated BOMs (before the file format suffix). Defaults to 'bom'
++    outputName = "bom"
++    // The file format generated, can be xml, json or all for generating both. Defaults to 'all'
++    outputFormat = "json"
++    includeConfigs = ["runtimeClasspath"]
++    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
++    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++    skipProjects = [
++      'upgrade-system-tests-0110',
++      'upgrade-system-tests-10',
++      'upgrade-system-tests-11',
++      'upgrade-system-tests-20',
++      'upgrade-system-tests-21',
++      'upgrade-system-tests-22',
++      'upgrade-system-tests-23',
++      'upgrade-system-tests-24',
++      'upgrade-system-tests-25',
++      'upgrade-system-tests-26',
++      'upgrade-system-tests-27',
++      'upgrade-system-tests-28',
++      'upgrade-system-tests-30',
++      'upgrade-system-tests-31',
++      'upgrade-system-tests-32',
++      'upgrade-system-tests-33',
++      'upgrade-system-tests-34',
++      'upgrade-system-tests-35',
++      'upgrade-system-tests-36',
++      'upgrade-system-tests-37',
++      'upgrade-system-tests-38',
++      'upgrade-system-tests-39',
++      'upgrade-system-tests-40',
++    ]
+ }
+-
++ 
+ ext {
+   minClientJavaVersion = 11
+   minNonClientJavaVersion = 17

@@ -1,0 +1,35 @@
+From 456b4ec6e150ba3309d3fde426d2df80a67d85de Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 13 May 2026 16:31:44 +0300
+Subject: Change Gradle to use the Nexus Build Repo
+
+---
+ build.gradle | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index 6a5e74a2bd..2bdfb80d85 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets
+ 
+ buildscript {
+   repositories {
+-    mavenCentral()
++    maven {
++      url 'https://build-repo.stackable.tech/repository/maven-public/'
++    }
+   }
+   apply from: "$rootDir/gradle/dependencies.gradle"
+ 
+@@ -209,7 +211,9 @@ ext {
+ allprojects {
+ 
+   repositories {
+-    mavenCentral()
++    maven {
++      url 'https://build-repo.stackable.tech/repository/maven-public/'
++    }
+   }
+ 
+   dependencyUpdates {
