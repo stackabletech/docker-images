@@ -42,3 +42,4 @@ jobs:
       # Since building Vector from source, this build runs out of disk space.
       # As such, we use the Ubicloud runners which provide bigger disks.
       runners: ubicloud
+      push-to-quay: false
