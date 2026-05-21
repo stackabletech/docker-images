@@ -1,6 +1,6 @@
 use std::{
     collections::{BTreeMap, btree_map::Entry},
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Deref, DerefMut},
     path::PathBuf,
 };
@@ -349,7 +349,7 @@ impl Bakefile {
                     image_registry,
                     &cli_args.registry_namespace,
                     &image_name,
-                    &cli_args.image_version,
+                    &image_version,
                     &metadata.vendor_tag_prefix,
                     &cli_args.image_version,
                     cli_args.target_platform.architecture(),
@@ -568,6 +568,7 @@ impl Bakefile {
 // TODO (@Techassi): Figure out of we can use borrowed data in here. This would avoid a whole bunch
 // of cloning.
 #[derive(Debug, Default, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct BakefileTarget {
     /// Defines build arguments for the target.
     #[serde(
@@ -714,22 +715,53 @@ pub struct BakefileGroup {
     targets: Vec<String>,
 }
 
-#[derive(Clone, Debug, Serialize)]
-#[serde(tag = "type", rename_all = "lowercase")]
+#[derive(Clone, Debug)]
 pub enum CacheStorageBackend {
     Registry {
         /// Full name of the cache image to import.
-        #[serde(rename = "ref")]
         reference: String,
 
-        #[serde(skip_serializing_if = "Option::is_none")]
+        /// Specifies which layers to cache
         mode: Option<CacheMode>,
     },
 }
 
-#[derive(Clone, Copy, Debug, Serialize)]
-#[serde(rename_all = "lowercase")]
+impl Display for CacheStorageBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CacheStorageBackend::Registry { reference, mode } => {
+                f.write_str("type=registry")?;
+                f.write_fmt(format_args!(",ref={reference}"))?;
+
+                if let Some(mode) = mode {
+                    f.write_fmt(format_args!(",mode={mode}"))?;
+                }
+
+                Ok(())
+            }
+        }
+    }
+}
+
+impl Serialize for CacheStorageBackend {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum CacheMode {
     // We currently only support max, because we want to cache every layer
     Max,
+}
+
+impl Display for CacheMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CacheMode::Max => write!(f, "max"),
+        }
+    }
 }
