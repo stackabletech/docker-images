@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add version `2.9.0` ([#1463]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
+- testing-tools: Added grpcurl utility ([#1493]).
 
 ### Changed
 
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 [#1474]: https://github.com/stackabletech/docker-images/pull/1474
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
+[#1493]: https://github.com/stackabletech/docker-images/pull/1493
 
 ## [26.3.0] - 2026-03-16
 
