@@ -26,9 +26,10 @@ on:
           - `ubicloud`: Both the x86_64 and the aarch64 builds run on the Ubicloud runners
         default: mixed
         type: string
-      push-to-quay:
+      publish-to-quay:
         description: |
-          Whether to push to quay.io or not. If `true`, the `quay-robot-secret` needs to be provided.
+          Whether to publish to quay.io or not. If `true`, the `quay-robot-secret` needs to be
+          provided.
         type: boolean
         default: true
     secrets:
@@ -137,7 +138,7 @@ jobs:
           source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
 
       - name: Publish Container Image on quay.io
-        if: inputs.push-to-quay
+        if: inputs.publish-to-quay
         uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: quay.io
@@ -184,7 +185,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
       - name: Publish and Sign Image Index Manifest to quay.io
-        if: inputs.push-to-quay
+        if: inputs.publish-to-quay
         uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: quay.io
