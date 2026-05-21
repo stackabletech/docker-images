@@ -365,12 +365,11 @@ impl Bakefile {
                             &image_name,
                         );
 
-                        let cache_image_index_manifest_tag =
-                            utils::format_image_cache_index_manifest_tag(
-                                &image_version,
-                                &metadata.vendor_tag_prefix,
-                                &cli_args.image_version,
-                            );
+                        let cache_image_index_manifest_tag = utils::format_image_index_manifest_tag(
+                            &image_version,
+                            &metadata.vendor_tag_prefix,
+                            &cli_args.image_version,
+                        );
 
                         let cache_image_manifest_tag = utils::format_image_manifest_tag(
                             &cache_image_index_manifest_tag,

@@ -43,16 +43,6 @@ pub fn format_image_index_manifest_tag(
     format!("{image_version}-{vendor_tag_prefix}{vendor_image_version}")
 }
 
-pub fn format_image_cache_index_manifest_tag(
-    image_version: &str,
-    vendor_tag_prefix: &str,
-    vendor_image_version: &str,
-) -> String {
-    let tag =
-        format_image_index_manifest_tag(image_version, vendor_tag_prefix, vendor_image_version);
-    format!("{tag}-cache")
-}
-
 /// Formats and returns the image manifest tag, eg. `1.4.2-stackable25.7.0-amd64`.
 ///
 /// The `strip_architecture` parameter controls if the architecture is included in the tag.
@@ -69,6 +59,8 @@ pub fn format_image_manifest_tag(
     }
 }
 
+// TODO (@Techassi): Can we design this better? Maybe add a new struct/type which implements a bunch
+// of associated functions.
 #[allow(clippy::too_many_arguments)]
 pub fn format_image_tag_parts(
     image_registry: &HostPort,
