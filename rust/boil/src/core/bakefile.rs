@@ -340,26 +340,46 @@ impl Bakefile {
 
         for (image_name, (image_config, is_entry)) in targets.into_iter() {
             for (image_version, image_options) in image_config.versions {
-                let image_repository_uri = utils::format_image_repository_uri(
+                let (
+                    image_repository_uri,
+                    image_index_manifest_tag,
+                    image_manifest_tag,
+                    image_manifest_uri,
+                ) = utils::format_image_tag_parts(
                     image_registry,
                     &cli_args.registry_namespace,
                     &image_name,
-                );
-
-                let image_index_manifest_tag = utils::format_image_index_manifest_tag(
-                    &image_version,
+                    &cli_args.image_version,
                     &metadata.vendor_tag_prefix,
                     &cli_args.image_version,
-                );
-
-                let image_manifest_tag = utils::format_image_manifest_tag(
-                    &image_index_manifest_tag,
                     cli_args.target_platform.architecture(),
                     cli_args.strip_architecture,
                 );
 
-                let image_manifest_uri =
-                    utils::format_image_manifest_uri(&image_repository_uri, &image_manifest_tag);
+                let cache_image_manifest_uri =
+                    cli_args.cache_registry.as_ref().map(|cache_registry| {
+                        let uri = utils::format_image_cache_repository_uri(
+                            cache_registry,
+                            cli_args.cache_namespace.as_deref(),
+                            &cli_args.registry_namespace,
+                            &image_name,
+                        );
+
+                        let cache_image_index_manifest_tag =
+                            utils::format_image_cache_index_manifest_tag(
+                                &image_version,
+                                &metadata.vendor_tag_prefix,
+                                &cli_args.image_version,
+                            );
+
+                        let cache_image_manifest_tag = utils::format_image_manifest_tag(
+                            &cache_image_index_manifest_tag,
+                            cli_args.target_platform.architecture(),
+                            cli_args.strip_architecture,
+                        );
+
+                        utils::format_image_manifest_uri(&uri, &cache_image_manifest_tag)
+                    });
 
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
@@ -449,6 +469,23 @@ impl Bakefile {
                     &cli_args.image_version,
                 );
 
+                let cache_to =
+                    cache_image_manifest_uri
+                        .clone()
+                        .map_or_else(Vec::new, |reference| {
+                            vec![CacheStorageBackend::Registry {
+                                reference,
+                                mode: Some(CacheMode::Max),
+                            }]
+                        });
+
+                let cache_from = cache_image_manifest_uri.map_or_else(Vec::new, |reference| {
+                    vec![CacheStorageBackend::Registry {
+                        reference,
+                        mode: None,
+                    }]
+                });
+
                 let target = BakefileTarget {
                     tags: vec![image_manifest_uri],
                     arguments: build_arguments,
@@ -459,6 +496,8 @@ impl Bakefile {
                     inherits: vec![COMMON_TARGET_NAME.to_owned()],
                     annotations,
                     contexts,
+                    cache_from,
+                    cache_to,
                     ..Default::default()
                 };
 
@@ -577,6 +616,12 @@ pub struct BakefileTarget {
     /// Image names and tags to use for the build target.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub cache_from: Vec<CacheStorageBackend>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub cache_to: Vec<CacheStorageBackend>,
 }
 
 impl BakefileTarget {
@@ -667,4 +712,24 @@ impl BakefileTarget {
 #[derive(Debug, Default, Serialize)]
 pub struct BakefileGroup {
     targets: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum CacheStorageBackend {
+    Registry {
+        /// Full name of the cache image to import.
+        #[serde(rename = "ref")]
+        reference: String,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        mode: Option<CacheMode>,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CacheMode {
+    // We currently only support max, because we want to cache every layer
+    Max,
 }
