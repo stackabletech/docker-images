@@ -33,6 +33,7 @@ jobs:
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
+      quay-robot-secret: ${{ secrets.QUAY_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
       slack-token: ${{ secrets.SLACK_CONTAINER_IMAGE_TOKEN }}
     permissions:
       id-token: write
