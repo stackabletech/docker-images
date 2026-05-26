@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add version `2.9.0` ([#1463]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
-- opa: Add `1.16.2` ([#XXXX]).
+- opa: Add `1.16.2` ([#1509]).
 
 ### Changed
 
@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- opa: Remove `1.8.0` ([#XXXX]).
+- opa: Remove `1.8.0` ([#1509]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 [#1474]: https://github.com/stackabletech/docker-images/pull/1474
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1509]: https://github.com/stackabletech/docker-images/pull/1509
 
 ## [26.3.0] - 2026-03-16
 
