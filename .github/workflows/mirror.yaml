@@ -15,11 +15,22 @@ on:
           - registry.k8s.io/sig-storage/csi-provisioner
           - registry.k8s.io/git-sync/git-sync
           - registry-1.docker.io/library/golang
+          - registry-1.docker.io/dxflrs/garage
       image-index-manifest-tag:
         description: |
           The image index manifest tag, like 1.0.14 or v1.0.14
         type: string
         required: true
+      # TODO (@NickLarsenNZ): Combine this with the source image above
+      # So that we don't have to remember which project for which mirrored image
+      # Note that each project has a different credential
+      destination-project:
+        description: |
+          Destination project in Harbor
+        type: choice
+        options:
+          - sdp
+          - stackable
 
 permissions: {}
 
@@ -59,13 +70,25 @@ jobs:
         run: |
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
-      - name: Publish Container Image on oci.stackable.tech
+      - name: Publish Container Image on oci.stackable.tech/sdp
+        if: inputs.destination-project == 'sdp'
         uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
+          image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
+          source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
+
+      - name: Publish Container Image on oci.stackable.tech/stackable
+        if: inputs.destination-project == 'stackable'
+        uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$stackable+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: ${{ format('stackable/{0}', env.IMAGE_REPOSITORY) }}
           image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
           source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
@@ -87,13 +110,24 @@ jobs:
         run: |
           echo "IMAGE_REPOSITORY=$(.scripts/get_repo_name.sh)" | tee -a "$GITHUB_ENV"
 
-      - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+      - name: Publish and Sign Image Index Manifest to oci.stackable.tech/sdp
+        if: inputs.destination-project == 'sdp'
         uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
+          image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
+
+      - name: Publish and Sign Image Index Manifest to oci.stackable.tech/stackable
+        if: inputs.destination-project == 'stackable'
+        uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
+        with:
+          image-registry-uri: oci.stackable.tech
+          image-registry-username: robot$stackable+github-action-build
+          image-registry-password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
+          image-repository: ${{ format('stackable/{0}', env.IMAGE_REPOSITORY) }}
           image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
   # NOTE (@Techassi) It is currently not possible to use our own action here, because the inputs
