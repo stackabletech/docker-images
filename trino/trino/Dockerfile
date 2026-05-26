@@ -1,20 +1,27 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
+FROM local-image/trino/airlift AS airlift-builder
+
 FROM local-image/java-devel AS trino-builder
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG TRINO_AIRLIFT_VERSION
 
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT_VERSION} /stackable/src/trino/trino/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 --from=airlift-builder /stackable/patched-libs /stackable/patched-libs
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT_VERSION},target=/root/.m2/repository <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout trino/trino ${PRODUCT_VERSION})"
+
+# Make Maven aware of the patched Airlift artifacts before resolving deps
+cp -r /stackable/patched-libs/maven/* /root/.m2/repository
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
@@ -49,6 +56,7 @@ mvn \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
   -Ddep.presto-jdbc-under-test=${NEW_VERSION} \
+  -Ddep.airlift.version=${TRINO_AIRLIFT_VERSION}-stackable${RELEASE_VERSION} `# Use Stackable-patched Airlift; see local-image/trino/airlift` \
   --projects="$SKIP_PROJECTS"
 
 mkdir -p /stackable/patched-libs/maven/io

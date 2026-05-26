@@ -1,5 +1,7 @@
 [versions."477".local-images]
 java-devel = "24"
+"trino/airlift" = "361"
 
 [versions."479".local-images]
 java-devel = "25"
+"trino/airlift" = "386"
