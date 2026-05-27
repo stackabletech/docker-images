@@ -6,12 +6,12 @@
 # Then we could run these tests against the Airflow instance and use the Airflow API to
 # actually test the effect of Rego policies on user authorization.
 #
+from types import SimpleNamespace
 from unittest import mock
 from unittest.mock import Mock
 
 import pytest
 from airflow.api_fastapi.auth.managers.models.resource_details import (
-    AccessView,
     DagAccessEntity,
     DagDetails,
 )
@@ -55,6 +55,40 @@ def auth_manager_with_appbuilder(flask_app):
     auth_manager.appbuilder = appbuilder
     auth_manager.init_flask_resources()
     return auth_manager
+
+
+@pytest.fixture
+def mock_opa(monkeypatch):
+    """
+    Replace the OPA HTTP boundary (``call_opa``) so tests exercise the real
+    ``is_authorized_*`` → ``_is_authorized_in_opa`` → ``OpaInput`` chain
+    without making network calls.
+
+    Set ``mock_opa.decide = lambda endpoint, body: bool`` to drive per-request
+    decisions. Default returns ``False`` (deny). Recorded ``(endpoint, body)``
+    pairs are available as ``mock_opa.calls``.
+    """
+    state = SimpleNamespace(
+        decide=lambda endpoint, body: False,
+        calls=[],
+    )
+
+    def fake_call_opa(self, url, json, timeout):
+        endpoint = url.rsplit("/", 1)[-1]
+        state.calls.append((endpoint, json))
+        response = Mock()
+        response.json.return_value = {"result": state.decide(endpoint, json)}
+        return response
+
+    monkeypatch.setattr(OpaFabAuthManager, "call_opa", fake_call_opa)
+    return state
+
+
+def _make_user(name="jane.doe", user_id="1"):
+    user = Mock()
+    user.get_id.return_value = user_id
+    user.get_name.return_value = name
+    return user
 
 
 class TestOpaFabAuthManager:
@@ -243,53 +277,49 @@ class TestOpaFabAuthManager:
             assert result == expected_result
 
     def test_get_authorized_dag_ids_uses_opa_not_fab_db(
-        self, auth_manager_with_appbuilder
+        self, auth_manager_with_appbuilder, mock_opa
     ):
         # Repro for the OPA listing bug: a user with no FAB permissions
         # (e.g. the default Public role) must still see the DAGs that OPA
         # allows. The FabAuthManager base override would return set() here
         # because it reads roles from the metadata DB.
-        user = Mock()
-        user.id = 1
-        user.perms = []
+        user = _make_user()
 
-        all_dag_ids = {"allowed_dag", "denied_dag"}
         session = Mock()
-        session.execute.return_value = [Mock(dag_id=dag_id) for dag_id in all_dag_ids]
+        session.execute.return_value = [
+            Mock(dag_id="allowed_dag"),
+            Mock(dag_id="denied_dag"),
+        ]
 
-        def fake_is_authorized_dag(*, method, details=None, access_entity=None, user):
-            return details is not None and details.id == "allowed_dag"
+        mock_opa.decide = lambda endpoint, body: (
+            endpoint == "is_authorized_dag"
+            and body["input"]["details"]["id"] == "allowed_dag"
+        )
 
-        with mock.patch.object(
-            auth_manager_with_appbuilder,
-            "is_authorized_dag",
-            side_effect=fake_is_authorized_dag,
-        ):
-            result = auth_manager_with_appbuilder.get_authorized_dag_ids(
-                user=user, method="GET", session=session
-            )
+        result = auth_manager_with_appbuilder.get_authorized_dag_ids(
+            user=user, method="GET", session=session
+        )
 
         assert result == {"allowed_dag"}
+        # Every DAG id was offered to OPA — confirms per-item delegation
+        # rather than a global FAB role lookup.
+        asked = {body["input"]["details"]["id"] for _, body in mock_opa.calls}
+        assert asked == {"allowed_dag", "denied_dag"}
 
     def test_get_authorized_dag_ids_provides_session_when_caller_omits_it(
-        self, auth_manager_with_appbuilder
+        self, auth_manager_with_appbuilder, mock_opa
     ):
         # Real callers (api_fastapi/core_api/security.py) don't pass `session`.
         # Our override must rely on @provide_session to inject one; previously
         # it forwarded the default NEW_SESSION (None) and crashed with
         # 'NoneType' has no attribute 'execute'.
-        user = Mock()
-        user.perms = []
+        user = _make_user()
 
         session = Mock()
         session.execute.return_value = [Mock(dag_id="allowed_dag")]
+        mock_opa.decide = lambda endpoint, body: True
 
-        with (
-            mock.patch("airflow.utils.session.create_session") as mock_create_session,
-            mock.patch.object(
-                auth_manager_with_appbuilder, "is_authorized_dag", return_value=True
-            ),
-        ):
+        with mock.patch("airflow.utils.session.create_session") as mock_create_session:
             mock_create_session.return_value.__enter__.return_value = session
             result = auth_manager_with_appbuilder.get_authorized_dag_ids(
                 user=user, method="GET"
@@ -299,95 +329,84 @@ class TestOpaFabAuthManager:
         mock_create_session.assert_called_once()
 
     @pytest.mark.parametrize(
-        "menu_item, expected_method, expected_kwargs",
+        "menu_item, expected_endpoint, expected_input_subset",
         [
             (MenuItem.ASSETS, "is_authorized_asset", {"method": "GET"}),
             (
                 MenuItem.AUDIT_LOG,
                 "is_authorized_dag",
-                {"method": "GET", "access_entity": DagAccessEntity.AUDIT_LOG},
+                {"method": "GET", "access_entity": "AUDIT_LOG"},
             ),
             (MenuItem.CONFIG, "is_authorized_configuration", {"method": "GET"}),
             (MenuItem.CONNECTIONS, "is_authorized_connection", {"method": "GET"}),
-            (MenuItem.DAGS, "is_authorized_dag", {"method": "GET"}),
-            (MenuItem.DOCS, "is_authorized_view", {"access_view": AccessView.DOCS}),
             (
-                MenuItem.PLUGINS,
-                "is_authorized_view",
-                {"access_view": AccessView.PLUGINS},
+                MenuItem.DAGS,
+                "is_authorized_dag",
+                {"method": "GET", "access_entity": None},
             ),
+            (MenuItem.DOCS, "is_authorized_view", {"access_view": "DOCS"}),
+            (MenuItem.PLUGINS, "is_authorized_view", {"access_view": "PLUGINS"}),
             (MenuItem.POOLS, "is_authorized_pool", {"method": "GET"}),
-            (
-                MenuItem.PROVIDERS,
-                "is_authorized_view",
-                {"access_view": AccessView.PROVIDERS},
-            ),
+            (MenuItem.PROVIDERS, "is_authorized_view", {"access_view": "PROVIDERS"}),
             (MenuItem.VARIABLES, "is_authorized_variable", {"method": "GET"}),
             (
                 MenuItem.XCOMS,
                 "is_authorized_dag",
-                {"method": "GET", "access_entity": DagAccessEntity.XCOM},
+                {"method": "GET", "access_entity": "XCOM"},
             ),
         ],
     )
     def test_filter_authorized_menu_items_routes_through_opa(
         self,
         menu_item,
-        expected_method,
-        expected_kwargs,
+        expected_endpoint,
+        expected_input_subset,
         auth_manager_with_appbuilder,
+        mock_opa,
     ):
-        # Each MenuItem must trigger the matching OPA-backed is_authorized_*
-        # call, so menu visibility is OPA-driven rather than FAB-DB-driven.
-        user = Mock()
-        user.perms = []
+        # Each MenuItem must trigger a request to the matching OPA endpoint
+        # with the expected input, so menu visibility is OPA-driven rather
+        # than FAB-DB-driven, and the Rego wire contract is documented.
+        user = _make_user()
 
-        with mock.patch.object(
-            auth_manager_with_appbuilder, expected_method, return_value=True
-        ) as mocked:
-            allowed = auth_manager_with_appbuilder.filter_authorized_menu_items(
-                [menu_item], user=user
-            )
+        mock_opa.decide = lambda endpoint, body: True
+        allowed = auth_manager_with_appbuilder.filter_authorized_menu_items(
+            [menu_item], user=user
+        )
         assert allowed == [menu_item]
-        mocked.assert_called_once_with(user=user, **expected_kwargs)
 
-        with mock.patch.object(
-            auth_manager_with_appbuilder, expected_method, return_value=False
-        ):
-            denied = auth_manager_with_appbuilder.filter_authorized_menu_items(
-                [menu_item], user=user
-            )
+        assert len(mock_opa.calls) == 1
+        endpoint, body = mock_opa.calls[0]
+        assert endpoint == expected_endpoint
+        assert expected_input_subset.items() <= body["input"].items()
+
+        # Deny path: a fresh OPA decision actually filters the item out,
+        # proving the dispatch consults OPA rather than always allowing.
+        auth_manager_with_appbuilder.opa_cache.clear()
+        mock_opa.decide = lambda endpoint, body: False
+        denied = auth_manager_with_appbuilder.filter_authorized_menu_items(
+            [menu_item], user=user
+        )
         assert denied == []
 
     def test_filter_authorized_menu_items_preserves_order_and_filters(
-        self, auth_manager_with_appbuilder
+        self, auth_manager_with_appbuilder, mock_opa
     ):
-        user = Mock()
-        user.perms = []
+        user = _make_user()
 
-        def fake_is_authorized_dag(*, method, details=None, access_entity=None, user):
-            return access_entity is None
+        def decide(endpoint, body):
+            if endpoint == "is_authorized_dag":
+                # Allow DAGs root menu, deny the XCOM access entity.
+                return body["input"].get("access_entity") is None
+            if endpoint == "is_authorized_connection":
+                return True
+            return False
 
-        with (
-            mock.patch.object(
-                auth_manager_with_appbuilder,
-                "is_authorized_dag",
-                side_effect=fake_is_authorized_dag,
-            ),
-            mock.patch.object(
-                auth_manager_with_appbuilder,
-                "is_authorized_connection",
-                return_value=True,
-            ),
-            mock.patch.object(
-                auth_manager_with_appbuilder,
-                "is_authorized_view",
-                return_value=False,
-            ),
-        ):
-            result = auth_manager_with_appbuilder.filter_authorized_menu_items(
-                [MenuItem.DAGS, MenuItem.DOCS, MenuItem.CONNECTIONS, MenuItem.XCOMS],
-                user=user,
-            )
+        mock_opa.decide = decide
+
+        result = auth_manager_with_appbuilder.filter_authorized_menu_items(
+            [MenuItem.DAGS, MenuItem.DOCS, MenuItem.CONNECTIONS, MenuItem.XCOMS],
+            user=user,
+        )
 
         assert result == [MenuItem.DAGS, MenuItem.CONNECTIONS]
