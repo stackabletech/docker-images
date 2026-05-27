@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
 - testing-tools: Added grpcurl utility ([#1493]).
+- opa: Add `1.16.2` ([#1509]).
 
 ### Changed
 
@@ -23,6 +24,10 @@ All notable changes to this project will be documented in this file.
 - vector: Look for SBOM in correct location ([#1471]).
 - vector: Use correct license ([#1476]).
 
+### Removed
+
+- opa: Remove `1.8.0` ([#1509]).
+
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
 [#1453]: https://github.com/stackabletech/docker-images/pull/1453
@@ -34,6 +39,7 @@ All notable changes to this project will be documented in this file.
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
 [#1493]: https://github.com/stackabletech/docker-images/pull/1493
+[#1509]: https://github.com/stackabletech/docker-images/pull/1509
 
 ## [26.3.0] - 2026-03-16
 
