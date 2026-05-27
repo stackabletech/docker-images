@@ -103,13 +103,15 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
         Set up the OPA cache and HTTP session.
 
-        Idempotent so it can be called from both ``init`` (FastAPI api-server)
-        and ``init_flask_resources`` (Flask AppBuilder) — only one of the two
-        runs depending on the Airflow component.
+        Called from both ``init`` (FastAPI api-server) and
+        ``init_flask_resources`` (Flask AppBuilder). In Airflow 3 both run
+        during a single api-server startup but on *different*
+        OpaFabAuthManager instances — ``init_appbuilder`` calls
+        ``create_auth_manager()`` again, which constructs a fresh instance.
+        The api-server instance is reachable via
+        ``request.app.state.auth_manager``; the FAB instance is returned by
+        ``get_auth_manager()``. Both need their own cache and session.
         """
-
-        if getattr(self, "opa_cache", None) is not None:
-            return
 
         Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED, count=0)
 
@@ -590,11 +592,18 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         # FabAuthManager's implementation consults the user's FAB DB role
         # permissions and bypasses is_authorized_dag entirely, which makes any
         # user without a FAB role (e.g. the default Public role) see an empty
-        # DAG list even when OPA would allow them. Re-implement the
-        # BaseAuthManager default: list all DAG ids and filter them via
-        # is_authorized_dag → OPA.
+        # DAG list even when OPA would allow them. List all DAG ids and filter
+        # them via is_authorized_dag → OPA directly, without going through
+        # filter_authorized_dag_ids — the Fab base class may add a DB-backed
+        # override of that method in the future.
         dag_ids = {dag.dag_id for dag in session.execute(select(DagModel.dag_id))}
-        return self.filter_authorized_dag_ids(dag_ids=dag_ids, method=method, user=user)
+        return {
+            dag_id
+            for dag_id in dag_ids
+            if self.is_authorized_dag(
+                method=method, details=DagDetails(id=dag_id), user=user
+            )
+        }
 
     @override
     def filter_authorized_menu_items(

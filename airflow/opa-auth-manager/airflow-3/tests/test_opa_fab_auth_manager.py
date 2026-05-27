@@ -389,6 +389,23 @@ class TestOpaFabAuthManager:
         )
         assert denied == []
 
+    def test_filter_authorized_menu_items_denies_unknown(
+        self, auth_manager_with_appbuilder, mock_opa
+    ):
+        # A MenuItem value not handled by _is_menu_item_authorized (e.g. one
+        # introduced in a future Airflow version) must fail closed: denied
+        # without consulting OPA, so a new UI surface isn't silently exposed
+        # before the dispatch table is updated.
+        unknown = Mock(spec=MenuItem)
+        unknown.name = "FUTURE_THING"
+
+        result = auth_manager_with_appbuilder.filter_authorized_menu_items(
+            [unknown], user=_make_user()
+        )
+
+        assert result == []
+        assert mock_opa.calls == []
+
     def test_filter_authorized_menu_items_preserves_order_and_filters(
         self, auth_manager_with_appbuilder, mock_opa
     ):

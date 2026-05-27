@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - vector: Look for SBOM in correct location ([#1471]).
 - vector: Use correct license ([#1476]).
 - trino: Build a patched Airlift from source and depend on it to backport [airlift/airlift#1943](https://github.com/airlift/airlift/pull/1943), applying the configured max response header size to Jetty's `maxResponseHeaderSize` ([#1510]).
-- airflow: Route DAG listings and menu items through OPA in the Airflow 3 OPA auth manager, and wire the OPA cache on the FastAPI api-server init path ([#XXXX]).
+- airflow: Route DAG listings and menu items through OPA in the Airflow 3 OPA auth manager, and wire the OPA cache on the FastAPI api-server init path ([#1512]).
 
 ### Removed
 
@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 [#1493]: https://github.com/stackabletech/docker-images/pull/1493
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
+[#1512]: https://github.com/stackabletech/docker-images/pull/1512
 
 ## [26.3.0] - 2026-03-16
 
