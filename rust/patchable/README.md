@@ -200,7 +200,7 @@ cargo patchable checkout druid 26.0.0
 cargo patchable init version druid 28.0.0 --upstream https://github.com/apache/druid.git --base druid-28.0.0
 
 # Create and go to the worktree for the new version
-pushd $(cargo patchable checkout druid 28.0.0)
+pushd $(cargo patchable checkout hadoop/hadoop 3.5.0)
 
 # Cherry pick the old patch series
 git cherry-pick patchable/base/26.0.0..patchable/26.0.0

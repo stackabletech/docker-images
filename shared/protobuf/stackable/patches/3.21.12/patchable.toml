@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/protobuf.git"
+base = "f0dc78d7e6e331b8c6bb2d5283e06aa26883ca7c"
