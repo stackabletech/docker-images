@@ -23,9 +23,6 @@ RUN <<EOF
 microdnf install gcc gcc-c++ make perl python3 tar bzip2 xz
 microdnf clean all
 
-EOF
-RUN <<EOF
-
 BOOST_UNDERSCORE="$(echo "${BOOST_VERSION}" | tr '.' '_')"
 BOOST_TARBALL="boost_${BOOST_UNDERSCORE}.tar.bz2"
 # See .scripts/upload_new_boost_version.sh for how this artifact got there.
