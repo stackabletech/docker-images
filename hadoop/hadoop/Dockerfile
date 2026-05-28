@@ -50,7 +50,7 @@ RUN <<EOF
         # protobuf > 3.21 bundles abseil-cpp and utf8_range as git submodules
         git submodule update --init --recursive
         cmake -S . -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -Dprotobuf_BUILD_TESTS=OFF
-        cmake --build build --parallel $(nproc)
+        cmake --build build --parallel "$(nproc)"
         cmake --install build --prefix /opt/protobuf
     fi
     (cd .. && rm -r ${PROTOBUF_VERSION})
