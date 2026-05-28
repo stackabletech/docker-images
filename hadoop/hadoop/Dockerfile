@@ -154,7 +154,7 @@ mkdir -p /stackable/hadoop-cloud-libraries/
 
 if [[ "$PRODUCT_VERSION" == "3.3.6" || "$PRODUCT_VERSION" == "3.4.2" ]]; then
     cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
-    cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
     cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
