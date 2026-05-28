@@ -27,8 +27,8 @@ scala-version = "2.13"
 jmx-exporter-version = "1.3.0"
 
 [versions."4.2.0".local-images]
-java-base = "24"
-java-devel = "24"
+java-base = "25"
+java-devel = "25"
 "kafka/kcat" = "1.7.0"
 "kafka/kafka-opa-plugin" = "1.5.1"
 # TODO: this is not used in this version but it's added
