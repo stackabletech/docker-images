@@ -8,8 +8,9 @@ on:
     inputs:
       publish:
         description: Publish and sign images
+        type: boolean
         required: true
-        default: "true"
+        default: true
   schedule:
     - cron: 0 0 2/2 * * # https://crontab.guru/#0_0_2/2_*_*
   push:
@@ -48,5 +49,5 @@ jobs:
       # As such, we use the Ubicloud runners which provide bigger disks.
       runners: ubicloud
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
-      publish: ${{ inputs.publish == '' || inputs.publish == 'true' }}
+      publish: inputs.publish || true
       publish-to-quay: false
