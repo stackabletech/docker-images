@@ -30,15 +30,8 @@ ARG STACKABLE_USER_UID
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-  # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
-  # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
-  # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
-  # So we try to copy both and if one of them doesn't exist buildx will just ignore it :)
-  /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/
+# Copy cloud libraries for s3a:// and abfs:// support
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 

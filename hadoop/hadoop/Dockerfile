@@ -7,6 +7,9 @@ FROM local-image/java-devel AS hadoop-builder
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG PROTOBUF_VERSION
+ARG AWS_JAVA_SDK_BUNDLE_VERSION
+ARG AZURE_STORAGE_VERSION
+ARG AZURE_KEYVAULT_CORE_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
@@ -90,6 +93,7 @@ tar -czf /stackable/hadoop-${NEW_VERSION}-src.tar.gz .
 # Therefore, this build does work but the final image does NOT contain the openssl-devel package which is why it fails there which is why we have to create the symlink over there manually.
 # We still leave this flag in to automatically fail should anything with the packages or symlinks ever fail.
 mvn \
+   --threads 1C \
     clean package install \
     -Pdist,native \
     -pl '!hadoop-tools/hadoop-pipes' \
@@ -139,4 +143,29 @@ rm -rf /stackable/.m2
 
 # Set correct groups; make sure only required artifacts for the final image are located in /stackable
 chmod -R g=u /stackable
+EOF
+
+RUN <<EOF
+NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+
+# Place cloud libraries (for s3a:// and abfs://) in the /stackable/hadoop-cloud-libraries/ folder to
+# have one central place for dependant images to pull them from
+mkdir -p /stackable/hadoop-cloud-libraries/
+
+if [[ "$PRODUCT_VERSION" == "3.3.6" || "$PRODUCT_VERSION" == "3.4.2" ]]; then
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+else
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    # Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
+    # TODO: Use Nexus, but I currently can't upload.
+    # curl -o /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
+    curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/${AWS_JAVA_SDK_BUNDLE_VERSION}/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+fi
 EOF
