@@ -1,5 +1,5 @@
-From 679fd94b89dbb51c704a7602b94e9d492d7c1a8f Mon Sep 17 00:00:00 2001
-From: Lukas Krug <lukas@luvosys.de>
+From 846dafacf01735c4eb507959f7b9456d8fe8ebdc Mon Sep 17 00:00:00 2001
+From: Lukas Krug <lukas.krug@stackable.tech>
 Date: Wed, 27 May 2026 21:58:48 +0200
 Subject: Apply max response header size to Jetty maxResponseHeaderSize
 
