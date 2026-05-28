@@ -49,5 +49,5 @@ jobs:
       # As such, we use the Ubicloud runners which provide bigger disks.
       runners: ubicloud
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
-      publish: inputs.publish || true
+      publish: ${{ inputs.publish || true }}
       publish-to-quay: false
