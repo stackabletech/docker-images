@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       skip-publish:
-        description: Publish and sign images
+        description: Skip publishing and signing images
         type: boolean
         required: true
         default: false
