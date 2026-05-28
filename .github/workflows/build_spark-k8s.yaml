@@ -6,11 +6,11 @@ run-name: |
 on:
   workflow_dispatch:
     inputs:
-      publish:
+      skip-publish:
         description: Publish and sign images
         type: boolean
         required: true
-        default: true
+        default: false
   schedule:
     - cron: 0 0 2/2 * * # https://crontab.guru/#0_0_2/2_*_*
   push:
@@ -49,5 +49,5 @@ jobs:
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
-      publish: ${{ inputs.publish || true }}
+      publish: ${{ !inputs.skip-publish }}
       runners: ubicloud
