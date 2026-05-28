@@ -5,6 +5,12 @@ run-name: |
 
 on:
   workflow_dispatch:
+    inputs:
+      skip-publish:
+        description: Skip publishing and signing images
+        type: boolean
+        required: true
+        default: false
   schedule:
     - cron: 0 2 1/2 * * # https://crontab.guru/#0_2_1/2_*_*
   push:
@@ -40,3 +46,5 @@ jobs:
       product-name: trino-cli
       sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
       registry-namespace: sdp
+      # Default to true if not set/empty (if not triggered by workflow_dispatch)
+      publish: ${{ !inputs.skip-publish }}
