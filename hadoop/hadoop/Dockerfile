@@ -93,7 +93,6 @@ tar -czf /stackable/hadoop-${NEW_VERSION}-src.tar.gz .
 # Therefore, this build does work but the final image does NOT contain the openssl-devel package which is why it fails there which is why we have to create the symlink over there manually.
 # We still leave this flag in to automatically fail should anything with the packages or symlinks ever fail.
 mvn \
-   --threads 1C \
     clean package install \
     -Pdist,native \
     -pl '!hadoop-tools/hadoop-pipes' \

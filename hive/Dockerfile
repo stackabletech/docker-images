@@ -61,7 +61,6 @@ tar -czf /stackable/hive-${NEW_VERSION}-src.tar.gz .
 
 if [[ "${PRODUCT_VERSION}" == "3.1.3" ]] ; then
   mvn \
-    --threads 1C \
     clean package \
     -DskipTests \
     --projects standalone-metastore
@@ -71,7 +70,6 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   (
     # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
     mvn \
-      --threads 1C \
       clean package \
       -DskipTests \
       -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION}
@@ -85,7 +83,7 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   )
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
-  mvn --threads 1C \
+  mvn \
     clean package \
     -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
     -DskipTests \
