@@ -1,24 +1,23 @@
-From ac6b62a853134f90dde87e503332f8a483db5b5d Mon Sep 17 00:00:00 2001
+From 5ef351ca945bcaa8346ef066ba00fd9288a4f443 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Wed, 13 May 2026 16:30:33 +0300
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 46 insertions(+), 1 deletion(-)
+ build.gradle | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 2b27f3af75..482f3b0659 100644
+index c07cd3b047..effbe0f65d 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -41,8 +41,53 @@ plugins {
    id 'org.scoverage' version '8.1' apply false
    id 'com.gradleup.shadow' version '8.3.9' apply false
    id 'com.diffplug.spotless' version "8.0.0"
--}
 +  id 'org.cyclonedx.bom' version '3.2.4'
-+}
-+
+ }
+ 
 +cyclonedxBom {
 +    // Specified the type of project being built. Defaults to 'library'
 +    projectType = org.cyclonedx.model.Component.Type.APPLICATION
@@ -56,7 +55,7 @@ index 2b27f3af75..482f3b0659 100644
 +  ':streams:upgrade-system-tests-40',
 +  ':streams:upgrade-system-tests-41',
 +]
- 
++
 +configure(subprojects.findAll { skipCyclonedxProjects.contains(it.path) }) {
 +  tasks.named('cyclonedxDirectBom') {
 +    enabled = false
