@@ -162,9 +162,7 @@ if [[ "$PRODUCT_VERSION" == "3.3.6" || "$PRODUCT_VERSION" == "3.4.2" ]]; then
 else
     cp /stackable/hadoop/share/hadoop/common/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     # Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
-    # TODO: Use Nexus, but I currently can't upload.
-    # curl -o /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
-    curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/${AWS_JAVA_SDK_BUNDLE_VERSION}/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
+    curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
     cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
