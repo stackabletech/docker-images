@@ -1,4 +1,4 @@
-From 23b979c8cc68a8097e21858909f157ca8cdb9cd6 Mon Sep 17 00:00:00 2001
+From 1f99c4cf15723be1ce1de65a7d5559b5bb29cb7a Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 29 May 2026 17:43:58 +0200
 Subject: Include jackson dataformat xml dependency
@@ -6,8 +6,9 @@ Subject: Include jackson dataformat xml dependency
 Add jacksonDatabindXml everywhere near jacjsonDatabindYaml in
 build.gradle
 ---
- build.gradle | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ build.gradle               | 15 ++++++++++++++-
+ gradle/dependencies.gradle |  1 +
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
 index bd840210bd..487c2d06dd 100644
@@ -118,3 +119,15 @@ index bd840210bd..487c2d06dd 100644
      testImplementation libs.junitJupiter
      testImplementation libs.mockitoCore
      testImplementation libs.mockitoJunitJupiter
+diff --git a/gradle/dependencies.gradle b/gradle/dependencies.gradle
+index de63116795..19d4117dca 100644
+--- a/gradle/dependencies.gradle
++++ b/gradle/dependencies.gradle
+@@ -159,6 +159,7 @@ libs += [
+   jacksonAnnotations: "com.fasterxml.jackson.core:jackson-annotations:$versions.jacksonAnnotations",
+   jacksonDatabind: "com.fasterxml.jackson.core:jackson-databind:$versions.jackson",
+   jacksonDatabindYaml: "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$versions.jackson",
++  jacksonDatabindXml: "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$versions.jackson",
+   jacksonDataformatCsv: "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:$versions.jackson",
+   jacksonJDK8Datatypes: "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$versions.jackson",
+   jacksonBlackbird: "com.fasterxml.jackson.module:jackson-module-blackbird:$versions.jackson",
