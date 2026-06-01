@@ -4,3 +4,4 @@
 [versions."0.3.0".build-arguments]
 kubectl-version = "1.35.0"
 python-version = "3.12"
+grpcurl-version = "1.9.3"
