@@ -40,7 +40,7 @@ jobs:
           persist-credentials: false
 
       - name: Login to Stackable Harbor
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
@@ -92,7 +92,7 @@ jobs:
           persist-credentials: false
 
       - name: Login to Stackable Harbor
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: oci.stackable.tech
           username: robot$sdp+github-action-build
@@ -123,7 +123,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
+        uses: stackabletech/actions/send-slack-notification@1b8db26b7406c66a7ab74e344a9e54edb2bc2690 # v0.14.3
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
