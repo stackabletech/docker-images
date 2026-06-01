@@ -1,0 +1,3 @@
+# It is not yet known how and when to change this
+# I will try without it overridden for now
+# Cython==3.0.12
