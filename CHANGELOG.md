@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
 
 ### Fixed
 
@@ -41,6 +42,7 @@ All notable changes to this project will be documented in this file.
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
 [#1493]: https://github.com/stackabletech/docker-images/pull/1493
+[#1507]: https://github.com/stackabletech/docker-images/pull/1507
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
