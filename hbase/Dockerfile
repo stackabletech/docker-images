@@ -104,14 +104,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_P
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
-# Copy the dependencies from Hadoop which are required for the Azure Data Lake
-# Storage (ADLS) to /stackable/hbase-${HBASE_VERSION}/lib which is on the classpath.
-# hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
-# by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-  /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/lib/
-
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/lib
 
