@@ -1,0 +1,133 @@
+From 1f99c4cf15723be1ce1de65a7d5559b5bb29cb7a Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 29 May 2026 17:43:58 +0200
+Subject: Include jackson dataformat xml dependency
+
+Add jacksonDatabindXml everywhere near jacjsonDatabindYaml in
+build.gradle
+---
+ build.gradle               | 15 ++++++++++++++-
+ gradle/dependencies.gradle |  1 +
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/build.gradle b/build.gradle
+index bd840210bd..487c2d06dd 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -188,13 +188,15 @@ ext {
+     libs.slf4jLog4j2,
+     libs.junitPlatformLanucher,
+     libs.jacksonDatabindYaml,
++    libs.jacksonDatabindXml,
+     project(":test-common:test-common-util")
+   ]
+ 
+   log4jReleaseLibs = [
+     libs.slf4jLog4j2,
+     libs.log4j1Bridge2Api,
+-    libs.jacksonDatabindYaml
++    libs.jacksonDatabindYaml,
++    libs.jacksonDatabindXml,
+   ]
+ 
+   log4j2Libs = [
+@@ -1122,6 +1124,7 @@ project(':core') {
+     implementation libs.jacksonDataformatCsv
+     implementation libs.jacksonJDK8Datatypes
+     implementation libs.jacksonDatabindYaml
++    implementation libs.jacksonDatabindXml
+     implementation libs.joptSimple
+     implementation libs.jose4j
+     implementation libs.metrics
+@@ -1537,6 +1540,7 @@ project(':group-coordinator') {
+     testImplementation project(':server-common').sourceSets.test.output
+     testImplementation project(':coordinator-common').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation testLog4j2Libs
+@@ -1659,6 +1663,7 @@ project(':test-common:test-common-runtime') {
+     implementation libs.junitPlatformLanucher
+     implementation libs.junitJupiter
+     implementation libs.jacksonDatabindYaml
++    implementation libs.jacksonDatabindXml
+     implementation libs.slf4jApi
+ 
+     testImplementation libs.junitJupiter
+@@ -2133,6 +2138,7 @@ project(':raft') {
+     testImplementation project(':clients')
+     testImplementation project(':clients').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation libs.jqwik
+@@ -2230,6 +2236,7 @@ project(':server-common') {
+     testImplementation project(':clients')
+     testImplementation project(':clients').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation testLog4j2Libs
+@@ -2371,6 +2378,7 @@ project(':storage') {
+     testImplementation project(':transaction-coordinator')
+     testImplementation libs.hamcrest
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation libs.bcpkix
+@@ -2689,6 +2697,7 @@ project(':shell') {
+     testImplementation project(':server-common')
+     testImplementation project(':server-common').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation testLog4j2Libs
+ 
+@@ -2738,6 +2747,7 @@ project(':streams') {
+ 
+     testImplementation project(':clients').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.bcpkix
+     testImplementation libs.hamcrest
+@@ -2883,6 +2893,7 @@ project(':streams:streams-scala') {
+     testImplementation project(':streams:test-utils')
+ 
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoJunitJupiter // supports MockitoExtension
+     testImplementation testLog4j2Libs
+@@ -2987,6 +2998,7 @@ project(':streams:test-utils') {
+ 
+     testImplementation project(':clients').sourceSets.test.output
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation libs.hamcrest
+@@ -3682,6 +3694,7 @@ project(':connect:runtime') {
+     testImplementation project(':server-common').sourceSets.test.output
+ 
+     testImplementation libs.jacksonDatabindYaml
++    testImplementation libs.jacksonDatabindXml
+     testImplementation libs.junitJupiter
+     testImplementation libs.mockitoCore
+     testImplementation libs.mockitoJunitJupiter
+diff --git a/gradle/dependencies.gradle b/gradle/dependencies.gradle
+index de63116795..19d4117dca 100644
+--- a/gradle/dependencies.gradle
++++ b/gradle/dependencies.gradle
+@@ -159,6 +159,7 @@ libs += [
+   jacksonAnnotations: "com.fasterxml.jackson.core:jackson-annotations:$versions.jacksonAnnotations",
+   jacksonDatabind: "com.fasterxml.jackson.core:jackson-databind:$versions.jackson",
+   jacksonDatabindYaml: "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$versions.jackson",
++  jacksonDatabindXml: "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$versions.jackson",
+   jacksonDataformatCsv: "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:$versions.jackson",
+   jacksonJDK8Datatypes: "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$versions.jackson",
+   jacksonBlackbird: "com.fasterxml.jackson.module:jackson-module-blackbird:$versions.jackson",
