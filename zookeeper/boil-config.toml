@@ -1,7 +1,7 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-# Deprecated since 26.3.0
+# Deprecated since 26.7.0
 [versions."3.9.4".local-images]
 java-base = "17"
 java-devel = "11"
