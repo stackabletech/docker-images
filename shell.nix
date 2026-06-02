@@ -10,6 +10,8 @@ pkgs.mkShell {
     nodejs
     zizmor
     git-cliff
+    python312
+    uv
   ];
 
   buildInputs = with pkgs; [
