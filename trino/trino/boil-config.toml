@@ -1,11 +1,11 @@
 [versions."477".local-images]
 java-devel = "24" # Same version as the "trino" image
-"trino/airlift" = "361" # https://github.com/trinodb/trino/blob/477/pom.xml#L184
+"trino/airlift" = "361" # https://github.com/trinodb/trino/blob/477/pom.xml#L184 (dep.airlift.version)
 
 [versions."479".local-images]
 java-devel = "25" # Same version as the "trino" image
-"trino/airlift" = "386" # https://github.com/trinodb/trino/blob/479/pom.xml#L185
+"trino/airlift" = "386" # https://github.com/trinodb/trino/blob/479/pom.xml#L185 (dep.airlift.version)
 
 [versions."481".local-images]
 java-devel = "25" # Same version as the "trino" image
-"trino/airlift" = "424" # https://github.com/trinodb/trino/blob/481/pom.xml#L188
+"trino/airlift" = "424" # https://github.com/trinodb/trino/blob/481/pom.xml#L188 (dep.airlift.version)
