@@ -1,0 +1,35 @@
+From e00f9698117f651aa60ce5a96828577ac960d0c9 Mon Sep 17 00:00:00 2001
+From: Lukas Krug <lukas.krug@stackable.tech>
+Date: Wed, 27 May 2026 21:58:48 +0200
+Subject: Apply max response header size to Jetty maxResponseHeaderSize
+
+---
+ .../src/main/java/io/airlift/http/server/HttpServer.java        | 2 +-
+ .../src/main/java/io/airlift/http/server/HttpServerConfig.java  | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/http-server/src/main/java/io/airlift/http/server/HttpServer.java b/http-server/src/main/java/io/airlift/http/server/HttpServer.java
+index b57b871f3..e874a03af 100644
+--- a/http-server/src/main/java/io/airlift/http/server/HttpServer.java
++++ b/http-server/src/main/java/io/airlift/http/server/HttpServer.java
+@@ -204,7 +204,7 @@ public class HttpServer
+             baseHttpConfiguration.setRequestHeaderSize(toIntExact(config.getMaxRequestHeaderSize().toBytes()));
+         }
+         if (config.getMaxResponseHeaderSize() != null) {
+-            baseHttpConfiguration.setResponseHeaderSize(toIntExact(config.getMaxResponseHeaderSize().toBytes()));
++            baseHttpConfiguration.setMaxResponseHeaderSize(toIntExact(config.getMaxResponseHeaderSize().toBytes()));
+         }
+         if (config.getOutputBufferSize() != null) {
+             baseHttpConfiguration.setOutputBufferSize(toIntExact(config.getOutputBufferSize().toBytes()));
+diff --git a/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java b/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
+index ee53d470f..3abbfeaab 100644
+--- a/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
++++ b/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
+@@ -387,6 +387,7 @@ public class HttpServerConfig
+         return this;
+     }
+ 
++    @MaxDataSize("1GB")
+     public DataSize getMaxResponseHeaderSize()
+     {
+         return maxResponseHeaderSize;
