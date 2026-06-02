@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - testing-tools: Added grpcurl utility ([#1493]).
 - opa: Add `1.16.2` ([#1509]).
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
-- trino: Add `481` ([#XXXX]).
+- trino: Add `481` ([#1518]).
 
 ### Changed
 
@@ -49,7 +49,7 @@ All notable changes to this project will be documented in this file.
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1518]: https://github.com/stackabletech/docker-images/pull/1518
 
 ## [26.3.0] - 2026-03-16
 
