@@ -12,10 +12,13 @@ All notable changes to this project will be documented in this file.
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
 - testing-tools: Added grpcurl utility ([#1493]).
 - opa: Add `1.16.2` ([#1509]).
+- kafka: Add `3.9.2` and `4.2.1` ([#1483]).
+- trino: Add `481` ([#1518]).
 
 ### Changed
 
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
 
 ### Fixed
 
@@ -40,10 +43,13 @@ All notable changes to this project will be documented in this file.
 [#1474]: https://github.com/stackabletech/docker-images/pull/1474
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
+[#1483]: https://github.com/stackabletech/docker-images/pull/1483
 [#1493]: https://github.com/stackabletech/docker-images/pull/1493
+[#1507]: https://github.com/stackabletech/docker-images/pull/1507
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
+[#1518]: https://github.com/stackabletech/docker-images/pull/1518
 
 ## [26.3.0] - 2026-03-16
 
