@@ -1,0 +1,2 @@
+upstream = "https://github.com/prometheus/statsd_exporter.git"
+default-mirror = "https://github.com/stackabletech/statsd_exporter.git"
