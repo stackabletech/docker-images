@@ -12,7 +12,7 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/4.5.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.9"
-uv-version = "0.7.3"
+uv-version = "0.11.18"
 nodejs-version = "20.20.2"
 nvm-version = "v0.40.4"
 
@@ -27,7 +27,7 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.0/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.11"
-uv-version = "0.7.3"
+uv-version = "0.11.18"
 nodejs-version = "20.20.2"
 nvm-version = "v0.40.4"
 
@@ -42,6 +42,6 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.2/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.11"
-uv-version = "0.11.7"
+uv-version = "0.11.18"
 nodejs-version = "20.20.2"
 nvm-version = "v0.40.4"
