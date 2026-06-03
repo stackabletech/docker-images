@@ -31,8 +31,7 @@ cyclonedx-bom-version = "6.0.0"
 # flask-appbuilder==5.0.0 is pinned in https://github.com/apache/superset/blob/6.0.0/requirements/base.txt (search for `flask-appbuilder==`),
 # which in turn pins authlib in https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.0/requirements/extra.txt (search for `authlib==`)
 authlib-version = "1.2.1"
-# Upstream CI tests 3.10, 3.11 and 3.12 (https://github.com/apache/superset/blob/6.0.0/.github/actions/setup-backend/action.yml)
-# and a py312 image variant is published. We use 3.12 (newest tested) for the longest support window.
+# Upstream CI tests 3.10, 3.11 and 3.12, choosing the newest Python version
 python-version = "3.12"
 # Independent of Superset, use the latest release: https://github.com/astral-sh/uv/releases
 uv-version = "0.11.18"
@@ -52,7 +51,7 @@ cyclonedx-bom-version = "6.0.0"
 # which in turn pins authlib in https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.2/requirements/extra.txt (search for `authlib==`)
 authlib-version = "1.2.1"
 # Upstream CI tests 3.10, 3.11 and 3.12 (https://github.com/apache/superset/blob/6.1.0/.github/actions/setup-backend/action.yml)
-# and a py312 image variant is published. We use 3.12 (newest tested) for the longest support window.
+# and a py312 image variant is published. We use 3.12
 python-version = "3.12"
 # Independent of Superset, use the latest release: https://github.com/astral-sh/uv/releases
 uv-version = "0.11.18"
