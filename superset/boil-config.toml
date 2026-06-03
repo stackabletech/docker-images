@@ -42,6 +42,6 @@ cyclonedx-bom-version = "6.0.0"
 # https://github.com/dpgaspar/Flask-AppBuilder/blob/release/5.0.2/requirements/extra.txt#L7
 authlib-version = "1.2.1"
 python-version = "3.11"
-uv-version = "0.7.3"
+uv-version = "0.11.7"
 nodejs-version = "20.20.2"
 nvm-version = "v0.40.4"
