@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
-# check=error=true
+# check=error=true;skip=InvalidDefaultArgInFrom
 
-FROM local-image/stackable-base
+ARG GOLANG_VERSION
+FROM oci.stackable.tech/sdp/library/golang:${GOLANG_VERSION} AS golang-image
+
 ARG PRODUCT_VERSION
 ARG STACKABLE_USER_UID
 
@@ -11,13 +13,11 @@ RUN --mount=type=cache,id=go-statsd-exporter,uid=${STACKABLE_USER_UID},target=/g
 microdnf update
 
 # Tar and gzip are used to unpack the statsd_exporter source
-# Golang is used to build statsd_exporter
 # Git is needed by the cyclonedx-gomod tool to determine the version of statsd_exporter
 microdnf install \
   tar \
   gzip \
-  git \
-  golang
+  git
 
 microdnf clean all
 rm -rf /var/cache/yum
