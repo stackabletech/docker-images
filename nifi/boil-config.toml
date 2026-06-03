@@ -16,6 +16,7 @@ nifi-opa-authorizer-plugin-version = "0.5.0"
 # Checkout a Patchable version (patch-series) for the new tag
 nifi-iceberg-bundle-version = "0.0.5"
 
+# Deprecated since 26.7.0
 [versions."2.7.2".local-images]
 java-base = "21" # As stated in GitHub README
 java-devel = "21"
