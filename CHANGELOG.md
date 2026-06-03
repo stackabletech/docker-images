@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466], [#1474]).
 - nifi: Add version `2.9.0` ([#1463]).
+- nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
 - testing-tools: Added grpcurl utility ([#1493]).
@@ -50,6 +51,7 @@ All notable changes to this project will be documented in this file.
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
+[#1520]: https://github.com/stackabletech/docker-images/pull/1520
 
 ## [26.3.0] - 2026-03-16
 
