@@ -7,6 +7,8 @@
 # Mirror golang (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
 # Note: currently mirrored to the `sdp` project, but should probably move elsewhere.
 golang-version = "1.22.12"
+# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
+cyclonedx-gomod-version = "1.7.0"
 
 [versions."0.28.0".local-images]
-stackable-base = "1.0.0"
+stackable-devel = "1.0.0"

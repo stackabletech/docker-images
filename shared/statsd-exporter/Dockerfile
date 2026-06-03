@@ -4,12 +4,21 @@
 ARG GOLANG_VERSION
 FROM oci.stackable.tech/sdp/library/golang:${GOLANG_VERSION} AS golang-image
 
+FROM local-image/stackable-devel AS statsd-exporter-builder
+
 ARG PRODUCT_VERSION
+ARG CYCLONEDX_GOMOD_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG TARGETOS
+
+ENV CYCLONEDX_GOMOD_VERSION=$CYCLONEDX_GOMOD_VERSION
+ENV GOARCH=$TARGETARCH
+ENV GOOS=$TARGETOS
 
 WORKDIR /statsd_exporter
 
-RUN --mount=type=cache,id=go-statsd-exporter,uid=${STACKABLE_USER_UID},target=/go_cache <<EOF
+RUN <<EOF
 microdnf update
 
 # Tar and gzip are used to unpack the statsd_exporter source
@@ -21,10 +30,15 @@ microdnf install \
 
 microdnf clean all
 rm -rf /var/cache/yum
+EOF
 
+# Manually install Go since the dnf package is sometimes not recent enough
+COPY --from=golang-image /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+RUN --mount=type=cache,id=go-statsd-exporter,uid=${STACKABLE_USER_UID},target=/go_cache <<EOF
 export GOPATH=/go_cache
-# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
-go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
+go install "github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v${CYCLONEDX_GOMOD_VERSION}"
 
 curl "https://repo.stackable.tech/repository/packages/statsd_exporter/statsd_exporter-${PRODUCT_VERSION}.src.tar.gz" | tar -xzC .
 (
