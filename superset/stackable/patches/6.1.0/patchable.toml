@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/superset.git"
+base = "c83fb2bb1dcfac41ac51bcebd82471f4a7180d18"

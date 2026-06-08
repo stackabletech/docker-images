@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.16.2` ([#1509]).
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
 - trino: Add `481` ([#1518]).
+- superset: Add `6.1.0` ([#1514])
 
 ### Changed
 
@@ -50,6 +51,7 @@ All notable changes to this project will be documented in this file.
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
+[#1514]: https://github.com/stackabletech/docker-images/pull/1514
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 
