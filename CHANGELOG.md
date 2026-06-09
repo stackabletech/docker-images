@@ -18,8 +18,11 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- airflow: Bump statsd_exporter to `0.29.0` ([#1522]).
 - ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
+- hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- superset: Bump statsd_exporter to `0.29.0` ([#1522]).
+- statsd_exporter: Bump version from `0.28.0` to `0.29.0` ([#1522]).
 
 ### Fixed
 
