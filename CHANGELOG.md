@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
 - trino: Add `481` ([#1518]).
 - superset: Add `6.1.0` ([#1514])
+- zookeeper: Add `3.9.5` ([#1515])
 
 ### Changed
 
@@ -53,6 +54,7 @@ All notable changes to this project will be documented in this file.
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
 [#1514]: https://github.com/stackabletech/docker-images/pull/1514
+[#1515]: https://github.com/stackabletech/docker-images/pull/1515
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
