@@ -1,0 +1,140 @@
+From 944ef05a7468a0437c0da923898aecae983eb5f6 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Mon, 1 Jun 2026 08:52:19 +0200
+Subject: Build custom Stackable version
+
+How it was done:
+
+Replace in files in root dir (do not garble .git):
+
+for d in $(ls -p|grep -v /); do find $d -type f -exec sed -i 's/3\.9\.2/3.9.2-stackable0.0.0-dev/g' {} +; done
+
+Replace in all subdirs:
+
+for d in $(ls -d */); do find $d -type f -exec sed -i 's/3\.9\.2/3.9.2-stackable0.0.0-dev/g' {} +; done
+---
+ docs/getting-started/upgrade.md                                 | 2 +-
+ docs/operations/kraft.md                                        | 2 +-
+ gradle.properties                                               | 2 +-
+ kafka-merge-pr.py                                               | 2 +-
+ streams/quickstart/java/pom.xml                                 | 2 +-
+ .../java/src/main/resources/archetype-resources/pom.xml         | 2 +-
+ streams/quickstart/pom.xml                                      | 2 +-
+ tests/kafkatest/__init__.py                                     | 2 +-
+ tests/kafkatest/version.py                                      | 2 +-
+ 9 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/docs/getting-started/upgrade.md b/docs/getting-started/upgrade.md
+index d7347b3ee8..7f888fc90a 100644
+--- a/docs/getting-started/upgrade.md
++++ b/docs/getting-started/upgrade.md
+@@ -58,7 +58,7 @@ If you are upgrading from version 2.4.0 or above, and you have not overridden th
+ 
+ 
+ 
+-### Notable changes in 3.9.2
++### Notable changes in 3.9.2-stackable0.0.0-dev
+ 
+   * There is a new server configuration, `alter.config.policy.kraft.compatibility.enable`, which ensures that an AlterConfigPolicy is invoked consistently between KRaft and ZooKeeper modes. To enable this behavior, set the property to `true` in `server.properties`. For backward compatibility, the default value is `false`. See [KIP-1252](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=399279475) for more details.
+ 
+diff --git a/docs/operations/kraft.md b/docs/operations/kraft.md
+index a63ce05d4e..a8caef2d2b 100644
+--- a/docs/operations/kraft.md
++++ b/docs/operations/kraft.md
+@@ -275,7 +275,7 @@ In general, the migration process passes through several phases.
+   * After the migration has been finalized, it is not possible to revert back to ZooKeeper mode.
+   * During the migration, if a ZK broker is running with multiple log directories, any directory failure will cause the broker to shutdown. Brokers with broken log directories will only be able to migrate to KRaft once the directories are repaired. For further details refer to [KAFKA-16431](https://issues.apache.org/jira/browse/KAFKA-16431). 
+   * As noted above, some features are not fully implemented in KRaft mode. If you are using one of those features, you will not be able to migrate to KRaft yet.
+-  * There is a known inconsistency between ZK and KRaft modes in the arguments passed to an `AlterConfigPolicy`, when operations of type `SUBTRACT`, `DELETE` or `APPEND` are processed. This has been addressed with a compatibility flag in version 3.9.2. For further details see [KIP-1252](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=399279475).
++  * There is a known inconsistency between ZK and KRaft modes in the arguments passed to an `AlterConfigPolicy`, when operations of type `SUBTRACT`, `DELETE` or `APPEND` are processed. This has been addressed with a compatibility flag in version 3.9.2-stackable0.0.0-dev. For further details see [KIP-1252](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=399279475).
+ 
+ 
+ 
+diff --git a/gradle.properties b/gradle.properties
+index 3c674c89c1..24bf3d2259 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -22,7 +22,7 @@ group=org.apache.kafka
+ #  - streams/quickstart/pom.xml
+ #  - streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+ #  - streams/quickstart/java/pom.xml
+-version=3.9.2
++version=3.9.2-stackable0.0.0-dev
+ scalaVersion=2.13.15
+ # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
+ # New version of Swagger 2.2.14 requires minimum JDK 11.
+diff --git a/kafka-merge-pr.py b/kafka-merge-pr.py
+index 4ac7434065..4f5f69d872 100755
+--- a/kafka-merge-pr.py
++++ b/kafka-merge-pr.py
+@@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
+ 
+ DEV_BRANCH_NAME = "trunk"
+ 
+-DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.9.2")
++DEFAULT_FIX_VERSION = os.environ.get("DEFAULT_FIX_VERSION", "3.9.2-stackable0.0.0-dev")
+ 
+ ORIGINAL_HEAD = ""
+ 
+diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
+index f8d1bd9e54..2ee0861269 100644
+--- a/streams/quickstart/java/pom.xml
++++ b/streams/quickstart/java/pom.xml
+@@ -26,7 +26,7 @@
+     <parent>
+         <groupId>org.apache.kafka</groupId>
+         <artifactId>streams-quickstart</artifactId>
+-        <version>3.9.2</version>
++        <version>3.9.2-stackable0.0.0-dev</version>
+         <relativePath>..</relativePath>
+     </parent>
+ 
+diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+index b62ab64acf..3d3d881096 100644
+--- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
++++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
+@@ -29,7 +29,7 @@
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <kafka.version>3.9.2</kafka.version>
++        <kafka.version>3.9.2-stackable0.0.0-dev</kafka.version>
+         <slf4j.version>1.7.36</slf4j.version>
+     </properties>
+ 
+diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
+index ac81ea06bb..1686b2bd56 100644
+--- a/streams/quickstart/pom.xml
++++ b/streams/quickstart/pom.xml
+@@ -22,7 +22,7 @@
+     <groupId>org.apache.kafka</groupId>
+     <artifactId>streams-quickstart</artifactId>
+     <packaging>pom</packaging>
+-    <version>3.9.2</version>
++    <version>3.9.2-stackable0.0.0-dev</version>
+ 
+     <name>Kafka Streams :: Quickstart</name>
+ 
+diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
+index 1362dad9ca..e20c655bbf 100644
+--- a/tests/kafkatest/__init__.py
++++ b/tests/kafkatest/__init__.py
+@@ -22,4 +22,4 @@
+ # Instead, in development branches, the version should have a suffix of the form ".devN"
+ #
+ # For example, when Kafka is at version 1.0.0-SNAPSHOT, this should be something like "1.0.0.dev0"
+-__version__ = '3.9.2'
++__version__ = '3.9.2-stackable0.0.0-dev'
+diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
+index fa301e6a8d..1980c35d11 100644
+--- a/tests/kafkatest/version.py
++++ b/tests/kafkatest/version.py
+@@ -122,7 +122,7 @@ def get_version(node=None):
+         return DEV_BRANCH
+ 
+ DEV_BRANCH = KafkaVersion("dev")
+-DEV_VERSION = KafkaVersion("3.9.2-SNAPSHOT")
++DEV_VERSION = KafkaVersion("3.9.2-stackable0.0.0-dev-SNAPSHOT")
+ 
+ # This should match the LATEST_PRODUCTION version defined in MetadataVersion.java
+ LATEST_STABLE_METADATA_VERSION = "3.9-IV0"
