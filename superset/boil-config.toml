@@ -41,7 +41,7 @@ nodejs-version = "20.18.3"
 nvm-version = "v0.40.4"
 
 [versions."6.1.0".local-images]
-"shared/statsd-exporter" = "0.28.0"
+"shared/statsd-exporter" = "0.29.0"
 stackable-devel = "1.0.0"
 vector = "0.55.0"
 
