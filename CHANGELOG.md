@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file.
 
 - nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
 - opa: Remove `1.8.0` ([#1509]).
-- spark-k8s: Remove `3.5.7` and `4.0.1`, deprecate `3.5.8`, LTS `4.1.1` ([#1522]).
+- spark-k8s: Remove `3.5.7` and `4.0.1`, deprecate `3.5.8`, LTS `4.1.1` ([#1525]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -62,7 +62,7 @@ All notable changes to this project will be documented in this file.
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
-[#1522]: https://github.com/stackabletech/docker-images/pull/1525
+[#1525]: https://github.com/stackabletech/docker-images/pull/1525
 
 ## [26.3.0] - 2026-03-16
 
