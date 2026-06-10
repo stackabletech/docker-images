@@ -38,9 +38,9 @@ jmx-exporter-version = "1.3.0"
 # Hive 4.1 requires Java 17 (according to GitHub README)
 java-base = "17"
 java-devel = "17"
-"hadoop/hadoop" = "3.4.3"
+"hadoop/hadoop" = "3.4.2" # TODO: Bump to 3.4.3
 # hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
-"hive/hive-metastore-opa-authorizer" = "v1.0.0-hive-4.1.0-hadoop-3.4.3"
+"hive/hive-metastore-opa-authorizer" = "v1.0.0-hive-4.1.0-hadoop-3.4.2"
 
 [versions."4.1.0".build-arguments]
 jmx-exporter-version = "1.3.0"
@@ -49,9 +49,9 @@ jmx-exporter-version = "1.3.0"
 # Hive 4.2 requires Java 21 (according to GitHub README)
 java-base = "21"
 java-devel = "21"
-"hadoop/hadoop" = "3.4.3"
+"hadoop/hadoop" = "3.4.2" # TODO: Bump to 3.4.3
 # hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
-"hive/hive-metastore-opa-authorizer" = "v1.0.0-hive-4.2.0-hadoop-3.4.3"
+"hive/hive-metastore-opa-authorizer" = "v1.0.0-hive-4.2.0-hadoop-3.4.2"
 
 [versions."4.2.0".build-arguments]
 jmx-exporter-version = "1.3.0"
