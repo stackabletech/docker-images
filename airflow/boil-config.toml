@@ -8,7 +8,8 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."2.9.3".build-arguments]
-# NOTE: Python version is kept stable unless the new Airflow version drops support for it.
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
+# See: https://devguide.python.org/versions/
 python-version = "3.9"
 git-sync-version = "v4.6.0"
 # Must match the version in the constraints file.
@@ -30,7 +31,8 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.0.6".build-arguments]
-# NOTE: Python version is kept stable unless the new Airflow version drops support for it.
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
+# See: https://devguide.python.org/versions/
 python-version = "3.12"
 git-sync-version = "v4.6.0"
 # Must match the version in the constraints file.
@@ -73,7 +75,8 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.1.6".build-arguments]
-# NOTE: Python version is kept stable unless the new Airflow version drops support for it.
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
+# See: https://devguide.python.org/versions/
 python-version = "3.12"
 git-sync-version = "v4.6.0"
 # Must match the version in the constraints file.
@@ -116,8 +119,9 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.2.1".build-arguments]
-# NOTE: Python version is kept stable unless the new Airflow version drops support for it.
-python-version = "3.12"
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
+# See: https://devguide.python.org/versions/
+python-version = "3.14"
 git-sync-version = "v4.6.0"
 # Must match the version in the constraints file.
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
