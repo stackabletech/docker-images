@@ -1,6 +1,7 @@
+# syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
+# check=error=true;skip=InvalidDefaultArgInFrom
 
 ARG GOLANG_VERSION
-
 FROM oci.stackable.tech/sdp/library/golang:${GOLANG_VERSION} AS golang-image
 
 FROM local-image/stackable-devel AS multilog-builder

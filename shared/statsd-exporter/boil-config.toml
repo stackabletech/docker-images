@@ -1,5 +1,14 @@
 [metadata]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-[versions."0.29.0".local-images]
-stackable-base = "1.0.0"
+[versions."0.30.0".build-arguments]
+# Find this in https://github.com/prometheus/statsd_exporter/blob/v0.30.0/go.mod
+# You can find the latest patch version at: https://go.dev/doc/devel/release
+# Mirror golang (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: currently mirrored to the `sdp` project, but should probably move elsewhere.
+golang-version = "1.25.11"
+# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
+cyclonedx-gomod-version = "1.7.0"
+
+[versions."0.30.0".local-images]
+stackable-devel = "1.0.0"
