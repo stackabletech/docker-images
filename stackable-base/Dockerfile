@@ -154,6 +154,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
 # Until they are removed by default from ca-certificates, we should remove them manually
 EXPECTED_CERTS_PACKAGE="ca-certificates-2024.2.69_v8.0.303-91.4.el9_4.noarch"
+EXPECTED_CERTS_PACKAGE="ca-certificates-2025.2.80_v9.0.305-91.el9.noarch"
 ACTUAL_CERTS_PACKAGE="$(rpm -qa ca-certificates)"
 if [ "$ACTUAL_CERTS_PACKAGE" != "$EXPECTED_CERTS_PACKAGE" ]; then
   echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra root certificates are present. \
