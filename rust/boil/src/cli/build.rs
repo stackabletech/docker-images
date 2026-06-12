@@ -118,6 +118,12 @@ pub struct BuildArguments {
     #[deprecated(since = "0.1.7", note = "Use -- --load instead")]
     pub load: bool,
 
+    #[arg(long, help_heading = "Build Options", group = "cache")]
+    pub cache_registry: Option<HostPort>,
+
+    #[arg(long, help_heading = "Build Options", requires = "cache")]
+    pub cache_namespace: Option<String>,
+
     /// Dry run. This does not build the image(s) but instead prints out the bakefile.
     #[arg(short, long, alias = "dry")]
     pub dry_run: bool,

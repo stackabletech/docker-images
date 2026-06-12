@@ -1,6 +1,6 @@
 use std::{
     collections::{BTreeMap, btree_map::Entry},
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Deref, DerefMut},
     path::PathBuf,
 };
@@ -340,26 +340,45 @@ impl Bakefile {
 
         for (image_name, (image_config, is_entry)) in targets.into_iter() {
             for (image_version, image_options) in image_config.versions {
-                let image_repository_uri = utils::format_image_repository_uri(
+                let (
+                    image_repository_uri,
+                    image_index_manifest_tag,
+                    image_manifest_tag,
+                    image_manifest_uri,
+                ) = utils::format_image_tag_parts(
                     image_registry,
                     &cli_args.registry_namespace,
                     &image_name,
-                );
-
-                let image_index_manifest_tag = utils::format_image_index_manifest_tag(
                     &image_version,
                     &metadata.vendor_tag_prefix,
                     &cli_args.image_version,
-                );
-
-                let image_manifest_tag = utils::format_image_manifest_tag(
-                    &image_index_manifest_tag,
                     cli_args.target_platform.architecture(),
                     cli_args.strip_architecture,
                 );
 
-                let image_manifest_uri =
-                    utils::format_image_manifest_uri(&image_repository_uri, &image_manifest_tag);
+                let cache_image_manifest_uri =
+                    cli_args.cache_registry.as_ref().map(|cache_registry| {
+                        let uri = utils::format_image_cache_repository_uri(
+                            cache_registry,
+                            cli_args.cache_namespace.as_deref(),
+                            &cli_args.registry_namespace,
+                            &image_name,
+                        );
+
+                        let cache_image_index_manifest_tag = utils::format_image_index_manifest_tag(
+                            &image_version,
+                            &metadata.vendor_tag_prefix,
+                            &cli_args.image_version,
+                        );
+
+                        let cache_image_manifest_tag = utils::format_image_manifest_tag(
+                            &cache_image_index_manifest_tag,
+                            cli_args.target_platform.architecture(),
+                            cli_args.strip_architecture,
+                        );
+
+                        utils::format_image_manifest_uri(&uri, &cache_image_manifest_tag)
+                    });
 
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
@@ -449,6 +468,23 @@ impl Bakefile {
                     &cli_args.image_version,
                 );
 
+                let cache_to =
+                    cache_image_manifest_uri
+                        .clone()
+                        .map_or_else(Vec::new, |reference| {
+                            vec![CacheStorageBackend::Registry {
+                                reference,
+                                mode: Some(CacheMode::Max),
+                            }]
+                        });
+
+                let cache_from = cache_image_manifest_uri.map_or_else(Vec::new, |reference| {
+                    vec![CacheStorageBackend::Registry {
+                        reference,
+                        mode: None,
+                    }]
+                });
+
                 let target = BakefileTarget {
                     tags: vec![image_manifest_uri],
                     arguments: build_arguments,
@@ -459,6 +495,8 @@ impl Bakefile {
                     inherits: vec![COMMON_TARGET_NAME.to_owned()],
                     annotations,
                     contexts,
+                    cache_from,
+                    cache_to,
                     ..Default::default()
                 };
 
@@ -529,6 +567,7 @@ impl Bakefile {
 // TODO (@Techassi): Figure out of we can use borrowed data in here. This would avoid a whole bunch
 // of cloning.
 #[derive(Debug, Default, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct BakefileTarget {
     /// Defines build arguments for the target.
     #[serde(
@@ -577,6 +616,12 @@ pub struct BakefileTarget {
     /// Image names and tags to use for the build target.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub cache_from: Vec<CacheStorageBackend>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub cache_to: Vec<CacheStorageBackend>,
 }
 
 impl BakefileTarget {
@@ -667,4 +712,55 @@ impl BakefileTarget {
 #[derive(Debug, Default, Serialize)]
 pub struct BakefileGroup {
     targets: Vec<String>,
+}
+
+#[derive(Clone, Debug)]
+pub enum CacheStorageBackend {
+    Registry {
+        /// Full name of the cache image to import.
+        reference: String,
+
+        /// Specifies which layers to cache
+        mode: Option<CacheMode>,
+    },
+}
+
+impl Display for CacheStorageBackend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CacheStorageBackend::Registry { reference, mode } => {
+                f.write_str("type=registry")?;
+                f.write_fmt(format_args!(",ref={reference}"))?;
+
+                if let Some(mode) = mode {
+                    f.write_fmt(format_args!(",mode={mode}"))?;
+                }
+
+                Ok(())
+            }
+        }
+    }
+}
+
+impl Serialize for CacheStorageBackend {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum CacheMode {
+    // We currently only support max, because we want to cache every layer
+    Max,
+}
+
+impl Display for CacheMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CacheMode::Max => write!(f, "max"),
+        }
+    }
 }
