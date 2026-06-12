@@ -172,9 +172,9 @@ rm -rf /stackable/hadoop/share/hadoop/tools/sources/
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/json-io-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-mapreduce-client-*.jar
 rm -rf /stackable/hadoop/share/hadoop/tools/lib/hadoop-yarn-server*.jar
-find . -name 'hadoop-minicluster-*.jar' -type f -delete
-find . -name 'hadoop-client-minicluster-*.jar' -type f -delete
-find . -name 'hadoop-*tests.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-minicluster-*.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-client-minicluster-*.jar' -type f -delete
+find /stackable/hadoop -name 'hadoop-*tests.jar' -type f -delete
 
 # Without this fuse_dfs does not work
 # It is so non-root users (as we are) can mount a FUSE device and let other users access it
