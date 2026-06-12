@@ -164,6 +164,7 @@ else
 fi
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
+# TODO: s3fs may already be installed via the s3fs extra and constraints. Check if this explicit install is still needed.
 uv pip install --no-cache-dir s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
 # Needed for OIDC
 uv pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
@@ -172,11 +173,7 @@ uv pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
-if [ "$PRODUCT_VERSION" == "2.9.3" ] || [ "$PRODUCT_VERSION" == "3.0.6" ]; then
-  cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
-else
-  cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
-fi
+cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
 uv pip uninstall cyclonedx-bom
 
 # Break circular dependencies by removing the apache-airflow dependency from the providers

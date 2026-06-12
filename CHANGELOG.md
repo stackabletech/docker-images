@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.16.2` ([#1509]).
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
 - trino: Add `481` ([#1518]).
+- airflow: Add `3.2.1` ([#1519]).
 - superset: Add `6.1.0` ([#1514])
 - zookeeper: Add `3.9.5` ([#1515])
 
@@ -61,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [#1514]: https://github.com/stackabletech/docker-images/pull/1514
 [#1515]: https://github.com/stackabletech/docker-images/pull/1515
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
+[#1519]: https://github.com/stackabletech/docker-images/pull/1519
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
