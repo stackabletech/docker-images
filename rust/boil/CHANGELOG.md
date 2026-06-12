@@ -4,6 +4,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2026-06-12
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.1..boil-0.2.2)
+
+### Features
+
+- Improve empty image version filter error ([#1527](https://github.com/stackabletech/docker-images/pull/1527)).
+- Add new image check command ([#1464](https://github.com/stackabletech/docker-images/pull/1464)).
+
 ## [0.2.1] - 2026-04-17
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.0..boil-0.2.1)
@@ -11,6 +20,10 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Relax vendor version constraint ([#1469](https://github.com/stackabletech/docker-images/pull/1469)).
+
+### Miscellaneous
+
+- Vendor openssl for better portability ([#1459](https://github.com/stackabletech/docker-images/pull/1459)).
 
 ## [0.2.0] - 2026-04-14
 
