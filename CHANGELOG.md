@@ -14,8 +14,9 @@ All notable changes to this project will be documented in this file.
 - opa: Add `1.16.2` ([#1509]).
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
 - trino: Add `481` ([#1518]).
-- superset: Add `6.1.0` ([#1514])
-- zookeeper: Add `3.9.5` ([#1515])
+- superset: Add `6.1.0` ([#1514]).
+- zookeeper: Add `3.9.5` ([#1515]).
+- hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
 
 ### Changed
 
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - statsd_exporter: Bump version from `0.28.0` to `0.30.0` ([#1524]).
   This uses a git mirror and patchable instead of sourcing from Nexus.
 - superset: Bump statsd_exporter to `0.30.0` ([#1524]).
+- hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
 
 ### Fixed
 
@@ -57,6 +59,7 @@ All notable changes to this project will be documented in this file.
 [#1507]: https://github.com/stackabletech/docker-images/pull/1507
 [#1509]: https://github.com/stackabletech/docker-images/pull/1509
 [#1510]: https://github.com/stackabletech/docker-images/pull/1510
+[#1511]: https://github.com/stackabletech/docker-images/pull/1511
 [#1512]: https://github.com/stackabletech/docker-images/pull/1512
 [#1514]: https://github.com/stackabletech/docker-images/pull/1514
 [#1515]: https://github.com/stackabletech/docker-images/pull/1515
