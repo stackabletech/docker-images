@@ -109,6 +109,7 @@ ENV UV_LINK_MODE=copy
 # point to /usr/local/share/uv/python/... which is not copied to the final image.
 ENV UV_PYTHON_INSTALL_DIR=/stackable/python
 
+# This installs the Python runtime
 RUN uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
 
 # Instead of activating the environment each time
