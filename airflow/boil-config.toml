@@ -8,14 +8,17 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."2.9.3".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
-# See: https://devguide.python.org/versions/
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
+# break many customer DAGs. We generally try to pick the latest supported version unless there are
+# reasons against it.
+# This version of Airflow supports: 3.8 - 3.12 (see https://airflow.apache.org/docs/apache-airflow/2.9.3/installation/prerequisites.html)
 python-version = "3.9"
 git-sync-version = "v4.6.0"
-# Must match the version in the constraints file.
+# Must match the version in the constraints file (search for s3fs==)
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
+# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
@@ -23,7 +26,9 @@ tini-version = "0.19.0"
 uv-version = "0.11.19"
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
-nodejs-version = "20"
+# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+nodejs-version = "22"
+# TODO: Specify the pnpm version here
 
 # LTS
 [versions."3.0.6".local-images]
@@ -32,14 +37,17 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.0.6".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
-# See: https://devguide.python.org/versions/
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
+# break many customer DAGs. We generally try to pick the latest supported version unless there are
+# reasons against it.
+# This version of Airflow supports: 3.9 - 3.12 (see https://airflow.apache.org/docs/apache-airflow/3.0.6/installation/prerequisites.html)
 python-version = "3.12"
 git-sync-version = "v4.6.0"
-# Must match the version in the constraints file.
+# Must match the version in the constraints file (search for s3fs==)
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
+# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
@@ -68,7 +76,9 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-nodejs-version = "20"
+# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+nodejs-version = "22"
+# TODO: Specify the pnpm version here
 
 # Deprecated
 [versions."3.1.6".local-images]
@@ -77,14 +87,17 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.1.6".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
-# See: https://devguide.python.org/versions/
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
+# break many customer DAGs. We generally try to pick the latest supported version unless there are
+# reasons against it.
+# This version of Airflow supports: 3.10 - 3.13 (see https://airflow.apache.org/docs/apache-airflow/3.1.6/installation/prerequisites.html)
 python-version = "3.12"
 git-sync-version = "v4.6.0"
-# Must match the version in the constraints file.
+# Must match the version in the constraints file (search for s3fs==)
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2026.1.0"
 cyclonedx-bom-version = "7.3.0"
+# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
@@ -113,7 +126,9 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
+# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
 nodejs-version = "22"
+# TODO: Specify the pnpm version here
 
 # Supported
 [versions."3.2.1".local-images]
@@ -122,14 +137,17 @@ vector = "0.55.0"
 stackable-devel = "1.0.0"
 
 [versions."3.2.1".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it.
-# See: https://devguide.python.org/versions/
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
+# break many customer DAGs. We generally try to pick the latest supported version unless there are
+# reasons against it.
+# This version of Airflow supports: 3.10 - 3.14 (see https://airflow.apache.org/docs/apache-airflow/3.2.1/installation/prerequisites.html)
 python-version = "3.14"
 git-sync-version = "v4.6.0"
-# Must match the version in the constraints file.
+# Must match the version in the constraints file (search for s3fs==)
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2026.3.0"
 cyclonedx-bom-version = "7.3.0"
+# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
@@ -158,4 +176,6 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
+# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
 nodejs-version = "22"
+# TODO: Specify the pnpm version here
