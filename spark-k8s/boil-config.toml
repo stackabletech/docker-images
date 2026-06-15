@@ -6,7 +6,7 @@
 containerfile = "Dockerfile.3"
 
 [versions."3.5.8".local-images]
-"hadoop/hadoop" = "3.4.2" # TODO: Bump to 3.4.3
+"hadoop/hadoop" = "3.4.3"
 java-base = "17"
 java-devel = "17"
 hbase = "2.6.3"
@@ -27,7 +27,7 @@ hbase-connector-version = "1.0.1_3.5.8"
 containerfile = "Dockerfile.4"
 
 [versions."4.1.1".local-images]
-"hadoop/hadoop" = "3.4.2" # TODO: Bump to 3.4.3
+"hadoop/hadoop" = "3.4.3"
 java-base = "21"
 java-devel = "21"
 
