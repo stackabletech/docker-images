@@ -19,12 +19,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- airflow: Bump statsd_exporter to `0.29.0` ([#1522]).
+- airflow: Bump statsd_exporter to `0.30.0` ([#1524]).
 - ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
 - stackable-base: Bump `containerdebug` to `0.4.0` and  `config-utils` to `0.4.0` ([#1521]).
-- statsd_exporter: Bump version from `0.28.0` to `0.29.0` ([#1522]).
-- superset: Bump statsd_exporter to `0.29.0` ([#1522]).
+- statsd_exporter: Bump version from `0.28.0` to `0.30.0` ([#1524]).
+  This uses a git mirror and patchable instead of sourcing from Nexus.
+- superset: Bump statsd_exporter to `0.30.0` ([#1524]).
 
 ### Fixed
 
@@ -39,6 +40,7 @@ All notable changes to this project will be documented in this file.
 
 - nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
 - opa: Remove `1.8.0` ([#1509]).
+- spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -61,6 +63,8 @@ All notable changes to this project will be documented in this file.
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
+[#1525]: https://github.com/stackabletech/docker-images/pull/1525
+[#1524]: https://github.com/stackabletech/docker-images/pull/1524
 
 ## [26.3.0] - 2026-03-16
 
