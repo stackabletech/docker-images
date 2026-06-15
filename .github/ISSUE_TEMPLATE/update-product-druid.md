@@ -31,6 +31,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Release a new version of [druid-opa-authorizer](https://github.com/stackabletech/druid-opa-authorizer), if compiling against the new Druid version(s) requires changes in the code.
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to the latest supported version of Hadoop.
 - [ ] Initialize new product versions with patchable and add patches if applicable.
 - [ ] Delete old patch directories.
 - [ ] Check the corresponding operator (getting_started / kuttl / supported-versions) for usage of the versions.

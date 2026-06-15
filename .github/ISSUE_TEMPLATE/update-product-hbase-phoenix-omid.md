@@ -32,6 +32,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new versions (see the `hbase/*.sh` scripts).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to the latest supported version of Hadoop.
 - [ ] Update other dependencies if applicable (eg: phoenix, opa_authorizer, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR to the list below.
 
