@@ -168,8 +168,7 @@ else
     # Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
     curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
     # Starting with Hadoop 3.4.3 the S3A InputStreamType factory references analyticsaccelerator-s3 (software.amazon.s3.analyticsaccelerator.request.ObjectClient) during S3AFileSystem.initialize.
-    # TODO: switch to https://repo.stackable.tech/repository/packages/aws/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar once mirrored.
-    curl -o /stackable/hadoop-cloud-libraries/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar --fail "https://repo1.maven.org/maven2/software/amazon/s3/analyticsaccelerator/analyticsaccelerator-s3/${ANALYTICSACCELERATOR_S3_VERSION}/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar"
+    curl -o /stackable/hadoop-cloud-libraries/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar"
     cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
