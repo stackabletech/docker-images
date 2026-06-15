@@ -25,20 +25,22 @@ authorizer-version = "v1.0.0"
 hive-version = "4.0.1"
 delete-caches = "true"
 
-[versions."v1.0.0-hive-4.1.0-hadoop-3.4.3".local-images]
+[versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".local-images]
 "java-devel" = "17"
-"hadoop/hadoop" = "3.4.3"
+# TODO: Bump to 3.4.3
+"hadoop/hadoop" = "3.4.2"
 
-[versions."v1.0.0-hive-4.1.0-hadoop-3.4.3".build-arguments]
+[versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".build-arguments]
 authorizer-version = "v1.0.0"
 hive-version = "4.1.0"
 delete-caches = "true"
 
-[versions."v1.0.0-hive-4.2.0-hadoop-3.4.3".local-images]
+[versions."v1.0.0-hive-4.2.0-hadoop-3.4.2".local-images]
 "java-devel" = "21"
-"hadoop/hadoop" = "3.4.3"
+# TODO: Bump to 3.4.3
+"hadoop/hadoop" = "3.4.2"
 
-[versions."v1.0.0-hive-4.2.0-hadoop-3.4.3".build-arguments]
+[versions."v1.0.0-hive-4.2.0-hadoop-3.4.2".build-arguments]
 authorizer-version = "v1.0.0"
 hive-version = "4.2.0"
 delete-caches = "true"
