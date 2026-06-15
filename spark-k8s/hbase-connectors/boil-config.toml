@@ -3,5 +3,6 @@ java-devel = "17"
 
 [versions."1.0.1_3.5.8".build-arguments]
 spark-version = "3.5.8"
+# TODO: Bump to 3.4.3. Note that this causes compilation errors that need to be fixed.
 hadoop-version = "3.4.2"
 hbase-version = "2.6.3"
