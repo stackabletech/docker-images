@@ -27,6 +27,7 @@ delete-caches = "true"
 
 [versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".local-images]
 "java-devel" = "17"
+# TODO: Bump to 3.4.3
 "hadoop/hadoop" = "3.4.2"
 
 [versions."v1.0.0-hive-4.1.0-hadoop-3.4.2".build-arguments]
@@ -36,6 +37,7 @@ delete-caches = "true"
 
 [versions."v1.0.0-hive-4.2.0-hadoop-3.4.2".local-images]
 "java-devel" = "21"
+# TODO: Bump to 3.4.3
 "hadoop/hadoop" = "3.4.2"
 
 [versions."v1.0.0-hive-4.2.0-hadoop-3.4.2".build-arguments]

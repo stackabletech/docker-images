@@ -1,0 +1,35 @@
+From dce9e64ac4ff8906108a1853e6d1003d3fe9a313 Mon Sep 17 00:00:00 2001
+From: xeniape <xenia.fischer@stackable.tech>
+Date: Wed, 10 Sep 2025 14:41:18 +0200
+Subject: Update-CycloneDX-plugin
+
+---
+ pom.xml | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index bb9fb62180d..62dd33d6485 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -830,6 +830,11 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+             <groupId>org.cyclonedx</groupId>
+             <artifactId>cyclonedx-maven-plugin</artifactId>
+             <version>${cyclonedx.version}</version>
++            <configuration>
++                <projectType>application</projectType>
++                <schemaVersion>1.5</schemaVersion>
++                <skipNotDeployed>false</skipNotDeployed>
++            </configuration>
+             <executions>
+               <execution>
+                 <phase>package</phase>
+@@ -838,9 +843,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
+                 </goals>
+               </execution>
+             </executions>
+-            <configuration>
+-              <outputFormat>xml</outputFormat>
+-            </configuration>
+           </plugin>
+         </plugins>
+       </build>

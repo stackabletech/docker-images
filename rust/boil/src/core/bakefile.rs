@@ -70,14 +70,17 @@ pub enum Error {
 
 #[derive(Debug, Snafu)]
 pub enum TargetsError {
-    #[snafu(display("encountered invalid image version"))]
-    InvalidImageVersion { source: ImageConfigError },
-
     #[snafu(display("failed to read image config"))]
     ReadImageConfig { source: ImageConfigError },
 
     #[snafu(display("failed to resolve parent directory of image config at {path}", path = path.display()))]
     ResolveParentDirectory { path: PathBuf },
+
+    #[snafu(display("provided filter version(s) ({image_name}={versions}) yielded empty list", versions = versions.join(", ")))]
+    EmptyFilter {
+        versions: Vec<String>,
+        image_name: String,
+    },
 }
 
 #[derive(Debug, Default)]
@@ -187,9 +190,15 @@ impl Targets {
                 ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
             // Create a list of image versions we need to generate targets for in the bakefile.
-            image_config
-                .filter_by_version(&image.versions)
-                .context(InvalidImageVersionSnafu)?;
+            image_config.filter_by_version(&image.versions);
+
+            ensure!(
+                !image_config.versions.is_empty(),
+                EmptyFilterSnafu {
+                    versions: image.versions.clone(),
+                    image_name: image.name.clone(),
+                }
+            );
 
             targets.insert_targets(image.name.clone(), image_config, &options, true)?;
         }
@@ -222,9 +231,15 @@ impl Targets {
                     let mut image_config =
                         ImageConfig::from_file(image_config_path).context(ReadImageConfigSnafu)?;
 
-                    image_config
-                        .filter_by_version(&[image_version])
-                        .context(InvalidImageVersionSnafu)?;
+                    image_config.filter_by_version(&[image_version]);
+
+                    ensure!(
+                        !image_config.versions.is_empty(),
+                        EmptyFilterSnafu {
+                            versions: vec![image_version.clone()],
+                            image_name: image_name.clone(),
+                        }
+                    );
 
                     // Wowzers, recursion!
                     self.insert_targets(image_name.clone(), image_config, options, false)?;

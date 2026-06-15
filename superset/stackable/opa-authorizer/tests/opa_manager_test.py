@@ -34,8 +34,9 @@ def opa_security_manager(
             return_value=None,
         )
 
-        # Disable caching
-        appbuilder.get_app.config["AUTH_OPA_CACHE_MAXSIZE"] = 0
+        # Disable caching. OpaSupersetSecurityManager reads its configuration from
+        # current_app, which resolves to `app` inside this app context.
+        app.config["AUTH_OPA_CACHE_MAXSIZE"] = 0
 
         return OpaSupersetSecurityManager(appbuilder)
 

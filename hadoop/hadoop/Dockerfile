@@ -1,12 +1,15 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-FROM local-image/hadoop/boost AS boost-builder
+FROM local-image/shared/boost AS boost-builder
 FROM local-image/java-devel AS hadoop-builder
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG PROTOBUF_VERSION
+ARG AWS_JAVA_SDK_BUNDLE_VERSION
+ARG AZURE_STORAGE_VERSION
+ARG AZURE_KEYVAULT_CORE_VERSION
 ARG STACKABLE_USER_UID
 
 WORKDIR /stackable
@@ -15,6 +18,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/patchable
 COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/${PROTOBUF_VERSION} /stackable/src/shared/protobuf/stackable/patches/${PROTOBUF_VERSION}
 
 RUN <<EOF
+microdnf update
 # libstdc++ is a runtime dependency for boost,
 # automake and libtool are needed to build protobuf
 microdnf install libstdc++ automake libtool
@@ -40,10 +44,18 @@ RUN <<EOF
     # Create snapshot of the source code including custom patches
     tar -czf /stackable/protobuf-${PROTOBUF_VERSION}-src.tar.gz .
 
-    ./autogen.sh
-    ./configure --prefix=/opt/protobuf
-    make "-j$(nproc)"
-    make install
+    if [ "$PROTOBUF_VERSION" == "3.7.1" ] || [ "$PROTOBUF_VERSION" == "3.21.12" ]; then
+        ./autogen.sh
+        ./configure --prefix=/opt/protobuf
+        make "-j$(nproc)"
+        make install
+    else
+        # protobuf > 3.21 bundles abseil-cpp and utf8_range as git submodules
+        git submodule update --init --recursive
+        cmake -S . -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -Dprotobuf_BUILD_TESTS=OFF
+        cmake --build build --parallel "$(nproc)"
+        cmake --install build --prefix /opt/protobuf
+    fi
     (cd .. && rm -r ${PROTOBUF_VERSION})
 EOF
 
@@ -130,4 +142,32 @@ rm -rf /stackable/.m2
 
 # Set correct groups; make sure only required artifacts for the final image are located in /stackable
 chmod -R g=u /stackable
+EOF
+
+RUN <<EOF
+NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
+
+# Place cloud libraries (for s3a:// and abfs://) in the /stackable/hadoop-cloud-libraries/ folder to
+# have one central place for dependant images to pull them from
+mkdir -p /stackable/hadoop-cloud-libraries/
+
+if [[ "$PRODUCT_VERSION" == "3.3.6" || "$PRODUCT_VERSION" == "3.4.2" ]]; then
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    # For some reason it was renamed from "aws-java-sdk-bundle" to "bundle"
+    if [[ "$PRODUCT_VERSION" == "3.3.6" ]]; then
+        cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
+    else
+        cp /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
+    fi
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+else
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    # Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
+    curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+fi
 EOF

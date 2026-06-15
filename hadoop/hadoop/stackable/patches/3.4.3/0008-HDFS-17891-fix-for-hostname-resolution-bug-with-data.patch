@@ -1,0 +1,48 @@
+From dff0783ae6c7026515a264bbf0fda137331a2864 Mon Sep 17 00:00:00 2001
+From: Jim Halfpenny <jim.halfpenny@stackable.tech>
+Date: Mon, 16 Mar 2026 09:18:46 +0000
+Subject: HDFS-17891 fix for hostname resolution bug with datanodes
+
+---
+ .../hadoop/hdfs/server/blockmanagement/HostSet.java   | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
+index d12e5fbae13..3da753f1cb0 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
+@@ -18,10 +18,11 @@
+ package org.apache.hadoop.hdfs.server.blockmanagement;
+ 
+ 
+-import org.apache.hadoop.util.Preconditions;
+ import org.apache.hadoop.thirdparty.com.google.common.collect.HashMultimap;
+ import org.apache.hadoop.thirdparty.com.google.common.collect.Multimap;
+ import org.apache.hadoop.thirdparty.com.google.common.collect.UnmodifiableIterator;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+@@ -38,6 +39,8 @@ import java.util.Map;
+  * .getPort() || B.getPort() == 0.
+  */
+ public class HostSet implements Iterable<InetSocketAddress> {
++  private static final Logger LOG = LoggerFactory.getLogger(HostSet.class);
++
+   // Host -> lists of ports
+   private final Multimap<InetAddress, Integer> addrs = HashMultimap.create();
+ 
+@@ -72,7 +75,11 @@ public class HostSet implements Iterable<InetSocketAddress> {
+   }
+ 
+   void add(InetSocketAddress addr) {
+-    Preconditions.checkArgument(!addr.isUnresolved());
++  LOG.debug("Adding address to HostSet: {}", addr);
++     if (addr.isUnresolved()) {
++      LOG.warn("Unresolved address not added to HostSet: {}", addr);
++     return;
++    }
+     addrs.put(addr.getAddress(), addr.getPort());
+   }
+ 

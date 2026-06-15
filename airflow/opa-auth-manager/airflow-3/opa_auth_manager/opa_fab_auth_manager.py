@@ -19,13 +19,18 @@ from airflow.api_fastapi.auth.managers.models.resource_details import (
     PoolDetails,
     VariableDetails,
 )
+from airflow.api_fastapi.common.types import MenuItem
 from airflow.configuration import conf
+from airflow.models.dag import DagModel
 from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.providers.fab.auth_manager.models import User
 from airflow.stats import Stats
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.utils.session import NEW_SESSION, provide_session
 from cachetools import TTLCache, cachedmethod
 from overrides import override
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 METRIC_NAME_OPA_CACHE_LIMIT_REACHED = "opa_cache_limit_reached"
 
@@ -75,12 +80,38 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
     AUTH_OPA_REQUEST_TIMEOUT_DEFAULT = 10
 
     @override
-    def init_flask_resources(self) -> None:
+    def init(self) -> None:
         """
         Run operations when Airflow is initializing.
+
+        Called by the FastAPI api-server during startup.
+        """
+
+        super().init()
+        self._init_opa_resources()
+
+    @override
+    def init_flask_resources(self) -> None:
+        """
+        Run operations when the Flask app (FAB UI) is initializing.
         """
 
         super().init_flask_resources()
+        self._init_opa_resources()
+
+    def _init_opa_resources(self) -> None:
+        """
+        Set up the OPA cache and HTTP session.
+
+        Called from both ``init`` (FastAPI api-server) and
+        ``init_flask_resources`` (Flask AppBuilder). In Airflow 3 both run
+        during a single api-server startup but on *different*
+        OpaFabAuthManager instances — ``init_appbuilder`` calls
+        ``create_auth_manager()`` again, which constructs a fresh instance.
+        The api-server instance is reachable via
+        ``request.app.state.auth_manager``; the FAB instance is returned by
+        ``get_auth_manager()``. Both need their own cache and session.
+        """
 
         Stats.incr(METRIC_NAME_OPA_CACHE_LIMIT_REACHED, count=0)
 
@@ -121,9 +152,6 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
 
         self.log.debug("Forward authorization request to OPA")
 
-        opa_url = conf.get(
-            "core", "AUTH_OPA_REQUEST_URL", fallback=self.AUTH_OPA_REQUEST_URL_DEFAULT
-        )
         opa_url = conf.get(
             "core", "AUTH_OPA_REQUEST_URL", fallback=self.AUTH_OPA_REQUEST_URL_DEFAULT
         )
@@ -551,3 +579,70 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
                 }
             ),
         )
+
+    @provide_session
+    @override
+    def get_authorized_dag_ids(
+        self,
+        *,
+        user: User,
+        method: ResourceMethod = "GET",
+        session: Session = NEW_SESSION,
+    ) -> set[str]:
+        # FabAuthManager's implementation consults the user's FAB DB role
+        # permissions and bypasses is_authorized_dag entirely, which makes any
+        # user without a FAB role (e.g. the default Public role) see an empty
+        # DAG list even when OPA would allow them. List all DAG ids and filter
+        # them via is_authorized_dag → OPA directly, without going through
+        # filter_authorized_dag_ids — the Fab base class may add a DB-backed
+        # override of that method in the future.
+        dag_ids = {dag.dag_id for dag in session.execute(select(DagModel.dag_id))}
+        return {
+            dag_id
+            for dag_id in dag_ids
+            if self.is_authorized_dag(
+                method=method, details=DagDetails(id=dag_id), user=user
+            )
+        }
+
+    @override
+    def filter_authorized_menu_items(
+        self, menu_items: list[MenuItem], user: User
+    ) -> list[MenuItem]:
+        # FabAuthManager filters menu items via the FAB role permissions in the
+        # DB, which yields an empty menu for users without FAB perms even when
+        # OPA grants access. Route each menu item through the matching
+        # OPA-backed is_authorized_* call instead.
+        return [
+            item for item in menu_items if self._is_menu_item_authorized(item, user)
+        ]
+
+    def _is_menu_item_authorized(self, menu_item: MenuItem, user: User) -> bool:
+        if menu_item == MenuItem.ASSETS:
+            return self.is_authorized_asset(method="GET", user=user)
+        if menu_item == MenuItem.AUDIT_LOG:
+            return self.is_authorized_dag(
+                method="GET", access_entity=DagAccessEntity.AUDIT_LOG, user=user
+            )
+        if menu_item == MenuItem.CONFIG:
+            return self.is_authorized_configuration(method="GET", user=user)
+        if menu_item == MenuItem.CONNECTIONS:
+            return self.is_authorized_connection(method="GET", user=user)
+        if menu_item == MenuItem.DAGS:
+            return self.is_authorized_dag(method="GET", user=user)
+        if menu_item == MenuItem.DOCS:
+            return self.is_authorized_view(access_view=AccessView.DOCS, user=user)
+        if menu_item == MenuItem.PLUGINS:
+            return self.is_authorized_view(access_view=AccessView.PLUGINS, user=user)
+        if menu_item == MenuItem.POOLS:
+            return self.is_authorized_pool(method="GET", user=user)
+        if menu_item == MenuItem.PROVIDERS:
+            return self.is_authorized_view(access_view=AccessView.PROVIDERS, user=user)
+        if menu_item == MenuItem.VARIABLES:
+            return self.is_authorized_variable(method="GET", user=user)
+        if menu_item == MenuItem.XCOMS:
+            return self.is_authorized_dag(
+                method="GET", access_entity=DagAccessEntity.XCOM, user=user
+            )
+        self.log.warning("Unknown menu item %s — denying", menu_item)
+        return False

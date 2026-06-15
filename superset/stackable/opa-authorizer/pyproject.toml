@@ -6,13 +6,16 @@ authors = ["Benedikt Labrenz <benedikt.labrenz@stackable.tech>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9.0,<3.13"
+# Keep in sync with the python-version build arguments in superset/boil-config.toml
+python = ">=3.11,<3.13"
 cachetools = "^5.5.0"
 overrides = "^7.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.3.1"
-apache-superset = "~4.0"
+# Only used to run the tests against. Superset 4.x pins numpy==1.23.5, which cannot
+# be installed on Python 3.12, so this must stay >= 5.0 as long as we build with 3.12.
+apache-superset = "~6.1"
 
 [tool.poetry.group.test.dependencies]
 pytest-mock = "^3.10.0"
