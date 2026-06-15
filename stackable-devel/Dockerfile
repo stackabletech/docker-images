@@ -16,11 +16,11 @@
 #
 # The website is awful/broken, so you can use one of the following tools to find it:
 #
-#   docker buildx imagetools inspect registry.redhat.io/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
 #   # or
-#   skopeo inspect --format '{{.Digest}}' docker://registry.redhat.io/ubi10/ubi-minimal
+#   skopeo inspect --format '{{.Digest}}' docker://registry.access.redhat.com/ubi10/ubi-minimal
 #
-FROM registry.redhat.io/ubi10/ubi-minimal@sha256:8935d83eadb5c9f621c13f4dfab7e1bbd8d948317dc67157279911ede1013112
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713
 
 # intentionally unused
 ARG PRODUCT_VERSION
