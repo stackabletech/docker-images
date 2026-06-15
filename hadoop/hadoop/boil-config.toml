@@ -1,11 +1,44 @@
 [versions."3.3.6".local-images]
 java-devel = "11"
+"shared/boost" = "1.72.0" # I could not find a documented recommended version
 
 [versions."3.3.6".build-arguments]
-protobuf-version = "3.7.1"
+protobuf-version = "3.7.1" # https://github.com/apache/hadoop/blob/rel/release-3.3.6/BUILDING.txt
+aws-java-sdk-bundle-version = "1.12.367"  # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.3.6
+azure-storage-version = "7.0.1"           # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.3.6
+azure-keyvault-core-version = "1.0.0"     # Needs to match https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+
 
 [versions."3.4.2".local-images]
-java-devel = "11"
+java-devel = "11" # https://cwiki.apache.org/confluence/display/HADOOP/Hadoop+Java+Versions
+"shared/boost" = "1.72.0" # https://github.com/apache/hadoop/blob/rel/release-3.4.2/BUILDING.txt
 
 [versions."3.4.2".build-arguments]
-protobuf-version = "3.7.1"
+protobuf-version = "3.21.12" # https://github.com/apache/hadoop/blob/rel/release-3.4.2/BUILDING.txt
+aws-java-sdk-bundle-version = "2.29.52"   # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.2
+azure-storage-version = "7.0.1"           # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.2
+azure-keyvault-core-version = "1.0.0"     # Needs to match https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+
+
+
+[versions."3.4.3".local-images]
+java-devel = "11" # https://cwiki.apache.org/confluence/display/HADOOP/Hadoop+Java+Versions
+"shared/boost" = "1.72.0" # https://github.com/apache/hadoop/blob/rel/release-3.4.3/BUILDING.txt
+
+[versions."3.4.3".build-arguments]
+protobuf-version = "3.21.12" # https://github.com/apache/hadoop/blob/rel/release-3.4.3/BUILDING.txt
+aws-java-sdk-bundle-version = "2.35.4"    # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.4.3
+azure-storage-version = "7.0.1"           # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.4.3
+azure-keyvault-core-version = "1.0.0"     # Needs to match https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1
+
+
+
+[versions."3.5.0".local-images]
+java-devel = "17" # https://cwiki.apache.org/confluence/display/HADOOP/Hadoop+Java+Versions
+"shared/boost" = "1.86.0" # https://github.com/apache/hadoop/blob/rel/release-3.5.0/BUILDING.txt
+
+[versions."3.5.0".build-arguments]
+protobuf-version = "3.25.5" # https://github.com/apache/hadoop/blob/rel/release-3.5.0/BUILDING.txt
+aws-java-sdk-bundle-version = "2.35.4"    # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws/3.5.0
+azure-storage-version = "7.0.1"           # Needs to match https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure/3.5.0
+azure-keyvault-core-version = "1.0.0"     # Needs to match https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/7.0.1

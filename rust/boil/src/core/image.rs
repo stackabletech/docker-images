@@ -108,9 +108,6 @@ pub enum ImageConfigError {
 
     #[snafu(display("failed to deserialize config file from TOML"))]
     Deserialize { source: toml::de::Error },
-
-    #[snafu(display("provided filter version yielded empty list"))]
-    EmptyFilter,
 }
 
 #[derive(Debug, Deserialize)]
@@ -130,16 +127,13 @@ impl ImageConfig {
     pub const FLAT_CONFIG_GLOB_PATTERN: &str = "*/boil-config.toml";
 
     /// This function removes versions in the config filtered out by `versions`.
-    pub fn filter_by_version<V>(&mut self, versions: &[V]) -> Result<(), ImageConfigError>
+    pub fn filter_by_version<V>(&mut self, versions: &[V])
     where
         V: AsRef<str> + PartialEq,
     {
         self.versions.retain(|image_version, _| {
             versions.is_empty() || versions.iter().any(|v| v.as_ref() == image_version)
         });
-
-        ensure!(!self.versions.is_empty(), EmptyFilterSnafu);
-        Ok(())
     }
 }
 

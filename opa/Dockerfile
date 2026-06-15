@@ -66,7 +66,7 @@ COPY --from=golang-image /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/patchable.toml /stackable/src/opa/stackable/patches/patchable.toml
-COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/${PRODUCT} /stackable/src/opa/stackable/patches/${PRODUCT}
+COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/${PRODUCT_VERSION} /stackable/src/opa/stackable/patches/${PRODUCT_VERSION}
 
 WORKDIR /stackable
 

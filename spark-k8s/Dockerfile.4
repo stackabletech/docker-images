@@ -36,9 +36,6 @@ ARG PRODUCT_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
-ARG AWS_JAVA_SDK_BUNDLE_VERSION
-ARG AZURE_STORAGE_VERSION
-ARG AZURE_KEYVAULT_CORE_VERSION
 ARG JACKSON_DATAFORMAT_XML_VERSION
 ARG STAX2_API_VERSION
 ARG WOODSTOX_CORE_VERSION
@@ -104,18 +101,8 @@ EOF
 
 WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/jars
 
-# Copy modules required for s3a://
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar \
-    ./
-
-# Copy modules required for abfs://
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-    /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar \
-    /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar \
-    ./
+# Copy cloud libraries for s3a:// and abfs:// support
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar ./
 
 COPY spark-k8s/stackable/jmx /stackable/jmx
 
