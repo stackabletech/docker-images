@@ -18,7 +18,8 @@ s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# TODO: mirror the uv images, and then use `COPY --from` instead of using pip.
+# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
 uv-version = "0.11.19"
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
@@ -41,7 +42,8 @@ s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# TODO: mirror the uv images, and then use `COPY --from` instead of using pip.
+# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
 uv-version = "0.11.19"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
@@ -85,7 +87,8 @@ s3fs-version = "2026.1.0"
 cyclonedx-bom-version = "7.3.0"
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# TODO: mirror the uv images, and then use `COPY --from` instead of using pip.
+# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
 uv-version = "0.11.19"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
@@ -129,7 +132,8 @@ s3fs-version = "2026.3.0"
 cyclonedx-bom-version = "7.3.0"
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# TODO: mirror the uv images, and then use `COPY --from` instead of using pip.
+# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
 uv-version = "0.11.19"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
