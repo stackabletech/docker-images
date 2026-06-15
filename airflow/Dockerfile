@@ -4,10 +4,13 @@
 # - SecretsUsedInArgOrEnv : OPA_AUTH_MANAGER is a false positive and breaks the build.
 
 ARG GIT_SYNC_VERSION
+ARG UV_VERSION
 
 # For updated versions check https://github.com/kubernetes/git-sync/releases
 # which should contain a image location (e.g. registry.k8s.io/git-sync/git-sync:v3.6.8)
 FROM oci.stackable.tech/sdp/git-sync/git-sync:${GIT_SYNC_VERSION} AS gitsync-image
+
+FROM oci.stackable.tech/stackable/astral-sh/uv:${UV_VERSION} AS uv-image
 
 FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 
@@ -15,18 +18,15 @@ FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
 ARG PYTHON_VERSION
-ARG UV_VERSION
+ARG STACKABLE_USER_UID
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
 
 WORKDIR /tmp/opa-auth-manager
 
-RUN <<EOF
-microdnf update
-microdnf install python${PYTHON_VERSION}-pip
-microdnf clean all
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
-pip${PYTHON_VERSION} install --no-cache-dir uv==${UV_VERSION}
+RUN <<EOF
 
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
@@ -46,7 +46,6 @@ ARG STACKABLE_USER_UID
 ARG NODEJS_VERSION
 ARG S3FS_VERSION
 ARG CYCLONEDX_BOM_VERSION
-ARG UV_VERSION
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
@@ -61,6 +60,8 @@ ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
 ARG AIRFLOW_EXTRAS_EXTERNAL_SERVICES=""
 ARG AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE=""
 ARG AIRFLOW_EXTRAS_OTHER=""
+
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
     microdnf update && \
@@ -78,10 +79,6 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         libpq-devel \
         openldap-devel \
         openssl-devel \
-        python${PYTHON_VERSION} \
-        python${PYTHON_VERSION}-devel \
-        python${PYTHON_VERSION}-pip \
-        python${PYTHON_VERSION}-wheel \
         # The airflow odbc provider can compile without the development files (headers and libraries) (see https://github.com/stackabletech/docker-images/pull/683)
         unixODBC \
         # Needed for Airflow UI assets
@@ -103,22 +100,28 @@ COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT_VERSION
 
 WORKDIR /stackable
 
-RUN <<EOF
+# Set a cache directory so we can mount the cache for layers that use it.
+ENV UV_CACHE_DIR=/var/cache/uv
+# Don't use links because they won't work after `COPY --from` in the final stage.
+ENV UV_LINK_MODE=copy
+# Store the uv-managed Python inside /stackable/ so it gets included in the
+# COPY --from=airflow-build-image step. Without this, the venv symlinks would
+# point to /usr/local/share/uv/python/... which is not copied to the final image.
+ENV UV_PYTHON_INSTALL_DIR=/stackable/python
+
+# This installs the Python runtime
+RUN uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+
+# Instead of activating the environment each time
+ENV VIRTUAL_ENV=/stackable/app
+
+RUN --mount=type=cache,target=/var/cache/uv <<EOF
 
 # Compose comma-delimited AIRFLOW_EXTRAS
 AIRFLOW_EXTRAS="$AIRFLOW_EXTRAS_CORE,$AIRFLOW_EXTRAS_META,$AIRFLOW_EXTRAS_PROVIDER_APACHE,$AIRFLOW_EXTRAS_EXTERNAL_SERVICES,$AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE,$AIRFLOW_EXTRAS_OTHER"
 
 # Removing duplicates
 AIRFLOW_EXTRAS=$(echo "$AIRFLOW_EXTRAS" | tr ',' '\n' | awk 'NF > 0 {if (!seen[$0]++) print $0}' | tr '\n' ',' | sed 's/,$//')
-
-python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
-
-source /stackable/app/bin/activate
-
-# Upgrade pip to the latest version
-# Also install uv to get support for build constraints
-pip install --no-cache-dir --upgrade pip
-pip install --no-cache-dir uv==${UV_VERSION}
 
 # Pin virtualenv due to a breaking change in 21.0.0 which is pulled
 # in by hatch.
@@ -134,6 +137,7 @@ if [ -d "./airflow-core" ]; then
   cd airflow-core/src/airflow/ui
 
   # build front-end assets
+  # TODO: Consider making the pnpm version an ARG
   npm install -g pnpm@10.18.2
   pnpm install --frozen-lockfile
   pnpm run build
@@ -143,13 +147,14 @@ if [ -d "./airflow-core" ]; then
   cd ../../..
   /root/.local/bin/hatch build -t wheel
   # First install the full apache-airflow package to get all dependencies including database drivers
-  uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  uv pip install --python ${VIRTUAL_ENV}/bin/python apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
   # Then install the locally built core wheel to override the core package
-  uv pip install --no-cache-dir dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  uv pip install --python ${VIRTUAL_ENV}/bin/python dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 else
   # Airflow 2.x
   # build front-end assets
   cd airflow/www
+  # TODO: Consider making the yarn version an ARG
   npm install -g yarn@1.22.22
   yarn install --frozen-lockfile
   yarn run build
@@ -158,25 +163,22 @@ else
   cd ../..
   /root/.local/bin/hatch build -t wheel
   # First install the full apache-airflow package to get all dependencies including database drivers
-  uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  uv pip install --python ${VIRTUAL_ENV}/bin/python apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
   # Then install the locally built wheel to override with patched version
-  uv pip install --no-cache-dir dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+  uv pip install --python ${VIRTUAL_ENV}/bin/python dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 fi
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
-uv pip install --no-cache-dir s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+# TODO: s3fs may already be installed via the s3fs extra and constraints. Check if this explicit install is still needed.
+uv pip install --python ${VIRTUAL_ENV}/bin/python s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
 # Needed for OIDC
-uv pip install --no-cache-dir Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
+uv pip install --python ${VIRTUAL_ENV}/bin/python Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 
-uv pip install --no-cache-dir /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
+uv pip install --python ${VIRTUAL_ENV}/bin/python /tmp/opa_auth_manager-0.1.0-py3-none-any.whl
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
-if [ "$PRODUCT_VERSION" == "2.9.3" ] || [ "$PRODUCT_VERSION" == "3.0.6" ]; then
-  cyclonedx-py environment --schema-version 1.5 --outfile /tmp/sbom.json
-else
-  cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
-fi
+${VIRTUAL_ENV}/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
 uv pip uninstall cyclonedx-bom
 
 # Break circular dependencies by removing the apache-airflow dependency from the providers
@@ -218,8 +220,9 @@ LABEL name="Apache Airflow" \
     description="This image is deployed by the Stackable Operator for Apache Airflow."
 
 ENV HOME=/stackable
-ENV AIRFLOW_USER_HOME_DIR=/stackable
-ENV PATH=$PATH:/bin:$HOME/app/bin
+ENV VIRTUAL_ENV=$HOME/app
+ENV AIRFLOW_USER_HOME_DIR=$HOME
+ENV PATH=$HOME/app/bin:$PATH:/bin
 ENV AIRFLOW_HOME=$HOME/airflow
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
@@ -233,6 +236,8 @@ COPY --from=gitsync-image --chown=${STACKABLE_USER_UID}:0 /git-sync ${HOME}/git-
 
 COPY airflow/licenses /licenses
 
+COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
+
 # Update image and install needed packages
 RUN <<EOF
 microdnf update
@@ -240,7 +245,6 @@ microdnf update
 # git: Needed for the gitsync functionality
 # openldap: Needed for authentication of clients against LDAP servers
 # openssh-clients: We need the openssh libs for the gitsync functionality (the clone target could be e.g. git@github.com:org/repo.git)
-# python: Airflow needs Python
 microdnf install \
   ca-certificates \
   cyrus-sasl \
@@ -251,7 +255,6 @@ microdnf install \
   openssh-clients \
   openssl-libs \
   openssl-pkcs11 \
-  python${PYTHON_VERSION} \
   socat \
   unixODBC
 microdnf clean all
