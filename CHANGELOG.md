@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add `6.1.0` ([#1514]).
 - zookeeper: Add `3.9.5` ([#1515]).
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
+- airflow: Add `3.2.1` ([#1519]).
 
 ### Changed
 
@@ -64,6 +65,7 @@ All notable changes to this project will be documented in this file.
 [#1514]: https://github.com/stackabletech/docker-images/pull/1514
 [#1515]: https://github.com/stackabletech/docker-images/pull/1515
 [#1518]: https://github.com/stackabletech/docker-images/pull/1518
+[#1519]: https://github.com/stackabletech/docker-images/pull/1519
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
