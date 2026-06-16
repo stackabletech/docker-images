@@ -105,9 +105,11 @@ microdnf update
 # tar is required for `kubectl cp` which can be used to copy the log files
 # or profiler flamegraph from the Pod
 # It is already installed in the base image but leaving here for documentation purposes
+# TODO: gzip is needed by rpm and it is not included in UBI 10. Probably needs to go higher up the image chain.
 microdnf install \
   fuse \
   fuse-libs \
+  gzip \
   tar
 microdnf clean all
 rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
