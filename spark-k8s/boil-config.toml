@@ -34,8 +34,8 @@ java-devel = "21"
 
 [versions."4.1.1".build-arguments]
 python-version = "3.12"
-jackson-dataformat-xml-version = "2.20.0" # Needs to match fasterxml.jackson.version in https://mvnrepository.com/artifact/org.apache.spark/spark-parent_2.13/4.1.1
-stax2-api-version = "4.2.2"               # Needs to match jackson.version.dep.stax2-api in jackson-bom-2.20.0
-woodstox-core-version = "7.1.1"           # Needs to match jackson.version.dep.woodstox in jackson-bom-2.20.0
+jackson-dataformat-xml-version = "2.20.0" # Needs to match https://mvnrepository.com/artifact/org.apache.spark/spark-parent_2.13/4.1.1
+stax2-api-version = "4.2.2"               # Needs to match https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.20.0
+woodstox-core-version = "7.1.1"           # Needs to match https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.20.0
 jmx-exporter-version = "1.3.0"
 tini-version = "0.19.0"
