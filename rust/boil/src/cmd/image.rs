@@ -1,14 +1,21 @@
-use std::{collections::BTreeMap, io::IsTerminal};
+use std::{
+    collections::{BTreeMap, HashMap},
+    io::IsTerminal,
+};
 
 use secrecy::{ExposeSecret, SecretString};
+use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    cli::{ImageCheckArguments, ImageListArguments, Pretty},
+    cli::{ImageCheckArguments, ImageListArguments, ImageSizeArguments, Pretty},
     config::Config,
     core::bakefile::{self, Targets, TargetsOptions},
-    models::TagList,
-    utils::{format_image_index_manifest_tag, format_registry_token_env_var_name},
+    models::{Manifest, TagList},
+    utils::{
+        format_image_index_manifest_tag, format_image_manifest_tag,
+        format_registry_token_env_var_name,
+    },
 };
 
 #[derive(Debug, Snafu)]
@@ -22,8 +29,8 @@ pub enum Error {
     #[snafu(display("failed to build request client"))]
     BuildClient { source: reqwest::Error },
 
-    #[snafu(display("failed to send request"))]
-    SendRequest { source: reqwest::Error },
+    #[snafu(display("failed to send request ({url})"))]
+    SendRequest { source: reqwest::Error, url: String },
 
     #[snafu(display("failed to deserialize response"))]
     DeserializeResponse { source: reqwest::Error },
@@ -51,7 +58,7 @@ pub fn list_images(arguments: ImageListArguments) -> Result<(), Error> {
         .context(BuildTargetsSnafu)?
     };
 
-    let list = targets
+    let list: BTreeMap<String, Vec<String>> = targets
         .into_iter()
         .map(|(image_name, (image_config, _))| {
             let versions: Vec<_> = image_config
@@ -109,7 +116,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
                 "https://{registry}/v2/{registry_namespace}/{image_name}/tags/list",
                 registry_namespace = registry_options.namespace,
             );
-            let request = client.get(url);
+            let request = client.get(&url);
 
             let request = match &registry_token {
                 Some(registry_token) => request.bearer_auth(registry_token.expose_secret()),
@@ -119,7 +126,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
             let tag_list: TagList = request
                 .send()
                 .await
-                .context(SendRequestSnafu)?
+                .context(SendRequestSnafu { url })?
                 .json()
                 .await
                 .context(DeserializeResponseSnafu)?;
@@ -148,14 +155,108 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
     Ok(())
 }
 
-fn print_to_stdout(list: BTreeMap<String, Vec<String>>, pretty: Pretty) -> Result<(), Error> {
+pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Result<(), Error> {
+    let targets = if arguments.image.is_empty() {
+        Targets::all(TargetsOptions {
+            only_entry: true,
+            non_recursive: true,
+        })
+        .context(BuildTargetsSnafu)?
+    } else {
+        Targets::set(
+            &arguments.image,
+            TargetsOptions {
+                only_entry: true,
+                non_recursive: true,
+            },
+        )
+        .context(BuildTargetsSnafu)?
+    };
+
+    let mut registry_tokens = BTreeMap::new();
+    let client = reqwest::ClientBuilder::new()
+        .build()
+        .context(BuildClientSnafu)?;
+
+    #[derive(Serialize)]
+    struct SizeResult {
+        images: HashMap<String, u64>,
+        total: u64,
+    }
+
+    let mut result = SizeResult {
+        images: HashMap::new(),
+        total: 0,
+    };
+
+    for (image_name, (image_config, _)) in targets {
+        for (registry, registry_options) in image_config.metadata.registries {
+            // Add tokens to a map so that we don't need construct the key and retrieve the value
+            // over and over again.
+            let registry_token = registry_tokens.entry(registry.clone()).or_insert_with(|| {
+                let name = format_registry_token_env_var_name(&registry);
+                std::env::var(name).ok().map(SecretString::from)
+            });
+
+            for (image_version, _) in image_config.versions.iter() {
+                let image_index_manifest_tag = format_image_index_manifest_tag(
+                    image_version,
+                    &config.metadata.vendor_tag_prefix,
+                    &arguments.image_version,
+                );
+
+                let manifest_tag = format_image_manifest_tag(
+                    &image_index_manifest_tag,
+                    arguments.target_platform.architecture(),
+                    // Never strip the architecture, because we need to reference the exact manifest
+                    // to be able to calculate the sizes
+                    false,
+                );
+
+                let url = format!(
+                    "https://{registry}/v2/{registry_namespace}/{image_name}/manifests/{manifest_tag}",
+                    registry_namespace = registry_options.namespace,
+                );
+
+                let request = client.get(&url);
+
+                let request = match &registry_token {
+                    Some(registry_token) => request.bearer_auth(registry_token.expose_secret()),
+                    None => request,
+                };
+
+                let manifest: Manifest = request
+                    .send()
+                    .await
+                    .context(SendRequestSnafu { url })?
+                    .json()
+                    .await
+                    .context(DeserializeResponseSnafu)?;
+
+                let layer_size = manifest.layers.iter().fold(0u64, |acc, e| acc + e.size);
+
+                let size = result.images.entry(image_name.clone()).or_default();
+                *size += layer_size;
+
+                result.total += layer_size;
+            }
+        }
+    }
+
+    print_to_stdout(result, Pretty::Always)
+}
+
+fn print_to_stdout<T>(value: T, pretty: Pretty) -> Result<(), Error>
+where
+    T: Serialize,
+{
     let stdout = std::io::stdout();
 
     match pretty {
         Pretty::Always | Pretty::Auto if stdout.is_terminal() => {
-            serde_json::to_writer_pretty(stdout, &list)
+            serde_json::to_writer_pretty(stdout, &value)
         }
-        _ => serde_json::to_writer(stdout, &list),
+        _ => serde_json::to_writer(stdout, &value),
     }
     .context(SerializeListSnafu)
 }

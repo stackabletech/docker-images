@@ -1,6 +1,12 @@
 use clap::{Args, Subcommand, ValueEnum};
 
-use crate::{cli::Cli, core::image::ImageSelector};
+use crate::{
+    cli::Cli,
+    core::{
+        image::ImageSelector,
+        platform::{Architecture, TargetPlatform},
+    },
+};
 
 #[derive(Debug, Args)]
 pub struct ImageArguments {
@@ -17,6 +23,9 @@ pub enum ImageCommand {
     ///
     /// Access tokens must be provided with the following name: `BOIL_REGISTRY_TOKEN_<REGISTRY_URI>`.
     Check(ImageCheckArguments),
+
+    /// Calculates the size of images known by boil.
+    Size(ImageSizeArguments),
 }
 
 #[derive(Debug, Args)]
@@ -35,7 +44,7 @@ pub struct ImageCheckArguments {
     pub image: Vec<ImageSelector>,
 
     // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
-    /// The image version being built.
+    /// The image version to check.
     #[arg(
         short, long,
         value_parser = Cli::parse_image_version,
@@ -43,6 +52,38 @@ pub struct ImageCheckArguments {
         help_heading = "Image Options"
     )]
     pub image_version: String,
+}
+
+#[derive(Debug, Args)]
+pub struct ImageSizeArguments {
+    /// Optionally specify one or more images to check. Checks all images by default.
+    pub image: Vec<ImageSelector>,
+
+    // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
+    /// The image version to use.
+    #[arg(
+        short, long,
+        value_parser = Cli::parse_image_version,
+        default_value_t = Cli::default_image_version(),
+        help_heading = "Image Options"
+    )]
+    pub image_version: String,
+
+    /// Target platform of the image.
+    #[arg(
+        short, long,
+        short_alias = 'a', alias = "architecture",
+        default_value_t = Self::default_architecture(),
+        help_heading = "Image Options"
+    )]
+    pub target_platform: TargetPlatform,
+}
+
+impl ImageSizeArguments {
+    // TODO: Auto-detect this
+    fn default_architecture() -> TargetPlatform {
+        TargetPlatform::Linux(Architecture::Amd64)
+    }
 }
 
 // #[derive(Clone, Debug, Default, strum::Display, strum::EnumString)]
