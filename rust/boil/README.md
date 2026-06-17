@@ -31,3 +31,42 @@ boil image list
 # Display a list of versions of the image located in the 'airflow' folder
 boil image list airflow
 ```
+
+## Configuration
+
+### Global Configuration
+
+Project-wide options are configured in the global `boil.toml` configuration file, which is located
+at the root of the repository. The config currently supports setting global build arguments and
+metadata used for image annotations and tag construction.
+
+```toml
+[build-arguments]
+FOO = "bar"                                # Available in all image builds
+
+[metadata]
+documentation = "https://docs.example.org" # URL to the documentation for images
+source = "https://source.example.org"      # URL to the source of the images, like a Git forge
+authors = "Foo <foo@example.org>"          # One or more source authors
+vendor-tag-prefix = "foo"                  # Prefix used in tag construction, eg. `1.2.3-foo4.5.6`
+vendor = "Foo"                             # Name of the vendor
+licenses = "Apache-2.0"                    # One or more licenses, space separated
+```
+
+### Per-image Configuration
+
+boil discovers images by globbing for `boil-config.toml` files in sub directories of the repository.
+These configuration files set image specific options, like build arguments, references to local
+images, and registry metadata.
+
+```toml
+[metadata.registries]
+"oci.example.org" = { namespace = "my/namespace" } # Used for image checks
+
+[versions."1.2.3".local-images]                    # Specify references to local images per version
+foo = "1.2.3"
+bar = "4.5.6"
+
+[versions."1.2.3".build-arguments]                 # Specify build arguments per version
+FOO = "bar"
+```
