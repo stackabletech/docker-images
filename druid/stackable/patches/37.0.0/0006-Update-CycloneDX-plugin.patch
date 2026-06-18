@@ -1,0 +1,22 @@
+From 29b11c3292df341dda8216587faa4972cb3000b8 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Tue, 16 Jun 2026 13:18:46 +0200
+Subject: Update CycloneDX plugin
+
+---
+ pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pom.xml b/pom.xml
+index d252009bc4..a4a8f0e1e8 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1969,7 +1969,7 @@
+             <plugin>
+                 <groupId>org.cyclonedx</groupId>
+                 <artifactId>cyclonedx-maven-plugin</artifactId>
+-                <version>2.7.9</version>
++                <version>2.9.1</version>
+                 <executions>
+                     <execution>
+                         <phase>package</phase>

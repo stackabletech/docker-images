@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - zookeeper: Add `3.9.5` ([#1515]).
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
 - airflow: Add `3.2.1` ([#1519]).
+- druid: Add `37.0.0` ([#1535]).
 
 ### Changed
 
@@ -45,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
 - opa: Remove `1.8.0` ([#1509]).
 - spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
+- druid: Remove `34.0.0` ([#1535]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -72,6 +74,7 @@ All notable changes to this project will be documented in this file.
 [#1524]: https://github.com/stackabletech/docker-images/pull/1524
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
 [#1533]: https://github.com/stackabletech/docker-images/pull/1533
+[#1535]: https://github.com/stackabletech/docker-images/pull/1535
 
 ## [26.3.0] - 2026-03-16
 
