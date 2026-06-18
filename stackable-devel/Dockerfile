@@ -8,13 +8,19 @@
 # Use `stackable-base` as a base for the final image stage instead
 #
 
-# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
+# Find the latest version at https://catalog.redhat.com
+# Use the search to find the image you are interested in because navigating the catalog folders is impossible.
+#
 # IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
 # rather than just the "Image Digest" that references the image for the selected architecture.
-# The website is broken, so you can use this to find it:
-# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
-# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
+#
+# The website is awful/broken, so you can use one of the following tools to find it:
+#
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
+#   # or
+#   skopeo inspect --format '{{.Digest}}' docker://registry.access.redhat.com/ubi10/ubi-minimal
+#
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713
 
 # intentionally unused
 ARG PRODUCT_VERSION
