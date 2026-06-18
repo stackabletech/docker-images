@@ -73,11 +73,8 @@ All notable changes to this project will be documented in this file.
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
 [#1524]: https://github.com/stackabletech/docker-images/pull/1524
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
-<<<<<<< HEAD
-[#1539]: https://github.com/stackabletech/docker-images/pull/1539
-=======
 [#1533]: https://github.com/stackabletech/docker-images/pull/1533
->>>>>>> origin/main
+[#1539]: https://github.com/stackabletech/docker-images/pull/1539
 
 ## [26.3.0] - 2026-03-16
 
