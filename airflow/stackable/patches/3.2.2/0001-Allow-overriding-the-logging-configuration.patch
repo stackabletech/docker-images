@@ -1,4 +1,4 @@
-From 271099b3cff14cb951523050e367b3c3222ead16 Mon Sep 17 00:00:00 2001
+From e43850a4f68dcaf06f2c329c29d83c0b12c9df9d Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Mon, 9 Mar 2026 10:11:28 +0100
 Subject: Allow overriding the logging configuration
@@ -8,10 +8,10 @@ Subject: Allow overriding the logging configuration
  1 file changed, 29 insertions(+), 1 deletion(-)
 
 diff --git a/shared/logging/src/airflow_shared/logging/structlog.py b/shared/logging/src/airflow_shared/logging/structlog.py
-index d5b0b9a8bfe..649451a5502 100644
+index 74cb6dc1966..19ec59ecda8 100644
 --- a/shared/logging/src/airflow_shared/logging/structlog.py
 +++ b/shared/logging/src/airflow_shared/logging/structlog.py
-@@ -436,6 +436,18 @@ def structlog_processors(
+@@ -489,6 +489,18 @@ def structlog_processors(
      return shared_processors, console, console
  
  
@@ -30,7 +30,7 @@ index d5b0b9a8bfe..649451a5502 100644
  def configure_logging(
      *,
      json_output: bool = False,
-@@ -518,6 +530,19 @@ def configure_logging(
+@@ -571,6 +583,19 @@ def configure_logging(
              else:
                  PER_LOGGER_LEVELS[log] = loglevel
  
@@ -50,7 +50,7 @@ index d5b0b9a8bfe..649451a5502 100644
      shared_pre_chain, for_stdlib, for_structlog = structlog_processors(
          json_output,
          log_format=log_format,
-@@ -564,7 +589,7 @@ def configure_logging(
+@@ -628,7 +653,7 @@ def configure_logging(
  
      import logging.config
  
@@ -59,7 +59,7 @@ index d5b0b9a8bfe..649451a5502 100644
      config.setdefault("version", 1)
      config.setdefault("disable_existing_loggers", False)
      config["formatters"] = {**config.get("formatters", {})}
-@@ -617,6 +642,9 @@ def configure_logging(
+@@ -681,6 +706,9 @@ def configure_logging(
          "propagate": True,
      }
  
