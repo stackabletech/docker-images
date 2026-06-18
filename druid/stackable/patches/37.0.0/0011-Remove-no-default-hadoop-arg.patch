@@ -1,0 +1,21 @@
+From 9faca413babd8aaf7eee7823848ba0d0a5b6dc1d Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Tue, 16 Jun 2026 18:44:33 +0200
+Subject: Remove --no-default-hadoop arg
+
+---
+ distribution/pom.xml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/distribution/pom.xml b/distribution/pom.xml
+index c238ef8946..28dc3f6a5f 100644
+--- a/distribution/pom.xml
++++ b/distribution/pom.xml
+@@ -492,7 +492,6 @@
+                                         <argument>${project.parent.version}</argument>
+                                         <argument>-l</argument>
+                                         <argument>${settings.localRepository}</argument>
+-                                        <argument>--no-default-hadoop</argument>
+                                         <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions.contrib:prometheus-emitter</argument>
+                                     </arguments>
