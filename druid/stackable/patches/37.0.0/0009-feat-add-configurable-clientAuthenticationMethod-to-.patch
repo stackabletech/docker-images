@@ -1,4 +1,4 @@
-From 4eb28b98f7def7350db05b1e14a92fc5de80af63 Mon Sep 17 00:00:00 2001
+From e62a557afea83057dcc7af541ecd255cc121c8f2 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Thu, 5 Feb 2026 15:00:23 +0100
 Subject: feat: add configurable clientAuthenticationMethod to druid-pac4j OIDC

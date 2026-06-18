@@ -1,4 +1,4 @@
-From 62239df37ea08117560b9c57e5242bfe7fb8bdb2 Mon Sep 17 00:00:00 2001
+From de614889d64315022c6f4bd1e96d211accd5061e Mon Sep 17 00:00:00 2001
 From: xeniape <xenia.fischer@stackable.tech>
 Date: Tue, 23 Sep 2025 09:31:00 +0200
 Subject: Stop building unused extensions.
