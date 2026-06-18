@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
   This uses a git mirror and patchable instead of sourcing from Nexus.
 - superset: Bump statsd_exporter to `0.30.0` ([#1524]).
 - hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
+- spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
 
 ### Fixed
 
@@ -70,8 +71,9 @@ All notable changes to this project will be documented in this file.
 [#1519]: https://github.com/stackabletech/docker-images/pull/1519
 [#1520]: https://github.com/stackabletech/docker-images/pull/1520
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
-[#1525]: https://github.com/stackabletech/docker-images/pull/1525
 [#1524]: https://github.com/stackabletech/docker-images/pull/1524
+[#1525]: https://github.com/stackabletech/docker-images/pull/1525
+[#1533]: https://github.com/stackabletech/docker-images/pull/1533
 [#1535]: https://github.com/stackabletech/docker-images/pull/1535
 
 ## [26.3.0] - 2026-03-16

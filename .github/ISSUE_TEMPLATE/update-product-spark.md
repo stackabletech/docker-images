@@ -30,6 +30,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update `boil-config.toml` to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
 - [ ] Upload new version (see `spark/upload_new_spark_version.sh`).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
+- [ ] Update `boil-config.toml` to the latest supported version of Hadoop.
 - [ ] Ensure that the transitive dependencies in `boil-config.toml` are compatible with the Spark version(s).
 - [ ] Update other dependencies if applicable (eg: python, jmx_exporter, aws_java_sdk_bundle, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
