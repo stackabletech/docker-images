@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - superset: Add `6.1.0` ([#1514]).
 - zookeeper: Add `3.9.5` ([#1515]).
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
-- airflow: Add `3.2.1` ([#1519]).
+- airflow: Add `3.2.2` ([#1519], [#1541]).
 - druid: Add `37.0.0` ([#1535]).
 
 ### Changed
@@ -75,6 +75,7 @@ All notable changes to this project will be documented in this file.
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
 [#1533]: https://github.com/stackabletech/docker-images/pull/1533
 [#1535]: https://github.com/stackabletech/docker-images/pull/1535
+[#1541]: https://github.com/stackabletech/docker-images/pull/1541
 
 ## [26.3.0] - 2026-03-16
 
