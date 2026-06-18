@@ -29,7 +29,7 @@ All notable changes to this project will be documented in this file.
   This uses a git mirror and patchable instead of sourcing from Nexus.
 - superset: Bump statsd_exporter to `0.30.0` ([#1524]).
 - hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
-- hive: Bump `4.2.0` to Hadoop `3.4.3`.
+- hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 
 ### Fixed
 
@@ -45,7 +45,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
 - opa: Remove `1.8.0` ([#1509]).
 - spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
-- hive: Remove `4.1.0` ([#XXXX]).
+- hive: Remove `4.1.0` ([#1539]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -72,7 +72,7 @@ All notable changes to this project will be documented in this file.
 [#1521]: https://github.com/stackabletech/docker-images/pull/1521
 [#1524]: https://github.com/stackabletech/docker-images/pull/1524
 [#1525]: https://github.com/stackabletech/docker-images/pull/1525
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1539]: https://github.com/stackabletech/docker-images/pull/1539
 
 ## [26.3.0] - 2026-03-16
 
