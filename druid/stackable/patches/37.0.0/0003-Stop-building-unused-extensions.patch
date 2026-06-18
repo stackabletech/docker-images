@@ -1,4 +1,4 @@
-From 8a1e8f9c4eaa419bb59825e645cbacd0b4ec7d34 Mon Sep 17 00:00:00 2001
+From de614889d64315022c6f4bd1e96d211accd5061e Mon Sep 17 00:00:00 2001
 From: xeniape <xenia.fischer@stackable.tech>
 Date: Tue, 23 Sep 2025 09:31:00 +0200
 Subject: Stop building unused extensions.
@@ -11,19 +11,21 @@ extensions from the build.
  1 file changed, 29 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 829ddbd9e7..369550e166 100644
+index 6548d3a661..d252009bc4 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -229,37 +229,8 @@
-         <module>extensions-core/testing-tools</module>
+@@ -235,37 +235,8 @@
+         <module>extensions-core/druid-testcontainers</module>
          <!-- Community extensions -->
          <module>extensions-contrib/compressed-bigdecimal</module>
 -        <module>extensions-contrib/influx-extensions</module>
 -        <module>extensions-contrib/cassandra-storage</module>
 -        <module>extensions-contrib/dropwizard-emitter</module>
 -        <module>extensions-contrib/cloudfiles-extensions</module>
+-        <module>extensions-contrib/consul-extensions</module>
 -        <module>extensions-contrib/graphite-emitter</module>
 -        <module>extensions-contrib/distinctcount</module>
+-        <module>extensions-contrib/druid-exact-count-bitmap</module>
 -        <module>extensions-contrib/statsd-emitter</module>
 -        <module>extensions-contrib/time-min-max</module>
 -        <module>extensions-contrib/virtual-columns</module>
@@ -33,8 +35,6 @@ index 829ddbd9e7..369550e166 100644
          <module>extensions-contrib/kafka-emitter</module>
 -        <module>extensions-contrib/redis-cache</module>
 -        <module>extensions-contrib/opentsdb-emitter</module>
--        <module>extensions-contrib/materialized-view-maintenance</module>
--        <module>extensions-contrib/materialized-view-selection</module>
 -        <module>extensions-contrib/momentsketch</module>
 -        <module>extensions-contrib/moving-average-query</module>
 -        <module>extensions-contrib/tdigestsketch</module>
@@ -51,4 +51,4 @@ index 829ddbd9e7..369550e166 100644
 -        <module>extensions-contrib/rabbit-stream-indexing-service</module>
          <!-- distribution packaging -->
          <module>distribution</module>
-         <!-- Revised integration tests -->
+         <!-- more test stuff -->
