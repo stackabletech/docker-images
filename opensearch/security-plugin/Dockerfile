@@ -18,7 +18,14 @@ cd "$(/stackable/patchable --images-repo-root=src checkout opensearch/security-p
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/opensearch-security-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
-./gradlew clean assemble -Dbuild.snapshot=false
+
+# Starting with version 3.6.0.0, the security plugin defaults to crypto.standard=FIPS-140-3 (gradle.properties),
+# which makes the build treat the BouncyCastle FIPS jars as compileOnly, expecting the OpenSearch core
+# distribution to provide them in lib/.
+# The Stackable OpenSearch build is not a FIPS build, so it does not ship those jars, and the plugin fails
+# at startup with NoClassDefFoundError: org/bouncycastle/jcajce/provider/BouncyCastleFipsProvider.
+# Build in non-FIPS mode (-Pcrypto.standard=any-supported) so the plugin bundles its own BouncyCastle jars.
+./gradlew clean assemble -Dbuild.snapshot=false -Pcrypto.standard=any-supported
 ./gradlew cyclonedxBom --warning-mode=summary -Dbuild.snapshot=false
 EOF
 
