@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
 - hive: Remove `4.1.0` ([#1539]).
 - druid: Remove `34.0.0` ([#1535]).
+- java-base: Drop Java 8 ([#1548]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
