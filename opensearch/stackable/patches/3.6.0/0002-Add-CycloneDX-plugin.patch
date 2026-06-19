@@ -1,0 +1,107 @@
+From b49c9673578d61c0a06aa64e71788a79b2155915 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 19 Jun 2026 14:53:34 +0200
+Subject: Add CycloneDX plugin
+
+Generate a CycloneDX SBOM scoped to the components actually shipped in the
+Stackable image: server, libs, modules, and the repository-s3 and
+telemetry-otel plugins. Build-only subprojects (test fixtures, qa,
+benchmarks, distribution, and unshipped plugins such as ingest-attachment,
+which pulls in tika-core) are excluded via an allowlist so they do not appear
+as false positives in the runtime SBOM.
+---
+ build.gradle          | 47 ++++++++++++++++++++++++++++++++++++++++++-
+ buildSrc/build.gradle |  8 +++++++-
+ 2 files changed, 53 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index 252d1ed553a..264b2d44bee 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -59,6 +59,7 @@ plugins {
+   id "org.gradle.test-retry" version "1.6.2" apply false
+   id "test-report-aggregation"
+   id 'jacoco-report-aggregation'
++  id 'org.cyclonedx.bom' version '3.2.4'
+ }
+ 
+ apply from: 'gradle/build-complete.gradle'
+@@ -72,7 +73,7 @@ apply from: 'gradle/missing-javadoc.gradle'
+ apply from: 'gradle/code-coverage.gradle'
+ 
+ // Apply security setup if opensearch-security is in installedPlugins
+-if (project.hasProperty('installedPlugins') && 
++if (project.hasProperty('installedPlugins') &&
+     project.property('installedPlugins').toString().contains('opensearch-security')) {
+   apply from: 'gradle/security-setup.gradle'
+ }
+@@ -87,6 +88,50 @@ allprojects {
+   group = 'org.opensearch'
+   version = VersionProperties.getOpenSearch()
+   description = "OpenSearch subproject ${project.path}"
++
++  // Only include subprojects that are part of the opensearch-min distribution
++  // (server, libs, modules) plus the core plugins shipped in the Stackable
++  // image (repository-s3 and telemetry-otel). This prevents build-only
++  // dependencies (e.g. tika-core from ingest-attachment, or test fixtures such
++  // as hdfs-fixture) from appearing in the runtime SBOM as false positives.
++  //
++  // Implemented as an allowlist: every other subproject (test fixtures,
++  // benchmarks, qa, distribution, sandbox, example/unshipped plugins, ...) is
++  // excluded. A denylist is too fragile here — some build-only projects have
++  // broken/partial POMs that even break task dependency resolution (e.g.
++  // hdfs-fixture's null parent groupId).
++  //
++  // Disabling the task is not enough: the aggregate cyclonedxBom task depends
++  // on every project's cyclonedxDirectBom and Gradle resolves those task
++  // dependencies (i.e. the includeConfigs configurations) even for disabled
++  // tasks. So for non-shipped projects we also leave includeConfigs empty,
++  // ensuring runtimeClasspath is never resolved for them.
++  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
++  def isShipped = project.path == ':server' ||
++                  project.path.startsWith(':libs:') ||
++                  project.path.startsWith(':modules:') ||
++                  (project.path.startsWith(':plugins:') && project.name in shippedPlugins)
++
++  cyclonedxDirectBom {
++    if (isShipped) {
++      includeConfigs = ["runtimeClasspath"]
++      skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    } else {
++      // NOTE: an empty includeConfigs means "include ALL configurations", so we
++      // point it at a sentinel configuration that does not exist instead. This
++      // makes the task resolve nothing, avoiding the broken-POM resolution
++      // failures while keeping the task harmlessly disabled.
++      enabled = false
++      includeConfigs = ["__sbom_excluded__"]
++    }
++  }
++}
++
++cyclonedxBom {
++  includeLicenseText = false
++  projectType = org.cyclonedx.model.Component.Type.APPLICATION
++  schemaVersion = org.cyclonedx.Version.VERSION_16
++  componentVersion = VersionProperties.getOpenSearch()
+ }
+ 
+ configure(allprojects - project(':distribution:archives:integ-test-zip')) {
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index ab6b24c1213..452932f7c0d 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -118,7 +118,13 @@ dependencies {
+   api 'com.avast.gradle:gradle-docker-compose-plugin:0.17.12'
+   api "org.yaml:snakeyaml:${props.getProperty('snakeyaml')}"
+   api 'org.apache.maven:maven-model:3.9.12'
+-  api 'com.networknt:json-schema-validator:1.2.0'
++  // Aligned with the version pulled in by cyclonedx-core-java (via the
++  // org.cyclonedx.bom plugin). buildSrc is on every project's buildscript
++  // classpath, so a divergent version here (formerly 1.2.0) collides with the
++  // CycloneDX plugin on the single buildscript classpath and breaks SBOM
++  // generation (NoSuchMethodError: SchemaValidatorsConfig.setPreloadJsonSchema).
++  // 1.5.9 keeps the API used by ValidateJsonAgainstSchemaTask.
++  api 'com.networknt:json-schema-validator:1.5.9'
+   api 'org.jruby.jcodings:jcodings:1.0.58'
+   api 'org.jruby.joni:joni:2.2.6'
+   api "com.fasterxml.jackson.core:jackson-databind:${props.getProperty('jackson_databind')}"
