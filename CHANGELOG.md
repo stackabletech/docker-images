@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
 - spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
+- java-devel: Bump Maven to 3.9.16 ([#1548]).
 
 ### Fixed
 
@@ -79,6 +80,7 @@ All notable changes to this project will be documented in this file.
 [#1535]: https://github.com/stackabletech/docker-images/pull/1535
 [#1539]: https://github.com/stackabletech/docker-images/pull/1539
 [#1541]: https://github.com/stackabletech/docker-images/pull/1541
+[#1548]: https://github.com/stackabletech/docker-images/pull/1548
 
 ## [26.3.0] - 2026-03-16
 
