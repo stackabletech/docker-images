@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
 - airflow: Add `3.2.2` ([#1519], [#1541]).
 - druid: Add `37.0.0` ([#1535]).
+- spark: Add `4.1.2` ([#1550]).
 
 ### Changed
 
@@ -82,6 +83,7 @@ All notable changes to this project will be documented in this file.
 [#1539]: https://github.com/stackabletech/docker-images/pull/1539
 [#1541]: https://github.com/stackabletech/docker-images/pull/1541
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
+[#1550]: https://github.com/stackabletech/docker-images/pull/1550
 
 ## [26.3.0] - 2026-03-16
 
