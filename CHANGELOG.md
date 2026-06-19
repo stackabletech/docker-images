@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
 - airflow: Add `3.2.2` ([#1519], [#1541]).
 - druid: Add `37.0.0` ([#1535]).
+- hbase: Add `2.6.6` ([#1547]).
 
 ### Changed
 
@@ -51,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - hive: Remove `4.1.0` ([#1539]).
 - druid: Remove `34.0.0` ([#1535]).
 - java-base: Drop Java 8 ([#1548]).
+- hbase: Remove `2.6.3` ([#1547]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -81,6 +83,7 @@ All notable changes to this project will be documented in this file.
 [#1535]: https://github.com/stackabletech/docker-images/pull/1535
 [#1539]: https://github.com/stackabletech/docker-images/pull/1539
 [#1541]: https://github.com/stackabletech/docker-images/pull/1541
+[#1547]: https://github.com/stackabletech/docker-images/pull/1547
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 
 ## [26.3.0] - 2026-03-16
