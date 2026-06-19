@@ -31,4 +31,18 @@ java-devel = "21"
 [versions."37.0.0".build-arguments]
 # We don't need to bump this if no code changed in https://github.com/stackabletech/druid-opa-authorizer
 # But a PR still needs to be raised to add/remove versions and ensure it still builds.
+
+# IMHO this is a mess. We fetch the release from https://repo.stackable.tech/repository/packages/druid/druid-opa-authorizer-${AUTHORIZER_VERSION}.tar.gz
+# and use that. There hasn't been a release since 2025-06-02. It's a random .tar.gz of a .jar file in Nexus.
+# It was compiled against
+#
+# * A totally different Druid version
+# * Different jackson version
+# * Different guava version
+# * Different guice version
+# * Different Java version (this should be fine)
+#
+# Yes, this seems to have worked in the past, but we should build the authorizer from source (as we
+# do with others). It should also require a mandatory profile (no activation by default), so that
+# the build fails on an unsupported Druid version.
 authorizer-version = "0.7.0"
