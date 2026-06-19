@@ -1,4 +1,4 @@
-From 515da2a96db1835133e2b367d4c006ce4fcf8a3a Mon Sep 17 00:00:00 2001
+From 319acbb818938c36b27f875e243c157dfc32fff4 Mon Sep 17 00:00:00 2001
 From: xeniape <xenia.fischer@stackable.tech>
 Date: Mon, 22 Sep 2025 14:20:53 +0200
 Subject: Removes all traces of the druid ranger extension
@@ -9,27 +9,27 @@ Subject: Removes all traces of the druid ranger extension
  2 files changed, 3 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index f7e9766494..7c2573fbd4 100644
+index a1b2da00d3..51ce7563ea 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
-@@ -460,8 +460,6 @@
-                                         <argument>org.apache.druid.extensions.contrib:druid-rabbit-indexing-service</argument>
+@@ -448,8 +448,6 @@
                                          <argument>-c</argument>
                                          <argument>org.apache.druid.extensions.contrib:grpc-query</argument>
--                                        <argument>-c</argument>
+                                         <argument>-c</argument>
 -                                        <argument>org.apache.druid.extensions.contrib:druid-ranger-security</argument>
+-                                        <argument>-c</argument>
+                                         <argument>org.apache.druid.extensions.contrib:druid-exact-count-bitmap</argument>
                                      </arguments>
                                  </configuration>
-                             </execution>
 diff --git a/pom.xml b/pom.xml
-index 35ebdfdc34..829ddbd9e7 100644
+index 614ab31c09..6548d3a661 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -260,7 +260,6 @@
+@@ -266,7 +266,6 @@
          <module>extensions-contrib/druid-deltalake-extensions</module>
          <module>extensions-contrib/spectator-histogram</module>
          <module>extensions-contrib/rabbit-stream-indexing-service</module>
 -        <module>extensions-contrib/druid-ranger-security</module>
          <!-- distribution packaging -->
          <module>distribution</module>
-         <!-- Revised integration tests -->
+         <!-- more test stuff -->
