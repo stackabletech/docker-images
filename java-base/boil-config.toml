@@ -1,6 +1,3 @@
-[versions."8".local-images]
-vector = "0.55.0"
-
 [versions."11".local-images]
 vector = "0.55.0"
 
