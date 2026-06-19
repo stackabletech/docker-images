@@ -1,4 +1,4 @@
-From 9c9617bcdf23d94d1ecc3ed38b2211409c6dac00 Mon Sep 17 00:00:00 2001
+From 5c2b9cf1fecb60229225e597e4df3acab6409f88 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 12 Jul 2024 17:30:12 -0400
 Subject: Include jackson-dataformat-xml.
@@ -7,12 +7,12 @@ This is needed for XmlLayout to work so our structured logging works.
 It is an optional dependency of log4j2 so we need to make sure to include
 it.
 ---
- hbase-assembly/pom.xml |  5 +++++
- pom.xml                | 12 ++++++++++++
- 2 files changed, 17 insertions(+)
+ hbase-assembly/pom.xml | 5 +++++
+ pom.xml                | 7 +++++++
+ 2 files changed, 12 insertions(+)
 
 diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
-index 459d3d2cb9..a5ae653d02 100644
+index 8ff8fcdf2a..1e425d3c05 100644
 --- a/hbase-assembly/pom.xml
 +++ b/hbase-assembly/pom.xml
 @@ -221,6 +221,11 @@
@@ -28,22 +28,10 @@ index 459d3d2cb9..a5ae653d02 100644
        <groupId>org.apache.logging.log4j</groupId>
        <artifactId>log4j-slf4j-impl</artifactId>
 diff --git a/pom.xml b/pom.xml
-index 98ba66f00d..f41e50c3bb 100644
+index ed13ea269b..495d62bd4e 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -1173,6 +1173,11 @@
-         <artifactId>log4j-core</artifactId>
-         <version>${log4j2.version}</version>
-       </dependency>
-+      <dependency>
-+        <groupId>org.apache.logging.log4j</groupId>
-+        <artifactId>log4j-core</artifactId>
-+        <version>${log4j2.version}</version>
-+      </dependency>
-       <dependency>
-         <groupId>org.apache.logging.log4j</groupId>
-         <artifactId>log4j-slf4j-impl</artifactId>
-@@ -1183,6 +1188,13 @@
+@@ -1196,6 +1196,13 @@
          <artifactId>log4j-1.2-api</artifactId>
          <version>${log4j2.version}</version>
        </dependency>
@@ -51,7 +39,7 @@ index 98ba66f00d..f41e50c3bb 100644
 +        <!-- This is an optional dependency of log4j which is needed to use XmlLayout -->
 +        <groupId>com.fasterxml.jackson.dataformat</groupId>
 +        <artifactId>jackson-dataformat-xml</artifactId>
-+        <version>${jackson.databind.version}</version>
++        <version>${jackson.version}</version>
 +      </dependency>
 +
        <!-- Avro dependencies we mostly get transitively, manual version coallescing -->

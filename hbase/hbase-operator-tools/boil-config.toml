@@ -1,13 +1,3 @@
-[versions."1.3.0-hbase2.6.3".local-images]
-"hadoop/hadoop" = "3.4.2" # TODO: Bump to 3.4.3
-"hbase/hbase" = "2.6.3"
-"java-devel" = "11"
-
-[versions."1.3.0-hbase2.6.3".build-arguments]
-hbase-operator-tools-version = "1.3.0"
-hbase-thirdparty-version = "4.1.9"
-delete-caches = "true"
-
 # Note: The next Hbase version should use 1.4.0 if it is released.
 # At the time of writing, the latest commit is b22878f.
 [versions."1.3.0-hbase2.6.4".local-images]
@@ -17,5 +7,15 @@ delete-caches = "true"
 
 [versions."1.3.0-hbase2.6.4".build-arguments]
 hbase-operator-tools-version = "1.3.0"
-hbase-thirdparty-version = "4.1.9"
+hbase-thirdparty-version = "4.1.12" # Needs to match https://github.com/apache/hbase/blob/rel/2.6.6/pom.xml
+delete-caches = "true"
+
+[versions."1.3.0-hbase2.6.6".local-images]
+"hadoop/hadoop" = "3.4.3"
+"hbase/hbase" = "2.6.6"
+"java-devel" = "11"
+
+[versions."1.3.0-hbase2.6.6".build-arguments]
+hbase-operator-tools-version = "1.3.0"
+hbase-thirdparty-version = "4.1.13" # Needs to match https://github.com/apache/hbase/blob/rel/2.6.6/pom.xml
 delete-caches = "true"

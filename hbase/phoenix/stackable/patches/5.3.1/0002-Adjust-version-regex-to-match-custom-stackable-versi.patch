@@ -1,6 +1,6 @@
-From 7efd58083a39cf19fe027c9a29b78bc9d7cec2b8 Mon Sep 17 00:00:00 2001
-From: dervoeti <lukas.krug@stackable.tech>
-Date: Tue, 15 Apr 2025 11:11:36 +0200
+From c92e7e24fc58bc48511748599b90e053f6b16c5a Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 26 Jan 2026 13:03:56 +0100
 Subject: Adjust version regex to match custom stackable versions
 
 ---
@@ -8,11 +8,11 @@ Subject: Adjust version regex to match custom stackable versions
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/phoenix-core-client/pom.xml b/phoenix-core-client/pom.xml
-index cbbebc9d5..ae0b37387 100644
+index e1ba8727f..90794c228 100644
 --- a/phoenix-core-client/pom.xml
 +++ b/phoenix-core-client/pom.xml
-@@ -48,7 +48,7 @@
-                   import java.util.regex.Pattern;
+@@ -275,7 +275,7 @@
+               <condition>import java.util.regex.Pattern;
                    import java.lang.Integer;
  
 -                  versionPattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)[^.]*$");

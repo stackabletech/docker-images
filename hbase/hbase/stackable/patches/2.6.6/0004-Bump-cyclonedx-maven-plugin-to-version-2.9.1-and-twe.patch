@@ -1,4 +1,4 @@
-From 646a90225985605e3dab3bbca3b04182a004bb2b Mon Sep 17 00:00:00 2001
+From aed9e367d3eab8504a6c667444ae0f2fb27988f7 Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Fri, 6 Sep 2024 17:53:52 +0200
 Subject: Bump cyclonedx-maven-plugin to version 2.9.1 and tweak its
@@ -9,10 +9,10 @@ Subject: Bump cyclonedx-maven-plugin to version 2.9.1 and tweak its
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/pom.xml b/pom.xml
-index f41e50c3bb..f6a47dd880 100644
+index 495d62bd4e..5c939a77e0 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -3315,7 +3315,11 @@
+@@ -3366,7 +3366,11 @@
            <plugin>
              <groupId>org.cyclonedx</groupId>
              <artifactId>cyclonedx-maven-plugin</artifactId>
