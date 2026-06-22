@@ -18,9 +18,6 @@ ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG JMX_EXPORTER_VERSION
-ARG AWS_JAVA_SDK_BUNDLE_VERSION
-ARG AZURE_STORAGE_VERSION
-ARG AZURE_KEYVAULT_CORE_VERSION
 ARG STACKABLE_USER_UID
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
@@ -64,8 +61,8 @@ tar -czf /stackable/hive-${NEW_VERSION}-src.tar.gz .
 
 if [[ "${PRODUCT_VERSION}" == "3.1.3" ]] ; then
   mvn \
-   clean package \
-   -DskipTests \
+    clean package \
+    -DskipTests \
     --projects standalone-metastore
   mv standalone-metastore/target/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}-bin /stackable
   mv standalone-metastore/target/bom.json /stackable/apache-hive-metastore-${NEW_VERSION}-bin/apache-hive-metastore-${NEW_VERSION}.cdx.json
@@ -73,9 +70,9 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   (
     # https://issues.apache.org/jira/browse/HIVE-20451 switched the metastore server packaging starting with 4.0.0
     mvn \
-    clean package \
-    -DskipTests \
-    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION}
+      clean package \
+      -DskipTests \
+      -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION}
 
     # We only seem to get a .tar.gz archive, so let's extract that to the correct location
     tar --extract --directory=/stackable -f standalone-metastore/metastore-server/target/apache-hive-standalone-metastore-server-${NEW_VERSION}-bin.tar.gz
@@ -87,10 +84,10 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
   mvn \
-  clean package \
-  -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
-  -DskipTests \
-  -Pdist
+    clean package \
+    -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
+    -DskipTests \
+    -Pdist
   # Looks like we can not filter the projects using "--projects standalone-metastore/metastore-server --also-make",
   # as this does not build a *.tar.gz
 
@@ -103,6 +100,9 @@ fi
 rm -rf "$BUILD_SRC_DIR"
 EOF
 
+# Copy cloud libraries for s3a:// and abfs:// support
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
+
 RUN <<EOF
 cd /stackable
 mkdir /stackable/jmx
@@ -111,25 +111,6 @@ ln -s "/stackable/jmx/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar" /sta
 
 # Needed to run housekeeping jobs, see footnote <1> below
 cp /stackable/patched-libs/maven/org/apache/hadoop/hadoop-mapreduce-client-core/${HADOOP_VERSION}-stackable${RELEASE_VERSION}/hadoop-mapreduce-client-core-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
-
-# The next two sections for S3 and Azure use hardcoded version numbers on purpose instead of wildcards
-# This way the build will fail should one of the files not be available anymore in a later Hadoop version!
-
-# Add S3 Support for Hive (support for s3a://)
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
-
-# According to https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html, the jar filename has changed from
-# aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar to bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar. In future, you might need to do:
-if [[ "${PRODUCT_VERSION}" == "3.1.3" || "${PRODUCT_VERSION}" == 4.0.* ]]; then
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
-else
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/apache-hive-metastore-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-bin/lib/
-fi
-
-# Add Azure ABFS support (support for abfs://)
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
-cp /stackable/hadoop-${HADOOP_VERSION}-stackable${RELEASE_VERSION}/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/apache-hive-metastore-${NEW_VERSION}-bin/lib/
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -194,7 +175,8 @@ COPY hive/licenses /licenses
 RUN <<EOF
 microdnf update
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
+# List all rpm packages installed in the system
+rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum

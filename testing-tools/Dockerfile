@@ -1,10 +1,14 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-this-image
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:67aafc6c9c44374e1baf340110d4c835457d59a0444c068ba9ac6431a6d9e7ac
+ARG GRPCURL_VERSION
+FROM fullstorydev/grpcurl:v${GRPCURL_VERSION} AS grpcurl
+
+# Find the latest version:
+#
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
+#
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
@@ -43,6 +47,10 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # Base requirements for all testing-tools images
 COPY testing-tools/requirements.txt /stackable/requirements.txt
 COPY testing-tools/licenses /licenses
+
+# Required for interacting with the Vcetor Aggregator gRPC endpoint
+# TODO: Use the caching proxy, or mirror the image.
+COPY --from=grpcurl /bin/grpcurl /bin/grpcurl
 
 RUN <<EOF
 microdnf update

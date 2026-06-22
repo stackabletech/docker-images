@@ -30,15 +30,8 @@ ARG STACKABLE_USER_UID
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
-COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 \
-  # The artifact name of the AWS bundle has changed between Haddop 3.3.6 and 3.4.1
-  # from aws-java-sdk-bundle-*.jar to bundle-*.jar.
-  # See: https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/aws_sdk_upgrade.html
-  # So we try to copy both and if one of them doesn't exist buildx will just ignore it :)
-  /stackable/hadoop/share/hadoop/tools/lib/bundle-*.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-  /stackable/hadoop/share/hadoop/tools/lib/
+# Copy cloud libraries for s3a:// and abfs:// support
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar /stackable/hadoop/share/hadoop/tools/lib/
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/bin/export-snapshot-to-s3.env /stackable/bin/
 
@@ -111,14 +104,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_P
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
-# Copy the dependencies from Hadoop which are required for the Azure Data Lake
-# Storage (ADLS) to /stackable/hbase-${HBASE_VERSION}/lib which is on the classpath.
-# hadoop-azure-${HADOOP}.jar contains the AzureBlobFileSystem which is required
-# by hadoop-common-${HADOOP}.jar if the scheme of a file system is "abfs://".
-COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder \
-  /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${HADOOP_VERSION}-stackable${RELEASE_VERSION}.jar \
-  /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/lib/
-
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer-${HBASE_HBASE_OPA_AUTHORIZER_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-opa-authorizer /stackable/hbase-opa-authorizer/target/hbase-opa-authorizer*.jar /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/lib
 
@@ -135,7 +120,8 @@ microdnf install \
   zip
 
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
+# List all rpm packages installed in the system
+rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum

@@ -1,0 +1,117 @@
+From f4e7c8576580028dc410664bfbb80dd4e49a1136 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Tue, 16 Jun 2026 15:16:51 +0200
+Subject: Update dependencies
+
+---
+ extensions-core/druid-pac4j/pom.xml    |  5 +++--
+ extensions-core/orc-extensions/pom.xml |  2 +-
+ pom.xml                                | 22 +++++++++++++---------
+ 3 files changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/extensions-core/druid-pac4j/pom.xml b/extensions-core/druid-pac4j/pom.xml
+index 76cd236ebf..f7512d3c4f 100644
+--- a/extensions-core/druid-pac4j/pom.xml
++++ b/extensions-core/druid-pac4j/pom.xml
+@@ -34,11 +34,12 @@
+   </parent>
+ 
+   <properties>
+-    <pac4j.version>5.7.3</pac4j.version>
++    <pac4j.version>5.7.11</pac4j.version>
+ 
+     <!-- Following must be updated along with any updates to pac4j version. One can find the compatible version of nimbus libraries in org.pac4j:pac4j-oidc dependencies-->
+     <nimbus.lang.tag.version>1.7</nimbus.lang.tag.version>
+-    <nimbus.jose.jwt.version>9.37.2</nimbus.jose.jwt.version>
++    <!-- Must be >= the version required by pac4j-oidc transitively -->
++    <nimbus.jose.jwt.version>9.37.3</nimbus.jose.jwt.version>
+     <oauth2.oidc.sdk.version>10.8</oauth2.oidc.sdk.version>
+   </properties>
+ 
+diff --git a/extensions-core/orc-extensions/pom.xml b/extensions-core/orc-extensions/pom.xml
+index 5e16ebb8ae..21f833e080 100644
+--- a/extensions-core/orc-extensions/pom.xml
++++ b/extensions-core/orc-extensions/pom.xml
+@@ -31,7 +31,7 @@
+     </parent>
+     <modelVersion>4.0.0</modelVersion>
+     <properties>
+-        <orc.version>1.7.6</orc.version>
++        <orc.version>1.7.11</orc.version>
+     </properties>
+     <dependencies>
+         <dependency>
+diff --git a/pom.xml b/pom.xml
+index 73ce663463..8e5dd97e38 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -73,7 +73,7 @@
+         <java.version>17</java.version>
+         <maven.compiler.release>${java.version}</maven.compiler.release>
+         <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
+-        <aether.version>0.9.0.M2</aether.version>
++        <aether.version>0.9.1.v20140329</aether.version>
+         <apache.curator.version>5.8.0</apache.curator.version>
+         <apache.kafka.version>3.9.1</apache.kafka.version>
+         <!-- when updating apache ranger, verify the usage of aws-bundle-sdk vs aws-logs-sdk
+@@ -93,25 +93,28 @@
+         <confluent.version>6.2.15</confluent.version>
+         <cronutils.version>9.2.0</cronutils.version>
+         <datasketches.version>4.2.0</datasketches.version>
+-        <datasketches.memory.version>2.2.0</datasketches.memory.version>
++        <datasketches.memory.version>2.2.1</datasketches.memory.version>
+         <derby.version>10.14.2.0</derby.version>
+-        <dropwizard.metrics.version>4.2.22</dropwizard.metrics.version>
++        <dropwizard.metrics.version>4.2.39</dropwizard.metrics.version>
+         <errorprone.version>2.41.0</errorprone.version>
+         <fabric8.version>7.6.0</fabric8.version>
+-        <fastutil.version>8.5.4</fastutil.version>
++        <!-- An additional null check was introduced in fastutils 8.5.7 that breaks data ingestion tasks:
++             https://github.com/stackabletech/druid-operator/issues/595
++             https://github.com/vigna/fastutil/commit/598a4fd064e193be69ea324aa86947477c82ede8 -->
++        <fastutil.version>8.5.6</fastutil.version>
+         <guava.version>32.1.3-jre</guava.version>
+         <guice.version>6.0.0</guice.version>
+         <hamcrest.version>2.2</hamcrest.version>
+         <jetty.version>12.1.8</jetty.version>
+         <jersey.version>1.19.4</jersey.version>
+         <jackson.version>2.20.2</jackson.version>
+-        <codehaus.jackson.version>1.9.13</codehaus.jackson.version>
++        <codehaus.jackson.version>1.9.14-MULE-002</codehaus.jackson.version>
+         <log4j.version>2.25.3</log4j.version>
+         <mysql.version>8.2.0</mysql.version>
+         <mariadb.version>2.7.3</mariadb.version>
+         <netty3.version>3.10.6.Final</netty3.version>
+         <netty4.version>4.2.12.Final</netty4.version>
+-        <postgresql.version>42.7.2</postgresql.version>
++        <postgresql.version>42.7.11</postgresql.version>
+         <protobuf.version>3.25.8</protobuf.version>
+         <resilience4j.version>1.3.1</resilience4j.version>
+         <slf4j.version>2.0.17</slf4j.version>
+@@ -128,14 +131,14 @@
+         <jacoco.version>0.8.14</jacoco.version>
+         <testcontainers.version>2.0.3</testcontainers.version>
+         <hibernate-validator.version>6.2.5.Final</hibernate-validator.version>
+-        <httpclient.version>4.5.13</httpclient.version>
++        <httpclient.version>4.5.14</httpclient.version>
+         <okhttp.version>5.3.2</okhttp.version>
+         <kubernetes.client.version>25.0.0-legacy</kubernetes.client.version>
+         <zookeeper.version>3.8.6</zookeeper.version>
+         <checkerframework.version>3.48.1</checkerframework.version>
+         <com.google.apis.client.version>2.2.0</com.google.apis.client.version>
+         <com.google.http.client.apis.version>1.42.3</com.google.http.client.apis.version>
+-        <com.google.apis.compute.version>v1-rev20230606-2.0.0</com.google.apis.compute.version>
++        <com.google.apis.compute.version>v1-rev20260530-2.0.0</com.google.apis.compute.version>
+         <com.google.cloud.storage.version>2.29.1</com.google.cloud.storage.version>
+         <jdk.strong.encapsulation.argLine>
+             <!-- Strong encapsulation parameters -->
+@@ -322,7 +325,8 @@
+             <dependency>
+                 <groupId>org.apache.commons</groupId>
+                 <artifactId>commons-text</artifactId>
+-                <version>1.13.1</version>
++                <!-- Bumped from 1.13.1 to satisfy RequireUpperBoundDeps: Hadoop 3.4.3 transitively requires >= 1.14.0 -->
++                <version>1.14.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>software.amazon.awssdk</groupId>

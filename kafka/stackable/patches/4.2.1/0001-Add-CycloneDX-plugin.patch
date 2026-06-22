@@ -1,0 +1,67 @@
+From 5ef351ca945bcaa8346ef066ba00fd9288a4f443 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 13 May 2026 16:30:33 +0300
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index c07cd3b047..effbe0f65d 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,8 +41,53 @@ plugins {
+   id 'org.scoverage' version '8.1' apply false
+   id 'com.gradleup.shadow' version '8.3.9' apply false
+   id 'com.diffplug.spotless' version "8.0.0"
++  id 'org.cyclonedx.bom' version '3.2.4'
+ }
+ 
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = org.cyclonedx.model.Component.Type.APPLICATION
++    // Specified the version of the CycloneDX specification to use. Defaults to VERSION_16.
++    schemaVersion = org.cyclonedx.Version.VERSION_15
++    jsonOutput = file("build/reports/bom.json")
++    xmlOutput.unsetConvention()
++}
++
++// Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
++// The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++def skipCyclonedxProjects = [
++  ':streams:upgrade-system-tests-0110',
++  ':streams:upgrade-system-tests-10',
++  ':streams:upgrade-system-tests-11',
++  ':streams:upgrade-system-tests-20',
++  ':streams:upgrade-system-tests-21',
++  ':streams:upgrade-system-tests-22',
++  ':streams:upgrade-system-tests-23',
++  ':streams:upgrade-system-tests-24',
++  ':streams:upgrade-system-tests-25',
++  ':streams:upgrade-system-tests-26',
++  ':streams:upgrade-system-tests-27',
++  ':streams:upgrade-system-tests-28',
++  ':streams:upgrade-system-tests-30',
++  ':streams:upgrade-system-tests-31',
++  ':streams:upgrade-system-tests-32',
++  ':streams:upgrade-system-tests-33',
++  ':streams:upgrade-system-tests-34',
++  ':streams:upgrade-system-tests-35',
++  ':streams:upgrade-system-tests-36',
++  ':streams:upgrade-system-tests-37',
++  ':streams:upgrade-system-tests-38',
++  ':streams:upgrade-system-tests-39',
++  ':streams:upgrade-system-tests-40',
++  ':streams:upgrade-system-tests-41',
++]
++
++configure(subprojects.findAll { skipCyclonedxProjects.contains(it.path) }) {
++  tasks.named('cyclonedxDirectBom') {
++    enabled = false
++  }
++}
++ 
+ ext {
+   minClientJavaVersion = 11
+   minNonClientJavaVersion = 17

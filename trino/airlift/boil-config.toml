@@ -1,0 +1,8 @@
+[versions."361".local-images]
+java-devel = "24" # Same version as Trino 477
+
+[versions."386".local-images]
+java-devel = "25" # Same version as Trino 479
+
+[versions."424".local-images]
+java-devel = "25" # Same version as Trino 481

@@ -1,0 +1,22 @@
+From 8177d73d3dd9260f36c8bd349a0b6602e1a8fc2c Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Tue, 26 May 2026 15:43:29 +0200
+Subject: YARN-11873 Update nodejs to LTS version
+
+---
+ hadoop-project/pom.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
+index f8c7f2388f3..4522eea9fe0 100644
+--- a/hadoop-project/pom.xml
++++ b/hadoop-project/pom.xml
+@@ -236,7 +236,7 @@
+     <woodstox.version>5.4.0</woodstox.version>
+     <nimbus-jose-jwt.version>10.4</nimbus-jose-jwt.version>
+     <jcip-annotations.version>1.0-1</jcip-annotations.version>
+-    <nodejs.version>v14.17.0</nodejs.version>
++    <nodejs.version>v22.20.0</nodejs.version>
+     <yarnpkg.version>v1.22.5</yarnpkg.version>
+     <apache-ant.version>1.10.13</apache-ant.version>
+     <jmh.version>1.20</jmh.version>

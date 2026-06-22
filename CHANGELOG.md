@@ -10,10 +10,29 @@ All notable changes to this project will be documented in this file.
 - nifi: Add version `2.9.0` ([#1463]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
+- testing-tools: Added grpcurl utility ([#1493]).
+- opa: Add `1.16.2` ([#1509]).
+- kafka: Add `3.9.2` and `4.2.1` ([#1483]).
+- trino: Add `481` ([#1518]).
+- superset: Add `6.1.0` ([#1514]).
+- zookeeper: Add `3.9.5` ([#1515]).
+- hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
+- airflow: Add `3.2.2` ([#1519], [#1541]).
+- druid: Add `37.0.0` ([#1535]).
 
 ### Changed
 
+- airflow: Bump statsd_exporter to `0.30.0` ([#1524]).
+- ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
+- stackable-base: Bump `containerdebug` to `0.4.0` and  `config-utils` to `0.4.0` ([#1521]).
+- statsd_exporter: Bump version from `0.28.0` to `0.30.0` ([#1524]).
+  This uses a git mirror and patchable instead of sourcing from Nexus.
+- superset: Bump statsd_exporter to `0.30.0` ([#1524]).
+- hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
+- spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
+- hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
+- java-devel: Bump Maven to 3.9.16 ([#1548]).
 
 ### Fixed
 
@@ -21,6 +40,17 @@ All notable changes to this project will be documented in this file.
 - opensearch: Scope CycloneDX SBOM to shipped components only, eliminating false positive CVEs from unshipped plugins ([#1452]).
 - vector: Look for SBOM in correct location ([#1471]).
 - vector: Use correct license ([#1476]).
+- trino: Build a patched Airlift from source and depend on it to backport [airlift/airlift#1943](https://github.com/airlift/airlift/pull/1943), applying the configured max response header size to Jetty's `maxResponseHeaderSize` ([#1510]).
+- airflow: Route DAG listings and menu items through OPA in the Airflow 3 OPA auth manager, and wire the OPA cache on the FastAPI api-server init path ([#1512]).
+
+### Removed
+
+- nifi: Remove `1.28.1`, deprecate `2.7.2` ([#1520]).
+- opa: Remove `1.8.0` ([#1509]).
+- spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
+- hive: Remove `4.1.0` ([#1539]).
+- druid: Remove `34.0.0` ([#1535]).
+- java-base: Drop Java 8 ([#1548]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -32,6 +62,26 @@ All notable changes to this project will be documented in this file.
 [#1474]: https://github.com/stackabletech/docker-images/pull/1474
 [#1476]: https://github.com/stackabletech/docker-images/pull/1476
 [#1481]: https://github.com/stackabletech/docker-images/pull/1481
+[#1483]: https://github.com/stackabletech/docker-images/pull/1483
+[#1493]: https://github.com/stackabletech/docker-images/pull/1493
+[#1507]: https://github.com/stackabletech/docker-images/pull/1507
+[#1509]: https://github.com/stackabletech/docker-images/pull/1509
+[#1510]: https://github.com/stackabletech/docker-images/pull/1510
+[#1511]: https://github.com/stackabletech/docker-images/pull/1511
+[#1512]: https://github.com/stackabletech/docker-images/pull/1512
+[#1514]: https://github.com/stackabletech/docker-images/pull/1514
+[#1515]: https://github.com/stackabletech/docker-images/pull/1515
+[#1518]: https://github.com/stackabletech/docker-images/pull/1518
+[#1519]: https://github.com/stackabletech/docker-images/pull/1519
+[#1520]: https://github.com/stackabletech/docker-images/pull/1520
+[#1521]: https://github.com/stackabletech/docker-images/pull/1521
+[#1524]: https://github.com/stackabletech/docker-images/pull/1524
+[#1525]: https://github.com/stackabletech/docker-images/pull/1525
+[#1533]: https://github.com/stackabletech/docker-images/pull/1533
+[#1535]: https://github.com/stackabletech/docker-images/pull/1535
+[#1539]: https://github.com/stackabletech/docker-images/pull/1539
+[#1541]: https://github.com/stackabletech/docker-images/pull/1541
+[#1548]: https://github.com/stackabletech/docker-images/pull/1548
 
 ## [26.3.0] - 2026-03-16
 
