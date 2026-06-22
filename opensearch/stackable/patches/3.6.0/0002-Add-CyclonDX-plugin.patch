@@ -1,7 +1,7 @@
 From 7e1d87238369e4e4546df1dc25a6e6f019122cc6 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 22 Jun 2026 16:46:43 +0200
-Subject: review feedback
+Subject: Add CycloneDX plugin
 
 ---
  build.gradle          | 35 ++++++++++++++++++++++++++++++++++-
