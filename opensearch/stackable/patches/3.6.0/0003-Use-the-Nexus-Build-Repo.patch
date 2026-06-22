@@ -1,4 +1,4 @@
-From 19d404e7ebec4685bdc6b724d54f588c28049c9c Mon Sep 17 00:00:00 2001
+From da1488197ea92be58b0daffa30e442d93ed2e5f4 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Wed, 6 Aug 2025 13:12:12 +0200
 Subject: Use the Nexus Build Repo
@@ -17,7 +17,7 @@ Subject: Use the Nexus Build Repo
  10 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index 452932f7c0d..002546eb453 100644
+index 94e3baecf2a..b2e07494fbb 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
 @@ -94,7 +94,9 @@ tasks.withType(JavaCompile).configureEach {
