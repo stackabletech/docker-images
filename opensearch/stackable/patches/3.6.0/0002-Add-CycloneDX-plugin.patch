@@ -45,6 +45,18 @@ index 252d1ed553a..264b2d44bee 100644
 +  // image (repository-s3 and telemetry-otel). This prevents build-only
 +  // dependencies (e.g. tika-core from ingest-attachment, or test fixtures such
 +  // as hdfs-fixture) from appearing in the runtime SBOM as false positives.
++  //
++  // Implemented as an allowlist: every other subproject (test fixtures,
++  // benchmarks, qa, distribution, sandbox, example/unshipped plugins, ...) is
++  // excluded. A denylist is too fragile here — some build-only projects have
++  // broken/partial POMs that even break task dependency resolution (e.g.
++  // hdfs-fixture's null parent groupId).
++  //
++  // Disabling the task is not enough: the aggregate cyclonedxBom task depends
++  // on every project's cyclonedxDirectBom and Gradle resolves those task
++  // dependencies (i.e. the includeConfigs configurations) even for disabled
++  // tasks. So for non-shipped projects we also leave includeConfigs empty,
++  // ensuring runtimeClasspath is never resolved for them.
 +  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
 +  def isShipped = project.path == ':server' ||
 +                  project.path.startsWith(':libs:') ||
@@ -56,6 +68,10 @@ index 252d1ed553a..264b2d44bee 100644
 +      includeConfigs = ["runtimeClasspath"]
 +      skipConfigs = ["compileClasspath", "testCompileClasspath"]
 +    } else {
++      // NOTE: an empty includeConfigs means "include ALL configurations", so we
++      // point it at a sentinel configuration that does not exist instead. This
++      // makes the task resolve nothing, avoiding the broken-POM resolution
++      // failures while keeping the task harmlessly disabled.
 +      enabled = false
 +      includeConfigs = ["__sbom_excluded__"]
 +    }
