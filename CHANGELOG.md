@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Add `3.5.0` and `3.4.3` ([#1511]).
 - airflow: Add `3.2.2` ([#1519], [#1541]).
 - druid: Add `37.0.0` ([#1535]).
+- spark: Add `4.1.2` ([#1550]).
 
 ### Changed
 
@@ -32,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Refactor cloud library provisioning to downstream images. The jars are now conveniently placed in `/stackable/hadoop-cloud-libraries/` to be easily picked up ([#1511]).
 - spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
+- java-devel: Bump Maven to 3.9.16 ([#1548]).
 
 ### Fixed
 
@@ -49,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - spark-k8s: Remove `3.5.7` and `4.0.1` ([#1525]).
 - hive: Remove `4.1.0` ([#1539]).
 - druid: Remove `34.0.0` ([#1535]).
+- java-base: Drop Java 8 ([#1548]).
 
 [#1446]: https://github.com/stackabletech/docker-images/pull/1446
 [#1452]: https://github.com/stackabletech/docker-images/pull/1452
@@ -79,6 +82,8 @@ All notable changes to this project will be documented in this file.
 [#1535]: https://github.com/stackabletech/docker-images/pull/1535
 [#1539]: https://github.com/stackabletech/docker-images/pull/1539
 [#1541]: https://github.com/stackabletech/docker-images/pull/1541
+[#1548]: https://github.com/stackabletech/docker-images/pull/1548
+[#1550]: https://github.com/stackabletech/docker-images/pull/1550
 
 ## [26.3.0] - 2026-03-16
 
