@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/spark.git"
+base = "f0bb2e6a47d0ebda424ffd633fcea8644a597954"
