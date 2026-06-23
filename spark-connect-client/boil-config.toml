@@ -14,3 +14,10 @@ java-base = "21"
 
 [versions."4.1.1".build-arguments]
 python-version = "3.12"
+
+[versions."4.1.2".local-images]
+spark-k8s = "4.1.2"
+java-base = "21"
+
+[versions."4.1.2".build-arguments]
+python-version = "3.12"
