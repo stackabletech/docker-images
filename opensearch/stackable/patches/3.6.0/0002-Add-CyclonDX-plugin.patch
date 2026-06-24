@@ -1,0 +1,85 @@
+From 7e1d87238369e4e4546df1dc25a6e6f019122cc6 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Mon, 22 Jun 2026 16:46:43 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle          | 35 ++++++++++++++++++++++++++++++++++-
+ buildSrc/build.gradle |  4 +++-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index 252d1ed553a..dc520b0acf6 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -59,6 +59,7 @@ plugins {
+   id "org.gradle.test-retry" version "1.6.2" apply false
+   id "test-report-aggregation"
+   id 'jacoco-report-aggregation'
++  id 'org.cyclonedx.bom' version '3.2.4'
+ }
+ 
+ apply from: 'gradle/build-complete.gradle'
+@@ -72,7 +73,7 @@ apply from: 'gradle/missing-javadoc.gradle'
+ apply from: 'gradle/code-coverage.gradle'
+ 
+ // Apply security setup if opensearch-security is in installedPlugins
+-if (project.hasProperty('installedPlugins') && 
++if (project.hasProperty('installedPlugins') &&
+     project.property('installedPlugins').toString().contains('opensearch-security')) {
+   apply from: 'gradle/security-setup.gradle'
+ }
+@@ -87,6 +88,38 @@ allprojects {
+   group = 'org.opensearch'
+   version = VersionProperties.getOpenSearch()
+   description = "OpenSearch subproject ${project.path}"
++
++  // Only include subprojects that are part of the opensearch-min distribution
++  // (server, libs, modules) plus the core plugins shipped in the Stackable
++  // image (repository-s3 and telemetry-otel). This prevents build-only
++  // dependencies (e.g. tika-core from ingest-attachment, or test fixtures such
++  // as hdfs-fixture) from appearing in the runtime SBOM as false positives.
++  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
++  def isShipped = project.path == ':server' ||
++                  project.path.startsWith(':libs:') ||
++                  project.path.startsWith(':modules:') ||
++                  (project.path.startsWith(':plugins:') && project.name in shippedPlugins)
++
++  cyclonedxDirectBom {
++    if (isShipped) {
++      includeConfigs = ["runtimeClasspath"]
++      skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    } else {
++      // NOTE: an empty includeConfigs means "include ALL configurations", so we
++      // point it at a sentinel configuration that does not exist instead. This
++      // makes the task resolve nothing, avoiding the broken-POM resolution
++      // failures while keeping the task harmlessly disabled.
++      enabled = false
++      includeConfigs = ["__sbom_excluded__"]
++    }
++  }
++}
++
++cyclonedxBom {
++  includeLicenseText = false
++  projectType = org.cyclonedx.model.Component.Type.APPLICATION
++  schemaVersion = org.cyclonedx.Version.VERSION_16
++  componentVersion = VersionProperties.getOpenSearch()
+ }
+ 
+ configure(allprojects - project(':distribution:archives:integ-test-zip')) {
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index ab6b24c1213..94e3baecf2a 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -118,7 +118,9 @@ dependencies {
+   api 'com.avast.gradle:gradle-docker-compose-plugin:0.17.12'
+   api "org.yaml:snakeyaml:${props.getProperty('snakeyaml')}"
+   api 'org.apache.maven:maven-model:3.9.12'
+-  api 'com.networknt:json-schema-validator:1.2.0'
++  // Aligned with the version pulled in by cyclonedx-core-java (via the
++  // org.cyclonedx.bom plugin).
++  api 'com.networknt:json-schema-validator:1.5.9'
+   api 'org.jruby.jcodings:jcodings:1.0.58'
+   api 'org.jruby.joni:joni:2.2.6'
+   api "com.fasterxml.jackson.core:jackson-databind:${props.getProperty('jackson_databind')}"

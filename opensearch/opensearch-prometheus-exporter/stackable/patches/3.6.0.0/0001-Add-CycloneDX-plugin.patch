@@ -1,0 +1,33 @@
+From 523bb67bd099d627bd787c66cdb2a9501cf214c7 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 19 Jun 2026 11:14:39 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index a0486c2..e6b1c3f 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -30,8 +30,17 @@ buildscript {
+     }
+ }
+ 
+-configurations {
+-    zipArchive
++plugins {
++    id("org.cyclonedx.bom") version "3.2.4"
++}
++
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = org.cyclonedx.model.Component.Type.APPLICATION
++    // Specified the version of the CycloneDX specification to use. Defaults to VERSION_16.
++    schemaVersion = org.cyclonedx.Version.VERSION_16
++    jsonOutput = file("build/reports/cyclonedx/bom.json")
++    xmlOutput.unsetConvention()
+ }
+ 
+ apply plugin: 'java'
