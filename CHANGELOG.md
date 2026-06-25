@@ -21,6 +21,8 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
+- opensearch: Add `3.6.0` ([#1549]).
+- opensearch-dashboards: Add `3.6.0` ([#1551]).
 
 ### Changed
 
@@ -86,7 +88,9 @@ All notable changes to this project will be documented in this file.
 [#1541]: https://github.com/stackabletech/docker-images/pull/1541
 [#1547]: https://github.com/stackabletech/docker-images/pull/1547
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
+[#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
+[#1551]: https://github.com/stackabletech/docker-images/pull/1551
 
 ## [26.3.0] - 2026-03-16
 
