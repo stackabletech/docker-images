@@ -77,6 +77,13 @@ pub struct ImageSizeArguments {
         help_heading = "Image Options"
     )]
     pub target_platform: TargetPlatform,
+
+    /// Pretty print the structured output.
+    #[arg(long, value_enum, default_value_t = Pretty::default(), help_heading = "Output Options")]
+    pub pretty: Pretty,
+
+    #[arg(short, long, value_enum, default_value_t = Format::default(), help_heading = "Output Options")]
+    pub format: Format,
 }
 
 impl ImageSizeArguments {
@@ -86,11 +93,17 @@ impl ImageSizeArguments {
     }
 }
 
-// #[derive(Clone, Debug, Default, strum::Display, strum::EnumString)]
 #[derive(Clone, Debug, Default, ValueEnum)]
 pub enum Pretty {
     #[default]
     Auto,
     Always,
     Never,
+}
+
+#[derive(Clone, Debug, Default, ValueEnum)]
+pub enum Format {
+    #[default]
+    Plain,
+    Json,
 }

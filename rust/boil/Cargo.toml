@@ -14,6 +14,7 @@ clap_complete.workspace = true
 clap_complete_nushell.workspace = true
 git2.workspace = true
 glob.workspace = true
+humansize.workspace = true
 oci-spec.workspace = true
 reqwest.workspace = true
 regex.workspace = true

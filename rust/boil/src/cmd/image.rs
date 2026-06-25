@@ -8,7 +8,7 @@ use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    cli::{ImageCheckArguments, ImageListArguments, ImageSizeArguments, Pretty},
+    cli::{Format, ImageCheckArguments, ImageListArguments, ImageSizeArguments, Pretty},
     config::Config,
     core::bakefile::{self, Targets, TargetsOptions},
     models::{Manifest, TagList},
@@ -70,7 +70,7 @@ pub fn list_images(arguments: ImageListArguments) -> Result<(), Error> {
         })
         .collect();
 
-    print_to_stdout(list, arguments.pretty)
+    serialize_to_stdout(list, arguments.pretty)
 }
 
 pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Result<(), Error> {
@@ -243,10 +243,35 @@ pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Re
         }
     }
 
-    print_to_stdout(result, Pretty::Always)
+    match arguments.format {
+        Format::Plain => {
+            if let Some(max_width) = result
+                .images
+                .iter()
+                .map(|i| i.0.len())
+                .max_by(|lhs, rhs| lhs.cmp(rhs))
+            {
+                for (image, size) in result.images {
+                    println!(
+                        "{image:max_width$} {size}",
+                        size = humansize::format_size(size, humansize::BINARY)
+                    );
+                }
+
+                println!(
+                    "{total_text:max_width$} {total}",
+                    total_text = "Total",
+                    total = humansize::format_size(result.total, humansize::BINARY)
+                )
+            }
+
+            Ok(())
+        }
+        Format::Json => serialize_to_stdout(&result, arguments.pretty),
+    }
 }
 
-fn print_to_stdout<T>(value: T, pretty: Pretty) -> Result<(), Error>
+fn serialize_to_stdout<T>(value: T, pretty: Pretty) -> Result<(), Error>
 where
     T: Serialize,
 {
