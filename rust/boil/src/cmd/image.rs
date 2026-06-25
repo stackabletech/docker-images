@@ -1,7 +1,4 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    io::IsTerminal,
-};
+use std::{collections::BTreeMap, io::IsTerminal};
 
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
@@ -180,12 +177,12 @@ pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Re
 
     #[derive(Serialize)]
     struct SizeResult {
-        images: HashMap<String, u64>,
+        images: BTreeMap<String, u64>,
         total: u64,
     }
 
     let mut result = SizeResult {
-        images: HashMap::new(),
+        images: BTreeMap::new(),
         total: 0,
     };
 
@@ -251,6 +248,7 @@ pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Re
                 .map(|i| i.0.len())
                 .max_by(|lhs, rhs| lhs.cmp(rhs))
             {
+                // let sorted = result.images;
                 for (image, size) in result.images {
                     println!(
                         "{image:max_width$} {size}",
