@@ -1,6 +1,6 @@
-From 7727bee78aa96e3342da8cb9b3221327f29c43db Mon Sep 17 00:00:00 2001
-From: dervoeti <lukas.krug@stackable.tech>
-Date: Thu, 13 Mar 2025 22:00:03 +0100
+From ec17a2143178f2a48cb7cfdc1d3b7b5f0dc53e0e Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 26 Jan 2026 11:10:17 +0100
 Subject: Add CycloneDX plugin
 
 ---
@@ -8,10 +8,10 @@ Subject: Add CycloneDX plugin
  1 file changed, 17 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index ed97bb870..f8534b4ad 100644
+index 119bb498a..b30f1b8b6 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -697,6 +697,23 @@
+@@ -1918,6 +1918,23 @@
          <extensions>true</extensions>
          <inherited>true</inherited>
        </plugin>
@@ -32,6 +32,6 @@ index ed97bb870..f8534b4ad 100644
 +          </execution>
 +        </executions>
 +      </plugin>
-     </plugins>
-   </build>
- 
+       <plugin>
+         <groupId>com.diffplug.spotless</groupId>
+         <artifactId>spotless-maven-plugin</artifactId>

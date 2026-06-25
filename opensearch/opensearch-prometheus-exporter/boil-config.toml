@@ -5,3 +5,8 @@ java-devel = "21"
 # OpenSearch 3.4.0 bundles JDK 24, but the OpenSearch Prometheus Exporter can only be built with
 # JDK 21.
 java-devel = "21"
+
+[versions."3.6.0.0".local-images]
+# OpenSearch 3.6.0 bundles JDK 25, but the OpenSearch Prometheus Exporter can only be built with
+# JDK 21.
+java-devel = "21"

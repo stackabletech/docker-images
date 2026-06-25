@@ -1,0 +1,38 @@
+From ef01276e08fe6d84c023bc30bca290def3da69c0 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 19 Jun 2026 11:24:38 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index 89a749af..273208ce 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -70,11 +70,24 @@ plugins {
+     id 'eclipse'
+     id "com.github.spotbugs" version "6.4.8"
+     id "com.google.osdetector" version "1.7.3"
++    id "org.cyclonedx.bom" version "3.2.4"
+ }
+ 
+ allprojects {
+     group = "org.opensearch"
+     version = opensearch_build
++
++    cyclonedxDirectBom {
++        includeConfigs = ["runtimeClasspath"]
++        skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    }
++}
++
++cyclonedxBom {
++    includeLicenseText = false
++    projectType = "application"
++    schemaVersion = org.cyclonedx.Version.VERSION_16
++    componentVersion = opensearch_build
+ }
+ 
+ apply plugin: 'opensearch.opensearchplugin'
