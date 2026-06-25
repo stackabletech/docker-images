@@ -75,6 +75,12 @@ async fn main() -> Result<(), Error> {
                     .await
                     .context(ImageSnafu)
             }
+            ImageCommand::Size(arguments) => {
+                let config = Config::from_file(&cli.config_path).context(ReadConfigSnafu)?;
+                cmd::image::calculate_size(arguments, config)
+                    .await
+                    .context(ImageSnafu)
+            }
         },
         Command::Images(arguments) => cmd::image::list_images(arguments).context(ImageSnafu),
         Command::Completions(arguments) => {
