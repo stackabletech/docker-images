@@ -3,3 +3,6 @@ stackable-devel = "1.0.0"
 
 [versions."3.4.0.0".local-images]
 stackable-devel = "1.0.0"
+
+[versions."3.6.0.0".local-images]
+stackable-devel = "1.0.0"

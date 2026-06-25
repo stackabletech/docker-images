@@ -32,6 +32,7 @@ jdk-base = "21"
 "opensearch-ubi-plugin-version" = "3.1.0.0"
 "query-insights-plugin-version" = "3.1.0.0"
 
+# Deprecated since 26.7
 [versions."3.4.0".local-images]
 java-devel = "24"
 jdk-base = "24"
