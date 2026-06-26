@@ -11,6 +11,24 @@ pub fn format_image_repository_uri(
     format!("{image_registry}/{registry_namespace}/{image_name}")
 }
 
+pub fn format_image_cache_repository_uri(
+    image_cache_registry: &HostPort,
+    cache_registry_namespace: Option<&str>,
+    registry_namespace: &str,
+    image_name: &str,
+) -> String {
+    // We don't use .map here because we are unable to borrow the formatted string long enough
+    if let Some(cache_registry_namespace) = cache_registry_namespace {
+        format_image_repository_uri(image_cache_registry, cache_registry_namespace, image_name)
+    } else {
+        format_image_repository_uri(
+            image_cache_registry,
+            &format!("{}-cache", registry_namespace),
+            image_name,
+        )
+    }
+}
+
 /// Formats and returns the image manifest URI, eg. `oci.stackable.tech/sdp/opa:1.4.2-stackable25.7.0-amd64`.
 pub fn format_image_manifest_uri(image_repository_uri: &str, image_manifest_tag: &str) -> String {
     format!("{image_repository_uri}:{image_manifest_tag}")
@@ -39,6 +57,35 @@ pub fn format_image_manifest_tag(
     } else {
         format!("{image_index_manifest_tag}-{architecture}")
     }
+}
+
+// TODO (@Techassi): Can we design this better? Maybe add a new struct/type which implements a bunch
+// of associated functions.
+#[allow(clippy::too_many_arguments)]
+pub fn format_image_tag_parts(
+    image_registry: &HostPort,
+    registry_namespace: &str,
+    image_name: &str,
+    image_version: &str,
+    vendor_tag_prefix: &str,
+    vendor_image_version: &str,
+    architecture: &Architecture,
+    strip_architecture: bool,
+) -> (String, String, String, String) {
+    let image_repository_uri =
+        format_image_repository_uri(image_registry, registry_namespace, image_name);
+    let image_index_manifest_tag =
+        format_image_index_manifest_tag(image_version, vendor_tag_prefix, vendor_image_version);
+    let image_manifest_tag =
+        format_image_manifest_tag(&image_index_manifest_tag, architecture, strip_architecture);
+    let image_manifest_uri = format_image_manifest_uri(&image_repository_uri, &image_manifest_tag);
+
+    (
+        image_repository_uri,
+        image_index_manifest_tag,
+        image_manifest_tag,
+        image_manifest_uri,
+    )
 }
 
 /// Formats and returns the registry-specific env var name, eg. `BOIL_REGISTRY_TOKEN_OCI_STACKABLE_TECH`.

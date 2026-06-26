@@ -70,3 +70,28 @@ bar = "4.5.6"
 [versions."1.2.3".build-arguments]                 # Specify build arguments per version
 FOO = "bar"
 ```
+
+## Advanced Building Options
+
+### Use Remote Cache
+
+> [!NOTE]
+> The default builder (with the `docker` driver) doesn't support the registry cache storage backend. You must create
+> a new builder using the `docker-container` driver and either set this new builder as the default or pass
+> `-- --builder <NAME>` to use it:
+>
+> ```shell
+> docker builder create --name container --driver=docker-container
+> boil build airflow --cache-registry oci.example.org -- --builder container
+> ```
+
+boil offers to option to automatically pull from and push to a remote cache. This feature can be
+enabled by using the `--cache-registry` (and the optional `--cache-namespace`) argument:
+
+```shell
+# This will use `oci.example.org/<NAMESPACE>-cache/airflow` to store and retrieve cached layers
+boil build airflow --cache-registry oci.example.org
+
+# This will use `oci.example.org/foo/airflow` to store and retrieve cached layers
+boil build airflow --cache-registry oci.example.org --cache-namespace foo
+```
