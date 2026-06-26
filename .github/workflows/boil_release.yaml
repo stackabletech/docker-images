@@ -9,7 +9,8 @@ on:
 permissions: {}
 
 env:
-  RUST_VERSION: 1.89.0
+  RUST_TOOLCHAIN_VERSION: 1.89.0
+  RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
   create-release:
@@ -34,10 +35,11 @@ jobs:
           args: --latest --strip header
 
       - name: Create Draft Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          body: ${{ steps.changelog.outputs.content }}
-          draft: true
+        env:
+          RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release create --draft --verify-tag --latest --notes "$RELEASE_NOTES" "RELEASE_TAG"
 
   build:
     name: Build boil
@@ -60,10 +62,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          targets: ${{ matrix.targets.target }}
+      - name: Setup Rust Toolchain
+        env:
+          RUST_TARGETS: ${{ matrix.targets.target }}
+        shell: bash
+        run: rustup toolchain install "${RUST_TOOLCHAIN_VERSION}" --target "${RUST_TARGETS}"
 
       - name: Build Binary
         env:
@@ -76,10 +79,10 @@ jobs:
         run: mv "target/$TARGET/release/boil" "boil-$TARGET"
 
       - name: Upload Artifact to Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          files: boil-${{ matrix.targets.target }}
-          draft: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release upload "RELEASE_TAG" boil-${{ matrix.targets.target }}
 
   finish-release:
     needs: [build]
@@ -90,6 +93,7 @@ jobs:
       contents: write
     steps:
       - name: Finish Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          draft: false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release edit --draft=false "$RELEASE_TAG"
