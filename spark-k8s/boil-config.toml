@@ -9,7 +9,7 @@ containerfile = "Dockerfile.3"
 "hadoop/hadoop" = "3.4.3"
 java-base = "17"
 java-devel = "17"
-hbase = "2.6.3"
+hbase = "2.6.4"
 "spark-k8s/hbase-connectors" = "1.0.1_3.5.8"
 
 [versions."3.5.8".build-arguments]
