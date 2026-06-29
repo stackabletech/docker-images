@@ -18,12 +18,12 @@ RUN <<EOF
 
 cd /
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
+git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs
 git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
 cd /config-utils
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-cd /containerdebug
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cd /operator-rs
+cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 cd /secret-operator
 cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
@@ -177,8 +177,8 @@ COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-u
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/target/release/containerdebug /stackable/containerdebug
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
