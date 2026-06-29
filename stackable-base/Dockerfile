@@ -9,28 +9,21 @@
 
 FROM local-image/stackable-devel AS rust-binaries
 
-# Find the latest version here: https://github.com/stackabletech/config-utils/tags
-# renovate: datasource=github-tags packageName=stackabletech/config-utils
-ENV CONFIG_UTILS_VERSION=0.4.0
-# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
-# renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.4.0
-# Find the latest version here: https://github.com/stackabletech/secret-operator/tags
-# I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
-# so I was unable to add a renovate hint.
-ENV CERT_TOOLS_VERSION=0.1.1
+ARG CONFIG_UTILS_VERSION
+ARG CONTAINERDEBUG_VERSION
+ARG CERT_TOOLS_VERSION
 
 RUN <<EOF
 . "$HOME/.cargo/env"
 
 cd /
 git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
+git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs
 git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
 cd /config-utils
 cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-cd /containerdebug
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cd /operator-rs
+cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 cd /secret-operator
 cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 EOF
@@ -184,8 +177,8 @@ COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-u
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/target/release/containerdebug /stackable/containerdebug
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
