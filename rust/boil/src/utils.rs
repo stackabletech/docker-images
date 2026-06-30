@@ -1,6 +1,43 @@
-use std::process::Command;
+use std::{process::Command, str::FromStr};
+
+use snafu::{ResultExt, Snafu};
 
 use crate::{cli::HostPort, core::platform::Architecture};
+
+// FIXME (@Techassi): We should pull this in from a central pice of code, like stackable-shared.
+// stackable-shared needs to add a few features to be able to properly select _only_ what is needed
+// without pulling in too many unused deps.
+pub trait VersionExt {
+    fn is_floating(&self) -> bool;
+
+    fn floating(&self) -> String;
+}
+
+impl VersionExt for semver::Version {
+    fn is_floating(&self) -> bool {
+        self.major == 0
+            && self.minor == 0
+            && self.patch == 0
+            && (self.pre.starts_with("pr") || self.pre.as_str() == "dev")
+    }
+
+    fn floating(&self) -> String {
+        if self.is_floating() {
+            self.to_string()
+        } else {
+            format!("{major}.{minor}", major = self.major, minor = self.minor)
+        }
+    }
+}
+
+#[derive(Debug, Snafu)]
+pub enum ParseFloatingVendorVersionError {
+    #[snafu(display("failed to parse {version:?} as semantic version"))]
+    ParseSemanticVersion {
+        source: semver::Error,
+        version: String,
+    },
+}
 
 /// Formats and returns the image repository URI, eg. `oci.stackable.tech/sdp/opa`.
 pub fn format_image_repository_uri(
@@ -47,6 +84,28 @@ pub fn format_registry_token_env_var_name(registry_uri: &str) -> String {
         "BOIL_REGISTRY_TOKEN_{registry_uri}",
         registry_uri = registry_uri.replace(['.', '-'], "_").to_uppercase()
     )
+}
+
+pub fn parse_floating_vendor_version(
+    vendor_image_version: &str,
+    floating_tag: bool,
+) -> Result<Option<String>, ParseFloatingVendorVersionError> {
+    if floating_tag {
+        let version =
+            semver::Version::from_str(vendor_image_version).context(ParseSemanticVersionSnafu {
+                version: vendor_image_version,
+            })?;
+
+        // Return None because the selected version is already considered a floating version as is.
+        // There is no need to add a second, identical tag to the image.
+        if version.is_floating() {
+            return Ok(None);
+        }
+
+        Ok(Some(version.floating()))
+    } else {
+        Ok(None)
+    }
 }
 
 pub trait CommandExt {
