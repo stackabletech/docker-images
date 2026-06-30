@@ -199,7 +199,7 @@ pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Re
                 let image_index_manifest_tag = format_image_index_manifest_tag(
                     image_version,
                     &config.metadata.vendor_tag_prefix,
-                    &arguments.image_version,
+                    &arguments.vendor_version,
                 );
 
                 let manifest_tag = format_image_manifest_tag(

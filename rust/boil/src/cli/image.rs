@@ -47,8 +47,8 @@ pub struct ImageCheckArguments {
     /// The image version to check.
     #[arg(
         short, long,
-        value_parser = Cli::parse_image_version,
-        default_value_t = Cli::default_image_version(),
+        value_parser = Cli::parse_vendor_version,
+        default_value_t = Cli::default_vendor_version(),
         help_heading = "Image Options"
     )]
     pub image_version: String,
@@ -59,15 +59,17 @@ pub struct ImageSizeArguments {
     /// Optionally specify one or more images to check. Checks all images by default.
     pub image: Vec<ImageSelector>,
 
-    // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
-    /// The image version to use.
+    /// The vendor version to use.
     #[arg(
         short, long,
-        value_parser = Cli::parse_image_version,
-        default_value_t = Cli::default_image_version(),
+        // TODO (@Techassi): Eventually remove these aliases
+        short_alias = 'i',
+        alias = "image-version",
+        value_parser = Cli::parse_vendor_version,
+        default_value_t = Cli::default_vendor_version(),
         help_heading = "Image Options"
     )]
-    pub image_version: String,
+    pub vendor_version: String,
 
     /// Target platform of the image.
     #[arg(

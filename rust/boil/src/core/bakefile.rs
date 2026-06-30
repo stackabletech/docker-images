@@ -66,6 +66,11 @@ pub enum Error {
         source: std::io::Error,
         path: String,
     },
+
+    #[snafu(display("failed to parse floating vendor version"))]
+    ParseFloatingVendorVersion {
+        source: utils::ParseFloatingVendorVersionError,
+    },
 }
 
 #[derive(Debug, Snafu)]
@@ -318,7 +323,7 @@ impl Bakefile {
         let target = BakefileTarget::common(
             date_time,
             revision,
-            cli_args.image_version.clone(),
+            cli_args.vendor_version.clone(),
             container_build_args,
             user_container_build_args,
             metadata,
@@ -332,6 +337,10 @@ impl Bakefile {
         cli_args: &cli::BuildArguments,
         config: Config,
     ) -> Result<Self, Error> {
+        let floating_vendor_version =
+            utils::parse_floating_vendor_version(&cli_args.vendor_version, cli_args.floating_tag)
+                .context(ParseFloatingVendorVersionSnafu)?;
+
         let mut bakefile_targets = BTreeMap::new();
         let mut groups: BTreeMap<String, BakefileGroup> = BTreeMap::new();
 
@@ -364,7 +373,7 @@ impl Bakefile {
                 let image_index_manifest_tag = utils::format_image_index_manifest_tag(
                     &image_version,
                     &metadata.vendor_tag_prefix,
-                    &cli_args.image_version,
+                    &cli_args.vendor_version,
                 );
 
                 let image_manifest_tag = utils::format_image_manifest_tag(
@@ -400,7 +409,7 @@ impl Bakefile {
                 ));
                 build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_REPOSITORY_URI".to_owned(),
-                    image_repository_uri,
+                    image_repository_uri.clone(),
                 ));
                 build_arguments.insert(docker::BuildArgument::new(
                     "IMAGE_INDEX_MANIFEST_TAG".to_owned(),
@@ -414,6 +423,30 @@ impl Bakefile {
                     "IMAGE_MANIFEST_URI".to_owned(),
                     image_manifest_uri.clone(),
                 ));
+
+                let tags = if let Some(floating_vendor_version) = floating_vendor_version.as_deref()
+                {
+                    let image_index_manifest_floating_tag = utils::format_image_index_manifest_tag(
+                        &image_version,
+                        &metadata.vendor_tag_prefix,
+                        floating_vendor_version,
+                    );
+
+                    let image_manifest_floating_tag = utils::format_image_manifest_tag(
+                        &image_index_manifest_floating_tag,
+                        cli_args.target_platform.architecture(),
+                        cli_args.strip_architecture,
+                    );
+
+                    let floating_image_manifest_uri = utils::format_image_manifest_uri(
+                        &image_repository_uri,
+                        &image_manifest_floating_tag,
+                    );
+
+                    vec![image_manifest_uri, floating_image_manifest_uri]
+                } else {
+                    vec![image_manifest_uri]
+                };
 
                 // By using a cap-std Dir, we can ensure that the paths provided must be relative to
                 // the appropriate image folder and wont escape it by providing absolute or relative
@@ -461,11 +494,11 @@ impl Bakefile {
                 let annotations = BakefileTarget::image_version_annotation(
                     &image_version,
                     &metadata.vendor_tag_prefix,
-                    &cli_args.image_version,
+                    &cli_args.vendor_version,
                 );
 
                 let target = BakefileTarget {
-                    tags: vec![image_manifest_uri],
+                    tags,
                     arguments: build_arguments,
                     platforms: vec![cli_args.target_platform.clone()],
                     // NOTE (@Techassi): Should this instead be scoped to the folder of the image we build

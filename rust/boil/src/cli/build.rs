@@ -24,15 +24,17 @@ pub struct BuildArguments {
     #[arg(help_heading = "Image Options", required = true)]
     pub images: Vec<ImageSelector>,
 
-    // NOTE (@Techassi): Should this maybe be renamed to vendor_version?
-    /// The image version being built.
+    /// The vendor version being built.
     #[arg(
         short, long,
-        value_parser = Cli::parse_image_version,
-        default_value_t = Cli::default_image_version(),
+        // TODO (@Techassi): Eventually remove these aliases
+        short_alias = 'i',
+        alias = "image-version",
+        value_parser = Cli::parse_vendor_version,
+        default_value_t = Cli::default_vendor_version(),
         help_heading = "Image Options"
     )]
-    pub image_version: String,
+    pub vendor_version: String,
 
     /// Target platform of the image.
     #[arg(
@@ -110,6 +112,16 @@ pub struct BuildArguments {
     /// Strips the architecture from the image (index) manifest tag.
     #[arg(long, help_heading = "Build Options")]
     pub strip_architecture: bool,
+
+    /// Produces a floating tag (if needed) in addition to the fully-qualified tag.
+    ///
+    /// Examples:
+    ///
+    /// - `4.5.6-prefix3.2.1` -> `4.5.6-prefix3.2`
+    /// - `4.5.6-prefix0.0.0-dev` -> `4.5.6-prefix0.0.0-dev`
+    /// - `4.5.6-prefix0.0.0-pr123` -> `4.5.6-prefix0.0.0-pr123`
+    #[arg(long, help_heading = "Build Options")]
+    pub floating_tag: bool,
 
     /// Loads the image into the local image store.
     ///

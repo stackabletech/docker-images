@@ -20,7 +20,7 @@ static VALID_IMAGE_TAG: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
 
 #[derive(Debug, Snafu)]
-pub enum ParseImageVersionError {
+pub enum ParseVendorVersionError {
     #[snafu(display("invalid image tag characters for {version:?}"))]
     ParseVersion { version: String },
 }
@@ -41,7 +41,7 @@ impl Cli {
         PathBuf::from("./boil.toml")
     }
 
-    pub(super) fn default_image_version() -> String {
+    pub(super) fn default_vendor_version() -> String {
         "0.0.0-dev".to_owned()
     }
 
@@ -53,7 +53,7 @@ impl Cli {
     }
 
     /// Ensure that the given version will be valid for use in the image tag
-    pub(super) fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
+    pub(super) fn parse_vendor_version(version: &str) -> Result<String, ParseVendorVersionError> {
         if !VALID_IMAGE_TAG.is_match(version) {
             return ParseVersionSnafu { version }.fail();
         }
