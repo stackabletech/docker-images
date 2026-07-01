@@ -1,6 +1,6 @@
 [package]
 name = "boil"
-version = "0.2.2" # Managed by .scripts/release_boil.sh
+version = "0.2.3-rc.1" # Managed by .scripts/release_boil.sh
 edition = "2024"
 authors.workspace = true
 license.workspace = true
