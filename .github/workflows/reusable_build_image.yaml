@@ -176,6 +176,7 @@ jobs:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
+        id: publish-oci
         if: inputs.publish
         uses: stackabletech/actions/publish-image-index-manifest@a8af17a19bdcc3b5da0065f76e73827ba0c072ce # v0.16.0
         with:
@@ -191,6 +192,7 @@ jobs:
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
       - name: Publish and Sign Image Index Manifest to quay.io
+        id: publish-quay
         if: inputs.publish && inputs.publish-to-quay
         uses: stackabletech/actions/publish-image-index-manifest@a8af17a19bdcc3b5da0065f76e73827ba0c072ce # v0.16.0
         with:
@@ -205,9 +207,120 @@ jobs:
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
+      # Record the pushed index manifest digest(s) for this matrix version so the
+      # provenance jobs can pick them up. Matrix jobs cannot expose per-version
+      # outputs (they overwrite each other), so we pass the digests through
+      # artifacts instead.
+      - name: Record image index digests for provenance
+        if: inputs.publish
+        shell: bash
+        env:
+          VERSION: ${{ matrix.versions }}
+          OCI_DIGEST: ${{ steps.publish-oci.outputs.image-index-manifest-digest }}
+          QUAY_DIGEST: ${{ steps.publish-quay.outputs.image-index-manifest-digest }}
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg version "$VERSION" \
+            --arg oci "$OCI_DIGEST" \
+            --arg quay "$QUAY_DIGEST" \
+            '{version: $version, oci_digest: $oci, quay_digest: $quay}' > digests.json
+
+      - name: Upload provenance digests
+        if: inputs.publish
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: provenance-digests-${{ matrix.versions }}
+          path: digests.json
+          retention-days: 1
+
+  # Collect the per-version index manifest digests uploaded by publish_manifests
+  # and turn them into a matrix (one entry per version and registry) for the
+  # provenance job. This is needed because a matrix job cannot expose per-leg
+  # outputs directly.
+  collect-provenance-matrix:
+    name: Collect Provenance Matrix
+    if: inputs.publish
+    needs: [publish_manifests]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+      has-entries: ${{ steps.build-matrix.outputs.has_entries }}
+    steps:
+      - name: Download provenance digests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: provenance-digests-*
+          path: artifacts
+
+      - name: Build provenance matrix
+        id: build-matrix
+        shell: bash
+        env:
+          REGISTRY_NAMESPACE: ${{ inputs.registry-namespace }}
+          PRODUCT_NAME: ${{ inputs.product-name }}
+          IMAGE_NAME: ${{ inputs.image-name }}
+        run: |
+          set -euo pipefail
+          IMAGE="${IMAGE_NAME:-$PRODUCT_NAME}"
+
+          # Build a JSON matrix include array. Each version contributes one entry
+          # for oci.stackable.tech and, if a quay digest was recorded, one for
+          # quay.io. The slsa generator attaches provenance by digest, so no tag
+          # is needed in the image reference.
+          INCLUDE=$(jq -c -s \
+            --arg ns "$REGISTRY_NAMESPACE" \
+            --arg img "$IMAGE" '
+            [ .[]
+              | ( { registry: "oci.stackable.tech",
+                    image: ("oci.stackable.tech/" + $ns + "/" + $img),
+                    digest: .oci_digest,
+                    username: ("robot$" + $ns + "+github-action-build") } ),
+                ( if (.quay_digest // "") != ""
+                  then { registry: "quay.io",
+                         image: ("quay.io/stackable/" + $ns + "/" + $img),
+                         digest: .quay_digest,
+                         username: ("stackable+robot_" + $ns + "_github_action_build") }
+                  else empty end )
+            ]' artifacts/*/digests.json)
+
+          echo "matrix={\"include\":$INCLUDE}" | tee -a "$GITHUB_OUTPUT"
+          if [ "$INCLUDE" = "[]" ]; then
+            echo "has_entries=false" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "has_entries=true" | tee -a "$GITHUB_OUTPUT"
+          fi
+
+  # Generate SLSA build provenance for every published multi-arch image index
+  # (one matrix entry per version and registry) and attach it to the image. The
+  # reusable workflow signs the provenance with keyless signing (GitHub Actions
+  # as the OIDC identity) and pushes the attestation next to the image.
+  provenance:
+    name: Generate Provenance (${{ matrix.image }}@${{ matrix.digest }})
+    if: inputs.publish && needs.collect-provenance-matrix.outputs.has-entries == 'true'
+    needs: [collect-provenance-matrix]
+    permissions:
+      actions: read # detect the build workflow that generated the image
+      id-token: write # mint the OIDC token for keyless signing
+      packages: write # needed until https://github.com/slsa-framework/slsa-github-generator/issues/1257 is resolved
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.collect-provenance-matrix.outputs.matrix) }}
+    # MUST be referenced by a @vX.Y.Z tag (not a SHA), otherwise the reusable
+    # workflow cannot verify its own provenance.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+    with:
+      image: ${{ matrix.image }}
+      digest: ${{ matrix.digest }}
+      registry-username: ${{ matrix.username }}
+    secrets:
+      registry-password: ${{ matrix.registry == 'quay.io' && secrets.quay-robot-secret || secrets.harbor-robot-secret }}
+
   notify:
     name: Failure Notification
-    needs: [generate_version_dimension, build, publish_manifests]
+    needs: [generate_version_dimension, build, publish_manifests, collect-provenance-matrix, provenance]
     runs-on: ubuntu-latest
     # TODO (@NickLarsenNZ): Allow a condition from input so that we can always
     # be notified of new builds for precompiled product images.
