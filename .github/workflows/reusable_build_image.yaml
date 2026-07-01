@@ -91,6 +91,7 @@ jobs:
         uses: stackabletech/actions/shard@1b8db26b7406c66a7ab74e344a9e54edb2bc2690 # v0.14.3
         with:
           product-name: ${{ inputs.product-name }}
+          boil-version: 0.2.2
     outputs:
       versions: ${{ steps.shard.outputs.versions }}
 
@@ -125,6 +126,7 @@ jobs:
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
+          boil-version: 0.2.2
 
       - name: Publish Container Image on oci.stackable.tech
         if: inputs.publish
