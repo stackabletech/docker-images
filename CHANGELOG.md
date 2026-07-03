@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 - java-devel: Bump Maven to 3.9.16 ([#1548]).
+- spark: fix graceful shutdown at SIGTERM ([#1564])
 
 ### Fixed
 
@@ -95,6 +96,7 @@ All notable changes to this project will be documented in this file.
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
+[#1564]: https://github.com/stackabletech/docker-images/pull/1564
 
 ## [26.3.0] - 2026-03-16
 
