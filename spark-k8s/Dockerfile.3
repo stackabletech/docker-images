@@ -258,4 +258,4 @@ EOF
 USER ${STACKABLE_USER_UID}
 
 WORKDIR ${SPARK_HOME}
-ENTRYPOINT [ "/stackable/run-spark.sh" ]
+ENTRYPOINT [ "/usr/bin/tini", "-s", "--", "/stackable/run-spark.sh" ]
