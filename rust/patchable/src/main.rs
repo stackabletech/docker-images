@@ -17,7 +17,7 @@ use snafu::{OptionExt, ResultExt as _, Snafu};
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
-use crate::utils::setup_git_credentials;
+use crate::utils::{setup_git_credentials, setup_git_proxy};
 
 #[derive(clap::Parser)]
 struct ProductVersion {
@@ -622,6 +622,7 @@ fn main() -> Result<()> {
 
                 let mut push_options = git2::PushOptions::new();
                 push_options.remote_callbacks(callbacks);
+                push_options.proxy_options(setup_git_proxy());
 
                 // Always push the commit as a Git tag named like the value of `base`
                 let refspec = format!("{base_commit}:refs/tags/{base}");
