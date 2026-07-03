@@ -5,7 +5,7 @@ use snafu::{ResultExt, Snafu};
 
 use crate::{
     error::{self, CommitRef},
-    utils::{setup_git_credentials, setup_progress_tracking},
+    utils::{setup_git_credentials, setup_git_proxy, setup_progress_tracking},
 };
 
 #[derive(Debug, Snafu)]
@@ -177,6 +177,7 @@ pub fn resolve_and_fetch_commitish(
                         FetchOptions::new()
                             .update_fetchhead(true)
                             .remote_callbacks(callbacks)
+                            .proxy_options(setup_git_proxy())
                             // TODO: could be 1, CLI option maybe?
                             .depth(0),
                     ),
