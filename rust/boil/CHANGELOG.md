@@ -4,6 +4,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3-rc.1] - 2026-07-01
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.2..0.2.3-rc.1)
+
+### Features
+
+- Add support for floating tags ([#1555](https://github.com/stackabletech/docker-images/pull/1555)).
+- Add image size command ([#1536](https://github.com/stackabletech/docker-images/pull/1536)).
+
+### Documentation
+
+- Add config section to README ([#1538](https://github.com/stackabletech/docker-images/pull/1538)).
+
 ## [0.2.2] - 2026-06-12
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.1..boil-0.2.2)
