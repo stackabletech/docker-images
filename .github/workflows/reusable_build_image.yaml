@@ -268,6 +268,18 @@ jobs:
           set -euo pipefail
           IMAGE="${IMAGE_NAME:-$PRODUCT_NAME}"
 
+          # Collect every digests.json regardless of the directory layout that
+          # download-artifact produces.
+          readarray -t DIGEST_FILES < <(find artifacts -type f -name digests.json)
+
+          # No digests recorded means nothing to attach provenance to. Guard here
+          # because jq with no file arguments would block reading from stdin.
+          if [ "${#DIGEST_FILES[@]}" -eq 0 ]; then
+            echo "matrix={\"include\":[]}" | tee -a "$GITHUB_OUTPUT"
+            echo "has_entries=false" | tee -a "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # Build a JSON matrix include array. Each version contributes one entry
           # for oci.stackable.tech and, if a quay digest was recorded, one for
           # quay.io. The slsa generator attaches provenance by digest, so no tag
@@ -286,7 +298,7 @@ jobs:
                          digest: .quay_digest,
                          username: ("stackable+robot_" + $ns + "_github_action_build") }
                   else empty end )
-            ]' artifacts/*/digests.json)
+            ]' "${DIGEST_FILES[@]}")
 
           echo "matrix={\"include\":$INCLUDE}" | tee -a "$GITHUB_OUTPUT"
           if [ "$INCLUDE" = "[]" ]; then
