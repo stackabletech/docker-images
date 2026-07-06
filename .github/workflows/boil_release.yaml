@@ -39,7 +39,7 @@ jobs:
           RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release create --draft --verify-tag --latest --notes "$RELEASE_NOTES" "RELEASE_TAG"
+        run: gh release create --draft --verify-tag --latest --notes "${RELEASE_NOTES}" "${RELEASE_TAG}"
 
   build:
     name: Build boil
@@ -82,7 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release upload "RELEASE_TAG" boil-${{ matrix.targets.target }}
+        run: gh release upload "${RELEASE_TAG}" boil-${{ matrix.targets.target }}
 
   finish-release:
     needs: [build]
@@ -96,4 +96,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release edit --draft=false "$RELEASE_TAG"
+        run: gh release edit --draft=false "${RELEASE_TAG}"
