@@ -9,7 +9,7 @@ permissions:
 
 env:
   # Keep in sync with across other repos like operator-rs and operator-templating
-  RUST_TOOLCHAIN_VERSION: "nightly-2025-10-23"
+  RUST_TOOLCHAIN_VERSION: "nightly-2026-07-01"
   HADOLINT_VERSION: "v2.14.0"
   PYTHON_VERSION: "3.14"
 
