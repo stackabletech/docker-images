@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 env:
-  RUST_TOOLCHAIN_VERSION: 1.89.0
+  RUST_TOOLCHAIN_VERSION: 1.95.0
   RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
