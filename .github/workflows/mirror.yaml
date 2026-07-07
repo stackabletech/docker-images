@@ -15,6 +15,7 @@ on:
           - registry.k8s.io/sig-storage/csi-provisioner
           - registry.k8s.io/git-sync/git-sync
           - registry-1.docker.io/library/golang
+          - registry-1.docker.io/library/postgres
           - registry-1.docker.io/dxflrs/garage
           - ghcr.io/astral-sh/uv
       image-index-manifest-tag:
