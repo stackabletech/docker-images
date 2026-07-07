@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  RUST_TOOLCHAIN_VERSION: 1.89.0
+  RUST_TOOLCHAIN_VERSION: 1.95.0
 
 jobs:
   # This job is always run to ensure we don't miss any new upstream advisories

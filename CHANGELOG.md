@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- ci: Generate SLSA build provenance for published image indexes and attest it in each registry ([#1559]).
+
 - hadoop: Add precompiled hadoop for later reuse in dependent images ([#1466], [#1474]).
 - nifi: Add version `2.9.0` ([#1463]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
@@ -28,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow: Bump statsd_exporter to `0.30.0` ([#1524]).
 - ci: Bump `docker/login-action` from `v3.6.0` to `v4.1.0` and `stackabletech/actions` to `v0.14.3` to escape Node.js 20 deprecation ([#1507]).
+- ci: Bump `stackabletech/actions` to `v0.16.0` ([#1559]).
 - hbase: Update `hbase-opa-authorizer` from `0.1.0` to `0.2.0` and then `0.3.0` ([#1446], [#1454]).
 - stackable-base: Bump `containerdebug` to `0.4.0` and  `config-utils` to `0.4.0` ([#1521]).
 - statsd_exporter: Bump version from `0.28.0` to `0.30.0` ([#1524]).
@@ -37,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - spark: bump hadoop `3.4.2` to `3.4.3` ([#1533])
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 - java-devel: Bump Maven to 3.9.16 ([#1548]).
+- spark: fix graceful shutdown at SIGTERM ([#1564])
 
 ### Fixed
 
@@ -91,6 +95,8 @@ All notable changes to this project will be documented in this file.
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
+[#1559]: https://github.com/stackabletech/docker-images/pull/1559
+[#1564]: https://github.com/stackabletech/docker-images/pull/1564
 
 ## [26.3.0] - 2026-03-16
 

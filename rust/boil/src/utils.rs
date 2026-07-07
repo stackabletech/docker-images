@@ -1,8 +1,18 @@
-use std::{process::Command, str::FromStr};
+use std::{process::Command, str::FromStr, sync::LazyLock};
 
+use regex::Regex;
 use snafu::{ResultExt, Snafu};
 
 use crate::{cli::HostPort, core::platform::Architecture};
+
+/// A regular expression to check whether the prerelease string of a semantic version is considered
+/// floating.
+///
+/// Used in [`VersionExt::is_floating`].
+static SEMVER_PRERELEASE_FLOATING: LazyLock<Regex> = LazyLock::new(|| {
+    // https://regex101.com/?regex=%5Edev%28%3F%3A-.%2B%29%3F%24%7C%5Epr.%2B%24&testString=dev-pr-321-amd64&flags=gmu&flavor=rust&delimiter=%22
+    Regex::new("^dev(?:-.+)?$|^pr.+$").expect("static regular expression must compile")
+});
 
 // FIXME (@Techassi): We should pull this in from a central pice of code, like stackable-shared.
 // stackable-shared needs to add a few features to be able to properly select _only_ what is needed
@@ -18,7 +28,7 @@ impl VersionExt for semver::Version {
         self.major == 0
             && self.minor == 0
             && self.patch == 0
-            && (self.pre.starts_with("pr") || self.pre.as_str() == "dev")
+            && SEMVER_PRERELEASE_FLOATING.is_match(&self.pre)
     }
 
     fn floating(&self) -> String {
@@ -121,5 +131,36 @@ impl CommandExt for Command {
         S: AsRef<std::ffi::OsStr>,
     {
         if predicate { self.arg(arg) } else { self }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case("0.0.0-pr1234-extra-tag-data1234-amd64")]
+    #[case("0.0.0-pr1234-extra-tag-data1234")]
+    #[case("0.0.0-dev-extra-tag-data1234")]
+    #[case("0.0.0-pr1234")]
+    #[case("0.0.0-dev")]
+    fn is_floating(#[case] input: &str) {
+        let version =
+            semver::Version::from_str(input).expect("input must be valid semantic version");
+        assert!(version.is_floating());
+    }
+
+    #[rstest]
+    #[case("0.0.0-bar1234-amd64")]
+    #[case("0.0.0-devel")]
+    #[case("0.0.0-foo")]
+    #[case("0.0.0-pr")]
+    #[case("0.0.0")]
+    fn is_not_floating(#[case] input: &str) {
+        let version =
+            semver::Version::from_str(input).expect("input must be valid semantic version");
+        assert!(!version.is_floating());
     }
 }

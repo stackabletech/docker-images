@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 env:
-  RUST_TOOLCHAIN_VERSION: 1.89.0
+  RUST_TOOLCHAIN_VERSION: 1.95.0
   RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
           RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release create --draft --verify-tag --latest --notes "$RELEASE_NOTES" "RELEASE_TAG"
+        run: gh release create --draft --verify-tag --latest --notes "${RELEASE_NOTES}" "${RELEASE_TAG}"
 
   build:
     name: Build boil
@@ -82,9 +82,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release upload "RELEASE_TAG" boil-${{ matrix.targets.target }}
+        run: gh release upload "${RELEASE_TAG}" boil-${{ matrix.targets.target }}
 
   finish-release:
+    name: Finish Release
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
@@ -92,8 +93,14 @@ jobs:
       # See https://github.com/softprops/action-gh-release/blob/153bb8e04406b158c6c84fc1615b65b24149a1fe/README.md?plain=1#L281
       contents: write
     steps:
+      # This checkout is only here so that a .git directory is present because the gh CLI needs it.
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
       - name: Finish Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
-        run: gh release edit --draft=false "$RELEASE_TAG"
+        run: gh release edit --draft=false "${RELEASE_TAG}"

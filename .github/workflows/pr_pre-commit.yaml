@@ -9,7 +9,7 @@ permissions:
 
 env:
   # Keep in sync with across other repos like operator-rs and operator-templating
-  RUST_TOOLCHAIN_VERSION: "nightly-2025-10-23"
+  RUST_TOOLCHAIN_VERSION: "nightly-2026-07-01"
   HADOLINT_VERSION: "v2.14.0"
   PYTHON_VERSION: "3.14"
 
@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: stackabletech/actions/run-pre-commit@1b8db26b7406c66a7ab74e344a9e54edb2bc2690 # v0.14.3
+      - uses: stackabletech/actions/run-pre-commit@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           rust: ${{ env.RUST_TOOLCHAIN_VERSION }}
