@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Add version `2.9.0` ([#1463]).
 - nifi: Backport NIFI-15801 to 2.x versions ([#1481]).
 - nifi: Backport NIFI-15901 to 2.x versions ([#1481]).
+- nifi: Add patches for `2.9.0` with [NIFI-16067](https://issues.apache.org/jira/browse/NIFI-16067) and [NIFI-16069](https://issues.apache.org/jira/browse/NIFI-16069) to fix PutIcebergRecord bugs and allow complex nested types ([#1561]).
 - testing-tools: Added grpcurl utility ([#1493]).
 - opa: Add `1.16.2` ([#1509]).
 - kafka: Add `3.9.2` and `4.2.1` ([#1483]).
@@ -96,6 +97,7 @@ All notable changes to this project will be documented in this file.
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
+[#1561]: https://github.com/stackabletech/docker-images/pull/1561
 [#1564]: https://github.com/stackabletech/docker-images/pull/1564
 
 ## [26.3.0] - 2026-03-16
