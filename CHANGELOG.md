@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 - java-devel: Bump Maven to 3.9.16 ([#1548]).
 - spark: fix graceful shutdown at SIGTERM ([#1564])
+- spark-k8s/hbase-connectors: built against hbase 2.6.6 ([#1573]).
 
 ### Fixed
 
