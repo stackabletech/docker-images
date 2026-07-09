@@ -37,7 +37,6 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update other dependencies if applicable (eg: phoenix, opa_authorizer, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR to the list below.
 
-
 ### Omid
 
 - [ ] Update `omid/boil-config.toml`to reflect the agreed upon versions in the spreadsheet (including the removal of old versions).
