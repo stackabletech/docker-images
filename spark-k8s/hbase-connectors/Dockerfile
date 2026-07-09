@@ -54,6 +54,9 @@ ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG HADOOP_VERSION
 ARG HBASE_VERSION
+ARG HBASE_THIRDPARTY_VERSION
+ARG PROTOBUF_VERSION
+ARG PROTOBUF_PLUGIN_VERSION
 ARG STACKABLE_USER_UID
 
 # Patch the hbase-connectors source code
@@ -107,12 +110,18 @@ mvn \
     --define scala.binary.version="${SCALA_BINARY_VERSION}" \
     --define hadoop-three.version="${HADOOP_VERSION}" \
     --define hbase.version="${HBASE_VERSION}" \
+    --define hbase-thirdparty.version="${HBASE_THIRDPARTY_VERSION}" \
+    --define external.protobuf.version="${PROTOBUF_VERSION}" \
+    --define protobuf.plugin.version="${PROTOBUF_PLUGIN_VERSION}" \
     --define skipTests \
     --define maven.test.skip=true \
     clean package
 
 
 cp "$(pwd)/hbase-spark/target/hbase-spark-${NEW_VERSION}.jar" /stackable/spark/jars/hbase-spark-${NEW_VERSION}.jar
+# The hbase-spark JAR is a plain module JAR and does not bundle its
+# dependencies. The generated protobuf classes live here.
+cp "$(pwd)/hbase-spark-protocol-shaded/target/hbase-spark-protocol-shaded-${NEW_VERSION}.jar" /stackable/spark/jars/hbase-spark-protocol-shaded-${NEW_VERSION}.jar
 
 chmod g=u /stackable/hbase-connector-${NEW_VERSION}-src.tar.gz .
 EOF
