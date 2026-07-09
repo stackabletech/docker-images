@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
+- spark: Bake the OpenLineage Spark listener (`openlineage-spark_2.13` `1.51.0`) into the `4.1.x` images under the dedicated directory `/stackable/spark/openlineage/` (off the `extra-jars` classpath), enabling the OpenLineage MVP in the operator ([#XXXX]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 
@@ -95,6 +96,7 @@ All notable changes to this project will be documented in this file.
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561
