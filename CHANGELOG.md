@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `4.1.2` ([#1550]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
+- spark: Add hbase-connector protobuf classes ([#1573]).
 
 ### Changed
 
@@ -42,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 - java-devel: Bump Maven to 3.9.16 ([#1548]).
 - spark: fix graceful shutdown at SIGTERM ([#1564])
+- spark-k8s/hbase-connectors: bump hbase to 2.6.6 ([#1573]).
 
 ### Fixed
 
