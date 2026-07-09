@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - spark: Add `4.1.2` ([#1550]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
-- spark-k8s/hbase-connectors: jar with generated protobuf classes for HBase connector ([#1573]).
+- spark: Add hbase-connector protobuf classes ([#1573]).
 
 ### Changed
 
