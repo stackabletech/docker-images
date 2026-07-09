@@ -33,8 +33,10 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Upload new versions (see the `hbase/*.sh` scripts).
 - [ ] Update `boil-config.toml` to the latest supported version of JVM (base and devel).
 - [ ] Update `boil-config.toml` to the latest supported version of Hadoop.
+- [ ] Update `boil-config.toml` of spark-k8s/hbase-connectors to the latest supported version of HBase, hbase-thridparty and protobuf.
 - [ ] Update other dependencies if applicable (eg: phoenix, opa_authorizer, etc).
 - [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR to the list below.
+
 
 ### Omid
 
