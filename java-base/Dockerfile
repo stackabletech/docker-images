@@ -63,3 +63,4 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # We are adding jvmkill, as it improves shutdown of the JVM in case it runs out of native threads.
 # See https://github.com/stackabletech/docker-images/issues/1578 for motivation/details.
 COPY --chown=${STACKABLE_USER_UID}:0 --from=jvmkill-builder /stackable/libjvmkill.so /stackable/libjvmkill.so
+RUN chmod g=u /stackable/libjvmkill.so
