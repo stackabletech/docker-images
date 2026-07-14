@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 - spark: Add hbase-connector protobuf classes ([#1573]).
-- java-base: Add `jvmkill` ([#1579]).
+- java-base: Add `jvmkill` ([#1579], [#1580]).
 
 ### Changed
 
@@ -103,6 +103,7 @@ All notable changes to this project will be documented in this file.
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561
 [#1564]: https://github.com/stackabletech/docker-images/pull/1564
 [#1579]: https://github.com/stackabletech/docker-images/pull/1579
+[#1580]: https://github.com/stackabletech/docker-images/pull/1580
 
 ## [26.3.0] - 2026-03-16
 
