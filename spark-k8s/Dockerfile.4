@@ -132,6 +132,11 @@ mkdir -p /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/op
 mvn dependency:get -Dartifact=io.openlineage:openlineage-spark_2.13:${OPENLINEAGE_SPARK_VERSION}
 cp /root/.m2/repository/io/openlineage/openlineage-spark_2.13/${OPENLINEAGE_SPARK_VERSION}/openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar
+# Symlink to a stable, version- and Scala-independent name (mirroring the jmx_prometheus_javaagent.jar
+# pattern) so the operator can reference the jar without knowing the version or Scala build baked here.
+# The relative target keeps the link valid after `dist` is copied into the final image.
+ln -s openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark.jar
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}" \
