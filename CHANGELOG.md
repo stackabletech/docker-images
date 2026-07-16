@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
-- spark: Bake the OpenLineage Spark listener (`1.51.0`) into the Spark images under the dedicated directory `/stackable/spark/openlineage/` (off the `extra-jars` classpath), enabling the OpenLineage MVP in the operator. The Scala 2.13 build (`openlineage-spark_2.13`) is used for the `4.1.x` images and the Scala 2.12 build (`openlineage-spark_2.12`) for the `3.5.x` images, both exposed through a stable `openlineage-spark.jar` symlink so the operator need not track the version or Scala suffix ([#XXXX]).
+- spark: Add the OpenLineage listener under the dedicated directory `/stackable/spark/openlineage/` ([#1577]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 
@@ -96,7 +96,7 @@ All notable changes to this project will be documented in this file.
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1577]: https://github.com/stackabletech/docker-images/pull/1577
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561

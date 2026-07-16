@@ -154,14 +154,12 @@ cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VER
 # so it loads on Spark's child/user classloader, sharing it with connectors delivered via `--packages`
 # (e.g. Iceberg). If it landed on extra-jars it would be added to the system classloader via
 # extraClassPath, OpenLineage's connector probe would fail, and no datasets would be emitted.
-# Spark 3.5.x is a Scala 2.12 build, so the 2.12 artifact is used (Spark 4.x uses 2.13).
 mkdir -p /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage
 mvn dependency:get -Dartifact=io.openlineage:openlineage-spark_2.12:${OPENLINEAGE_SPARK_VERSION}
 cp /root/.m2/repository/io/openlineage/openlineage-spark_2.12/${OPENLINEAGE_SPARK_VERSION}/openlineage-spark_2.12-${OPENLINEAGE_SPARK_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark_2.12-${OPENLINEAGE_SPARK_VERSION}.jar
 # Symlink to a stable, version- and Scala-independent name (mirroring the jmx_prometheus_javaagent.jar
 # pattern) so the operator can reference the jar without knowing the version or Scala build baked here.
-# The relative target keeps the link valid after `dist` is copied into the final image.
 ln -s openlineage-spark_2.12-${OPENLINEAGE_SPARK_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark.jar
 
