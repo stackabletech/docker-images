@@ -68,16 +68,17 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # hadolint ignore=SC2028
 RUN <<EOF
 set -x
-microdnf repoquery iputils || true
-microdnf repoquery iputils --info || true
+dnf --debuglevel 6 repoquery iputils || true
+dnf --debuglevel 6 repoquery iputils --info || true
 set +x
 
 # What if we don't update the index?
 microdnf update
+microdnf install dnf
 
 set -x
-microdnf repoquery iputils || true
-microdnf repoquery iputils --info || true
+dnf --debuglevel 6 repoquery iputils || true
+dnf --debuglevel 6 repoquery iputils --info || true
 set +x
 
 exit 2
