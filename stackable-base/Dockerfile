@@ -67,7 +67,20 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # It seems to work as intended so I'm not going to touch it!
 # hadolint ignore=SC2028
 RUN <<EOF
+set -x
+microdnf repoquery iputils || true
+microdnf repoquery iputils --info || true
+set +x
+
+# What if we don't update the index?
 microdnf update
+
+set -x
+microdnf repoquery iputils || true
+microdnf repoquery iputils --info || true
+set +x
+
+exit 2
 
 # **findutils**
 # Needed to find all patch files, used in `apply_patches.sh`, and helpful for debugging
