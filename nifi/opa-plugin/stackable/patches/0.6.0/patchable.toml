@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/nifi-opa-plugin.git"
+base = "2689a6010c29041fcdeff4d8d3b954e95f02d8c6"
