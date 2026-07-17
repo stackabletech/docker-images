@@ -55,7 +55,20 @@ ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.9
 ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.5
 
 RUN <<EOF
+set -x
+microdnf repoquery iputils || true
+microdnf repoquery iputils --info || true
+set +x
+
+# What if we don't update the index?
 microdnf update
+
+set -x
+microdnf repoquery iputils || true
+microdnf repoquery iputils --info || true
+set +x
+
+exit 2
 
 # git: Needed to fetch source
 # gcc: Needed for compilation
