@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [26.7.0-rc1] - 2026-07-16
+
 ### Added
 
 - ci: Generate SLSA build provenance for published image indexes and attest it in each registry ([#1559]).
