@@ -40,6 +40,8 @@
 
       <properties>
         <!--
+        Resolver specific configuration keys can be found here: https://maven.apache.org/resolver/configuration.html
+
         This is to work around an issue where Maven builds in Github Actions would randomly fail.
         There is some evidence that points at Azure networking as the root cause where it closes idle connections (silently) after 4 minutes.
         Maven would then sometimes reuse an "old" connection from its connection pool and would encounter issues due to these connection closures.
