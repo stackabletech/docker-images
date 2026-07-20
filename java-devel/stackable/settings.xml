@@ -68,13 +68,13 @@
         By default, retries wait for 5000l milliseconds (5 seconds). We increase this to 10000l milliseonds
         (10 seconds) to spam the Nexus instance a little less.
         -->
-        <aether.transport.http.retryHandler.interval>10000l</aether.transport.http.retryHandler.interval>
+        <aether.transport.http.retryHandler.interval>10000</aether.transport.http.retryHandler.interval>
 
         <!--
         Servers can respond with `Retry-After` headers. By default, the value is capped at 300000l milliseconds (300
         seconds). We reduce this to 60000l (60 seconds) to avoid super long retry intervals.
         -->
-        <aether.transport.http.retryHandler.intervalMax>60000l</aether.transport.http.retryHandler.intervalMax>
+        <aether.transport.http.retryHandler.intervalMax>60000</aether.transport.http.retryHandler.intervalMax>
 
         <!--
         This is an option we can experiment with in the future. Settings this to false will result in no connection
