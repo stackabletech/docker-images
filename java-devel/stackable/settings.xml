@@ -51,10 +51,10 @@
         -->
 
         <!-- Old name: maven-resolver 1.x, Maven 3.x -->
-        <aether.connector.http.connectionMaxTtl>30</aether.connector.http.connectionMaxTtl>
+        <aether.connector.http.connectionMaxTtl>25</aether.connector.http.connectionMaxTtl>
 
         <!-- New name: maven-resolver 2.x, as of Maven 4.x -->
-        <aether.transport.http.connectionMaxTtl>30</aether.transport.http.connectionMaxTtl>
+        <aether.transport.http.connectionMaxTtl>25</aether.transport.http.connectionMaxTtl>
       </properties>
     </profile>
   </profiles>
