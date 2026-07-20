@@ -65,7 +65,7 @@
         <aether.transport.http.retryHandler.count>5</aether.transport.http.retryHandler.count>
 
         <!--
-        By default, retries wait for 5000l milliseconds (5 seconds). We increase this to 10000l milliseonds
+        By default, retries wait for 5000l milliseconds (5 seconds). We increase this to 10000l milliseconds
         (10 seconds) to spam the Nexus instance a little less.
         -->
         <aether.transport.http.retryHandler.interval>10000</aether.transport.http.retryHandler.interval>
