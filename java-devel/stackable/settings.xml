@@ -73,6 +73,13 @@
         seconds). We reduce this to 60000l (60 seconds) to avoid super long retry intervals.
         -->
         <aether.transport.http.retryHandler.intervalMax>60000l</aether.transport.http.retryHandler.intervalMax>
+
+        <!--
+        This is an option we can experiment with in the future. Settings this to false will result in no connection
+        pooling, which should help to avoid stale/long-lasting connections which can become inactive and be killed by
+        the Azure networking.
+        -->
+        <!-- <aether.transport.http.reuseConnections>false</aether.transport.http.reuseConnections> -->
       </properties>
     </profile>
   </profiles>
