@@ -59,21 +59,33 @@
         <aether.transport.http.connectionMaxTtl>25</aether.transport.http.connectionMaxTtl>
 
         <!--
+        As with connectionMaxTtl above, the retry keys were renamed between maven-resolver 1.x
+        (aether.connector.http.*) and 2.x (aether.transport.http.*).
+        At the time of writing we were building with a version of Maven that requires the old ("connector") properties.
+        The "transport" keys are here for Maven 4.
+        Verified against ConfigurationProperties.java @ maven-resolver-1.9.27.
+        It does not hurt to keep both sets in here.
+        -->
+
+        <!--
         By default, requests are retried 3 times. We increase the count slightly to hopefully get less failing
         builds in CI.
         -->
+        <aether.connector.http.retryHandler.count>5</aether.connector.http.retryHandler.count>
         <aether.transport.http.retryHandler.count>5</aether.transport.http.retryHandler.count>
 
         <!--
         By default, retries wait for 5000 milliseconds (5 seconds). We increase this to 10000 milliseconds
         (10 seconds) to spam the Nexus instance a little less.
         -->
+        <aether.connector.http.retryHandler.interval>10000</aether.connector.http.retryHandler.interval>
         <aether.transport.http.retryHandler.interval>10000</aether.transport.http.retryHandler.interval>
 
         <!--
         Servers can respond with `Retry-After` headers. By default, the value is capped at 300000 milliseconds (300
         seconds). We reduce this to 60000 (60 seconds) to avoid super long retry intervals.
         -->
+        <aether.connector.http.retryHandler.intervalMax>60000</aether.connector.http.retryHandler.intervalMax>
         <aether.transport.http.retryHandler.intervalMax>60000</aether.transport.http.retryHandler.intervalMax>
 
         <!--
