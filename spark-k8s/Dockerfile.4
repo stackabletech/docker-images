@@ -39,6 +39,7 @@ ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG JACKSON_DATAFORMAT_XML_VERSION
 ARG STAX2_API_VERSION
 ARG WOODSTOX_CORE_VERSION
+ARG OPENLINEAGE_SPARK_VERSION
 ARG JMX_EXPORTER_VERSION
 ARG TARGETARCH
 ARG TINI_VERSION
@@ -121,6 +122,20 @@ cp /root/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/sta
 mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
 cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
+
+# Download the OpenLineage Spark listener jar into a DEDICATED directory (dist/openlineage),
+# NOT dist/extra-jars. The operator references it via `--jars local:///stackable/spark/openlineage/...`
+# so it loads on Spark's child/user classloader, sharing it with connectors delivered via `--packages`
+# (e.g. Iceberg). If it landed on extra-jars it would be added to the system classloader via
+# extraClassPath, OpenLineage's connector probe would fail, and no datasets would be emitted.
+mkdir -p /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage
+mvn dependency:get -Dartifact=io.openlineage:openlineage-spark_2.13:${OPENLINEAGE_SPARK_VERSION}
+cp /root/.m2/repository/io/openlineage/openlineage-spark_2.13/${OPENLINEAGE_SPARK_VERSION}/openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar
+# Symlink to a stable, version- and Scala-independent name
+# so the operator can reference the jar without knowing the version or Scala build baked here.
+ln -s openlineage-spark_2.13-${OPENLINEAGE_SPARK_VERSION}.jar \
+  /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark.jar
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}" \

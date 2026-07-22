@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
+- spark: Add the OpenLineage listener under the dedicated directory `/stackable/spark/openlineage/` ([#1577]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 - spark: Add hbase-connector protobuf classes ([#1573]).
@@ -110,6 +111,7 @@ All notable changes to this project will be documented in this file.
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
+[#1577]: https://github.com/stackabletech/docker-images/pull/1577
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561
