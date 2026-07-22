@@ -40,6 +40,8 @@
 
       <properties>
         <!--
+        Resolver specific configuration keys can be found here: https://maven.apache.org/resolver/configuration.html
+
         This is to work around an issue where Maven builds in Github Actions would randomly fail.
         There is some evidence that points at Azure networking as the root cause where it closes idle connections (silently) after 4 minutes.
         Maven would then sometimes reuse an "old" connection from its connection pool and would encounter issues due to these connection closures.
@@ -51,10 +53,47 @@
         -->
 
         <!-- Old name: maven-resolver 1.x, Maven 3.x -->
-        <aether.connector.http.connectionMaxTtl>30</aether.connector.http.connectionMaxTtl>
+        <aether.connector.http.connectionMaxTtl>25</aether.connector.http.connectionMaxTtl>
 
         <!-- New name: maven-resolver 2.x, as of Maven 4.x -->
-        <aether.transport.http.connectionMaxTtl>30</aether.transport.http.connectionMaxTtl>
+        <aether.transport.http.connectionMaxTtl>25</aether.transport.http.connectionMaxTtl>
+
+        <!--
+        As with connectionMaxTtl above, the retry keys were renamed between maven-resolver 1.x
+        (aether.connector.http.*) and 2.x (aether.transport.http.*).
+        At the time of writing we were building with a version of Maven that requires the old ("connector") properties.
+        The "transport" keys are here for Maven 4.
+        Verified against ConfigurationProperties.java @ maven-resolver-1.9.27.
+        It does not hurt to keep both sets in here.
+        -->
+
+        <!--
+        By default, requests are retried 3 times. We increase the count slightly to hopefully get less failing
+        builds in CI.
+        -->
+        <aether.connector.http.retryHandler.count>5</aether.connector.http.retryHandler.count>
+        <aether.transport.http.retryHandler.count>5</aether.transport.http.retryHandler.count>
+
+        <!--
+        By default, retries wait for 5000 milliseconds (5 seconds). We increase this to 10000 milliseconds
+        (10 seconds) to spam the Nexus instance a little less.
+        -->
+        <aether.connector.http.retryHandler.interval>10000</aether.connector.http.retryHandler.interval>
+        <aether.transport.http.retryHandler.interval>10000</aether.transport.http.retryHandler.interval>
+
+        <!--
+        Servers can respond with `Retry-After` headers. By default, the value is capped at 300000 milliseconds (300
+        seconds). We reduce this to 60000 (60 seconds) to avoid super long retry intervals.
+        -->
+        <aether.connector.http.retryHandler.intervalMax>60000</aether.connector.http.retryHandler.intervalMax>
+        <aether.transport.http.retryHandler.intervalMax>60000</aether.transport.http.retryHandler.intervalMax>
+
+        <!--
+        This is an option we can experiment with in the future. Settings this to false will result in no connection
+        pooling, which should help to avoid stale/long-lasting connections which can become inactive and be killed by
+        the Azure networking.
+        -->
+        <!-- <aether.transport.http.reuseConnections>false</aether.transport.http.reuseConnections> -->
       </properties>
     </profile>
   </profiles>

@@ -1,0 +1,24 @@
+[versions."0e410d8-java-11".local-images]
+java-devel = "11"
+[versions."0e410d8-java-11".build-arguments]
+jvmkill-version = "0e410d8"
+
+[versions."0e410d8-java-17".local-images]
+java-devel = "17"
+[versions."0e410d8-java-17".build-arguments]
+jvmkill-version = "0e410d8"
+
+[versions."0e410d8-java-21".local-images]
+java-devel = "21"
+[versions."0e410d8-java-21".build-arguments]
+jvmkill-version = "0e410d8"
+
+[versions."0e410d8-java-24".local-images]
+java-devel = "24"
+[versions."0e410d8-java-24".build-arguments]
+jvmkill-version = "0e410d8"
+
+[versions."0e410d8-java-25".local-images]
+java-devel = "25"
+[versions."0e410d8-java-25".build-arguments]
+jvmkill-version = "0e410d8"

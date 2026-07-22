@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [26.7.0] - 2026-07-21
+
+## [26.7.0-rc2] - 2026-07-20
+
+## [26.7.0-rc1] - 2026-07-16
+
 ### Added
 
 - ci: Generate SLSA build provenance for published image indexes and attest it in each registry ([#1559]).
@@ -27,6 +33,8 @@ All notable changes to this project will be documented in this file.
 - spark: Add the OpenLineage listener under the dedicated directory `/stackable/spark/openlineage/` ([#1577]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
+- spark: Add hbase-connector protobuf classes ([#1573]).
+- java-base: Add `jvmkill` ([#1579], [#1580]).
 
 ### Changed
 
@@ -43,6 +51,7 @@ All notable changes to this project will be documented in this file.
 - hive: Bump `4.2.0` to Hadoop `3.4.3` ([#1539]).
 - java-devel: Bump Maven to 3.9.16 ([#1548]).
 - spark: fix graceful shutdown at SIGTERM ([#1564])
+- spark-k8s/hbase-connectors: bump hbase to 2.6.6 ([#1573]).
 
 ### Fixed
 
@@ -101,6 +110,8 @@ All notable changes to this project will be documented in this file.
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561
 [#1564]: https://github.com/stackabletech/docker-images/pull/1564
+[#1579]: https://github.com/stackabletech/docker-images/pull/1579
+[#1580]: https://github.com/stackabletech/docker-images/pull/1580
 
 ## [26.3.0] - 2026-03-16
 

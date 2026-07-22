@@ -4,9 +4,11 @@
 #
 # Provides the common Java Runtime for SDP products
 #
+FROM local-image/java-base/jvmkill AS jvmkill-builder
 FROM local-image/vector
 
 ARG PRODUCT_VERSION
+ARG STACKABLE_USER_UID
 ARG RELEASE_VERSION="1"
 
 LABEL name="Stackable image for OpenJDK" \
@@ -57,3 +59,8 @@ ENV JAVA_VERSION=$PRODUCT_VERSION
 # This variable is supported as of Log4j version 2.10 and
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
+
+# We are adding jvmkill, as it improves shutdown of the JVM in case it runs out of native threads.
+# See https://github.com/stackabletech/docker-images/issues/1578 for motivation/details.
+COPY --chown=${STACKABLE_USER_UID}:0 --from=jvmkill-builder /stackable/libjvmkill.so /stackable/libjvmkill.so
+RUN chmod g=u /stackable/libjvmkill.so
