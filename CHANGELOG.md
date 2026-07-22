@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Removed
+
+- omid: remove 1.1.2 ([#1593]).
+
+[#1593]: https://github.com/stackabletech/docker-images/pull/1593
+
 ## [26.7.0] - 2026-07-21
 
 ## [26.7.0-rc2] - 2026-07-20
