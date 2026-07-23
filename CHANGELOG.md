@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- superset: Add the `superset-openlineage` integration that emits OpenLineage events for SQL Lab queries and chart/dashboard data fetches; config-only, inert unless enabled in `superset_config.py` ([#XXXX]).
+
 ### Removed
 
 - omid: remove 1.1.2 ([#1593]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [26.7.0] - 2026-07-21
 
