@@ -77,6 +77,7 @@ RUN microdnf update \
 COPY superset/stackable/constraints/${PRODUCT_VERSION}/constraints.txt /tmp/constraints.txt
 COPY superset/stackable/constraints/${PRODUCT_VERSION}/build-constraints.txt /tmp/build-constraints.txt
 COPY --from=opa-authorizer-builder /tmp/opa-authorizer/dist/opa_authorizer-0.1.0-py3-none-any.whl /tmp/
+COPY superset/stackable/superset-openlineage /tmp/superset-openlineage
 
 COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/patchable.toml /stackable/src/superset/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSION} /stackable/src/superset/stackable/patches/${PRODUCT_VERSION}
@@ -168,6 +169,13 @@ if [ -n "$AUTHLIB_VERSION" ]; then
 fi
 
 uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
+
+# Install the Stackable OpenLineage integration for Superset. It emits OpenLineage
+# events for SQL Lab queries and chart/dashboard data fetches. It is config-only and
+# stays inert unless enabled in superset_config.py (QUERY_LOGGER, EVENT_LOGGER and
+# init_app via FLASK_APP_MUTATOR); see superset/stackable/superset-openlineage/README.md.
+# sqlglot and SQLAlchemy are provided by Superset itself; only openlineage-python is pulled in.
+uv pip install --no-cache-dir /tmp/superset-openlineage
 
 # Setuptools 82+ removed pkg_resources, which is still needed by Superset 4.x
 # dependencies. Re-pin after all other installs in case newer versions

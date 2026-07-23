@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "superset-openlineage"
+version = "0.1.0"
+description = "OpenLineage integration for Apache Superset"
+# Keep in sync with the python-version build arguments in superset/boil-config.toml.
+requires-python = ">=3.10"
+# Only openlineage-python is pulled in here. sqlglot and SQLAlchemy are runtime
+# dependencies of Apache Superset itself, so they are intentionally NOT declared
+# to avoid conflicting with Superset's own pins.
+dependencies = [
+    "openlineage-python>=1.30,<2",
+]
+
+[tool.setuptools]
+# Only the package is installed; the tests/ subpackage is intentionally excluded
+# from the wheel.
+packages = ["superset_openlineage"]
