@@ -12,13 +12,18 @@ _handle_term() {
 }
 trap _handle_term TERM INT
 
-# `wait` returns immediately when the trap fires; loop until the child is actually gone.
-wait "$child_pid"
-while kill -0 "$child_pid" 2>/dev/null; do
-  wait "$child_pid" 2>/dev/null || true
+# Wait for the entrypoint and propagate its exit status.
+# A trapped signal makes `wait` return immediately with a status > 128 while the child keeps
+# running, so in that case wait again rather than taking the interrupted status.
+while true; do
+  wait "$child_pid"
+  result=$?
+  if [ "$result" -gt 128 ] && kill -0 "$child_pid" 2>/dev/null; then
+    continue
+  fi
+  break
 done
-result=$?
 
 eval "$_STACKABLE_POST_HOOK"
 
-exit $result
+exit "$result"
