@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
+
 ### Removed
 
 - omid: remove 1.1.2 ([#1593]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
+[#1595]: https://github.com/stackabletech/docker-images/pull/1595
 
 ## [26.7.0] - 2026-07-21
 
