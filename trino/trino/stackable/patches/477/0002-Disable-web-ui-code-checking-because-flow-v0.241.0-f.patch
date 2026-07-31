@@ -1,4 +1,4 @@
-From 5800f14ed19ffaafb7286b5b17639a5df806c1c6 Mon Sep 17 00:00:00 2001
+From f01e9e335133a8bbc08b24822fae4982852e1c16 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Wed, 18 Jun 2025 14:05:10 +0200
 Subject: Disable web-ui code checking, because flow v0.241.0 for non-x86

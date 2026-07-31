@@ -1,0 +1,1992 @@
+From b65b1985a2ad52b2fe73afff800f329bcbb2eeb1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Florian=20M=C3=BCller?= <florian@tomueller.de>
+Date: Tue, 14 Jul 2026 18:53:58 +0200
+Subject: Fix Delta Lake timestamp encoding to be readable by delta-kernel
+
+Backport of trinodb/trino PR #29912 onto tag 477, squashing upstream
+commits 931082c, db0bc41 and 8778ed8.
+---
+ docs/src/main/sphinx/connector/delta-lake.md  |   4 +-
+ .../parquet/reader/ColumnReaderFactory.java   |   5 +-
+ .../reader/decoders/ValueDecoders.java        |  36 +++++++-
+ .../writer/ParquetSchemaConverter.java        |  12 +++
+ .../parquet/reader/TestingColumnReader.java   |  13 +++
+ .../writer/TestParquetSchemaConverter.java    |  28 +++++++
+ .../parquet/writer/TestParquetWriter.java     |  79 ++++++++++++++++++
+ .../deltalake/DeltaHiveTypeTranslator.java    |   2 +-
+ .../plugin/deltalake/DeltaLakeMetadata.java   |   4 +
+ .../deltalake/DeltaLakeParquetSchemas.java    |   6 +-
+ .../plugin/deltalake/DeltaLakeTypes.java      |   6 +-
+ .../plugin/deltalake/DeltaLakeWriter.java     |  30 -------
+ .../DeltaLakeComputedStatistics.java          |   6 +-
+ .../DeltaLakeParquetStatisticsUtils.java      |  48 ++++++++---
+ .../DeltaLakeSchemaSupport.java               |   6 +-
+ .../transactionlog/TransactionLogParser.java  |  15 ++--
+ .../checkpoint/CheckpointEntryIterator.java   |   4 +-
+ .../checkpoint/CheckpointSchemaManager.java   |  10 ++-
+ .../checkpoint/CheckpointWriter.java          |   8 +-
+ .../DeltaLakeJsonFileStatistics.java          |  13 +--
+ .../deltalake/util/DeltaLakeWriteUtils.java   |  16 ++--
+ .../BaseDeltaLakeConnectorSmokeTest.java      |  75 +++++++----------
+ .../plugin/deltalake/TestDeltaLakeBasic.java  |  67 +++++++++++++--
+ .../deltalake/TestDeltaLakeConnectorTest.java |  27 +++---
+ .../TestDeltaLakeCreateTableStatistics.java   |  10 +--
+ .../plugin/deltalake/TestDeltaLakeDelete.java |   2 +-
+ .../deltalake/TestDeltaLakePartitioning.java  |  10 +--
+ .../plugin/deltalake/TestSplitPruning.java    |   4 +-
+ .../deltalake/TestTransactionLogAccess.java   |   4 +-
+ .../TestDeltaLakeParquetStatisticsUtils.java  |  12 +++
+ .../TestDeltaLakeSchemaSupport.java           |  19 +++--
+ .../TestTransactionLogParser.java             |  22 ++---
+ .../TestCheckpointEntryIterator.java          |   8 +-
+ .../checkpoint/TestCheckpointWriter.java      |  11 ++-
+ .../TestDeltaLakeFileStatistics.java          |   6 +-
+ ...zke25_74fa3e48-d9da-45dc-9182-1d08724a583c | Bin 0 -> 370 bytes
+ .../trino481/timestamp_tz_millis/README.md    |  12 +++
+ .../_delta_log/00000000000000000000.json      |   3 +
+ .../_delta_log/00000000000000000001.json      |   2 +
+ ...teOrReplaceTableAsSelectCompatibility.java |  17 ++--
+ ...akeDatabricksCreateTableCompatibility.java |  14 ++--
+ .../TestDeltaLakeInsertCompatibility.java     |  25 +++---
+ 42 files changed, 481 insertions(+), 220 deletions(-)
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/20260616_153121_00027_zke25_74fa3e48-d9da-45dc-9182-1d08724a583c
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/README.md
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000000.json
+ create mode 100644 plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000001.json
+
+diff --git a/docs/src/main/sphinx/connector/delta-lake.md b/docs/src/main/sphinx/connector/delta-lake.md
+index 288b538617..7e893aa426 100644
+--- a/docs/src/main/sphinx/connector/delta-lake.md
++++ b/docs/src/main/sphinx/connector/delta-lake.md
+@@ -298,7 +298,7 @@ this table:
+ * - `TIMESTAMPNTZ` (`TIMESTAMP_NTZ`)
+   - `TIMESTAMP(6)`
+ * - `TIMESTAMP`
+-  - `TIMESTAMP(3) WITH TIME ZONE`
++  - `TIMESTAMP(6) WITH TIME ZONE`
+ * - `ARRAY`
+   - `ARRAY`
+ * - `MAP`
+@@ -344,7 +344,7 @@ this table:
+   - `DATE`
+ * - `TIMESTAMP`
+   - `TIMESTAMPNTZ` (`TIMESTAMP_NTZ`)
+-* - `TIMESTAMP(3) WITH TIME ZONE`
++* - `TIMESTAMP(6) WITH TIME ZONE`
+   - `TIMESTAMP`
+ * - `ARRAY`
+   - `ARRAY`
+diff --git a/lib/trino-parquet/src/main/java/io/trino/parquet/reader/ColumnReaderFactory.java b/lib/trino-parquet/src/main/java/io/trino/parquet/reader/ColumnReaderFactory.java
+index 95b51247cb..606afbc703 100644
+--- a/lib/trino-parquet/src/main/java/io/trino/parquet/reader/ColumnReaderFactory.java
++++ b/lib/trino-parquet/src/main/java/io/trino/parquet/reader/ColumnReaderFactory.java
+@@ -223,13 +223,14 @@ public final class ColumnReaderFactory
+             }
+             if (timestampWithTimeZoneType.isShort()) {
+                 return switch (timestampAnnotation.getUnit()) {
+-                    case MILLIS -> createColumnReader(field, valueDecoders::getInt64TimestampMillsToShortTimestampWithTimeZoneDecoder, LONG_ADAPTER, memoryContext);
++                    case MILLIS -> createColumnReader(field, valueDecoders::getInt64TimestampMillisToShortTimestampWithTimeZoneDecoder, LONG_ADAPTER, memoryContext);
+                     case MICROS -> createColumnReader(field, valueDecoders::getInt64TimestampMicrosToShortTimestampWithTimeZoneDecoder, LONG_ADAPTER, memoryContext);
+                     case NANOS -> throw unsupportedException(type, field);
+                 };
+             }
+             return switch (timestampAnnotation.getUnit()) {
+-                case MILLIS, NANOS -> throw unsupportedException(type, field);
++                case MILLIS -> createColumnReader(field, valueDecoders::getInt64TimestampMillisToLongTimestampWithTimeZoneDecoder, FIXED12_ADAPTER, memoryContext);
++                case NANOS -> throw unsupportedException(type, field);
+                 case MICROS -> createColumnReader(field, valueDecoders::getInt64TimestampMicrosToLongTimestampWithTimeZoneDecoder, FIXED12_ADAPTER, memoryContext);
+             };
+         }
+diff --git a/lib/trino-parquet/src/main/java/io/trino/parquet/reader/decoders/ValueDecoders.java b/lib/trino-parquet/src/main/java/io/trino/parquet/reader/decoders/ValueDecoders.java
+index 7430aa0c9b..ff246c6b3e 100644
+--- a/lib/trino-parquet/src/main/java/io/trino/parquet/reader/decoders/ValueDecoders.java
++++ b/lib/trino-parquet/src/main/java/io/trino/parquet/reader/decoders/ValueDecoders.java
+@@ -533,7 +533,7 @@ public final class ValueDecoders
+                 });
+     }
+ 
+-    public ValueDecoder<long[]> getInt64TimestampMillsToShortTimestampWithTimeZoneDecoder(ParquetEncoding encoding)
++    public ValueDecoder<long[]> getInt64TimestampMillisToShortTimestampWithTimeZoneDecoder(ParquetEncoding encoding)
+     {
+         checkArgument(
+                 field.getType() instanceof TimestampWithTimeZoneType timestampWithTimeZoneType && timestampWithTimeZoneType.isShort(),
+@@ -716,6 +716,40 @@ public final class ValueDecoders
+         };
+     }
+ 
++    public ValueDecoder<int[]> getInt64TimestampMillisToLongTimestampWithTimeZoneDecoder(ParquetEncoding encoding)
++    {
++        ValueDecoder<long[]> delegate = getLongDecoder(encoding);
++        return new ValueDecoder<>()
++        {
++            @Override
++            public void init(SimpleSliceInputStream input)
++            {
++                delegate.init(input);
++            }
++
++            @Override
++            public void read(int[] values, int offset, int length)
++            {
++                long[] buffer = new long[length];
++                delegate.read(buffer, 0, length);
++                // decoded values are epochMillis, convert to (packed epochMillisUtc, picosOfMilli=0)
++                for (int i = 0; i < length; i++) {
++                    encodeFixed12(
++                            packDateTimeWithZone(buffer[i], UTC_KEY),
++                            0,
++                            values,
++                            i + offset);
++                }
++            }
++
++            @Override
++            public void skip(int n)
++            {
++                delegate.skip(n);
++            }
++        };
++    }
++
+     public ValueDecoder<int[]> getInt64TimestampMicrosToLongTimestampWithTimeZoneDecoder(ParquetEncoding encoding)
+     {
+         ValueDecoder<long[]> delegate = getLongDecoder(encoding);
+diff --git a/lib/trino-parquet/src/main/java/io/trino/parquet/writer/ParquetSchemaConverter.java b/lib/trino-parquet/src/main/java/io/trino/parquet/writer/ParquetSchemaConverter.java
+index d4944def35..4602d17a1e 100644
+--- a/lib/trino-parquet/src/main/java/io/trino/parquet/writer/ParquetSchemaConverter.java
++++ b/lib/trino-parquet/src/main/java/io/trino/parquet/writer/ParquetSchemaConverter.java
+@@ -23,6 +23,7 @@ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RealType;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.TimestampType;
++import io.trino.spi.type.TimestampWithTimeZoneType;
+ import io.trino.spi.type.Type;
+ import io.trino.spi.type.VarbinaryType;
+ import io.trino.spi.type.VarcharType;
+@@ -209,6 +210,17 @@ public class ParquetSchemaConverter
+                 return Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.NANOS)).named(name);
+             }
+         }
++        if (type instanceof TimestampWithTimeZoneType timestampWithTimeZoneType) {
++            if (timestampWithTimeZoneType.getPrecision() <= 3) {
++                return Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MILLIS)).named(name);
++            }
++            if (timestampWithTimeZoneType.getPrecision() <= 6) {
++                return Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS)).named(name);
++            }
++            if (timestampWithTimeZoneType.getPrecision() <= 9) {
++                return Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.NANOS)).named(name);
++            }
++        }
+         if (DOUBLE.equals(type)) {
+             return Types.primitive(PrimitiveType.PrimitiveTypeName.DOUBLE, repetition).named(name);
+         }
+diff --git a/lib/trino-parquet/src/test/java/io/trino/parquet/reader/TestingColumnReader.java b/lib/trino-parquet/src/test/java/io/trino/parquet/reader/TestingColumnReader.java
+index 1770c172e4..d0658b4f62 100644
+--- a/lib/trino-parquet/src/test/java/io/trino/parquet/reader/TestingColumnReader.java
++++ b/lib/trino-parquet/src/test/java/io/trino/parquet/reader/TestingColumnReader.java
+@@ -629,6 +629,18 @@ public class TestingColumnReader
+         };
+     }
+ 
++    private static Assertion<Number> assertLongTimestampWithTimeZoneMillis()
++    {
++        return (values, block, offset, blockOffset) ->
++        {
++            LongTimestampWithTimeZone packed = (LongTimestampWithTimeZone) TIMESTAMP_TZ_MICROS.getObject(block, blockOffset);
++            TimeZoneKey timeZoneKey = getTimeZoneKey(packed.getTimeZoneKey());
++            assertThat(timeZoneKey).isEqualTo(UTC_KEY);
++            assertThat(packed.getEpochMillis()).isEqualTo(values[offset].longValue());
++            assertThat(packed.getPicosOfMilli()).isEqualTo(0);
++        };
++    }
++
+     private static Assertion<DecodedTimestamp> assertInt96LongTimestampWithTimeZone(int precision)
+     {
+         TimestampWithTimeZoneType type = createTimestampWithTimeZoneType(precision);
+@@ -768,6 +780,7 @@ public class TestingColumnReader
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MILLIS), TIMESTAMP_MICROS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTime(TIME_MILLIS, 3)),
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MILLIS), TIMESTAMP_PICOS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTimestampNanos(9)),
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MILLIS), TIMESTAMP_TZ_MILLIS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTimestampWithTimeZoneMillis(0)),
++                new ColumnReaderFormat<>(INT64, timestampType(false, MILLIS), TIMESTAMP_TZ_MICROS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertLongTimestampWithTimeZoneMillis()),
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MICROS), TIMESTAMP_MILLIS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTime(TIME_MICROS, 0, 3)),
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MICROS), TIMESTAMP_MICROS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTime(TIME_MICROS, 0)),
+                 new ColumnReaderFormat<>(INT64, timestampType(false, MICROS), TIMESTAMP_NANOS, PLAIN_WRITER, DICTIONARY_LONG_WRITER, WRITE_LONG_TIMESTAMP, assertTimestampNanos(6)),
+diff --git a/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetSchemaConverter.java b/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetSchemaConverter.java
+index ff35f5d8a4..28de0367c6 100644
+--- a/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetSchemaConverter.java
++++ b/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetSchemaConverter.java
+@@ -33,6 +33,7 @@ import static io.trino.spi.type.RowType.field;
+ import static io.trino.spi.type.RowType.rowType;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_NANOS;
+ import static io.trino.spi.type.TimestampType.createTimestampType;
++import static io.trino.spi.type.TimestampWithTimeZoneType.createTimestampWithTimeZoneType;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
+ import static io.trino.testing.StructuralTestUtil.arrayType;
+ import static io.trino.testing.StructuralTestUtil.mapType;
+@@ -196,6 +197,33 @@ public class TestParquetSchemaConverter
+         }
+     }
+ 
++    @Test
++    public void testInt64BackedTimestampsWithTimeZone()
++    {
++        for (int precision = 1; precision <= 9; precision++) {
++            ParquetSchemaConverter schemaConverter = new ParquetSchemaConverter(
++                    ImmutableList.of(createTimestampWithTimeZoneType(precision)),
++                    ImmutableList.of("test"),
++                    false,
++                    false);
++            PrimitiveType primitiveType = schemaConverter.getMessageType().getType(0).asPrimitiveType();
++            assertThat(primitiveType.getPrimitiveTypeName())
++                    .isEqualTo(PrimitiveType.PrimitiveTypeName.INT64);
++            if (precision <= 3) {
++                assertThat(primitiveType.getLogicalTypeAnnotation())
++                        .isEqualTo(timestampType(true, MILLIS));
++            }
++            else if (precision <= 6) {
++                assertThat(primitiveType.getLogicalTypeAnnotation())
++                        .isEqualTo(timestampType(true, MICROS));
++            }
++            else {
++                assertThat(primitiveType.getLogicalTypeAnnotation())
++                        .isEqualTo(timestampType(true, NANOS));
++            }
++        }
++    }
++
+     @Test
+     public void testInt96BackedTimestamps()
+     {
+diff --git a/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetWriter.java b/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetWriter.java
+index d004ec939a..1c31220d75 100644
+--- a/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetWriter.java
++++ b/lib/trino-parquet/src/test/java/io/trino/parquet/writer/TestParquetWriter.java
+@@ -40,6 +40,8 @@ import io.trino.spi.connector.SourcePage;
+ import io.trino.spi.predicate.Domain;
+ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.type.DecimalType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
++import io.trino.spi.type.TimestampWithTimeZoneType;
+ import io.trino.spi.type.Type;
+ import org.apache.parquet.VersionParser;
+ import org.apache.parquet.column.ColumnDescriptor;
+@@ -49,6 +51,7 @@ import org.apache.parquet.format.PageHeader;
+ import org.apache.parquet.format.PageType;
+ import org.apache.parquet.format.RowGroup;
+ import org.apache.parquet.format.Util;
++import org.apache.parquet.schema.LogicalTypeAnnotation;
+ import org.apache.parquet.schema.PrimitiveType;
+ import org.assertj.core.data.Percentage;
+ import org.junit.jupiter.api.Test;
+@@ -80,9 +83,17 @@ import static io.trino.parquet.ParquetTestUtils.writeParquetFile;
+ import static io.trino.parquet.writer.ParquetWriterOptions.DEFAULT_BLOOM_FILTER_FPP;
+ import static io.trino.parquet.writer.ParquetWriters.BLOOM_FILTER_EXPECTED_ENTRIES;
+ import static io.trino.spi.type.BigintType.BIGINT;
++import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.DoubleType.DOUBLE;
+ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.RealType.REAL;
++import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
++import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MILLISECOND;
++import static io.trino.spi.type.Timestamps.PICOSECONDS_PER_MICROSECOND;
++import static io.trino.spi.type.Timestamps.PICOSECONDS_PER_NANOSECOND;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.UuidType.javaUuidToTrinoUuid;
+ import static io.trino.spi.type.VarbinaryType.VARBINARY;
+@@ -508,6 +519,74 @@ public class TestParquetWriter
+         assertThat(hasBloomFilter(chunkMetaData)).isTrue();
+     }
+ 
++    @ParameterizedTest
++    @MethodSource("timestampTzRoundTripParams")
++    public void testTimestampTzRoundTrip(TimestampWithTimeZoneType type, LogicalTypeAnnotation.TimeUnit expectedTimeUnit)
++            throws IOException
++    {
++        List<Object> values = generateTimestampTzValues(type, 1_000);
++        List<String> columnNames = ImmutableList.of("timestamp_tz");
++        List<Type> types = ImmutableList.of(type);
++
++        ParquetDataSource dataSource = new TestingParquetDataSource(
++                writeParquetFile(
++                        ParquetWriterOptions.builder().build(),
++                        types,
++                        columnNames,
++                        generateInputPages(types, 100, values)),
++                ParquetReaderOptions.defaultOptions());
++
++        ParquetMetadata parquetMetadata = MetadataReader.readFooter(dataSource);
++
++        PrimitiveType parquetType = parquetMetadata.getFileMetaData().getSchema().getType(0).asPrimitiveType();
++        assertThat(parquetType.getLogicalTypeAnnotation())
++                .isEqualTo(LogicalTypeAnnotation.timestampType(true, expectedTimeUnit));
++
++        ImmutableList.Builder<Object> readBackBuilder = ImmutableList.builder();
++        try (ParquetReader reader = createParquetReader(dataSource, parquetMetadata, types, columnNames)) {
++            SourcePage page;
++            while ((page = reader.nextPage()) != null) {
++                Block block = page.getBlock(0);
++                for (int i = 0; i < page.getPositionCount(); i++) {
++                    readBackBuilder.add(readTimestampTzValue(type, block, i));
++                }
++            }
++        }
++        assertThat(readBackBuilder.build()).isEqualTo(values);
++    }
++
++    public static Stream<Arguments> timestampTzRoundTripParams()
++    {
++        // NANOS timestamp-with-time-zone write support (TimestampTzNanosValueWriter) is not present in this release,
++        // and the Delta Lake fix this backport targets only needs MICROS, so NANOS is intentionally omitted here.
++        return Stream.of(
++                Arguments.of(TIMESTAMP_TZ_MILLIS, LogicalTypeAnnotation.TimeUnit.MILLIS),
++                Arguments.of(TIMESTAMP_TZ_MICROS, LogicalTypeAnnotation.TimeUnit.MICROS));
++    }
++
++    private static List<Object> generateTimestampTzValues(TimestampWithTimeZoneType type, int count)
++    {
++        return LongStream.range(0, count)
++                .mapToObj(i -> {
++                    if (type.isShort()) {
++                        return packDateTimeWithZone(i, UTC_KEY);
++                    }
++                    int picosOfMilli = type.getPrecision() <= 6
++                            ? (int) ((i % MICROSECONDS_PER_MILLISECOND) * PICOSECONDS_PER_MICROSECOND)
++                            : (int) ((i % NANOSECONDS_PER_MILLISECOND) * PICOSECONDS_PER_NANOSECOND);
++                    return LongTimestampWithTimeZone.fromEpochMillisAndFraction(i, picosOfMilli, UTC_KEY);
++                })
++                .collect(toImmutableList());
++    }
++
++    private static Object readTimestampTzValue(TimestampWithTimeZoneType type, Block block, int position)
++    {
++        if (type.isShort()) {
++            return type.getLong(block, position);
++        }
++        return type.getObject(block, position);
++    }
++
+     public static Stream<Arguments> testWriteBloomFiltersParams()
+     {
+         int size = 2000;
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaHiveTypeTranslator.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaHiveTypeTranslator.java
+index 2d0589ee12..f826881fd0 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaHiveTypeTranslator.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaHiveTypeTranslator.java
+@@ -122,7 +122,7 @@ public class DeltaHiveTypeTranslator
+             return HIVE_DATE.getTypeInfo();
+         }
+         if (type instanceof TimestampWithTimeZoneType timestampWithTimeZoneType) {
+-            verify(timestampWithTimeZoneType.getPrecision() == 3, "Unsupported type: %s", type);
++            verify(timestampWithTimeZoneType.getPrecision() == 3 || timestampWithTimeZoneType.getPrecision() == 6, "Unsupported type: %s", type);
+             return HIVE_TIMESTAMP.getTypeInfo();
+         }
+         if (type instanceof TimestampType timestampType) {
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
+index 98892ff611..60684c58df 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeMetadata.java
+@@ -356,6 +356,7 @@ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.TypeUtils.isFloatingPointNaN;
+@@ -802,6 +803,9 @@ public class DeltaLakeMetadata
+         if (type instanceof TimestampType) {
+             return TIMESTAMP_MICROS;
+         }
++        if (type instanceof TimestampWithTimeZoneType) {
++            return TIMESTAMP_TZ_MICROS;
++        }
+         if (type instanceof CharType) {
+             return VARCHAR;
+         }
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeParquetSchemas.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeParquetSchemas.java
+index 89a8eec065..3281afcbff 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeParquetSchemas.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeParquetSchemas.java
+@@ -54,7 +54,7 @@ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+-import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.VarbinaryType.VARBINARY;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
+@@ -264,8 +264,8 @@ public final class DeltaLakeParquetSchemas
+             }
+             case "timestamp" -> {
+                 // Spark / Delta Lake stores timestamps in UTC, but renders them in session time zone.
+-                typeBuilder = Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.MILLIS));
+-                trinoType = TIMESTAMP_MILLIS;
++                typeBuilder = Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, LogicalTypeAnnotation.TimeUnit.MICROS));
++                trinoType = TIMESTAMP_TZ_MICROS;
+             }
+             case "timestamp_ntz" -> {
+                 typeBuilder = Types.primitive(PrimitiveType.PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(false, LogicalTypeAnnotation.TimeUnit.MICROS));
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTypes.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTypes.java
+index 039cc6cbd6..22f4994f61 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTypes.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeTypes.java
+@@ -22,7 +22,7 @@ import io.trino.spi.type.TypeOperators;
+ 
+ import static com.google.common.base.Verify.verify;
+ import static com.google.common.collect.ImmutableList.toImmutableList;
+-import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ 
+ public final class DeltaLakeTypes
+ {
+@@ -31,8 +31,8 @@ public final class DeltaLakeTypes
+     public static Type toParquetType(TypeOperators typeOperators, Type type)
+     {
+         if (type instanceof TimestampWithTimeZoneType timestamp) {
+-            verify(timestamp.getPrecision() == 3, "Unsupported type: %s", type);
+-            return TIMESTAMP_MILLIS;
++            verify(timestamp.getPrecision() == 6, "Unsupported type: %s", type);
++            return TIMESTAMP_TZ_MICROS;
+         }
+         if (type instanceof ArrayType arrayType) {
+             return new ArrayType(toParquetType(typeOperators, arrayType.getElementType()));
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeWriter.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeWriter.java
+index b192f03727..37e97edc94 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeWriter.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/DeltaLakeWriter.java
+@@ -32,13 +32,11 @@ import io.trino.spi.block.Block;
+ import io.trino.spi.block.ColumnarArray;
+ import io.trino.spi.block.ColumnarMap;
+ import io.trino.spi.block.DictionaryBlock;
+-import io.trino.spi.block.LongArrayBlock;
+ import io.trino.spi.block.RowBlock;
+ import io.trino.spi.block.RunLengthEncodedBlock;
+ import io.trino.spi.type.ArrayType;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
+-import io.trino.spi.type.TimestampWithTimeZoneType;
+ import io.trino.spi.type.Type;
+ import org.apache.parquet.column.statistics.Statistics;
+ import org.apache.parquet.format.FileMetaData;
+@@ -62,11 +60,8 @@ import static io.trino.plugin.deltalake.transactionlog.DeltaLakeParquetStatistic
+ import static io.trino.plugin.deltalake.transactionlog.DeltaLakeParquetStatisticsUtils.jsonEncodeMin;
+ import static io.trino.spi.block.ColumnarArray.toColumnarArray;
+ import static io.trino.spi.block.ColumnarMap.toColumnarMap;
+-import static io.trino.spi.type.DateTimeEncoding.unpackMillisUtc;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
+ import static java.util.Locale.ENGLISH;
+ import static java.util.Objects.requireNonNull;
+-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+ import static java.util.function.UnaryOperator.identity;
+ 
+ public final class DeltaLakeWriter
+@@ -267,9 +262,6 @@ public final class DeltaLakeWriter
+         if (type instanceof RowType rowType) {
+             return Optional.of(new RowCoercer(rowType));
+         }
+-        if (type instanceof TimestampWithTimeZoneType) {
+-            return Optional.of(new TimestampCoercer());
+-        }
+         return Optional.empty();
+     }
+ 
+@@ -398,26 +390,4 @@ public final class DeltaLakeWriter
+             return newFields;
+         }
+     }
+-
+-    private static class TimestampCoercer
+-            implements Function<Block, Block>
+-    {
+-        @Override
+-        public Block apply(Block block)
+-        {
+-            int positionCount = block.getPositionCount();
+-            long[] values = new long[positionCount];
+-            boolean mayHaveNulls = block.mayHaveNull();
+-            boolean[] valueIsNull = mayHaveNulls ? new boolean[positionCount] : null;
+-
+-            for (int position = 0; position < positionCount; position++) {
+-                if (mayHaveNulls && block.isNull(position)) {
+-                    valueIsNull[position] = true;
+-                    continue;
+-                }
+-                values[position] = MILLISECONDS.toMicros(unpackMillisUtc(TIMESTAMP_TZ_MILLIS.getLong(block, position)));
+-            }
+-            return new LongArrayBlock(positionCount, Optional.ofNullable(valueIsNull), values);
+-        }
+-    }
+ }
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeComputedStatistics.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeComputedStatistics.java
+index cf9d26a63f..41eb64985f 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeComputedStatistics.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeComputedStatistics.java
+@@ -71,13 +71,13 @@ public final class DeltaLakeComputedStatistics
+         return statistics.getColumnStatistics().entrySet().stream()
+                 .filter(stats -> stats.getKey().getStatisticType().equals(statisticType)
+                         && lowercaseToColumnsHandles.containsKey(stats.getKey().getColumnName()))
+-                .map(stats -> mapSingleStatisticsValueToJsonRepresentation(stats, lowercaseToColumnsHandles))
++                .map(stats -> mapSingleStatisticsValueToJsonRepresentation(stats, lowercaseToColumnsHandles, statisticType.equals(MAX_VALUE)))
+                 .filter(Optional::isPresent)
+                 .flatMap(Optional::stream)
+                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+     }
+ 
+-    private static Optional<Map.Entry<String, Object>> mapSingleStatisticsValueToJsonRepresentation(Map.Entry<ColumnStatisticMetadata, Block> statistics, Map</* lowercase */ String, DeltaLakeColumnHandle> lowercaseToColumnsHandles)
++    private static Optional<Map.Entry<String, Object>> mapSingleStatisticsValueToJsonRepresentation(Map.Entry<ColumnStatisticMetadata, Block> statistics, Map</* lowercase */ String, DeltaLakeColumnHandle> lowercaseToColumnsHandles, boolean roundUp)
+     {
+         Type columnType = lowercaseToColumnsHandles.get(statistics.getKey().getColumnName()).basePhysicalType();
+         String physicalName = lowercaseToColumnsHandles.get(statistics.getKey().getColumnName()).basePhysicalColumnName();
+@@ -86,7 +86,7 @@ public final class DeltaLakeComputedStatistics
+         }
+ 
+         Object value = readNativeValue(columnType, statistics.getValue(), 0);
+-        Object jsonValue = toJsonValue(columnType, value);
++        Object jsonValue = toJsonValue(columnType, value, roundUp);
+         if (jsonValue != null) {
+             return Optional.of(Map.entry(physicalName, jsonValue));
+         }
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeParquetStatisticsUtils.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeParquetStatisticsUtils.java
+index 371f2afe69..992734682d 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeParquetStatisticsUtils.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeParquetStatisticsUtils.java
+@@ -25,6 +25,7 @@ import io.trino.spi.type.DateType;
+ import io.trino.spi.type.DecimalType;
+ import io.trino.spi.type.Decimals;
+ import io.trino.spi.type.Int128;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.TimestampType;
+@@ -60,14 +61,13 @@ import static io.trino.parquet.ParquetTimestampUtils.decodeInt96Timestamp;
+ import static io.trino.spi.block.RowValueBuilder.buildRowValue;
+ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+-import static io.trino.spi.type.DateTimeEncoding.unpackMillisUtc;
+ import static io.trino.spi.type.DoubleType.DOUBLE;
+ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
+@@ -168,7 +168,7 @@ public final class DeltaLakeParquetStatisticsUtils
+         throw new UnsupportedOperationException("Unsupported type: " + type);
+     }
+ 
+-    public static Map<String, Object> toJsonValues(Map<String, Type> columnTypeMapping, Map<String, Object> values)
++    public static Map<String, Object> toJsonValues(Map<String, Type> columnTypeMapping, Map<String, Object> values, boolean roundUp)
+     {
+         Map<String, Object> jsonValues = new HashMap<>();
+         for (Map.Entry<String, Object> value : values.entrySet()) {
+@@ -176,13 +176,13 @@ public final class DeltaLakeParquetStatisticsUtils
+             if (type instanceof ArrayType || type instanceof MapType) {
+                 continue;
+             }
+-            jsonValues.put(value.getKey(), toJsonValue(columnTypeMapping.get(value.getKey()), value.getValue()));
++            jsonValues.put(value.getKey(), toJsonValue(columnTypeMapping.get(value.getKey()), value.getValue(), roundUp));
+         }
+         return jsonValues;
+     }
+ 
+     @Nullable
+-    public static Object toJsonValue(Type type, @Nullable Object value)
++    public static Object toJsonValue(Type type, @Nullable Object value, boolean roundUp)
+     {
+         if (value == null) {
+             return null;
+@@ -217,9 +217,14 @@ public final class DeltaLakeParquetStatisticsUtils
+             Instant instant = Instant.ofEpochSecond(epochSeconds, nanoAdjustment);
+             return ISO_INSTANT.format(ZonedDateTime.ofInstant(instant.truncatedTo(MILLIS), UTC));
+         }
+-        if (type == TIMESTAMP_TZ_MILLIS) {
+-            Instant ts = Instant.ofEpochMilli(unpackMillisUtc((long) value));
+-            return ISO_INSTANT.format(ZonedDateTime.ofInstant(ts, UTC));
++        if (type == TIMESTAMP_TZ_MICROS) {
++            LongTimestampWithTimeZone timestamp = (LongTimestampWithTimeZone) value;
++            long epochMillis = timestamp.getEpochMillis();
++            // Delta statistics are millisecond-granular; ceil the max so a truncated upper bound still covers sub-millisecond values
++            if (roundUp && timestamp.getPicosOfMilli() > 0) {
++                epochMillis++;
++            }
++            return ISO_INSTANT.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), UTC));
+         }
+         if (type instanceof RowType rowType) {
+             SqlRow row = (SqlRow) value;
+@@ -228,7 +233,7 @@ public final class DeltaLakeParquetStatisticsUtils
+             for (int i = 0; i < row.getFieldCount(); i++) {
+                 RowType.Field field = rowType.getFields().get(i);
+                 Object fieldValue = readNativeValue(field.getType(), row.getRawFieldBlock(i), rawIndex);
+-                Object jsonValue = toJsonValue(field.getType(), fieldValue);
++                Object jsonValue = toJsonValue(field.getType(), fieldValue, roundUp);
+                 if (jsonValue != null) {
+                     fieldValues.put(field.getName().orElseThrow(), jsonValue);
+                 }
+@@ -294,6 +299,18 @@ public final class DeltaLakeParquetStatisticsUtils
+         return nullCounts.buildOrThrow();
+     }
+ 
++    private static Instant longStatisticToInstant(LongStatistics statistics, long value)
++    {
++        // INT64 timestamp-with-time-zone files written before the micros mapping carry MILLIS; new files carry MICROS
++        if (statistics.type().getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.TimestampLogicalTypeAnnotation timestampAnnotation
++                && timestampAnnotation.getUnit() == LogicalTypeAnnotation.TimeUnit.MICROS) {
++            long epochSeconds = floorDiv(value, MICROSECONDS_PER_SECOND);
++            int nanoAdjustment = floorMod(value, MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
++            return Instant.ofEpochSecond(epochSeconds, nanoAdjustment);
++        }
++        return Instant.ofEpochMilli(value);
++    }
++
+     private static Optional<Object> getMin(Type type, Statistics<?> statistics)
+     {
+         if (statistics.genericGetMin() == null || !statistics.hasNonNullValue()) {
+@@ -325,8 +342,8 @@ public final class DeltaLakeParquetStatisticsUtils
+ 
+         if (type instanceof TimestampWithTimeZoneType) {
+             if (statistics instanceof LongStatistics longStatistics) {
+-                Instant ts = Instant.ofEpochMilli(longStatistics.genericGetMin());
+-                return Optional.of(ISO_INSTANT.format(ZonedDateTime.ofInstant(ts, UTC)));
++                Instant ts = longStatisticToInstant(longStatistics, longStatistics.genericGetMin());
++                return Optional.of(ISO_INSTANT.format(ZonedDateTime.ofInstant(ts, UTC).truncatedTo(MILLIS)));
+             }
+             if (statistics instanceof BinaryStatistics binaryStatistics) {
+                 DecodedTimestamp decodedTimestamp = decodeInt96Timestamp(binaryStatistics.genericGetMin());
+@@ -428,8 +445,13 @@ public final class DeltaLakeParquetStatisticsUtils
+ 
+         if (type instanceof TimestampWithTimeZoneType) {
+             if (statistics instanceof LongStatistics longStatistics) {
+-                Instant ts = Instant.ofEpochMilli(longStatistics.genericGetMax());
+-                return Optional.of(ISO_INSTANT.format(ZonedDateTime.ofInstant(ts, UTC)));
++                Instant ts = longStatisticToInstant(longStatistics, longStatistics.genericGetMax());
++                ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(ts, UTC);
++                ZonedDateTime truncatedToMillis = zonedDateTime.truncatedTo(MILLIS);
++                if (truncatedToMillis.isBefore(zonedDateTime)) {
++                    truncatedToMillis = truncatedToMillis.plus(1, MILLIS);
++                }
++                return Optional.of(ISO_INSTANT.format(truncatedToMillis));
+             }
+             if (statistics instanceof BinaryStatistics binaryStatistics) {
+                 DecodedTimestamp decodedTimestamp = decodeInt96Timestamp(binaryStatistics.genericGetMax());
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeSchemaSupport.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeSchemaSupport.java
+index 94f063b71a..af81c62b22 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeSchemaSupport.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/DeltaLakeSchemaSupport.java
+@@ -88,7 +88,7 @@ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.StandardTypes.JSON;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.VarbinaryType.VARBINARY;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
+@@ -432,7 +432,7 @@ public final class DeltaLakeSchemaSupport
+     {
+         if (serializeSupportedPrimitiveType(type).isEmpty() ||
+                 (type instanceof TimestampType timestampType && timestampType.getPrecision() != 6) ||
+-                (type instanceof TimestampWithTimeZoneType timestampWithTimeZoneType && timestampWithTimeZoneType.getPrecision() != 3)) {
++                (type instanceof TimestampWithTimeZoneType timestampWithTimeZoneType && timestampWithTimeZoneType.getPrecision() != 6)) {
+             throw new TrinoException(DELTA_LAKE_INVALID_SCHEMA, "Unsupported type: " + type);
+         }
+     }
+@@ -765,7 +765,7 @@ public final class DeltaLakeSchemaSupport
+             // Spark/DeltaLake stores timestamps in UTC, but renders them in session time zone.
+             // For more info, see https://delta-users.slack.com/archives/GKTUWT03T/p1585760533005400
+             // and https://cwiki.apache.org/confluence/display/Hive/Different+TIMESTAMP+types
+-            case "timestamp" -> TIMESTAMP_TZ_MILLIS;
++            case "timestamp" -> TIMESTAMP_TZ_MICROS;
+             case "variant" -> typeManager.getType(new TypeSignature(JSON));
+             default -> throw new TypeNotFoundException(new TypeSignature(primitiveType));
+         };
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/TransactionLogParser.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/TransactionLogParser.java
+index b6a4c98034..24d9a23ea4 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/TransactionLogParser.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/TransactionLogParser.java
+@@ -30,6 +30,7 @@ import io.trino.plugin.deltalake.transactionlog.checkpoint.LastCheckpoint;
+ import io.trino.spi.TrinoException;
+ import io.trino.spi.type.DecimalType;
+ import io.trino.spi.type.Decimals;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.Type;
+ import jakarta.annotation.Nullable;
+ 
+@@ -38,6 +39,7 @@ import java.io.InputStream;
+ import java.io.UncheckedIOException;
+ import java.math.BigDecimal;
+ import java.time.Duration;
++import java.time.Instant;
+ import java.time.LocalDate;
+ import java.time.LocalDateTime;
+ import java.time.LocalTime;
+@@ -61,7 +63,6 @@ import static io.trino.plugin.deltalake.transactionlog.TransactionLogUtil.getTra
+ import static io.trino.spi.StandardErrorCode.GENERIC_INTERNAL_ERROR;
+ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.DoubleType.DOUBLE;
+ import static io.trino.spi.type.IntegerType.INTEGER;
+@@ -69,9 +70,10 @@ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
++import static io.trino.spi.type.Timestamps.PICOSECONDS_PER_NANOSECOND;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
+ import static java.lang.Double.parseDouble;
+@@ -183,7 +185,7 @@ public final class TransactionLogParser
+     }
+ 
+     @VisibleForTesting
+-    static Long readPartitionTimestampWithZone(String timestamp)
++    static LongTimestampWithTimeZone readPartitionTimestampWithZone(String timestamp)
+     {
+         ZonedDateTime zonedDateTime;
+         try {
+@@ -193,10 +195,11 @@ public final class TransactionLogParser
+             // TODO: avoid this exception-driven logic
+             zonedDateTime = ZonedDateTime.parse(timestamp, ISO_ZONED_DATE_TIME);
+         }
+-        return packDateTimeWithZone(zonedDateTime.toInstant().toEpochMilli(), UTC_KEY);
++        Instant instant = zonedDateTime.toInstant();
++        return LongTimestampWithTimeZone.fromEpochSecondsAndFraction(instant.getEpochSecond(), (long) instant.getNano() * PICOSECONDS_PER_NANOSECOND, UTC_KEY);
+     }
+ 
+-    public static Object deserializeColumnValue(DeltaLakeColumnHandle column, String valueString, Function<String, Long> timestampReader, Function<String, Long> timestampWithZoneReader)
++    public static Object deserializeColumnValue(DeltaLakeColumnHandle column, String valueString, Function<String, Long> timestampReader, Function<String, LongTimestampWithTimeZone> timestampWithZoneReader)
+     {
+         verify(column.isBaseColumn(), "Unexpected dereference: %s", column);
+         Type type = column.baseType();
+@@ -237,7 +240,7 @@ public final class TransactionLogParser
+             if (type.equals(TIMESTAMP_MICROS)) {
+                 return timestampReader.apply(valueString);
+             }
+-            if (type.equals(TIMESTAMP_TZ_MILLIS)) {
++            if (type.equals(TIMESTAMP_TZ_MICROS)) {
+                 return timestampWithZoneReader.apply(valueString);
+             }
+             if (VARCHAR.equals(type)) {
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointEntryIterator.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointEntryIterator.java
+index dd62e0eeba..b17def3031 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointEntryIterator.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointEntryIterator.java
+@@ -50,6 +50,7 @@ import io.trino.spi.connector.SourcePage;
+ import io.trino.spi.predicate.Domain;
+ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.type.ArrayType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.TimestampWithTimeZoneType;
+@@ -92,7 +93,6 @@ import static io.trino.plugin.deltalake.util.DeltaLakeDomains.partitionMatchesPr
+ import static io.trino.plugin.hive.util.HiveTypeTranslator.toHiveType;
+ import static io.trino.spi.StandardErrorCode.GENERIC_INTERNAL_ERROR;
+ import static io.trino.spi.type.BigintType.BIGINT;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
+@@ -624,7 +624,7 @@ public class CheckpointEntryIterator
+             if (type instanceof TimestampWithTimeZoneType) {
+                 long epochMillis = LongMath.divide((long) readNativeValue(TIMESTAMP_MILLIS, fieldBlock, fieldIndex), MICROSECONDS_PER_MILLISECOND, UNNECESSARY);
+                 if (floorDiv(epochMillis, MILLISECONDS_PER_DAY) >= START_OF_MODERN_ERA_EPOCH_DAY) {
+-                    values.put(name, packDateTimeWithZone(epochMillis, UTC_KEY));
++                    values.put(name, LongTimestampWithTimeZone.fromEpochMillisAndFraction(epochMillis, 0, UTC_KEY));
+                 }
+                 continue;
+             }
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointSchemaManager.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointSchemaManager.java
+index f3a1b71bfe..3e72aecff8 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointSchemaManager.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointSchemaManager.java
+@@ -42,6 +42,7 @@ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
+ import static java.util.Objects.requireNonNull;
+ 
+@@ -162,7 +163,14 @@ public class CheckpointSchemaManager
+             List<DeltaLakeColumnHandle> partitionColumns = extractPartitionColumns(metadataEntry, protocolEntry, typeManager);
+             if (!partitionColumns.isEmpty()) {
+                 List<RowType.Field> partitionValuesParsed = partitionColumns.stream()
+-                        .map(column -> RowType.field(column.basePhysicalColumnName(), typeManager.getType(getTypeSignature(DeltaHiveTypeTranslator.toHiveType(column.type())))))
++                        .map(column -> {
++                            // Delta "timestamp" partition values are written natively as TIMESTAMP WITH TIME ZONE
++                            if (column.type() instanceof TimestampWithTimeZoneType) {
++                                return RowType.field(column.basePhysicalColumnName(), TIMESTAMP_TZ_MICROS);
++                            }
++                            // Hive type round-trip
++                            return RowType.field(column.basePhysicalColumnName(), typeManager.getType(getTypeSignature(DeltaHiveTypeTranslator.toHiveType(column.type()))));
++                        })
+                         .collect(toImmutableList());
+                 addFields.add(RowType.field("partitionValues_parsed", RowType.from(partitionValuesParsed)));
+             }
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointWriter.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointWriter.java
+index 1296205abb..2c6806af85 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointWriter.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/checkpoint/CheckpointWriter.java
+@@ -37,7 +37,7 @@ import io.trino.spi.block.BlockBuilder;
+ import io.trino.spi.block.MapBlockBuilder;
+ import io.trino.spi.block.RowBlockBuilder;
+ import io.trino.spi.type.ArrayType;
+-import io.trino.spi.type.DateTimeEncoding;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.RowType.Field;
+@@ -348,8 +348,8 @@ public class CheckpointWriter
+                 Map<String, Type> columnTypeMapping = getColumnTypeMapping(metadataEntry, protocolEntry);
+                 DeltaLakeJsonFileStatistics jsonFileStatistics = new DeltaLakeJsonFileStatistics(
+                         parquetFileStatistics.getNumRecords(),
+-                        parquetFileStatistics.getMinValues().map(values -> toJsonValues(columnTypeMapping, values)),
+-                        parquetFileStatistics.getMaxValues().map(values -> toJsonValues(columnTypeMapping, values)),
++                        parquetFileStatistics.getMinValues().map(values -> toJsonValues(columnTypeMapping, values, false)),
++                        parquetFileStatistics.getMaxValues().map(values -> toJsonValues(columnTypeMapping, values, true)),
+                         parquetFileStatistics.getNullCount().map(nullCounts -> toNullCounts(columnTypeMapping, nullCounts)));
+                 statsJson = getStatsString(jsonFileStatistics).orElse(null);
+             }
+@@ -505,7 +505,7 @@ public class CheckpointWriter
+                                         if (type == TIMESTAMP_MILLIS) {
+                                             // We need to remap TIMESTAMP WITH TIME ZONE -> TIMESTAMP here because of
+                                             // inconsistency in what type is used for DL "timestamp" type in data processing and in min/max statistics map.
+-                                            value = multiplyExact(DateTimeEncoding.unpackMillisUtc((long) value), MICROSECONDS_PER_MILLISECOND);
++                                            value = multiplyExact(((LongTimestampWithTimeZone) value).getEpochMillis(), MICROSECONDS_PER_MILLISECOND);
+                                         }
+                                         if (type == TIMESTAMP_MICROS) {
+                                             // This is TIMESTAMP_NTZ type in Delta Lake
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/statistics/DeltaLakeJsonFileStatistics.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/statistics/DeltaLakeJsonFileStatistics.java
+index 9c3d35ea14..433e9221db 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/statistics/DeltaLakeJsonFileStatistics.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/transactionlog/statistics/DeltaLakeJsonFileStatistics.java
+@@ -24,10 +24,12 @@ import io.trino.plugin.deltalake.DeltaLakeColumnHandle;
+ import io.trino.plugin.deltalake.transactionlog.CanonicalColumnName;
+ import io.trino.plugin.deltalake.transactionlog.TransactionLogAccess;
+ import io.trino.spi.TrinoException;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.TimestampType;
+ import io.trino.spi.type.TimestampWithTimeZoneType;
+ import io.trino.spi.type.Type;
+ 
++import java.time.Instant;
+ import java.time.LocalDateTime;
+ import java.time.ZonedDateTime;
+ import java.util.List;
+@@ -45,13 +47,12 @@ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.JSON
+ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.START_OF_MODERN_ERA_EPOCH_DAY;
+ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.START_OF_MODERN_ERA_EPOCH_MICROS;
+ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.deserializeColumnValue;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+-import static io.trino.spi.type.DateTimeEncoding.unpackMillisUtc;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.MILLISECONDS_PER_DAY;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
++import static io.trino.spi.type.Timestamps.PICOSECONDS_PER_NANOSECOND;
+ import static java.lang.Math.floorDiv;
+ import static java.math.RoundingMode.UNNECESSARY;
+ import static java.time.ZoneOffset.UTC;
+@@ -168,8 +169,7 @@ public class DeltaLakeJsonFileStatistics
+             }
+         }
+         if (columnType instanceof TimestampWithTimeZoneType) {
+-            long packedTimestamp = (long) columnValue;
+-            long epochMillis = unpackMillisUtc(packedTimestamp);
++            long epochMillis = ((LongTimestampWithTimeZone) columnValue).getEpochMillis();
+             if (floorDiv(epochMillis, MILLISECONDS_PER_DAY) < START_OF_MODERN_ERA_EPOCH_DAY) {
+                 return Optional.empty();
+             }
+@@ -184,10 +184,11 @@ public class DeltaLakeJsonFileStatistics
+         return localDateTime.toEpochSecond(UTC) * MICROSECONDS_PER_SECOND + divide(localDateTime.getNano(), NANOSECONDS_PER_MICROSECOND, UNNECESSARY);
+     }
+ 
+-    private static Long readStatisticsTimestampWithZone(String timestamp)
++    private static LongTimestampWithTimeZone readStatisticsTimestampWithZone(String timestamp)
+     {
+         ZonedDateTime zonedDateTime = ZonedDateTime.parse(timestamp, JSON_STATISTICS_TIMESTAMP_FORMATTER);
+-        return packDateTimeWithZone(zonedDateTime.toInstant().toEpochMilli(), UTC_KEY);
++        Instant instant = zonedDateTime.toInstant();
++        return LongTimestampWithTimeZone.fromEpochSecondsAndFraction(instant.getEpochSecond(), (long) instant.getNano() * PICOSECONDS_PER_NANOSECOND, UTC_KEY);
+     }
+ 
+     @Override
+diff --git a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/util/DeltaLakeWriteUtils.java b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/util/DeltaLakeWriteUtils.java
+index 33c6f1997d..0b9c540882 100644
+--- a/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/util/DeltaLakeWriteUtils.java
++++ b/plugin/trino-delta-lake/src/main/java/io/trino/plugin/deltalake/util/DeltaLakeWriteUtils.java
+@@ -19,10 +19,10 @@ import io.trino.spi.Page;
+ import io.trino.spi.TrinoException;
+ import io.trino.spi.block.Block;
+ import io.trino.spi.type.DecimalType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.Type;
+ import io.trino.spi.type.VarcharType;
+ 
+-import java.time.Instant;
+ import java.time.LocalDate;
+ import java.time.LocalDateTime;
+ import java.time.ZoneOffset;
+@@ -37,7 +37,6 @@ import static io.trino.plugin.hive.HiveErrorCode.HIVE_INVALID_PARTITION_VALUE;
+ import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
+ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+-import static io.trino.spi.type.DateTimeEncoding.unpackMillisUtc;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.Decimals.readBigDecimal;
+ import static io.trino.spi.type.DoubleType.DOUBLE;
+@@ -46,9 +45,11 @@ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
++import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
++import static io.trino.spi.type.Timestamps.PICOSECONDS_PER_MICROSECOND;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static java.lang.Math.floorDiv;
+ import static java.lang.Math.floorMod;
+@@ -119,9 +120,12 @@ public final class DeltaLakeWriteUtils
+             int nanosOfSecond = floorMod(epochMicros, MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
+             return LocalDateTime.ofEpochSecond(epochSeconds, nanosOfSecond, ZoneOffset.UTC).format(DELTA_TIMESTAMP_FORMATTER);
+         }
+-        if (TIMESTAMP_TZ_MILLIS.equals(type)) {
+-            long epochMillis = unpackMillisUtc(type.getLong(block, position));
+-            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC).format(DELTA_TIMESTAMP_FORMATTER);
++        if (TIMESTAMP_TZ_MICROS.equals(type)) {
++            LongTimestampWithTimeZone timestamp = (LongTimestampWithTimeZone) type.getObject(block, position);
++            long epochMicros = timestamp.getEpochMillis() * MICROSECONDS_PER_MILLISECOND + timestamp.getPicosOfMilli() / PICOSECONDS_PER_MICROSECOND;
++            long epochSeconds = floorDiv(epochMicros, MICROSECONDS_PER_SECOND);
++            int nanosOfSecond = floorMod(epochMicros, MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
++            return LocalDateTime.ofEpochSecond(epochSeconds, nanosOfSecond, ZoneOffset.UTC).format(DELTA_TIMESTAMP_FORMATTER);
+         }
+         if (type instanceof DecimalType decimalType) {
+             return readBigDecimal(decimalType, block, position).stripTrailingZeros().toPlainString();
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/BaseDeltaLakeConnectorSmokeTest.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/BaseDeltaLakeConnectorSmokeTest.java
+index 2ea79c7452..05d8c3e5dd 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/BaseDeltaLakeConnectorSmokeTest.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/BaseDeltaLakeConnectorSmokeTest.java
+@@ -317,7 +317,7 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+                 "WITH (location = '" + getLocationForTable(bucketName, tableName) + "', partitioned_by = ARRAY['b'])");
+         assertUpdate("INSERT INTO " + tableName + " VALUES (1, 'a', TIMESTAMP '2020-01-01 01:22:34.000 UTC')", 1);
+         assertUpdate("INSERT INTO " + tableName + " VALUES (2, 'b', TIMESTAMP '2021-01-01 01:22:34.000 UTC')", 1);
+-        assertQuery("SELECT a, b, CAST(c AS VARCHAR) FROM " + tableName, "VALUES (1, 'a', '2020-01-01 01:22:34.000 UTC'), (2, 'b', '2021-01-01 01:22:34.000 UTC')");
++        assertQuery("SELECT a, b, CAST(c AS VARCHAR) FROM " + tableName, "VALUES (1, 'a', '2020-01-01 01:22:34.000000 UTC'), (2, 'b', '2021-01-01 01:22:34.000000 UTC')");
+         assertUpdate("DROP TABLE " + tableName);
+     }
+ 
+@@ -903,9 +903,9 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+                 3);
+         assertQuery(
+                 "SELECT CAST(ts_tz AS VARCHAR) FROM " + tableName,
+-                "VALUES '2012-10-31 05:00:00.123 UTC', " +
+-                        "'2012-10-31 08:00:00.123 UTC', " +
+-                        "'2012-10-31 01:00:00.123 UTC'");
++                "VALUES '2012-10-31 05:00:00.123000 UTC', " +
++                        "'2012-10-31 08:00:00.123000 UTC', " +
++                        "'2012-10-31 01:00:00.123000 UTC'");
+         assertUpdate("DROP TABLE " + tableName);
+     }
+ 
+@@ -913,11 +913,16 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+     public void testTimestampWithTimeZoneMicro()
+     {
+         String tableName = "test_timestamp_with_time_zone_micro_" + randomNameSuffix();
+-        assertQueryFails(
++        assertUpdate(
+                 format("CREATE TABLE " + tableName + " (ts_tz) WITH (location = '%s') AS " +
+                                 "VALUES timestamp '2012-10-31 01:00:00.123456 America/New_York', timestamp '2012-10-31 01:00:00.123456 America/Los_Angeles'",
+                         getLocationForTable(bucketName, tableName)),
+-                "Unsupported type:.*");
++                2);
++        assertQuery(
++                "SELECT CAST(ts_tz AS VARCHAR) FROM " + tableName,
++                "VALUES '2012-10-31 05:00:00.123456 UTC', " +
++                        "'2012-10-31 08:00:00.123456 UTC'");
++        assertUpdate("DROP TABLE " + tableName);
+     }
+ 
+     @Test
+@@ -929,7 +934,7 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         String values =
+                 """
+-                (1, ARRAY[timestamp '2012-01-01 01:02:03.123 UTC']),
++                (1, ARRAY[timestamp '2012-01-01 01:02:03.123000 UTC']),
+                 (2, ARRAY[NULL]),
+                 (3, NULL)
+                 """;
+@@ -937,7 +942,7 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         assertThat(query("SELECT * FROM " + tableName))
+                 .matches("VALUES " + values);
+-        assertThat(query("SELECT id FROM " + tableName + " WHERE data = ARRAY[timestamp '2012-01-01 01:02:03.123 UTC']"))
++        assertThat(query("SELECT id FROM " + tableName + " WHERE data = ARRAY[timestamp '2012-01-01 01:02:03.123000 UTC']"))
+                 .matches("VALUES 1");
+ 
+         assertUpdate("DROP TABLE " + tableName);
+@@ -952,8 +957,8 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         String values =
+                 """
+-                (1, MAP(ARRAY[timestamp '2012-01-01 01:02:03.123 UTC'], ARRAY[timestamp '2012-02-01 01:02:03.123 UTC'])),
+-                (2, MAP(ARRAY[timestamp '2023-12-31 03:02:01.321 UTC'], ARRAY[NULL])),
++                (1, MAP(ARRAY[timestamp '2012-01-01 01:02:03.123000 UTC'], ARRAY[timestamp '2012-02-01 01:02:03.123000 UTC'])),
++                (2, MAP(ARRAY[timestamp '2023-12-31 03:02:01.321000 UTC'], ARRAY[NULL])),
+                 (3, MAP(NULL, NULL)),
+                 (4, NULL)
+                 """;
+@@ -961,7 +966,7 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         assertThat(query("SELECT * FROM " + tableName))
+                 .matches("VALUES " + values);
+-        assertThat(query("SELECT id FROM " + tableName + " WHERE data = MAP(ARRAY[timestamp '2012-01-01 01:02:03.123 UTC'], ARRAY[timestamp '2012-02-01 01:02:03.123 UTC'])"))
++        assertThat(query("SELECT id FROM " + tableName + " WHERE data = MAP(ARRAY[timestamp '2012-01-01 01:02:03.123000 UTC'], ARRAY[timestamp '2012-02-01 01:02:03.123000 UTC'])"))
+                 .matches("VALUES 1");
+ 
+         assertUpdate("DROP TABLE " + tableName);
+@@ -976,15 +981,15 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         String values =
+                 """
+-                (1, CAST(ROW(timestamp '2012-01-01 01:02:03.123 UTC') AS ROW(ts_tz timestamp with time zone))),
+-                (2, CAST(ROW(NULL) AS ROW(ts_tz timestamp with time zone))),
+-                (3, CAST(NULL AS ROW(ts_tz timestamp with time zone)))
++                (1, CAST(ROW(timestamp '2012-01-01 01:02:03.123000 UTC') AS ROW(ts_tz timestamp(6) with time zone))),
++                (2, CAST(ROW(NULL) AS ROW(ts_tz timestamp(6) with time zone))),
++                (3, CAST(NULL AS ROW(ts_tz timestamp(6) with time zone)))
+                 """;
+         assertUpdate("INSERT INTO " + tableName + " VALUES " + values, 3);
+ 
+         assertThat(query("SELECT * FROM " + tableName))
+                 .matches("VALUES " + values);
+-        assertThat(query("SELECT id FROM " + tableName + " WHERE data = ROW(timestamp '2012-01-01 01:02:03.123 UTC')"))
++        assertThat(query("SELECT id FROM " + tableName + " WHERE data = ROW(timestamp '2012-01-01 01:02:03.123000 UTC')"))
+                 .matches("VALUES 1");
+ 
+         assertUpdate("DROP TABLE " + tableName);
+@@ -999,38 +1004,20 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+ 
+         String values =
+                 """
+-                (1, CAST(ROW(ROW(timestamp '2012-01-01 01:02:03.123 UTC')) AS ROW(child ROW(grandchild timestamp with time zone)))),
+-                (2, CAST(ROW(ROW(NULL)) AS ROW(child ROW(grandchild timestamp with time zone)))),
+-                (3, CAST(NULL AS ROW(child ROW(grandchild timestamp with time zone))))
++                (1, CAST(ROW(ROW(timestamp '2012-01-01 01:02:03.123000 UTC')) AS ROW(child ROW(grandchild timestamp(6) with time zone)))),
++                (2, CAST(ROW(ROW(NULL)) AS ROW(child ROW(grandchild timestamp(6) with time zone)))),
++                (3, CAST(NULL AS ROW(child ROW(grandchild timestamp(6) with time zone))))
+                 """;
+         assertUpdate("INSERT INTO " + tableName + " VALUES " + values, 3);
+ 
+         assertThat(query("SELECT * FROM " + tableName))
+                 .matches("VALUES " + values);
+-        assertThat(query("SELECT id FROM " + tableName + " WHERE parent = ROW(ROW(timestamp '2012-01-01 01:02:03.123 UTC'))"))
++        assertThat(query("SELECT id FROM " + tableName + " WHERE parent = ROW(ROW(timestamp '2012-01-01 01:02:03.123000 UTC'))"))
+                 .matches("VALUES 1");
+ 
+         assertUpdate("DROP TABLE " + tableName);
+     }
+ 
+-    @Test
+-    public void testTimestampWithTimeZoneInComplexTypesFails()
+-    {
+-        String location = getLocationForTable("delta", "foo");
+-        assertQueryFails(
+-                "CREATE TABLE should_fail (a, b) WITH (location = '" + location + "') AS VALUES (ROW(timestamp '2012-10-31 01:00:00.1234 UTC', timestamp '2012-10-31 01:00:00.4321 UTC'), 1)",
+-                "Unsupported type:.*");
+-        assertQueryFails(
+-                "CREATE TABLE should_fail (a) WITH (location = '" + location + "') AS VALUES ARRAY[timestamp '2012-10-31 01:00:00.1234 UTC', timestamp '2012-10-31 01:00:00.4321 UTC']",
+-                "Unsupported type:.*");
+-        assertQueryFails(
+-                "CREATE TABLE should_fail (a) WITH (location = '" + location + "') AS VALUES MAP(ARRAY[ARRAY[timestamp '2012-10-31 01:00:00.1234 UTC', timestamp '2012-10-31 01:00:00.4321 UTC']], ARRAY[42])",
+-                "Unsupported type:.*");
+-        assertQueryFails(
+-                "CREATE TABLE should_fail (a) WITH (location = '" + location + "') AS VALUES MAP(ARRAY[42], ARRAY[ARRAY[timestamp '2012-10-31 01:00:00.1234 UTC', timestamp '2012-10-31 01:00:00.4321 UTC']])",
+-                "Unsupported type:.*");
+-    }
+-
+     @Test
+     public void testSelectOldDate()
+     {
+@@ -1048,18 +1035,18 @@ public abstract class BaseDeltaLakeConnectorSmokeTest
+     {
+         assertQuery(
+                 "SELECT CAST(ts AS VARCHAR), i FROM old_timestamps",
+-                "VALUES ('0099-12-30 01:02:03.000 UTC', 1), ('1582-10-15 01:02:03.000 UTC', 2), ('1960-01-01 01:02:03.000 UTC', 3), ('2020-01-01 01:02:03.000 UTC', 4);");
+-        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '0099-12-30 01:02:03 UTC'", "VALUES ('0099-12-30 01:02:03.000 UTC', 1)");
+-        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '1582-10-15 01:02:03 UTC'", "VALUES ('1582-10-15 01:02:03.000 UTC', 2)");
+-        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '1960-01-01 01:02:03 UTC'", "VALUES ('1960-01-01 01:02:03.000 UTC', 3)");
+-        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '2020-01-01 01:02:03 UTC'", "VALUES ('2020-01-01 01:02:03.000 UTC', 4)");
++                "VALUES ('0099-12-30 01:02:03.000000 UTC', 1), ('1582-10-15 01:02:03.000000 UTC', 2), ('1960-01-01 01:02:03.000000 UTC', 3), ('2020-01-01 01:02:03.000000 UTC', 4);");
++        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '0099-12-30 01:02:03 UTC'", "VALUES ('0099-12-30 01:02:03.000000 UTC', 1)");
++        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '1582-10-15 01:02:03 UTC'", "VALUES ('1582-10-15 01:02:03.000000 UTC', 2)");
++        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '1960-01-01 01:02:03 UTC'", "VALUES ('1960-01-01 01:02:03.000000 UTC', 3)");
++        assertQuery("SELECT CAST(ts AS VARCHAR), i FROM old_timestamps WHERE ts = TIMESTAMP '2020-01-01 01:02:03 UTC'", "VALUES ('2020-01-01 01:02:03.000000 UTC', 4)");
+     }
+ 
+     @Test
+     public void testSelectNestedTimestamps()
+     {
+-        assertQuery("SELECT CAST(col1[1].ts AS VARCHAR) FROM nested_timestamps", "VALUES '2010-02-03 12:11:10.000 UTC'");
+-        assertQuery("SELECT CAST(col1[1].ts AS VARCHAR) FROM nested_timestamps_parquet_stats LIMIT 1", "VALUES '2010-02-03 12:11:10.000 UTC'");
++        assertQuery("SELECT CAST(col1[1].ts AS VARCHAR) FROM nested_timestamps", "VALUES '2010-02-03 12:11:10.000000 UTC'");
++        assertQuery("SELECT CAST(col1[1].ts AS VARCHAR) FROM nested_timestamps_parquet_stats LIMIT 1", "VALUES '2010-02-03 12:11:10.000000 UTC'");
+     }
+ 
+     @Test
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
+index cd01bfe1de..24817c56bf 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeBasic.java
+@@ -50,6 +50,7 @@ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.SqlDate;
+ import io.trino.spi.type.SqlTimestamp;
++import io.trino.spi.type.SqlTimestampWithTimeZone;
+ import io.trino.spi.type.TimeZoneKey;
+ import io.trino.testing.AbstractTestQueryFramework;
+ import io.trino.testing.MaterializedRow;
+@@ -73,9 +74,7 @@ import java.nio.file.Path;
+ import java.nio.file.StandardOpenOption;
+ import java.time.Instant;
+ import java.time.LocalDate;
+-import java.time.LocalDateTime;
+ import java.time.ZoneId;
+-import java.time.ZonedDateTime;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
+@@ -106,7 +105,6 @@ import static io.trino.plugin.deltalake.transactionlog.TemporalTimeTravelUtil.fi
+ import static io.trino.plugin.deltalake.transactionlog.TransactionLogUtil.getTransactionLogJsonEntryPath;
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_ENVIRONMENT;
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_FILE_SYSTEM_STATS;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.DecimalType.createDecimalType;
+ import static io.trino.spi.type.SqlDecimal.decimal;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+@@ -196,6 +194,63 @@ public class TestDeltaLakeBasic
+         return getClass().getClassLoader().getResource(resourcePath);
+     }
+ 
++    /**
++     * @see trino481.timestamp_tz_millis
++     */
++    @Test
++    public void testReadTimestampWithTimeZoneWrittenByLegacyTrino()
++            throws Exception
++    {
++        String tableName = "test_legacy_tz_millis_" + randomNameSuffix();
++        Path tableLocation = catalogDir.resolve(tableName);
++        copyDirectoryContents(new File(Resources.getResource("trino481/timestamp_tz_millis").toURI()).toPath(), tableLocation);
++        assertUpdate("CALL system.register_table(CURRENT_SCHEMA, '%s', '%s')".formatted(tableName, tableLocation.toUri()));
++
++        // Legacy millisecond data surfaces at microsecond precision, read losslessly (no 1000x scaling)
++        assertThat(query("SELECT id, ts FROM " + tableName))
++                .matches("VALUES " +
++                        "(1, TIMESTAMP '2024-01-15 10:30:00.123000 UTC'), " +
++                        "(2, TIMESTAMP '2024-06-20 16:45:30.456000 UTC'), " +
++                        "(3, CAST(NULL AS TIMESTAMP(6) WITH TIME ZONE))");
++
++        // Predicate pushdown matches a legacy value coerced to microseconds
++        assertThat(query("SELECT id FROM " + tableName + " WHERE ts = TIMESTAMP '2024-01-15 10:30:00.123 UTC'"))
++                .matches("VALUES 1");
++
++        assertUpdate("DROP TABLE " + tableName);
++    }
++
++    /**
++     * @see trino481.timestamp_tz_millis
++     */
++    @Test
++    public void testInsertIntoTimestampWithTimeZoneWrittenByLegacyTrino()
++            throws Exception
++    {
++        String tableName = "test_legacy_tz_millis_insert_" + randomNameSuffix();
++        Path tableLocation = catalogDir.resolve(tableName);
++        copyDirectoryContents(new File(Resources.getResource("trino481/timestamp_tz_millis").toURI()).toPath(), tableLocation);
++        assertUpdate("CALL system.register_table(CURRENT_SCHEMA, '%s', '%s')".formatted(tableName, tableLocation.toUri()));
++
++        assertUpdate("INSERT INTO " + tableName + " VALUES (4, TIMESTAMP '2025-03-01 08:15:00.123456 UTC')", 1);
++
++        // Reads span the legacy millisecond file and the new microsecond file
++        assertThat(query("SELECT id, ts FROM " + tableName))
++                .matches("VALUES " +
++                        "(1, TIMESTAMP '2024-01-15 10:30:00.123000 UTC'), " +
++                        "(2, TIMESTAMP '2024-06-20 16:45:30.456000 UTC'), " +
++                        "(3, CAST(NULL AS TIMESTAMP(6) WITH TIME ZONE)), " +
++                        "(4, TIMESTAMP '2025-03-01 08:15:00.123456 UTC')");
++
++        // Predicate pushdown against the legacy file and the new file
++        assertThat(query("SELECT id FROM " + tableName + " WHERE ts = TIMESTAMP '2024-01-15 10:30:00.123 UTC'"))
++                .matches("VALUES 1");
++        assertThat(query("SELECT id FROM " + tableName + " WHERE ts = TIMESTAMP '2025-03-01 08:15:00.123456 UTC'"))
++                .matches("VALUES 4");
++
++        assertUpdate("DROP TABLE " + tableName);
++    }
++
+     @Test
+     public void testDescribeTable()
+     {
+@@ -356,14 +411,12 @@ public class TestDeltaLakeBasic
+                     "timestamp",
+                     ImmutableList.of("TIMESTAMP '1970-01-01 00:00:00'", "TIMESTAMP '1970-01-02 00:00:00'"),
+                     ImmutableList.of(SqlTimestamp.newInstance(3, 0, 0), SqlTimestamp.newInstance(3, 86400000000L, 0)));
+-            ZonedDateTime epochPlus1Day = LocalDateTime.of(1970, 1, 2, 0, 0, 0).atZone(UTC);
+-            long epochPlus1DayMillis = packDateTimeWithZone(epochPlus1Day.toInstant().toEpochMilli(), UTC_KEY);
+             testPartitionValuesParsedCheckpoint(
+                     mode,
+                     "timestamp with time zone",
+                     ImmutableList.of("TIMESTAMP '1970-01-01 00:00:00 +00:00'", "TIMESTAMP '1970-01-02 00:00:00 +00:00'"),
+-                    ImmutableList.of(SqlTimestamp.newInstance(3, 0, 0), SqlTimestamp.newInstance(3, epochPlus1DayMillis, 0)));
+-            // array, map, row types are unsupported as partition column type. This is tested in TestDeltaLakeConnectorTest.testCreateTableWithUnsupportedPartitionType.
++                    ImmutableList.of(SqlTimestampWithTimeZone.newInstance(6, 0, 0, UTC_KEY), SqlTimestampWithTimeZone.newInstance(6, 86400000L, 0, UTC_KEY)));
++            // array, map, row, varbinary types are unsupported as partition column type. This is tested in TestDeltaLakeConnectorTest.testCreateTableWithUnsupportedPartitionType.
+         }
+     }
+ 
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeConnectorTest.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeConnectorTest.java
+index 87abce3439..39059c6493 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeConnectorTest.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeConnectorTest.java
+@@ -251,8 +251,7 @@ public class TestDeltaLakeConnectorTest
+     {
+         String typeName = dataMappingTestSetup.getTrinoTypeName();
+         if (typeName.equals("time") ||
+-                typeName.equals("time(6)") ||
+-                typeName.equals("timestamp(6) with time zone")) {
++                typeName.equals("time(6)")) {
+             return Optional.of(dataMappingTestSetup.asUnsupported());
+         }
+         if (typeName.equals("char(3)")) {
+@@ -730,9 +729,9 @@ public class TestDeltaLakeConnectorTest
+         assertThat(query("SELECT * FROM " + tableName))
+                 .matches("VALUES " +
+                         "(1, NULL)," +
+-                        "(2, TIMESTAMP '0001-01-01 00:00:00.000 UTC')," +
+-                        "(3, TIMESTAMP '2023-07-20 02:02:04.000 UTC')," +
+-                        "(4, TIMESTAMP '9999-12-31 23:59:59.999 UTC')");
++                        "(2, TIMESTAMP '0001-01-01 00:00:00.000000 UTC')," +
++                        "(3, TIMESTAMP '2023-07-20 02:02:03.999900 UTC')," +
++                        "(4, TIMESTAMP '9999-12-31 23:59:59.999000 UTC')");
+         assertQuery(
+                 "SHOW STATS FOR " + tableName,
+                 "VALUES " +
+@@ -745,7 +744,7 @@ public class TestDeltaLakeConnectorTest
+         assertThat((String) computeScalar("SELECT \"$path\" FROM " + tableName + " WHERE id = 2"))
+                 .contains("/part=0001-01-01 00%3A00%3A00/");
+         assertThat((String) computeScalar("SELECT \"$path\" FROM " + tableName + " WHERE id = 3"))
+-                .contains("/part=2023-07-20 02%3A02%3A04/");
++                .contains("/part=2023-07-20 02%3A02%3A03.9999/");
+         assertThat((String) computeScalar("SELECT \"$path\" FROM " + tableName + " WHERE id = 4"))
+                 .contains("/part=9999-12-31 23%3A59%3A59.999/");
+ 
+@@ -763,15 +762,15 @@ public class TestDeltaLakeConnectorTest
+                         "(1, NULL)," +
+                         "(2, TIMESTAMP '0001-01-01 00:00:00.000 UTC')," +
+                         "(3, TIMESTAMP '2023-11-21 09:19:00.000 +02:00')," +
+-                        "(4, TIMESTAMP '2005-09-10 13:00:00.000 UTC')",
++                        "(4, TIMESTAMP '2005-09-10 13:00:00.000000 UTC')",
+                 4);
+ 
+         // date_trunc optimization
+         assertThat(query("SELECT * FROM " + tableName + " WHERE date_trunc('day', part) >= TIMESTAMP '2005-09-10 07:00:00.000 +07:00'"))
+                 .isFullyPushedDown()
+                 .matches("VALUES " +
+-                        "(3, TIMESTAMP '2023-11-21 07:19:00.000 UTC')," +
+-                        "(4, TIMESTAMP '2005-09-10 13:00:00.000 UTC')");
++                        "(3, TIMESTAMP '2023-11-21 07:19:00.000000 UTC')," +
++                        "(4, TIMESTAMP '2005-09-10 13:00:00.000000 UTC')");
+ 
+         assertThat(query("SELECT * FROM " + tableName + " WHERE date_trunc('day', part) = TIMESTAMP '2005-09-10 00:00:00.000 +07:00'"))
+                 .isReplacedWithEmptyValues();
+@@ -779,7 +778,7 @@ public class TestDeltaLakeConnectorTest
+         assertThat(query("SELECT * FROM " + tableName + " WHERE date_trunc('hour', part) >= TIMESTAMP '2005-09-10 13:00:00.001 +00:00'"))
+                 .isFullyPushedDown()
+                 .matches("VALUES " +
+-                        "(3, TIMESTAMP '2023-11-21 07:19:00.000 UTC')");
++                        "(3, TIMESTAMP '2023-11-21 07:19:00.000000 UTC')");
+ 
+         // the DATE is upcast to timestamp_tz using the session time zone (Asia/Kathmandu).
+         // part is in UTC, so there is no match for date_trunc.
+@@ -797,8 +796,8 @@ public class TestDeltaLakeConnectorTest
+         assertThat(query("SELECT * FROM " + tableName + " WHERE cast(part AS date) >= DATE '2005-09-10'"))
+                 .isFullyPushedDown()
+                 .matches("VALUES " +
+-                        "(3, TIMESTAMP '2023-11-21 07:19:00.000 UTC')," +
+-                        "(4, TIMESTAMP '2005-09-10 13:00:00.000 UTC')");
++                        "(3, TIMESTAMP '2023-11-21 07:19:00.000000 UTC')," +
++                        "(4, TIMESTAMP '2005-09-10 13:00:00.000000 UTC')");
+ 
+         assertThat(query("SELECT * FROM " + tableName + " WHERE cast(part AS date) = DATE '2005-10-10'"))
+                 .isFullyPushedDown()
+@@ -808,8 +807,8 @@ public class TestDeltaLakeConnectorTest
+         assertThat(query("SELECT * FROM " + tableName + " WHERE year(part) >= 2005"))
+                 .isFullyPushedDown()
+                 .matches("VALUES " +
+-                        "(3, TIMESTAMP '2023-11-21 07:19:00.000 UTC')," +
+-                        "(4, TIMESTAMP '2005-09-10 13:00:00.000 UTC')");
++                        "(3, TIMESTAMP '2023-11-21 07:19:00.000000 UTC')," +
++                        "(4, TIMESTAMP '2005-09-10 13:00:00.000000 UTC')");
+ 
+         assertThat(query("SELECT * FROM " + tableName + " WHERE year(part) = 2006"))
+                 .isFullyPushedDown()
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeCreateTableStatistics.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeCreateTableStatistics.java
+index adfa67f568..0219aa5e81 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeCreateTableStatistics.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeCreateTableStatistics.java
+@@ -23,6 +23,7 @@ import io.trino.plugin.hive.containers.Hive3MinioDataLake;
+ import io.trino.spi.type.DateType;
+ import io.trino.spi.type.DecimalType;
+ import io.trino.spi.type.DoubleType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.testing.AbstractTestQueryFramework;
+ import io.trino.testing.QueryRunner;
+ import org.junit.jupiter.api.BeforeAll;
+@@ -45,11 +46,10 @@ import static io.airlift.slice.Slices.utf8Slice;
+ import static io.trino.plugin.deltalake.DeltaLakeColumnType.REGULAR;
+ import static io.trino.plugin.deltalake.TestingDeltaLakeUtils.getConnectorService;
+ import static io.trino.plugin.deltalake.TestingDeltaLakeUtils.getTableActiveFiles;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.Decimals.MAX_SHORT_PRECISION;
+ import static io.trino.spi.type.Decimals.encodeScaledValue;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.VarcharType.createUnboundedVarcharType;
+ import static io.trino.testing.TestingNames.randomNameSuffix;
+ import static java.lang.Double.NEGATIVE_INFINITY;
+@@ -357,7 +357,7 @@ public class TestDeltaLakeCreateTableStatistics
+             throws Exception
+     {
+         String columnName = "t_timestamp";
+-        DeltaLakeColumnHandle columnHandle = new DeltaLakeColumnHandle(columnName, TIMESTAMP_TZ_MILLIS, OptionalInt.empty(), columnName, TIMESTAMP_TZ_MILLIS, REGULAR, Optional.empty());
++        DeltaLakeColumnHandle columnHandle = new DeltaLakeColumnHandle(columnName, TIMESTAMP_TZ_MICROS, OptionalInt.empty(), columnName, TIMESTAMP_TZ_MICROS, REGULAR, Optional.empty());
+         try (TestTable table = new TestTable(
+                 "test_timestamp_records_",
+                 ImmutableList.of(columnName),
+@@ -368,8 +368,8 @@ public class TestDeltaLakeCreateTableStatistics
+             DeltaLakeFileStatistics fileStatistics = entry.getStats().get();
+ 
+             assertThat(fileStatistics.getNumRecords()).isEqualTo(Optional.of(3L));
+-            assertThat(fileStatistics.getMinColumnValue(columnHandle)).isEqualTo(Optional.of(packDateTimeWithZone(ZonedDateTime.parse("2012-10-31T01:00:00.123Z").toInstant().toEpochMilli(), UTC_KEY)));
+-            assertThat(fileStatistics.getMaxColumnValue(columnHandle)).isEqualTo(Optional.of(packDateTimeWithZone(ZonedDateTime.parse("2012-10-31T08:00:00.123Z").toInstant().toEpochMilli(), UTC_KEY)));
++            assertThat(fileStatistics.getMinColumnValue(columnHandle)).isEqualTo(Optional.of(LongTimestampWithTimeZone.fromEpochMillisAndFraction(ZonedDateTime.parse("2012-10-31T01:00:00.123Z").toInstant().toEpochMilli(), 0, UTC_KEY)));
++            assertThat(fileStatistics.getMaxColumnValue(columnHandle)).isEqualTo(Optional.of(LongTimestampWithTimeZone.fromEpochMillisAndFraction(ZonedDateTime.parse("2012-10-31T08:00:00.123Z").toInstant().toEpochMilli(), 0, UTC_KEY)));
+             assertThat(fileStatistics.getNullCount(columnName)).isEqualTo(Optional.of(0L));
+         }
+     }
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeDelete.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeDelete.java
+index f854110453..d2a000e5d2 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeDelete.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakeDelete.java
+@@ -131,7 +131,7 @@ public class TestDeltaLakeDelete
+         String tableName = "test_delete_timestamps";
+         assertUpdate("CREATE TABLE " + tableName + " (ts) AS VALUES TIMESTAMP '2021-02-03 01:02:03.456 UTC', TIMESTAMP '2021-02-04 01:02:03.456 UTC'", 2);
+         assertUpdate("DELETE FROM " + tableName + " WHERE ts = TIMESTAMP '2021-02-03 01:02:03.456 UTC'", 1);
+-        assertQuery("SELECT CAST(ts AS VARCHAR) FROM " + tableName, "VALUES '2021-02-04 01:02:03.456 UTC'");
++        assertQuery("SELECT CAST(ts AS VARCHAR) FROM " + tableName, "VALUES '2021-02-04 01:02:03.456000 UTC'");
+     }
+ 
+     @Test
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakePartitioning.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakePartitioning.java
+index aa03e09297..ba58d7e5b3 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakePartitioning.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestDeltaLakePartitioning.java
+@@ -61,7 +61,7 @@ public class TestDeltaLakePartitioning
+                         "('p_float', 'real', '', ''), " +
+                         "('p_double', 'double', '', ''), " +
+                         "('p_date', 'date', '', ''), " +
+-                        "('p_timestamp', 'timestamp(3) with time zone', '', ''), " +
++                        "('p_timestamp', 'timestamp(6) with time zone', '', ''), " +
+                         "('t_string', 'varchar', '', ''), " +
+                         "('t_byte', 'tinyint', '', ''), " +
+                         "('t_short', 'smallint', '', ''), " +
+@@ -72,7 +72,7 @@ public class TestDeltaLakePartitioning
+                         "('t_float', 'real', '', ''), " +
+                         "('t_double', 'double', '', ''), " +
+                         "('t_date', 'date', '', ''), " +
+-                        "('t_timestamp', 'timestamp(3) with time zone', '', ''), " +
++                        "('t_timestamp', 'timestamp(6) with time zone', '', ''), " +
+                         "('t_phones', 'array(row(number varchar, label varchar))', '', ''), " +
+                         "('t_address', 'row(street varchar, city varchar, state varchar, zip varchar)', '', '')");
+     }
+@@ -122,7 +122,7 @@ public class TestDeltaLakePartitioning
+                         "3.1415927, " +
+                         "3.141592653589793, " +
+                         "DATE '2014-01-01', " +
+-                        "'2014-01-01 23:00:01.123 UTC', " +
++                        "'2014-01-01 23:00:01.123456 UTC', " +
+                         "'Bob', " +
+                         "-77, " +
+                         "23456, " +
+@@ -133,7 +133,7 @@ public class TestDeltaLakePartitioning
+                         "2.7182817, " +
+                         "2.718281828459045, " +
+                         "DATE '2020-01-01', " +
+-                        "'2020-01-01 23:00:01.123 UTC', " +
++                        "'2020-01-01 23:00:01.123456 UTC', " +
+                         "'123-555-0000', " +
+                         "'100 Main St'" +
+                         ")");
+@@ -169,7 +169,7 @@ public class TestDeltaLakePartitioning
+                         "REAL '3.1415927', " +
+                         "DOUBLE '3.141592653589793', " +
+                         "DATE '2014-01-01', " +
+-                        "TIMESTAMP '2014-01-01 23:00:01.123 UTC', " +
++                        "TIMESTAMP '2014-01-01 23:00:01.123456 UTC', " +
+                         "BIGINT '30', " +
+                         "BIGINT '136080' " +
+                         ")");
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestSplitPruning.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestSplitPruning.java
+index 6360b30644..1856c3c1f9 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestSplitPruning.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestSplitPruning.java
+@@ -304,7 +304,7 @@ public class TestSplitPruning
+         //        ('UTC', CAST('2017-07-01T00:00:00.000 UTC' AS TIMESTAMP WITH TIME ZONE), '2017-07-01 00:00:00.000', '2017-06-30T19:00:00.000-0500'),
+         //        ('UTC', CAST('9999-12-31T23:59:59.999 UTC' AS TIMESTAMP WITH TIME ZONE), '9999-12-31 23:59:59.999999999', '9999-12-31T17:59:59.999-0600'),
+         assertResultAndSplitCount(
+-                format("SELECT col_2 FROM %s WHERE col_0 = 'UTC' AND col_1 = CAST('1952-04-03 01:02:03.456 UTC' AS TIMESTAMP WITH TIME ZONE)", tableName),
++                format("SELECT col_2 FROM %s WHERE col_0 = 'UTC' AND col_1 = CAST('1952-04-03 01:02:03.456789 UTC' AS TIMESTAMP(6) WITH TIME ZONE)", tableName),
+                 Set.of("1952-04-03 01:02:03.456789"),
+                 1);
+ 
+@@ -314,7 +314,7 @@ public class TestSplitPruning
+                 1);
+ 
+         assertResultAndSplitCount(
+-                format("SELECT col_2 FROM %s WHERE col_0 = 'UTC' AND col_1 = ANY (VALUES CAST('1900-01-01 UTC' AS TIMESTAMP WITH TIME ZONE), CAST('1983-04-01 01:05:00.345 UTC' AS TIMESTAMP WITH TIME ZONE), CAST('1996-10-27 02:05:00.987 UTC' AS TIMESTAMP WITH TIME ZONE))", tableName),
++                format("SELECT col_2 FROM %s WHERE col_0 = 'UTC' AND col_1 = ANY (VALUES CAST('1900-01-01 UTC' AS TIMESTAMP WITH TIME ZONE), CAST('1983-04-01 01:05:00.345678 UTC' AS TIMESTAMP(6) WITH TIME ZONE), CAST('1996-10-27 02:05:00.987 UTC' AS TIMESTAMP WITH TIME ZONE))", tableName),
+                 Set.of("1900-01-01 00:00:00.000", "1983-04-01 01:05:00.3456789", "1996-10-27 02:05:00.987"),
+                 3);
+ 
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestTransactionLogAccess.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestTransactionLogAccess.java
+index 375ee2af1e..6eeeca937e 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestTransactionLogAccess.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/TestTransactionLogAccess.java
+@@ -40,9 +40,9 @@ import io.trino.spi.connector.ColumnMetadata;
+ import io.trino.spi.connector.ConnectorSession;
+ import io.trino.spi.connector.SchemaTableName;
+ import io.trino.spi.predicate.TupleDomain;
+-import io.trino.spi.type.DateTimeEncoding;
+ import io.trino.spi.type.Decimals;
+ import io.trino.spi.type.IntegerType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.TypeManager;
+ import io.trino.testing.TestingConnectorContext;
+ import io.trino.testing.TestingConnectorSession;
+@@ -736,7 +736,7 @@ public class TestTransactionLogAccess
+ 
+         BigDecimal decValue = BigDecimal.valueOf(999999999999123L).movePointLeft(3);
+         Map<String, Object> statsValues = ImmutableMap.<String, Object>builder()
+-                .put("ts", DateTimeEncoding.packDateTimeWithZone(LocalDateTime.parse("2960-10-31T01:00:00").toInstant(UTC).toEpochMilli(), UTC_KEY))
++                .put("ts", LongTimestampWithTimeZone.fromEpochMillisAndFraction(LocalDateTime.parse("2960-10-31T01:00:00").toInstant(UTC).toEpochMilli(), 0, UTC_KEY))
+                 .put("str", utf8Slice("a"))
+                 .put("dec_short", 101L)
+                 .put("dec_long", Decimals.valueOf(decValue))
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeParquetStatisticsUtils.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeParquetStatisticsUtils.java
+index 01289c543a..c638e6d477 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeParquetStatisticsUtils.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeParquetStatisticsUtils.java
+@@ -18,6 +18,7 @@ import io.airlift.slice.Slice;
+ import io.airlift.slice.Slices;
+ import io.trino.spi.type.DoubleType;
+ import io.trino.spi.type.IntegerType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import org.apache.parquet.column.statistics.Statistics;
+ import org.apache.parquet.schema.PrimitiveType;
+ import org.apache.parquet.schema.Type;
+@@ -32,7 +33,9 @@ import java.util.Optional;
+ import static io.trino.plugin.deltalake.transactionlog.DeltaLakeParquetStatisticsUtils.jsonValueToTrinoValue;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.RealType.REAL;
++import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_MILLISECOND;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+@@ -204,6 +207,15 @@ public class TestDeltaLakeParquetStatisticsUtils
+         assertThat(DeltaLakeParquetStatisticsUtils.jsonEncodeMax(ImmutableMap.of(columnName, Optional.of(stats)), ImmutableMap.of(columnName, TIMESTAMP_TZ_MILLIS))).isEqualTo(ImmutableMap.of(columnName, "2020-08-26T01:02:03.123Z"));
+     }
+ 
++    @Test
++    public void testTimestampWithTimeZoneComputedStatisticsRoundsMaxUp()
++    {
++        // Delta stats are millisecond-granular: floor the min and ceil the max so a microsecond value stays within the bounds
++        LongTimestampWithTimeZone value = LongTimestampWithTimeZone.fromEpochMillisAndFraction(Instant.parse("2024-01-15T10:30:00.123Z").toEpochMilli(), 456_000_000, UTC_KEY);
++        assertThat(DeltaLakeParquetStatisticsUtils.toJsonValue(TIMESTAMP_TZ_MICROS, value, false)).isEqualTo("2024-01-15T10:30:00.123Z");
++        assertThat(DeltaLakeParquetStatisticsUtils.toJsonValue(TIMESTAMP_TZ_MICROS, value, true)).isEqualTo("2024-01-15T10:30:00.124Z");
++    }
++
+     private static byte[] toParquetEncoding(LocalDateTime time)
+     {
+         long timeOfDayNanos = (long) time.getNano() + (time.toEpochSecond(UTC) - time.toLocalDate().atStartOfDay().toEpochSecond(UTC)) * 1_000_000_000;
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeSchemaSupport.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeSchemaSupport.java
+index f50a8e0e23..fea7022200 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeSchemaSupport.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestDeltaLakeSchemaSupport.java
+@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
+ import io.trino.plugin.deltalake.DeltaLakeColumnHandle;
+ import io.trino.plugin.deltalake.DeltaLakeColumnMetadata;
+ import io.trino.plugin.deltalake.DeltaLakeTable;
+-import io.trino.plugin.deltalake.TestingComplexTypeManager;
+ import io.trino.plugin.deltalake.transactionlog.DeltaLakeSchemaSupport.ColumnMappingMode;
+ import io.trino.plugin.deltalake.transactionlog.statistics.DeltaLakeJsonFileStatistics;
+ import io.trino.spi.connector.ColumnMetadata;
+@@ -29,6 +28,7 @@ import io.trino.spi.type.CharType;
+ import io.trino.spi.type.DecimalType;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
++import io.trino.spi.type.TypeManager;
+ import io.trino.spi.type.TypeOperators;
+ import io.trino.spi.type.VarcharType;
+ import org.junit.jupiter.api.Test;
+@@ -60,11 +60,12 @@ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MILLIS;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_SECONDS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_SECONDS;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.VarbinaryType.VARBINARY;
+ import static io.trino.spi.type.VarcharType.VARCHAR;
++import static io.trino.type.InternalTypeManager.TESTING_TYPE_MANAGER;
+ import static io.trino.type.IntervalDayTimeType.INTERVAL_DAY_TIME;
+ import static io.trino.type.IntervalYearMonthType.INTERVAL_YEAR_MONTH;
+ import static org.assertj.core.api.Assertions.assertThat;
+@@ -72,7 +73,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
+ 
+ public class TestDeltaLakeSchemaSupport
+ {
+-    private static final TestingComplexTypeManager typeManager = new TestingComplexTypeManager();
++    private static final TypeManager typeManager = TESTING_TYPE_MANAGER;
+ 
+     @Test
+     public void testSinglePrimitiveFieldSchema()
+@@ -106,7 +107,7 @@ public class TestDeltaLakeSchemaSupport
+                 ColumnMetadata.builder().setName("a").setType(DATE).setNullable(true).build());
+         testSinglePrimitiveFieldSchema(
+                 "{\"type\":\"struct\",\"fields\":[{\"name\":\"a\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{}}]}",
+-                ColumnMetadata.builder().setName("a").setType(TIMESTAMP_TZ_MILLIS).setNullable(true).build());
++                ColumnMetadata.builder().setName("a").setType(TIMESTAMP_TZ_MICROS).setNullable(true).build());
+     }
+ 
+     private void testSinglePrimitiveFieldSchema(String json, ColumnMetadata metadata)
+@@ -150,7 +151,7 @@ public class TestDeltaLakeSchemaSupport
+         assertThat(schema.get(1).toString()).isEqualTo("ColumnMetadata{name='b', type=row(b1 integer, b2 row(b21 varchar, b22 boolean)), nullable}");
+         assertThat(schema.get(2).toString()).isEqualTo("ColumnMetadata{name='c', type=array(integer), nullable}");
+         assertThat(schema.get(3).toString()).isEqualTo("ColumnMetadata{name='d', type=array(row(d1 integer)), nullable}");
+-        assertThat(schema.get(4).toString()).isEqualTo("ColumnMetadata{name='e', type=map(varchar, row(e1 date, e2 timestamp(3) with time zone)), nullable}");
++        assertThat(schema.get(4).toString()).isEqualTo("ColumnMetadata{name='e', type=map(varchar, row(e1 date, e2 timestamp(6) with time zone)), nullable}");
+     }
+ 
+     @Test
+@@ -280,10 +281,10 @@ public class TestDeltaLakeSchemaSupport
+         assertThatCode(() -> DeltaLakeSchemaSupport.validateType(DATE)).doesNotThrowAnyException();
+         assertThatCode(() -> DeltaLakeSchemaSupport.validateType(VARCHAR)).doesNotThrowAnyException();
+         assertThatCode(() -> DeltaLakeSchemaSupport.validateType(DecimalType.createDecimalType(3))).doesNotThrowAnyException();
+-        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(TIMESTAMP_TZ_MILLIS)).doesNotThrowAnyException();
+-        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(new MapType(TIMESTAMP_TZ_MILLIS, TIMESTAMP_TZ_MILLIS, new TypeOperators()))).doesNotThrowAnyException();
+-        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(RowType.anonymous(ImmutableList.of(TIMESTAMP_TZ_MILLIS)))).doesNotThrowAnyException();
+-        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(new ArrayType(TIMESTAMP_TZ_MILLIS))).doesNotThrowAnyException();
++        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(TIMESTAMP_TZ_MICROS)).doesNotThrowAnyException();
++        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(new MapType(TIMESTAMP_TZ_MICROS, TIMESTAMP_TZ_MICROS, new TypeOperators()))).doesNotThrowAnyException();
++        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(RowType.anonymous(ImmutableList.of(TIMESTAMP_TZ_MICROS)))).doesNotThrowAnyException();
++        assertThatCode(() -> DeltaLakeSchemaSupport.validateType(new ArrayType(TIMESTAMP_TZ_MICROS))).doesNotThrowAnyException();
+     }
+ 
+     @Test
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestTransactionLogParser.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestTransactionLogParser.java
+index 613bb594f8..9ec0a84e16 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestTransactionLogParser.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/TestTransactionLogParser.java
+@@ -16,6 +16,7 @@ package io.trino.plugin.deltalake.transactionlog;
+ 
+ import io.trino.filesystem.TrinoFileSystem;
+ import io.trino.filesystem.hdfs.HdfsFileSystemFactory;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import org.junit.jupiter.api.Test;
+ 
+ import static io.trino.plugin.deltalake.DeltaTestingConnectorSession.SESSION;
+@@ -23,6 +24,7 @@ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.getM
+ import static io.trino.plugin.deltalake.transactionlog.TransactionLogParser.readPartitionTimestampWithZone;
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_ENVIRONMENT;
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_FILE_SYSTEM_STATS;
++import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static org.assertj.core.api.Assertions.assertThat;
+ 
+ public class TestTransactionLogParser
+@@ -45,21 +47,21 @@ public class TestTransactionLogParser
+     @Test
+     void testReadPartitionTimestampWithZone()
+     {
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00")).isEqualTo(0L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.1")).isEqualTo(409600L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.01")).isEqualTo(40960L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.001")).isEqualTo(4096L);
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 0, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.1")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(100, 0, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.01")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(10, 0, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.001")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(1, 0, UTC_KEY));
+ 
+-        // https://github.com/trinodb/trino/issues/20359 Increase timestamp precision to microseconds
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.0001")).isEqualTo(0L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.00001")).isEqualTo(0L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.000001")).isEqualTo(0L);
++        // Microsecond-precision fractions are preserved (https://github.com/trinodb/trino/issues/20359)
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.0001")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 100_000_000, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.00001")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 10_000_000, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01 00:00:00.000001")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 1_000_000, UTC_KEY));
+     }
+ 
+     @Test
+     void testReadPartitionTimestampWithZoneIso8601()
+     {
+-        assertThat(readPartitionTimestampWithZone("1970-01-01T00:00:00.000000Z")).isEqualTo(0L);
+-        assertThat(readPartitionTimestampWithZone("1970-01-01T01:00:00.000000+01:00")).isEqualTo(0L);
++        assertThat(readPartitionTimestampWithZone("1970-01-01T00:00:00.000000Z")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 0, UTC_KEY));
++        assertThat(readPartitionTimestampWithZone("1970-01-01T01:00:00.000000+01:00")).isEqualTo(LongTimestampWithTimeZone.fromEpochMillisAndFraction(0, 0, UTC_KEY));
+     }
+ }
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointEntryIterator.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointEntryIterator.java
+index 3ddcd15409..d21a0636bd 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointEntryIterator.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointEntryIterator.java
+@@ -38,6 +38,7 @@ import io.trino.spi.predicate.Domain;
+ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.predicate.ValueSet;
+ import io.trino.spi.type.Int128;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.Type;
+ import org.junit.jupiter.api.AfterAll;
+ import org.junit.jupiter.api.BeforeAll;
+@@ -86,7 +87,6 @@ import static io.trino.spi.predicate.Domain.singleValue;
+ import static io.trino.spi.predicate.Range.range;
+ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.DecimalType.createDecimalType;
+ import static io.trino.spi.type.DoubleType.DOUBLE;
+@@ -95,7 +95,7 @@ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+@@ -412,8 +412,8 @@ public class TestCheckpointEntryIterator
+         assertPartitionValuesParsedCondition(checkpointUri, "part_varchar", VARCHAR, utf8Slice("a"));
+         assertPartitionValuesParsedCondition(checkpointUri, "part_date", DATE, LocalDate.parse("2020-08-21").toEpochDay());
+         ZonedDateTime zonedDateTime = LocalDateTime.parse("2020-10-21T01:00:00.123").atZone(UTC);
+-        long timestampValue = packDateTimeWithZone(zonedDateTime.toInstant().toEpochMilli(), UTC_KEY);
+-        assertPartitionValuesParsedCondition(checkpointUri, "part_timestamp", TIMESTAMP_TZ_MILLIS, timestampValue);
++        LongTimestampWithTimeZone timestampValue = LongTimestampWithTimeZone.fromEpochMillisAndFraction(zonedDateTime.toInstant().toEpochMilli(), 0, UTC_KEY);
++        assertPartitionValuesParsedCondition(checkpointUri, "part_timestamp", TIMESTAMP_TZ_MICROS, timestampValue);
+         LocalDateTime timestampNtz = LocalDateTime.parse("2023-01-02T01:02:03.456");
+         long timestampNtzValue = timestampNtz.toEpochSecond(UTC) * MICROSECONDS_PER_SECOND + divide(timestampNtz.getNano(), NANOSECONDS_PER_MICROSECOND, UNNECESSARY);
+         assertPartitionValuesParsedCondition(checkpointUri, "part_timestamp_ntz", TIMESTAMP_MICROS, timestampNtzValue);
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointWriter.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointWriter.java
+index a2d015d079..652120602f 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointWriter.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/checkpoint/TestCheckpointWriter.java
+@@ -40,6 +40,7 @@ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.type.BigintType;
+ import io.trino.spi.type.Int128;
+ import io.trino.spi.type.IntegerType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.TypeManager;
+ import io.trino.util.DateTimeUtils;
+ import org.junit.jupiter.api.Test;
+@@ -66,6 +67,7 @@ import static io.trino.plugin.deltalake.transactionlog.checkpoint.CheckpointEntr
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_ENVIRONMENT;
+ import static io.trino.plugin.hive.HiveTestUtils.HDFS_FILE_SYSTEM_STATS;
+ import static io.trino.spi.predicate.Utils.nativeValueToBlock;
++import static io.trino.spi.type.DateTimeEncoding.unpackMillisUtc;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+ import static io.trino.spi.type.Timestamps.MICROSECONDS_PER_SECOND;
+ import static io.trino.spi.type.Timestamps.NANOSECONDS_PER_MICROSECOND;
+@@ -271,7 +273,7 @@ public class TestCheckpointWriter
+                 Optional.of(new DeltaLakeParquetFileStatistics(
+                         Optional.of(5L),
+                         Optional.of(ImmutableMap.<String, Object>builder()
+-                                .put("ts", DateTimeUtils.convertToTimestampWithTimeZone(UTC_KEY, "2060-10-31 01:00:00"))
++                                .put("ts", convertToTimestampWithTimeZone("2060-10-31 01:00:00"))
+                                 .put("ts_ntz", convertToTimestamp("2060-10-31T01:00:00.123"))
+                                 .put("str", utf8Slice("a"))
+                                 .put("dec_short", 101L)
+@@ -286,7 +288,7 @@ public class TestCheckpointWriter
+                                 .put("row", new SqlRow(0, minMaxRowFieldBlocks))
+                                 .buildOrThrow()),
+                         Optional.of(ImmutableMap.<String, Object>builder()
+-                                .put("ts", DateTimeUtils.convertToTimestampWithTimeZone(UTC_KEY, "2060-10-31 02:00:00"))
++                                .put("ts", convertToTimestampWithTimeZone("2060-10-31 02:00:00"))
+                                 .put("ts_ntz", convertToTimestamp("2060-10-31T02:00:00.123"))
+                                 .put("str", utf8Slice("a"))
+                                 .put("dec_short", 201L)
+@@ -361,6 +363,11 @@ public class TestCheckpointWriter
+                 + localDateTime.getNano() / NANOSECONDS_PER_MICROSECOND;
+     }
+ 
++    private static LongTimestampWithTimeZone convertToTimestampWithTimeZone(String value)
++    {
++        return LongTimestampWithTimeZone.fromEpochMillisAndFraction(unpackMillisUtc(DateTimeUtils.convertToTimestampWithTimeZone(UTC_KEY, value)), 0, UTC_KEY);
++    }
++
+     @Test
+     public void testDisablingRowStatistics()
+             throws IOException
+diff --git a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/statistics/TestDeltaLakeFileStatistics.java b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/statistics/TestDeltaLakeFileStatistics.java
+index 56fd119a7d..bd61d7c8f0 100644
+--- a/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/statistics/TestDeltaLakeFileStatistics.java
++++ b/plugin/trino-delta-lake/src/test/java/io/trino/plugin/deltalake/transactionlog/statistics/TestDeltaLakeFileStatistics.java
+@@ -31,6 +31,7 @@ import io.trino.spi.predicate.TupleDomain;
+ import io.trino.spi.type.ArrayType;
+ import io.trino.spi.type.DecimalType;
+ import io.trino.spi.type.DoubleType;
++import io.trino.spi.type.LongTimestampWithTimeZone;
+ import io.trino.spi.type.MapType;
+ import io.trino.spi.type.RowType;
+ import io.trino.spi.type.Type;
+@@ -54,14 +55,13 @@ import static io.trino.plugin.deltalake.transactionlog.checkpoint.CheckpointEntr
+ import static io.trino.plugin.deltalake.transactionlog.checkpoint.CheckpointEntryIterator.EntryType.PROTOCOL;
+ import static io.trino.spi.type.BigintType.BIGINT;
+ import static io.trino.spi.type.BooleanType.BOOLEAN;
+-import static io.trino.spi.type.DateTimeEncoding.packDateTimeWithZone;
+ import static io.trino.spi.type.DateType.DATE;
+ import static io.trino.spi.type.Decimals.encodeScaledValue;
+ import static io.trino.spi.type.IntegerType.INTEGER;
+ import static io.trino.spi.type.RealType.REAL;
+ import static io.trino.spi.type.SmallintType.SMALLINT;
+ import static io.trino.spi.type.TimeZoneKey.UTC_KEY;
+-import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MILLIS;
++import static io.trino.spi.type.TimestampWithTimeZoneType.TIMESTAMP_TZ_MICROS;
+ import static io.trino.spi.type.TinyintType.TINYINT;
+ import static io.trino.spi.type.VarbinaryType.VARBINARY;
+ import static io.trino.testing.TestingConnectorSession.SESSION;
+@@ -172,7 +172,7 @@ public class TestDeltaLakeFileStatistics
+         assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("m", new MapType(INTEGER, VarcharType.createUnboundedVarcharType(), new TypeOperators()), OptionalInt.empty(), "m", new MapType(INTEGER, VarcharType.createUnboundedVarcharType(), new TypeOperators()), REGULAR, Optional.empty()))).isEqualTo(Optional.empty());
+         assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("sh", SMALLINT, OptionalInt.empty(), "sh", SMALLINT, REGULAR, Optional.empty()))).isEqualTo(Optional.of(123L));
+         assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("str", VarcharType.createUnboundedVarcharType(), OptionalInt.empty(), "str", VarcharType.createUnboundedVarcharType(), REGULAR, Optional.empty()))).isEqualTo(Optional.of(utf8Slice("a")));
+-        assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("ts", TIMESTAMP_TZ_MILLIS, OptionalInt.empty(), "ts", TIMESTAMP_TZ_MILLIS, REGULAR, Optional.empty()))).isEqualTo(Optional.of(packDateTimeWithZone(LocalDateTime.parse("2960-10-31T01:00:00.000").toInstant(UTC).toEpochMilli(), UTC_KEY)));
++        assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("ts", TIMESTAMP_TZ_MICROS, OptionalInt.empty(), "ts", TIMESTAMP_TZ_MICROS, REGULAR, Optional.empty()))).isEqualTo(Optional.of(LongTimestampWithTimeZone.fromEpochMillisAndFraction(LocalDateTime.parse("2960-10-31T01:00:00.000").toInstant(UTC).toEpochMilli(), 0, UTC_KEY)));
+         // Unsupported types: return empty statistics, even if stats technically exist
+         assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("bool", BOOLEAN, OptionalInt.empty(), "bool", BOOLEAN, REGULAR, Optional.empty()))).isEqualTo(Optional.empty());
+         assertThat(fileStatistics.getMinColumnValue(new DeltaLakeColumnHandle("bin", VARBINARY, OptionalInt.empty(), "bin", VARBINARY, REGULAR, Optional.empty()))).isEqualTo(Optional.empty());
+diff --git a/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/20260616_153121_00027_zke25_74fa3e48-d9da-45dc-9182-1d08724a583c b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/20260616_153121_00027_zke25_74fa3e48-d9da-45dc-9182-1d08724a583c
+new file mode 100644
+index 0000000000000000000000000000000000000000..623a80aa731e6d425edf4d6baa43454f42776a7c
+GIT binary patch
+literal 370
+zcmWG=3^EjD5LFR1(-CC@GT1~p7#K9R>i<;`n#jPw#K6G7%+3fT!7LyRRH7qlhptv^
+zBUA<R?jx&tdVv~l{OmNF0Hj5kByBu+N{TY`^5ct>Gg5OCMOlD?s!S40nJEmSEFeZn
+zv8s?ykC2QE(0m34F*ZpVNgXu?8K72EHVy_!kV;V=F*Y$bu?RH|8wnO>pehL#kgLQP
+zG>~|Lf(()}KnDWN2g-p=V1b!XQVcf1Pb@(#!A61u<~j)un0v*TG_Z)GnkY7fQH)KE
+zLu>~lgN8vtVo_mfYKd-ckuKPG3T3H9#hLke3MHw<B`~%|QfX#Rib9@#q9y|u(7^$~
+G&;|fa2t&aD
+
+literal 0
+HcmV?d00001
+
+diff --git a/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/README.md b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/README.md
+new file mode 100644
+index 0000000000..9ded89abf7
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/README.md
+@@ -0,0 +1,12 @@
++Data generated using Trino 481, which mapped the Delta `timestamp` type to
++`timestamp(3) with time zone` and wrote it as parquet `INT64 (TIMESTAMP(MILLIS,false))`:
++
++```sql
++CREATE TABLE timestamp_tz_millis (id INTEGER, ts TIMESTAMP WITH TIME ZONE)
++WITH (location = ?);
++
++INSERT INTO timestamp_tz_millis VALUES
++(1, TIMESTAMP '2024-01-15 10:30:00.123 UTC'),
++(2, TIMESTAMP '2024-06-20 16:45:30.456 UTC'),
++(3, NULL);
++```
+diff --git a/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000000.json b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000000.json
+new file mode 100644
+index 0000000000..d7b2274e5d
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000000.json
+@@ -0,0 +1,3 @@
++{"commitInfo":{"version":0,"timestamp":1781623881350,"userId":"user","userName":"user","operation":"CREATE TABLE","operationParameters":{"queryId":"20260616_153121_00026_zke25"},"clusterId":"trino-testversion-5c81d702-57b7-469d-acf5-159f6aa91e69","readVersion":0,"isolationLevel":"WriteSerializable","isBlindAppend":true,"operationMetrics":{}}}
++{"protocol":{"minReaderVersion":1,"minWriterVersion":2}}
++{"metaData":{"id":"04f4be30-3a19-4cc8-8032-d38b1deeefde","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}},{\"name\":\"ts\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{"delta.enableDeletionVectors":"false"},"createdTime":1781623881350}}
+diff --git a/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000001.json b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000001.json
+new file mode 100644
+index 0000000000..9fb3b34240
+--- /dev/null
++++ b/plugin/trino-delta-lake/src/test/resources/trino481/timestamp_tz_millis/_delta_log/00000000000000000001.json
+@@ -0,0 +1,2 @@
++{"commitInfo":{"version":1,"timestamp":1781623882442,"userId":"user","userName":"user","operation":"WRITE","operationParameters":{"queryId":"20260616_153121_00027_zke25"},"clusterId":"trino-testversion-5c81d702-57b7-469d-acf5-159f6aa91e69","readVersion":0,"isolationLevel":"WriteSerializable","isBlindAppend":true,"operationMetrics":{}}}
++{"add":{"path":"20260616_153121_00027_zke25_74fa3e48-d9da-45dc-9182-1d08724a583c","partitionValues":{},"size":370,"modificationTime":1781623882414,"dataChange":true,"stats":"{\"numRecords\":3,\"minValues\":{\"id\":1,\"ts\":\"2024-01-15T10:30:00.123Z\"},\"maxValues\":{\"id\":3,\"ts\":\"2024-06-20T16:45:30.456Z\"},\"nullCount\":{\"id\":0,\"ts\":1}}","tags":{}}}
+diff --git a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility.java b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility.java
+index e9823a9b25..bb2272df88 100644
+--- a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility.java
++++ b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility.java
+@@ -68,7 +68,7 @@ public class TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility
+         onTrino().executeQuery("CREATE TABLE delta.default." + tableName + " (ts VARCHAR) " +
+                 "with (location = 's3://" + bucketName + "/databricks-compatibility-test-" + tableName + "', checkpoint_interval = 10)");
+         try {
+-            List<Row> expectedRows = performInsert(onDelta(), tableName, 12);
++            List<Row> expectedRows = performInsert(onDelta(), tableName, 12, "000000");
+ 
+             assertTransactionLogVersion(s3, bucketName, tableName, 12);
+             onDelta().executeQuery("CREATE OR REPLACE TABLE " + tableName + " USING DELTA AS SELECT CAST(ts AS TIMESTAMP) FROM " + tableName);
+@@ -87,7 +87,7 @@ public class TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility
+         onTrino().executeQuery("CREATE TABLE delta.default." + tableName + " (ts VARCHAR) " +
+                 "with (location = 's3://" + bucketName + "/databricks-compatibility-test-" + tableName + "', checkpoint_interval = 10)");
+         try {
+-            List<Row> expectedRows = performInsert(onDelta(), tableName, 12);
++            List<Row> expectedRows = performInsert(onDelta(), tableName, 12, "000");
+ 
+             assertTransactionLogVersion(s3, bucketName, tableName, 12);
+             onTrino().executeQuery("CREATE OR REPLACE TABLE delta.default." + tableName + " AS SELECT CAST(ts AS TIMESTAMP(6)) as ts FROM " + tableName);
+@@ -106,13 +106,13 @@ public class TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility
+                 "with (location = 's3://" + bucketName + "/databricks-compatibility-test-" + tableName + "', checkpoint_interval = 10)");
+         try {
+             ImmutableList.Builder<Row> expected = ImmutableList.builder();
+-            expected.addAll(performInsert(onDelta(), tableName, 9));
++            expected.addAll(performInsert(onDelta(), tableName, 9, "000000"));
+ 
+             onDelta().executeQuery("CREATE OR REPLACE TABLE " + tableName + " USING DELTA AS SELECT CAST(ts AS TIMESTAMP) FROM " + tableName);
+             assertLastEntryIsCheckpointed(s3, bucketName, tableName);
+ 
+             onDelta().executeQuery("INSERT INTO " + tableName + " VALUES \"1960-01-01 01:02:03\", \"1961-01-01 01:02:03\", \"1962-01-01 01:02:03\"");
+-            expected.add(row("1960-01-01T01:02:03.000Z"), row("1961-01-01T01:02:03.000Z"), row("1962-01-01T01:02:03.000Z"));
++            expected.add(row("1960-01-01T01:02:03.000000Z"), row("1961-01-01T01:02:03.000000Z"), row("1962-01-01T01:02:03.000000Z"));
+             assertTransactionLogVersion(s3, bucketName, tableName, 11);
+ 
+             assertThat(onTrino().executeQuery("SELECT to_iso8601(ts) FROM delta.default." + tableName)).containsOnly(expected.build());
+@@ -122,13 +122,16 @@ public class TestDeltaLakeCreateOrReplaceTableAsSelectCompatibility
+         }
+     }
+ 
+-    private static List<Row> performInsert(QueryExecutor queryExecutor, String tableName, int numberOfRows)
++    private static List<Row> performInsert(QueryExecutor queryExecutor, String tableName, int numberOfRows, String fractionalSeconds)
+     {
+         ImmutableList.Builder<Row> expectedRowBuilder = ImmutableList.builder();
+         // Write to the table until a checkpoint file is written
+         for (int i = 0; i < numberOfRows; i++) {
+-            queryExecutor.executeQuery("INSERT INTO " + tableName + " VALUES \"1960-01-01 01:02:03\", \"1961-01-01 01:02:03\", \"1962-01-01 01:02:03\"");
+-            expectedRowBuilder.add(row("1960-01-01T01:02:03.000Z"), row("1961-01-01T01:02:03.000Z"), row("1962-01-01T01:02:03.000Z"));
++            queryExecutor.executeQuery("INSERT INTO " + tableName + " VALUES '1960-01-01 01:02:03', '1961-01-01 01:02:03', '1962-01-01 01:02:03'");
++            expectedRowBuilder.add(
++                    row("1960-01-01T01:02:03." + fractionalSeconds + "Z"),
++                    row("1961-01-01T01:02:03." + fractionalSeconds + "Z"),
++                    row("1962-01-01T01:02:03." + fractionalSeconds + "Z"));
+         }
+         return expectedRowBuilder.build();
+     }
+diff --git a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeDatabricksCreateTableCompatibility.java b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeDatabricksCreateTableCompatibility.java
+index 07b8f3abdd..86ae358003 100644
+--- a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeDatabricksCreateTableCompatibility.java
++++ b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeDatabricksCreateTableCompatibility.java
+@@ -174,8 +174,8 @@ public class TestDeltaLakeDatabricksCreateTableCompatibility
+             testInsert(
+                     tableName,
+                     ImmutableList.of(
+-                            row(4, "four", "2020-01-01T01:00:00.000Z"),
+-                            row(5, "five", "2025-01-01T01:00:00.000Z"),
++                            row(4, "four", "2020-01-01T01:00:00.000000Z"),
++                            row(5, "five", "2025-01-01T01:00:00.000000Z"),
+                             row(null, null, null)));
+         }
+         finally {
+@@ -222,8 +222,8 @@ public class TestDeltaLakeDatabricksCreateTableCompatibility
+             testInsert(
+                     tableName,
+                     ImmutableList.of(
+-                            row(4, "four", "2020-01-01T01:00:00.000Z"),
+-                            row(5, "five", "2025-01-01T01:00:00.000Z"),
++                            row(4, "four", "2020-01-01T01:00:00.000000Z"),
++                            row(5, "five", "2025-01-01T01:00:00.000000Z"),
+                             row(null, null, null)));
+         }
+         finally {
+@@ -239,9 +239,9 @@ public class TestDeltaLakeDatabricksCreateTableCompatibility
+ 
+         ImmutableList.Builder<QueryAssert.Row> expected = ImmutableList.builder();
+         expected.addAll(existingRows);
+-        expected.add(row(1, "one", "2960-10-31T01:00:00.000Z"));
+-        expected.add(row(2, "two", "2020-10-31T01:00:00.000Z"));
+-        expected.add(row(3, "three", "1900-10-31T01:00:00.000Z"));
++        expected.add(row(1, "one", "2960-10-31T01:00:00.000000Z"));
++        expected.add(row(2, "two", "2020-10-31T01:00:00.000000Z"));
++        expected.add(row(3, "three", "1900-10-31T01:00:00.000000Z"));
+ 
+         assertThat(onTrino().executeQuery("SELECT integer, string, to_iso8601(timetz) FROM delta.default." + tableName))
+                 .containsOnly(expected.build());
+diff --git a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeInsertCompatibility.java b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeInsertCompatibility.java
+index 5eb306c37c..357bfd89d7 100644
+--- a/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeInsertCompatibility.java
++++ b/testing/trino-product-tests/src/main/java/io/trino/tests/product/deltalake/TestDeltaLakeInsertCompatibility.java
+@@ -186,31 +186,32 @@ public class TestDeltaLakeInsertCompatibility
+         try {
+             onDelta().executeQuery("INSERT INTO default." + tableName + " VALUES" +
+                     "(1, TIMESTAMP '0001-01-01 00:00:00.000 UTC')," +
+-                    "(2, TIMESTAMP '2023-01-02 01:02:03.999 +01:00')");
++                    "(2, TIMESTAMP '2023-01-02 01:02:03.999999 +01:00')");
+             onTrino().executeQuery("INSERT INTO delta.default." + tableName + " VALUES" +
+-                    "(3, TIMESTAMP '2023-03-04 01:02:03.999 -01:00')," +
+-                    "(4, TIMESTAMP '9999-12-31 23:59:59.999 UTC')");
++                    "(3, TIMESTAMP '2023-03-04 01:02:03.999999 -01:00')," +
++                    "(4, TIMESTAMP '9999-12-31 23:59:59.999999 UTC')");
+ 
+             List<Row> expectedRows = ImmutableList.<Row>builder()
+-                    .add(row(1, "0001-01-01 00:00:00.000"))
+-                    .add(row(2, "2023-01-02 00:02:03.999"))
+-                    .add(row(3, "2023-03-04 02:02:03.999"))
+-                    .add(row(4, "9999-12-31 23:59:59.999"))
++                    .add(row(1, "0001-01-01 00:00:00.000000"))
++                    .add(row(2, "2023-01-02 00:02:03.999999"))
++                    .add(row(3, "2023-03-04 02:02:03.999999"))
++                    .add(row(4, "9999-12-31 23:59:59.999999"))
+                     .build();
+ 
+-            assertThat(onDelta().executeQuery("SELECT id, date_format(part, \"yyyy-MM-dd HH:mm:ss.SSS\") FROM default." + tableName))
++            assertThat(onDelta().executeQuery("SELECT id, date_format(part, \"yyyy-MM-dd HH:mm:ss.SSSSSS\") FROM default." + tableName))
+                     .containsOnly(expectedRows);
+-            assertThat(onTrino().executeQuery("SELECT id, format_datetime(part, 'yyyy-MM-dd HH:mm:ss.SSS') FROM delta.default." + tableName))
++            // date_format rounds to millisecond precision, so render through a microsecond-exact varchar cast
++            assertThat(onTrino().executeQuery("SELECT id, replace(CAST(part AS varchar), ' UTC') FROM delta.default." + tableName))
+                     .containsOnly(expectedRows);
+ 
+             assertThat((String) onTrino().executeQuery("SELECT \"$path\" FROM delta.default." + tableName + " WHERE id = 1").getOnlyValue())
+                     .contains("/part=0001-01-01 00%3A00%3A00/");
+             assertThat((String) onTrino().executeQuery("SELECT \"$path\" FROM delta.default." + tableName + " WHERE id = 2").getOnlyValue())
+-                    .contains("/part=2023-01-02 00%3A02%3A03.999/");
++                    .contains("/part=2023-01-02 00%3A02%3A03.999999/");
+             assertThat((String) onTrino().executeQuery("SELECT \"$path\" FROM delta.default." + tableName + " WHERE id = 3").getOnlyValue())
+-                    .contains("/part=2023-03-04 02%3A02%3A03.999/");
++                    .contains("/part=2023-03-04 02%3A02%3A03.999999/");
+             assertThat((String) onTrino().executeQuery("SELECT \"$path\" FROM delta.default." + tableName + " WHERE id = 4").getOnlyValue())
+-                    .contains("/part=9999-12-31 23%3A59%3A59.999/");
++                    .contains("/part=9999-12-31 23%3A59%3A59.999999/");
+         }
+         finally {
+             onTrino().executeQuery("DROP TABLE delta.default." + tableName);
