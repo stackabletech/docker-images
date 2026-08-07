@@ -11,9 +11,11 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - omid: remove 1.1.2 ([#1593]).
+- ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
+[#1596]: https://github.com/stackabletech/docker-images/pull/1596
 
 ## [26.7.0] - 2026-07-21
 
