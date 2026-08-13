@@ -17,8 +17,11 @@ pub enum Error {
     #[snafu(display("failed to create bakefile"))]
     CreateBakefile { source: bakefile::Error },
 
-    #[snafu(display("failed to write image manifest URIs to file"))]
-    WriteImageManifestUrisFile { source: std::io::Error },
+    #[snafu(display("failed to create image manifest URIs file"))]
+    CreateImageManifestUrisFile { source: std::io::Error },
+
+    #[snafu(display("failed to serialize image manifest URIs file as JSON"))]
+    SerializeImageManifestUrisFile { source: serde_json::Error },
 
     #[snafu(display("failed to serialize bakefile as JSON"))]
     SerializeBakefile { source: serde_json::Error },
@@ -51,8 +54,9 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
 
     // Write the image manifest URIs to file if requested
     if let Some(path) = args.write_image_manifest_uris {
-        std::fs::write(path, image_manifest_uris.join("\n"))
-            .context(WriteImageManifestUrisFileSnafu)?;
+        let file = std::fs::File::create(path).context(CreateImageManifestUrisFileSnafu)?;
+        serde_json::to_writer(file, &image_manifest_uris)
+            .context(SerializeImageManifestUrisFileSnafu)?;
     }
 
     // Output the bakefile contents if in dry-run mode
@@ -103,10 +107,17 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
         }
     );
 
-    println!(
-        "Successfully built {count} image{plural}:\n{images}",
+    // Take care of formatting output
+    let mut built_images = String::new();
+    for (name, tags) in image_manifest_uris {
+        built_images.push_str(&format!("{name}:\n"));
+        built_images.push_str(&format!("  {tags}", tags = tags.join("\n  ")));
+        built_images.push('\n');
+    }
+
+    print!(
+        "Successfully built {count} image{plural}:\n{built_images}",
         plural = if count > 1 { "s" } else { "" },
-        images = image_manifest_uris.join("\n")
     );
 
     Ok(())
