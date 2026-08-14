@@ -96,15 +96,15 @@ pub struct BuildArguments {
     #[arg(long, alias = "build-args-file", help_heading = "Build Options")]
     pub build_arguments_file: Option<PathBuf>,
 
-    /// Write target image tags to <EXPORT_FILE>. Useful for signing or other follow-up CI steps.
+    /// Write target image tags to <EXPORT_FILE> as structured (JSON) data. Useful for signing or other follow-up CI steps.
     #[arg(
         long,
         alias = "export-tags-file",
         help_heading = "Build Options",
-        value_name = "FILE",
+        value_name = "EXPORT_FILE",
         value_hint = ValueHint::FilePath,
         value_parser = value_parser!(PathBuf),
-        default_missing_value = "boil-target-tags",
+        default_missing_value = "boil-target-tags.json",
         num_args(0..=1)
     )]
     pub write_image_manifest_uris: Option<PathBuf>,

@@ -11,7 +11,7 @@ use oci_spec::image::{
     ANNOTATION_AUTHORS, ANNOTATION_CREATED, ANNOTATION_DOCUMENTATION, ANNOTATION_LICENSES,
     ANNOTATION_REVISION, ANNOTATION_SOURCE, ANNOTATION_VENDOR, ANNOTATION_VERSION,
 };
-use serde::Serialize;
+use serde::{Serialize, ser::SerializeSeq};
 use snafu::{OptionExt, ResultExt, Snafu, ensure};
 use time::format_description::well_known::Rfc3339;
 
@@ -289,17 +289,15 @@ impl Bakefile {
     }
 
     /// Returns all image manifest URIs for entry images.
-    pub fn image_manifest_uris(&self) -> Vec<&str> {
+    pub fn image_manifest_uris(&self) -> BTreeMap<&str, &TagSet> {
         self.targets
             .iter()
             // We only care about the entry targets, because those are the primary images boil
             // builds.
             .filter(|(target_name, _)| target_name.starts_with(ENTRY_TARGET_NAME_PREFIX))
             // The image manifest URIs file only contains the image tags
-            .flat_map(|(_, target)| &target.tags)
-            // Flatten multiple tags (boil currently only ever writes a single one, but the data
-            // structure can accept a list).
-            .map(|s| s.as_str())
+            .map(|(_, target)| (target.image_name.as_str(), &target.tags))
+            // Group tags by image name and collect them into a map
             .collect()
     }
 
@@ -443,9 +441,9 @@ impl Bakefile {
                         &image_manifest_floating_tag,
                     );
 
-                    vec![image_manifest_uri, floating_image_manifest_uri]
+                    TagSet::with_others(image_manifest_uri, vec![floating_image_manifest_uri])
                 } else {
-                    vec![image_manifest_uri]
+                    TagSet::new(image_manifest_uri)
                 };
 
                 // By using a cap-std Dir, we can ensure that the paths provided must be relative to
@@ -498,6 +496,7 @@ impl Bakefile {
                 );
 
                 let target = BakefileTarget {
+                    image_name: image_name.clone(),
                     tags,
                     arguments: build_arguments,
                     platforms: vec![cli_args.target_platform.clone()],
@@ -578,6 +577,11 @@ impl Bakefile {
 // of cloning.
 #[derive(Debug, Default, Serialize)]
 pub struct BakefileTarget {
+    /// Only used internally to be able to access the original image name of the target. This field
+    /// is not serialized into the final Bakefile.
+    #[serde(skip)]
+    pub image_name: String,
+
     /// Defines build arguments for the target.
     #[serde(
         rename = "args",
@@ -623,8 +627,12 @@ pub struct BakefileTarget {
     pub platforms: Vec<TargetPlatform>,
 
     /// Image names and tags to use for the build target.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<String>,
+    #[serde(
+        serialize_with = "TagSet::serialize_for_bakefile",
+        // DO NOT REMOVE: This is needed for correct serialization of the common target.
+        skip_serializing_if = "TagSet::serde_is_empty"
+    )]
+    pub tags: TagSet,
 }
 
 impl BakefileTarget {
@@ -715,4 +723,114 @@ impl BakefileTarget {
 #[derive(Debug, Default, Serialize)]
 pub struct BakefileGroup {
     targets: Vec<String>,
+}
+
+/// A set of tags which contains a single canonical tag and N additional, other tags.
+//
+// The derived serialization is used for structured output via the `--write-image-manifest-uris`
+// CLI argument.
+#[derive(Debug, Serialize)]
+pub struct TagSet {
+    /// A single canonical tag.
+    canonical: String,
+    others: Vec<String>,
+
+    /// Marks this tag set as empty..
+    ///
+    /// To be able to use [`BakefileTarget`] for the common (inherited) target, we want to leverage
+    /// its own and its subtypes [`Default`] implementation. That's because the common target only
+    /// sets a few selected fields and uses [`Default`] for all the rest. These fields all get
+    /// skipped during serialization because they are all empty/unset.
+    ///
+    /// A [`TagSet`] by definition must contain a canonical value for "normal" targets. However, for
+    /// the common target, there is no canonical tag, and we additionally don't want to serialize
+    /// the field.
+    ///
+    /// As such, [`TagSet`] offers [`TagSet::empty`] in this module only to construct an empty
+    /// [`TagSet`] to be used in the common target. It won't get serialized as serde skips it if
+    /// [`TagSet::is_empty`] returns true. This function returns the value of this field.
+    //
+    // NOTE (@Techassi): I know this is a kind of dirty "hack" to make the code work how it should,
+    // but I wasn't able to come up with a better/more elegant solution without other pain points.
+    // I tried using an enum with two variants, but the matching got annoying and there just aren't
+    // sound implementations of associated functions in some cases. One other option is to somehow
+    // make the `tags` field of the BakefileTarget generic and to accept two different
+    // implementations: A real one, and a noop one. But this most likely comes with all the baggage
+    // we know and love (or hate) of generics.
+    #[serde(skip)]
+    is_empty: bool,
+}
+
+impl Default for TagSet {
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
+impl TagSet {
+    /// Creates and returns a new [`TagSet`] which only contains the canonical tag.
+    pub fn new(canonical: String) -> Self {
+        Self {
+            canonical,
+            others: Vec::new(),
+            is_empty: false,
+        }
+    }
+
+    /// Creates and returns a new [`TagSet`] which both contains the canonical and other tags.
+    pub fn with_others(canonical: String, others: Vec<String>) -> Self {
+        let mut tag_set = Self::new(canonical);
+        tag_set.others = others;
+        tag_set
+    }
+
+    /// Create an empty [`TagSet`].
+    ///
+    /// See the `is_empty` field for more details on this.
+    fn empty() -> Self {
+        Self {
+            canonical: String::new(),
+            others: Vec::new(),
+            is_empty: true,
+        }
+    }
+
+    /// Joins the tags using `separator` into a [`String`].
+    pub fn join(&self, separator: &str) -> String {
+        let mut joined = String::new();
+
+        joined.push_str(&self.canonical);
+
+        if !self.others.is_empty() {
+            joined.push_str(separator);
+        }
+
+        joined.push_str(&self.others.join(separator));
+        joined
+    }
+
+    /// Returns if the [`TagSet`] is empty.
+    ///
+    /// Used for skipping serialization in the common target of the [`Bakefile`].
+    fn serde_is_empty(&self) -> bool {
+        self.is_empty
+    }
+
+    /// Special serialization implementation when serialized as part of a [`Bakefile`].
+    fn serialize_for_bakefile<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // The number of other tags + 1 for the canonical tag.
+        let len = Some(self.others.len() + 1);
+        let mut seq = serializer.serialize_seq(len)?;
+
+        seq.serialize_element(&self.canonical)?;
+
+        for other in &self.others {
+            seq.serialize_element(other)?;
+        }
+
+        seq.end()
+    }
 }
