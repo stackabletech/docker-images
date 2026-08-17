@@ -1,17 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REQUESTED_VERSION="${1:-}"
+
 MESSAGE="# Managed by .scripts\/release_boil.sh"
 
-BUMPED_VERSION=$(git-cliff --config rust/boil/cliff.toml --bumped-version)
+if [ -z "$REQUESTED_VERSION" ]; then
+  BUMPED_VERSION=$(git-cliff --config rust/boil/cliff.toml --bumped-version)
+else
+  if [[ "$REQUESTED_VERSION" =~ ^boil-[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+    BUMPED_VERSION="$REQUESTED_VERSION"
+  else
+    echo "Invalid requested version. Must be boil-X.Y.Z<REST>"
+    exit 1
+  fi
+fi
+
+echo "Bumping to $BUMPED_VERSION"
+
 CLEANED_BUMPED_VERSION=${BUMPED_VERSION#boil-}
 
 RELEASE_BRANCH="chore/boil-release-$CLEANED_BUMPED_VERSION"
 
-echo "Checking if working directory is clean"
-if ! git diff-index --quiet HEAD --; then
-  echo "Working directory is dirty, aborting" >&2
-  exit 1
+if [ -z "${SKIP_DIRTY_CHECK:-}" ]; then
+  echo "Checking if working directory is clean"
+  if ! git diff-index --quiet HEAD --; then
+    echo "Working directory is dirty, aborting" >&2
+    exit 1
+  fi
 fi
 
 # Prompt the user to confirm their Git identity used to create the commit
@@ -56,7 +72,7 @@ if git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-git add rust/boil/CHANGELOG.md rust/boil/Cargo.* Cargo.lock
+git add rust/boil/CHANGELOG.md rust/boil/Cargo.* Cargo.lock .scripts/release_boil.sh
 git commit --message "chore(boil): Release $CLEANED_BUMPED_VERSION" --no-verify --gpg-sign
 
 echo "Pushing changes and raising PR"

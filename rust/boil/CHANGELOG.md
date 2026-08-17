@@ -4,9 +4,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.3-rc.1] - 2026-07-01
+## [0.3.0] - 2026-08-17
 
-[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.2..0.2.3-rc.1)
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.3-rc.1..boil-0.3.0)
+
+### Features
+
+- **BREAKING:** Output structured data in boil-target-tags file ([#1598](https://github.com/stackabletech/docker-images/pull/1598)).
+
+### Bug Fixes
+
+- Improve VersionExt::is_floating impl ([#1571](https://github.com/stackabletech/docker-images/pull/1571)).
+
+## [0.2.3-rc.1] - 2026-07-06
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.2..boil-0.2.3-rc.1)
 
 ### Features
 
