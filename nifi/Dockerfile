@@ -12,11 +12,23 @@ FROM local-image/java-devel AS nifi-builder
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG NODEJS_VERSION
+ARG CDXGEN_VERSION
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
+
+# Install Node and cdxgen to create the SBOM of the NiFi frontend (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies, and the Node version that
+# the frontend-maven-plugin downloads for the actual build is not necessarily compatible
+# with cdxgen, which requires Node 20, 22 or 24.
+ARCH="${TARGETARCH/amd64/x64}"
+curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/usr/local --strip-components=1
+npm install --global "@cyclonedx/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -81,6 +93,25 @@ for nar in $NARS; do
         cp "$match" "/stackable/nifi-${NEW_VERSION}/$nar.cdx.json"
     fi
 done
+
+# Create the SBOM for the frontend, which is an npm project and therefore not covered by
+# the CycloneDX Maven plugin.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+(
+  cd nifi-frontend/src/main/frontend
+  cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version 1.5 \
+    --project-version "${ORIGINAL_VERSION}" \
+    --output /stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json
+)
 
 # Remove sources
 (cd .. && rm -r ${PRODUCT_VERSION})

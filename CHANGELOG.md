@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
+
+### Changed
+
+- opensearch-dashboards: Bump cdxgen to 12.8.3 and pin the CycloneDX spec version to 1.5 ([#1600]).
+
 ### Fixed
 
 - spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
@@ -16,6 +24,7 @@ All notable changes to this project will be documented in this file.
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
 [#1596]: https://github.com/stackabletech/docker-images/pull/1596
+[#1600]: https://github.com/stackabletech/docker-images/pull/1600
 
 ## [26.7.0] - 2026-07-21
 

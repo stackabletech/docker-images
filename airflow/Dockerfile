@@ -46,6 +46,7 @@ ARG STACKABLE_USER_UID
 ARG NODEJS_VERSION
 ARG S3FS_VERSION
 ARG CYCLONEDX_BOM_VERSION
+ARG CDXGEN_VERSION
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
@@ -90,6 +91,10 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         tar && \
     microdnf clean all && \
     rm -rf /var/cache/yum
+
+# cdxgen creates the SBOM for the frontend (npm) dependencies of the Airflow UI.
+# These are not covered by cyclonedx-py, which only looks at the Python environment.
+RUN npm install --global "@cyclonedx/cdxgen@${CDXGEN_VERSION}"
 
 COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
 COPY airflow/stackable/constraints/${PRODUCT_VERSION}/build-constraints-python${PYTHON_VERSION}.txt /tmp/build-constraints.txt
@@ -142,6 +147,21 @@ if [ -d "./airflow-core" ]; then
   pnpm install --frozen-lockfile
   pnpm run build
 
+  # Create the SBOM for the frontend assets.
+  # --required-only drops the devDependencies.
+  # --no-babel is required in combination with --required-only: the babel based usage
+  #   analysis marks every package as optional unless it is imported directly, which would
+  #   also drop all transitive runtime dependencies.
+  # --project-version is passed because the frontends declare a placeholder version
+  #   upstream.
+  cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version 1.5 \
+    --project-version ${PRODUCT_VERSION} \
+    --output /stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json
+
   # build airflow wheel from airflow root folder
   # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
   cd ../../..
@@ -158,6 +178,18 @@ else
   npm install -g yarn@1.22.22
   yarn install --frozen-lockfile
   yarn run build
+
+  # Create the SBOM for the frontend assets, see the comment in the Airflow 3.x branch above.
+  # NOTE: A Yarn 1 lockfile does not record whether a package is a dev dependency, so
+  # cdxgen marks everything as required and --required-only has no effect here. The SBOM
+  # for Airflow 2.x therefore also contains the frontend build tooling.
+  cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version 1.5 \
+    --project-version ${PRODUCT_VERSION} \
+    --output /stackable/app/airflow-www-${PRODUCT_VERSION}.cdx.json
 
   # build airflow wheel from airflow root folder
   cd ../..

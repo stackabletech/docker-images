@@ -18,6 +18,10 @@ git-sync-version = "v4.6.0"
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
+# Used to create the SBOM of the frontend (npm) dependencies.
+# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
+# renovate: datasource=npm packageName=@cyclonedx/cdxgen
+cdxgen-version = "12.8.3"
 # Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
@@ -26,7 +30,8 @@ tini-version = "0.19.0"
 uv-version = "0.11.19"
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
-# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+# Used to install pnpm/yarn to build the frontend assets and to run cdxgen,
+# which requires Node 20, 22 or 24.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
 
@@ -47,6 +52,10 @@ git-sync-version = "v4.6.0"
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2024.9.0"
 cyclonedx-bom-version = "7.3.0"
+# Used to create the SBOM of the frontend (npm) dependencies.
+# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
+# renovate: datasource=npm packageName=@cyclonedx/cdxgen
+cdxgen-version = "12.8.3"
 # Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
@@ -76,7 +85,8 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+# Used to install pnpm/yarn to build the frontend assets and to run cdxgen,
+# which requires Node 20, 22 or 24.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
 
@@ -97,6 +107,10 @@ git-sync-version = "v4.6.0"
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2026.1.0"
 cyclonedx-bom-version = "7.3.0"
+# Used to create the SBOM of the frontend (npm) dependencies.
+# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
+# renovate: datasource=npm packageName=@cyclonedx/cdxgen
+cdxgen-version = "12.8.3"
 # Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
@@ -126,7 +140,8 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+# Used to install pnpm/yarn to build the frontend assets and to run cdxgen,
+# which requires Node 20, 22 or 24.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
 
@@ -147,6 +162,10 @@ git-sync-version = "v4.6.0"
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
 s3fs-version = "2026.4.0"
 cyclonedx-bom-version = "7.3.0"
+# Used to create the SBOM of the frontend (npm) dependencies.
+# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
+# renovate: datasource=npm packageName=@cyclonedx/cdxgen
+cdxgen-version = "12.8.3"
 # Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
 tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
@@ -176,6 +195,7 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-# We only use npm to install pnpm (whatever that means), so I guess this doesn't really matter
+# Used to install pnpm/yarn to build the frontend assets and to run cdxgen,
+# which requires Node 20, 22 or 24.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here

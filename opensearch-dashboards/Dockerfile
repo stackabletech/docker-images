@@ -184,7 +184,10 @@ for plugin in $(ls); do
 done
 EOF
 
-RUN cdxgen --target yarn --json-pretty
+# --spec-version is pinned explicitly because cdxgen changed its default between patch
+# releases (1.6 in 12.0.0, 1.7 in 12.8.3). 1.5 is what every other SBOM in this repository
+# uses.
+RUN cdxgen --target yarn --json-pretty --spec-version 1.5
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
