@@ -42,17 +42,11 @@ ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
 ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
 ARG NVM_VERSION
 ARG STACKABLE_USER_UID
-
-# cdxgen requires Node 20, 22 or 24, which can be newer than the Node version Superset
-# pins for the frontend build (NODEJS_VERSION). It therefore gets its own Node version.
-# This is unrelated to Superset, so it is not part of boil-config.toml.
-# Find the latest release here: https://github.com/nodejs/node/releases
-# renovate: datasource=node-version packageName=node
-ENV CDXGEN_NODEJS_VERSION=22.22.0
 
 RUN microdnf update \
     && microdnf install \
@@ -78,6 +72,8 @@ RUN microdnf update \
         tar \
         # Needed by `npm run build`:
         which \
+        # Needed to unpack the Node tarball used for cdxgen
+        xz \
         zstd \
     && microdnf clean all && \
     rm -rf /var/cache/yum
@@ -99,18 +95,19 @@ curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh"
 # Install the specified version of Node (including the latest compatible version of npm)
 nvm install "$NODEJS_VERSION" --latest-npm
 
-# cdxgen creates the SBOM for the frontend (npm) dependencies of Superset.
-# These are not covered by cyclonedx-py, which only looks at the Python environment.
-nvm install "$CDXGEN_NODEJS_VERSION"
-nvm use "$CDXGEN_NODEJS_VERSION"
-npm install --global "@cyclonedx/cdxgen@${CDXGEN_VERSION}"
-
-# Superset must be built with the Node version it pins, not with the one used for cdxgen
-nvm alias default "$NODEJS_VERSION"
-nvm use "$NODEJS_VERSION"
-
 node --version
 npm --version
+
+# cdxgen creates the SBOM for the frontend (npm) dependencies of Superset.
+# These are not covered by cyclonedx-py, which only looks at the Python environment.
+# cdxgen requires Node >= 24, which is newer than the Node version Superset pins for the
+# frontend build, so it gets its own Node installation in /opt/node-cdxgen and is invoked
+# with that prepended to PATH. This keeps it out of the way of nvm entirely.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 # Upgrade pip to the latest version
@@ -148,11 +145,11 @@ npm run build
 #   also drop all transitive runtime dependencies.
 # --project-version is passed because the frontends declare a placeholder version
 #   upstream.
-nvm exec "$CDXGEN_NODEJS_VERSION" cdxgen \
+PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
     --type js \
     --required-only \
     --no-babel \
-    --spec-version 1.5 \
+    --spec-version 1.6 \
     --project-version ${PRODUCT_VERSION} \
     --output /stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json
 

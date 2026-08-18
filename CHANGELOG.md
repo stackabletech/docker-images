@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- opensearch-dashboards: Bump cdxgen to 12.8.3 and pin the CycloneDX spec version to 1.5 ([#1600]).
+- opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
 
 ### Fixed
 

@@ -42,6 +42,7 @@ ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION
 ARG NODEJS_VERSION
 ARG YARN_VERSION
 ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -138,7 +139,15 @@ microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/usr/local --strip-components=1
-npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
+npm install -g yarn@${YARN_VERSION}
+
+# cdxgen requires Node >= 24, which is newer than the Node version OpenSearch Dashboards
+# is built with, so it gets its own Node installation in /opt/node-cdxgen and is invoked
+# with that prepended to PATH.
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -184,10 +193,9 @@ for plugin in $(ls); do
 done
 EOF
 
-# --spec-version is pinned explicitly because cdxgen changed its default between patch
-# releases (1.6 in 12.0.0, 1.7 in 12.8.3). 1.5 is what every other SBOM in this repository
-# uses.
-RUN cdxgen --target yarn --json-pretty --spec-version 1.5
+# --spec-version is pinned explicitly because cdxgen changes its default between releases.
+# 1.6 is the lowest version cdxgen 13 accepts as a generation target.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --json-pretty --spec-version 1.6
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce

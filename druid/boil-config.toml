@@ -10,13 +10,15 @@ java-devel = "17"
 
 [versions."30.0.1".build-arguments]
 authorizer-version = "0.7.0"
-# Only used to run cdxgen, which creates the SBOM of the web console (npm) dependencies.
-# cdxgen requires Node 20, 22 or 24. The Node version used for the actual web console
-# build is pinned by Druid itself (see web-console/pom.xml).
-nodejs-version = "22.22.0"
-# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
-# renovate: datasource=npm packageName=@cyclonedx/cdxgen
-cdxgen-version = "12.8.3"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
+# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
+# assets, so it gets its own Node installation.
+# Find the latest release here: https://github.com/nodejs/node/releases
+# renovate: datasource=node-version packageName=node
+cdxgen-nodejs-version = "24.19.0"
 
 # Deprecated since 26.7
 [versions."35.0.1".local-images]
@@ -27,13 +29,15 @@ java-devel = "21"
 
 [versions."35.0.1".build-arguments]
 authorizer-version = "0.7.0"
-# Only used to run cdxgen, which creates the SBOM of the web console (npm) dependencies.
-# cdxgen requires Node 20, 22 or 24. The Node version used for the actual web console
-# build is pinned by Druid itself (see web-console/pom.xml).
-nodejs-version = "22.22.0"
-# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
-# renovate: datasource=npm packageName=@cyclonedx/cdxgen
-cdxgen-version = "12.8.3"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
+# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
+# assets, so it gets its own Node installation.
+# Find the latest release here: https://github.com/nodejs/node/releases
+# renovate: datasource=node-version packageName=node
+cdxgen-nodejs-version = "24.19.0"
 
 # LTS since 26.7
 [versions."37.0.0".local-images]
@@ -46,10 +50,12 @@ java-devel = "21"
 # We don't need to bump this if no code changed in https://github.com/stackabletech/druid-opa-authorizer
 # But a PR still needs to be raised to add/remove versions and ensure it still builds.
 authorizer-version = "0.7.0"
-# Only used to run cdxgen, which creates the SBOM of the web console (npm) dependencies.
-# cdxgen requires Node 20, 22 or 24. The Node version used for the actual web console
-# build is pinned by Druid itself (see web-console/pom.xml).
-nodejs-version = "22.22.0"
-# Find the latest version here: https://www.npmjs.com/package/@cyclonedx/cdxgen
-# renovate: datasource=npm packageName=@cyclonedx/cdxgen
-cdxgen-version = "12.8.3"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
+# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
+# assets, so it gets its own Node installation.
+# Find the latest release here: https://github.com/nodejs/node/releases
+# renovate: datasource=node-version packageName=node
+cdxgen-nodejs-version = "24.19.0"

@@ -13,7 +13,7 @@ ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
-ARG NODEJS_VERSION
+ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_VERSION
 
 RUN <<EOF
@@ -22,13 +22,15 @@ microdnf clean all
 rm -rf /var/cache/yum
 
 # Install Node and cdxgen to create the SBOM of the NiFi frontend (npm) dependencies.
-# The CycloneDX Maven plugin only covers the Java dependencies, and the Node version that
-# the frontend-maven-plugin downloads for the actual build is not necessarily compatible
-# with cdxgen, which requires Node 20, 22 or 24.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# cdxgen requires Node >= 24 and is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node
+# installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
 ARCH="${TARGETARCH/amd64/x64}"
-curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
-    tar --extract --xz --directory=/usr/local --strip-components=1
-npm install --global "@cyclonedx/cdxgen@${CDXGEN_VERSION}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -104,11 +106,11 @@ done
 #   upstream.
 (
   cd nifi-frontend/src/main/frontend
-  cdxgen \
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
     --type js \
     --required-only \
     --no-babel \
-    --spec-version 1.5 \
+    --spec-version 1.6 \
     --project-version "${ORIGINAL_VERSION}" \
     --output /stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json
 )
