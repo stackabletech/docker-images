@@ -35,7 +35,12 @@ impl VersionExt for semver::Version {
         if self.is_floating() {
             self.to_string()
         } else {
-            format!("{major}.{minor}", major = self.major, minor = self.minor)
+            format!(
+                "{major}.{minor}-{pre}",
+                major = self.major,
+                minor = self.minor,
+                pre = self.pre
+            )
         }
     }
 }
