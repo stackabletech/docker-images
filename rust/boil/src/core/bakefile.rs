@@ -385,7 +385,8 @@ impl Bakefile {
 
                 // TODO (@Techassi): Clean this up
                 // TODO (@Techassi): Move the arg formatting into functions
-                let mut build_arguments = docker::BuildArguments::new();
+                // Start of with the shared (across all versions of the same image) build arguments.
+                let mut build_arguments = image_config.build_arguments.clone();
 
                 let local_version_docker_args: Vec<_> = image_options
                     .local_images

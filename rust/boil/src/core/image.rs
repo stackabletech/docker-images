@@ -9,7 +9,7 @@ use std::{
 use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu, ensure};
 
-use crate::core::docker;
+use crate::core::docker::{self, BuildArguments};
 
 #[derive(Debug, PartialEq, Snafu)]
 pub enum ParseImageSelectorError {
@@ -111,9 +111,14 @@ pub enum ImageConfigError {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct ImageConfig {
     #[serde(default)]
     pub metadata: ImageMetadata,
+
+    /// Shared build arguments across all versions, but can be overwritten on a image version level.
+    #[serde(default)]
+    pub build_arguments: BuildArguments,
 
     pub versions: ImageVersions,
 }
