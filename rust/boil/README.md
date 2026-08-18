@@ -63,6 +63,10 @@ images, and registry metadata.
 [metadata.registries]
 "oci.example.org" = { namespace = "my/namespace" } # Used for image checks
 
+[build-arguments]
+BAR = "baz"                                        # Specify build arguments which apply to all versions.
+                                                   # Can be overwritten on a per-version basis
+
 [versions."1.2.3".local-images]                    # Specify references to local images per version
 foo = "1.2.3"
 bar = "4.5.6"
