@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2] - 2026-08-18
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.1..boil-0.3.2)
+
+### Features
+
+- Support for per-image build arguments ([#1603](https://github.com/stackabletech/docker-images/pull/1603)).
+
 ## [0.3.1] - 2026-08-18
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.0..boil-0.3.1)
