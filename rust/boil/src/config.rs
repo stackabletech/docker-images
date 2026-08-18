@@ -16,6 +16,8 @@ pub enum ConfigError {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct Config {
+    /// Global build arguments which apply to all images.
+    #[serde(default, deserialize_with = "docker::deserialize_args")]
     pub build_arguments: docker::BuildArguments,
     pub metadata: MetadataOptions,
 }
