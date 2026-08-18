@@ -1,12 +1,10 @@
 use std::{
-    collections::BTreeSet,
-    fmt::Display,
-    ops::{Deref, DerefMut},
+    collections::BTreeMap,
     path::{Path, PathBuf},
     str::FromStr,
 };
 
-use serde::{Deserialize, Serialize, de::Visitor, ser::SerializeMap};
+use serde::{Deserialize, Serialize, de::Visitor};
 use snafu::{OptionExt, ResultExt, Snafu, ensure};
 
 #[derive(Debug, Snafu)]
@@ -18,22 +16,22 @@ pub enum ParseBuildArgumentError {
     NonAscii,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct BuildArgument((String, String));
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+pub struct BuildArgumentKey(String);
 
-impl BuildArgument {
-    pub fn new(key: String, value: String) -> Self {
-        let key = Self::format_key(key);
-        Self((key, value))
+impl<T> From<T> for BuildArgumentKey
+where
+    T: Into<String>,
+{
+    fn from(value: T) -> Self {
+        Self(value.into())
     }
+}
 
-    pub fn local_image_version(image_name: String, image_version: String) -> Self {
-        Self::new(format!("{image_name}_VERSION"), image_version)
-    }
-
-    fn format_key(key: impl AsRef<str>) -> String {
-        key.as_ref().replace(['-', '/'], "_").to_uppercase()
-    }
+#[derive(Clone, Debug)]
+pub struct BuildArgument {
+    pub key: BuildArgumentKey,
+    pub value: String,
 }
 
 impl FromStr for BuildArgument {
@@ -43,42 +41,22 @@ impl FromStr for BuildArgument {
         ensure!(s.is_ascii(), NonAsciiSnafu);
 
         let (key, value) = s.split_once('=').context(InvalidFormatSnafu)?;
-        let key = Self::format_key(key);
+        let key = BuildArgumentKey::new(key);
 
-        Ok(Self((key, value.to_owned())))
+        Ok(Self {
+            key,
+            value: value.to_owned(),
+        })
     }
 }
 
-impl<'de> Deserialize<'de> for BuildArgument {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        struct BuildArgumentVisitor;
-
-        impl Visitor<'_> for BuildArgumentVisitor {
-            type Value = BuildArgument;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(formatter, "a valid build argument")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                BuildArgument::from_str(v).map_err(serde::de::Error::custom)
-            }
-        }
-
-        deserializer.deserialize_str(BuildArgumentVisitor)
+impl BuildArgumentKey {
+    pub fn new(name: impl AsRef<str>) -> Self {
+        Self(name.as_ref().replace(['-', '/'], "_").to_uppercase())
     }
-}
 
-impl Display for BuildArgument {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (key, value) = &self.0;
-        write!(f, "{key}={value}")
+    pub fn local_image_key(image_name: &str) -> Self {
+        Self::new(format!("{image_name}_VERSION"))
     }
 }
 
@@ -94,107 +72,57 @@ pub enum ParseBuildArgumentsError {
     ParseBuildArgument { source: ParseBuildArgumentError },
 }
 
-#[derive(Clone, Debug, Default)]
-pub struct BuildArguments(BTreeSet<BuildArgument>);
+pub type BuildArguments = BTreeMap<BuildArgumentKey, String>;
 
-impl Deref for BuildArguments {
-    type Target = BTreeSet<BuildArgument>;
+/// Custom [`serde::Deserialize`] implementation to ensure we properly format the keys.
+pub fn deserialize_args<'de, D>(deserializer: D) -> Result<BuildArguments, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct BuildArgumentsVisitor;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+    impl<'de> Visitor<'de> for BuildArgumentsVisitor {
+        type Value = BuildArguments;
 
-impl DerefMut for BuildArguments {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(formatter, "a map of valid build arguments")
+        }
 
-impl Extend<BuildArgument> for BuildArguments {
-    fn extend<T: IntoIterator<Item = BuildArgument>>(&mut self, iter: T) {
-        self.0.extend(iter);
-    }
-}
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::MapAccess<'de>,
+        {
+            let mut args = BTreeMap::new();
 
-impl IntoIterator for BuildArguments {
-    type IntoIter = std::collections::btree_set::IntoIter<Self::Item>;
-    type Item = BuildArgument;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl<'de> Deserialize<'de> for BuildArguments {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        struct BuildArgumentsVisitor;
-
-        impl<'de> Visitor<'de> for BuildArgumentsVisitor {
-            type Value = BuildArguments;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                write!(formatter, "a map of valid build arguments")
+            while let Some((key, value)) = map.next_entry::<&str, _>()? {
+                args.insert(BuildArgumentKey::new(key), value);
             }
 
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: serde::de::MapAccess<'de>,
-            {
-                let mut args = BTreeSet::new();
-
-                while let Some((key, value)) = map.next_entry()? {
-                    args.insert(BuildArgument::new(key, value));
-                }
-
-                Ok(BuildArguments(args))
-            }
+            Ok(args)
         }
-
-        deserializer.deserialize_map(BuildArgumentsVisitor)
     }
+
+    deserializer.deserialize_map(BuildArgumentsVisitor)
 }
 
-impl Serialize for BuildArguments {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(self.len()))?;
-
-        for BuildArgument((key, value)) in &self.0 {
-            map.serialize_entry(&key, &value)?;
-        }
-
-        map.end()
-    }
+// We sadly cannot use a From<Vec<BuildArgument>> for BuildArguments impl here because of the
+// orphan rule.
+pub fn build_args_vec_to_btree_map(vec: Vec<BuildArgument>) -> BuildArguments {
+    vec.into_iter().map(|arg| (arg.key, arg.value)).collect()
 }
 
-impl BuildArguments {
-    pub fn new() -> Self {
-        Self(BTreeSet::new())
+pub fn build_args_from_file<P>(path: P) -> Result<BuildArguments, ParseBuildArgumentsError>
+where
+    P: AsRef<Path>,
+{
+    let path = path.as_ref();
+    let content = std::fs::read_to_string(path).context(ReadFileSnafu { path })?;
+    let mut args = BTreeMap::new();
+
+    for line in content.lines() {
+        let arg = BuildArgument::from_str(line).context(ParseBuildArgumentSnafu)?;
+        args.insert(arg.key, arg.value);
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn from_file<P>(path: P) -> Result<Self, ParseBuildArgumentsError>
-    where
-        P: AsRef<Path>,
-    {
-        let path = path.as_ref();
-        let content = std::fs::read_to_string(path).context(ReadFileSnafu { path })?;
-        let mut args = Self::new();
-
-        for line in content.lines() {
-            let arg = BuildArgument::from_str(line).context(ParseBuildArgumentSnafu)?;
-            args.insert(arg);
-        }
-
-        Ok(args)
-    }
+    Ok(args)
 }

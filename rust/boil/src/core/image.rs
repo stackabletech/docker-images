@@ -117,7 +117,7 @@ pub struct ImageConfig {
     pub metadata: ImageMetadata,
 
     /// Shared build arguments across all versions, but can be overwritten on a image version level.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "docker::deserialize_args")]
     pub build_arguments: BuildArguments,
 
     pub versions: ImageVersions,
@@ -184,12 +184,12 @@ pub struct ImageVersionOptions {
 
     // NOTE (@Techassi): Potentially add a dependencies field here which will be automatically be
     // suffixed with _VERSION.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "docker::deserialize_args")]
     pub build_arguments: docker::BuildArguments,
 
     /// A custom path to a Dockerfile/Containerfile for a particular version of an image.
     ///
-    /// This is usefull for cases where the same image is being built differently depending on it's
+    /// This is useful for cases where the same image is being built differently depending on it's
     /// version and it is too difficult/messy to do it the same Dockerfile/Containerfile.
     #[serde(alias = "containerfile")]
     pub dockerfile: Option<PathBuf>,

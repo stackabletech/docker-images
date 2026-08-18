@@ -311,10 +311,12 @@ impl Bakefile {
         let date_time = Self::now()?;
 
         // Load build arguments from a file if the user requested it
-        let mut user_container_build_args = cli_args.build_arguments.clone();
+        let mut user_container_build_args: docker::BuildArguments =
+            docker::build_args_vec_to_btree_map(cli_args.build_arguments.clone());
+
         if let Some(path) = &cli_args.build_arguments_file {
             let build_arguments_from_file =
-                docker::BuildArguments::from_file(path).context(ParseBuildArgumentsSnafu)?;
+                docker::build_args_from_file(path).context(ParseBuildArgumentsSnafu)?;
             user_container_build_args.extend(build_arguments_from_file);
         }
 
@@ -388,40 +390,24 @@ impl Bakefile {
                 // Start of with the shared (across all versions of the same image) build arguments.
                 let mut build_arguments = image_config.build_arguments.clone();
 
-                let local_version_docker_args: Vec<_> = image_options
+                let local_version_docker_args: docker::BuildArguments = image_options
                     .local_images
                     .iter()
                     .map(|(image_name, image_version)| {
-                        docker::BuildArgument::local_image_version(
-                            image_name.to_string(),
-                            image_version.to_string(),
-                        )
+                        let key = docker::BuildArgumentKey::local_image_key(image_name);
+                        (key, image_version.to_owned())
                     })
                     .collect();
 
                 build_arguments.extend(image_options.build_arguments);
                 build_arguments.extend(local_version_docker_args);
+
                 // TODO (@Techassi): Rename this to IMAGE_VERSION
-                build_arguments.insert(docker::BuildArgument::new(
-                    "PRODUCT_VERSION".to_owned(),
-                    image_version.to_string(),
-                ));
-                build_arguments.insert(docker::BuildArgument::new(
-                    "IMAGE_REPOSITORY_URI".to_owned(),
-                    image_repository_uri.clone(),
-                ));
-                build_arguments.insert(docker::BuildArgument::new(
-                    "IMAGE_INDEX_MANIFEST_TAG".to_owned(),
-                    image_index_manifest_tag,
-                ));
-                build_arguments.insert(docker::BuildArgument::new(
-                    "IMAGE_MANIFEST_TAG".to_owned(),
-                    image_manifest_tag,
-                ));
-                build_arguments.insert(docker::BuildArgument::new(
-                    "IMAGE_MANIFEST_URI".to_owned(),
-                    image_manifest_uri.clone(),
-                ));
+                build_arguments.insert("PRODUCT_VERSION".into(), image_version.to_string());
+                build_arguments.insert("IMAGE_REPOSITORY_URI".into(), image_repository_uri.clone());
+                build_arguments.insert("IMAGE_INDEX_MANIFEST_TAG".into(), image_index_manifest_tag);
+                build_arguments.insert("IMAGE_MANIFEST_TAG".into(), image_manifest_tag);
+                build_arguments.insert("IMAGE_MANIFEST_URI".into(), image_manifest_uri.clone());
 
                 let tags = if let Some(floating_vendor_version) = floating_vendor_version.as_deref()
                 {
@@ -642,7 +628,7 @@ impl BakefileTarget {
         revision: String,
         release_version: String,
         container_build_args: docker::BuildArguments,
-        user_container_build_args: Vec<docker::BuildArgument>,
+        user_container_build_args: docker::BuildArguments,
         metadata: &MetadataOptions,
     ) -> Self {
         let config::MetadataOptions {
@@ -684,10 +670,7 @@ impl BakefileTarget {
 
         let mut arguments = container_build_args;
         arguments.extend(user_container_build_args);
-        arguments.insert(docker::BuildArgument::new(
-            "RELEASE_VERSION".to_owned(),
-            release_version,
-        ));
+        arguments.insert("RELEASE_VERSION".into(), release_version);
 
         // Labels describe Docker resources, and con be considered legacy. We
         // should use annotations instead. These labels are only added to be
