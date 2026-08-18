@@ -14,6 +14,7 @@ ARG AUTHORIZER_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 ARG CDXGEN_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
@@ -42,6 +43,7 @@ rm -rf /var/cache/yum
 # cdxgen requires Node >= 24 and is unrelated to the Node version that the
 # frontend-maven-plugin downloads for the actual build, so it gets its own Node
 # installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
 ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
@@ -115,7 +117,7 @@ rm -rf /stackable/apache-druid-${NEW_VERSION}-src
     --type js \
     --required-only \
     --no-babel \
-    --spec-version 1.6 \
+    --spec-version ${CDXGEN_SPEC_VERSION} \
     --project-version "${ORIGINAL_VERSION}" \
     --output /stackable/apache-druid-${NEW_VERSION}/druid-web-console-${NEW_VERSION}.cdx.json
 )

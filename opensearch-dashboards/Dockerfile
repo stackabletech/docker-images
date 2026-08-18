@@ -43,6 +43,7 @@ ARG NODEJS_VERSION
 ARG YARN_VERSION
 ARG CDXGEN_VERSION
 ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -144,6 +145,7 @@ npm install -g yarn@${YARN_VERSION}
 # cdxgen requires Node >= 24, which is newer than the Node version OpenSearch Dashboards
 # is built with, so it gets its own Node installation in /opt/node-cdxgen and is invoked
 # with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
@@ -193,9 +195,9 @@ for plugin in $(ls); do
 done
 EOF
 
-# --spec-version is pinned explicitly because cdxgen changes its default between releases.
-# 1.6 is the lowest version cdxgen 13 accepts as a generation target.
-RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --json-pretty --spec-version 1.6
+# --spec-version is passed explicitly because cdxgen changes its default between
+# releases. The value is a global build argument, see boil.toml.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --json-pretty --spec-version ${CDXGEN_SPEC_VERSION}
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
