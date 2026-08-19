@@ -201,9 +201,9 @@ else
     --type js \
     --required-only \
     --no-babel \
-    --spec-version ${CDXGEN_SPEC_VERSION} \
-    --project-version ${PRODUCT_VERSION} \
-    --output /stackable/app/airflow-www-${PRODUCT_VERSION}.cdx.json
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/airflow-www-${PRODUCT_VERSION}.cdx.json"
 
   # build airflow wheel from airflow root folder
   cd ../..
