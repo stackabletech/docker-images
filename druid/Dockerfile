@@ -117,9 +117,9 @@ rm -rf /stackable/apache-druid-${NEW_VERSION}-src
     --type js \
     --required-only \
     --no-babel \
-    --spec-version ${CDXGEN_SPEC_VERSION} \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
     --project-version "${ORIGINAL_VERSION}" \
-    --output /stackable/apache-druid-${NEW_VERSION}/druid-web-console-${NEW_VERSION}.cdx.json
+    --output "/stackable/apache-druid-${NEW_VERSION}/druid-web-console-${NEW_VERSION}.cdx.json"
 )
 
 # We're removing these to make the intermediate layer smaller

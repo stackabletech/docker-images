@@ -151,9 +151,9 @@ PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
     --type js \
     --required-only \
     --no-babel \
-    --spec-version ${CDXGEN_SPEC_VERSION} \
-    --project-version ${PRODUCT_VERSION} \
-    --output /stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json"
 
 # Install build to properly handle pyproject.toml
 uv pip install --no-cache-dir build

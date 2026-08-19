@@ -112,9 +112,9 @@ done
     --type js \
     --required-only \
     --no-babel \
-    --spec-version ${CDXGEN_SPEC_VERSION} \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
     --project-version "${ORIGINAL_VERSION}" \
-    --output /stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json
+    --output "/stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json"
 )
 
 # Remove sources
