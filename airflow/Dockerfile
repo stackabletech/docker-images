@@ -172,9 +172,9 @@ if [ -d "./airflow-core" ]; then
     --type js \
     --required-only \
     --no-babel \
-    --spec-version ${CDXGEN_SPEC_VERSION} \
-    --project-version ${PRODUCT_VERSION} \
-    --output /stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json"
 
   # build airflow wheel from airflow root folder
   # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
