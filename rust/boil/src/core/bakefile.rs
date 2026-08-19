@@ -86,6 +86,12 @@ pub enum TargetsError {
         versions: Vec<String>,
         image_name: String,
     },
+
+    #[snafu(display(
+        "failed to resolve local image chain. Circular dependency found: {}",
+        chain.iter().map(|(n, v)| format!("{n}={v}")).collect::<Vec<_>>().join(" -> ")
+    ))]
+    CircularDependency { chain: Vec<(String, String)> },
 }
 
 #[derive(Debug, Default)]
@@ -169,7 +175,13 @@ impl Targets {
                 .to_string_lossy()
                 .into_owned();
 
-            targets.insert_targets(image_name.to_owned(), image_config, &options, true)?;
+            targets.insert_targets(
+                image_name.to_owned(),
+                image_config,
+                &options,
+                true,
+                &mut Vec::new(),
+            )?;
         }
 
         Ok(targets)
@@ -205,7 +217,13 @@ impl Targets {
                 }
             );
 
-            targets.insert_targets(image.name.clone(), image_config, &options, true)?;
+            targets.insert_targets(
+                image.name.clone(),
+                image_config,
+                &options,
+                true,
+                &mut Vec::new(),
+            )?;
         }
 
         Ok(targets)
@@ -217,10 +235,26 @@ impl Targets {
         config: ImageConfig,
         options: &TargetsOptions,
         is_entry: bool,
+        chain: &mut Vec<(String, String)>,
     ) -> Result<(), TargetsError> {
-        for image_options in (*config.versions).values() {
+        for (version, image_options) in (*config.versions).iter() {
             if !options.only_entry {
-                // TODO (@Techassi): Add cycle detection
+                let dependency = (image_name.clone(), version.clone());
+
+                // If the current image name and image version combination is already in the current
+                // dependency chain, we hit a circular dependency and abort immediately.
+                ensure!(
+                    !chain.contains(&dependency),
+                    CircularDependencySnafu {
+                        chain: chain
+                            .iter()
+                            .cloned()
+                            .chain(std::iter::once(dependency))
+                            .collect::<Vec<_>>(),
+                    }
+                );
+                chain.push(dependency);
+
                 for (image_name, image_version) in &image_options.local_images {
                     if self
                         .get(image_name)
@@ -247,8 +281,12 @@ impl Targets {
                     );
 
                     // Wowzers, recursion!
-                    self.insert_targets(image_name.clone(), image_config, options, false)?;
+                    self.insert_targets(image_name.clone(), image_config, options, false, chain)?;
                 }
+
+                // Remove the last target node once we are done with the current image name + image
+                // version combination.
+                chain.pop();
             }
         }
 
