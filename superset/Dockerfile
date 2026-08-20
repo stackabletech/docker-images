@@ -41,6 +41,9 @@ ARG AUTHLIB_VERSION
 ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
+ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
 ARG NVM_VERSION
@@ -70,6 +73,8 @@ RUN microdnf update \
         tar \
         # Needed by `npm run build`:
         which \
+        # Needed to unpack the Node tarball used for cdxgen
+        xz \
         zstd \
     && microdnf clean all && \
     rm -rf /var/cache/yum
@@ -93,6 +98,18 @@ nvm install "$NODEJS_VERSION" --latest-npm
 
 node --version
 npm --version
+
+# cdxgen creates the SBOM for the frontend (npm) dependencies of Superset.
+# These are not covered by cyclonedx-py, which only looks at the Python environment.
+# cdxgen requires Node >= 24, which is newer than the Node version Superset pins for the
+# frontend build, so it gets its own Node installation in /opt/node-cdxgen and is invoked
+# with that prepended to PATH. This keeps it out of the way of nvm entirely.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 # Upgrade pip to the latest version
@@ -122,6 +139,21 @@ cd superset-frontend
 
 npm ci
 npm run build
+
+# Create the SBOM for the frontend assets.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json"
 
 # Install build to properly handle pyproject.toml
 uv pip install --no-cache-dir build
