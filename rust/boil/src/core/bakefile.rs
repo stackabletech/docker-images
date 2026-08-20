@@ -284,8 +284,15 @@ impl Targets {
                     self.insert_targets(image_name.clone(), image_config, options, false, chain)?;
                 }
 
-                // Remove the last target node once we are done with the current image name + image
-                // version combination.
+                // Remove the last dependency as soon as we are done looking at that particular
+                // dependency (name+version combination). We do this because we are not decending
+                // down the chain for this particular dependency anymore, but instead move to the
+                // next dependency at the same level of depth. Illustration:
+                //
+                // foo
+                //   bar
+                //     (no further deps, pop "bar")
+                //   baz
                 chain.pop();
             }
         }
