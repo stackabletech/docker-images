@@ -42,6 +42,8 @@ ARG OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION
 ARG NODEJS_VERSION
 ARG YARN_VERSION
 ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 ARG STACKABLE_USER_UID
 ARG TARGETARCH
 
@@ -138,7 +140,16 @@ microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/usr/local --strip-components=1
-npm install -g yarn@${YARN_VERSION} @cyclonedx/cdxgen@${CDXGEN_VERSION}
+npm install -g yarn@${YARN_VERSION}
+
+# cdxgen requires Node >= 24, which is newer than the Node version OpenSearch Dashboards
+# is built with, so it gets its own Node installation in /opt/node-cdxgen and is invoked
+# with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -184,7 +195,9 @@ for plugin in $(ls); do
 done
 EOF
 
-RUN cdxgen --target yarn --json-pretty
+# --spec-version is passed explicitly because cdxgen changes its default between
+# releases. The value is a global build argument, see boil.toml.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce

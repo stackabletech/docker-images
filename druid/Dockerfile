@@ -12,6 +12,10 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
@@ -33,6 +37,18 @@ microdnf install python-pyyaml
 
 microdnf clean all
 rm -rf /var/cache/yum
+
+# Install Node and cdxgen to create the SBOM of the web console (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# cdxgen requires Node >= 24 and is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node
+# installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -86,6 +102,25 @@ mv distribution/target/apache-druid-${NEW_VERSION}-bin/apache-druid-${NEW_VERSIO
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" distribution/target/bom.json
 mv distribution/target/bom.json /stackable/apache-druid-${NEW_VERSION}/apache-druid-${NEW_VERSION}.cdx.json
 rm -rf /stackable/apache-druid-${NEW_VERSION}-src
+
+# Create the SBOM for the web console, which is an npm project and therefore not covered
+# by the CycloneDX Maven plugin.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+(
+  cd web-console
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${ORIGINAL_VERSION}" \
+    --output "/stackable/apache-druid-${NEW_VERSION}/druid-web-console-${NEW_VERSION}.cdx.json"
+)
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available

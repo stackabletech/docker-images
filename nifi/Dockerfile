@@ -12,11 +12,27 @@ FROM local-image/java-devel AS nifi-builder
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
+
+# Install Node and cdxgen to create the SBOM of the NiFi frontend (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# cdxgen requires Node >= 24 and is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node
+# installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -81,6 +97,25 @@ for nar in $NARS; do
         cp "$match" "/stackable/nifi-${NEW_VERSION}/$nar.cdx.json"
     fi
 done
+
+# Create the SBOM for the frontend, which is an npm project and therefore not covered by
+# the CycloneDX Maven plugin.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+(
+  cd nifi-frontend/src/main/frontend
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${ORIGINAL_VERSION}" \
+    --output "/stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json"
+)
 
 # Remove sources
 (cd .. && rm -r ${PRODUCT_VERSION})
