@@ -4,6 +4,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2026-08-21
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.2..boil-0.3.3)
+
+### Features
+
+- Add floating-tag tool ([#1607](https://github.com/stackabletech/docker-images/pull/1607)).
+- Add circular local image dependency detection ([#1605](https://github.com/stackabletech/docker-images/pull/1605)).
+
+### Bug Fixes
+
+- Only include prerelease data if present ([#1606](https://github.com/stackabletech/docker-images/pull/1606)).
+
 ## [0.3.2] - 2026-08-18
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.1..boil-0.3.2)
