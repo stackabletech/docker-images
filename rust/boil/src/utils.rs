@@ -35,12 +35,13 @@ impl VersionExt for semver::Version {
         if self.is_floating() {
             self.to_string()
         } else {
-            format!(
-                "{major}.{minor}-{pre}",
-                major = self.major,
-                minor = self.minor,
-                pre = self.pre
-            )
+            let mut version = format!("{major}.{minor}", major = self.major, minor = self.minor,);
+            if !self.pre.is_empty() {
+                version.push('-');
+                version.push_str(&self.pre);
+            }
+
+            version
         }
     }
 }
@@ -167,5 +168,23 @@ mod tests {
         let version =
             semver::Version::from_str(input).expect("input must be valid semantic version");
         assert!(!version.is_floating());
+    }
+
+    #[rstest]
+    // Already considered floating, returned unchanged
+    #[case("0.0.0-pr1234-extra-tag-data1234-amd64", None)]
+    #[case("0.0.0-pr1234-extra-tag-data1234", None)]
+    #[case("0.0.0-dev-extra-tag-data1234", None)]
+    #[case("0.0.0-pr1234", None)]
+    #[case("0.0.0-dev", None)]
+    // Not floating, so the expected tag is different from the input
+    #[case("1.2.3-pr321", Some("1.2-pr321"))]
+    #[case("1.2.3-rc.1", Some("1.2-rc.1"))]
+    #[case("1.2.3", Some("1.2"))]
+    fn floating_tag(#[case] input: &str, #[case] expected: Option<&str>) {
+        let floating_version = semver::Version::from_str(input)
+            .expect("input must be valid semantic version")
+            .floating();
+        assert_eq!(floating_version, expected.unwrap_or(input));
     }
 }
