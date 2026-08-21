@@ -2,7 +2,7 @@ use clap::Parser;
 use snafu::{ResultExt, Snafu};
 
 use crate::{
-    cli::{Cli, Command, ImageCommand},
+    cli::{Cli, Command, ImageCommand, ToolsCommand},
     config::Config,
 };
 
@@ -83,6 +83,12 @@ async fn main() -> Result<(), Error> {
             }
         },
         Command::Images(arguments) => cmd::image::list_images(arguments).context(ImageSnafu),
+        Command::Tools(arguments) => match arguments.command {
+            ToolsCommand::FloatingTag(arguments) => {
+                cmd::tools::floating_tag(arguments);
+                Ok(())
+            }
+        },
         Command::Completions(arguments) => {
             cmd::completions::run_command(arguments);
             Ok(())
