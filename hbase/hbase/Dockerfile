@@ -11,6 +11,9 @@ ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
+ARG SBOM_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 
 # Setting this to anything other than "true" will keep the cache folders around (e.g. for Maven, NPM etc.)
 # This can be used to speed up builds when disk space is of no concern.
@@ -18,11 +21,31 @@ ARG DELETE_CACHES="true"
 
 COPY hbase/licenses /licenses
 
+RUN <<EOF
+# Install Node, cdxgen and Python to create the SBOM of the web UI (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# Python runs hbase_webapps_deps.py.
+# cdxgen requires Node >= 24, so it gets its own Node installation in /opt/node-sbom and
+# is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-sbom
+curl "https://repo.stackable.tech/repository/packages/node/node-v${SBOM_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-sbom --strip-components=1
+PATH="/opt/node-sbom/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+
+microdnf update
+microdnf install python3
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
 USER ${STACKABLE_USER_UID}
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/patchable.toml /stackable/src/hbase/hbase/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/patches/${PRODUCT_VERSION} /stackable/src/hbase/hbase/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 hbase/hbase/stackable/hbase_webapps_deps.py /stackable/hbase_webapps_deps.py
 
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
 # Cache mounts are owned by root by default
@@ -36,7 +59,9 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 # builder containers will share the same cache and the `rm -rf` commands will fail
 # with a "directory not empty" error on the first builder to finish, as other builders
 # are still working in the cache directory.
-RUN --mount=type=cache,id=maven-hbase-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository <<EOF
+RUN --mount=type=cache,id=maven-hbase-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.m2/repository \
+  --mount=type=cache,id=npm-hbase-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},target=/stackable/.npm \
+  <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT_VERSION})"
 
 # Make Maven aware of custom Stackable libraries
@@ -70,6 +95,26 @@ mvn \
 tar -xzf hbase-assembly/target/hbase-${NEW_VERSION}-bin.tar.gz -C /stackable/
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hbase-assembly/target/bom.json
 mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VERSION}.cdx.json
+
+# Create the SBOM for the web UI JavaScript dependencies. These are unpacked from webjars
+# by the maven-dependency-plugin instead of being declared as project dependencies, so the
+# CycloneDX Maven plugin does not cover them, see hbase_webapps_deps.py.
+(
+  export PATH="/opt/node-sbom/bin:$PATH"
+  WEBAPPS_SBOM_DIR="$(mktemp --directory)"
+  python3 /stackable/hbase_webapps_deps.py . "${ORIGINAL_VERSION}" "${WEBAPPS_SBOM_DIR}/package.json"
+  cd "${WEBAPPS_SBOM_DIR}"
+  # cdxgen needs a lockfile to resolve the dependency tree. The webjars are pre-built browser
+  # bundles that inline their dependencies, so the transitive packages are shipped as well and
+  # belong in the SBOM.
+  npm install --package-lock-only --no-audit --no-fund
+  cdxgen \
+    --type js \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    `# cdxgen would otherwise name the root component after the scratch directory` \
+    --project-name hbase-webapps \
+    --output "/stackable/hbase-${NEW_VERSION}/hbase-webapps-${NEW_VERSION}.cdx.json"
+)
 
 # Remove sources
 (cd .. && rm -r ${PRODUCT_VERSION})
