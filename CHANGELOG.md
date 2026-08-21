@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
 - nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
+- trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
+- hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
 
 ### Changed
 

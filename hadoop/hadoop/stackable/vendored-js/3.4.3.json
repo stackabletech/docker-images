@@ -1,0 +1,122 @@
+{
+  "name": "hadoop-hdfs-webapps",
+  "scan-dirs": [
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps",
+    "hadoop-hdfs-project/hadoop-hdfs-rbf/src/main/webapps",
+    "hadoop-tools/hadoop-sls/src/main/html"
+  ],
+  "libraries": [
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/bootstrap-3.4.1/js/bootstrap.js",
+      "purl": "pkg:npm/bootstrap@3.4.1",
+      "license": "MIT",
+      "sha256": "dbd2a35e72edc7d6bde483481a912f1c38aa57fab2747d9b071d317339ee03a2"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/bootstrap-3.4.1/js/bootstrap.min.js",
+      "purl": "pkg:npm/bootstrap@3.4.1",
+      "license": "MIT",
+      "sha256": "9ee2fcff6709e4d0d24b09ca0fc56aade12b4961ed9c43fd13b03248bfb57afe"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/bootstrap-3.4.1/js/npm.js",
+      "purl": "pkg:npm/bootstrap@3.4.1",
+      "license": "MIT",
+      "note": "Part of the Bootstrap distribution, it only requires the other Bootstrap files.",
+      "sha256": "c7aa82a1aa7d45224a38d926d2adaff7fe4aef5bcdafa2a47bdac057f4422c2d"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/bootstrap-3.4.1/js/bootstrap-editable.min.js",
+      "purl": "pkg:npm/x-editable@1.5.0",
+      "license": "MIT",
+      "note": "Version taken from the file header. 1.5.0 was never published to npm, but advisories are matched against version ranges, so the npm purl is still the useful identity.",
+      "sha256": "8e4041866b100f3afe72c70c1dd5d6405729ba0e327f07e14c4023d9d657753c"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/d3-v4.1.1.min.js",
+      "purl": "pkg:npm/d3@4.1.0",
+      "license": "BSD-3-Clause",
+      "note": "The file name claims 4.1.1, but the file is byte-identical to build/d3.min.js of npm d3 4.1.0 and its header says 4.1.0.",
+      "sha256": "3181906226d79dd39f94bfb7267fce2d077809cc3a23f23e87ea3f02ffae799d"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/dust-full-2.0.0.min.js",
+      "purl": "pkg:npm/dustjs-linkedin@2.0.1",
+      "license": "MIT",
+      "note": "The file is byte-identical in dustjs-linkedin 2.0.1 through 2.2.10, so the release it was taken from cannot be determined by hashing and the lowest is recorded. The file name claims 2.0.0, which is the version of the dust build it contains rather than a release that ships this file.",
+      "sha256": "f11ba668337b8b61319b430164f631648b41949887bb8a7b9cc515f87bba3e3b"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/dust-helpers-1.1.1.min.js",
+      "purl": "pkg:npm/dustjs-helpers@1.1.1",
+      "license": "MIT",
+      "note": "Version taken from the file name. It matches no published dustjs-helpers tarball, so it is either modified or predates the npm releases.",
+      "sha256": "ff65ffc9e919f9ab7922d82db9ea9d7840a7543001ccba2a8c4f11195a08a7f6"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/jquery-3.6.0.min.js",
+      "purl": "pkg:npm/jquery@3.6.0",
+      "license": "MIT",
+      "sha256": "80f04717f32ea0320c5e8618fbacedd1fee3a8775ad8292140a6113551d4b5b0"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/jquery.dataTables.min.js",
+      "purl": "pkg:npm/datatables.net@1.11.5",
+      "license": "MIT",
+      "sha256": "2e288f534e4f2a5b1f4d17cc62149068ab6ef1a8dac45832b387e000719f28a3"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/dataTables.bootstrap.js",
+      "purl": null,
+      "name": "datatables.net-bs",
+      "note": "The DataTables Bootstrap 3 integration. It carries no version and matches no published tarball, so it is recorded without a version.",
+      "sha256": "205a054048f80cde368d980a57a66112d2f548c89b8f7a0202b23d06ba624627"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/moment.min.js",
+      "purl": "pkg:npm/moment@2.29.4",
+      "license": "MIT",
+      "sha256": "9aec203698e15111ceda22d99911f578505e16d9dd92f17be8d31ca4e29f6990"
+    },
+    {
+      "file": "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/json-bignum.js",
+      "purl": null,
+      "name": "json-bignum",
+      "note": "Vendored from https://github.com/datalanche/json-bignum without a version and modified, so it matches no published tarball.",
+      "sha256": "243931ed9a223e3eabb3d7634d3ae9c735f5aa2ec6c5ba6ff54ce18c5dc47236"
+    },
+    {
+      "file": "hadoop-tools/hadoop-sls/src/main/html/js/thirdparty/jquery.js",
+      "purl": "pkg:npm/jquery@3.5.1",
+      "license": "MIT",
+      "sha256": "416a3b2c3bf16d64f6b5b6d0f7b079df2267614dd6847fc2f3271b4409233c37"
+    },
+    {
+      "file": "hadoop-tools/hadoop-sls/src/main/html/js/thirdparty/d3.v3.js",
+      "purl": "pkg:npm/d3@3.2.7",
+      "license": "BSD-3-Clause",
+      "note": "Version taken from the file header. It matches no published d3 tarball, so it is probably a custom build.",
+      "sha256": "2085bd03d15690b448e136c590d6982ed7397e730407fed1d414304c81761315"
+    },
+    {
+      "file": "hadoop-tools/hadoop-sls/src/main/html/js/thirdparty/bootstrap.min.js",
+      "purl": null,
+      "name": "bootstrap",
+      "license": "Apache-2.0",
+      "note": "Bootstrap 2.x, which was Apache-2.0 licensed. The file carries no version and matches no published tarball, so no version is recorded. Its header says \"Copyright 2012 Twitter, Inc.\".",
+      "sha256": "eabb9d96942adad6cbfbf964a4fe53c5bc585dd330cb829665ee15bbf2ca4f1d"
+    }
+  ],
+  "own": [
+    "hadoop-hdfs-project/hadoop-hdfs-rbf/src/main/webapps/router/explorer.js",
+    "hadoop-hdfs-project/hadoop-hdfs-rbf/src/main/webapps/router/federationhealth.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/datanode/dn.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/hdfs/dfshealth.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/hdfs/explorer.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/journal/jn.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/secondary/snn.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/dfs-dust.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/histogram-hostip.js",
+    "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps/static/rest-csrf.js"
+  ]
+}

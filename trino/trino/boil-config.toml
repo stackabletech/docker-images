@@ -2,10 +2,28 @@
 java-devel = "24" # Same version as the "trino" image
 "trino/airlift" = "361" # https://github.com/trinodb/trino/blob/477/pom.xml#L184 (dep.airlift.version)
 
+[versions."477".build-arguments]
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
+
 [versions."479".local-images]
 java-devel = "25" # Same version as the "trino" image
 "trino/airlift" = "386" # https://github.com/trinodb/trino/blob/479/pom.xml#L185 (dep.airlift.version)
 
+[versions."479".build-arguments]
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
+
 [versions."481".local-images]
 java-devel = "25" # Same version as the "trino" image
 "trino/airlift" = "424" # https://github.com/trinodb/trino/blob/481/pom.xml#L188 (dep.airlift.version)
+
+[versions."481".build-arguments]
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
