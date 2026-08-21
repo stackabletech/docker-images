@@ -3,15 +3,17 @@ use std::{path::PathBuf, sync::LazyLock};
 use clap::{Parser, Subcommand};
 use regex::Regex;
 use snafu::Snafu;
+use url::Host;
 
 mod build;
 mod completions;
 mod image;
+mod tools;
 
 pub use build::*;
 pub use completions::*;
 pub use image::*;
-use url::Host;
+pub use tools::*;
 
 // This is derived from the general rule where the length of the tag can be up to 128 chars
 // See: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
@@ -75,6 +77,9 @@ pub enum Command {
 
     /// Alias for `image list`.
     Images(ImageListArguments),
+
+    /// Various small tools for working with images and versions.
+    Tools(ToolsArguments),
 
     /// Generate shell completions.
     Completions(CompletionsArguments),
