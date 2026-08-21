@@ -1,0 +1,131 @@
+{
+  "name": "spark-web-ui",
+  "scan-dirs": [
+    "core/src/main/resources/org/apache/spark/ui/static"
+  ],
+  "libraries": [
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/bootstrap.bundle.min.js",
+      "purl": "pkg:npm/bootstrap@4.4.1",
+      "license": "MIT",
+      "sha256": "4d371899aba195b1f0cba3a70de300fb5b327a322cfbe3a30d77af8456d8494e"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/dataTables.rowsGroup.js",
+      "purl": null,
+      "name": "dataTables.rowsGroup",
+      "version": "1.0.0",
+      "license": "MIT",
+      "note": "RowsGroup for DataTables, a plugin that was never published to npm. Version taken from the file header.",
+      "sha256": "5856c937e4fe8a921364a14de58f406788db336ed9066b3aed897c0ced755c42"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/jquery-3.5.1.min.js",
+      "purl": "pkg:npm/jquery@3.5.1",
+      "license": "MIT",
+      "sha256": "f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.mustache.js",
+      "purl": "pkg:npm/mustache@3.0.1",
+      "license": "MIT",
+      "note": "Despite the file name this is mustache.js itself, not a jQuery plugin. Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "sha256": "520f7bf7d54c8dde783aaf6f0dac66c9edc55da01716ccabca6888686822e7d6"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.blockUI.min.js",
+      "purl": null,
+      "name": "jquery.blockUI",
+      "version": "20141123",
+      "note": "jQuery BlockUI. Version taken from the file header, which reads \"v20141123\", a date rather than a release, so there is no matching npm version to point a purl at. The header says \"Dual licensed: MIT/GPL\" without naming a GPL version, so no license is recorded.",
+      "sha256": "806aedff52ac822f2adc5797073e1e5c5cec32eb9f15f2319cb32a347dcd232b"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.cookies.2.2.0.min.js",
+      "purl": null,
+      "name": "jquery.cookies",
+      "version": "2.2.0",
+      "note": "Version taken from the file name. Never published to npm under this name. The header says \"Licensed under the BSD, MIT, and GPL (your choice!)\", so no license is recorded.",
+      "sha256": "10fdbfbb18a947e7024457f52fd2dfe94ebddd612156c886731474b02aa45d23"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/sorttable.js",
+      "purl": null,
+      "name": "sorttable",
+      "version": "2",
+      "note": "Stuart Langridge's sorttable, \"version 2, 7th April 2007\" per the header. Unrelated to the npm package of the same name and never published there.",
+      "sha256": "718fc917df5cc75d545ddcc1465c2af7f4b70332abb2a3a592b1a36fda3f309a"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/d3.min.js",
+      "purl": "pkg:npm/d3@7.8.5",
+      "license": "ISC",
+      "sha256": "d6b03aefc9f6c44c7bc78713679c78c295028fa914319119e5cc4b4954855b1c"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/d3-flamegraph.min.js",
+      "purl": "pkg:npm/d3-flame-graph@4.1.3",
+      "license": "Apache-2.0",
+      "note": "Version taken from the file header, which is the jsDelivr URL it was downloaded from.",
+      "sha256": "10c2ac45bb9ad73e12fdebf434fbb29aa05b85b7bab660c2751e885c51bd5356"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/dagre-d3.min.js",
+      "purl": "pkg:npm/dagre-d3@0.6.4",
+      "license": "MIT",
+      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "sha256": "b1e946243fc2aa7ba500f7b8fd68c6c8a6fcbbb0329e00389b6a05e20e39130e"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/graphlib-dot.min.js",
+      "purl": "pkg:npm/graphlib-dot@1.0.2",
+      "license": "MIT",
+      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "sha256": "ae68701d5a547f47eb65ea79a4e2f3179d23c1b8280b2856e16e68555231a409"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.dataTables.min.js",
+      "purl": "pkg:npm/datatables.net@1.13.11",
+      "license": "MIT",
+      "sha256": "a33146fad8c7228dc4dc90043e3e50d51cead8b2267aeac32b0a8f3be8a52b86"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/dataTables.bootstrap4.min.js",
+      "purl": "pkg:npm/datatables.net-bs4@1.13.7",
+      "license": "MIT",
+      "note": "The file is byte-identical in 1.13.7, 1.13.8 and 1.13.10, so the release it was taken from cannot be determined by hashing. The lowest one is recorded.",
+      "sha256": "e8dd8ff4b7568aa33170d6750c480e8cac29999da8a3a3e78dea13a4dfd8c8ef"
+    },
+    {
+      "file": "core/src/main/resources/org/apache/spark/ui/static/vis-timeline-graph2d.min.js",
+      "purl": "pkg:npm/vis-timeline@7.7.2",
+      "license": "(Apache-2.0 OR MIT)",
+      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "bundles": [
+        {
+          "purl": "pkg:npm/moment@2.29.4",
+          "license": "MIT"
+        }
+      ],
+      "sha256": "dedba3ff9bc4b36da23310a8aef217a036cc530e94e9331b507cda93ba04ad0f"
+    }
+  ],
+  "own": [
+    "core/src/main/resources/org/apache/spark/ui/static/environmentpage.js",
+    "core/src/main/resources/org/apache/spark/ui/static/executorspage.js",
+    "core/src/main/resources/org/apache/spark/ui/static/flamegraph.js",
+    "core/src/main/resources/org/apache/spark/ui/static/historypage-common.js",
+    "core/src/main/resources/org/apache/spark/ui/static/historypage.js",
+    "core/src/main/resources/org/apache/spark/ui/static/initialize-tooltips.js",
+    "core/src/main/resources/org/apache/spark/ui/static/log-view.js",
+    "core/src/main/resources/org/apache/spark/ui/static/scroll-button.js",
+    "core/src/main/resources/org/apache/spark/ui/static/spark-dag-viz.js",
+    "core/src/main/resources/org/apache/spark/ui/static/stagepage.js",
+    "core/src/main/resources/org/apache/spark/ui/static/streaming-page.js",
+    "core/src/main/resources/org/apache/spark/ui/static/structured-streaming-page.js",
+    "core/src/main/resources/org/apache/spark/ui/static/table.js",
+    "core/src/main/resources/org/apache/spark/ui/static/timeline-view.js",
+    "core/src/main/resources/org/apache/spark/ui/static/utils.js",
+    "core/src/main/resources/org/apache/spark/ui/static/webui.js"
+  ]
+}

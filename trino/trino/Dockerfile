@@ -8,12 +8,38 @@ ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG TRINO_AIRLIFT_VERSION
+ARG TARGETARCH
+ARG SBOM_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT_VERSION} /stackable/src/trino/trino/stackable/patches/${PRODUCT_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=airlift-builder /stackable/patched-libs /stackable/patched-libs
+
+RUN <<EOF
+# Install Node, cdxgen and Python to create the SBOMs of the web UI dependencies, which the
+# CycloneDX Maven plugin does not cover. Python runs shared/sbom/vendored_js.py.
+# cdxgen requires Node >= 24, which is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node installation in
+# /opt/node-sbom and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-sbom
+curl "https://repo.stackable.tech/repository/packages/node/node-v${SBOM_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-sbom --strip-components=1
+PATH="/opt/node-sbom/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+
+microdnf update
+microdnf install python3
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/vendored_js.py /stackable/vendored_js.py
+COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/vendored-js/${PRODUCT_VERSION}.json /stackable/vendored-js.json
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
@@ -69,6 +95,63 @@ rm -r plugin/*/target core/trino-server/target/trino-server-${NEW_VERSION}
 # while the raw output folder does not
 tar -xzf core/trino-server/target/trino-server-${NEW_VERSION}.tar.gz -C /stackable
 mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trino-server-${NEW_VERSION}.cdx.json
+
+# The web UI is three separate things that the CycloneDX Maven plugin does not cover, so each
+# gets its own SBOM:
+#   webapp/src      the npm project behind the current UI, bundled by webpack
+#   webapp-preview  the npm project behind the preview UI, bundled by vite
+#   webapp/vendor   pre-built libraries checked into the source tree, see vendored_js.py
+# Trino 483 renamed these (webapp-preview became webapp and the old UI moved to webapp-legacy),
+# so this needs revisiting when such a version is added. The paths below fail the build rather
+# than silently producing nothing.
+(
+  export PATH="/opt/node-sbom/bin:$PATH"
+  WEB_UI="core/trino-web-ui/src/main/resources"
+
+  # cdxgen resolves the dependency tree from the lockfile, and returns nothing at all when a
+  # project has both a package-lock.json and a yarn.lock, which webapp/src does. Copying just the
+  # manifest and the npm lockfile into a scratch directory avoids that.
+  # --required-only keeps what the lockfile marks as non-dev. Note that this is wider than what
+  #   ends up in the bundle: upstream declares packages such as happy-dom and js-yaml as runtime
+  #   dependencies even though the bundler drops them, so they are reported here as well. That is
+  #   the same trade-off the other frontend SBOMs make, and over-reporting is preferred over
+  #   missing a component.
+  # --no-babel disables the usage analysis, which would otherwise mark every package that is not
+  #   imported directly as optional and thereby drop genuine transitive runtime dependencies. It
+  #   has nothing to look at here anyway, because only the manifest and the lockfile are copied.
+  # --project-version is passed because the frontends declare a placeholder version upstream, and
+  #   --project-name because cdxgen otherwise names the root component after the scratch directory.
+  for FRONTEND in "webapp/src:trino-web-ui" "webapp-preview:trino-web-ui-preview"; do
+    SOURCE="${WEB_UI}/${FRONTEND%%:*}"
+    NAME="${FRONTEND##*:}"
+
+    SCRATCH="$(mktemp --directory)"
+    cp "${SOURCE}/package.json" "${SOURCE}/package-lock.json" "${SCRATCH}/"
+
+    (
+      cd "${SCRATCH}"
+      cdxgen \
+        --type js \
+        --required-only \
+        --no-babel \
+        --spec-version "${CDXGEN_SPEC_VERSION}" \
+        --project-name "${NAME}" \
+        --project-version "${PRODUCT_VERSION}" \
+        --output "/stackable/trino-server-${NEW_VERSION}/${NAME}-${NEW_VERSION}.cdx.json"
+    )
+    rm -r "${SCRATCH}"
+  done
+
+  # The vendored libraries have no package manifest and no lockfile, so cdxgen cannot see them.
+  # vendored-js.json records them and pins the SHA-256 of every file, which fails the build if a
+  # Trino upgrade changed any of them and the recorded versions have to be revisited.
+  python3 /stackable/vendored_js.py bom \
+    /stackable/vendored-js.json \
+    . \
+    "/stackable/trino-server-${NEW_VERSION}/trino-web-ui-vendor-${NEW_VERSION}.cdx.json" \
+    "${PRODUCT_VERSION}" \
+    "${CDXGEN_SPEC_VERSION}"
+)
 
 # Delete intermediate build products to free some space and keep runners happy
 (cd .. && rm -r ${PRODUCT_VERSION})
