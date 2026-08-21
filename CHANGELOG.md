@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
+- hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1610]).
 
 ### Changed
 
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file.
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
 [#1596]: https://github.com/stackabletech/docker-images/pull/1596
 [#1600]: https://github.com/stackabletech/docker-images/pull/1600
+[#1610]: https://github.com/stackabletech/docker-images/pull/1610
 
 ## [26.7.0] - 2026-07-21
 
