@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
+- nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
 
 ### Changed
 
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file.
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
 [#1596]: https://github.com/stackabletech/docker-images/pull/1596
 [#1600]: https://github.com/stackabletech/docker-images/pull/1600
+[#1611]: https://github.com/stackabletech/docker-images/pull/1611
 [#1616]: https://github.com/stackabletech/docker-images/pull/1616
 
 ## [26.7.0] - 2026-07-21
