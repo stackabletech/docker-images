@@ -147,10 +147,17 @@ npm run build
 #   also drop all transitive runtime dependencies.
 # --project-version is passed because the frontends declare a placeholder version
 #   upstream.
+# --exclude skips cypress-base, which is an independent npm project (it has its own
+#   package-lock.json) for the end-to-end tests. Its dependencies are never installed
+#   or shipped in this image, so they have no place in the SBOM. Excluding it also
+#   avoids a cdxgen bug: for such nested projects it emits the `license` string from
+#   package.json verbatim instead of a CycloneDX `licenses` array, which makes cdxgen
+#   fail its own schema validation.
 PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
     --type js \
     --required-only \
     --no-babel \
+    --exclude "**/cypress-base/**" \
     --spec-version "${CDXGEN_SPEC_VERSION}" \
     --project-version "${PRODUCT_VERSION}" \
     --output "/stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json"
