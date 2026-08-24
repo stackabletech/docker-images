@@ -114,7 +114,7 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     for (name, tag_sets) in image_manifest_uris {
         let tag_count = tag_sets.iter().fold(0, |acc, tag_set| acc + tag_set.len());
 
-        // Add the image name line first. It also includes the number to tags for that particular
+        // Add the image name line first. It also includes the number of tags for that particular
         // image.
         built_images.push_str(&format!(
             "{name} ({tag_count} tag{plural}):\n",
