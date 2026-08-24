@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
+- superset: Fix the broken builds by excluding the `cypress-base` end-to-end test project from the frontend SBOM ([#1616]).
 
 ### Removed
 
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file.
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
 [#1596]: https://github.com/stackabletech/docker-images/pull/1596
 [#1600]: https://github.com/stackabletech/docker-images/pull/1600
+[#1616]: https://github.com/stackabletech/docker-images/pull/1616
 
 ## [26.7.0] - 2026-07-21
 
