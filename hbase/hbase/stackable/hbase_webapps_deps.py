@@ -53,11 +53,17 @@ def webjars(server_pom, versions):
         if fields.get("groupId") != "org.webjars":
             continue
         if not fields.get("artifactId") or not fields.get("version"):
-            raise SystemExit(f"<artifactItem> without an artifactId or version: {fields}")
+            raise SystemExit(
+                f"<artifactItem> without an artifactId or version: {fields}"
+            )
 
-        version = PROPERTY.sub(lambda match: versions.get(match[1], match[0]), fields["version"])
+        version = PROPERTY.sub(
+            lambda match: versions.get(match[1], match[0]), fields["version"]
+        )
         if "${" in version:
-            raise SystemExit(f"Cannot resolve the version of {fields['artifactId']} from the root pom: {version}")
+            raise SystemExit(
+                f"Cannot resolve the version of {fields['artifactId']} from the root pom: {version}"
+            )
 
         # bootstrap is unpacked twice, once for its JavaScript and once for its CSS.
         dependencies[fields["artifactId"]] = version
@@ -65,14 +71,21 @@ def webjars(server_pom, versions):
     # Guard against upstream restructuring the pom, which would otherwise silently produce an SBOM
     # without any components.
     if not dependencies:
-        raise SystemExit("No org.webjars <artifactItem> found in hbase-server/pom.xml, did the pom layout change?")
+        raise SystemExit(
+            "No org.webjars <artifactItem> found in hbase-server/pom.xml, did the pom layout change?"
+        )
     return dependencies
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("source_root", type=Path, help="the HBase source tree")
-    parser.add_argument("version", help="the HBase version, used as the version of the generated package")
+    parser.add_argument(
+        "version",
+        help="the HBase version, used as the version of the generated package",
+    )
     parser.add_argument("output", type=Path, help="the package.json to write")
     arguments = parser.parse_args()
 
@@ -80,7 +93,12 @@ def main():
         ElementTree.parse(arguments.source_root / "hbase-server/pom.xml"),
         properties(ElementTree.parse(arguments.source_root / "pom.xml")),
     )
-    package = {"name": "hbase-webapps", "version": arguments.version, "private": True, "dependencies": dependencies}
+    package = {
+        "name": "hbase-webapps",
+        "version": arguments.version,
+        "private": True,
+        "dependencies": dependencies,
+    }
     arguments.output.write_text(json.dumps(package, indent=2) + "\n")
 
     summary = ", ".join(f"{name}@{version}" for name, version in dependencies.items())

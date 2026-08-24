@@ -53,7 +53,9 @@ def verify(manifest, source_root):
 
     for library in manifest["libraries"]:
         if library["file"] in listed or library["file"] in own:
-            problems.append(f"DUPLICATE {library['file']}\n  Listed more than once in the manifest.")
+            problems.append(
+                f"DUPLICATE {library['file']}\n  Listed more than once in the manifest."
+            )
         listed[library["file"]] = library
 
     found = scan(manifest, source_root)
@@ -76,9 +78,13 @@ def verify(manifest, source_root):
 
     for file in listed:
         if file not in found:
-            problems.append(f"GONE      {file}\n  Listed in the manifest but no longer in the source tree.")
+            problems.append(
+                f"GONE      {file}\n  Listed in the manifest but no longer in the source tree."
+            )
     for file in sorted(own - found.keys()):
-        problems.append(f'GONE      {file}\n  Listed in "own" but no longer in the source tree.')
+        problems.append(
+            f'GONE      {file}\n  Listed in "own" but no longer in the source tree.'
+        )
 
     return found, problems
 
@@ -121,7 +127,9 @@ def build_bom(manifest, component_version, spec_version):
 
         component = components[key]
         if sha256:
-            component.setdefault("hashes", []).append({"alg": "SHA-256", "content": sha256})
+            component.setdefault("hashes", []).append(
+                {"alg": "SHA-256", "content": sha256}
+            )
         component["evidence"]["occurrences"].append({"location": location})
 
     for library in manifest["libraries"]:
@@ -145,18 +153,32 @@ def build_bom(manifest, component_version, spec_version):
                 "name": manifest["name"],
                 "version": component_version,
             },
-            "tools": {"components": [{"type": "application", "name": "vendored_js.py", "group": "tech.stackable"}]},
+            "tools": {
+                "components": [
+                    {
+                        "type": "application",
+                        "name": "vendored_js.py",
+                        "group": "tech.stackable",
+                    }
+                ]
+            },
         },
         "components": list(components.values()),
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     commands = parser.add_subparsers(dest="command", required=True)
 
-    check_command = commands.add_parser("check", help="report every mismatch between the manifest and the source tree")
-    bom_command = commands.add_parser("bom", help="write the SBOM the manifest describes")
+    check_command = commands.add_parser(
+        "check", help="report every mismatch between the manifest and the source tree"
+    )
+    bom_command = commands.add_parser(
+        "bom", help="write the SBOM the manifest describes"
+    )
     for command in (check_command, bom_command):
         command.add_argument("manifest", type=Path)
         command.add_argument("source_root", type=Path)
@@ -170,7 +192,10 @@ def main():
     # Never generate an SBOM that we know to be wrong, so this also gates "bom".
     found, problems = verify(manifest, arguments.source_root)
     if problems:
-        print(f"{arguments.manifest} does not match the source tree ({len(problems)} problem(s)):\n", file=sys.stderr)
+        print(
+            f"{arguments.manifest} does not match the source tree ({len(problems)} problem(s)):\n",
+            file=sys.stderr,
+        )
         print("\n".join(problems), file=sys.stderr)
         raise SystemExit(1)
 
