@@ -128,7 +128,7 @@ pub async fn check_images(arguments: ImageCheckArguments, config: Config) -> Res
                 .await
                 .context(DeserializeResponseSnafu)?;
 
-            for (image_version, _) in image_config.versions.iter() {
+            for image_version in image_config.versions.keys() {
                 let index_manifest_tag = format_image_index_manifest_tag(
                     image_version,
                     &config.metadata.vendor_tag_prefix,
@@ -195,7 +195,7 @@ pub async fn calculate_size(arguments: ImageSizeArguments, config: Config) -> Re
                 std::env::var(name).ok().map(SecretString::from)
             });
 
-            for (image_version, _) in image_config.versions.iter() {
+            for image_version in image_config.versions.keys() {
                 let image_index_manifest_tag = format_image_index_manifest_tag(
                     image_version,
                     &config.metadata.vendor_tag_prefix,
