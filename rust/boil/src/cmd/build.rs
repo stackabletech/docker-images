@@ -50,7 +50,7 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
     let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
-    let count = image_manifest_uris
+    let image_count = image_manifest_uris
         .iter()
         .fold(0, |acc, (_, tags)| acc + tags.len());
 
@@ -125,8 +125,8 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     }
 
     print!(
-        "Successfully built {count} image{plural}:\n{built_images}",
-        plural = if count > 1 { "s" } else { "" },
+        "Successfully built {image_count} image{plural}:\n{built_images}",
+        plural = if image_count > 1 { "s" } else { "" },
     );
 
     Ok(())
