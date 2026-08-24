@@ -832,6 +832,10 @@ impl TagSet {
         tag_set
     }
 
+    /// Returns the length of the [`TagSet`] (number of tags).
+    ///
+    /// If the [`TagSet`] is marked as empty, it will return 0. Otherwise, the count is the sum of
+    /// the length of other tags and 1 (one) for the canonical tag.
     pub fn len(&self) -> usize {
         if self.is_empty {
             0
