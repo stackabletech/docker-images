@@ -127,7 +127,7 @@ mv hadoop-dist/target/bom.json /stackable/hadoop-${NEW_VERSION}/hadoop-${NEW_VER
 python3 /build/vendored_js.py bom \
   /build/vendored-js.json \
   . \
-  "/stackable/hadoop-${NEW_VERSION}/hadoop-vendored-js-${NEW_VERSION}.cdx.json" \
+  "/stackable/hadoop-${NEW_VERSION}/hadoop-webapps-${NEW_VERSION}.cdx.json" \
   "${ORIGINAL_VERSION}" \
   "${CDXGEN_SPEC_VERSION}"
 

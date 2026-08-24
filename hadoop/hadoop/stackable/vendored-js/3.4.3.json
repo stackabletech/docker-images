@@ -1,5 +1,5 @@
 {
-  "name": "hadoop-hdfs-webapps",
+  "name": "hadoop-webapps",
   "scan-dirs": [
     "hadoop-hdfs-project/hadoop-hdfs/src/main/webapps",
     "hadoop-hdfs-project/hadoop-hdfs-rbf/src/main/webapps",
