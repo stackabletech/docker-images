@@ -111,16 +111,26 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
 
     // Take care of formatting output
     let mut built_images = String::new();
-    for (name, tags) in image_manifest_uris {
-        built_images.push_str(&format!("{name}:\n"));
+    for (name, tag_sets) in image_manifest_uris {
+        let tag_count = tag_sets.iter().fold(0, |acc, tag_set| acc + tag_set.len());
+
+        // Add the image name line first. It also includes the number to tags for that particular
+        // image.
+        built_images.push_str(&format!(
+            "{name} ({tag_count} tag{plural}):\n",
+            plural = if tag_count > 1 { "s" } else { "" }
+        ));
+
+        // Add an indented list of tags, one tag set per line.
         built_images.push_str(&format!(
             "  {tags}",
-            tags = tags
+            tags = tag_sets
                 .iter()
-                .map(|tags| tags.to_string())
+                .map(|tag_set| tag_set.to_string())
                 .collect::<Vec<String>>()
                 .join("\n  ")
         ));
+
         built_images.push('\n');
     }
 

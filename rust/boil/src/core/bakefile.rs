@@ -832,6 +832,14 @@ impl TagSet {
         tag_set
     }
 
+    pub fn len(&self) -> usize {
+        if self.is_empty {
+            0
+        } else {
+            self.others.len() + 1
+        }
+    }
+
     /// Create an empty [`TagSet`].
     ///
     /// See the `is_empty` field for more details on this.
