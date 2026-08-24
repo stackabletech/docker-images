@@ -4,6 +4,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-08-24
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.3..boil-0.4.0)
+
+### Bug Fixes
+
+- **BREAKING:** Don't override image manifest URIs in output ([#1613](https://github.com/stackabletech/docker-images/pull/1613)).
+
 ## [0.3.3] - 2026-08-21
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.2..boil-0.3.3)

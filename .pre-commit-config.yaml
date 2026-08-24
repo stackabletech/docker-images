@@ -67,14 +67,6 @@ repos:
         stages: [pre-commit, pre-merge-commit, manual]
         pass_filenames: false
 
-      - id: cargo-test
-        name: cargo-test
-        language: system
-        entry: cargo test
-        stages: [pre-commit, pre-merge-commit]
-        pass_filenames: false
-        files: \.rs$|Cargo\.(toml|lock)
-
       - id: cargo-rustfmt
         name: cargo-rustfmt
         language: system

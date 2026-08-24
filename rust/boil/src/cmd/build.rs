@@ -50,7 +50,9 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
     let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
-    let count = image_manifest_uris.len();
+    let image_count = image_manifest_uris
+        .iter()
+        .fold(0, |acc, (_, tag_sets)| acc + tag_sets.len());
 
     // Write the image manifest URIs to file if requested
     if let Some(path) = args.write_image_manifest_uris {
@@ -109,15 +111,32 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
 
     // Take care of formatting output
     let mut built_images = String::new();
-    for (name, tags) in image_manifest_uris {
-        built_images.push_str(&format!("{name}:\n"));
-        built_images.push_str(&format!("  {tags}", tags = tags.join("\n  ")));
+    for (name, tag_sets) in image_manifest_uris {
+        let tag_count = tag_sets.iter().fold(0, |acc, tag_set| acc + tag_set.len());
+
+        // Add the image name line first. It also includes the number of tags for that particular
+        // image.
+        built_images.push_str(&format!(
+            "{name} ({tag_count} tag{plural}):\n",
+            plural = if tag_count > 1 { "s" } else { "" }
+        ));
+
+        // Add an indented list of tags, one tag set per line.
+        built_images.push_str(&format!(
+            "  {tags}",
+            tags = tag_sets
+                .iter()
+                .map(|tag_set| tag_set.to_string())
+                .collect::<Vec<String>>()
+                .join("\n  ")
+        ));
+
         built_images.push('\n');
     }
 
     print!(
-        "Successfully built {count} image{plural}:\n{built_images}",
-        plural = if count > 1 { "s" } else { "" },
+        "Successfully built {image_count} image{plural}:\n{built_images}",
+        plural = if image_count > 1 { "s" } else { "" },
     );
 
     Ok(())

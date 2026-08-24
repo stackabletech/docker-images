@@ -1,5 +1,5 @@
 ---
-name: pre-commit
+name: prek
 
 on:
   pull_request:
@@ -9,12 +9,11 @@ permissions:
 
 env:
   # Keep in sync with across other repos like operator-rs and operator-templating
-  RUST_TOOLCHAIN_VERSION: "nightly-2026-07-01"
+  RUST_TOOLCHAIN_VERSION: "nightly-2026-08-23"
   HADOLINT_VERSION: "v2.14.0"
-  PYTHON_VERSION: "3.14"
 
 jobs:
-  pre-commit:
+  prek:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -22,8 +21,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: stackabletech/actions/run-pre-commit@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+      - uses: stackabletech/actions/run-prek@0fe048f952bee522474903a925ea48dc706a0bb4 # v0.17.5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
           rust: ${{ env.RUST_TOOLCHAIN_VERSION }}
           hadolint: ${{ env.HADOLINT_VERSION }}
