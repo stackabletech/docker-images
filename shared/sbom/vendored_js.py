@@ -116,8 +116,6 @@ def build_bom(manifest, component_version, spec_version):
                 component["purl"] = purl
             if entry.get("license"):
                 component["licenses"] = [{"expression": entry["license"]}]
-            if sha256:
-                component["hashes"] = []
             component["evidence"] = {"occurrences": []}
             components[key] = component
 
