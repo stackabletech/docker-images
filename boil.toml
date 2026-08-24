@@ -8,10 +8,11 @@ DELETE_CACHES = "true"
 CDXGEN_SPEC_VERSION = "1.6"
 # Node version used to run cdxgen in the builders that need it. It is unrelated to any product
 # and to the Node version that a product uses to build its frontend, so it is configured once
-# here instead of per product version.
+# here instead of per product version. Products that pin `cdxgen-nodejs-version` in their own
+# boil-config.toml override this value.
 # Find the latest release here: https://github.com/nodejs/node/releases
 # renovate: datasource=node-version packageName=node
-SBOM_NODEJS_VERSION = "24.19.0"
+CDXGEN_NODEJS_VERSION = "24.19.0"
 
 [metadata]
 documentation = "https://docs.stackable.tech/home/stable/"

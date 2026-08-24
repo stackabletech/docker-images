@@ -11,7 +11,7 @@ ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
-ARG SBOM_NODEJS_VERSION
+ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_SPEC_VERSION
 ARG CDXGEN_VERSION
 
@@ -25,14 +25,14 @@ RUN <<EOF
 # Install Node, cdxgen and Python to create the SBOM of the web UI (npm) dependencies.
 # The CycloneDX Maven plugin only covers the Java dependencies.
 # Python runs hbase_webapps_deps.py.
-# cdxgen requires Node >= 24, so it gets its own Node installation in /opt/node-sbom and
+# cdxgen requires Node >= 24, so it gets its own Node installation in /opt/node-cdxgen and
 # is invoked with that prepended to PATH.
 # -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
 ARCH="${TARGETARCH/amd64/x64}"
-mkdir -p /opt/node-sbom
-curl "https://repo.stackable.tech/repository/packages/node/node-v${SBOM_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
-    tar --extract --xz --directory=/opt/node-sbom --strip-components=1
-PATH="/opt/node-sbom/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 
 microdnf update
 microdnf install python3
@@ -100,7 +100,7 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VE
 # by the maven-dependency-plugin instead of being declared as project dependencies, so the
 # CycloneDX Maven plugin does not cover them, see hbase_webapps_deps.py.
 (
-  export PATH="/opt/node-sbom/bin:$PATH"
+  export PATH="/opt/node-cdxgen/bin:$PATH"
   WEBAPPS_SBOM_DIR="$(mktemp --directory)"
   python3 /stackable/hbase_webapps_deps.py . "${ORIGINAL_VERSION}" "${WEBAPPS_SBOM_DIR}/package.json"
   cd "${WEBAPPS_SBOM_DIR}"

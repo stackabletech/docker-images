@@ -9,7 +9,7 @@ ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG TRINO_AIRLIFT_VERSION
 ARG TARGETARCH
-ARG SBOM_NODEJS_VERSION
+ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_SPEC_VERSION
 ARG CDXGEN_VERSION
 
@@ -24,13 +24,13 @@ RUN <<EOF
 # CycloneDX Maven plugin does not cover. Python runs shared/sbom/vendored_js.py.
 # cdxgen requires Node >= 24, which is unrelated to the Node version that the
 # frontend-maven-plugin downloads for the actual build, so it gets its own Node installation in
-# /opt/node-sbom and is invoked with that prepended to PATH.
+# /opt/node-cdxgen and is invoked with that prepended to PATH.
 # -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
 ARCH="${TARGETARCH/amd64/x64}"
-mkdir -p /opt/node-sbom
-curl "https://repo.stackable.tech/repository/packages/node/node-v${SBOM_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
-    tar --extract --xz --directory=/opt/node-sbom --strip-components=1
-PATH="/opt/node-sbom/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 
 microdnf update
 microdnf install python3
@@ -105,20 +105,15 @@ mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trin
 # so this needs revisiting when such a version is added. The paths below fail the build rather
 # than silently producing nothing.
 (
-  export PATH="/opt/node-sbom/bin:$PATH"
+  export PATH="/opt/node-cdxgen/bin:$PATH"
   WEB_UI="core/trino-web-ui/src/main/resources"
 
   # cdxgen resolves the dependency tree from the lockfile, and returns nothing at all when a
   # project has both a package-lock.json and a yarn.lock, which webapp/src does. Copying just the
   # manifest and the npm lockfile into a scratch directory avoids that.
-  # --required-only keeps what the lockfile marks as non-dev. Note that this is wider than what
-  #   ends up in the bundle: upstream declares packages such as happy-dom and js-yaml as runtime
-  #   dependencies even though the bundler drops them, so they are reported here as well. That is
-  #   the same trade-off the other frontend SBOMs make, and over-reporting is preferred over
-  #   missing a component.
+  # --required-only keeps what the lockfile marks as non-dev.
   # --no-babel disables the usage analysis, which would otherwise mark every package that is not
-  #   imported directly as optional and thereby drop genuine transitive runtime dependencies. It
-  #   has nothing to look at here anyway, because only the manifest and the lockfile are copied.
+  #   imported directly as optional and thereby drop genuine transitive runtime dependencies.
   # --project-version is passed because the frontends declare a placeholder version upstream, and
   #   --project-name because cdxgen otherwise names the root component after the scratch directory.
   for FRONTEND in "webapp/src:trino-web-ui" "webapp-preview:trino-web-ui-preview"; do
