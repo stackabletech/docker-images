@@ -104,9 +104,11 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VE
   WEBAPPS_SBOM_DIR="$(mktemp --directory)"
   python3 /stackable/hbase_webapps_deps.py . "${ORIGINAL_VERSION}" "${WEBAPPS_SBOM_DIR}/package.json"
   cd "${WEBAPPS_SBOM_DIR}"
-  # cdxgen needs a lockfile to resolve the dependency tree. The webjars are pre-built browser
-  # bundles that inline their dependencies, so the transitive packages are shipped as well and
-  # belong in the SBOM.
+  # cdxgen reads the components from a lockfile, so one is generated for the package.json above.
+  # Usually a lockfile also resolves the npm dependencies of the listed packages, while a
+  # webjar only ever ships the files of the library itself. Such a dependency would therefore
+  # show up in the SBOM without being shipped. In this case it is not a problem, because the libraries
+  # HBase unpacks (jquery, moment and bootstrap) have no npm dependencies.
   npm install --package-lock-only --no-audit --no-fund
   cdxgen \
     --type js \
