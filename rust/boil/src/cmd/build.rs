@@ -52,7 +52,7 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     let image_manifest_uris = bakefile.image_manifest_uris();
     let image_count = image_manifest_uris
         .iter()
-        .fold(0, |acc, (_, tags)| acc + tags.len());
+        .fold(0, |acc, (_, tag_sets)| acc + tag_sets.len());
 
     // Write the image manifest URIs to file if requested
     if let Some(path) = args.write_image_manifest_uris {
