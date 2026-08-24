@@ -50,7 +50,9 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
     let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
-    let count = image_manifest_uris.len();
+    let count = image_manifest_uris
+        .iter()
+        .fold(0, |acc, (_, tags)| acc + tags.len());
 
     // Write the image manifest URIs to file if requested
     if let Some(path) = args.write_image_manifest_uris {
@@ -111,7 +113,14 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
     let mut built_images = String::new();
     for (name, tags) in image_manifest_uris {
         built_images.push_str(&format!("{name}:\n"));
-        built_images.push_str(&format!("  {tags}", tags = tags.join("\n  ")));
+        built_images.push_str(&format!(
+            "  {tags}",
+            tags = tags
+                .iter()
+                .map(|tags| tags.to_string())
+                .collect::<Vec<String>>()
+                .join("\n  ")
+        ));
         built_images.push('\n');
     }
 

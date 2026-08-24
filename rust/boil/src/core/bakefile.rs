@@ -1,6 +1,6 @@
 use std::{
     collections::{BTreeMap, btree_map::Entry},
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Deref, DerefMut},
     path::PathBuf,
 };
@@ -334,16 +334,20 @@ impl Bakefile {
     }
 
     /// Returns all image manifest URIs for entry images.
-    pub fn image_manifest_uris(&self) -> BTreeMap<&str, &TagSet> {
+    pub fn image_manifest_uris(&self) -> BTreeMap<&str, Vec<&TagSet>> {
         self.targets
             .iter()
             // We only care about the entry targets, because those are the primary images boil
             // builds.
             .filter(|(target_name, _)| target_name.starts_with(ENTRY_TARGET_NAME_PREFIX))
             // The image manifest URIs file only contains the image tags
-            .map(|(_, target)| (target.image_name.as_str(), &target.tags))
-            // Group tags by image name and collect them into a map
-            .collect()
+            // Group tags by image name and collect them into a map of tag sets
+            .fold(BTreeMap::new(), |mut acc, (_, target)| {
+                acc.entry(target.image_name.as_str())
+                    .and_modify(|tags| tags.push(&target.tags))
+                    .or_insert(vec![&target.tags]);
+                acc
+            })
     }
 
     /// Creates the common target, containing shared data, which will be inherited by other targets.
@@ -796,6 +800,21 @@ impl Default for TagSet {
     }
 }
 
+impl Display for TagSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.others.is_empty() {
+            write!(f, "{canonical}", canonical = self.canonical)
+        } else {
+            write!(
+                f,
+                "{canonical} ({others})",
+                canonical = self.canonical,
+                others = self.others.join(",")
+            )
+        }
+    }
+}
+
 impl TagSet {
     /// Creates and returns a new [`TagSet`] which only contains the canonical tag.
     pub fn new(canonical: String) -> Self {
@@ -822,20 +841,6 @@ impl TagSet {
             others: Vec::new(),
             is_empty: true,
         }
-    }
-
-    /// Joins the tags using `separator` into a [`String`].
-    pub fn join(&self, separator: &str) -> String {
-        let mut joined = String::new();
-
-        joined.push_str(&self.canonical);
-
-        if !self.others.is_empty() {
-            joined.push_str(separator);
-        }
-
-        joined.push_str(&self.others.join(separator));
-        joined
     }
 
     /// Returns if the [`TagSet`] is empty.
