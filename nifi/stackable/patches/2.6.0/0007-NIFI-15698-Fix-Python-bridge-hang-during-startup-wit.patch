@@ -1,0 +1,659 @@
+From 5ded3fea8d9927cc0da8c9907f814c5597192a7b Mon Sep 17 00:00:00 2001
+From: Pierre Villard <pierre.villard.fr@gmail.com>
+Date: Fri, 13 Mar 2026 10:24:54 +0100
+Subject: NIFI-15698 - Fix Python bridge hang during startup with many Python
+ processors
+
+---
+ .../org/apache/nifi/py4j/PythonProcess.java   | 187 ++++++++++++------
+ .../nifi/py4j/StandardPythonBridge.java       | 127 ++++++------
+ .../nifi/py4j/client/NiFiPythonGateway.java   |  90 +++++----
+ .../py4j/client/TestNiFiPythonGateway.java    |  41 ++++
+ .../python/framework/ProcessorInspection.py   |  12 +-
+ 5 files changed, 298 insertions(+), 159 deletions(-)
+
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
+index 03972cd1ae..07718ea327 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
+@@ -74,6 +74,8 @@ public class PythonProcess {
+     private final Map<String, Boolean> processorPrefersIsolation = new ConcurrentHashMap<>();
+     private final Set<CreatedProcessor> createdProcessors = new CopyOnWriteArraySet<>();
+     private volatile boolean shutdown = false;
++    private volatile boolean ready = false;
++    private volatile boolean startFailed = false;
+     private volatile List<String> extensionDirs;
+     private volatile String workDir;
+     private Thread logReaderThread;
+@@ -100,79 +102,132 @@ public class PythonProcess {
+         return controller;
+     }
+ 
+-    public synchronized void start() throws IOException {
+-        final ServerSocketFactory serverSocketFactory = ServerSocketFactory.getDefault();
+-        final SocketFactory socketFactory = SocketFactory.getDefault();
+-
+-        final int timeoutMillis = (int) processConfig.getCommsTimeout().toMillis();
+-        final String authToken = generateAuthToken();
+-        final CallbackClient callbackClient = new CallbackClient(GatewayServer.DEFAULT_PYTHON_PORT, GatewayServer.defaultAddress(), authToken,
+-            50000L, TimeUnit.MILLISECONDS, socketFactory, false, timeoutMillis);
+-
+-        final JavaObjectBindings bindings = new JavaObjectBindings();
+-        gateway = new NiFiPythonGateway(bindings, null, callbackClient);
+-        gateway.startup();
+-
+-        server = new NiFiGatewayServer(gateway,
+-            0,
+-            GatewayServer.defaultAddress(),
+-            timeoutMillis,
+-            timeoutMillis,
+-            Collections.emptyList(),
+-            serverSocketFactory,
+-            authToken,
+-            componentType,
+-            componentId);
+-        server.start();
+-
+-        final int listeningPort = server.getListeningPort();
+-
+-        setupEnvironment();
+-        this.process = launchPythonProcess(listeningPort, authToken);
+-        this.process.onExit().thenAccept(this::handlePythonProcessDied);
+-
+-        final String logReaderThreadName = LOG_READER_THREAD_NAME_FORMAT.formatted(process.pid());
+-        final Runnable logReaderCommand = new PythonProcessLogReader(process.inputReader(StandardCharsets.UTF_8));
+-        this.logReaderThread = Thread.ofVirtual().name(logReaderThreadName).start(logReaderCommand);
+-
+-        final StandardPythonClient pythonClient = new StandardPythonClient(gateway);
+-        controller = pythonClient.getController();
+-
+-        final long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60L);
+-        Exception lastException = null;
+-        boolean pingSuccessful = false;
+-        while (System.currentTimeMillis() < timeout) {
+-            try {
+-                final String pingResponse = controller.ping();
+-                pingSuccessful = "pong".equals(pingResponse);
++    /**
++     * Returns true if this process has completed start() successfully and is ready to create processors.
++     * Used by StandardPythonBridge so other threads can skip not-yet-ready processes or wait for them.
++     */
++    public boolean isReady() {
++        return ready;
++    }
+ 
+-                if (pingSuccessful) {
+-                    break;
+-                } else {
+-                    logger.debug("Got unexpected response from Py4J Server during ping: {}", pingResponse);
+-                }
+-            } catch (final Exception e) {
+-                lastException = e;
+-                logger.debug("Failed to start Py4J Server", e);
++    /**
++     * Blocks until this process is ready (start() completed successfully) or the process is shut down.
++     * Callers must invoke this outside any bridge lock to avoid deadlock.
++     * @throws InterruptedException if the current thread is interrupted while waiting
++     * @throws IOException if the process was shut down before becoming ready
++     */
++    public void waitUntilReady() throws InterruptedException, IOException {
++        synchronized (this) {
++            while (!ready && !shutdown && !startFailed) {
++                wait();
+             }
+-
+-            try {
+-                Thread.sleep(50L);
+-            } catch (final InterruptedException ie) {
+-                Thread.currentThread().interrupt();
+-                return;
++            if (shutdown && !ready) {
++                throw new IOException("Python Process [%s] was shut down before becoming ready".formatted(componentId));
++            }
++            if (startFailed && !ready) {
++                throw new IOException("Python Process [%s] failed to start".formatted(componentId));
+             }
+         }
++    }
+ 
+-        if (!pingSuccessful && lastException != null) {
+-            throw new RuntimeException("Failed to start Python Bridge", lastException);
++    void markReadyAndNotify() {
++        synchronized (this) {
++            ready = true;
++            notifyAll();
+         }
++    }
+ 
+-        logListenerId = Long.toString(process.pid());
+-        StandardLogLevelChangeHandler.getHandler().addListener(logListenerId, new PythonProcessLogLevelChangeListener());
++    private void notifyWaiters() {
++        synchronized (this) {
++            notifyAll();
++        }
++    }
+ 
+-        controller.setControllerServiceTypeLookup(controllerServiceTypeLookup);
+-        logger.info("Successfully started and pinged Python Server. Python Process = {}", process);
++    public synchronized void start() throws IOException {
++        ready = false;
++        startFailed = false;
++        try {
++            final ServerSocketFactory serverSocketFactory = ServerSocketFactory.getDefault();
++            final SocketFactory socketFactory = SocketFactory.getDefault();
++
++            final int timeoutMillis = (int) processConfig.getCommsTimeout().toMillis();
++            final String authToken = generateAuthToken();
++            final CallbackClient callbackClient = new CallbackClient(GatewayServer.DEFAULT_PYTHON_PORT, GatewayServer.defaultAddress(), authToken,
++                50000L, TimeUnit.MILLISECONDS, socketFactory, false, timeoutMillis);
++
++            final JavaObjectBindings bindings = new JavaObjectBindings();
++            gateway = new NiFiPythonGateway(bindings, null, callbackClient);
++            gateway.startup();
++
++            server = new NiFiGatewayServer(gateway,
++                0,
++                GatewayServer.defaultAddress(),
++                timeoutMillis,
++                timeoutMillis,
++                Collections.emptyList(),
++                serverSocketFactory,
++                authToken,
++                componentType,
++                componentId);
++            server.start();
++
++            final int listeningPort = server.getListeningPort();
++
++            setupEnvironment();
++            this.process = launchPythonProcess(listeningPort, authToken);
++            this.process.onExit().thenAccept(this::handlePythonProcessDied);
++
++            final String logReaderThreadName = LOG_READER_THREAD_NAME_FORMAT.formatted(process.pid());
++            final Runnable logReaderCommand = new PythonProcessLogReader(process.inputReader(StandardCharsets.UTF_8));
++            this.logReaderThread = Thread.ofVirtual().name(logReaderThreadName).start(logReaderCommand);
++
++            final StandardPythonClient pythonClient = new StandardPythonClient(gateway);
++            controller = pythonClient.getController();
++
++            final long timeout = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60L);
++            Exception lastException = null;
++            boolean pingSuccessful = false;
++            while (System.currentTimeMillis() < timeout) {
++                try {
++                    final String pingResponse = controller.ping();
++                    pingSuccessful = "pong".equals(pingResponse);
++
++                    if (pingSuccessful) {
++                        break;
++                    } else {
++                        logger.debug("Got unexpected response from Py4J Server during ping: {}", pingResponse);
++                    }
++                } catch (final Exception e) {
++                    lastException = e;
++                    logger.debug("Failed to start Py4J Server", e);
++                }
++
++                try {
++                    Thread.sleep(50L);
++                } catch (final InterruptedException ie) {
++                    Thread.currentThread().interrupt();
++                    startFailed = true;
++                    notifyWaiters();
++                    return;
++                }
++            }
++
++            if (!pingSuccessful && lastException != null) {
++                throw new RuntimeException("Failed to start Python Bridge", lastException);
++            }
++
++            logListenerId = Long.toString(process.pid());
++            StandardLogLevelChangeHandler.getHandler().addListener(logListenerId, new PythonProcessLogLevelChangeListener());
++
++            controller.setControllerServiceTypeLookup(controllerServiceTypeLookup);
++            logger.info("Successfully started and pinged Python Server. Python Process = {}", process);
++        } catch (final Throwable t) {
++            startFailed = true;
++            notifyWaiters();
++            throw t;
++        } finally {
++            notifyWaiters();
++        }
+     }
+ 
+     private void handlePythonProcessDied(final Process process) {
+@@ -199,6 +254,7 @@ public class PythonProcess {
+                 // Ensure that we re-discover any extensions, as this is necessary in order to create Processors
+                 if (extensionDirs != null && workDir != null) {
+                     discoverExtensions(extensionDirs, workDir);
++                    markReadyAndNotify();
+                     recreateProcessors();
+                 }
+ 
+@@ -424,6 +480,7 @@ public class PythonProcess {
+ 
+     public void shutdown() {
+         shutdown = true;
++        notifyWaiters();
+         logger.info("Shutting down Python Process {}", process);
+         killProcess();
+     }
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
+index e165e09eb7..238957c6bc 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
+@@ -85,6 +85,7 @@ public class StandardPythonBridge implements PythonBridge {
+             final File envHome = new File(processConfig.getPythonWorkingDirectory(), "controller");
+             controllerProcess = new PythonProcess(processConfig, serviceTypeLookup, envHome, true, "Controller", "Controller");
+             controllerProcess.start();
++            controllerProcess.markReadyAndNotify();
+             running = true;
+         } catch (final Exception e) {
+             shutdown();
+@@ -118,19 +119,13 @@ public class StandardPythonBridge implements PythonBridge {
+         controllerProcess.discoverExtensions(extensionsDirs, workDirPath);
+     }
+ 
+-    private PythonProcessorBridge createProcessorBridge(final String identifier, final String type, final String version, final boolean preferIsolatedProcess) {
++    private PythonProcessorBridge createProcessorBridge(final String identifier, final String type, final String version,
++                                                        final boolean preferIsolatedProcess, final PythonProcessorDetails processorDetails) {
+         ensureStarted();
+ 
+-        final Optional<ExtensionId> extensionIdFound = findExtensionId(type, version);
+-        final ExtensionId extensionId = extensionIdFound.orElseThrow(() -> new IllegalArgumentException("Processor Type [%s] Version [%s] not found".formatted(type, version)));
++        final ExtensionId extensionId = new ExtensionId(processorDetails.getProcessorType(), processorDetails.getProcessorVersion());
+         logger.debug("Creating Python Processor Type [{}] Version [{}]", extensionId.type(), extensionId.version());
+ 
+-        final PythonProcessorDetails processorDetails = getProcessorTypes().stream()
+-            .filter(details -> details.getProcessorType().equals(type))
+-            .filter(details -> details.getProcessorVersion().equals(version))
+-            .findFirst()
+-            .orElseThrow(() -> new IllegalArgumentException("Could not find Processor Details for Python Processor type [%s] or version [%s]".formatted(type, version)));
+-
+         final String processorHome = processorDetails.getExtensionHome();
+         final boolean bundledWithDependencies = processorDetails.isBundledWithDependencies();
+ 
+@@ -138,7 +133,15 @@ public class StandardPythonBridge implements PythonBridge {
+         // to avoid a deadlock between StandardPythonBridge and StandardExtensionDiscoveringManager locks
+         final Set<String> narDirectories = getNarDirectories();
+ 
+-        final PythonProcess pythonProcess = getProcessForNextComponent(extensionId, identifier, processorHome, preferIsolatedProcess, bundledWithDependencies, narDirectories);
++        final PythonProcess pythonProcess;
++        try {
++            pythonProcess = getProcessForNextComponent(extensionId, identifier, processorHome, preferIsolatedProcess, bundledWithDependencies, narDirectories);
++        } catch (final InterruptedException e) {
++            Thread.currentThread().interrupt();
++            throw new RuntimeException("Interrupted while obtaining Python process for processor type [%s] version [%s]".formatted(type, version), e);
++        } catch (final IOException e) {
++            throw new RuntimeException("Failed to obtain Python process for processor type [%s] version [%s]".formatted(type, version), e);
++        }
+ 
+         final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
+ 
+@@ -157,7 +160,7 @@ public class StandardPythonBridge implements PythonBridge {
+             .orElseThrow(() -> new IllegalArgumentException("Unknown Python Processor type [%s] or version [%s]".formatted(type, version)));
+ 
+         final String implementedInterface = processorDetails.getInterface();
+-        final Supplier<PythonProcessorBridge> processorBridgeFactory = () -> createProcessorBridge(identifier, type, version, preferIsolatedProcess);
++        final Supplier<PythonProcessorBridge> processorBridgeFactory = () -> createProcessorBridge(identifier, type, version, preferIsolatedProcess, processorDetails);
+ 
+         if (FlowFileTransform.class.getName().equals(implementedInterface)) {
+             return new FlowFileTransformProxy(type, processorBridgeFactory, initialize);
+@@ -229,28 +232,26 @@ public class StandardPythonBridge implements PythonBridge {
+         return count;
+     }
+ 
+-    private synchronized PythonProcess getProcessForNextComponent(final ExtensionId extensionId, final String componentId, final String processorHome, final boolean preferIsolatedProcess,
+-                final boolean packagedWithDependencies, final Set<String> narDirectories) {
+-
+-        final int processorsOfThisType = processorCountByType.getOrDefault(extensionId, 0);
+-        final int processIndex = processorsOfThisType % processConfig.getMaxPythonProcessesPerType();
+-
+-        // Check if we have any existing process that we can add the processor to.
+-        // We can add the processor to an existing process if either the processor to be created doesn't prefer
+-        // isolation (which is the case when Extension Manager creates a temp component), or if an existing process
+-        // consists only of processors that don't prefer isolation. I.e., we don't want to collocate two Processors if
+-        // they both prefer isolation.
+-        final List<PythonProcess> processesForType = processesByProcessorType.computeIfAbsent(extensionId, key -> new CopyOnWriteArrayList<>());
+-        for (final PythonProcess pythonProcess : processesForType) {
+-            if (!preferIsolatedProcess || !pythonProcess.containsIsolatedProcessor()) {
+-                logger.debug("Using {} to create Processor of type {}", pythonProcess, extensionId.type());
+-                return pythonProcess;
++    private PythonProcess getProcessForNextComponent(final ExtensionId extensionId, final String componentId, final String processorHome, final boolean preferIsolatedProcess,
++                final boolean packagedWithDependencies, final Set<String> narDirectories) throws IOException, InterruptedException {
++
++        PythonProcess processToStart = null;
++        PythonProcess processToWait = null;
++
++        synchronized (this) {
++            final int processorsOfThisType = processorCountByType.getOrDefault(extensionId, 0);
++            final int processIndex = processorsOfThisType % processConfig.getMaxPythonProcessesPerType();
++
++            final List<PythonProcess> processesForType = processesByProcessorType.computeIfAbsent(extensionId, key -> new CopyOnWriteArrayList<>());
++
++            for (final PythonProcess pythonProcess : processesForType) {
++                if (pythonProcess.isReady() && (!preferIsolatedProcess || !pythonProcess.containsIsolatedProcessor())) {
++                    logger.debug("Using {} to create Processor of type {}", pythonProcess, extensionId.type());
++                    return pythonProcess;
++                }
+             }
+-        }
+ 
+-        if (processesForType.size() <= processIndex) {
+-            try {
+-                // Make sure that we don't have too many processes already launched.
++            if (processesForType.size() <= processIndex) {
+                 final int totalProcessCount = getTotalProcessCount();
+                 if (totalProcessCount >= processConfig.getMaxPythonProcesses()) {
+                     throw new IllegalStateException("Cannot launch new Python Process because the maximum number of processes allowed, according to nifi.properties, is " +
+@@ -260,8 +261,6 @@ public class StandardPythonBridge implements PythonBridge {
+                 logger.info("In order to create Python Processor of type {}, launching a new Python Process because there are currently {} Python Processors of this type and {} Python Processes",
+                     extensionId.type(), processorsOfThisType, processesByProcessorType.size());
+ 
+-                // If the processor is packaged with its dependencies as a NAR, we can use the Processor Home as the Environment Home.
+-                // Otherwise, we need to create a Virtual Environment for the Processor.
+                 final File envHome;
+                 if (packagedWithDependencies) {
+                     envHome = new File(processorHome);
+@@ -272,38 +271,48 @@ public class StandardPythonBridge implements PythonBridge {
+                 }
+ 
+                 final PythonProcess pythonProcess = new PythonProcess(processConfig, serviceTypeLookup, envHome, packagedWithDependencies, extensionId.type(), componentId);
+-
+-                // Add process to list before start() so removal requests during startup can find it
+                 processesForType.add(pythonProcess);
+-
+-                try {
+-                    pythonProcess.start();
+-
+-                    final List<String> extensionsDirs = processConfig.getPythonExtensionsDirectories().stream()
+-                        .map(File::getAbsolutePath)
+-                        .collect(Collectors.toCollection(ArrayList::new));
+-                    extensionsDirs.addAll(narDirectories);
+-
+-                    final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
+-                    pythonProcess.discoverExtensions(extensionsDirs, workDirPath);
+-                } catch (final IOException e) {
+-                    processesForType.remove(pythonProcess);
+-                    throw e;
++                processToStart = pythonProcess;
++            } else {
++                final PythonProcess pythonProcess = processesForType.get(processIndex);
++                if (pythonProcess.isReady()) {
++                    logger.warn("Using existing process {} to create Processor of type {} because configuration indicates that no more than {} processes " +
++                        "should be created for any Processor Type. This may result in slower performance for Processors of this type",
++                        pythonProcess, extensionId.type(), processConfig.getMaxPythonProcessesPerType());
++                    return pythonProcess;
+                 }
++                processToWait = pythonProcess;
++            }
++        }
+ 
+-                return pythonProcess;
+-            } catch (final IOException ioe) {
+-                final String message = String.format("Failed to launch Process for Python Processor [%s] Version [%s]", extensionId.type(), extensionId.version());
+-                throw new RuntimeException(message, ioe);
++        if (processToStart != null) {
++            try {
++                processToStart.start();
++                final List<String> extensionsDirs = processConfig.getPythonExtensionsDirectories().stream()
++                    .map(File::getAbsolutePath)
++                    .collect(Collectors.toCollection(ArrayList::new));
++                extensionsDirs.addAll(narDirectories);
++                final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
++                processToStart.discoverExtensions(extensionsDirs, workDirPath);
++                processToStart.markReadyAndNotify();
++                return processToStart;
++            } catch (final IOException e) {
++                synchronized (this) {
++                    final List<PythonProcess> processesForType = processesByProcessorType.get(extensionId);
++                    if (processesForType != null) {
++                        processesForType.remove(processToStart);
++                    }
++                }
++                throw e;
+             }
+-        } else {
+-            final PythonProcess pythonProcess = processesForType.get(processIndex);
+-            logger.warn("Using existing process {} to create Processor of type {} because configuration indicates that no more than {} processes " +
+-                "should be created for any Processor Type. This may result in slower performance for Processors of this type",
+-                pythonProcess, extensionId.type(), processConfig.getMaxPythonProcessesPerType());
++        }
+ 
+-            return pythonProcess;
++        if (processToWait != null) {
++            processToWait.waitUntilReady();
++            return processToWait;
+         }
++
++        throw new IllegalStateException("No process to start or wait for");
+     }
+ 
+     @Override
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/client/NiFiPythonGateway.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/client/NiFiPythonGateway.java
+index 5397b8b4cc..dddd8dfd25 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/client/NiFiPythonGateway.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/client/NiFiPythonGateway.java
+@@ -35,6 +35,8 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.NoSuchElementException;
+ import java.util.Objects;
++import java.util.concurrent.locks.Lock;
++import java.util.concurrent.locks.ReentrantLock;
+ 
+ 
+ /**
+@@ -65,7 +67,9 @@ public class NiFiPythonGateway extends Gateway {
+     private static final Logger logger = LoggerFactory.getLogger(NiFiPythonGateway.class);
+     private final JavaObjectBindings objectBindings;
+ 
+-    // Guarded by synchronized methods
++    // Guarded by invocationLock. Uses ReentrantLock instead of synchronized to avoid
++    // pinning virtual threads to their carrier threads (JDK 21 virtual thread limitation).
++    private final Lock invocationLock = new ReentrantLock();
+     private final List<InvocationBindings> activeInvocations = new ArrayList<>();
+ 
+     private final ReturnObject END_OF_ITERATOR_OBJECT = ReturnObject.getErrorReturnObject(new NoSuchElementException());
+@@ -133,23 +137,33 @@ public class NiFiPythonGateway extends Gateway {
+     }
+ 
+     @Override
+-    public synchronized String putNewObject(final Object object) {
+-        final String objectId = objectBindings.bind(object, activeInvocations.size() + 1);
++    public String putNewObject(final Object object) {
++        invocationLock.lock();
++        try {
++            final String objectId = objectBindings.bind(object, activeInvocations.size() + 1);
+ 
+-        for (final InvocationBindings activeInvocation : activeInvocations) {
+-            activeInvocation.add(objectId);
+-        }
++            for (final InvocationBindings activeInvocation : activeInvocations) {
++                activeInvocation.add(objectId);
++            }
+ 
+-        logger.debug("Binding {}: {} ({})", objectId, object, object == null ? "null" : object.getClass().getName());
+-        return objectId;
++            logger.debug("Binding {}: {} ({})", objectId, object, object == null ? "null" : object.getClass().getName());
++            return objectId;
++        } finally {
++            invocationLock.unlock();
++        }
+     }
+ 
+     @Override
+-    public synchronized Object putObject(final String id, final Object object) {
+-        objectBindings.bind(id, object, activeInvocations.size() + 1);
+-        logger.debug("Binding {}: {} ({})", id, object, object == null ? "null" : object.getClass().getName());
++    public Object putObject(final String id, final Object object) {
++        invocationLock.lock();
++        try {
++            objectBindings.bind(id, object, activeInvocations.size() + 1);
++            logger.debug("Binding {}: {} ({})", id, object, object == null ? "null" : object.getClass().getName());
+ 
+-        return super.putObject(id, object);
++            return super.putObject(id, object);
++        } finally {
++            invocationLock.unlock();
++        }
+     }
+ 
+     @Override
+@@ -178,38 +192,48 @@ public class NiFiPythonGateway extends Gateway {
+         };
+     }
+ 
+-    public synchronized InvocationBindings beginInvocation(final String objectId, final Method method, final Object[] args) {
++    public InvocationBindings beginInvocation(final String objectId, final Method method, final Object[] args) {
+         final boolean unbind = isUnbind(method);
+-
+         final InvocationBindings bindings = new InvocationBindings(objectId, method, args, unbind);
+ 
+-        // We don't want to keep track of invocations of the Ping method.
+-        // The Ping method has no arguments or bound objects to free, and can occasionally
+-        // even hang, if the timing is right because of the startup sequence of the Python side and how the
+-        // communications are established.
+-        if (!pingMethod.equals(method)) {
+-            activeInvocations.add(bindings);
+-        }
++        invocationLock.lock();
++        try {
++            // We don't want to keep track of invocations of the Ping method.
++            // The Ping method has no arguments or bound objects to free, and can occasionally
++            // even hang, if the timing is right because of the startup sequence of the Python side and how the
++            // communications are established.
++            if (!pingMethod.equals(method)) {
++                activeInvocations.add(bindings);
++            }
+ 
+-        logger.debug("Beginning method invocation {}", bindings);
++            logger.debug("Beginning method invocation {}", bindings);
++        } finally {
++            invocationLock.unlock();
++        }
+ 
+         return bindings;
+     }
+ 
+-    public synchronized void endInvocation(final InvocationBindings invocationBindings) {
+-        final String methodName = invocationBindings.getMethod().getName();
+-        logger.debug("Ending method invocation {}", invocationBindings);
++    public void endInvocation(final InvocationBindings invocationBindings) {
++        invocationLock.lock();
++        try {
++            final String methodName = invocationBindings.getMethod().getName();
++            logger.debug("Ending method invocation {}", invocationBindings);
+ 
+-        final String objectId = invocationBindings.getTargetObjectId();
++            final String objectId = invocationBindings.getTargetObjectId();
+ 
+-        activeInvocations.remove(invocationBindings);
+-        invocationBindings.getObjectIds().forEach(id -> {
+-            final Object unbound = objectBindings.unbind(id);
++            activeInvocations.remove(invocationBindings);
++            invocationBindings.getObjectIds().forEach(id -> {
++                final Object unbound = objectBindings.unbind(id);
+ 
+-            if (logger.isDebugEnabled()) {
+-                logger.debug("Unbinding {}: {} because invocation of {} on {} with args {} has completed", id, unbound, methodName, objectId, Arrays.toString(invocationBindings.getArgs()));
+-            }
+-        });
++                if (logger.isDebugEnabled()) {
++                    logger.debug("Unbinding {}: {} because invocation of {} on {} with args {} has completed", id, unbound, methodName, objectId,
++                        Arrays.toString(invocationBindings.getArgs()));
++                }
++            });
++        } finally {
++            invocationLock.unlock();
++        }
+     }
+ 
+     protected boolean isUnbind(final Method method) {
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/client/TestNiFiPythonGateway.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/client/TestNiFiPythonGateway.java
+index ab2249a439..45af47874f 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/client/TestNiFiPythonGateway.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/client/TestNiFiPythonGateway.java
+@@ -20,11 +20,15 @@ package org.apache.nifi.py4j.client;
+ import org.apache.nifi.py4j.client.NiFiPythonGateway.InvocationBindings;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.Timeout;
+ import py4j.CallbackClient;
+ 
+ import java.lang.reflect.Method;
+ import java.util.ArrayList;
+ import java.util.List;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import static org.junit.jupiter.api.Assertions.assertEquals;
+ import static org.junit.jupiter.api.Assertions.assertNotNull;
+@@ -148,6 +152,43 @@ public class TestNiFiPythonGateway {
+         assertNull(gateway.getObject(objectId));
+     }
+ 
++    @Test
++    @Timeout(value = 30, unit = TimeUnit.SECONDS)
++    public void testConcurrentVirtualThreadsDoNotDeadlock() throws InterruptedException {
++        final int threadCount = 50;
++        final int iterationsPerThread = 20;
++        final CountDownLatch startLatch = new CountDownLatch(1);
++        final CountDownLatch doneLatch = new CountDownLatch(threadCount);
++        final AtomicInteger completedCount = new AtomicInteger(0);
++        final AtomicInteger errorCount = new AtomicInteger(0);
++
++        for (int t = 0; t < threadCount; t++) {
++            Thread.ofVirtual().name("gateway-test-" + t).start(() -> {
++                try {
++                    startLatch.await();
++                    for (int i = 0; i < iterationsPerThread; i++) {
++                        final Object[] args = new Object[]{new Object()};
++                        final InvocationBindings invocationBindings = gateway.beginInvocation("o" + Thread.currentThread().getName(), NOP_METHOD, args);
++                        gateway.putNewObject(args[0]);
++                        gateway.endInvocation(invocationBindings);
++                    }
++                    completedCount.incrementAndGet();
++                } catch (final Exception e) {
++                    errorCount.incrementAndGet();
++                } finally {
++                    doneLatch.countDown();
++                }
++            });
++        }
++
++        startLatch.countDown();
++        final boolean allFinished = doneLatch.await(25, TimeUnit.SECONDS);
++
++        assertEquals(true, allFinished, "Not all virtual threads completed within the timeout, possible deadlock");
++        assertEquals(threadCount, completedCount.get());
++        assertEquals(0, errorCount.get());
++    }
++
+     public void nop(Object... args) {
+     }
+ }
+diff --git a/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework/src/main/python/framework/ProcessorInspection.py b/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework/src/main/python/framework/ProcessorInspection.py
+index d9907a39d7..5251236d61 100644
+--- a/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework/src/main/python/framework/ProcessorInspection.py
++++ b/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework/src/main/python/framework/ProcessorInspection.py
+@@ -122,8 +122,16 @@ def get_module_string_constants(module_file: str) -> dict:
+ 
+ 
+ def get_processor_class_nodes(module_file: str) -> list:
+-    with open(module_file) as file:
+-        root_node = ast.parse(file.read())
++    try:
++        with open(module_file) as file:
++            root_node = ast.parse(file.read())
++    except SystemError as e:
++        # Python 3.11+ AST bug (gh-95185): recursion depth counter not decremented on error path.
++        # Treat as non-processor so the file can still be loaded as a dependency.
++        if "recursion depth mismatch" in str(e):
++            logger.warning("AST parse failed for %s due to Python AST recursion depth bug; treating as non-processor: %s", module_file, e)
++            return []
++        raise
+ 
+     processor_class_nodes = []
+     class_nodes = get_class_nodes(root_node)

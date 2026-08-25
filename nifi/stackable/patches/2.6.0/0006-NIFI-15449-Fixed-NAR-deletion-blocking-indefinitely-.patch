@@ -1,0 +1,1042 @@
+From 66e617e4252613efd0c85b77ed2c3000ec8804b9 Mon Sep 17 00:00:00 2001
+From: Pierre Villard <pierre.villard.fr@gmail.com>
+Date: Fri, 6 Feb 2026 16:29:05 +0100
+Subject: NIFI-15449 Fixed NAR deletion blocking indefinitely when Python
+ processor is initializing (#10753)
+
+Signed-off-by: David Handermann <exceptionfactory@apache.org>
+---
+ .../org/apache/nifi/py4j/PythonProcess.java   |  74 ++++-
+ .../nifi/py4j/StandardPythonBridge.java       |  48 ++-
+ .../py4j/StandardPythonProcessorBridge.java   |  85 ++++-
+ .../processor/PythonProcessorProxy.java       |   8 +
+ .../StandardPythonProcessorBridgeTest.java    | 176 +++++++++++
+ .../nifi/components/AsyncLoadedProcessor.java |  23 +-
+ .../processor/PythonProcessorBridge.java      |  17 +
+ .../controller/StandardReloadComponent.java   |  10 +
+ .../apache/nifi/nar/StandardNarLoader.java    |   3 -
+ .../StandardExtensionDiscoveringManager.java  |   2 -
+ .../python/PythonNarDeletionDuringInitIT.java | 298 ++++++++++++++++++
+ 11 files changed, 708 insertions(+), 36 deletions(-)
+ create mode 100644 nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/StandardPythonProcessorBridgeTest.java
+ create mode 100644 nifi-system-tests/nifi-system-test-suite/src/test/java/org/apache/nifi/tests/system/python/PythonNarDeletionDuringInitIT.java
+
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
+index 209cd66718..03972cd1ae 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/PythonProcess.java
+@@ -47,6 +47,7 @@ import java.util.Base64;
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Objects;
+ import java.util.Set;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.CopyOnWriteArraySet;
+@@ -328,6 +329,10 @@ public class PythonProcess {
+             return;
+         }
+ 
++        if (isShutdown()) {
++            throw new IOException("Python Process [%s] is shutting down, cannot create virtual environment".formatted(componentId));
++        }
++
+         final File environmentCreationCompleteFile = new File(virtualEnvHome, "env-creation-complete.txt");
+         if (environmentCreationCompleteFile.exists()) {
+             logger.debug("Environment has already been created for {}; will not recreate", virtualEnvHome);
+@@ -346,17 +351,28 @@ public class PythonProcess {
+ 
+         final String command = String.join(" ", processBuilder.command());
+         logger.debug("Creating Python Virtual Environment {} using command {}", virtualEnvHome, command);
+-        final Process process = processBuilder.start();
++        final Process venvProcess = processBuilder.start();
+ 
+-        final int result;
+         try {
+-            result = process.waitFor();
++            while (!venvProcess.waitFor(1, TimeUnit.SECONDS)) {
++                if (isShutdown()) {
++                    venvProcess.destroyForcibly();
++                    throw new IOException("Python Process [%s] shutdown during virtual environment creation".formatted(componentId));
++                }
++            }
++
++            final int result = venvProcess.exitValue();
++            if (result != 0) {
++                throw new IOException("Failed to create Python Virtual Environment [%s]: process exited with code %d".formatted(virtualEnvHome, result));
++            }
+         } catch (final InterruptedException e) {
+-            throw new IOException("Interrupted while waiting for Python virtual environment to be created");
++            venvProcess.destroyForcibly();
++            Thread.currentThread().interrupt();
++            throw new IOException("Interrupted while waiting for Python Virtual Environment [%s] to be created".formatted(virtualEnvHome), e);
+         }
+ 
+-        if (result != 0) {
+-            throw new IOException("Failed to create Python Environment " + virtualEnvHome + ": process existed with code " + result);
++        if (isShutdown()) {
++            throw new IOException("Python Process [%s] shutdown after virtual environment creation".formatted(componentId));
+         }
+ 
+         if (processConfig.isDebugController() && "Controller".equals(componentId)) {
+@@ -369,6 +385,10 @@ public class PythonProcess {
+     }
+ 
+     private void installDebugPy() throws IOException {
++        if (isShutdown()) {
++            return;
++        }
++
+         final String pythonCommand = processConfig.getPythonCommand();
+ 
+         final ProcessBuilder processBuilder = new ProcessBuilder(pythonCommand, "-m", "pip", "install", "--no-cache-dir", "--upgrade", "debugpy", "--target",
+@@ -377,17 +397,24 @@ public class PythonProcess {
+ 
+         final String command = String.join(" ", processBuilder.command());
+         logger.debug("Installing DebugPy to Virtual Env {} using command {}", virtualEnvHome, command);
+-        final Process process = processBuilder.start();
++        final Process pipProcess = processBuilder.start();
+ 
+-        final int result;
+         try {
+-            result = process.waitFor();
+-        } catch (final InterruptedException e) {
+-            throw new IOException("Interrupted while waiting for DebugPy to be installed");
+-        }
++            while (!pipProcess.waitFor(1, TimeUnit.SECONDS)) {
++                if (isShutdown()) {
++                    pipProcess.destroyForcibly();
++                    return;
++                }
++            }
+ 
+-        if (result != 0) {
+-            throw new IOException("Failed to install DebugPy for Python Environment " + virtualEnvHome + ": process existed with code " + result);
++            final int result = pipProcess.exitValue();
++            if (result != 0) {
++                throw new IOException("Failed to install DebugPy for Python Virtual Environment [%s]: process exited with code %d".formatted(virtualEnvHome, result));
++            }
++        } catch (final InterruptedException e) {
++            pipProcess.destroyForcibly();
++            Thread.currentThread().interrupt();
++            throw new IOException("Interrupted while waiting for DebugPy to be installed for Python Virtual Environment [%s]".formatted(virtualEnvHome), e);
+         }
+     }
+ 
+@@ -529,6 +556,25 @@ public class PythonProcess {
+         return processorPrefersIsolation.size();
+     }
+ 
++    /**
++     * Returns true if this process was created for the given component identifier and has no processors running.
++     *
++     * @param identifier the component identifier (must not be null)
++     * @return true if this process matches the identifier and has no processors
++     */
++    public boolean isNotLoadedForComponent(final String identifier) {
++        Objects.requireNonNull(identifier, "Identifier is required");
++        return identifier.equals(componentId) && getProcessorCount() == 0;
++    }
++
++    /**
++     * Returns the component ID that this process was initially created for.
++     * @return the initial component ID
++     */
++    public String getInitialComponentId() {
++        return componentId;
++    }
++
+     public Map<String, Integer> getJavaObjectBindingCounts() {
+         return gateway.getObjectBindings().getCountsPerClass();
+     }
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
+index da03ffbd96..e165e09eb7 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonBridge.java
+@@ -134,10 +134,16 @@ public class StandardPythonBridge implements PythonBridge {
+         final String processorHome = processorDetails.getExtensionHome();
+         final boolean bundledWithDependencies = processorDetails.isBundledWithDependencies();
+ 
+-        final PythonProcess pythonProcess = getProcessForNextComponent(extensionId, identifier, processorHome, preferIsolatedProcess, bundledWithDependencies);
++        // Pre-compute NAR directories BEFORE acquiring the synchronized lock in getProcessForNextComponent
++        // to avoid a deadlock between StandardPythonBridge and StandardExtensionDiscoveringManager locks
++        final Set<String> narDirectories = getNarDirectories();
++
++        final PythonProcess pythonProcess = getProcessForNextComponent(extensionId, identifier, processorHome, preferIsolatedProcess, bundledWithDependencies, narDirectories);
++
+         final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
+ 
+         final PythonProcessorBridge processorBridge = pythonProcess.createProcessor(identifier, type, version, workDirPath, preferIsolatedProcess);
++
+         processorCountByType.merge(extensionId, 1, Integer::sum);
+         return processorBridge;
+     }
+@@ -182,7 +188,6 @@ public class StandardPythonBridge implements PythonBridge {
+                 try {
+                     // Find the Python Process that has the Processor, if any, and remove it.
+                     // If there are no additional Processors in the Python Process, remove it from our list and shut down the process.
+-                    // Use iterator so we can call remove()
+                     for (final PythonProcess process : processes) {
+                         final boolean removed = process.removeProcessor(identifier);
+                         if (removed && process.getProcessorCount() == 0) {
+@@ -191,6 +196,16 @@ public class StandardPythonBridge implements PythonBridge {
+                         }
+                     }
+ 
++                    if (toRemove == null) {
++                        for (final PythonProcess process : processes) {
++                            if (process.isNotLoadedForComponent(identifier)) {
++                                logger.info("Shutting down Python Process for Processor [{}]", identifier);
++                                toRemove = process;
++                                break;
++                            }
++                        }
++                    }
++
+                     if (toRemove != null) {
+                         processes.remove(toRemove);
+                         toRemove.shutdown();
+@@ -215,7 +230,7 @@ public class StandardPythonBridge implements PythonBridge {
+     }
+ 
+     private synchronized PythonProcess getProcessForNextComponent(final ExtensionId extensionId, final String componentId, final String processorHome, final boolean preferIsolatedProcess,
+-                final boolean packagedWithDependencies) {
++                final boolean packagedWithDependencies, final Set<String> narDirectories) {
+ 
+         final int processorsOfThisType = processorCountByType.getOrDefault(extensionId, 0);
+         final int processIndex = processorsOfThisType % processConfig.getMaxPythonProcessesPerType();
+@@ -257,20 +272,25 @@ public class StandardPythonBridge implements PythonBridge {
+                 }
+ 
+                 final PythonProcess pythonProcess = new PythonProcess(processConfig, serviceTypeLookup, envHome, packagedWithDependencies, extensionId.type(), componentId);
+-                pythonProcess.start();
+ 
+-                // Create list of extensions directories, including NAR directories
+-                final List<String> extensionsDirs = processConfig.getPythonExtensionsDirectories().stream()
+-                    .map(File::getAbsolutePath)
+-                    .collect(Collectors.toCollection(ArrayList::new));
+-                extensionsDirs.addAll(getNarDirectories());
+-
+-                final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
+-                pythonProcess.discoverExtensions(extensionsDirs, workDirPath);
+-
+-                // Add the newly create process to the processes for the given type of processor.
++                // Add process to list before start() so removal requests during startup can find it
+                 processesForType.add(pythonProcess);
+ 
++                try {
++                    pythonProcess.start();
++
++                    final List<String> extensionsDirs = processConfig.getPythonExtensionsDirectories().stream()
++                        .map(File::getAbsolutePath)
++                        .collect(Collectors.toCollection(ArrayList::new));
++                    extensionsDirs.addAll(narDirectories);
++
++                    final String workDirPath = processConfig.getPythonWorkingDirectory().getAbsolutePath();
++                    pythonProcess.discoverExtensions(extensionsDirs, workDirPath);
++                } catch (final IOException e) {
++                    processesForType.remove(pythonProcess);
++                    throw e;
++                }
++
+                 return pythonProcess;
+             } catch (final IOException ioe) {
+                 final String message = String.format("Failed to launch Process for Python Processor [%s] Version [%s]", extensionId.type(), extensionId.version());
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonProcessorBridge.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonProcessorBridge.java
+index 6a05b237d5..de56787730 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonProcessorBridge.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/py4j/StandardPythonProcessorBridge.java
+@@ -46,6 +46,7 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+     private volatile String identifier;
+     private volatile PythonController controller;
+     private volatile CompletableFuture<Void> initializationFuture;
++    private volatile boolean canceled = false;
+ 
+ 
+     private StandardPythonProcessorBridge(final Builder builder) {
+@@ -65,6 +66,12 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+ 
+     @Override
+     public void initialize(final PythonProcessorInitializationContext context) {
++        if (canceled) {
++            logger.info("Not initializing Python Processor {} ({}) because it has been canceled",
++                    context.getIdentifier(), getProcessorType());
++            return;
++        }
++
+         if (initializationFuture != null) {
+             initializationFuture.cancel(true);
+         }
+@@ -80,6 +87,12 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+ 
+     @Override
+     public void replaceController(final PythonController controller) {
++        if (canceled) {
++            logger.info("Not re-initializing Python Processor {} ({}) because it has been canceled",
++                    identifier, getProcessorType());
++            return;
++        }
++
+         if (initializationFuture != null) {
+             initializationFuture.cancel(true);
+         }
+@@ -99,14 +112,44 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+         return loadState;
+     }
+ 
++    @Override
++    public void cancel() {
++        if (canceled) {
++            return;
++        }
++
++        canceled = true;
++        logger.info("Canceling initialization for Python Processor {} ({})", identifier, getProcessorType());
++
++        final CompletableFuture<Void> future = this.initializationFuture;
++        if (future != null) {
++            future.cancel(true);
++        }
++
++        if (loadState != LoadState.FINISHED_LOADING) {
++            loadState = LoadState.CANCELED;
++        }
++    }
++
++    @Override
++    public boolean isCanceled() {
++        return canceled;
++    }
++
+     private void initializePythonSide(final boolean continualRetry, final CompletableFuture<Void> future) {
+         if (initializationContext == null) {
+             future.complete(null);
+             return;
+         }
+ 
++        if (canceled) {
++            loadState = LoadState.CANCELED;
++            future.complete(null);
++            return;
++        }
++
+         long sleepMillis = 1_000L;
+-        while (!future.isCancelled()) {
++        while (!future.isCancelled() && !canceled) {
+             final boolean packagedWithDependencies = creationWorkflow.isPackagedWithDependencies();
+             if (packagedWithDependencies) {
+                 loadState = LoadState.LOADING_PROCESSOR_CODE;
+@@ -121,6 +164,13 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+ 
+                 break;
+             } catch (final Exception e) {
++                if (canceled) {
++                    loadState = LoadState.CANCELED;
++                    logger.info("Python Processor {} ({}) initialization canceled during dependency download", identifier, getProcessorType());
++                    future.complete(null);
++                    return;
++                }
++
+                 loadState = LoadState.DEPENDENCY_DOWNLOAD_FAILED;
+                 if (!continualRetry) {
+                     throw e;
+@@ -133,13 +183,26 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+                     Thread.sleep(sleepMillis);
+                 } catch (final InterruptedException ex) {
+                     Thread.currentThread().interrupt();
++                    if (canceled) {
++                        loadState = LoadState.CANCELED;
++                        logger.info("Python Processor {} ({}) initialization canceled during sleep", identifier, getProcessorType());
++                        future.complete(null);
++                        return;
++                    }
+                     e.addSuppressed(ex);
+                     throw e;
+                 }
+             }
+         }
+ 
+-        while (!future.isCancelled()) {
++        if (canceled) {
++            loadState = LoadState.CANCELED;
++            logger.info("Python Processor {} ({}) initialization canceled before loading processor code", identifier, getProcessorType());
++            future.complete(null);
++            return;
++        }
++
++        while (!future.isCancelled() && !canceled) {
+             loadState = LoadState.LOADING_PROCESSOR_CODE;
+ 
+             try {
+@@ -150,6 +213,13 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+                 logger.info("Successfully loaded Python Processor {} ({})", identifier, getProcessorType());
+                 break;
+             } catch (final Exception e) {
++                if (canceled) {
++                    loadState = LoadState.CANCELED;
++                    logger.info("Python Processor {} ({}) initialization canceled during code loading", identifier, getProcessorType());
++                    future.complete(null);
++                    return;
++                }
++
+                 loadState = LoadState.LOADING_PROCESSOR_CODE_FAILED;
+ 
+                 if (!continualRetry) {
+@@ -163,12 +233,23 @@ public class StandardPythonProcessorBridge implements PythonProcessorBridge {
+                     Thread.sleep(sleepMillis);
+                 } catch (final InterruptedException ex) {
+                     Thread.currentThread().interrupt();
++                    if (canceled) {
++                        loadState = LoadState.CANCELED;
++                        logger.info("Python Processor {} ({}) initialization canceled during sleep", identifier, getProcessorType());
++                        future.complete(null);
++                        return;
++                    }
+                     e.addSuppressed(ex);
+                     throw e;
+                 }
+             }
+         }
+ 
++        if (canceled && loadState != LoadState.FINISHED_LOADING) {
++            loadState = LoadState.CANCELED;
++            logger.info("Python Processor {} ({}) initialization canceled", identifier, getProcessorType());
++        }
++
+         future.complete(null);
+     }
+ 
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/python/processor/PythonProcessorProxy.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/python/processor/PythonProcessorProxy.java
+index 749a602433..4222599411 100644
+--- a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/python/processor/PythonProcessorProxy.java
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/main/java/org/apache/nifi/python/processor/PythonProcessorProxy.java
+@@ -149,6 +149,14 @@ public abstract class PythonProcessorProxy<T extends PythonProcessor> extends Ab
+         return bridge.getLoadState();
+     }
+ 
++    @Override
++    public void cancelLoading() {
++        final PythonProcessorBridge currentBridge = this.bridge;
++        if (currentBridge != null) {
++            currentBridge.cancel();
++        }
++    }
++
+     @Override
+     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
+         if (cachedPropertyDescriptors != null) {
+diff --git a/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/StandardPythonProcessorBridgeTest.java b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/StandardPythonProcessorBridgeTest.java
+new file mode 100644
+index 0000000000..9b9b9e3d38
+--- /dev/null
++++ b/nifi-extension-bundles/nifi-py4j-extension-bundle/nifi-py4j-bridge/src/test/java/org/apache/nifi/py4j/StandardPythonProcessorBridgeTest.java
+@@ -0,0 +1,176 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.nifi.py4j;
++
++import org.apache.nifi.components.AsyncLoadedProcessor.LoadState;
++import org.apache.nifi.python.PythonController;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.Timeout;
++import org.junit.jupiter.api.io.TempDir;
++import org.mockito.Mock;
++import org.mockito.MockitoAnnotations;
++
++import java.io.File;
++import java.io.IOException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.concurrent.atomic.AtomicReference;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertFalse;
++import static org.junit.jupiter.api.Assertions.assertNotSame;
++import static org.junit.jupiter.api.Assertions.assertNull;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++class StandardPythonProcessorBridgeTest {
++
++    @Mock
++    private PythonController controller;
++
++    @Mock
++    private ProcessorCreationWorkflow creationWorkflow;
++
++    @TempDir
++    private Path tempDir;
++
++    private StandardPythonProcessorBridge bridge;
++
++    @BeforeEach
++    void setUp() throws IOException {
++        MockitoAnnotations.openMocks(this);
++
++        // Create a temporary module file
++        final File moduleFile = Files.createFile(tempDir.resolve("test_processor.py")).toFile();
++        final File workDir = Files.createDirectory(tempDir.resolve("work")).toFile();
++
++        bridge = new StandardPythonProcessorBridge.Builder()
++                .controller(controller)
++                .creationWorkflow(creationWorkflow)
++                .processorType("TestProcessor")
++                .processorVersion("1.0.0")
++                .workingDirectory(workDir)
++                .moduleFile(moduleFile)
++                .build();
++    }
++
++    @Test
++    void testCancelSetsFlag() {
++        assertFalse(bridge.isCanceled());
++
++        bridge.cancel();
++
++        assertTrue(bridge.isCanceled());
++    }
++
++    @Test
++    void testCancelSetsLoadStateToCanceled() {
++        assertNotSame(LoadState.CANCELED, bridge.getLoadState());
++
++        bridge.cancel();
++
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++    }
++
++    @Test
++    void testCancelIsIdempotent() {
++        bridge.cancel();
++        assertTrue(bridge.isCanceled());
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++
++        bridge.cancel();
++        assertTrue(bridge.isCanceled());
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++
++        bridge.cancel();
++        assertTrue(bridge.isCanceled());
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++    }
++
++    @Test
++    void testIsCanceledReturnsFalseInitially() {
++        assertFalse(bridge.isCanceled());
++    }
++
++    @Test
++    void testIsCanceledReturnsTrueAfterCancel() {
++        bridge.cancel();
++        assertTrue(bridge.isCanceled());
++    }
++
++    @Test
++    @Timeout(value = 5, unit = TimeUnit.SECONDS)
++    void testCancelFromDifferentThread() throws InterruptedException {
++        final CountDownLatch cancelLatch = new CountDownLatch(1);
++        final AtomicBoolean canceledFromThread = new AtomicBoolean(false);
++
++        Thread cancelThread = new Thread(() -> {
++            bridge.cancel();
++            canceledFromThread.set(bridge.isCanceled());
++            cancelLatch.countDown();
++        });
++
++        cancelThread.start();
++        assertTrue(cancelLatch.await(5, TimeUnit.SECONDS));
++        assertTrue(canceledFromThread.get());
++        assertTrue(bridge.isCanceled());
++    }
++
++    @Test
++    void testLoadStateTransitionsToCanceledOnCancel() {
++        assertNotSame(LoadState.CANCELED, bridge.getLoadState());
++
++        bridge.cancel();
++
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++    }
++
++    @Test
++    @Timeout(value = 10, unit = TimeUnit.SECONDS)
++    void testConcurrentCancelCalls() throws InterruptedException {
++        final int numThreads = 10;
++        final CountDownLatch startLatch = new CountDownLatch(1);
++        final CountDownLatch doneLatch = new CountDownLatch(numThreads);
++        final AtomicReference<Exception> exception = new AtomicReference<>();
++
++        for (int i = 0; i < numThreads; i++) {
++            new Thread(() -> {
++                try {
++                    startLatch.await();
++                    bridge.cancel();
++                } catch (Exception e) {
++                    exception.set(e);
++                } finally {
++                    doneLatch.countDown();
++                }
++            }).start();
++        }
++
++        startLatch.countDown();
++
++        assertTrue(doneLatch.await(10, TimeUnit.SECONDS));
++
++        assertNull(exception.get());
++
++        assertTrue(bridge.isCanceled());
++        assertEquals(LoadState.CANCELED, bridge.getLoadState());
++    }
++}
+diff --git a/nifi-framework-api/src/main/java/org/apache/nifi/components/AsyncLoadedProcessor.java b/nifi-framework-api/src/main/java/org/apache/nifi/components/AsyncLoadedProcessor.java
+index 68ce2953bf..d2814c2ca0 100644
+--- a/nifi-framework-api/src/main/java/org/apache/nifi/components/AsyncLoadedProcessor.java
++++ b/nifi-framework-api/src/main/java/org/apache/nifi/components/AsyncLoadedProcessor.java
+@@ -26,6 +26,20 @@ public interface AsyncLoadedProcessor extends Processor {
+ 
+     LoadState getState();
+ 
++    /**
++     * Cancels the async loading process if it is still in progress.
++     * This is typically called when the component is being removed or the NAR
++     * containing the processor is being deleted while the processor is still initializing.
++     *
++     * <p>After cancellation, the processor should transition to the {@link LoadState#CANCELED} state.</p>
++     *
++     * <p>The default implementation does nothing, allowing implementations that don't support
++     * cancellation to work without changes.</p>
++     */
++    default void cancelLoading() {
++        // Default implementation does nothing
++    }
++
+     enum LoadState {
+         INITIALIZING_ENVIRONMENT,
+ 
+@@ -37,6 +51,13 @@ public interface AsyncLoadedProcessor extends Processor {
+ 
+         LOADING_PROCESSOR_CODE_FAILED,
+ 
+-        FINISHED_LOADING
++        FINISHED_LOADING,
++
++        /**
++         * Indicates that the processor initialization was canceled before it could complete.
++         * This typically happens when the NAR containing the processor is deleted while
++         * the processor is still initializing.
++         */
++        CANCELED
+     }
+ }
+diff --git a/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework-api/src/main/java/org/apache/nifi/python/processor/PythonProcessorBridge.java b/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework-api/src/main/java/org/apache/nifi/python/processor/PythonProcessorBridge.java
+index fd992cf61d..1e5a05e33d 100644
+--- a/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework-api/src/main/java/org/apache/nifi/python/processor/PythonProcessorBridge.java
++++ b/nifi-framework-bundle/nifi-framework-extensions/nifi-py4j-framework-bundle/nifi-python-framework-api/src/main/java/org/apache/nifi/python/processor/PythonProcessorBridge.java
+@@ -58,4 +58,21 @@ public interface PythonProcessorBridge {
+      * @return the current state of the Processor loading
+      */
+     LoadState getLoadState();
++
++    /**
++     * Cancels the processor initialization if it is still in progress.
++     * This is typically called when the NAR containing the processor is being deleted
++     * while the processor is still initializing. After cancellation, the bridge
++     * will transition to the {@link LoadState#CANCELED} state.
++     *
++     * <p>If the processor has already finished initializing, this method has no effect.</p>
++     */
++    void cancel();
++
++    /**
++     * Returns whether this bridge has been canceled.
++     *
++     * @return {@code true} if {@link #cancel()} has been called, {@code false} otherwise
++     */
++    boolean isCanceled();
+ }
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardReloadComponent.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardReloadComponent.java
+index cec3a9ade2..c98bfde3e1 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardReloadComponent.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardReloadComponent.java
+@@ -18,6 +18,7 @@ package org.apache.nifi.controller;
+ 
+ import org.apache.nifi.annotation.lifecycle.OnRemoved;
+ import org.apache.nifi.bundle.BundleCoordinate;
++import org.apache.nifi.components.AsyncLoadedProcessor;
+ import org.apache.nifi.components.state.StateManager;
+ import org.apache.nifi.controller.exception.ControllerServiceInstantiationException;
+ import org.apache.nifi.controller.flowanalysis.FlowAnalysisRuleInstantiationException;
+@@ -84,6 +85,15 @@ public class StandardReloadComponent implements ReloadComponent {
+         // Cleanup the URL ClassLoader for the existing processor instance.
+         extensionManager.closeURLClassLoader(id, existingInstanceClassLoader);
+ 
++        // If the existing processor is an AsyncLoadedProcessor (e.g., Python processor), cancel its loading
++        // to prevent it from continuing to initialize while we're trying to reload/remove it.
++        // This is important when a NAR is deleted while a processor is still initializing.
++        final Processor existingProcessor = existingNode.getProcessor();
++        if (existingProcessor instanceof AsyncLoadedProcessor asyncProcessor) {
++            logger.debug("Cancelling async loading for processor {} before reload", id);
++            asyncProcessor.cancelLoading();
++        }
++
+         // Ensure that we notify the Python Bridge that we're removing the old processor, if the Processor is Python based.
+         // This way we can shutdown the Process if necessary before creating a new processor (which may then spawn a new process).
+         // There is no need to wait for this to complete, and it may require communicating over local socket so run in a background (virtual) thread.
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-nar-loading-utils/src/main/java/org/apache/nifi/nar/StandardNarLoader.java b/nifi-framework-bundle/nifi-framework/nifi-framework-nar-loading-utils/src/main/java/org/apache/nifi/nar/StandardNarLoader.java
+index d2d9385896..3eabf6bab5 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-nar-loading-utils/src/main/java/org/apache/nifi/nar/StandardNarLoader.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-nar-loading-utils/src/main/java/org/apache/nifi/nar/StandardNarLoader.java
+@@ -148,14 +148,11 @@ public class StandardNarLoader implements NarLoader {
+ 
+         final File workingDirectory = bundle.getBundleDetails().getWorkingDirectory();
+         if (workingDirectory.exists()) {
+-            LOGGER.debug("Removing NAR working directory [{}]", workingDirectory.getAbsolutePath());
+             try {
+                 FileUtils.deleteFile(workingDirectory, true);
+             } catch (final IOException e) {
+                 LOGGER.warn("Failed to delete bundle working directory [{}]", workingDirectory.getAbsolutePath());
+             }
+-        } else {
+-            LOGGER.debug("NAR working directory does not exist at [{}]", workingDirectory.getAbsolutePath());
+         }
+     }
+ 
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-nar-utils/src/main/java/org/apache/nifi/nar/StandardExtensionDiscoveringManager.java b/nifi-framework-bundle/nifi-framework/nifi-framework-nar-utils/src/main/java/org/apache/nifi/nar/StandardExtensionDiscoveringManager.java
+index 6e9a6293d2..b215a0d0b2 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-nar-utils/src/main/java/org/apache/nifi/nar/StandardExtensionDiscoveringManager.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-nar-utils/src/main/java/org/apache/nifi/nar/StandardExtensionDiscoveringManager.java
+@@ -742,11 +742,9 @@ public class StandardExtensionDiscoveringManager implements ExtensionDiscovering
+ 
+         final Bundle removedBundle = bundleCoordinateBundleLookup.remove(bundleCoordinate);
+         if (removedBundle == null) {
+-            logger.debug("Bundle not found with coordinate [{}]", bundleCoordinate);
+             return null;
+         }
+ 
+-        logger.debug("Removing bundle [{}]", bundleCoordinate);
+         final ClassLoader removedBundleClassLoader = removedBundle.getClassLoader();
+         classLoaderBundleLookup.remove(removedBundleClassLoader);
+ 
+diff --git a/nifi-system-tests/nifi-system-test-suite/src/test/java/org/apache/nifi/tests/system/python/PythonNarDeletionDuringInitIT.java b/nifi-system-tests/nifi-system-test-suite/src/test/java/org/apache/nifi/tests/system/python/PythonNarDeletionDuringInitIT.java
+new file mode 100644
+index 0000000000..107bc75d38
+--- /dev/null
++++ b/nifi-system-tests/nifi-system-test-suite/src/test/java/org/apache/nifi/tests/system/python/PythonNarDeletionDuringInitIT.java
+@@ -0,0 +1,298 @@
++/*
++ *  Licensed to the Apache Software Foundation (ASF) under one or more
++ *  contributor license agreements.  See the NOTICE file distributed with
++ *  this work for additional information regarding copyright ownership.
++ *  The ASF licenses this file to You under the Apache License, Version 2.0
++ *  (the "License"); you may not use this file except in compliance with
++ *  the License.  You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ *  Unless required by applicable law or agreed to in writing, software
++ *  distributed under the License is distributed on an "AS IS" BASIS,
++ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ *  See the License for the specific language governing permissions and
++ *  limitations under the License.
++ */
++
++package org.apache.nifi.tests.system.python;
++
++import org.apache.nifi.nar.NarState;
++import org.apache.nifi.tests.system.NiFiInstanceFactory;
++import org.apache.nifi.tests.system.NiFiSystemIT;
++import org.apache.nifi.tests.system.nar.NarUploadUtil;
++import org.apache.nifi.toolkit.client.NiFiClientException;
++import org.apache.nifi.web.api.dto.BundleDTO;
++import org.apache.nifi.web.api.dto.DocumentedTypeDTO;
++import org.apache.nifi.web.api.dto.NarSummaryDTO;
++import org.apache.nifi.web.api.entity.ProcessorEntity;
++import org.apache.nifi.web.api.entity.ProcessorTypesEntity;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.Timeout;
++
++import java.io.File;
++import java.io.IOException;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
++
++import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertFalse;
++import static org.junit.jupiter.api.Assertions.assertNotNull;
++import static org.junit.jupiter.api.Assertions.assertNull;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++public class PythonNarDeletionDuringInitIT extends NiFiSystemIT {
++
++    private static final String PYTHON_TEXT_EXTENSIONS_NAR_ID = "nifi-python-test-extensions-nar";
++    private static final String PYTHON_WRITE_BECH_32_CHARSET = "WriteBech32Charset";
++
++    private static final int NAR_DELETE_TIMEOUT_SECONDS = 30;
++
++    @Override
++    public NiFiInstanceFactory getInstanceFactory() {
++        return createPythonicInstanceFactory();
++    }
++
++
++    @Test
++    @Timeout(value = 120, unit = TimeUnit.SECONDS)
++    public void testForceDeleteNarDuringProcessorInitialization() throws NiFiClientException, IOException, InterruptedException {
++        final NarUploadUtil narUploadUtil = new NarUploadUtil(getNifiClient());
++
++        final File pythonTestExtensionsNar = getPythonTestExtensionsNar();
++        assertNotNull(pythonTestExtensionsNar);
++
++        final NarSummaryDTO uploadedNarSummary = narUploadUtil.uploadNar(pythonTestExtensionsNar);
++        waitFor(narUploadUtil.getWaitForNarStateSupplier(uploadedNarSummary.getIdentifier(), NarState.INSTALLED));
++
++        final DocumentedTypeDTO processorTypeDTO = getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET);
++        assertNotNull(processorTypeDTO);
++        final BundleDTO processorBundle = processorTypeDTO.getBundle();
++
++        final ProcessorEntity pythonProcessor = getClientUtil().createProcessor(
++                PYTHON_WRITE_BECH_32_CHARSET,
++                processorBundle.getGroup(),
++                processorBundle.getArtifact(),
++                processorBundle.getVersion());
++
++        final CompletableFuture<NarSummaryDTO> deleteFuture = CompletableFuture.supplyAsync(() -> {
++            try {
++                return narUploadUtil.deleteNar(uploadedNarSummary);
++            } catch (final Exception e) {
++                throw new RuntimeException("Failed to delete NAR", e);
++            }
++        });
++
++        assertDoesNotThrow(() -> {
++            try {
++                deleteFuture.get(NAR_DELETE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
++            } catch (final TimeoutException e) {
++                throw new AssertionError(
++                        "NAR deletion blocked for more than %d seconds".formatted(NAR_DELETE_TIMEOUT_SECONDS), e);
++            } catch (final ExecutionException e) {
++                throw new RuntimeException("NAR deletion failed with exception", e.getCause());
++            }
++        });
++
++        narUploadUtil.verifyNarSummaries(0);
++
++        assertNull(getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET));
++
++        final String pythonProcessorId = pythonProcessor.getId();
++        waitFor(() -> {
++            final ProcessorEntity processorAfterDelete = getNifiClient().getProcessorClient().getProcessor(pythonProcessorId);
++            return processorAfterDelete.getComponent().getExtensionMissing();
++        });
++    }
++
++    @Test
++    @Timeout(value = 180, unit = TimeUnit.SECONDS)
++    public void testNarReuploadAfterForceDeleteDuringInit() throws NiFiClientException, IOException, InterruptedException {
++        final NarUploadUtil narUploadUtil = new NarUploadUtil(getNifiClient());
++
++        final File pythonTestExtensionsNar = getPythonTestExtensionsNar();
++        assertNotNull(pythonTestExtensionsNar);
++
++        final NarSummaryDTO uploadedNarSummary = narUploadUtil.uploadNar(pythonTestExtensionsNar);
++        waitFor(narUploadUtil.getWaitForNarStateSupplier(uploadedNarSummary.getIdentifier(), NarState.INSTALLED));
++
++        final DocumentedTypeDTO processorTypeDTO = getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET);
++        final BundleDTO processorBundle = processorTypeDTO.getBundle();
++
++        final ProcessorEntity firstProcessor = getClientUtil().createProcessor(
++                PYTHON_WRITE_BECH_32_CHARSET,
++                processorBundle.getGroup(),
++                processorBundle.getArtifact(),
++                processorBundle.getVersion());
++
++        final CompletableFuture<NarSummaryDTO> deleteFuture = CompletableFuture.supplyAsync(() -> {
++            try {
++                return narUploadUtil.deleteNar(uploadedNarSummary);
++            } catch (final Exception e) {
++                throw new RuntimeException(e);
++            }
++        });
++
++        try {
++            deleteFuture.get(NAR_DELETE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
++        } catch (final TimeoutException | ExecutionException e) {
++            throw new AssertionError("NAR deletion should not block during processor initialization", e);
++        }
++
++        final String firstProcessorId = firstProcessor.getId();
++        waitFor(() -> {
++            final ProcessorEntity proc = getNifiClient().getProcessorClient().getProcessor(firstProcessorId);
++            return proc.getComponent().getExtensionMissing();
++        });
++
++        getNifiClient().getProcessorClient().deleteProcessor(firstProcessor);
++
++        final NarSummaryDTO reuploadedNarSummary = narUploadUtil.uploadNar(pythonTestExtensionsNar);
++        waitFor(narUploadUtil.getWaitForNarStateSupplier(reuploadedNarSummary.getIdentifier(), NarState.INSTALLED));
++
++        final DocumentedTypeDTO reloadedProcessorType = getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET);
++        assertNotNull(reloadedProcessorType);
++
++        final ProcessorEntity secondProcessor = getClientUtil().createProcessor(
++                PYTHON_WRITE_BECH_32_CHARSET,
++                reloadedProcessorType.getBundle().getGroup(),
++                reloadedProcessorType.getBundle().getArtifact(),
++                reloadedProcessorType.getBundle().getVersion());
++
++        final String secondProcessorId = secondProcessor.getId();
++        waitFor(() -> {
++            final ProcessorEntity proc = getNifiClient().getProcessorClient().getProcessor(secondProcessorId);
++            return !proc.getComponent().getExtensionMissing();
++        });
++
++        final ProcessorEntity loadedProcessor = getNifiClient().getProcessorClient().getProcessor(secondProcessorId);
++        assertFalse(loadedProcessor.getComponent().getExtensionMissing());
++
++        getNifiClient().getProcessorClient().deleteProcessor(loadedProcessor);
++        narUploadUtil.deleteNar(reuploadedNarSummary);
++    }
++
++    @Test
++    @Timeout(value = 240, unit = TimeUnit.SECONDS)
++    public void testRapidNarUploadDeleteCycles() throws NiFiClientException, IOException, InterruptedException {
++        final NarUploadUtil narUploadUtil = new NarUploadUtil(getNifiClient());
++        final File pythonTestExtensionsNar = getPythonTestExtensionsNar();
++        assertNotNull(pythonTestExtensionsNar);
++
++        final int cycles = 3;
++
++        for (int i = 0; i < cycles; i++) {
++            final NarSummaryDTO narSummary = narUploadUtil.uploadNar(pythonTestExtensionsNar);
++            waitFor(narUploadUtil.getWaitForNarStateSupplier(narSummary.getIdentifier(), NarState.INSTALLED));
++
++            final DocumentedTypeDTO processorType = getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET);
++            assertNotNull(processorType);
++
++            final ProcessorEntity processor = getClientUtil().createProcessor(
++                    PYTHON_WRITE_BECH_32_CHARSET,
++                    processorType.getBundle().getGroup(),
++                    processorType.getBundle().getArtifact(),
++                    processorType.getBundle().getVersion());
++
++            final CompletableFuture<NarSummaryDTO> deleteFuture = CompletableFuture.supplyAsync(() -> {
++                try {
++                    return narUploadUtil.deleteNar(narSummary);
++                } catch (final Exception e) {
++                    throw new RuntimeException(e);
++                }
++            });
++
++            try {
++                deleteFuture.get(NAR_DELETE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
++            } catch (final TimeoutException e) {
++                throw new AssertionError("Cycle %d: NAR deletion blocked".formatted(i + 1), e);
++            } catch (final ExecutionException e) {
++                throw new RuntimeException("Cycle %d: NAR deletion failed".formatted(i + 1), e.getCause());
++            }
++
++            final String processorId = processor.getId();
++            waitFor(() -> {
++                final ProcessorEntity proc = getNifiClient().getProcessorClient().getProcessor(processorId);
++                return proc.getComponent().getExtensionMissing();
++            });
++
++            getNifiClient().getProcessorClient().deleteProcessor(processor);
++
++            assertEquals(0, narUploadUtil.verifyNarSummaries(0).getNarSummaries().size());
++        }
++    }
++
++    @Test
++    @Timeout(value = 120, unit = TimeUnit.SECONDS)
++    public void testProcessorLoadStateDuringCancellation() throws NiFiClientException, IOException, InterruptedException {
++        final NarUploadUtil narUploadUtil = new NarUploadUtil(getNifiClient());
++        final File pythonTestExtensionsNar = getPythonTestExtensionsNar();
++        assertNotNull(pythonTestExtensionsNar);
++
++        final NarSummaryDTO narSummary = narUploadUtil.uploadNar(pythonTestExtensionsNar);
++        waitFor(narUploadUtil.getWaitForNarStateSupplier(narSummary.getIdentifier(), NarState.INSTALLED));
++
++        final DocumentedTypeDTO processorType = getDocumentedTypeDTO(PYTHON_WRITE_BECH_32_CHARSET);
++        final ProcessorEntity processor = getClientUtil().createProcessor(
++                PYTHON_WRITE_BECH_32_CHARSET,
++                processorType.getBundle().getGroup(),
++                processorType.getBundle().getArtifact(),
++                processorType.getBundle().getVersion());
++
++        final ProcessorEntity processorBeforeDelete = getNifiClient().getProcessorClient().getProcessor(processor.getId());
++        final String validationStatus = processorBeforeDelete.getComponent().getValidationStatus();
++
++        assertTrue(validationStatus.equals("VALIDATING") || validationStatus.equals("INVALID"));
++
++        final CompletableFuture<NarSummaryDTO> deleteFuture = CompletableFuture.supplyAsync(() -> {
++            try {
++                return narUploadUtil.deleteNar(narSummary);
++            } catch (final Exception e) {
++                throw new RuntimeException(e);
++            }
++        });
++
++        try {
++            deleteFuture.get(NAR_DELETE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
++        } catch (final TimeoutException | ExecutionException e) {
++            throw new AssertionError("NAR deletion should complete promptly", e);
++        }
++
++        waitFor(() -> {
++            final ProcessorEntity proc = getNifiClient().getProcessorClient().getProcessor(processor.getId());
++            return proc.getComponent().getExtensionMissing();
++        });
++
++        final ProcessorEntity processorAfterDelete = getNifiClient().getProcessorClient().getProcessor(processor.getId());
++        assertTrue(processorAfterDelete.getComponent().getExtensionMissing());
++    }
++
++    private File getPythonTestExtensionsNar() {
++        final File nifiHome = getNiFiInstance().getInstanceDirectory();
++        final File lib = new File(nifiHome, "lib");
++        final File pythonNars = new File(lib, "python-nars");
++        final File[] narFiles = pythonNars.listFiles((dir, name) ->
++                name.endsWith(".nar") && name.startsWith(PYTHON_TEXT_EXTENSIONS_NAR_ID));
++
++        if (narFiles == null || narFiles.length == 0) {
++            return null;
++        }
++        return narFiles[0];
++    }
++
++    private DocumentedTypeDTO getDocumentedTypeDTO(final String type) throws NiFiClientException, IOException {
++        final ProcessorTypesEntity allProcessorTypes = getNifiClient().getFlowClient().getProcessorTypes();
++        if (allProcessorTypes == null || allProcessorTypes.getProcessorTypes() == null) {
++            return null;
++        }
++
++        return allProcessorTypes.getProcessorTypes().stream()
++                .filter(processorType -> processorType.getType().equals(type))
++                .findAny()
++                .orElse(null);
++    }
++}
++
