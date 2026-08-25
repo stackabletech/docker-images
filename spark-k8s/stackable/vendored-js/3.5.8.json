@@ -29,7 +29,7 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.mustache.js",
       "purl": "pkg:npm/mustache@3.0.1",
       "license": "MIT",
-      "note": "Despite the file name this is mustache.js itself, not a jQuery plugin. Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "Despite the file name this is mustache.js itself, not a jQuery plugin. The file is mustache.js of the 3.0.1 release minus its trailing newline, so the code is that release unchanged.",
       "sha256": "520f7bf7d54c8dde783aaf6f0dac66c9edc55da01716ccabca6888686822e7d6"
     },
     {
@@ -60,7 +60,7 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/d3.min.js",
       "purl": "pkg:npm/d3@3.5.5",
       "license": "BSD-3-Clause",
-      "note": "Version taken from the file header. The 3.5.5 release declares no license field, its bundled LICENSE file is BSD-3-Clause. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "The 3.5.5 release declares no license field, its bundled LICENSE file is BSD-3-Clause. The file is d3.min.js of that release with a \"/*v3.5.5*/\" banner added and a trailing newline appended, so the code is that release unchanged.",
       "sha256": "3d4c7c277efd3bb019ed0aba5d2dfbe575ded9b9055b842997774bee02f2b76a"
     },
     {
@@ -74,14 +74,14 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/graphlib-dot.min.js",
       "purl": "pkg:npm/graphlib-dot@0.5.2",
       "license": "MIT",
-      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "Version taken from the file header. The npm release ships only the CommonJS sources under lib/, not the browser bundle vendored here, so there is no published file to compare it with.",
       "sha256": "668584b1ed5fe082dc65c895d7cf4b4b3f0868758b1bdbaf056905418594a556"
     },
     {
       "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.dataTables.1.13.5.min.js",
       "purl": "pkg:npm/datatables.net@1.13.5",
       "license": "MIT",
-      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "Version taken from the file header, which the npm build carries as well. The npm release ships a jquery.dataTables.min.js of the same version, but minified with different settings (extra parentheses, assignments ordered differently), so the two are not byte-identical.",
       "sha256": "4a20199d45c7b3b9180461baa8f93a383e0438ac921a8bbcef0c3ab5c986c1c3"
     },
     {

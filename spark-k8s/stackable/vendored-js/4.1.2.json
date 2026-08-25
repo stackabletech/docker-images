@@ -8,7 +8,8 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/bootstrap.bundle.min.js",
       "purl": "pkg:npm/bootstrap@4.4.1",
       "license": "MIT",
-      "sha256": "4d371899aba195b1f0cba3a70de300fb5b327a322cfbe3a30d77af8456d8494e"
+      "sha256": "4d371899aba195b1f0cba3a70de300fb5b327a322cfbe3a30d77af8456d8494e",
+      "note": "The file is dist/js/bootstrap.bundle.min.js of the 4.4.1 release without the trailing source-map link, so the code is that release unchanged."
     },
     {
       "file": "core/src/main/resources/org/apache/spark/ui/static/dataTables.rowsGroup.js",
@@ -29,7 +30,7 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/jquery.mustache.js",
       "purl": "pkg:npm/mustache@3.0.1",
       "license": "MIT",
-      "note": "Despite the file name this is mustache.js itself, not a jQuery plugin. Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "Despite the file name this is mustache.js itself, not a jQuery plugin. The file is mustache.js of the 3.0.1 release minus its trailing newline, so the code is that release unchanged.",
       "sha256": "520f7bf7d54c8dde783aaf6f0dac66c9edc55da01716ccabca6888686822e7d6"
     },
     {
@@ -66,21 +67,21 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/d3-flamegraph.min.js",
       "purl": "pkg:npm/d3-flame-graph@4.1.3",
       "license": "Apache-2.0",
-      "note": "Version taken from the file header, which is the jsDelivr URL it was downloaded from.",
+      "note": "Version taken from the file header, which is the jsDelivr URL it was downloaded from. Ignoring that banner the file is identical in 4.1.2 and 4.1.3, so the banner is the only thing that dates it.",
       "sha256": "10c2ac45bb9ad73e12fdebf434fbb29aa05b85b7bab660c2751e885c51bd5356"
     },
     {
       "file": "core/src/main/resources/org/apache/spark/ui/static/dagre-d3.min.js",
       "purl": "pkg:npm/dagre-d3@0.6.4",
       "license": "MIT",
-      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "The file is dist/dagre-d3.min.js of the 0.6.4 release with a banner added that names the Git tag it was taken from, so the code is that release unchanged.",
       "sha256": "b1e946243fc2aa7ba500f7b8fd68c6c8a6fcbbb0329e00389b6a05e20e39130e"
     },
     {
       "file": "core/src/main/resources/org/apache/spark/ui/static/graphlib-dot.min.js",
       "purl": "pkg:npm/graphlib-dot@1.0.2",
       "license": "MIT",
-      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "The banner names https://github.com/dagrejs/graphlib-dot/blob/v1.0.2/dist/graphlib-dot.min.js. npm stops at 0.6.4, so 1.0.2 exists only as a Git tag and there is no published tarball to compare with.",
       "sha256": "ae68701d5a547f47eb65ea79a4e2f3179d23c1b8280b2856e16e68555231a409"
     },
     {
@@ -93,14 +94,14 @@
       "file": "core/src/main/resources/org/apache/spark/ui/static/dataTables.bootstrap4.min.js",
       "purl": "pkg:npm/datatables.net-bs4@1.13.7",
       "license": "MIT",
-      "note": "The file is byte-identical in 1.13.7, 1.13.8 and 1.13.10, so the release it was taken from cannot be determined by hashing. The lowest one is recorded.",
+      "note": "The file is byte-identical in 1.13.7, 1.13.8, 1.13.10 and 1.13.11, so the release it was taken from cannot be determined by hashing. The lowest one is recorded.",
       "sha256": "e8dd8ff4b7568aa33170d6750c480e8cac29999da8a3a3e78dea13a4dfd8c8ef"
     },
     {
       "file": "core/src/main/resources/org/apache/spark/ui/static/vis-timeline-graph2d.min.js",
       "purl": "pkg:npm/vis-timeline@7.7.2",
       "license": "(Apache-2.0 OR MIT)",
-      "note": "Version taken from the file header. It matches no published tarball, so the copy shipped here is built differently or modified.",
+      "note": "The file is standalone/umd/vis-timeline-graph2d.min.js of the 7.7.2 release without the trailing source-map link, so the code is that release unchanged.",
       "bundles": [
         {
           "purl": "pkg:npm/moment@2.29.4",
