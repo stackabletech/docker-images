@@ -15,15 +15,35 @@ This tool provides the two things that turn writing a manifest into reading off 
               them, looking for one that is byte-identical to ours. A match is proof, and it is
               what established that Hadoop's "d3-v4.1.1.min.js" really is d3 4.1.0.
 
-A file is also compared with its surrounding whitespace stripped, because vendoring a file through
-an editor or a shell redirection commonly appends a trailing newline. Trino's clipboard.min.js is
-the published clipboard 2.0.11 plus exactly one such byte. That is the same code and the same
-advisories apply, so it counts as a match, and the manifest entry says which kind it was.
+A file is compared in four ways, because vendoring rarely copies a release byte for byte:
+
+    identical   the file as it is. Proof.
+    whitespace  the file with its line endings normalised, its trailing spaces removed and its
+                surrounding whitespace stripped. Copying through an editor or a shell redirection
+                commonly appends a trailing newline or strips trailing spaces. Trino's
+                clipboard.min.js is the published clipboard 2.0.11 plus one newline, and Hadoop's
+                d3.v3.js is the published d3 3.2.7 with one trailing space gone.
+    comments    the same, and additionally without the comment banner at the top of the file and
+                without the source-map link at the bottom. Vendoring often drops or rewrites the
+                copyright header, or adds one where the release has none, which is the other half
+                of what makes d3.v3.js look modified. Dropping the source-map link is just as
+                common, because the .map file is not vendored along with it.
+    formatting  the same, and with every run of whitespace collapsed, which makes the comparison
+                blind to how the file is indented. Trino's jquery-3.7.1.js is the published release
+                re-indented with spaces instead of tabs. This is the weakest of the four: a
+                difference inside a multi-line string literal would be collapsed away with it, so
+                it says the code is the same up to formatting rather than proving it byte for byte.
+
+All four mean the same code, so the same advisories apply, and all four count as a match. The
+manifest entry says which kind it was. Only the banner and the source-map link are ignored, never
+a comment inside the code, so two releases that differ in the code itself can still be told apart.
 
 When several releases match, the file was shipped unchanged across them and hashing cannot tell
 them apart. Record the lowest one: it is the earliest release the code appeared in, and it keeps
 the widest set of advisories applicable, which is the safe direction. Note the ambiguity in the
-manifest entry.
+manifest entry. Evidence outside the code beats that rule, because it names one release instead of
+a range: Spark's d3-flamegraph.min.js is identical in 4.1.2 and 4.1.3, and its banner is the
+jsDelivr URL it was downloaded from, so 4.1.3 is recorded.
 
 When nothing matches, the library either predates its npm releases or the product modified or
 rebuilt it. Fall back to the version the file states and say so in the entry.
@@ -67,15 +87,57 @@ HINTS = [
 ]
 
 
+# The digest of an empty file, which is what a file that holds nothing but a comment strips down to.
+EMPTY = hashlib.sha256(b"").hexdigest()
+
+
 def sha256(contents):
     return hashlib.sha256(contents).hexdigest()
 
 
+def normalize_whitespace(contents):
+    """The file with its line endings normalised, its trailing spaces removed and its surrounding
+    whitespace stripped. None of that changes what the code does, and all of it happens to a file
+    on the way into a source tree."""
+    lines = contents.replace(b"\r\n", b"\n").split(b"\n")
+    return b"\n".join(line.rstrip() for line in lines).strip()
+
+
+def strip_comments(contents):
+    """The file without the comment banner at the top of it, without the source-map link at the
+    bottom, and without its surrounding whitespace. Only comments outside the code are removed, so
+    the code itself is compared in full."""
+    rest = contents.strip()
+    if rest.rsplit(b"\n", 1)[-1].startswith(
+        (b"//# sourceMappingURL=", b"//@ sourceMappingURL=")
+    ):
+        rest = rest.rsplit(b"\n", 1)[0].strip()
+    while True:
+        if rest.startswith(b"/*"):
+            end = rest.find(b"*/")
+            if end < 0:
+                break
+            rest = rest[end + 2 :].strip()
+        elif rest.startswith(b"//"):
+            end = rest.find(b"\n")
+            if end < 0:
+                break
+            rest = rest[end + 1 :].strip()
+        else:
+            break
+    return rest
+
+
 def digests(contents):
-    """The SHA-256 of the file and of the same file without its surrounding whitespace. The second
-    one identifies a copy that a vendoring step gave a trailing newline, which happens often enough
-    that comparing only the first would report the library as modified."""
-    return sha256(contents), sha256(contents.strip())
+    """The SHA-256 of the file and of its three normalised forms, keyed by the kind of match each
+    one is evidence for. Comparing only the first would report a copy that merely lost a trailing
+    space or a copyright header as a modified library."""
+    return {
+        "identical": sha256(contents),
+        "whitespace": sha256(normalize_whitespace(contents)),
+        "comments": sha256(normalize_whitespace(strip_comments(contents))),
+        "formatting": sha256(re.sub(rb"\s+", b" ", strip_comments(contents)).strip()),
+    }
 
 
 def version_hints(contents):
@@ -120,8 +182,7 @@ def published_versions(package, prefix):
 
 
 def tarball_hashes(package, version, url):
-    """The SHA-256 of every file in a release and of its stripped contents, keyed by its path inside
-    the package."""
+    """The digests of every file in a release, keyed by its path inside the package."""
     archive_path = CACHE / f"{package.replace('/', '_')}-{version}.tgz"
     if not archive_path.exists():
         CACHE.mkdir(parents=True, exist_ok=True)
@@ -153,9 +214,28 @@ def inspect(source_root, directories):
             )
 
 
+# What a match of each kind means, and how the manifest entry should describe it. Ordered from the
+# strongest evidence to the weakest, and that is also the order they are reported in.
+KINDS = {
+    "identical": "byte-identical",
+    "whitespace": "differs only in whitespace",
+    "comments": "differs only in whitespace and in the banner or the source-map link",
+    "formatting": "differs only in formatting, the banner or the source-map link",
+}
+
+
+def match_kind(wanted, published):
+    """How a published file matches ours, or None if it does not. A file that is nothing but a
+    comment is empty once the banner is gone, which would match anything, so that is not a match."""
+    for kind in KINDS:
+        if wanted[kind] == published[kind] and published[kind] != EMPTY:
+            return kind
+    return None
+
+
 def identify(target, packages, prefix):
-    wanted, wanted_stripped = digests(target.read_bytes())
-    print(f"{target}\n  sha256 {wanted}\n")
+    wanted = digests(target.read_bytes())
+    print(f"{target}\n  sha256 {wanted['identical']}\n")
 
     matches = []
     for package in packages:
@@ -166,17 +246,11 @@ def identify(target, packages, prefix):
             continue
         print(f"{package}: checking {len(releases)} version(s)")
         for version, url in releases:
-            for name, (digest, stripped) in tarball_hashes(
-                package, version, url
-            ).items():
-                if digest == wanted:
-                    matches.append((package, version, "identical"))
-                    print(f"  MATCH {package}@{version}  {name}")
-                elif stripped == wanted_stripped:
-                    matches.append((package, version, "whitespace"))
-                    print(
-                        f"  MATCH {package}@{version}  {name}  (differs only in surrounding whitespace)"
-                    )
+            for name, published in tarball_hashes(package, version, url).items():
+                kind = match_kind(wanted, published)
+                if kind:
+                    matches.append((package, version, kind))
+                    print(f"  MATCH {package}@{version}  {name}  ({KINDS[kind]})")
 
     if not matches:
         print(
@@ -184,12 +258,13 @@ def identify(target, packages, prefix):
         )
         return
 
-    if any(kind == "whitespace" for _, _, kind in matches):
+    kinds = {kind for _, _, kind in matches}
+    if kinds != {"identical"}:
         print(
-            "\nThe code is identical, only the surrounding whitespace differs, so the release applies."
+            "\nThe code is identical, so the release applies. Record it and say in the manifest"
         )
         print(
-            "Record it and say in the manifest that the copy carries extra whitespace."
+            f"what differs: {', '.join(KINDS[kind] for kind in KINDS if kind in kinds)}."
         )
 
     if len(matches) > 1:
