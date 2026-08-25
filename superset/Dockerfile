@@ -147,17 +147,23 @@ npm run build
 #   also drop all transitive runtime dependencies.
 # --project-version is passed because the frontends declare a placeholder version
 #   upstream.
-# --exclude skips cypress-base, which is an independent npm project (it has its own
-#   package-lock.json) for the end-to-end tests. Its dependencies are never installed
-#   or shipped in this image, so they have no place in the SBOM. Excluding it also
-#   avoids a cdxgen bug: for such nested projects it emits the `license` string from
-#   package.json verbatim instead of a CycloneDX `licenses` array, which makes cdxgen
-#   fail its own schema validation.
+# --exclude skips the directories that are independent npm projects, because they ship
+#   their own package-lock.json:
+#   * cypress-base holds the end-to-end tests. Its dependencies are never installed
+#     (`npm ci` runs in superset-frontend) nor shipped, so they have no place in the SBOM.
+#   * packages/superset-ui-switchboard (4.1.4 only) has a lock file without any
+#     dependencies. The package itself is already covered by the top-level lock file.
+#   Excluding them also avoids a cdxgen bug: for such nested projects it emits the
+#   `license` string from package.json verbatim instead of a CycloneDX `licenses` array,
+#   which makes cdxgen fail its own schema validation and write no SBOM at all. This is
+#   fixed upstream in cdxgen, but not in a released version yet, see
+#   https://github.com/cdxgen/cdxgen/issues/4326.
 PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
     --type js \
     --required-only \
     --no-babel \
     --exclude "**/cypress-base/**" \
+    --exclude "**/packages/superset-ui-switchboard/**" \
     --spec-version "${CDXGEN_SPEC_VERSION}" \
     --project-version "${PRODUCT_VERSION}" \
     --output "/stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json"
