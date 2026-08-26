@@ -52,6 +52,7 @@ ARG TARGETARCH
 ARG TINI_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG CDXGEN_SPEC_VERSION
 
 WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 
@@ -59,6 +60,20 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT_VERSION} \
     ./
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+
+# Install Python to run shared/sbom/vendored_js.py, which creates the SBOM of the third-party
+# JavaScript that Spark checks into its source tree for the web UI, see the invocation further
+# down. The CycloneDX Maven plugin only covers the Java dependencies, and those files have no
+# package manifest and no lockfile, so cdxgen cannot see them either.
+RUN <<EOF
+    microdnf update
+    microdnf install python3
+    microdnf clean all
+    rm -rf /var/cache/yum
+EOF
+
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/vendored_js.py /stackable/vendored_js.py
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/vendored-js/${PRODUCT_VERSION}.json /stackable/vendored-js.json
 
 # >>> Build spark
 RUN <<EOF
@@ -78,6 +93,21 @@ RUN <<EOF
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
+
+    # Create the SBOM of the third-party JavaScript that Spark checks into its source tree for
+    # the web UI. These are pre-built files without any package manifest, so no SBOM generator
+    # can discover them and they are instead recorded in vendored-js.json. That manifest pins the
+    # SHA-256 of every file it describes, so this fails the build if a Spark upgrade changed any
+    # of them and the recorded versions have to be revisited.
+    python3 /stackable/vendored_js.py bom \
+        /stackable/vendored-js.json \
+        . \
+        "/stackable/spark-web-ui-${NEW_VERSION}.cdx.json" \
+        "${ORIGINAL_VERSION}" \
+        "${CDXGEN_SPEC_VERSION}"
+
+    # The final image checks that group permissions match the owner's.
+    chmod g=u "/stackable/spark-web-ui-${NEW_VERSION}.cdx.json"
 EOF
 
 # To avoid classpath conflicts with existing spark applications,
@@ -194,6 +224,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRO
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/spark/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 
