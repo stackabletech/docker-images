@@ -1,0 +1,115 @@
+{
+  "name": "trino-web-ui-vendor",
+  "scan-dirs": [
+    "core/trino-web-ui/src/main/resources/webapp/vendor",
+    "core/trino-web-ui/src/main/resources/webapp/assets"
+  ],
+  "libraries": [
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/bootstrap/js/bootstrap.js",
+      "purl": "pkg:npm/bootstrap@3.4.1",
+      "license": "MIT",
+      "sha256": "7c5a5562cb5d2b03c237b97b7f98f8302b9c04f9ef9f287b1d7093af16949b60",
+      "note": "A Bootstrap customizer build, which the config.json next to it was generated for. It carries the same 3.4.1 modules as the published dist/js/bootstrap.js, only concatenated in a different order, so it is not byte-identical."
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/bootstrap/js/bootstrap.min.js",
+      "purl": "pkg:npm/bootstrap@3.4.1",
+      "license": "MIT",
+      "sha256": "d518de485d8f2accc3acbce4c1be9f67c041d01cf4b43747a20e764b396cc526",
+      "note": "See the unminified file."
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/clipboardjs/clipboard.min.js",
+      "purl": "pkg:npm/clipboard@2.0.11",
+      "license": "MIT",
+      "note": "The file is dist/clipboard.min.js of the 2.0.11 release plus a trailing newline that the vendoring added, so the code is that release unchanged.",
+      "sha256": "82edf26934430790b6b335b7cba525dc9bcc02485db979136ec2983da217408b"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/jquery/jquery-3.7.1.js",
+      "purl": "pkg:npm/jquery@3.7.1",
+      "license": "MIT",
+      "sha256": "5e6769f1e58b34bec6a37d52a0a242a3069e67a8364f7bff414a7fe8b083f1b9",
+      "note": "The file is dist/jquery.js of the 3.7.1 release indented with spaces instead of tabs, so the code is that release unchanged."
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/jquery/jquery-3.7.1.min.js",
+      "purl": "pkg:npm/jquery@3.7.1",
+      "license": "MIT",
+      "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/jquery.sparkline/jquery.sparkline.js",
+      "purl": null,
+      "name": "jquery.sparkline",
+      "version": "2.1.2",
+      "license": "BSD-3-Clause",
+      "note": "Version taken from the file header. jquery-sparkline on npm never published a 2.1.2, so there is no release to point a purl at.",
+      "sha256": "2f2bcb0b842f3ed514ec601e5e72386ad0ed0c348a3ad505a0846ccacbc34834"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/jquery.sparkline/jquery.sparkline.min.js",
+      "purl": null,
+      "name": "jquery.sparkline",
+      "version": "2.1.2",
+      "license": "BSD-3-Clause",
+      "note": "See the unminified file.",
+      "sha256": "06e0242da172ab85985db3774c54ac1b53391a5b447857a100c5118b8281a543"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/vis/vis.js",
+      "purl": "pkg:npm/vis-timeline@7.7.3",
+      "license": "(Apache-2.0 OR MIT)",
+      "note": "The file is standalone/umd/vis-timeline-graph2d.js of the 7.7.3 release indented differently, so the code is that release unchanged.",
+      "bundles": [
+        {
+          "purl": "pkg:npm/moment@2.29.4",
+          "license": "MIT"
+        }
+      ],
+      "sha256": "c2957930810fc273c6b66996a4c665061c5b7107c9f1741ddf9aa7e6e0c0101c"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/vis/vis.min.js",
+      "purl": "pkg:npm/vis-timeline@7.7.3",
+      "license": "(Apache-2.0 OR MIT)",
+      "note": "The file is standalone/umd/vis-timeline-graph2d.min.js of the 7.7.3 release, indented differently and missing one non-breaking space inside a string literal, so it is that release apart from that one character.",
+      "bundles": [
+        {
+          "purl": "pkg:npm/moment@2.29.4",
+          "license": "MIT"
+        }
+      ],
+      "sha256": "942064f935ded3659890c1483dc2d0312e7d2c154ad844c3d7ae76827b717d4f"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/vis/dist/vis.js",
+      "purl": "pkg:npm/vis@3.12.0",
+      "license": "(Apache-2.0 OR MIT)",
+      "bundles": [
+        {
+          "purl": "pkg:npm/moment@2.10.0",
+          "license": "MIT"
+        }
+      ],
+      "sha256": "467bccdb74ef62e6611ba27f338a0ba0c49ba9a90ef1facb394c14de676318cf"
+    },
+    {
+      "file": "core/trino-web-ui/src/main/resources/webapp/vendor/vis/dist/vis.min.js",
+      "purl": "pkg:npm/vis@3.12.0",
+      "license": "(Apache-2.0 OR MIT)",
+      "bundles": [
+        {
+          "purl": "pkg:npm/moment@2.10.0",
+          "license": "MIT"
+        }
+      ],
+      "sha256": "b3944c1151a9c8a2dc78dfd6c0b3840aad24990df442486d271d2d84675e9480"
+    }
+  ],
+  "own": [
+    "core/trino-web-ui/src/main/resources/webapp/assets/js/login.js",
+    "core/trino-web-ui/src/main/resources/webapp/assets/js/timeline.js"
+  ]
+}
