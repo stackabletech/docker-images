@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
 - superset: Fix the broken builds by excluding the `cypress-base` end-to-end test project from the frontend SBOM ([#1616]).
 - superset: Fix the broken 4.1.4 build by also excluding `packages/superset-ui-switchboard` from the frontend SBOM ([#1620]).
+- superset: Install nvm into `/opt/nvm` so that Node and npm, which are only needed to build the frontend, are no longer shipped in the final image (about 161 MB) ([#1623]).
 
 ### Removed
 
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file.
 [#1611]: https://github.com/stackabletech/docker-images/pull/1611
 [#1616]: https://github.com/stackabletech/docker-images/pull/1616
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
+[#1623]: https://github.com/stackabletech/docker-images/pull/1623
 
 ## [26.7.0] - 2026-07-21
 

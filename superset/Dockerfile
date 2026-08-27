@@ -88,10 +88,16 @@ COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSIO
 
 WORKDIR /stackable
 
+# nvm derives its installation directory from the location of nvm.sh if NVM_DIR is not set.
+# It must not end up anywhere below /stackable, because the final image copies that directory
+# as a whole and would then ship Node and npm, which are only needed to build the frontend.
+ENV NVM_DIR=/opt/nvm
+
 RUN <<EOF
 # Download nvm to manage Node and npm installation
-curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o /stackable/nvm.sh
-. /stackable/nvm.sh
+mkdir -p "${NVM_DIR}"
+curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
+. "${NVM_DIR}/nvm.sh"
 
 # Install the specified version of Node (including the latest compatible version of npm)
 nvm install "$NODEJS_VERSION" --latest-npm
@@ -119,7 +125,7 @@ EOF
 # hadolint ignore=DL3042
 RUN <<EOF
 # This makes node and npm available in the path
-. /stackable/nvm.sh
+. "${NVM_DIR}/nvm.sh"
 
 python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
