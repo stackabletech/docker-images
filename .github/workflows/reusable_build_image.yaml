@@ -139,8 +139,8 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
+          canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
 
       - name: Publish Container Image on quay.io
         if: inputs.publish && inputs.publish-to-quay
@@ -155,8 +155,8 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
+          canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
 
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
@@ -189,7 +189,7 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
       - name: Publish and Sign Image Index Manifest to quay.io
         id: publish-quay
@@ -205,7 +205,7 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
   notify:
     name: Failure Notification
