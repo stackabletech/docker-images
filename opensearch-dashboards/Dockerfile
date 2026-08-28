@@ -197,7 +197,8 @@ EOF
 
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
-RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
+# --required-only restricts the SBOM to the runtime dependencies.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --required-only --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
