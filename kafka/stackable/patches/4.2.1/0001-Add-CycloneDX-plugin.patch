@@ -1,17 +1,17 @@
-From 5ef351ca945bcaa8346ef066ba00fd9288a4f443 Mon Sep 17 00:00:00 2001
+From 3022c3cdb6f0b0240b73618a5fa1686256222aeb Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Wed, 13 May 2026 16:30:33 +0300
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 45 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ build.gradle | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index c07cd3b047..effbe0f65d 100644
+index c07cd3b047..d3f7632f56 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -41,8 +41,53 @@ plugins {
+@@ -41,8 +41,66 @@ plugins {
    id 'org.scoverage' version '8.1' apply false
    id 'com.gradleup.shadow' version '8.3.9' apply false
    id 'com.diffplug.spotless' version "8.0.0"
@@ -27,9 +27,22 @@ index c07cd3b047..effbe0f65d 100644
 +    xmlOutput.unsetConvention()
 +}
 +
++// The SBOM must only describe what is shipped, so restrict it to the runtime dependencies.
++// Without this the SBOM also contains the test and build tooling (JUnit, Mockito, JaCoCo,
++// SpotBugs, Checkstyle, ...). It has to be configured on the per-project `cyclonedxDirectBom`
++// tasks, the `cyclonedxBom` extension above only configures the aggregation.
++allprojects {
++  tasks.matching { it.name == 'cyclonedxDirectBom' }.configureEach {
++    includeConfigs = ['runtimeClasspath']
++  }
++}
++
 +// Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
 +// The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++// The jmh-benchmarks project is not shipped either and pulls in JMH and the test fixtures.
++// The same is true for the test-common projects, which pull in JUnit.
 +def skipCyclonedxProjects = [
++  ':jmh-benchmarks',
 +  ':streams:upgrade-system-tests-0110',
 +  ':streams:upgrade-system-tests-10',
 +  ':streams:upgrade-system-tests-11',
@@ -56,7 +69,7 @@ index c07cd3b047..effbe0f65d 100644
 +  ':streams:upgrade-system-tests-41',
 +]
 +
-+configure(subprojects.findAll { skipCyclonedxProjects.contains(it.path) }) {
++configure(subprojects.findAll { skipCyclonedxProjects.contains(it.path) || it.path.startsWith(':test-common') }) {
 +  tasks.named('cyclonedxDirectBom') {
 +    enabled = false
 +  }

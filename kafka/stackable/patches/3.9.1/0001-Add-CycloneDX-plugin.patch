@@ -1,17 +1,17 @@
-From 9f5ef4ff9f1868244326a56ea7c22c5c7c21253c Mon Sep 17 00:00:00 2001
+From 7e4a1e655312dd26f33bf0cb3a9e2d2b4b152f96 Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Thu, 17 Oct 2024 11:01:40 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ build.gradle | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 6b4725d542..f7894f379e 100644
+index 6b4725d542..f60df17046 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,48 @@ plugins {
+@@ -48,6 +48,50 @@ plugins {
    //  We are going to drop JDK8 support. Hence, the spotless is upgrade to newest version and be applied only if the build env is compatible with JDK 11.
    //  spotless 6.15.0+ has issue in runtime with JDK8 even through we define it with `apply:false`. see https://github.com/diffplug/spotless/issues/2156 for more details
    id 'com.diffplug.spotless' version "6.14.0" apply false
@@ -32,7 +32,9 @@ index 6b4725d542..f7894f379e 100644
 +    includeConfigs = ["runtimeClasspath"]
 +    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
 +    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++    // The jmh-benchmarks project is not shipped either and pulls in JMH, JUnit and Mockito.
 +    skipProjects = [
++      'jmh-benchmarks',
 +      'upgrade-system-tests-0100',
 +      'upgrade-system-tests-0101',
 +      'upgrade-system-tests-0102',

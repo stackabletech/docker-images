@@ -1,4 +1,4 @@
-From 69d2bc1b5d6ab5232fcd93307426bb254b139d6e Mon Sep 17 00:00:00 2001
+From 55362f3ede127bf2a0a70ef07a01dca0ada37481 Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Thu, 25 Sep 2025 10:50:07 +0200
 Subject: Change Gradle to use the Nexus Build Repo
@@ -8,7 +8,7 @@ Subject: Change Gradle to use the Nexus Build Repo
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index 732c6c2a18..e6c0449952 100644
+index 49f691ca79..d0129928db 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets
@@ -22,7 +22,7 @@ index 732c6c2a18..e6c0449952 100644
    }
    apply from: "$rootDir/gradle/dependencies.gradle"
  
-@@ -204,7 +206,9 @@ ext {
+@@ -210,7 +212,9 @@ ext {
  allprojects {
  
    repositories {
