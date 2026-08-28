@@ -4,7 +4,7 @@ use std::{
 };
 
 use git2::{Oid, Repository};
-use snafu::{OptionExt, ResultExt as _, Snafu};
+use snafu::{ResultExt as _, Snafu};
 use tracing_indicatif::suspend_tracing_indicatif;
 
 #[cfg(doc)]
@@ -113,7 +113,10 @@ pub enum Error {
         original_commit: error::CommitId,
     },
     #[snafu(display("commit {commit}'s commit message is invalid UTF-8"))]
-    NonUtf8CommitMessage { commit: CommitId },
+    NonUtf8CommitMessage {
+        source: git2::Error,
+        commit: CommitId,
+    },
 
     #[snafu(display("failed to delete old patch file {path:?}"))]
     DeleteOldPatch {

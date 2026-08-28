@@ -91,6 +91,9 @@ pub enum Error {
         url: String,
         refs: Vec<String>,
     },
+
+    #[snafu(display("worktree head reference name is invalid UTF-8"))]
+    NonUtf8WorktreeHeadReferenceName { source: git2::Error },
 }
 type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -223,7 +226,9 @@ pub fn ensure_worktree_is_at(
                 .context(FindCommitSnafu { repo, commit })?;
             // We can't reset the branch if it's already checked out, so detach to the commit instead for the meantime
             if let Ok(head) = worktree.head() {
-                tracing::info!(head.old = head.name(), "detaching worktree head");
+                let head_name = head.name().context(NonUtf8WorktreeHeadReferenceNameSnafu)?;
+                tracing::info!(head.old = head_name, "detaching worktree head");
+
                 let head_commit = head
                     .peel_to_commit()
                     .context(FindCommitSnafu {
