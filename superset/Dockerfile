@@ -210,9 +210,7 @@ if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
     uv pip install gunicorn==22.0.0
 fi
 
-uv pip install --no-cache-dir \
-    python-json-logger \
-    cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+uv pip install --no-cache-dir python-json-logger
 
 if [ -n "$AUTHLIB_VERSION" ]; then
     uv pip install Authlib==${AUTHLIB_VERSION}
@@ -226,8 +224,16 @@ uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 # See https://setuptools.pypa.io/en/stable/history.html#v82-0-0
 uv pip install --no-cache-dir setuptools==75.2.0
 
-cyclonedx-py environment --schema-version 1.5 --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
-uv pip uninstall cyclonedx-bom
+# Create the SBOM of the Python environment.
+# cyclonedx-bom is installed into a throw-away environment instead of the Superset one:
+# it would otherwise be part of the SBOM itself, and uninstalling it afterwards leaves its
+# dependencies (cyclonedx-python-lib, pip-requirements-parser, ...) behind in the image.
+uv venv /tmp/sbom-venv
+uv pip install --python /tmp/sbom-venv/bin/python --no-cache-dir cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+/tmp/sbom-venv/bin/cyclonedx-py environment --schema-version 1.5 \
+    --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json \
+    /stackable/app
+rm -rf /tmp/sbom-venv
 
 # Clean up build artifacts and temporary files to reduce image size
 cd /stackable
