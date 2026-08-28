@@ -112,7 +112,8 @@ microdnf update
 microdnf install openssl-devel pkg-config
 cd /patchable
 . "$HOME/.cargo/env"
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 mv /patchable/target/release/patchable /stackable/patchable
 microdnf clean all
 chown ${STACKABLE_USER_UID}:0 /stackable/patchable
