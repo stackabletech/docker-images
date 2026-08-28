@@ -22,6 +22,14 @@ All notable changes to this project will be documented in this file.
 - superset: Fix the broken builds by excluding the `cypress-base` end-to-end test project from the frontend SBOM ([#1616]).
 - superset: Fix the broken 4.1.4 build by also excluding `packages/superset-ui-switchboard` from the frontend SBOM ([#1620]).
 - superset: Install nvm into `/opt/nvm` so that Node and npm, which are only needed to build the frontend, are no longer shipped in the final image (about 161 MB) ([#1623]).
+- vector: Generate the SBOM with the same feature set the binary is built with, so that the integrations that are not compiled in (AWS, Azure, GreptimeDB, ...) are no longer reported ([#1624]).
+- base images: Exclude the build-time dependencies from the Rust SBOMs ([#1624]).
+- kafka: Exclude the non-runtime configurations and the projects that are not shipped from the SBOM ([#1624]).
+- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` and `3.4.0` ([#1624]).
+- opensearch: Restrict the SBOM of the Prometheus exporter to the runtime dependencies ([#1624]).
+- opensearch-dashboards: Exclude the devDependencies from the SBOM ([#1624]).
+- hbase: Exclude the optional npm dependencies from the web UI SBOM ([#1624]).
+- airflow, superset: Create the Python SBOM from a separate environment, so that neither cyclonedx-bom nor its dependencies end up in the SBOM and in the image ([#1624]).
 
 ### Removed
 
@@ -36,6 +44,7 @@ All notable changes to this project will be documented in this file.
 [#1616]: https://github.com/stackabletech/docker-images/pull/1616
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
+[#1624]: https://github.com/stackabletech/docker-images/pull/1624
 
 ## [26.7.0] - 2026-07-21
 
