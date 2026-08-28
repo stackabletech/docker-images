@@ -1,4 +1,4 @@
-From e10e254da6a4fd0ee72accd4da6d4e93e8716bd9 Mon Sep 17 00:00:00 2001
+From b0fd24f0b5361718e5d479b692ba4e20e23082da Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Thu, 26 Mar 2026 20:51:26 +0000
 Subject: Scope CycloneDX SBOM to shipped components only
@@ -9,14 +9,14 @@ telemetry-otel are shipped from the local build. Other plugins like
 ingest-attachment (which pulls in tika-core) are not installed in the
 Stackable image and should not appear in the runtime SBOM.
 ---
- build.gradle | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ build.gradle | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 78a15b418e7..505f9020830 100644
+index 78a15b418e7..b351ece8700 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -78,6 +78,16 @@ allprojects {
+@@ -78,6 +78,23 @@ allprojects {
  }
  
  cyclonedxBom {
@@ -25,10 +25,17 @@ index 78a15b418e7..505f9020830 100644
 +  // image (repository-s3 and telemetry-otel). This prevents build-only plugin
 +  // dependencies (e.g. tika-core from ingest-attachment) from appearing in the
 +  // runtime SBOM as false positives.
++  // The test framework, the test fixtures, the QA projects and the benchmarks are not
++  // shipped either and are the only source of JUnit, Mockito, Hamcrest, randomizedtesting
++  // and JMH in the SBOM.
 +  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
 +  skipProjects = subprojects.findAll { sub ->
 +    (sub.path.startsWith(':plugins:') && !(sub.name in shippedPlugins)) ||
-+    sub.path.startsWith(':example-plugins')
++    sub.path.startsWith(':example-plugins') ||
++    sub.path.startsWith(':test:') ||
++    sub.path.startsWith(':qa') ||
++    sub.path == ':benchmarks' ||
++    sub.path == ':client:test'
 +  }.collect { it.name }
    includeConfigs = ["runtimeClasspath"]
    includeLicenseText = false
