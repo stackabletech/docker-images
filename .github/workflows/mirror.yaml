@@ -74,7 +74,7 @@ jobs:
 
       - name: Publish Container Image on oci.stackable.tech/sdp
         if: inputs.destination-project == 'sdp'
-        uses: stackabletech/actions/publish-image@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -85,7 +85,7 @@ jobs:
 
       - name: Publish Container Image on oci.stackable.tech/stackable
         if: inputs.destination-project == 'stackable'
-        uses: stackabletech/actions/publish-image@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$stackable+github-action-build
@@ -114,7 +114,7 @@ jobs:
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech/sdp
         if: inputs.destination-project == 'sdp'
-        uses: stackabletech/actions/publish-image-index-manifest@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image-index-manifest@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
@@ -124,7 +124,7 @@ jobs:
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech/stackable
         if: inputs.destination-project == 'stackable'
-        uses: stackabletech/actions/publish-image-index-manifest@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image-index-manifest@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$stackable+github-action-build
