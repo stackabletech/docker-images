@@ -1,18 +1,15 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
+[build-arguments]
+golang-version = "1.26.0"
+
 # Version 1.12.3
 [versions."1.12.3".local-images]
 stackable-devel = "1.0.0"
 vector = "0.55.0"
 
-[versions."1.12.3".build-arguments]
-golang-version = "1.26.0"
-
 # Version 1.16.2
 [versions."1.16.2".local-images]
 stackable-devel = "1.0.0"
 vector = "0.55.0"
-
-[versions."1.16.2".build-arguments]
-golang-version = "1.26.0"
