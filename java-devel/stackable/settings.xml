@@ -93,7 +93,8 @@
         pooling, which should help to avoid stale/long-lasting connections which can become inactive and be killed by
         the Azure networking.
         -->
-        <!-- <aether.transport.http.reuseConnections>false</aether.transport.http.reuseConnections> -->
+        <aether.connector.http.reuseConnections>false</aether.connector.http.reuseConnections>
+        <aether.transport.http.reuseConnections>false</aether.transport.http.reuseConnections>
       </properties>
     </profile>
   </profiles>
