@@ -55,7 +55,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -83,15 +83,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - id: shard
-        uses: stackabletech/actions/shard@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/shard@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           product-name: ${{ inputs.product-name }}
-          boil-version: 0.2.2
     outputs:
       versions: ${{ steps.shard.outputs.versions }}
 
@@ -111,26 +110,25 @@ jobs:
         runner: ${{ fromJson(needs.generate_runner_dimension.outputs.runners) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/free-disk-space@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/build-product-image@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
-          boil-version: 0.2.2
 
       - name: Publish Container Image on oci.stackable.tech
         if: inputs.publish
-        uses: stackabletech/actions/publish-image@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -141,12 +139,12 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
+          canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
 
       - name: Publish Container Image on quay.io
         if: inputs.publish && inputs.publish-to-quay
-        uses: stackabletech/actions/publish-image@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: quay.io
           image-registry-username: stackable+robot_${{ inputs.registry-namespace }}_github_action_build
@@ -157,8 +155,8 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-manifest-tag: ${{ steps.build.outputs.image-manifest-tag }}
-          source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.image-manifest-tag }}
+          canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
+          canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
 
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
@@ -173,14 +171,14 @@ jobs:
         versions: ${{ fromJson(needs.generate_version_dimension.outputs.versions) }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         id: publish-oci
         if: inputs.publish
-        uses: stackabletech/actions/publish-image-index-manifest@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image-index-manifest@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -191,12 +189,12 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
       - name: Publish and Sign Image Index Manifest to quay.io
         id: publish-quay
         if: inputs.publish && inputs.publish-to-quay
-        uses: stackabletech/actions/publish-image-index-manifest@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/publish-image-index-manifest@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           image-registry-uri: quay.io
           image-registry-username: stackable+robot_${{ inputs.registry-namespace }}_github_action_build
@@ -207,7 +205,7 @@ jobs:
           # In future, we probably want to encode this information in the boil config metadata per
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
 
   notify:
     name: Failure Notification
@@ -218,7 +216,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@d0a8db3ba80e974b872c09cb5311f04e0e78582e # v0.16.1
+        uses: stackabletech/actions/send-slack-notification@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
