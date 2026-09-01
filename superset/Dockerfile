@@ -61,6 +61,8 @@ RUN microdnf update \
         make \
         gcc \
         gcc-c++ \
+        # Needed to modify the SBOM
+        jq \
         libffi-devel \
         openldap-devel \
         openssl-devel \
@@ -231,9 +233,17 @@ uv pip install --no-cache-dir setuptools==75.2.0
 uv venv /tmp/sbom-venv
 uv pip install --python /tmp/sbom-venv/bin/python --no-cache-dir cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
 /tmp/sbom-venv/bin/cyclonedx-py environment --schema-version 1.5 \
-    --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json \
+    --outfile /tmp/sbom.json \
     /stackable/app
 rm -rf /tmp/sbom-venv
+
+# Add the missing purl to the Superset package. It is installed from a locally built wheel, so
+# cyclonedx-py records the file URL of that wheel instead of a purl.
+jq '.components |= map(if (.purl | not) and (.name | test("^apache[-_]superset")) then
+    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
+else
+    .
+end)' /tmp/sbom.json > /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
 
 # Clean up build artifacts and temporary files to reduce image size
 cd /stackable
