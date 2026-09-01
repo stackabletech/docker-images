@@ -232,9 +232,17 @@ uv pip install --python /tmp/sbom-venv/bin/python cyclonedx-bom==${CYCLONEDX_BOM
 /tmp/sbom-venv/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json "${VIRTUAL_ENV}"
 rm -rf /tmp/sbom-venv
 
-# Break circular dependencies by removing the apache-airflow dependency from the providers
+# Post-process the SBOM:
+#   * Break circular dependencies by removing the apache-airflow dependency from the providers.
+#   * Add the missing purl to the Airflow packages. They are installed from a locally built
+#     wheel, so cyclonedx-py records the file URL of that wheel instead of a purl.
 jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
+else
+    .
+end)
+| .components |= map(if (.purl | not) and (.name | test("^apache[-_]airflow")) then
+    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
