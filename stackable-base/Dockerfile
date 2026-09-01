@@ -17,12 +17,12 @@ RUN <<EOF
 . "$HOME/.cargo/env"
 
 cd /
-git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs
+git clone --depth 1 --branch "config-utils-${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/operator-rs config-utils
+git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs containerdebug
 git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
 cd /config-utils
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-cd /operator-rs
+cargo auditable --quiet build --package config-utils --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cd /containerdebug
 cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
 cd /secret-operator
 cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
@@ -173,12 +173,12 @@ EOF
 # **config-utils**
 # Utility to replace values in a file with values from environment variables and files
 COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/crates/config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/target/release/containerdebug /stackable/containerdebug
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
