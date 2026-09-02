@@ -18,6 +18,11 @@ on:
         default: false
   schedule:
     - cron: 0 2 2/2 * * # https://crontab.guru/#0_2_2/2_*_*
+  # NOTE (@Techassi): Temporarily enable builds on PR to test if the workflow works when triggered
+  # without inputs.
+  pull_request:
+    paths:
+      - .github/workflows/build_krb5.yaml
   push:
     branches: [main]
     tags:
@@ -53,6 +58,7 @@ jobs:
       sdp-version: 1.2.3
       registry-namespace: sdp
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
+      # TODO (@Techassi): Set the default back to true
       publish: ${{ case(inputs.publish, inputs.publish, false) }}
       # Default to false if not set/empty (if not triggered by workflow_dispatch)
       floating-tag: ${{ case(inputs.floating-tag, inputs.floating-tag, false) }}
