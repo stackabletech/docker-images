@@ -11,6 +11,11 @@ on:
         type: boolean
         required: true
         default: false
+      floating-tag:
+        description: Produce floating tag
+        type: boolean
+        required: true
+        default: false
   schedule:
     - cron: 0 2 2/2 * * # https://crontab.guru/#0_2_2/2_*_*
   push:
@@ -40,8 +45,13 @@ jobs:
       id-token: write
       contents: read
     with:
+      # Syntax for case(): predicate, value if predicate is true, (more predicate+value pairs), default value
+      # See https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#case
       product-name: krb5
-      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      # sdp-version: ${{ case(github.ref_type == 'tag', github.ref_name, '0.0.0-dev') }}
+      # NOTE (@Techassi): Temporarily hard-code the SDP version
+      sdp-version: 1.2.3
       registry-namespace: sdp
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
-      publish: ${{ !inputs.skip-publish }}
+      # Default to false if not set/empty (if not triggered by workflow_dispatch)
+      floating-tag: ${{ case(inputs.floating-tag, true, false) }}
