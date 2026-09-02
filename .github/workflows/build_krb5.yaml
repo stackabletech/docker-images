@@ -91,10 +91,7 @@ jobs:
       product-name: krb5
       # Syntax for case(): predicate, value if predicate is true, (more predicate+value pairs), default value
       # See https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#case
-      # sdp-version: ${{ case(github.ref_type == 'tag', github.ref_name, '0.0.0-dev') }}
-      # TODO (@Techassi): Temporarily use hard-coded version to produce floating tag- Remove again.
-      sdp-version: 1.2.3
-      publish-to-quay: false # Cleanup is easier if we only push to Harbor for e2e testing.
+      sdp-version: ${{ case(github.ref_type == 'tag', github.ref_name, '0.0.0-dev') }}
       registry-namespace: sdp
       publish: ${{ fromJson(needs.defaults.outputs.publish) }}
       floating-tag: ${{ fromJson(needs.defaults.outputs.floating-tag) }}
