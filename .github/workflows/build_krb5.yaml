@@ -93,5 +93,5 @@ jobs:
       # See https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#case
       sdp-version: ${{ case(github.ref_type == 'tag', github.ref_name, '0.0.0-dev') }}
       registry-namespace: sdp
-      publish: ${{ needs.defaults.outputs.publish }}
-      floating-tag: ${{ needs.defaults.outputs.floating-tag }}
+      publish: ${{ fromJson(needs.defaults.outputs.publish) }}
+      floating-tag: ${{ fromJson(needs.defaults.outputs.floating-tag) }}
