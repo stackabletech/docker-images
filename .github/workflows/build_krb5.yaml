@@ -59,6 +59,6 @@ jobs:
       registry-namespace: sdp
       # Default to true if not set/empty (if not triggered by workflow_dispatch)
       # TODO (@Techassi): Set the default back to true
-      publish: ${{ case(inputs.publish, inputs.publish, false) }}
+      publish: ${{ inputs.publish || false}}
       # Default to false if not set/empty (if not triggered by workflow_dispatch)
-      floating-tag: ${{ case(inputs.floating-tag, inputs.floating-tag, false) }}
+      floating-tag: ${{ inputs.floating-tag || false }}
