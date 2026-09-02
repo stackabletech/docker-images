@@ -188,7 +188,7 @@ jobs:
       # this should only be a stepping stone towards a more robust solution.
       - name: Install boil
         if: inputs.floating-tag
-        uses: stackabletech/actions/install-tools@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
+        uses: stackabletech/actions/setup-tools@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
         with:
           boil-version: latest
 
