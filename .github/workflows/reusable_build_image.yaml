@@ -36,6 +36,11 @@ on:
           provided.
         type: boolean
         default: true
+      floating-tag:
+        description: Whether to produce a floating tag
+        type: boolean
+        # NOTE (@Techassi): Default to false for now, but eventually we want to default to true here
+        default: false
     secrets:
       harbor-robot-secret:
         description: The secret for the Harbor robot user used to push images and manifest
@@ -125,6 +130,8 @@ jobs:
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
+          # Map the boolean to a string, because actions cannot use boolean inputs.
+          floating-tag: ${{ case(inputs.floating-tag, 'true', 'false') }}
 
       - name: Publish Container Image on oci.stackable.tech
         if: inputs.publish
@@ -141,6 +148,7 @@ jobs:
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
           canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
+          other-image-manifest-tags: ${{ steps.build.outputs.other-image-manifest-tags }}
 
       - name: Publish Container Image on quay.io
         if: inputs.publish && inputs.publish-to-quay
@@ -157,6 +165,7 @@ jobs:
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           canonical-image-manifest-tag: ${{ steps.build.outputs.canonical-image-manifest-tag }}
           canonical-source-image-uri: localhost/${{ inputs.registry-namespace }}/${{ inputs.product-name }}:${{ steps.build.outputs.canonical-image-manifest-tag }}
+          other-image-manifest-tags: ${{ steps.build.outputs.other-image-manifest-tags }}
 
   publish_manifests:
     name: Build/Publish ${{ matrix.versions }} Manifests
@@ -175,6 +184,29 @@ jobs:
         with:
           persist-credentials: false
 
+      # NOTE (@Techassi): I'm not super happy about how this looks/works, but as already mentioned,
+      # this should only be a stepping stone towards a more robust solution.
+      - name: Install boil
+        if: inputs.floating-tag
+        uses: stackabletech/actions/setup-tools@e8aed001d347bcf693e41b61f4098b0cb94b4ab6 # v0.18.0
+        with:
+          boil-version: latest
+
+      - name: Extract floating image index manifest tag
+        id: extract-floating-tag
+        if: inputs.floating-tag
+        env:
+          SDP_VERSION: ${{ inputs.sdp-version }}
+          IMAGE_VERSION: ${{ matrix.versions }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          FLOATING_IMAGE_INDEX_MANIFEST_TAG=$(boil tools floating-tag "${SDP_VERSION}")
+          FLOATING_IMAGE_INDEX_MANIFEST_TAG="${IMAGE_VERSION}-stackable${FLOATING_IMAGE_INDEX_MANIFEST_TAG}"
+
+          echo "FLOATING_IMAGE_INDEX_MANIFEST_TAG=[\"$FLOATING_IMAGE_INDEX_MANIFEST_TAG\"]" | tee -a "$GITHUB_OUTPUT"
+
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         id: publish-oci
         if: inputs.publish
@@ -190,6 +222,7 @@ jobs:
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          other-image-index-manifest-tags: ${{ case(inputs.floating-tag, steps.extract-floating-tag.outputs.FLOATING_IMAGE_INDEX_MANIFEST_TAG, '[]') }}
 
       - name: Publish and Sign Image Index Manifest to quay.io
         id: publish-quay
@@ -206,6 +239,7 @@ jobs:
           # registry so we don't have to do such gymnastics in the workflow.
           image-repository: stackable/${{ inputs.registry-namespace }}/${{ inputs.image-name || inputs.product-name }}
           canonical-image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          other-image-index-manifest-tags: ${{ case(inputs.floating-tag, steps.extract-floating-tag.outputs.FLOATING_IMAGE_INDEX_MANIFEST_TAG, '[]') }}
 
   notify:
     name: Failure Notification

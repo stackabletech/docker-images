@@ -6,8 +6,13 @@ run-name: |
 on:
   workflow_dispatch:
     inputs:
-      skip-publish:
-        description: Skip publishing and signing images
+      publish:
+        description: Publish and sign images
+        type: boolean
+        required: true
+        default: true
+      floating-tag:
+        description: Produce floating tag
         type: boolean
         required: true
         default: false
@@ -33,8 +38,51 @@ on:
 permissions: {}
 
 jobs:
+  # This whole dance is only needed because GitHub Actions has no straight forward way of setting
+  # default values for inputs which are not present due to the workflow being triggered by a
+  # different event (workflow_dispatch vs push). Approaches tried (and used) in the past:
+  #
+  # - Negate the input (publish -> skip-publish) and use ${{ !inputs.skip-publish }} for the reusable
+  #   workflow. This works, but only by luck and it is cumbersome to wrap your head around.
+  #   We generally prefer non-negated terms for inputs.
+  # - Use ${{ inputs.publish || true }}, but that results in 'true' even when the workflow is
+  #   dispatched with 'false' via the UI.
+  # - Use ${{ case(inputs.publish, inputs.publish, true) }}, but that fails as well, because the
+  #   predicate must evaluate to a boolean value and apparently doesn't if the input is not present.
+  defaults:
+    name: Determine Defaults
+    runs-on: ubuntu-latest
+    outputs:
+      floating-tag: ${{ steps.defaults.outputs.FLOATING_TAG }}
+      publish: ${{ steps.defaults.outputs.PUBLISH }}
+    steps:
+      - id: defaults
+        shell: bash
+        env:
+          INPUT_FLOATING_TAG: ${{ inputs.floating-tag }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+
+          # Default to false if not set/empty (if not triggered by workflow_dispatch)
+          # Keep this default value in sync with the default value specified for workflow_dispatch!
+          if [ -z "${INPUT_FLOATING_TAG:-}" ]; then
+            echo "FLOATING_TAG=false" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "FLOATING_TAG=${INPUT_FLOATING_TAG}" | tee -a "$GITHUB_OUTPUT"
+          fi
+
+          # Default to true if not set/empty (if not triggered by workflow_dispatch)
+          # Keep this default value in sync with the default value specified for workflow_dispatch!
+          if [ -z "${INPUT_PUBLISH:-}" ]; then
+            echo "PUBLISH=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "PUBLISH=${INPUT_PUBLISH}" | tee -a "$GITHUB_OUTPUT"
+          fi
+
   build_image:
-    name: Reusable Workflow
+    name: Build Image(s)
+    needs: [defaults]
     uses: ./.github/workflows/reusable_build_image.yaml
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
@@ -45,7 +93,9 @@ jobs:
       contents: read
     with:
       product-name: zookeeper
-      sdp-version: ${{ github.ref_type == 'tag' && github.ref_name || '0.0.0-dev' }}
+      # Syntax for case(): predicate, value if predicate is true, (more predicate+value pairs), default value
+      # See https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#case
+      sdp-version: ${{ case(github.ref_type == 'tag', github.ref_name, '0.0.0-dev') }}
       registry-namespace: sdp
-      # Default to true if not set/empty (if not triggered by workflow_dispatch)
-      publish: ${{ !inputs.skip-publish }}
+      publish: ${{ fromJson(needs.defaults.outputs.publish) }}
+      floating-tag: ${{ fromJson(needs.defaults.outputs.floating-tag) }}
