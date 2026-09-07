@@ -1,17 +1,17 @@
-From c995ae95e5f725b19a7f4abdc28a86738aa59bf3 Mon Sep 17 00:00:00 2001
+From 0f9e14c6a625c20a80381cea71de855e4806fab0 Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Thu, 25 Sep 2025 10:47:57 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ build.gradle | 47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 97250637b7..732c6c2a18 100644
+index 97250637b7..49f691ca79 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -41,6 +41,47 @@ plugins {
+@@ -41,6 +41,53 @@ plugins {
    id 'org.scoverage' version '8.0.3' apply false
    id 'com.gradleup.shadow' version '8.3.6' apply false
    id 'com.diffplug.spotless' version "6.25.0"
@@ -32,7 +32,13 @@ index 97250637b7..732c6c2a18 100644
 +    includeConfigs = ["runtimeClasspath"]
 +    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
 +    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
++    // The jmh-benchmarks project is not shipped either and pulls in JMH, JUnit and Mockito,
++    // and neither are the test-common projects, which pull in JUnit.
 +    skipProjects = [
++      'jmh-benchmarks',
++      'test-common-internal-api',
++      'test-common-runtime',
++      'test-common-util',
 +      'upgrade-system-tests-0110',
 +      'upgrade-system-tests-10',
 +      'upgrade-system-tests-11',

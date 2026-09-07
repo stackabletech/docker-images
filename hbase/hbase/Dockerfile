@@ -112,6 +112,7 @@ mv hbase-assembly/target/bom.json /stackable/hbase-${NEW_VERSION}/hbase-${NEW_VE
   npm install --package-lock-only --no-audit --no-fund
   cdxgen \
     --type js \
+    --required-only \
     --spec-version "${CDXGEN_SPEC_VERSION}" \
     `# cdxgen would otherwise name the root component after the scratch directory` \
     --project-name hbase-webapps \

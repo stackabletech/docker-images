@@ -1,4 +1,4 @@
-From 180057545225e49cea09c74e454ee6bef30521b5 Mon Sep 17 00:00:00 2001
+From d855d718ce9ff7c31ea9e7e24f167b61128aecfe Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Thu, 26 Mar 2026 21:05:47 +0000
 Subject: Scope CycloneDX SBOM to shipped components only
@@ -9,14 +9,14 @@ telemetry-otel are shipped from the local build. Other plugins like
 ingest-attachment (which pulls in tika-core) are not installed in the
 Stackable image and should not appear in the runtime SBOM.
 ---
- build.gradle | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ build.gradle | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 49d3b971efa..aa2638b6a60 100644
+index 49d3b971efa..6763cdfee48 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -82,6 +82,21 @@ allprojects {
+@@ -82,6 +82,28 @@ allprojects {
    version = VersionProperties.getOpenSearch()
    description = "OpenSearch subproject ${project.path}"
  
@@ -25,11 +25,18 @@ index 49d3b971efa..aa2638b6a60 100644
 +  // image (repository-s3 and telemetry-otel). This prevents build-only plugin
 +  // dependencies (e.g. tika-core from ingest-attachment) from appearing in the
 +  // runtime SBOM as false positives.
++  // The test framework, the test fixtures, the QA projects and the benchmarks are not
++  // shipped either and are the only source of JUnit, Mockito, Hamcrest, randomizedtesting
++  // and JMH in the SBOM.
 +  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
-+  def isUnshippedPlugin = (project.path.startsWith(':plugins:') && !(project.name in shippedPlugins)) ||
-+                          project.path.startsWith(':example-plugins')
++  def isUnshipped = (project.path.startsWith(':plugins:') && !(project.name in shippedPlugins)) ||
++                    project.path.startsWith(':example-plugins') ||
++                    project.path.startsWith(':test:') ||
++                    project.path.startsWith(':qa') ||
++                    project.path == ':benchmarks' ||
++                    project.path == ':client:test'
 +
-+  if (isUnshippedPlugin) {
++  if (isUnshipped) {
 +    tasks.matching { it.name == 'cyclonedxDirectBom' }.configureEach {
 +      enabled = false
 +    }

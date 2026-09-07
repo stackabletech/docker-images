@@ -216,7 +216,7 @@ fi
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 # TODO: s3fs may already be installed via the s3fs extra and constraints. Check if this explicit install is still needed.
-uv pip install --python ${VIRTUAL_ENV}/bin/python s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+uv pip install --python ${VIRTUAL_ENV}/bin/python s3fs==${S3FS_VERSION}
 # Needed for OIDC
 uv pip install --python ${VIRTUAL_ENV}/bin/python Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 
@@ -224,12 +224,25 @@ uv pip install --python ${VIRTUAL_ENV}/bin/python /tmp/opa_auth_manager-0.1.0-py
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
-${VIRTUAL_ENV}/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
-uv pip uninstall cyclonedx-bom
+# cyclonedx-bom is installed into a throw-away environment instead of the Airflow one. It would
+# otherwise be part of the SBOM itself, and uninstalling it afterwards leaves its dependencies
+# behind in the image.
+uv venv /tmp/sbom-venv
+uv pip install --python /tmp/sbom-venv/bin/python cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+/tmp/sbom-venv/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json "${VIRTUAL_ENV}"
+rm -rf /tmp/sbom-venv
 
-# Break circular dependencies by removing the apache-airflow dependency from the providers
+# Post-process the SBOM:
+#   * Break circular dependencies by removing the apache-airflow dependency from the providers.
+#   * Add the missing purl to the Airflow packages. They are installed from a locally built
+#     wheel, so cyclonedx-py records the file URL of that wheel instead of a purl.
 jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
+else
+    .
+end)
+| .components |= map(if (.purl | not) and (.name | test("^apache[-_]airflow")) then
+    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
