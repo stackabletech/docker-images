@@ -1,0 +1,2 @@
+upstream = "https://github.com/trinodb/trino.git"
+default-mirror = "https://github.com/stackabletech/trino.git"
