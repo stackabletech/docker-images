@@ -94,6 +94,9 @@
         the Azure networking.
         -->
         <!-- <aether.transport.http.reuseConnections>false</aether.transport.http.reuseConnections> -->
+
+        <aether.connector.userAgent>Maven (Workflow run id: ${env.GITHUB_RUN_ID}, Attempt: ${env.GITHUB_RUN_ATTEMPT})</aether.connector.userAgent>
+        <aether.transport.userAgent>Maven (Workflow run id: ${env.GITHUB_RUN_ID}, Attempt: ${env.GITHUB_RUN_ATTEMPT})</aether.transport.userAgent>
       </properties>
     </profile>
   </profiles>
