@@ -68,6 +68,12 @@ EOF
 ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT_VERSION}-jdk"
 ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 
+ARG GITHUB_RUN_ATTEMPT="<unknown>"
+ENV GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
+
+ARG GITHUB_RUN_ID="<unknown>"
+ENV GITHUB_RUN_ID=${GITHUB_RUN_ID}
+
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /stackable/.m2/settings.xml
 COPY --chown=${STACKABLE_USER_UID}:0 java-devel/stackable/settings.xml /root/.m2/settings.xml
 
