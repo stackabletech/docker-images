@@ -120,6 +120,12 @@ chown ${STACKABLE_USER_UID}:0 /stackable/patchable
 rm -rf /patchable
 EOF
 
+ARG GITHUB_RUN_ATTEMPT="<unknown>"
+ENV GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
+
+ARG GITHUB_RUN_ID="<unknown>"
+ENV GITHUB_RUN_ID=${GITHUB_RUN_ID}
+
 # Make sure NPM and YARN use our build mirror
 # In theory YARN should (I believe) fall back to the npmrc file but we want to make sure...
 COPY --chown=${STACKABLE_USER_UID}:0 stackable-devel/stackable/.npmrc /stackable/.npmrc
