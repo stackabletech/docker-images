@@ -1,4 +1,4 @@
-From 944ef05a7468a0437c0da923898aecae983eb5f6 Mon Sep 17 00:00:00 2001
+From ba4b38f28330dad8a60a56698bf51c9dbd8e74bf Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 1 Jun 2026 08:52:19 +0200
 Subject: Build custom Stackable version
@@ -25,7 +25,7 @@ for d in $(ls -d */); do find $d -type f -exec sed -i 's/3\.9\.2/3.9.2-stackable
  9 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/docs/getting-started/upgrade.md b/docs/getting-started/upgrade.md
-index d7347b3ee8..7f888fc90a 100644
+index d7347b3ee83..7f888fc90a1 100644
 --- a/docs/getting-started/upgrade.md
 +++ b/docs/getting-started/upgrade.md
 @@ -58,7 +58,7 @@ If you are upgrading from version 2.4.0 or above, and you have not overridden th
@@ -38,7 +38,7 @@ index d7347b3ee8..7f888fc90a 100644
    * There is a new server configuration, `alter.config.policy.kraft.compatibility.enable`, which ensures that an AlterConfigPolicy is invoked consistently between KRaft and ZooKeeper modes. To enable this behavior, set the property to `true` in `server.properties`. For backward compatibility, the default value is `false`. See [KIP-1252](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=399279475) for more details.
  
 diff --git a/docs/operations/kraft.md b/docs/operations/kraft.md
-index a63ce05d4e..a8caef2d2b 100644
+index a63ce05d4ed..a8caef2d2bb 100644
 --- a/docs/operations/kraft.md
 +++ b/docs/operations/kraft.md
 @@ -275,7 +275,7 @@ In general, the migration process passes through several phases.
@@ -51,7 +51,7 @@ index a63ce05d4e..a8caef2d2b 100644
  
  
 diff --git a/gradle.properties b/gradle.properties
-index 3c674c89c1..24bf3d2259 100644
+index 3c674c89c1d..24bf3d22593 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -22,7 +22,7 @@ group=org.apache.kafka
@@ -64,7 +64,7 @@ index 3c674c89c1..24bf3d2259 100644
  # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
  # New version of Swagger 2.2.14 requires minimum JDK 11.
 diff --git a/kafka-merge-pr.py b/kafka-merge-pr.py
-index 4ac7434065..4f5f69d872 100755
+index 4ac7434065c..4f5f69d872b 100755
 --- a/kafka-merge-pr.py
 +++ b/kafka-merge-pr.py
 @@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
@@ -77,7 +77,7 @@ index 4ac7434065..4f5f69d872 100755
  ORIGINAL_HEAD = ""
  
 diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
-index f8d1bd9e54..2ee0861269 100644
+index f8d1bd9e54f..2ee08612691 100644
 --- a/streams/quickstart/java/pom.xml
 +++ b/streams/quickstart/java/pom.xml
 @@ -26,7 +26,7 @@
@@ -90,7 +90,7 @@ index f8d1bd9e54..2ee0861269 100644
      </parent>
  
 diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
-index b62ab64acf..3d3d881096 100644
+index b62ab64acfd..3d3d8810966 100644
 --- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 +++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 @@ -29,7 +29,7 @@
@@ -103,7 +103,7 @@ index b62ab64acf..3d3d881096 100644
      </properties>
  
 diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
-index ac81ea06bb..1686b2bd56 100644
+index ac81ea06bb4..1686b2bd566 100644
 --- a/streams/quickstart/pom.xml
 +++ b/streams/quickstart/pom.xml
 @@ -22,7 +22,7 @@
@@ -116,7 +116,7 @@ index ac81ea06bb..1686b2bd56 100644
      <name>Kafka Streams :: Quickstart</name>
  
 diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
-index 1362dad9ca..e20c655bbf 100644
+index 1362dad9ca9..e20c655bbf5 100644
 --- a/tests/kafkatest/__init__.py
 +++ b/tests/kafkatest/__init__.py
 @@ -22,4 +22,4 @@
@@ -126,7 +126,7 @@ index 1362dad9ca..e20c655bbf 100644
 -__version__ = '3.9.2'
 +__version__ = '3.9.2-stackable0.0.0-dev'
 diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
-index fa301e6a8d..1980c35d11 100644
+index fa301e6a8dd..1980c35d115 100644
 --- a/tests/kafkatest/version.py
 +++ b/tests/kafkatest/version.py
 @@ -122,7 +122,7 @@ def get_version(node=None):

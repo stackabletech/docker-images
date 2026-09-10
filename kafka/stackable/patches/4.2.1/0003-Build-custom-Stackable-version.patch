@@ -1,4 +1,4 @@
-From 915f1d9eb9c1fd7bf9c15a52a353c33475efa6a3 Mon Sep 17 00:00:00 2001
+From c2ff746b538ea611d8a3859e4a36d251dc38a492 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 29 May 2026 17:33:00 +0200
 Subject: Build custom Stackable version
@@ -25,7 +25,7 @@ for d in $(ls -d */); do find $d -type f -exec sed -i
  7 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/committer-tools/kafka-merge-pr.py b/committer-tools/kafka-merge-pr.py
-index 92dabc607c..5611a8beeb 100755
+index 92dabc607ca..5611a8beebe 100755
 --- a/committer-tools/kafka-merge-pr.py
 +++ b/committer-tools/kafka-merge-pr.py
 @@ -70,7 +70,7 @@ TEMP_BRANCH_PREFIX = "PR_TOOL"
@@ -38,7 +38,7 @@ index 92dabc607c..5611a8beeb 100755
  ORIGINAL_HEAD = ""
  
 diff --git a/gradle.properties b/gradle.properties
-index 8dad15054c..27c124ca21 100644
+index 8dad15054c0..27c124ca215 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -14,7 +14,7 @@
@@ -51,7 +51,7 @@ index 8dad15054c..27c124ca21 100644
  # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
  swaggerVersion=2.2.39
 diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
-index 4930378053..41b602f98e 100644
+index 4930378053d..41b602f98ef 100644
 --- a/streams/quickstart/java/pom.xml
 +++ b/streams/quickstart/java/pom.xml
 @@ -26,7 +26,7 @@
@@ -64,7 +64,7 @@ index 4930378053..41b602f98e 100644
      </parent>
  
 diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
-index e78fa54f59..bd440c365d 100644
+index e78fa54f59e..bd440c365d8 100644
 --- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 +++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 @@ -29,7 +29,7 @@
@@ -77,7 +77,7 @@ index e78fa54f59..bd440c365d 100644
      </properties>
  
 diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
-index de77049571..3964d486e1 100644
+index de770495715..3964d486e18 100644
 --- a/streams/quickstart/pom.xml
 +++ b/streams/quickstart/pom.xml
 @@ -22,7 +22,7 @@
@@ -90,7 +90,7 @@ index de77049571..3964d486e1 100644
      <name>Kafka Streams :: Quickstart</name>
  
 diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
-index 49861a2ef2..2f50efe072 100644
+index 49861a2ef23..2f50efe072c 100644
 --- a/tests/kafkatest/__init__.py
 +++ b/tests/kafkatest/__init__.py
 @@ -22,4 +22,4 @@
@@ -100,7 +100,7 @@ index 49861a2ef2..2f50efe072 100644
 -__version__ = '4.2.1'
 +__version__ = '4.2.1-stackable0.0.0-dev'
 diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
-index d0297f10f9..10474bdf43 100644
+index d0297f10f9d..10474bdf43c 100644
 --- a/tests/kafkatest/version.py
 +++ b/tests/kafkatest/version.py
 @@ -128,7 +128,7 @@ def get_version(node=None):

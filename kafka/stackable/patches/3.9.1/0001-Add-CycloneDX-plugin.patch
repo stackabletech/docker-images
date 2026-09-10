@@ -1,17 +1,17 @@
-From 7e4a1e655312dd26f33bf0cb3a9e2d2b4b152f96 Mon Sep 17 00:00:00 2001
+From c7a4c4cd14dac4be0f195d2e1ff1f6e38e12758d Mon Sep 17 00:00:00 2001
 From: Lukas Voetmand <lukas.voetmand@stackable.tech>
 Date: Thu, 17 Oct 2024 11:01:40 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 44 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ build.gradle | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 6b4725d542..f60df17046 100644
+index 6b4725d5429..41954b3d3a6 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -48,6 +48,50 @@ plugins {
+@@ -48,6 +48,57 @@ plugins {
    //  We are going to drop JDK8 support. Hence, the spotless is upgrade to newest version and be applied only if the build env is compatible with JDK 11.
    //  spotless 6.15.0+ has issue in runtime with JDK8 even through we define it with `apply:false`. see https://github.com/diffplug/spotless/issues/2156 for more details
    id 'com.diffplug.spotless' version "6.14.0" apply false
@@ -30,11 +30,18 @@ index 6b4725d542..f60df17046 100644
 +    // The file format generated, can be xml, json or all for generating both. Defaults to 'all'
 +    outputFormat = "json"
 +    includeConfigs = ["runtimeClasspath"]
-+    // Exclude test components. This list needs to be checked and, if it changed, updated for every new Kafka version.
-+    // The list can be obtained by running `gradle projects | grep upgrade-system-tests`
-+    // The jmh-benchmarks project is not shipped either and pulls in JMH, JUnit and Mockito.
++    // Exclude the projects that are not shipped. This list needs to be checked and, if it changed,
++    // updated for every new Kafka version. The list of projects can be obtained by running
++    // `gradle projects`.
++    //   * jmh-benchmarks pulls in JMH, JUnit and Mockito.
++    //   * generator is a build-time code generator for the message protocol. It pulls in Jackson,
++    //     but its own dependencies never reach the distribution.
++    //   * connect:test-plugins pulls in JGit, Bouncy Castle, Apache MINA sshd and commons-codec,
++    //     none of which are shipped.
 +    skipProjects = [
++      'generator',
 +      'jmh-benchmarks',
++      'test-plugins',
 +      'upgrade-system-tests-0100',
 +      'upgrade-system-tests-0101',
 +      'upgrade-system-tests-0102',

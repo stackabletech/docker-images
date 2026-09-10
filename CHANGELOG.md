@@ -27,7 +27,21 @@ All notable changes to this project will be documented in this file.
 - kafka: Exclude the non-runtime configurations and the projects that are not shipped from the SBOM ([#1630]).
 - opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` and `3.4.0` ([#1630]).
 - opensearch: Restrict the SBOM of the Prometheus exporter to the runtime dependencies ([#1630]).
-- opensearch-dashboards: Exclude the devDependencies from the SBOM ([#1630]).
+- opensearch-dashboards: Pass `--required-only` to cdxgen ([#1630]). This turned out to have no
+  effect, see [#1635].
+- opensearch-dashboards: Pass `--type js` to cdxgen instead of the non-existing `--target` option.
+  cdxgen silently ignored it and auto-detected every ecosystem in the source tree, which added the
+  GitHub Actions workflows and the Gradle and Python files of the build tooling to the SBOM
+  ([#1635]).
+- kafka: Include the `releaseOnly` configuration in the SBOM of `4.1.1` and `4.2.1`. The `core` and
+  `tools` projects declare the Log4j runtime bindings there, so they were shipped in `libs/` without
+  being part of the SBOM ([#1635]).
+- kafka: Exclude the `generator`, integration test and Connect test plugin projects from the SBOM ([#1635]).
+- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0`
+  and `3.4.0` ([#1635]).
+- airflow, superset: Add the missing purls to all packages that are installed from a local wheel or
+  a direct URL, and normalize the names in the purls as defined in the Python packaging
+  specification ([#1635]).
 - hbase: Exclude the optional npm dependencies from the web UI SBOM ([#1630]).
 - airflow, superset: Create the Python SBOM from a separate environment, so that neither cyclonedx-bom nor its dependencies end up in the SBOM and in the image ([#1630]).
 - airflow, superset: Add the missing purl to the Airflow and Superset packages in the Python SBOM. They are installed from a locally built wheel, and without a purl they show up twice in the image SBOM ([#1630]).
@@ -46,6 +60,7 @@ All notable changes to this project will be documented in this file.
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
+[#1635]: https://github.com/stackabletech/docker-images/pull/1635
 
 ## [26.7.0] - 2026-07-21
 

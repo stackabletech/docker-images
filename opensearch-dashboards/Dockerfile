@@ -197,8 +197,16 @@ EOF
 
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
-# --required-only restricts the SBOM to the runtime dependencies.
-RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --required-only --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
+# --type js restricts cdxgen to the JavaScript ecosystem. Without it, cdxgen
+# auto-detects every ecosystem it finds in the source tree and also reports the
+# GitHub Actions workflows, Gradle and Python files of the build tooling.
+# --no-babel disables the Babel based usage analysis, which is not needed for a
+# dependency inventory.
+# Note: --required-only is not passed. cdxgen marks every package read from a
+# yarn.lock as "required", because the Yarn 1 lockfile does not record whether a
+# dependency is a devDependency, so the flag would have no effect here but would
+# set `compositions.aggregate` to `incomplete`.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
