@@ -1,4 +1,4 @@
-From 89fe680ede7726e0df32f0ba1fb90a4216af7c69 Mon Sep 17 00:00:00 2001
+From f6c5706e8ce7d409384213db19b7be96e2c84296 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Wed, 18 Jun 2025 12:17:53 +0200
 Subject: Build custom Stackable version
@@ -15,7 +15,7 @@ Subject: Build custom Stackable version
  8 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/docs/configuration.html b/docs/configuration.html
-index f7c99623de..266236b54a 100644
+index f7c99623de9..266236b54aa 100644
 --- a/docs/configuration.html
 +++ b/docs/configuration.html
 @@ -296,7 +296,7 @@
@@ -28,7 +28,7 @@ index f7c99623de..266236b54a 100644
        </tbody></table>
      </li>
 diff --git a/docs/js/templateData.js b/docs/js/templateData.js
-index a1ed4601c7..57c854db36 100644
+index a1ed4601c78..57c854db36d 100644
 --- a/docs/js/templateData.js
 +++ b/docs/js/templateData.js
 @@ -19,6 +19,6 @@ limitations under the License.
@@ -40,7 +40,7 @@ index a1ed4601c7..57c854db36 100644
      "scalaVersion": "2.13"
  };
 diff --git a/gradle.properties b/gradle.properties
-index 05598137fd..3f660d4ee5 100644
+index 05598137fd5..3f660d4ee51 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -23,7 +23,7 @@ group=org.apache.kafka
@@ -53,7 +53,7 @@ index 05598137fd..3f660d4ee5 100644
  # Adding swaggerVersion in gradle.properties to have a single version in place for swagger
  # New version of Swagger 2.2.14 requires minimum JDK 11.
 diff --git a/streams/quickstart/java/pom.xml b/streams/quickstart/java/pom.xml
-index 3d404de9c3..92735dffbc 100644
+index 3d404de9c37..92735dffbc8 100644
 --- a/streams/quickstart/java/pom.xml
 +++ b/streams/quickstart/java/pom.xml
 @@ -26,7 +26,7 @@
@@ -66,7 +66,7 @@ index 3d404de9c3..92735dffbc 100644
      </parent>
  
 diff --git a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
-index 26af0e1dc3..b55640c1f0 100644
+index 26af0e1dc39..b55640c1f01 100644
 --- a/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 +++ b/streams/quickstart/java/src/main/resources/archetype-resources/pom.xml
 @@ -29,7 +29,7 @@
@@ -79,7 +79,7 @@ index 26af0e1dc3..b55640c1f0 100644
      </properties>
  
 diff --git a/streams/quickstart/pom.xml b/streams/quickstart/pom.xml
-index f524e00445..05e8eee91a 100644
+index f524e00445f..05e8eee91a4 100644
 --- a/streams/quickstart/pom.xml
 +++ b/streams/quickstart/pom.xml
 @@ -22,7 +22,7 @@
@@ -92,7 +92,7 @@ index f524e00445..05e8eee91a 100644
      <name>Kafka Streams :: Quickstart</name>
  
 diff --git a/tests/kafkatest/__init__.py b/tests/kafkatest/__init__.py
-index a8e4d4515c..36068eeb1a 100644
+index a8e4d4515ce..36068eeb1ab 100644
 --- a/tests/kafkatest/__init__.py
 +++ b/tests/kafkatest/__init__.py
 @@ -22,4 +22,4 @@
@@ -102,7 +102,7 @@ index a8e4d4515c..36068eeb1a 100644
 -__version__ = '3.9.1'
 +__version__ = '3.9.1-stackable0.0.0-dev'
 diff --git a/tests/kafkatest/version.py b/tests/kafkatest/version.py
-index 99cb278226..cd8bcfab4b 100644
+index 99cb2782265..cd8bcfab4b9 100644
 --- a/tests/kafkatest/version.py
 +++ b/tests/kafkatest/version.py
 @@ -122,7 +122,7 @@ def get_version(node=None):

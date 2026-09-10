@@ -1,4 +1,4 @@
-From b0fd24f0b5361718e5d479b692ba4e20e23082da Mon Sep 17 00:00:00 2001
+From 7469915d465acd03e09cc6400941b20713e4f4d2 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Thu, 26 Mar 2026 20:51:26 +0000
 Subject: Scope CycloneDX SBOM to shipped components only
@@ -9,14 +9,14 @@ telemetry-otel are shipped from the local build. Other plugins like
 ingest-attachment (which pulls in tika-core) are not installed in the
 Stackable image and should not appear in the runtime SBOM.
 ---
- build.gradle | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ build.gradle | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 78a15b418e7..b351ece8700 100644
+index 78a15b418e7..b8cbb13be3d 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -78,6 +78,23 @@ allprojects {
+@@ -78,6 +78,40 @@ allprojects {
  }
  
  cyclonedxBom {
@@ -28,14 +28,31 @@ index 78a15b418e7..b351ece8700 100644
 +  // The test framework, the test fixtures, the QA projects and the benchmarks are not
 +  // shipped either and are the only source of JUnit, Mockito, Hamcrest, randomizedtesting
 +  // and JMH in the SBOM.
++  // The build-tools project (buildSrc) is not shipped either. It resolves the Gradle build
++  // classpath, which adds Ant, Apache Rat, forbiddenapis, the Nebula and Shadow Gradle
++  // plugins and the JGit/SVNKit stack of grgit to the SBOM. Worse, it pulls in its own
++  // versions of libraries that are also shipped (for example Log4j and ASM), so the SBOM
++  // ends up asserting versions that are not in the image.
++  // Note that :distribution must not be excluded. The launchers and CLI tools under
++  // :distribution:tools are shipped in lib/tools.
 +  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
 +  skipProjects = subprojects.findAll { sub ->
 +    (sub.path.startsWith(':plugins:') && !(sub.name in shippedPlugins)) ||
 +    sub.path.startsWith(':example-plugins') ||
++    sub.path == ':build-tools' ||
++    sub.path.startsWith(':build-tools:') ||
++    sub.path == ':test' ||
 +    sub.path.startsWith(':test:') ||
 +    sub.path.startsWith(':qa') ||
 +    sub.path == ':benchmarks' ||
-+    sub.path == ':client:test'
++    sub.path == ':client:test' ||
++    sub.path == ':client:benchmark' ||
++    sub.path == ':client:client-benchmark-noop-api-plugin' ||
++    sub.path == ':client:sniffer' ||
++    sub.path.startsWith(':sandbox') ||
++    sub.path == ':docs' ||
++    sub.path == ':doc-tools' ||
++    sub.path == ':rest-api-spec'
 +  }.collect { it.name }
    includeConfigs = ["runtimeClasspath"]
    includeLicenseText = false

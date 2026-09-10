@@ -234,15 +234,25 @@ rm -rf /tmp/sbom-venv
 
 # Post-process the SBOM:
 #   * Break circular dependencies by removing the apache-airflow dependency from the providers.
-#   * Add the missing purl to the Airflow packages. They are installed from a locally built
-#     wheel, so cyclonedx-py records the file URL of that wheel instead of a purl.
-jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
+#   * Add the missing purls. Packages that are installed from a local wheel or a direct URL
+#     (apache-airflow, opa-auth-manager, pip) get no purl from cyclonedx-py, because it records
+#     the file URL instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
 else
     .
 end)
-| .components |= map(if (.purl | not) and (.name | test("^apache[-_]airflow")) then
-    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
+| .components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
