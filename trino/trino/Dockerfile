@@ -58,7 +58,7 @@ tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
+# why someone would do that over just picking the version from the pom.xml, but they probably
 # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
 # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
 # smoke test checks that "select version()" is working.
@@ -66,7 +66,7 @@ tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
+git config user.name "Fake committer"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 

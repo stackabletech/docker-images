@@ -88,7 +88,7 @@ tar -czf /stackable/opa-${NEW_VERSION}-src.tar.gz .
 rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
+git config user.name "Fake committer"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag "v${NEW_VERSION}"
 go build -o opa -buildmode=exe

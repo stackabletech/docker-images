@@ -196,7 +196,7 @@ main() {
 
     IMAGES=$(crane ls "${REPOSITORY_NAME}" | grep "stackable${RELEASE_VERSION}" | xargs -I '{}' echo "${REPOSITORY_NAME}":'{}')
 
-    # Linter complains about usless echo in $(echo $IMAGES)
+    # Linter complains about useless echo in $(echo $IMAGES)
     # but the "echo" is necessary to split IMAGES into multiple lines.
     # Otherwise IMAGE_NAME contains a long string with all images separated by
     # newline.
@@ -209,7 +209,7 @@ main() {
 
       PRODUCT_IMAGE_DIGEST=$(product_image_digest "${IMAGE_NAME}")
 
-      echo "Updating compnents for image $IMAGE_NAME"
+      echo "Updating components for image $IMAGE_NAME"
 
       update_release_components "${RELEASE_VERSION}" "${PRODUCT_VERSION_ID}" "${REPOSITORY_NAME}" "${PRODUCT_IMAGE_DIGEST}"
     done

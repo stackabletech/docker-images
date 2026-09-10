@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Entrypoint for HBase that ensures services are shutdown gracefuly
+# Entrypoint for HBase that ensures services are shutdown gracefully
 #
 # Expects the following env vars:
 # - RUN_REGION_MOVER: if set to true, the region mover will be run before region server shutdown

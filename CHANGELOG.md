@@ -963,7 +963,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove unsupported version 428 ([#687]).
 - nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
-- airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
+- airflow: Remove unsupported version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
 - superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
 - druid: Remove support for 27.0.0 ([#731])
 - spark-k8s: Remove support for `3.4.1` and `3.5.0` ([#771]).

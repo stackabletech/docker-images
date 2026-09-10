@@ -14,7 +14,7 @@ static SEMVER_PRERELEASE_FLOATING: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new("^dev(?:-.+)?$|^pr.+$").expect("static regular expression must compile")
 });
 
-// FIXME (@Techassi): We should pull this in from a central pice of code, like stackable-shared.
+// FIXME (@Techassi): We should pull this in from a central piece of code, like stackable-shared.
 // stackable-shared needs to add a few features to be able to properly select _only_ what is needed
 // without pulling in too many unused deps.
 pub trait VersionExt {
