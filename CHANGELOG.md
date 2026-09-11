@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
 - nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
+- nifi: Backport [NIFI-16294](https://issues.apache.org/jira/browse/NIFI-16294) to guard against a null controller status in `SiteToSiteStatusReportingTask` during startup, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1629]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
@@ -59,6 +60,7 @@ All notable changes to this project will be documented in this file.
 [#1616]: https://github.com/stackabletech/docker-images/pull/1616
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
+[#1629]: https://github.com/stackabletech/docker-images/pull/1629
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 
