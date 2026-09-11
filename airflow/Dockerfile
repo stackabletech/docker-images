@@ -56,7 +56,7 @@ ARG CDXGEN_SPEC_VERSION
 # Requires implementation of https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh
 # The providers are split into separate lists to make it easier to manage
 # (and to compare to the online links). Default values are provided for
-# backwards compatability.
+# backwards compatibility.
 ARG AIRFLOW_EXTRAS_CORE=""
 ARG AIRFLOW_EXTRAS_META=""
 ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""

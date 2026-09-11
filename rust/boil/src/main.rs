@@ -14,7 +14,7 @@ mod core;
 mod models;
 mod utils;
 
-/// This trait extends functionailty provided by [`snafu`].
+/// This trait extends functionality provided by [`snafu`].
 ///
 /// [`snafu`] already provides various ways to extend [`Result`]s with additional context-sensitive
 /// information. This trait allows calling `if_context` on any type, which runs a predicate to

@@ -1,0 +1,67 @@
+# Configuration for typos (https://github.com/crate-ci/typos), run via the prek
+# hook in .pre-commit-config.yaml.
+#
+# The core of this file is the shared block documented in
+# stackabletech/operator-templating's README ("Spell checking"). Entries from
+# that block which have no counterpart here -- Cargo.nix, generated CRDs,
+# draw.io diagrams -- are left out rather than carried as dead config.
+#
+# typos has no layered configuration
+# (https://github.com/crate-ci/typos/issues/193), so this file is the only one
+# that applies to this repository.
+#
+# Before adding an entry here, consider an in-place marker instead. Use one when
+# the word is correct at this one site and would still be a typo elsewhere:
+#
+#   # spellchecker:disable-line       at the end of the line it applies to
+#   # spellchecker:ignore-next-line   on its own line, above the offending line
+#   # spellchecker:off / :on          around a block
+#
+# Every entry below gets a one-line comment saying what the word is.
+
+[files]
+# Bare `typos` skips hidden directories, but prek passes explicit paths and so
+# does check them. Turn it off so a local run and the hook agree.
+ignore-hidden = false
+
+extend-exclude = [
+    # Required once ignore-hidden is off, or typos walks .git/objects.
+    ".git/",
+    # Upstream patches. The text belongs to the upstream project, and editing a
+    # patch breaks the context lines it applies against. Their filenames carry
+    # truncated commit subjects ("...-a-new-patch-updat.patch"), which trip the
+    # filename check as well.
+    "*.patch",
+    # Verbatim third-party licence texts, in 24 product directories. Excluded on
+    # purpose: these are not ours to correct.
+    "**/licenses/**",
+    # Base64-encoded CA certificates.
+    "stackable-base/stackable/ca-cert-blocklist/**",
+    # pip constraint files taken from upstream Airflow. They are lists of
+    # package names, not prose.
+    "airflow/stackable/constraints/**",
+]
+
+[default]
+# typos has no native suppression directive
+# (https://github.com/crate-ci/typos/issues/316), so these regexes provide one.
+# They cover `#`, `//`, `<!-- -->`, `;`, `/* */` and Jinja `{# #}` comments.
+#
+# Both failure modes are safe: an unterminated `:off` suppresses nothing rather
+# than swallowing the rest of the file, and `disable-line` only matches when the
+# marker ends the line, so trailing text defeats it instead of widening it.
+extend-ignore-re = [
+    "(?Rm)^.*(#|//|<!--|;|/\\*)\\s*spellchecker:disable-line\\s*(-->|#\\}|\\*/)?\\s*$",
+    "(#|//|<!--|;|/\\*)\\s*spellchecker:ignore-next-line\\s*(-->|#\\}|\\*/)?\\s*\\n.*",
+    "(?s)(#|//|<!--|;|/\\*|\")\\s*spellchecker:off\\s*(-->|#\\}|\\*/|\")?.*?(#|//|<!--|;|/\\*|\")\\s*spellchecker:on\\s*(-->|#\\}|\\*/|\")?",
+]
+
+[default.extend-words]
+# Vertica, the database. `apache-airflow-providers-vertica` is a real package
+# name; correcting it to "vertical" would break the Airflow image build.
+vertica = "vertica"
+# Maven profile activation flag, as in `mvn -Prelease` (hbase/hbase/Dockerfile).
+# "Correcting" it to -Prerelease selects a profile that does not exist. This is a
+# config entry rather than an in-place marker because the flag sits inside a shell
+# line continuation, where a `#` comment would swallow the rest of the command.
+Prelease = "Prelease"

@@ -53,7 +53,7 @@ go install "github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v${CYCLONED
   rm .git
   git init
   git config user.email "fake.commiter@stackable.tech"
-  git config user.name "Fake commiter"
+  git config user.name "Fake committer"
   git commit --allow-empty --message "Fake commit, so that we can create a tag"
   git tag "v${PRODUCT_VERSION}"
   go build -o /statsd_exporter/statsd_exporter
