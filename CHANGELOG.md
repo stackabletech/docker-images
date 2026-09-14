@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
+- opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1638]).
 
 ### Fixed
 
@@ -45,6 +46,9 @@ All notable changes to this project will be documented in this file.
 - hbase: Exclude the optional npm dependencies from the web UI SBOM ([#1630]).
 - airflow, superset: Create the Python SBOM from a separate environment, so that neither cyclonedx-bom nor its dependencies end up in the SBOM and in the image ([#1630]).
 - airflow, superset: Add the missing purl to the Airflow and Superset packages in the Python SBOM. They are installed from a locally built wheel, and without a purl they show up twice in the image SBOM ([#1630]).
+- opa, statsd-exporter: Detect the licenses of the Go dependencies ([#1638]).
+- opa, statsd-exporter: Report the Go dependencies at module level instead of package and file
+  level ([#1638]).
 
 ### Removed
 
@@ -61,6 +65,7 @@ All notable changes to this project will be documented in this file.
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
+[#1638]: https://github.com/stackabletech/docker-images/pull/1638
 
 ## [26.7.0] - 2026-07-21
 

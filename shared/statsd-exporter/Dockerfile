@@ -57,7 +57,13 @@ go install "github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v${CYCLONED
   git commit --allow-empty --message "Fake commit, so that we can create a tag"
   git tag "v${PRODUCT_VERSION}"
   go build -o /statsd_exporter/statsd_exporter
-  $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -output /statsd_exporter/statsd_exporter-${PRODUCT_VERSION}.cdx.json -packages -files
+  # -licenses detects the license of every module from the LICENSE file in the
+  # module cache, and -assert-licenses puts the result into `licenses` instead of
+  # `evidence`. syft and mergebom only read `licenses`, so without
+  # -assert-licenses none of it reaches the published image SBOM.
+  # -packages, -files and -std are deliberately not used, see the longer
+  # explanation in opa/Dockerfile.
+  $GOPATH/bin/cyclonedx-gomod app -json -output-version 1.5 -licenses -assert-licenses -output /statsd_exporter/statsd_exporter-${PRODUCT_VERSION}.cdx.json
 )
 rm -rf "statsd_exporter-${PRODUCT_VERSION}"
 # set correct groups
