@@ -132,10 +132,11 @@ COPY \
 # xz - extract Node package
 # yarn - build Opensearch Dashboards
 # cdxgen - generate CycloneDX SBOM
+# python3 - run shared/sbom/npm_licenses.py, see the invocation further down
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar unzip xz
+microdnf install tar unzip xz python3
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
@@ -207,6 +208,18 @@ EOF
 # dependency is a devDependency, so the flag would have no effect here but would
 # set `compositions.aggregate` to `incomplete`.
 RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
+
+# cdxgen builds the component list from yarn.lock, and the Yarn 1 lockfile format records no
+# license, so nearly every component comes out without one. Its only other source is the npm
+# registry, behind FETCH_LICENSE, which would mean one request per package at build time and a
+# build that depends on a registry it otherwise never talks to. The licenses are instead read from
+# the package.json files that `yarn install` wrote into node_modules. The SPDX identifier list is
+# taken from cdxgen's own data directory so that both agree on what is a valid identifier.
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/npm_licenses.py /stackable/npm_licenses.py
+RUN python3 /stackable/npm_licenses.py \
+    bom.json \
+    /opt/node-cdxgen/lib/node_modules/@cdxgen/cdxgen/data/spdx-licenses.json \
+    .
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce

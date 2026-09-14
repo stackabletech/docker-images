@@ -49,6 +49,10 @@ All notable changes to this project will be documented in this file.
 - opa, statsd-exporter: Detect the licenses of the Go dependencies ([#1638]).
 - opa, statsd-exporter: Report the Go dependencies at module level instead of package and file
   level ([#1638]).
+- opensearch-dashboards: Fill in the licenses of the npm dependencies from the installed
+  `node_modules` tree. cdxgen builds the component list from `yarn.lock`, and the Yarn 1 lockfile
+  format records no license, so 4264 of the 4341 npm components in the image SBOM had none
+  ([#1641]).
 
 ### Removed
 
@@ -66,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
+[#1641]: https://github.com/stackabletech/docker-images/pull/1641
 
 ## [26.7.0] - 2026-07-21
 
