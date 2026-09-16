@@ -50,6 +50,8 @@ All notable changes to this project will be documented in this file.
 - opa, statsd-exporter: Detect the licenses of the Go dependencies ([#1638]).
 - opa, statsd-exporter: Report the Go dependencies at module level instead of package and file
   level ([#1638]).
+- opensearch-dashboards: Generate the SBOM from the built distribution instead of the source
+  worktree, so dev dependencies are excluded ([#1641]).
 
 ### Removed
 
@@ -68,6 +70,7 @@ All notable changes to this project will be documented in this file.
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
+[#1641]: https://github.com/stackabletech/docker-images/pull/1641
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
 
 ## [26.7.0] - 2026-07-21
