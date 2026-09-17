@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
-- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1655]).
+- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 
 ### Changed
 
@@ -57,7 +57,7 @@ All notable changes to this project will be documented in this file.
 
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
-- airflow: Remove `3.1.6` ([#1655]).
+- airflow: Remove `3.1.6` ([#1665]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -71,7 +71,7 @@ All notable changes to this project will be documented in this file.
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
-[#1655]: https://github.com/stackabletech/docker-images/pull/1655
+[#1665]: https://github.com/stackabletech/docker-images/pull/1665
 
 ## [26.7.0] - 2026-07-21
 
