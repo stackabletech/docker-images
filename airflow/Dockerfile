@@ -17,23 +17,51 @@ FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
+ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG STACKABLE_USER_UID
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
+
+# The tests need the same constraints the image is built with, see the comment
+# in the RUN block below.
+COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
 
 WORKDIR /tmp/opa-auth-manager
 
 COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN <<EOF
+# The other RUN blocks in this file do not set this, but it is needed here:
+# without it only the exit code of the last command counts, so a failing install
+# or a failing test would not stop `uv build` from producing a wheel.
+set -eu
 
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
 
+# Provides the test tooling, and the project itself so the tests can import it.
+# --locked fails the build if uv.lock is out of date with pyproject.toml, rather
+# than silently re-resolving it here.
+uv sync --locked --python "${PYTHON_VERSION}"
+
+# The OPA auth manager subclasses FabAuthManager, so a signature change in the
+# FAB provider breaks it at import time. One source tree is shared by several
+# Airflow versions (see opa-auth-manager in airflow/boil-config.toml), so the
+# only way for the tests to see what a given image ships is to install Airflow
+# at PRODUCT_VERSION and let that version's constraints file pin the FAB
+# provider. Without this, a provider signature change only surfaces at runtime.
+uv pip install \
+  --python .venv/bin/python \
+  --constraint /tmp/constraints.txt \
+  "apache-airflow==${PRODUCT_VERSION}" \
+  apache-airflow-providers-fab
+
 # Warnings are disabled because they come from various third party testing libraries
 # that we have no control over.
-uv run pytest --disable-warnings
+# --no-sync keeps uv from reverting the versions installed just above.
+uv run --no-sync pytest --disable-warnings
+
 uv build
 EOF
 

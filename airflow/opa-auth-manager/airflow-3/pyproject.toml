@@ -7,16 +7,31 @@ authors = [
     { name = "Razvan Daniel Mihai", email = "razvan.mihai@stackable.tech" },
 ]
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.15"
 
-dependencies = ["requests==2.32.*", "cachetools==5.5.*", "overrides==7.7.*"]
+# Deliberately loose. The wheel is installed into the environment Airflow was
+# installed into under airflow/stackable/constraints/, which pins requests and
+# cachetools itself; exact pins here would downgrade what Airflow resolved.
+# overrides is not in the constraints file, so it stays pinned.
+dependencies = ["requests>=2.32", "cachetools>=5.5", "overrides==7.7.*"]
 
 [dependency-groups]
+# Test tooling only, and uv's default group. The image build syncs this and then
+# installs Airflow and the FAB provider from the constraints file for the version
+# being built, so the tests run against exactly what that image ships.
 dev = [
-    "apache-airflow~=3.0.1",
     "apache-airflow-devel-common<=0.1.1",
-    "apache-airflow-providers-fab==2.0.*",
-    "pytest~=8.3.3",
+    # Capped below 9 by apache-airflow-devel-common, which requires
+    # `pytest<9,>=8.3.3` and has no release that lifts it.
+    "pytest>=8.3.3,<9",
+]
+
+# Adds an Airflow to run the tests against outside the image build, where there
+# is no constraints file: `uv run --group local pytest`. Unused by the build.
+local = [
+    { include-group = "dev" },
+    "apache-airflow~=3.3.1",
+    "apache-airflow-providers-fab==3.*",
 ]
 
 [build-system]

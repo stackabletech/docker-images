@@ -509,6 +509,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         access_view: AccessView,
         user: User,
+        team_name: Optional[str] = None,
     ) -> bool:
         """
         Return whether the user is authorized to access a read-only state of the installation.
