@@ -1,0 +1,93 @@
+From 8362092081dccbfbd678e2f42e8e904e54d21c86 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Wed, 13 May 2026 16:30:33 +0300
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+
+diff --git a/build.gradle b/build.gradle
+index 85f2bf67f9..40c73e83e0 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,8 +41,79 @@ plugins {
+   id 'org.scoverage' version '8.1' apply false
+   id 'com.gradleup.shadow' version '9.3.1' apply false
+   id 'com.diffplug.spotless' version "8.0.0"
++  id 'org.cyclonedx.bom' version '3.2.4'
+ }
+ 
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = org.cyclonedx.model.Component.Type.APPLICATION
++    // Specified the version of the CycloneDX specification to use. Defaults to VERSION_16.
++    schemaVersion = org.cyclonedx.Version.VERSION_15
++    jsonOutput = file("build/reports/bom.json")
++    xmlOutput.unsetConvention()
++}
++
++// The SBOM must only describe what is shipped, so restrict it to the runtime dependencies.
++// Without this the SBOM also contains the test and build tooling (JUnit, Mockito, JaCoCo,
++// SpotBugs, Checkstyle, ...). It has to be configured on the per-project `cyclonedxDirectBom`
++// tasks, the `cyclonedxBom` extension above only configures the aggregation.
++// The releaseOnly configuration is included as well, because the `core` and `tools` projects
++// declare the Log4j runtime bindings (log4jReleaseLibs) there instead of on the
++// runtimeClasspath. They are copied into libs/ by the releaseTarGz task, so they are shipped
++// and must be part of the SBOM.
++allprojects {
++  tasks.matching { it.name == 'cyclonedxDirectBom' }.configureEach {
++    includeConfigs = ['runtimeClasspath', 'releaseOnly']
++  }
++}
++
++// Exclude the projects that are not shipped. This list needs to be checked and, if it changed,
++// updated for every new Kafka version. The list of projects can be obtained by running
++// `gradle projects`.
++//   * jmh-benchmarks pulls in JMH and the test fixtures.
++//   * The test-common projects pull in JUnit.
++//   * generator is a build-time code generator for the message protocol. It pulls in Jackson,
++//     but its own dependencies never reach the distribution.
++//   * The integration test projects and connect:test-plugins pull in JGit, Bouncy Castle,
++//     Apache MINA sshd and commons-codec, none of which are shipped.
++def skipCyclonedxProjects = [
++  ':clients:clients-integration-tests',
++  ':connect:test-plugins',
++  ':generator',
++  ':jmh-benchmarks',
++  ':streams:integration-tests',
++  ':streams:upgrade-system-tests-0110',
++  ':streams:upgrade-system-tests-10',
++  ':streams:upgrade-system-tests-11',
++  ':streams:upgrade-system-tests-20',
++  ':streams:upgrade-system-tests-21',
++  ':streams:upgrade-system-tests-22',
++  ':streams:upgrade-system-tests-23',
++  ':streams:upgrade-system-tests-24',
++  ':streams:upgrade-system-tests-25',
++  ':streams:upgrade-system-tests-26',
++  ':streams:upgrade-system-tests-27',
++  ':streams:upgrade-system-tests-28',
++  ':streams:upgrade-system-tests-30',
++  ':streams:upgrade-system-tests-31',
++  ':streams:upgrade-system-tests-32',
++  ':streams:upgrade-system-tests-33',
++  ':streams:upgrade-system-tests-34',
++  ':streams:upgrade-system-tests-35',
++  ':streams:upgrade-system-tests-36',
++  ':streams:upgrade-system-tests-37',
++  ':streams:upgrade-system-tests-38',
++  ':streams:upgrade-system-tests-39',
++  ':streams:upgrade-system-tests-40',
++  ':streams:upgrade-system-tests-41',
++]
++
++configure(subprojects.findAll { skipCyclonedxProjects.contains(it.path) || it.path.startsWith(':test-common') }) {
++  tasks.named('cyclonedxDirectBom') {
++    enabled = false
++  }
++}
++ 
+ ext {
+   minClientJavaVersion = 11
+   minNonClientJavaVersion = 17
