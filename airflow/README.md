@@ -7,14 +7,15 @@ script resides. This example will assume you are running from the repository roo
 
 ```sh
 # Specify Airflow and Python versions:
-./airflow/download_constraints.sh 3.0.6 3.12
+./airflow/download_constraints.sh 3.3.1 3.14
 ```
 
 Example output:
 
 ```output
-Downloading constraints file for Airflow 3.0.6 (Python 3.12)
-Successfully pulled new constraints file: constraints-3.0.6-python3.12.txt
+Downloading constraints file for Airflow 3.3.1 (Python 3.14)
+Successfully pulled new constraints file: constraints-3.3.1-python3.14.txt
+
 ```
 
 ## Airflow providers/extras
@@ -24,7 +25,7 @@ The list of provider packages are listed in the build configuration file, matchi
 The expected versions are listed in the constraints files, but these can change over time.
 To keep the installation tightly coupled to the associated constraints it is best to only use providers listed in the relevant constraints file.
 
-### Version 3.0.6
+### Version 3.3.1
 
 Applying the filter above results in the omission of the following providers:
 
