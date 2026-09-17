@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
 - kafka: Add `4.3.1` ([#1659]).
+- stats-exporter: Add `0.31.0` ([#1664]).
 
 ### Changed
 
@@ -50,6 +51,8 @@ All notable changes to this project will be documented in this file.
 - opa, statsd-exporter: Detect the licenses of the Go dependencies ([#1638]).
 - opa, statsd-exporter: Report the Go dependencies at module level instead of package and file
   level ([#1638]).
+- opensearch-dashboards: Generate the SBOM from the built distribution instead of the source
+  worktree, so dev dependencies are excluded ([#1641]).
 
 ### Removed
 
@@ -69,6 +72,8 @@ All notable changes to this project will be documented in this file.
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
 [#1659]: https://github.com/stackabletech/docker-images/pull/1659
+[#1641]: https://github.com/stackabletech/docker-images/pull/1641
+[#1664]: https://github.com/stackabletech/docker-images/pull/1664
 
 ## [26.7.0] - 2026-07-21
 
