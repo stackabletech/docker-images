@@ -15,7 +15,7 @@ on:
         description: Produce floating tag
         type: boolean
         required: true
-        default: false
+        default: true
   schedule:
     - cron: 0 2 2/2 * * # https://crontab.guru/#0_2_2/2_*_*
   push:
@@ -62,10 +62,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Default to false if not set/empty (if not triggered by workflow_dispatch)
+          # Default to true if not set/empty (if not triggered by workflow_dispatch)
           # Keep this default value in sync with the default value specified for workflow_dispatch!
           if [ -z "${INPUT_FLOATING_TAG:-}" ]; then
-            echo "FLOATING_TAG=false" | tee -a "$GITHUB_OUTPUT"
+            echo "FLOATING_TAG=true" | tee -a "$GITHUB_OUTPUT"
           else
             echo "FLOATING_TAG=${INPUT_FLOATING_TAG}" | tee -a "$GITHUB_OUTPUT"
           fi
