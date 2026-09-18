@@ -195,6 +195,22 @@ for plugin in $(ls); do
 done
 EOF
 
+# cdxgen runs against the built distribution in /stackable/opensearch-dashboards,
+# not against the source worktree. The worktree is a full development install
+# (yarn osd bootstrap), so scanning it reported every devDependency of the root
+# project, of packages/*, examples/*, test/plugin_functional/plugins/* and of all
+# plugin repositories: Cypress, Selenium WebDriver, ChromeDriver, Jest, Mocha,
+# ESLint, webpack and ~350 @types/* packages, none of which are in the image.
+# The built distribution contains exactly what is shipped.
+#
+# --exclude drops the lockfiles that the OpenSearch Dashboards plugins ship
+# inside their installed plugin directory. cdxgen prefers a lockfile over
+# node_modules, so without this it reads those 15 yarn.lock files and reports
+# each plugin's devDependencies again. Excluding them makes cdxgen walk the
+# installed node_modules instead, which additionally yields a license for almost
+# every component, because an installed package.json records one while a Yarn 1
+# lockfile does not.
+#
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
 # --type js restricts cdxgen to the JavaScript ecosystem. Without it, cdxgen
@@ -202,11 +218,14 @@ EOF
 # GitHub Actions workflows, Gradle and Python files of the build tooling.
 # --no-babel disables the Babel based usage analysis, which is not needed for a
 # dependency inventory.
-# Note: --required-only is not passed. cdxgen marks every package read from a
-# yarn.lock as "required", because the Yarn 1 lockfile does not record whether a
-# dependency is a devDependency, so the flag would have no effect here but would
-# set `compositions.aggregate` to `incomplete`.
-RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
+# Note: --required-only is not passed and is not needed. It filters a lockfile by
+# the dev flag, which a Yarn 1 lockfile does not record anyway, and no lockfile is
+# read here: the installed node_modules already contains only what was installed.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --exclude '**/yarn.lock' --exclude '**/package-lock.json' \
+    -o /stackable/bom.json \
+    /stackable/opensearch-dashboards
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
@@ -269,7 +288,7 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
-    /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}/bom.json \
+    /stackable/bom.json \
     /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
