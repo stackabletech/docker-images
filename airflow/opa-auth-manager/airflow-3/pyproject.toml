@@ -28,10 +28,13 @@ dev = [
 
 # Adds an Airflow to run the tests against outside the image build, where there
 # is no constraints file: `uv run --group local pytest`. Unused by the build.
+# Pinned to what the newest supported image ships, so a local run mirrors it:
+# Airflow at that image's PRODUCT_VERSION, the FAB provider at the version in
+# its constraints file. Floating these would test combinations we do not ship.
 local = [
     { include-group = "dev" },
-    "apache-airflow~=3.3.1",
-    "apache-airflow-providers-fab==3.*",
+    "apache-airflow==3.3.1",
+    "apache-airflow-providers-fab==3.8.0",
 ]
 
 [build-system]
