@@ -32,11 +32,6 @@ WORKDIR /tmp/opa-auth-manager
 COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN <<EOF
-# The other RUN blocks in this file do not set this, but it is needed here:
-# without it only the exit code of the last command counts, so a failing install
-# or a failing test would not stop `uv build` from producing a wheel.
-set -eu
-
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
 

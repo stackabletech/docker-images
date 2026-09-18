@@ -42,7 +42,12 @@ def flask_app():
             ): "opa_auth_manager.opa_fab_auth_manager.OpaFabAuthManager",
         }
     ):
-        yield Flask(__name__)
+        app = Flask(__name__)
+        # FAB >= 3.6.4 reads SECURITY_MANAGER_CLASS off `current_app` rather than
+        # off the appbuilder, so everything below needs an application context.
+        # Mirrors the `flask_app` fixture in the FAB provider's own test suite.
+        with app.app_context():
+            yield app
 
 
 @pytest.fixture
