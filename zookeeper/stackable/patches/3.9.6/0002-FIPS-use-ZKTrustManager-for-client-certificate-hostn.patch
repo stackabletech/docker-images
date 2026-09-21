@@ -1,0 +1,130 @@
+From 640983bf1ca64e18dcc9678f68aca5111caa1954 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Fri, 18 Sep 2026 15:20:30 +0200
+Subject: FIPS: use ZKTrustManager for client certificate hostname validation
+
+ZooKeeper 3.9.6 enabled an `SSLParameter` (`setEndpointIdentificationAlgorithm("HTTPS")`)
+to perform certificate hostname validation in FIPS mode, including on the accepting
+side of quorum TLS.
+
+SunJSSE matches a client certificate against the peer's IP address only, with no
+reverse DNS fallback, and reports a mismatch with the misleading message "Endpoint
+Identification Algorithm HTTPS is not supported on the server side". Deployments
+whose certificates carry DNS names rather than IP addresses therefore cannot form a
+quorum. This includes any Kubernetes deployment, where pod IPs are not known at the
+time certificates are issued. Both `zookeeper.fips-mode` and
+`ssl.quorum.clientHostnameVerification` default to `true`, so this affects 3.9.6 quorum
+TLS on default settings.
+
+This patch uses `ZKTrustManager` for client certificate hostname validation in FIPS
+mode when `ssl.clientHostnameVerification` (default `false`) or
+`ssl.quorum.clientHostnameVerification` (default `true`) is enabled. `ZKTrustManager` tries the
+IP address first and falls back to a reverse DNS lookup, which is what the non-FIPS
+path has always done. Server certificate hostname validation is still left to
+SunJSSE via the `SSLParameter`, and SunJSSE continues to do certificate chain
+validation in both directions, since `ZKTrustManager` wraps it rather than replacing
+it.
+
+Also re-enables `testHostnameVerificationWithInvalidIpAddressAndValidHostname` in FIPS
+mode, which upstream disabled because reverse DNS lookup for client hostname
+verification was unavailable there. To see the failure, apply only the QuorumSSLTest
+hunk to an unpatched tree: the fipsEnabled = true variant fails, the false variant
+passes.
+
+Remove this patch in future versions when it is fixed upstream. See ZOOKEEPER-XXXX
+---
+ .../common/SSLContextAndOptions.java          | 32 ++++++++-----------
+ .../org/apache/zookeeper/common/X509Util.java | 18 +++++++++--
+ .../server/quorum/QuorumSSLTest.java          |  6 +---
+ 3 files changed, 30 insertions(+), 26 deletions(-)
+
+diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/common/SSLContextAndOptions.java b/zookeeper-server/src/main/java/org/apache/zookeeper/common/SSLContextAndOptions.java
+index 627cc17b..ddff25b6 100644
+--- a/zookeeper-server/src/main/java/org/apache/zookeeper/common/SSLContextAndOptions.java
++++ b/zookeeper-server/src/main/java/org/apache/zookeeper/common/SSLContextAndOptions.java
+@@ -146,24 +146,20 @@ public class SSLContextAndOptions {
+             }
+         }
+ 
+-        // In FIPS-mode we deal with hostname verification here,
+-        // while in non-FIPS mode verification is handled by ZKTrustManager.
+-        if (X509Util.getFipsMode(zkConfig)) {
+-            String clientOrServer = isClientSocket ? "Server" : "Client";
+-            if (isClientSocket) {
+-                if (x509Util.isServerHostnameVerificationEnabled(zkConfig)) {
+-                    sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+-                    if (LOG.isDebugEnabled()) {
+-                        LOG.debug("{} hostname verification: enabled HTTPS style endpoint identification algorithm", clientOrServer);
+-                    }
+-                }
+-            } else {
+-                if (x509Util.isClientHostnameVerificationEnabled(zkConfig)) {
+-                    sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+-                    if (LOG.isDebugEnabled()) {
+-                        LOG.debug("{} hostname verification: enabled HTTPS style endpoint identification algorithm", clientOrServer);
+-                    }
+-                }
++        // In FIPS mode we let the JSSE provider verify the hostname of the server we connect to,
++        // while in non-FIPS mode ZKTrustManager handles both directions.
++        //
++        // Deliberately not set on server sockets: SunJSSE matches a client certificate against the
++        // peer's IP address only, with no reverse DNS fallback, and reports a mismatch as the
++        // misleading "Endpoint Identification Algorithm HTTPS is not supported on the server side".
++        // Peers whose certificates carry DNS names rather than IP addresses would always be
++        // rejected, so client hostname verification stays in ZKTrustManager, which falls back to a
++        // reverse lookup. See X509Util.createTrustManager().
++        if (isClientSocket && X509Util.getFipsMode(zkConfig)
++            && x509Util.isServerHostnameVerificationEnabled(zkConfig)) {
++            sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
++            if (LOG.isDebugEnabled()) {
++                LOG.debug("Server hostname verification: enabled HTTPS style endpoint identification algorithm");
+             }
+         }
+     }
+diff --git a/zookeeper-server/src/main/java/org/apache/zookeeper/common/X509Util.java b/zookeeper-server/src/main/java/org/apache/zookeeper/common/X509Util.java
+index 83619505..0bcbbbc1 100644
+--- a/zookeeper-server/src/main/java/org/apache/zookeeper/common/X509Util.java
++++ b/zookeeper-server/src/main/java/org/apache/zookeeper/common/X509Util.java
+@@ -636,10 +636,22 @@ public abstract class X509Util implements Closeable, AutoCloseable {
+             for (final TrustManager tm : tmf.getTrustManagers()) {
+                 if (tm instanceof X509ExtendedTrustManager) {
+                     if (fipsMode) {
+-                        if (LOG.isDebugEnabled()) {
+-                            LOG.debug("FIPS mode is ON: selecting standard x509 trust manager {}", tm);
++                        if (!clientHostnameVerificationEnabled) {
++                            if (LOG.isDebugEnabled()) {
++                                LOG.debug("FIPS mode is ON: selecting standard x509 trust manager {}", tm);
++                            }
++                            return (X509TrustManager) tm;
+                         }
+-                        return (X509TrustManager) tm;
++                        // This trust manager covers both directions: peers we dial and peers that
++                        // dial us. In FIPS mode the JSSE provider already verifies the server we
++                        // connect to (see SSLContextAndOptions.configureSslParameters), hence false
++                        // below, but it matches client certificates against the peer's IP address
++                        // only, so the peer that connected to us is verified here, hence true.
++                        // ZKTrustManager falls back to a reverse lookup when the IP does not match.
++                        if (LOG.isDebugEnabled()) {
++                            LOG.debug("FIPS mode is ON: creating ZKTrustManager for client hostname verification only");
++                        }
++                        return new ZKTrustManager((X509ExtendedTrustManager) tm, false, true, allowReverseDnsLookup);
+                     }
+                     if (LOG.isDebugEnabled()) {
+                         LOG.debug("FIPS mode is OFF: creating ZKTrustManager");
+diff --git a/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSSLTest.java b/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSSLTest.java
+index b905422b..a22f16d2 100644
+--- a/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSSLTest.java
++++ b/zookeeper-server/src/test/java/org/apache/zookeeper/server/quorum/QuorumSSLTest.java
+@@ -698,11 +698,7 @@ public class QuorumSSLTest extends QuorumPeerTestBase {
+         testHostnameVerification(badhostnameKeystorePath, false);
+     }
+ 
+-    /**
+-     * This test is NoFips only, because it needs reverse Dns lookup for client hostname verification,
+-     * which is not supported in Fips mode.
+-     */
+-    @TestNoFipsOnly
++    @TestBothFipsModes
+     @Timeout(value = 5, unit = TimeUnit.MINUTES)
+     public void testHostnameVerificationWithInvalidIpAddressAndValidHostname(boolean fipsEnabled) throws Exception {
+         System.setProperty(quorumX509Util.getFipsModeProperty(), Boolean.toString(fipsEnabled));
