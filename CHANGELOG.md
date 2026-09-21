@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- zookeeper: Add 3.9.6 ([#1662]).
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
 - nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
@@ -56,7 +57,8 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- omid: remove 1.1.2 ([#1593]).
+- zookeeper: Remove 3.9.4 ([#1662]).
+- omid: Remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - airflow: Remove `3.1.6` ([#1665]).
 
@@ -72,6 +74,7 @@ All notable changes to this project will be documented in this file.
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
+[#1662]: https://github.com/stackabletech/docker-images/pull/1662
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
 [#1665]: https://github.com/stackabletech/docker-images/pull/1665
 
