@@ -39,8 +39,7 @@ on:
       floating-tag:
         description: Whether to produce a floating tag
         type: boolean
-        # NOTE (@Techassi): Default to false for now, but eventually we want to default to true here
-        default: false
+        default: true
     secrets:
       harbor-robot-secret:
         description: The secret for the Harbor robot user used to push images and manifest
