@@ -196,7 +196,6 @@ mvn \
     clean package \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
-    -Denforcer.skip=true \
     -Dmaven.site.skip=true \
     -Pnifi-${PRODUCT_VERSION}
 
