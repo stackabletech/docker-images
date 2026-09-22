@@ -1,0 +1,42 @@
+From 6bafd68d2daa679a16894abce42a307035ee5346 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 19 Jun 2026 11:14:39 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index a0486c2..9444a1e 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -30,8 +30,26 @@ buildscript {
+     }
+ }
+ 
+-configurations {
+-    zipArchive
++plugins {
++    id("org.cyclonedx.bom") version "3.3.0"
++}
++
++// The SBOM must only describe what is shipped, so restrict it to the runtime dependencies.
++// Without this it also contains the test and build tooling (JUnit, Mockito, JaCoCo,
++// Checkstyle, ...). This has to be configured on the `cyclonedxDirectBom` task, the
++// `cyclonedxBom` extension below only configures the aggregation.
++cyclonedxDirectBom {
++    includeConfigs = ["runtimeClasspath"]
++    skipConfigs = ["compileClasspath", "testCompileClasspath"]
++}
++
++cyclonedxBom {
++    // Specified the type of project being built. Defaults to 'library'
++    projectType = org.cyclonedx.model.Component.Type.APPLICATION
++    // Specified the version of the CycloneDX specification to use. Defaults to VERSION_16.
++    schemaVersion = org.cyclonedx.Version.VERSION_16
++    jsonOutput = file("build/reports/cyclonedx/bom.json")
++    xmlOutput.unsetConvention()
+ }
+ 
+ apply plugin: 'java'

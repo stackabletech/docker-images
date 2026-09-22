@@ -1,0 +1,76 @@
+From 88acf360a467f9dca7c36f0a6c5b0dffe3daeb3c Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Mon, 22 Jun 2026 16:46:43 +0200
+Subject: Add CycloneDX plugin
+
+---
+ build.gradle          | 33 +++++++++++++++++++++++++++++++++
+ buildSrc/build.gradle |  4 +++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
+
+diff --git a/build.gradle b/build.gradle
+index 667bc41b438..2546b0344e6 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -58,6 +58,7 @@ plugins {
+   id "org.gradle.test-retry" version "1.6.2" apply false
+   id "test-report-aggregation"
+   id 'jacoco-report-aggregation'
++  id 'org.cyclonedx.bom' version '3.3.0'
+ }
+ 
+ apply from: 'gradle/build-complete.gradle'
+@@ -86,6 +87,38 @@ allprojects {
+   group = 'org.opensearch'
+   version = VersionProperties.getOpenSearch()
+   description = "OpenSearch subproject ${project.path}"
++
++  // Only include subprojects that are part of the opensearch-min distribution
++  // (server, libs, modules) plus the core plugins shipped in the Stackable
++  // image (repository-s3 and telemetry-otel). This prevents build-only
++  // dependencies (e.g. tika-core from ingest-attachment, or test fixtures such
++  // as hdfs-fixture) from appearing in the runtime SBOM as false positives.
++  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
++  def isShipped = project.path == ':server' ||
++                  project.path.startsWith(':libs:') ||
++                  project.path.startsWith(':modules:') ||
++                  (project.path.startsWith(':plugins:') && project.name in shippedPlugins)
++
++  cyclonedxDirectBom {
++    if (isShipped) {
++      includeConfigs = ["runtimeClasspath"]
++      skipConfigs = ["compileClasspath", "testCompileClasspath"]
++    } else {
++      // NOTE: an empty includeConfigs means "include ALL configurations", so we
++      // point it at a sentinel configuration that does not exist instead. This
++      // makes the task resolve nothing, avoiding the broken-POM resolution
++      // failures while keeping the task harmlessly disabled.
++      enabled = false
++      includeConfigs = ["__sbom_excluded__"]
++    }
++  }
++}
++
++cyclonedxBom {
++  includeLicenseText = false
++  projectType = org.cyclonedx.model.Component.Type.APPLICATION
++  schemaVersion = org.cyclonedx.Version.VERSION_16
++  componentVersion = VersionProperties.getOpenSearch()
+ }
+ 
+ configure(allprojects - project(':distribution:archives:integ-test-zip')) {
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index d1cb9276e60..b10d06eb6fd 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -139,7 +139,9 @@ dependencies {
+   api "org.yaml:snakeyaml:${props.getProperty('snakeyaml')}"
+   api 'org.apache.maven:maven-model:3.9.16'
+   api 'org.codehaus.plexus:plexus-xml:3.0.1'
+-  api 'com.networknt:json-schema-validator:1.2.0'
++  // Aligned with the version pulled in by cyclonedx-core-java (via the
++  // org.cyclonedx.bom plugin).
++  api 'com.networknt:json-schema-validator:1.5.9'
+   api 'org.jruby.jcodings:jcodings:1.0.58'
+   api 'org.jruby.joni:joni:2.2.6'
+   api "com.fasterxml.jackson.core:jackson-databind:${props.getProperty('jackson_databind')}"
