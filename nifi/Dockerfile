@@ -194,6 +194,7 @@ tar -czf /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN_VERSION}-src.ta
 
 mvn \
     clean package \
+    -T 1C \
     -DskipTests \
     -Dmaven.javadoc.skip=true \
     -Dmaven.site.skip=true \
