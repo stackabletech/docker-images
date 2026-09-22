@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
 - stats-exporter: Add `0.31.0` ([#1664]).
+- opensearch: Add `3.8.0` ([#1669]).
 
 ### Changed
 
@@ -27,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - vector: Generate the SBOM with the same feature set the binary is built with, so that the integrations that are not compiled in are no longer reported ([#1630]).
 - base images: Exclude the build-time dependencies from the Rust SBOMs ([#1630]).
 - kafka: Exclude the non-runtime configurations and the projects that are not shipped from the SBOM ([#1630]).
-- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` and `3.4.0` ([#1630]).
+- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` ([#1630]).
 - opensearch: Restrict the SBOM of the Prometheus exporter to the runtime dependencies ([#1630]).
 - opensearch-dashboards: Pass `--required-only` to cdxgen ([#1630]). This turned out to have no
   effect, see [#1635].
@@ -39,8 +40,7 @@ All notable changes to this project will be documented in this file.
   `tools` projects declare the Log4j runtime bindings there, so they were shipped in `libs/` without
   being part of the SBOM ([#1635]).
 - kafka: Exclude the `generator`, integration test and Connect test plugin projects from the SBOM ([#1635]).
-- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0`
-  and `3.4.0` ([#1635]).
+- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0` ([#1635]).
 - airflow, superset: Add the missing purls to all packages that are installed from a local wheel or
   a direct URL, and normalize the names in the purls as defined in the Python packaging
   specification ([#1635]).
@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file.
 
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
+- opensearch: Removed `3.4.0` ([#1669]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -71,6 +72,7 @@ All notable changes to this project will be documented in this file.
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
+[#1669]: https://github.com/stackabletech/docker-images/pull/1669
 
 ## [26.7.0] - 2026-07-21
 
