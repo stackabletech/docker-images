@@ -211,6 +211,12 @@ EOF
 # every component, because an installed package.json records one while a Yarn 1
 # lockfile does not.
 #
+# --include-regex restricts the walk to the package.json of an installed package,
+# which is always the direct child of a node_modules directory or of a scope
+# directory below it. cdxgen otherwise reads every package.json below
+# node_modules which includes test fixtures and benchmarks, we don't want these
+# in the SBOM.
+#
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
 # --type js restricts cdxgen to the JavaScript ecosystem. Without it, cdxgen
@@ -224,6 +230,7 @@ EOF
 RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty \
     --spec-version "${CDXGEN_SPEC_VERSION}" \
     --exclude '**/yarn.lock' --exclude '**/package-lock.json' \
+    --include-regex '**/node_modules/{*,@*/*}/package.json' \
     -o /stackable/bom.json \
     /stackable/opensearch-dashboards
 

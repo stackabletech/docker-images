@@ -56,6 +56,10 @@ All notable changes to this project will be documented in this file.
   level ([#1638]).
 - opensearch-dashboards: Generate the SBOM from the built distribution instead of the source
   worktree, so dev dependencies are excluded ([#1641]).
+- opensearch-dashboards: Only read the package.json of installed packages when generating the SBOM.
+  The subpath stubs, test fixtures, benchmarks and examples that packages ship below their own
+  directory were reported as components that do not exist on npmjs, most of them without a version
+  ([#1670]).
 - hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 
@@ -84,6 +88,7 @@ All notable changes to this project will be documented in this file.
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
+[#1670]: https://github.com/stackabletech/docker-images/pull/1670
 
 ## [26.7.0] - 2026-07-21
 
