@@ -6,12 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- zookeeper: Add 3.9.6 ([#1662]).
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
 - nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
+- hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
+- kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
+- hive: Add `4.2.1` ([#1637]).
 - opensearch: Add `3.8.0` ([#1669]).
 
 ### Changed
@@ -52,11 +56,16 @@ All notable changes to this project will be documented in this file.
   level ([#1638]).
 - opensearch-dashboards: Generate the SBOM from the built distribution instead of the source
   worktree, so dev dependencies are excluded ([#1641]).
+- hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
+  Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 
 ### Removed
 
+- zookeeper: Remove 3.9.4 ([#1662]).
+- hive: Remove `4.0.1` ([#1637]).
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
+- kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
 - opensearch: Removed `3.4.0` ([#1669]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -69,8 +78,12 @@ All notable changes to this project will be documented in this file.
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
+[#1636]: https://github.com/stackabletech/docker-images/pull/1636
+[#1637]: https://github.com/stackabletech/docker-images/pull/1637
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
+[#1659]: https://github.com/stackabletech/docker-images/pull/1659
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
+[#1662]: https://github.com/stackabletech/docker-images/pull/1662
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
 [#1669]: https://github.com/stackabletech/docker-images/pull/1669
 
