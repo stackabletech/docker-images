@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
+- kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - hive: Add `4.2.1` ([#1637]).
 
@@ -64,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - hive: Remove `4.0.1` ([#1637]).
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
+- kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -78,6 +80,7 @@ All notable changes to this project will be documented in this file.
 [#1636]: https://github.com/stackabletech/docker-images/pull/1636
 [#1637]: https://github.com/stackabletech/docker-images/pull/1637
 [#1638]: https://github.com/stackabletech/docker-images/pull/1638
+[#1659]: https://github.com/stackabletech/docker-images/pull/1659
 [#1641]: https://github.com/stackabletech/docker-images/pull/1641
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
