@@ -13,15 +13,18 @@ All notable changes to this project will be documented in this file.
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
+- hive: Add `4.2.1` ([#1637]).
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - hive: Add `4.2.1` ([#1637]).
+- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 
 ### Changed
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- superset: change statsd-exporter to `0.31.0` ([#1673]).
 
 ### Fixed
 
@@ -71,6 +74,8 @@ All notable changes to this project will be documented in this file.
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
+- airflow: Remove `3.1.6` ([#1665]).
+- superset: Remove `6.0.0` ([#1673]).
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -88,10 +93,12 @@ All notable changes to this project will be documented in this file.
 [#1637]: https://github.com/stackabletech/docker-images/pull/1637
 [#1639]: https://github.com/stackabletech/docker-images/pull/1639
 [#1659]: https://github.com/stackabletech/docker-images/pull/1659
-[#1663]: https://github.com/stackabletech/docker-images/pull/1663
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
+[#1663]: https://github.com/stackabletech/docker-images/pull/1663
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
+[#1665]: https://github.com/stackabletech/docker-images/pull/1665
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1673]: https://github.com/stackabletech/docker-images/pull/1673
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 
 ## [26.7.0] - 2026-07-21
