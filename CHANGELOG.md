@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 - opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- superset: change statsd-exporter to `0.31.0` ([#1673]).
 
 ### Fixed
 
