@@ -16,10 +16,11 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - hive: Add `4.2.1` ([#1637]).
+- opensearch-dashboards: Add `3.8.0` ([#1675]).
 
 ### Changed
 
-- opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
+- opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 
 ### Fixed
@@ -70,6 +71,7 @@ All notable changes to this project will be documented in this file.
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
+- opensearch-dashboards: Remove `3.4.0` ([#1675]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -90,6 +92,7 @@ All notable changes to this project will be documented in this file.
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1675]: https://github.com/stackabletech/docker-images/pull/1675
 
 ## [26.7.0] - 2026-07-21
 
