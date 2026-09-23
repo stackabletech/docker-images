@@ -16,7 +16,6 @@ All notable changes to this project will be documented in this file.
 - hive: Add `4.2.1` ([#1637]).
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
-- hive: Add `4.2.1` ([#1637]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 
