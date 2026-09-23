@@ -178,7 +178,7 @@ python-version = "3.14"
 git-sync-version = "v4.7.1"
 # Must match the version in the constraints file (search for s3fs==)
 # TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
-s3fs-version = "2026.4.0"
+s3fs-version = "2026.7.0"
 cyclonedx-bom-version = "7.3.0"
 # Used to create the SBOM of the frontend (npm) dependencies.
 # Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
@@ -207,13 +207,13 @@ airflow-extras-core = "async,graphviz,kerberos,memray,otel,sentry,standard,stats
 airflow-extras-meta = "aiobotocore,amazon-aws-auth,cloudpickle,github-enterprise,google-auth,graphviz,gunicorn,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#apache-software-extras
-airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot,apache-tinkerpop,apache-webhdfs"
+airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot,apache-tinkerpop"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#external-services-extras
 airflow-extras-external-services = "airbyte,akeyless,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,clickhousedb,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,vespa,weaviate,yandex,ydb,zendesk"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#locally-installed-software-extras
-airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,ibm-mq,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
+airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#other-extras
 airflow-extras-other = "common-ai,common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,keycloak,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh,informatica"

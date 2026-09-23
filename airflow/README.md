@@ -31,6 +31,7 @@ Applying the filter above results in the omission of the following providers:
 
 - `apache-atlas`
 - `apache-webhdfs`
+- `ibm-mq`
 
 Other than the above, the only other providers that are currently excluded are:
 
