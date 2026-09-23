@@ -127,6 +127,7 @@ COPY \
     /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/plugins/security-dashboards-plugin
 
+# libatomic - required by the Node binaries since Node 25
 # tar - extract OpenSearch Dashboards from archive & create source code archive
 # unzip - extract plugin from archive
 # xz - extract Node package
@@ -135,7 +136,7 @@ COPY \
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar unzip xz
+microdnf install libatomic tar unzip xz
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
