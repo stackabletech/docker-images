@@ -509,6 +509,10 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         *,
         access_view: AccessView,
         user: User,
+        # Added in apache-airflow-providers-fab 3.8.0, and ignored there (FAB has no
+        # multi-team support). @override validates signatures when this module is
+        # imported, so leaving it out stops the webserver starting.
+        team_name: Optional[str] = None,
     ) -> bool:
         """
         Return whether the user is authorized to access a read-only state of the installation.
