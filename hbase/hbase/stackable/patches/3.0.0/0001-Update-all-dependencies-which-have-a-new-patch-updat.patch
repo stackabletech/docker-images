@@ -1,0 +1,83 @@
+From fdff200bcd32cde7af3da131a21cab8dbfa369fe Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Tue, 30 Sep 2025 10:26:34 +0200
+Subject: Update all dependencies which have a new patch update
+
+---
+ pom.xml | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/pom.xml b/pom.xml
+index 57eaaf8998..8267221deb 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -821,7 +821,7 @@
+     <audience-annotations.version>0.15.0</audience-annotations.version>
+     <javadoc.audience-annotations.version>0.15.0</javadoc.audience-annotations.version>
+     <avro.version>1.11.5</avro.version>
+-    <caffeine.version>2.8.1</caffeine.version>
++    <caffeine.version>2.8.8</caffeine.version>
+     <commons-codec.version>1.15</commons-codec.version>
+     <commons-validator.version>1.7</commons-validator.version>
+     <commons-io.version>2.18.0</commons-io.version>
+@@ -829,8 +829,8 @@
+     <commons-math.version>3.6.1</commons-math.version>
+     <commons-cli.version>1.5.0</commons-cli.version>
+     <disruptor.version>3.4.4</disruptor.version>
+-    <httpclient.version>4.5.13</httpclient.version>
+-    <httpcore.version>4.4.13</httpcore.version>
++    <httpclient.version>4.5.14</httpclient.version>
++    <httpcore.version>4.4.16</httpcore.version>
+     <metrics-core.version>3.2.6</metrics-core.version>
+     <!--
+       Note that the version of jackson-[annotations,core,databind] must be kept in sync with the
+@@ -865,15 +865,15 @@
+     <thrift.version>0.23.0</thrift.version>
+     <zookeeper.version>3.8.6</zookeeper.version>
+     <jline.version>2.11</jline.version>
+-    <slf4j.version>1.7.30</slf4j.version>
++    <slf4j.version>1.7.36</slf4j.version>
+     <clover.version>4.0.3</clover.version>
+     <jettison.version>1.5.4</jettison.version>
+     <!--Make sure these joni/jcodings are compatible with the versions used by jruby-->
+-    <joni.version>2.2.5</joni.version>
++    <joni.version>2.2.6</joni.version>
+     <jcodings.version>1.0.63</jcodings.version>
+     <spy.version>2.12.3</spy.version>
+     <bouncycastle.version>1.84</bouncycastle.version>
+-    <skyscreamer.version>1.5.1</skyscreamer.version>
++    <skyscreamer.version>1.5.3</skyscreamer.version>
+     <commons-crypto.version>1.1.0</commons-crypto.version>
+     <!-- Plugin Dependencies -->
+     <build.helper.maven.version>3.0.0</build.helper.maven.version>
+@@ -890,16 +890,16 @@
+     <maven.checkstyle.version>3.6.0</maven.checkstyle.version>
+     <maven.eclipse.version>2.10</maven.eclipse.version>
+     <maven.gpg.version>3.0.1</maven.gpg.version>
+-    <maven.javadoc.version>3.4.0</maven.javadoc.version>
++    <maven.javadoc.version>3.4.1</maven.javadoc.version>
+     <maven.dependency.version>3.8.1</maven.dependency.version>
+-    <maven.warbucks.version>1.1.0</maven.warbucks.version>
++    <maven.warbucks.version>1.1.2</maven.warbucks.version>
+     <maven.project.info.report.version>3.9.0</maven.project.info.report.version>
+     <maven-owasp-plugin.version>12.1.0</maven-owasp-plugin.version>
+     <os.maven.version>1.7.1</os.maven.version>
+     <findbugs-annotations.version>1.3.9-1</findbugs-annotations.version>
+     <jcip-annotations.version>1.0-1</jcip-annotations.version>
+     <spotbugs.version>4.7.3</spotbugs.version>
+-    <spotbugs.maven.version>4.7.2.1</spotbugs.maven.version>
++    <spotbugs.maven.version>4.7.3.6</spotbugs.maven.version>
+     <surefire.version>3.5.3</surefire.version>
+     <wagon.ssh.version>2.12</wagon.ssh.version>
+     <xml.maven.version>1.0.1</xml.maven.version>
+@@ -910,8 +910,8 @@
+     <aircompressor.version>2.0.3</aircompressor.version>
+     <brotli4j.version>1.11.0</brotli4j.version>
+     <lz4.version>1.10.4</lz4.version>
+-    <snappy.version>1.1.10.4</snappy.version>
+-    <zstd-jni.version>1.5.7-2</zstd-jni.version>
++    <snappy.version>1.1.10.7</snappy.version>
++    <zstd-jni.version>1.5.7-3</zstd-jni.version>
+     <!--
+         Note that the version of protobuf shipped in hbase-thirdparty must match the version used
+         in hbase-protocol-shaded and hbase-examples. The version of jackson-[annotations,core,
