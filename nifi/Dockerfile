@@ -68,7 +68,7 @@ mvn \
     clean install \
     -Dmaven.javadoc.skip=true \
     -DskipTests \
-    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
+    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
 
 # Copy the binaries to the /stackable folder
 mv nifi-assembly/target/nifi-${NEW_VERSION}-bin/nifi-${NEW_VERSION} /stackable/nifi-${NEW_VERSION}
