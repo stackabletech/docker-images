@@ -18,11 +18,12 @@ All notable changes to this project will be documented in this file.
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - opensearch: Add `3.8.0` ([#1669]).
+- opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 
 ### Changed
 
-- opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
+- opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 
@@ -76,6 +77,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Remove `3.1.6` ([#1665]).
 - opensearch: Removed `3.4.0` ([#1669]).
 - superset: Remove `6.0.0` ([#1673]).
+- opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -100,6 +102,7 @@ All notable changes to this project will be documented in this file.
 [#1669]: https://github.com/stackabletech/docker-images/pull/1669
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
+[#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 
