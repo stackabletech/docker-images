@@ -226,14 +226,12 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/ni
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
 
 RUN <<EOF
 microdnf update
 
 # git: Required for git-sync
-# python-pip: Required to install Python packages
-# Note: Python is also required for custom Python processors
+# python-pip: Required to install Python packages, as they might be pulled in by custom Python processors
 microdnf install \
   git \
   python-pip
@@ -249,7 +247,6 @@ ln -s /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/
 
 # fix missing permissions / ownership
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
-chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 chmod g=u /stackable/*-src.tar.gz
