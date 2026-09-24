@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
-- nifi: Ship `QueryNiFiReportingTask` with the image ([#XXXX]).
+- nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 
 ### Changed
 
@@ -97,7 +97,7 @@ All notable changes to this project will be documented in this file.
 [#1665]: https://github.com/stackabletech/docker-images/pull/1665
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
-[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+[#1676]: https://github.com/stackabletech/docker-images/pull/1676
 
 ## [26.7.0] - 2026-07-21
 
