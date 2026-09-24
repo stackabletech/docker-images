@@ -2,6 +2,9 @@
 "oci.stackable.tech" = { namespace = "sdp" }
 
 [versions."3.1.0".local-images]
+# Stick to the Java version bundled in the upstream image (see
+# https://docs.opensearch.org/latest/install-and-configure/install-opensearch/index/#java-compatibility)
+# to ensure maximum compatibility with OpenSearch and its plugins.
 java-devel = "21"
 jdk-base = "21"
 "opensearch/opensearch-prometheus-exporter" = "3.1.0.0"
@@ -34,6 +37,9 @@ jdk-base = "21"
 
 # Deprecated since 26.11
 [versions."3.6.0".local-images]
+# Stick to the Java version bundled in the upstream image (see
+# https://docs.opensearch.org/latest/install-and-configure/install-opensearch/index/#java-compatibility)
+# to ensure maximum compatibility with OpenSearch and its plugins.
 java-devel = "25"
 jdk-base = "25"
 "opensearch/opensearch-prometheus-exporter" = "3.6.0.0"
@@ -65,6 +71,9 @@ jdk-base = "25"
 "query-insights-plugin-version" = "3.6.0.0"
 
 [versions."3.8.0".local-images]
+# Stick to the Java version bundled in the upstream image (see
+# https://docs.opensearch.org/latest/install-and-configure/install-opensearch/index/#java-compatibility)
+# to ensure maximum compatibility with OpenSearch and its plugins.
 java-devel = "25"
 jdk-base = "25"
 "opensearch/opensearch-prometheus-exporter" = "3.8.0.0"
