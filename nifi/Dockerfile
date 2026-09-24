@@ -63,18 +63,20 @@ tar -czf /stackable/nifi-${NEW_VERSION}-src.tar.gz .
 
 # NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
 # Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
+# We enable "include-sql-reporting" to be able to publish NiFi status information based on the results of a user-specified SQL query,
+# see https://github.com/stackabletech/docker-images/issues/1608.
 if [[ "${PRODUCT_VERSION}" != 1.* ]] ; then
     mvn \
     clean install \
     -Dmaven.javadoc.skip=true \
     -DskipTests \
-    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
+    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
 else
     mvn \
     clean install \
     -Dmaven.javadoc.skip=true \
     -DskipTests \
-    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
+    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
 fi
 
 # Copy the binaries to the /stackable folder
