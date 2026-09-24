@@ -7,6 +7,8 @@ java-devel = "11"
 [versions."2.6.6".build-arguments]
 async-profiler-version = "2.9"
 delete-caches = "true"
+# Selects the hadoop-3.0 Maven profile (activated by hadoop.profile=3.0 in 2.x)
+hadoop-profile = "3.0"
 # Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
 # Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
 # renovate: datasource=npm packageName=@cdxgen/cdxgen
@@ -19,9 +21,12 @@ java-base = "17"
 java-devel = "17"
 
 [versions."3.0.0".build-arguments]
+# Should be uploaded to https://repo.stackable.tech/repository/packages/async-profiler
 async-profiler-version = "4.4"
 delete-caches = "true"
+# Must stay empty: 3.x activates its Hadoop profiles only when hadoop.profile is NOT set
+hadoop-profile = ""
 # Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
 # Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
 # renovate: datasource=npm packageName=@cdxgen/cdxgen
-cdxgen-version = "13.2.0"
+cdxgen-version = "13.1.0"

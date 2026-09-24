@@ -8,6 +8,8 @@ ARG ASYNC_PROFILER_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+# Value for -Dhadoop.profile; leave empty to omit the flag (required for HBase 3.x)
+ARG HADOOP_PROFILE
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
@@ -79,13 +81,13 @@ tar -czf /stackable/hbase-${NEW_VERSION}-src.tar.gz .
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 # Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
 mvn \
-  -Dhadoop.profile=3.0 \
+  ${HADOOP_PROFILE:+-Dhadoop.profile=${HADOOP_PROFILE}} \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   clean install
 
 mvn \
-  -Dhadoop.profile=3.0 \
+  ${HADOOP_PROFILE:+-Dhadoop.profile=${HADOOP_PROFILE}} \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   -Dcheckstyle.skip=true \
