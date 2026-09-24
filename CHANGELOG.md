@@ -76,6 +76,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Remove `3.1.6` ([#1665]).
 - opensearch: Removed `3.4.0` ([#1669]).
 - superset: Remove `6.0.0` ([#1673]).
+- druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -100,6 +101,7 @@ All notable changes to this project will be documented in this file.
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
+[#1677]: https://github.com/stackabletech/docker-images/pull/1677
 
 ## [26.7.0] - 2026-07-21
 
