@@ -1,4 +1,4 @@
-From 8239b8fdcbc0471d6c3891d11e9ad5f32488bc29 Mon Sep 17 00:00:00 2001
+From 4fa5103608344c082d4a96ff007e61cabf2aa8c0 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Fri, 29 Aug 2025 15:43:25 +0200
 Subject: Replace the demo configuration with a minimal one
@@ -6,15 +6,15 @@ Subject: Replace the demo configuration with a minimal one
 ---
  config/action_groups.yml      |   3 +-
  config/allowlist.yml          |  64 +---
- config/audit.yml              |  84 +-----
- config/config.yml             | 253 +---------------
+ config/audit.yml              |  86 +-----
+ config/config.yml             | 252 +---------------
  config/internal_users.yml     |  61 +---
  config/nodes_dn.yml           |   8 +-
  config/opensearch.yml.example | 228 --------------
  config/roles.yml              | 549 +---------------------------------
- config/roles_mapping.yml      |  47 +--
+ config/roles_mapping.yml      |  41 +--
  config/tenants.yml            |   9 +-
- 10 files changed, 17 insertions(+), 1289 deletions(-)
+ 10 files changed, 17 insertions(+), 1284 deletions(-)
  delete mode 100644 config/opensearch.yml.example
 
 diff --git a/config/action_groups.yml b/config/action_groups.yml
@@ -103,10 +103,10 @@ index e669557d..f7f1bfb1 100644
 -    /_cat/nodes:
 -      - GET
 diff --git a/config/audit.yml b/config/audit.yml
-index dcfbad8d..9033c5a6 100644
+index a297f0bf..9033c5a6 100644
 --- a/config/audit.yml
 +++ b/config/audit.yml
-@@ -1,85 +1,7 @@
+@@ -1,87 +1,7 @@
 +---
  _meta:
 -  type: "audit"
@@ -133,6 +133,8 @@ index dcfbad8d..9033c5a6 100644
 -    disabled_transport_categories:
 -      - AUTHENTICATED
 -      - GRANTED_PRIVILEGES
+-      - CLUSTER_SETTINGS_CHANGED
+-      - INDEX_SETTINGS_CHANGED
 -
 -    # Users to be excluded from auditing. Wildcard patterns are supported. Eg:
 -    # ignore_users: ["test-user", "employee-*"]
@@ -196,10 +198,10 @@ index dcfbad8d..9033c5a6 100644
 -      - kibanaserver
 +  enabled: false
 diff --git a/config/config.yml b/config/config.yml
-index abd7edde..a3a46ef2 100644
+index ea8b7d72..a3a46ef2 100644
 --- a/config/config.yml
 +++ b/config/config.yml
-@@ -1,255 +1,10 @@
+@@ -1,254 +1,10 @@
  ---
 -
 -# This is the main OpenSearch Security configuration file where authentication
@@ -263,11 +265,10 @@ index abd7edde..a3a46ef2 100644
  
  config:
    dynamic:
--    # Set filtered_alias_mode to 'disallow' to forbid more than 2 filtered aliases per index
--    # Set filtered_alias_mode to 'warn' to allow more than 2 filtered aliases per index but warns about it (default)
--    # Set filtered_alias_mode to 'nowarn' to allow more than 2 filtered aliases per index silently
--    #filtered_alias_mode: warn
--    #do_not_fail_on_forbidden: false
+-    # Set privileges_evaluation_type to "v4" to enable the new privileges evaluation engine.
+-    # This should give you a more seamless experience, especially for users with restricted privileges
+-    # working in OpenSearch Dashboards.
+-    # privileges_evaluation_type: "v4"
 -    #kibana:
 -    # Kibana multitenancy
 -    #multitenancy_enabled: true
@@ -1334,10 +1335,10 @@ index ff09b706..5f8152a3 100644
 -        - 'indices:data/write*'
 -        - 'indices_monitor'
 diff --git a/config/roles_mapping.yml b/config/roles_mapping.yml
-index 89f46bf2..22a1f231 100644
+index 6acf82ec..22a1f231 100644
 --- a/config/roles_mapping.yml
 +++ b/config/roles_mapping.yml
-@@ -1,49 +1,4 @@
+@@ -1,43 +1,4 @@
  ---
 -# In this file users, backendroles and hosts can be mapped to Security roles.
 -# Permissions for OpenSearch roles are configured in roles.yml
@@ -1356,12 +1357,6 @@ index 89f46bf2..22a1f231 100644
 -  backend_roles:
 -  - "admin"
 -  description: "Maps admin to all_access"
--
--own_index:
--  reserved: false
--  users:
--  - "*"
--  description: "Allow full access to an index named like the username"
 -
 -logstash:
 -  reserved: false

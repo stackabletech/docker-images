@@ -1,4 +1,4 @@
-From 9006a07b3a0d18d59bf902edbb1bf74fa53c0b72 Mon Sep 17 00:00:00 2001
+From 5c39bb14cd761b401845870460a6b5af16b0b77f Mon Sep 17 00:00:00 2001
 From: Benedikt Labrenz <benedikt@labrenz.org>
 Date: Wed, 16 Jul 2025 14:29:10 +0200
 Subject: opensearch home
@@ -64,7 +64,7 @@ index 099d788c90d..f8697f133db 100644
 -run_as_other_user_if_needed /usr/share/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
 +run_as_other_user_if_needed /stackable/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
 diff --git a/distribution/packages/build.gradle b/distribution/packages/build.gradle
-index 2d172e76b1b..f76a390dc17 100644
+index d9410b766ea..64cfad844f2 100644
 --- a/distribution/packages/build.gradle
 +++ b/distribution/packages/build.gradle
 @@ -88,7 +88,7 @@ void addProcessFilesTask(String type, boolean jdk) {
@@ -205,7 +205,7 @@ index 75eded92a8e..7d494d5bf19 100644
      fi
  
 diff --git a/distribution/packages/src/common/systemd/opensearch.service b/distribution/packages/src/common/systemd/opensearch.service
-index a27608c6294..97543c9463a 100644
+index 91adbf3c839..f01faf02115 100644
 --- a/distribution/packages/src/common/systemd/opensearch.service
 +++ b/distribution/packages/src/common/systemd/opensearch.service
 @@ -21,7 +21,7 @@ PrivateTmp=true
