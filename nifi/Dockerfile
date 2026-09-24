@@ -61,21 +61,14 @@ mvn versions:set -DnewVersion=$NEW_VERSION
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/nifi-${NEW_VERSION}-src.tar.gz .
 
-# NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
-# Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
-if [[ "${PRODUCT_VERSION}" != 1.* ]] ; then
-    mvn \
+# Some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
+# We enable "include-sql-reporting" to be able to publish NiFi status information based on the results of a user-specified SQL query,
+# see https://github.com/stackabletech/docker-images/issues/1608.
+mvn \
     clean install \
     -Dmaven.javadoc.skip=true \
     -DskipTests \
-    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
-else
-    mvn \
-    clean install \
-    -Dmaven.javadoc.skip=true \
-    -DskipTests \
-    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
-fi
+    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
 
 # Copy the binaries to the /stackable folder
 mv nifi-assembly/target/nifi-${NEW_VERSION}-bin/nifi-${NEW_VERSION} /stackable/nifi-${NEW_VERSION}
@@ -233,30 +226,18 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/ni
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
-
-# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
-# This can be removed once the 1.x.x line is removed
-# Note: Keep this in sync with the version installed in testing-tools! (See the requirements.txt file)
-# Find the latest version here: https://pypi.org/project/nipyapi/
-# renovate: datasource=pypi packageName=nipyapi
-ENV NIPYAPI_VERSION=0.22.0
 
 RUN <<EOF
 microdnf update
 
 # git: Required for git-sync
-# python-pip: Required to install Python packages
-# Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
+# python-pip: Required to install Python packages, as they might be pulled in by custom Python processors
 microdnf install \
   git \
   python-pip
 
 microdnf clean all
 rm -rf /var/cache/yum
-
-pip install --no-cache-dir \
-    nipyapi==${NIPYAPI_VERSION}
 
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
@@ -266,7 +247,6 @@ ln -s /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/
 
 # fix missing permissions / ownership
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
-chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 chmod g=u /stackable/*-src.tar.gz
