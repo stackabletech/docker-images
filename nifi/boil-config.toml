@@ -45,3 +45,24 @@ cdxgen-nodejs-version = "24.19.0"
 # Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
 # Checkout a Patchable version (patch-series) for the new tag
 nifi-opa-authorizer-plugin-version = "0.6.0"
+
+[versions."2.12.0".local-images]
+java-base = "21" # As stated in GitHub README
+java-devel = "21"
+"shared/logback" = "1.6.3" # https://github.com/apache/nifi/blob/rel/nifi-2.12.0/pom.xml#L171
+
+[versions."2.12.0".build-arguments]
+git-sync-version = "v4.7.1"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.1.0"
+# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
+# assets, so it gets its own Node installation.
+# Use .scripts/upload_new_nodejs_version.sh to upload a new version.
+# Find the latest release here: https://github.com/nodejs/node/releases
+# renovate: datasource=node-version packageName=node
+cdxgen-nodejs-version = "24.21.0"
+# Check for new versions at the upstream: https://github.com/stackabletech/nifi-opa-plugin/tags
+# Checkout a Patchable version (patch-series) for the new tag
+nifi-opa-authorizer-plugin-version = "0.7.0"
