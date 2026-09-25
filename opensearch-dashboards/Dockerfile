@@ -127,6 +127,7 @@ COPY \
     /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/plugins/security-dashboards-plugin
 
+# libatomic - required by the Node binaries since Node 25
 # tar - extract OpenSearch Dashboards from archive & create source code archive
 # unzip - extract plugin from archive
 # xz - extract Node package
@@ -135,7 +136,7 @@ COPY \
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar unzip xz
+microdnf install libatomic tar unzip xz
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
@@ -211,6 +212,12 @@ EOF
 # every component, because an installed package.json records one while a Yarn 1
 # lockfile does not.
 #
+# --include-regex restricts the walk to the package.json of an installed package,
+# which is always the direct child of a node_modules directory or of a scope
+# directory below it. cdxgen otherwise reads every package.json below
+# node_modules which includes test fixtures and benchmarks, we don't want these
+# in the SBOM.
+#
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
 # --type js restricts cdxgen to the JavaScript ecosystem. Without it, cdxgen
@@ -224,6 +231,7 @@ EOF
 RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty \
     --spec-version "${CDXGEN_SPEC_VERSION}" \
     --exclude '**/yarn.lock' --exclude '**/package-lock.json' \
+    --include-regex '**/node_modules/{*,@*/*}/package.json' \
     -o /stackable/bom.json \
     /stackable/opensearch-dashboards
 

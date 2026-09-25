@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/opensearch-build"
+base = "f9cbed304e13944ec684a54acba0f3840fb80eac"
