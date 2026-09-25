@@ -3,7 +3,7 @@
 
 # Deprecated since SDP 25.11
 [versions."2.9.3".local-images]
-"shared/statsd-exporter" = "0.30.0"
+"shared/statsd-exporter" = "0.31.0"
 vector = "0.55.0"
 stackable-devel = "1.0.0"
 
@@ -43,7 +43,7 @@ nodejs-version = "22"
 
 # LTS
 [versions."3.0.6".local-images]
-"shared/statsd-exporter" = "0.30.0"
+"shared/statsd-exporter" = "0.31.0"
 vector = "0.55.0"
 stackable-devel = "1.0.0"
 
@@ -103,69 +103,8 @@ nodejs-version = "22"
 # TODO: Specify the pnpm version here
 
 # Deprecated
-[versions."3.1.6".local-images]
-"shared/statsd-exporter" = "0.30.0"
-vector = "0.55.0"
-stackable-devel = "1.0.0"
-
-[versions."3.1.6".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
-# break many customer DAGs. We generally try to pick the latest supported version unless there are
-# reasons against it.
-# This version of Airflow supports: 3.10 - 3.13 (see https://airflow.apache.org/docs/apache-airflow/3.1.6/installation/prerequisites.html)
-python-version = "3.12"
-git-sync-version = "v4.6.0"
-# Must match the version in the constraints file (search for s3fs==)
-# TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
-s3fs-version = "2026.1.0"
-cyclonedx-bom-version = "7.3.0"
-# Used to create the SBOM of the frontend (npm) dependencies.
-# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
-# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
-# renovate: datasource=npm packageName=@cdxgen/cdxgen
-cdxgen-version = "13.0.1"
-# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
-# assets, so it gets its own Node installation.
-# Find the latest release here: https://github.com/nodejs/node/releases
-# renovate: datasource=node-version packageName=node
-cdxgen-nodejs-version = "24.19.0"
-# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
-tini-version = "0.19.0"
-# Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
-# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.11.19"
-
-# Airflow extras are defined in separate lists to make them easier to check against the links below.
-# The lists will be concatenated and duplicates removed in the dockerfile.
-# TODO: Add policy for when to add extras.
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#core-airflow-extras
-airflow-extras-core = "async,graphviz,kerberos,otel,sentry,standard,statsd"
-
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#meta-airflow-package-extras
-airflow-extras-meta = "aiobotocore,cloudpickle,github-enterprise,google-auth,graphviz,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
-
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#apache-software-extras
-airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot"
-
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#external-services-extras
-airflow-extras-external-services = "airbyte,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,weaviate,yandex,ydb,zendesk"
-
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#locally-installed-software-extras
-airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
-
-# See https://airflow.apache.org/docs/apache-airflow/3.1.6/extra-packages-ref.html#other-extras
-airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
-
-opa-auth-manager = "airflow-3"
-# Node module stream used to install pnpm/yarn and build the frontend assets.
-# cdxgen has its own Node version, see cdxgen-nodejs-version.
-nodejs-version = "22"
-# TODO: Specify the pnpm version here
-
-# Supported
 [versions."3.2.2".local-images]
-"shared/statsd-exporter" = "0.30.0"
+"shared/statsd-exporter" = "0.31.0"
 vector = "0.55.0"
 stackable-devel = "1.0.0"
 
@@ -217,6 +156,67 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 
 # See https://airflow.apache.org/docs/apache-airflow/3.2.2/extra-packages-ref.html#other-extras
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
+
+opa-auth-manager = "airflow-3"
+# Node module stream used to install pnpm/yarn and build the frontend assets.
+# cdxgen has its own Node version, see cdxgen-nodejs-version.
+nodejs-version = "22"
+# TODO: Specify the pnpm version here
+
+# Supported
+[versions."3.3.1".local-images]
+"shared/statsd-exporter" = "0.31.0"
+vector = "0.55.0"
+stackable-devel = "1.0.0"
+
+[versions."3.3.1".build-arguments]
+# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
+# break many customer DAGs. We generally try to pick the latest supported version unless there are
+# reasons against it.
+# This version of Airflow supports: 3.10 - 3.14 (see https://airflow.apache.org/docs/apache-airflow/3.3.1/installation/prerequisites.html)
+python-version = "3.14"
+git-sync-version = "v4.7.1"
+# Must match the version in the constraints file (search for s3fs==)
+# TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
+s3fs-version = "2026.7.0"
+cyclonedx-bom-version = "7.3.0"
+# Used to create the SBOM of the frontend (npm) dependencies.
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.1.0"
+# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
+# assets, so it gets its own Node installation.
+# Find the latest release here: https://github.com/nodejs/node/releases
+# renovate: datasource=node-version packageName=node
+cdxgen-nodejs-version = "24.19.0"
+# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
+tini-version = "0.19.0"
+# Bump to the latest release found here: https://github.com/astral-sh/uv/releases
+# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
+# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
+uv-version = "0.11.19"
+
+# Airflow extras are defined in separate lists to make them easier to check against the links below.
+# The lists will be concatenated and duplicates removed in the dockerfile.
+# TODO: Add policy for when to add extras.
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#core-airflow-extras
+airflow-extras-core = "async,graphviz,kerberos,memray,otel,sentry,standard,statsd"
+
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#meta-airflow-package-extras
+airflow-extras-meta = "aiobotocore,amazon-aws-auth,cloudpickle,github-enterprise,google-auth,graphviz,gunicorn,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
+
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#apache-software-extras
+airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot,apache-tinkerpop"
+
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#external-services-extras
+airflow-extras-external-services = "airbyte,akeyless,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,clickhousedb,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,vespa,weaviate,yandex,ydb,zendesk"
+
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#locally-installed-software-extras
+airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
+
+# See https://airflow.apache.org/docs/apache-airflow/3.3.1/extra-packages-ref.html#other-extras
+airflow-extras-other = "common-ai,common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,keycloak,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh,informatica"
 
 opa-auth-manager = "airflow-3"
 # Node module stream used to install pnpm/yarn and build the frontend assets.

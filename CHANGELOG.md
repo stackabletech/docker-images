@@ -13,15 +13,22 @@ All notable changes to this project will be documented in this file.
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
+- hive: Add `4.2.1` ([#1637]).
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
-- hive: Add `4.2.1` ([#1637]).
+- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
+- opensearch: Add `3.8.0` ([#1669]).
+- opensearch-dashboards: Add `3.8.0` ([#1675]).
+- nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
+- nifi: Add `2.12.0` ([#1667]).
 
 ### Changed
 
-- opensearch-dashboards: Bump cdxgen to 13.0.1 and pin the CycloneDX spec version to 1.6 ([#1600]).
+- opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- superset: change statsd-exporter to `0.31.0` ([#1673]).
 - vector: Build with `--locked` ([#1674]).
+- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 
 ### Fixed
 
@@ -32,7 +39,7 @@ All notable changes to this project will be documented in this file.
 - vector: Generate the SBOM with the same feature set the binary is built with, so that the integrations that are not compiled in are no longer reported ([#1630]).
 - base images: Exclude the build-time dependencies from the Rust SBOMs ([#1630]).
 - kafka: Exclude the non-runtime configurations and the projects that are not shipped from the SBOM ([#1630]).
-- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` and `3.4.0` ([#1630]).
+- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` ([#1630]).
 - opensearch: Restrict the SBOM of the Prometheus exporter to the runtime dependencies ([#1630]).
 - opensearch-dashboards: Pass `--required-only` to cdxgen ([#1630]). This turned out to have no
   effect, see [#1635].
@@ -44,8 +51,7 @@ All notable changes to this project will be documented in this file.
   `tools` projects declare the Log4j runtime bindings there, so they were shipped in `libs/` without
   being part of the SBOM ([#1635]).
 - kafka: Exclude the `generator`, integration test and Connect test plugin projects from the SBOM ([#1635]).
-- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0`
-  and `3.4.0` ([#1635]).
+- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0` ([#1635]).
 - airflow, superset: Add the missing purls to all packages that are installed from a local wheel or
   a direct URL, and normalize the names in the purls as defined in the Python packaging
   specification ([#1635]).
@@ -71,6 +77,12 @@ All notable changes to this project will be documented in this file.
 - omid: remove 1.1.2 ([#1593]).
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
+- airflow: Remove `3.1.6` ([#1665]).
+- opensearch: Removed `3.4.0` ([#1669]).
+- superset: Remove `6.0.0` ([#1673]).
+- opensearch-dashboards: Remove `3.4.0` ([#1675]).
+- druid: Remove `30.0.1`, `35.0.1` ([#1677]).
+- nifi: Remove `2.7.2` ([#1667]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -87,11 +99,18 @@ All notable changes to this project will be documented in this file.
 [#1637]: https://github.com/stackabletech/docker-images/pull/1637
 [#1639]: https://github.com/stackabletech/docker-images/pull/1639
 [#1659]: https://github.com/stackabletech/docker-images/pull/1659
-[#1663]: https://github.com/stackabletech/docker-images/pull/1663
 [#1662]: https://github.com/stackabletech/docker-images/pull/1662
+[#1663]: https://github.com/stackabletech/docker-images/pull/1663
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
+[#1665]: https://github.com/stackabletech/docker-images/pull/1665
+[#1667]: https://github.com/stackabletech/docker-images/pull/1667
+[#1669]: https://github.com/stackabletech/docker-images/pull/1669
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1673]: https://github.com/stackabletech/docker-images/pull/1673
 [#1674]: https://github.com/stackabletech/docker-images/pull/1674
+[#1675]: https://github.com/stackabletech/docker-images/pull/1675
+[#1676]: https://github.com/stackabletech/docker-images/pull/1676
+[#1677]: https://github.com/stackabletech/docker-images/pull/1677
 
 ## [26.7.0] - 2026-07-21
 
