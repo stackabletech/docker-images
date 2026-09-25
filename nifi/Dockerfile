@@ -188,6 +188,8 @@ tar -czf /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN_VERSION}-src.ta
 mvn \
     clean package \
     -DskipTests \
+    -Dmaven.javadoc.skip=true \
+    -Dmaven.site.skip=true \
     -Pnifi-${PRODUCT_VERSION}
 
 cp ./target/opa-authorizer.nar /stackable/opa-authorizer.nar
