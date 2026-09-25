@@ -1,4 +1,4 @@
-From 087c05c3ad1a43cc3114324e6ea0d14c3f6e600c Mon Sep 17 00:00:00 2001
+From a82c1cda1048a94e281f0ea68f21efb658739fd5 Mon Sep 17 00:00:00 2001
 From: Lars Francke <git@lars-francke.de>
 Date: Wed, 20 May 2026 16:33:13 +0200
 Subject: NIFI-15958 Log periodic progress while waiting for content archive
@@ -83,10 +83,10 @@ index 749ca1d04e..f242a01976 100644
          }
      }
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
-index c2d21a5565..b3c0a8dcf6 100644
+index ddcb048da2..ff1c0a6527 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
-@@ -72,6 +72,7 @@ import java.util.concurrent.Future;
+@@ -74,6 +74,7 @@ import java.util.concurrent.Future;
  import java.util.concurrent.LinkedBlockingQueue;
  import java.util.concurrent.ScheduledExecutorService;
  import java.util.concurrent.TimeUnit;
@@ -94,7 +94,7 @@ index c2d21a5565..b3c0a8dcf6 100644
  import java.util.concurrent.atomic.AtomicLong;
  import java.util.concurrent.locks.Condition;
  import java.util.concurrent.locks.Lock;
-@@ -87,6 +88,7 @@ public class FileSystemRepository implements ContentRepository {
+@@ -89,6 +90,7 @@ public class FileSystemRepository implements ContentRepository {
      public static final long MIN_CLEANUP_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(1L);
      public static final long DEFAULT_CLEANUP_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1L);
      public static final String ARCHIVE_DIR_NAME = "archive";
@@ -102,7 +102,7 @@ index c2d21a5565..b3c0a8dcf6 100644
      // 100 MB cap for the configurable NiFiProperties.MAX_APPENDABLE_CLAIM_SIZE property to prevent
      // unnecessarily large resource claim files
      public static final String APPENDABLE_CLAIM_LENGTH_CAP = "100 MB";
-@@ -321,15 +323,39 @@ public class FileSystemRepository implements ContentRepository {
+@@ -332,15 +334,39 @@ public class FileSystemRepository implements ContentRepository {
  
          executor.shutdown();
  
@@ -117,8 +117,8 @@ index c2d21a5565..b3c0a8dcf6 100644
 -            try {
 -                future.get();
 -            } catch (final ExecutionException | InterruptedException e) {
--                if (e.getCause() instanceof IOException) {
--                    throw (IOException) e.getCause();
+-                if (e.getCause() instanceof final IOException ioException) {
+-                    throw ioException;
 -                } else {
 -                    throw new RuntimeException(e);
 +            while (true) {

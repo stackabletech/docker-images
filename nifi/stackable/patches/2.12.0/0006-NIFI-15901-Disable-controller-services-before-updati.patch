@@ -1,6 +1,6 @@
-From 5a16796127e103b181a3cdb760f566c65bab0851 Mon Sep 17 00:00:00 2001
+From b1fd3875b056be0af28feecb3182c9b44abd5393 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
-Date: Tue, 5 May 2026 17:25:46 +0200
+Date: Tue, 5 May 2026 16:57:20 +0200
 Subject: NIFI-15901 Disable controller services before updating
 
 ---
@@ -8,10 +8,10 @@ Subject: NIFI-15901 Disable controller services before updating
  1 file changed, 37 insertions(+), 7 deletions(-)
 
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
-index d8f2d2da6d..01ffa09a4b 100644
+index e7930d84c3..eff9a5f0f0 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
-@@ -707,7 +707,7 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen
+@@ -727,7 +727,7 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen
      }
  
      private void synchronizeControllerServices(final ProcessGroup group, final VersionedProcessGroup proposed, final Map<String, ControllerServiceNode> servicesByVersionedId,
@@ -20,7 +20,7 @@ index d8f2d2da6d..01ffa09a4b 100644
          // Controller Services have to be handled a bit differently than other components. This is because Processors and Controller
          // Services may reference other Controller Services. Since we may be adding Service A, which depends on Service B, before adding
          // Service B, we need to ensure that we create all Controller Services first and then call updateControllerService for each
-@@ -741,17 +741,47 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen
+@@ -761,17 +761,47 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen
              updateControllerService(addedService, proposedService, topLevelGroup);
          }
  

@@ -1,4 +1,4 @@
-From 7821ce72d3ee572955828f90a96b8107a961b4c3 Mon Sep 17 00:00:00 2001
+From e598655fdfbd14f311f21d64fcf88fb590dfddc6 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Fri, 23 Jan 2026 12:41:58 +0100
 Subject: replace process groups root with root ID
@@ -14,10 +14,10 @@ Subject: replace process groups root with root ID
  create mode 100644 nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
 
 diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-index 45262a8f4f..e86f29b569 100644
+index c9763549b1..5c3a82e525 100644
 --- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 +++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-@@ -332,6 +332,9 @@ public class NiFiProperties extends ApplicationProperties {
+@@ -352,6 +352,9 @@ public class NiFiProperties extends ApplicationProperties {
      // performance tracking defaults
      public static final int DEFAULT_TRACK_PERFORMANCE_PERCENTAGE = 0;
  
@@ -45,7 +45,7 @@ index 0000000000..7f81967537
 +
 +
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
-index 3d271dd394..f153cea1ae 100644
+index 21d36a93ec..d8b80aeadc 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 @@ -16,6 +16,7 @@
@@ -83,7 +83,7 @@ index 3d271dd394..f153cea1ae 100644
      }
  
      @Override
-@@ -588,6 +595,52 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
+@@ -582,6 +589,52 @@ public class FileAccessPolicyProvider implements ConfigurableAccessPolicyProvide
          }
      }
  
@@ -169,7 +169,7 @@ index 0000000000..f67328ef84
 +}
 \ No newline at end of file
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
-index 5de3486164..2873b26644 100644
+index 91c1197b27..0cf7f0b848 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
 @@ -55,6 +55,7 @@ import org.apache.nifi.controller.serialization.FlowSynchronizationException;
@@ -180,7 +180,7 @@ index 5de3486164..2873b26644 100644
  import org.apache.nifi.groups.BundleUpdateStrategy;
  import org.apache.nifi.groups.ProcessGroup;
  import org.apache.nifi.groups.RemoteProcessGroup;
-@@ -148,6 +149,13 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
+@@ -151,6 +152,13 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
      private static final String CONNECTION_EXCEPTION_MSG_PREFIX = "Failed to connect node to cluster";
      private static final Logger logger = LoggerFactory.getLogger(StandardFlowService.class);
  
@@ -194,7 +194,7 @@ index 5de3486164..2873b26644 100644
      public static StandardFlowService createStandaloneInstance(
              final FlowController controller,
              final NiFiProperties nifiProperties,
-@@ -935,6 +943,15 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
+@@ -966,6 +974,15 @@ public class StandardFlowService implements FlowService, ProtocolHandler {
              // start the processors as indicated by the dataflow
              controller.onFlowInitialized(autoResumeState);
  
