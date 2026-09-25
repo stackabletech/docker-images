@@ -20,12 +20,14 @@ All notable changes to this project will be documented in this file.
 - opensearch: Add `3.8.0` ([#1669]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
+- nifi: Add `2.12.0` ([#1667]).
 
 ### Changed
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
+- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 
 ### Fixed
 
@@ -79,6 +81,7 @@ All notable changes to this project will be documented in this file.
 - superset: Remove `6.0.0` ([#1673]).
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
+- nifi: Remove `2.7.2` ([#1667]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -99,6 +102,7 @@ All notable changes to this project will be documented in this file.
 [#1663]: https://github.com/stackabletech/docker-images/pull/1663
 [#1664]: https://github.com/stackabletech/docker-images/pull/1664
 [#1665]: https://github.com/stackabletech/docker-images/pull/1665
+[#1667]: https://github.com/stackabletech/docker-images/pull/1667
 [#1669]: https://github.com/stackabletech/docker-images/pull/1669
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
