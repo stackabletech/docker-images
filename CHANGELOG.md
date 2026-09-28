@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 - vector: Build with `--locked` ([#1674]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
+- ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
 
 ### Fixed
 
@@ -111,6 +112,7 @@ All notable changes to this project will be documented in this file.
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
+[#1681]: https://github.com/stackabletech/docker-images/pull/1681
 
 ## [26.7.0] - 2026-07-21
 

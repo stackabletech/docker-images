@@ -92,7 +92,7 @@ jobs:
           persist-credentials: false
 
       - id: shard
-        uses: stackabletech/actions/shard@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/shard@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           product-name: ${{ inputs.product-name }}
     outputs:
@@ -119,11 +119,11 @@ jobs:
           persist-credentials: false
 
       - name: Free Disk Space
-        uses: stackabletech/actions/free-disk-space@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/free-disk-space@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
 
       - name: Build Product Image
         id: build
-        uses: stackabletech/actions/build-product-image@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/build-product-image@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           registry-namespace: ${{ inputs.registry-namespace }}
           product-name: ${{ inputs.product-name }}
@@ -134,7 +134,7 @@ jobs:
 
       - name: Publish Container Image on oci.stackable.tech
         if: inputs.publish
-        uses: stackabletech/actions/publish-image@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/publish-image@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -151,7 +151,7 @@ jobs:
 
       - name: Publish Container Image on quay.io
         if: inputs.publish && inputs.publish-to-quay
-        uses: stackabletech/actions/publish-image@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/publish-image@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: quay.io
           image-registry-username: stackable+robot_${{ inputs.registry-namespace }}_github_action_build
@@ -187,7 +187,7 @@ jobs:
       # this should only be a stepping stone towards a more robust solution.
       - name: Install boil
         if: inputs.floating-tag
-        uses: stackabletech/actions/setup-tools@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/setup-tools@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           boil-version: latest
 
@@ -209,7 +209,7 @@ jobs:
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech
         id: publish-oci
         if: inputs.publish
-        uses: stackabletech/actions/publish-image-index-manifest@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/publish-image-index-manifest@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
@@ -226,7 +226,7 @@ jobs:
       - name: Publish and Sign Image Index Manifest to quay.io
         id: publish-quay
         if: inputs.publish && inputs.publish-to-quay
-        uses: stackabletech/actions/publish-image-index-manifest@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/publish-image-index-manifest@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: quay.io
           image-registry-username: stackable+robot_${{ inputs.registry-namespace }}_github_action_build
@@ -249,7 +249,7 @@ jobs:
     if: failure() || (github.run_attempt > 1 && !cancelled())
     steps:
       - name: Send Notification
-        uses: stackabletech/actions/send-slack-notification@633678e4294785ad88ac706139e8691337eefab8 # v0.18.2
+        uses: stackabletech/actions/send-slack-notification@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           publish-manifests-result: ${{ needs.publish_manifests.result }}
           build-result: ${{ needs.build.result }}
