@@ -141,7 +141,7 @@ microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/usr/local --strip-components=1
-npm install -g yarn@${YARN_VERSION}
+npm install -g --ignore-scripts yarn@${YARN_VERSION}
 
 # cdxgen requires Node >= 24, which is newer than the Node version OpenSearch Dashboards
 # is built with, so it gets its own Node installation in /opt/node-cdxgen and is invoked
@@ -150,7 +150,7 @@ npm install -g yarn@${YARN_VERSION}
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}

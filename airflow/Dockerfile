@@ -130,7 +130,7 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
@@ -180,7 +180,7 @@ if [ -d "./airflow-core" ]; then
 
   # build front-end assets
   # TODO: Consider making the pnpm version an ARG
-  npm install -g pnpm@10.18.2
+  npm install -g --ignore-scripts pnpm@10.18.2
   pnpm install --frozen-lockfile
   pnpm run build
 
@@ -212,7 +212,7 @@ else
   # build front-end assets
   cd airflow/www
   # TODO: Consider making the yarn version an ARG
-  npm install -g yarn@1.22.22
+  npm install -g --ignore-scripts yarn@1.22.22
   yarn install --frozen-lockfile
   yarn run build
 
