@@ -68,6 +68,12 @@ EOF
 ENV JAVA_HOME="/usr/lib/jvm/temurin-${PRODUCT_VERSION}-jdk"
 ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 
+# Plugins that are invoked by prefix on the command line (e.g. `mvn versions:set`) resolve to their
+# latest release unless the project POM pins them, so their version would change silently between builds.
+# Find the latest version here: https://github.com/mojohaus/versions/releases
+# renovate: datasource=maven packageName=org.codehaus.mojo:versions-maven-plugin
+ENV VERSIONS_MAVEN_PLUGIN_VERSION="2.22.0"
+
 ARG GITHUB_RUN_ATTEMPT="<unknown>"
 ENV GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
 
