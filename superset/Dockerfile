@@ -101,8 +101,9 @@ mkdir -p "${NVM_DIR}"
 curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
 . "${NVM_DIR}/nvm.sh"
 
-# Install the specified version of Node (including the latest compatible version of npm)
-nvm install "$NODEJS_VERSION" --latest-npm
+# Install the specified version of Node. This uses the npm version bundled with it.
+# `--latest-npm` is not used because it installs whatever npm version is newest at build time.
+nvm install "$NODEJS_VERSION"
 
 node --version
 npm --version
