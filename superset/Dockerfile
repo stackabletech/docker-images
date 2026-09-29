@@ -46,6 +46,7 @@ ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_SPEC_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
+ARG NPM_VERSION
 ARG NVM_VERSION
 ARG STACKABLE_USER_UID
 
@@ -101,9 +102,11 @@ mkdir -p "${NVM_DIR}"
 curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
 . "${NVM_DIR}/nvm.sh"
 
-# Install the specified version of Node. This uses the npm version bundled with it.
-# `--latest-npm` is not used because it installs whatever npm version is newest at build time.
+# Install the specified versions of Node and npm.
+# --latest-npm is not used because it installs whatever npm version is newest at build time.
+# See the cdxgen install below for --ignore-scripts and --before.
 nvm install "$NODEJS_VERSION"
+npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "npm@${NPM_VERSION}"
 
 node --version
 npm --version
