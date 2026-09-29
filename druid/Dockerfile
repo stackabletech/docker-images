@@ -48,7 +48,10 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
