@@ -61,7 +61,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout precompiled/hadoop ${
 ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 
-mvn versions:set -DnewVersion=${NEW_VERSION}
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=${NEW_VERSION}
 
 # Since we skip building the hadoop-pipes module, we need to set the version to the original version so it can be pulled from Maven Central
 sed -e '/<artifactId>hadoop-pipes<\/artifactId>/,/<\/dependency>/ { s/<version>.*<\/version>/<version>'"$ORIGINAL_VERSION"'<\/version>/ }' -i hadoop-tools/hadoop-tools-dist/pom.xml

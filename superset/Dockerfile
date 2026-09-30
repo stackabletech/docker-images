@@ -46,6 +46,7 @@ ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_SPEC_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
+ARG NPM_VERSION
 ARG NVM_VERSION
 ARG STACKABLE_USER_UID
 
@@ -101,8 +102,11 @@ mkdir -p "${NVM_DIR}"
 curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
 . "${NVM_DIR}/nvm.sh"
 
-# Install the specified version of Node (including the latest compatible version of npm)
-nvm install "$NODEJS_VERSION" --latest-npm
+# Install the specified versions of Node and npm.
+# --latest-npm is not used because it installs whatever npm version is newest at build time.
+# See the cdxgen install below for --ignore-scripts and --before.
+nvm install "$NODEJS_VERSION"
+npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "npm@${NPM_VERSION}"
 
 node --version
 npm --version
@@ -117,7 +121,10 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 # Upgrade pip to the latest version

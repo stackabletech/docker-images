@@ -30,6 +30,9 @@ All notable changes to this project will be documented in this file.
 - vector: Build with `--locked` ([#1674]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
+- java-devel: Pin `versions-maven-plugin` to `2.22.0` for `mvn versions:set`, which otherwise resolves the latest release on every build unless the product POM pins it ([#1682]).
+- airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
+- superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
 
 ### Fixed
 
@@ -113,6 +116,7 @@ All notable changes to this project will be documented in this file.
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
+[#1682]: https://github.com/stackabletech/docker-images/pull/1682
 
 ## [26.7.0] - 2026-07-21
 
