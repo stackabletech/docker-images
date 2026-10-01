@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
+# Selects the final-phoenix-* stage below. Set to "false" for HBase versions that Phoenix does not
+# support yet (HBase 3.x), in which case hbase/phoenix must not be listed in boil-config.toml.
+ARG WITH_PHOENIX=true
+
 FROM local-image/hadoop/hadoop AS hadoop-builder
 
 FROM local-image/hbase/hbase AS hbase-builder
@@ -50,21 +54,19 @@ rm /stackable/bin/export-snapshot-to-s3.env
 chmod --recursive g=u /stackable
 EOF
 
-# Final Image
-FROM local-image/java-base AS final
+# Final Image, without Phoenix (added by final-phoenix-true)
+FROM local-image/java-base AS final-base
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
-ARG HBASE_PROFILE
 ARG HBASE_HBASE_VERSION
 # Reassign the arg to `HBASE_VERSION` for better readability.
 ENV HBASE_VERSION=${HBASE_HBASE_VERSION}
 ARG HBASE_HBASE_OPERATOR_TOOLS_VERSION
 ARG HBASE_HBASE_OPA_AUTHORIZER_VERSION
-ARG HBASE_PHOENIX_VERSION
 ARG STACKABLE_USER_UID
 
 ARG NAME="Apache HBase"
@@ -98,9 +100,6 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/hbas
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbck2 /stackable/bin/hbck2
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-operator-tools /stackable/bin/hbase-entrypoint.sh /stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/bin/hbase-entrypoint.sh
 
-COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
-COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_PHOENIX_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
-
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/bin/export-snapshot-to-s3 /stackable/bin/export-snapshot-to-s3
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-s3-builder /stackable/hadoop/share/hadoop/tools/lib/ /stackable/hadoop/share/hadoop/tools/lib/
 
@@ -130,22 +129,51 @@ ln --symbolic --logical --verbose "/stackable/hbase-${HBASE_VERSION}-stackable${
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase
 chmod g=u /stackable/hbase
 
+# bin/hbase defaults HBASE_LOG_DIR to $HBASE_HOME/logs, which the web UI serves as /logs. The HBase
+# tarball does not contain that directory. Jetty 9 (HBase 2.x) accepts a missing directory, but
+# Jetty 12 (HBase 3.x) refuses to start the HTTP server ("Base Resource is not valid").
+mkdir --parents "/stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/logs"
+chown ${STACKABLE_USER_UID}:0 "/stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/logs"
+chmod g=u "/stackable/hbase-${HBASE_VERSION}-stackable${RELEASE_VERSION}/logs"
+
 ln --symbolic --logical --verbose "/stackable/hbase-operator-tools-${HBASE_HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE_VERSION}" /stackable/hbase-operator-tools
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/hbase-operator-tools
 chmod g=u /stackable/hbase-operator-tools
 
+# fix missing permissions
+chmod g=u /stackable/async-profiler
+chmod g=u /stackable/bin
+chmod g=u /stackable/*-src.tar.gz
+# the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
+find /stackable/hadoop -type d -exec chmod g=u {} +
+EOF
+
+FROM final-base AS final-phoenix-true
+
+ARG RELEASE_VERSION
+ARG HBASE_PROFILE
+ARG HBASE_PHOENIX_VERSION
+ARG STACKABLE_USER_UID
+
+COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix /stackable/phoenix/
+COPY --chown=${STACKABLE_USER_UID}:0 --from=phoenix /stackable/phoenix-${HBASE_PHOENIX_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
+
+RUN <<EOF
 ln --symbolic --logical --verbose "/stackable/phoenix/phoenix-server-hbase-${HBASE_PROFILE}.jar" "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 chown --no-dereference ${STACKABLE_USER_UID}:0 "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 chmod g=u "/stackable/hbase/lib/phoenix-server-hbase-${HBASE_PROFILE}.jar"
 
 # fix missing permissions
-chmod g=u /stackable/async-profiler
-chmod g=u /stackable/bin
 chmod g=u /stackable/phoenix
-chmod g=u /stackable/*-src.tar.gz
-# the whole directory tree /stackable/hadoop/share/hadoop/tools/lib/ must be adapted
-find /stackable/hadoop -type d -exec chmod g=u {} +
+chmod g=u /stackable/phoenix-*-src.tar.gz
 EOF
+
+# Phoenix does not support HBase 3.x yet
+FROM final-base AS final-phoenix-false
+
+FROM final-phoenix-${WITH_PHOENIX} AS final
+
+ARG STACKABLE_USER_UID
 
 # ----------------------------------------
 # Checks
