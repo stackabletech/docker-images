@@ -17,23 +17,46 @@ FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
+ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG STACKABLE_USER_UID
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
+
+# The tests need the same constraints the image is built with, see the comment
+# in the RUN block below.
+COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
 
 WORKDIR /tmp/opa-auth-manager
 
 COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN <<EOF
-
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
 
+# Provides the test tooling, and the project itself so the tests can import it.
+# --locked fails the build if uv.lock is out of date with pyproject.toml, rather
+# than silently re-resolving it here.
+uv sync --locked --python "${PYTHON_VERSION}"
+
+# The OPA auth manager subclasses FabAuthManager, so a signature change in the
+# FAB provider breaks it at import time. One source tree is shared by several
+# Airflow versions (see opa-auth-manager in airflow/boil-config.toml), so the
+# only way for the tests to see what a given image ships is to install Airflow
+# at PRODUCT_VERSION and let that version's constraints file pin the FAB
+# provider. Without this, a provider signature change only surfaces at runtime.
+uv pip install \
+  --python .venv/bin/python \
+  --constraint /tmp/constraints.txt \
+  "apache-airflow==${PRODUCT_VERSION}" \
+  apache-airflow-providers-fab
+
 # Warnings are disabled because they come from various third party testing libraries
 # that we have no control over.
-uv run pytest --disable-warnings
+# --no-sync keeps uv from reverting the versions installed just above.
+uv run --no-sync pytest --disable-warnings
+
 uv build
 EOF
 
@@ -234,15 +257,25 @@ rm -rf /tmp/sbom-venv
 
 # Post-process the SBOM:
 #   * Break circular dependencies by removing the apache-airflow dependency from the providers.
-#   * Add the missing purl to the Airflow packages. They are installed from a locally built
-#     wheel, so cyclonedx-py records the file URL of that wheel instead of a purl.
-jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
+#   * Add the missing purls. Packages that are installed from a local wheel or a direct URL
+#     (apache-airflow, opa-auth-manager, pip) get no purl from cyclonedx-py, because it records
+#     the file URL instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
 else
     .
 end)
-| .components |= map(if (.purl | not) and (.name | test("^apache[-_]airflow")) then
-    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
+| .components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json

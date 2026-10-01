@@ -1,0 +1,177 @@
+From f73f15cc82915affc3d2b7f6c6902ecddefe3a04 Mon Sep 17 00:00:00 2001
+From: Siegfried Weber <mail@siegfriedweber.net>
+Date: Wed, 6 Aug 2025 13:12:12 +0200
+Subject: Use the Nexus Build Repo
+
+---
+ buildSrc/build.gradle                                     | 3 ++-
+ .../gradle/OpenSearchTestBasePluginFuncTest.groovy        | 4 +++-
+ .../org/opensearch/gradle/RepositoriesSetupPlugin.java    | 5 ++++-
+ .../test/resources/plugin/optional-dependencies.gradle    | 4 +++-
+ buildSrc/src/testKit/opensearch.build/build.gradle        | 8 ++++++--
+ buildSrc/src/testKit/testingConventions/build.gradle      | 4 +++-
+ buildSrc/src/testKit/thirdPartyAudit/build.gradle         | 4 +++-
+ .../src/testKit/thirdPartyAudit/sample_jars/build.gradle  | 4 +++-
+ doc-tools/build.gradle                                    | 3 ++-
+ gradle/code-coverage.gradle                               | 3 ++-
+ 10 files changed, 31 insertions(+), 11 deletions(-)
+
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index b10d06eb6fd..a4865034d8b 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -106,7 +106,8 @@ repositories {
+       excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+     }
+   }
+-  mavenCentral {
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
+     content {
+       excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+     }
+diff --git a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
+index 250c3c7e389..388b5e382eb 100644
+--- a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
++++ b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
+@@ -54,7 +54,9 @@ class OpenSearchTestBasePluginFuncTest extends AbstractGradleFuncTest {
+ 
+             repositories {
+                 maven { url = uri("https://ci.opensearch.org/maven2/") }
+-                mavenCentral()
++                maven {
++                  url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++                }
+             }
+ 
+             dependencies {
+diff --git a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
+index c41a9774d13..8aca13e3d6d 100644
+--- a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
++++ b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
+@@ -92,7 +92,10 @@ public class RepositoriesSetupPlugin implements Plugin<Project> {
+             repo.setUrl("https://ci.opensearch.org/m2/");
+             repo.content(descriptor -> descriptor.excludeGroupByRegex("adoptium.*|adoptopenjdk.*|openjdk.*"));
+         });
+-        repos.mavenCentral(repo -> { repo.content(descriptor -> descriptor.excludeGroupByRegex("adoptium.*|adoptopenjdk.*|openjdk.*")); });
++        repos.maven(repo -> {
++            repo.setUrl("https://build-repo.stackable.tech/repository/maven-public/");
++            repo.content(descriptor -> descriptor.excludeGroupByRegex("adoptium.*|adoptopenjdk.*|openjdk.*"));
++        });
+ 
+         String luceneVersion = VersionProperties.getLucene();
+         if (luceneVersion.contains("-snapshot")) {
+diff --git a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
+index 021779ba935..9bc37efc602 100644
+--- a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
++++ b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
+@@ -19,7 +19,9 @@ version = '1.0.0'
+ 
+ repositories {
+   maven { url = uri("https://ci.opensearch.org/maven2/") }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/buildSrc/src/testKit/opensearch.build/build.gradle b/buildSrc/src/testKit/opensearch.build/build.gradle
+index 4a37e9d2cbd..210a1293aeb 100644
+--- a/buildSrc/src/testKit/opensearch.build/build.gradle
++++ b/buildSrc/src/testKit/opensearch.build/build.gradle
+@@ -40,7 +40,9 @@ repositories {
+     }
+   }
+   maven { url = uri("https://ci.opensearch.org/maven2/") }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ repositories {
+@@ -55,7 +57,9 @@ repositories {
+     }
+   }
+   maven { url = uri("https://ci.opensearch.org/maven2/") }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ // todo remove offending rules
+diff --git a/buildSrc/src/testKit/testingConventions/build.gradle b/buildSrc/src/testKit/testingConventions/build.gradle
+index 565890dcfe2..156ac5cc37f 100644
+--- a/buildSrc/src/testKit/testingConventions/build.gradle
++++ b/buildSrc/src/testKit/testingConventions/build.gradle
+@@ -19,7 +19,9 @@ allprojects {
+ 
+   repositories {
+     maven { url = uri("https://ci.opensearch.org/maven2/") }
+-    mavenCentral()
++    maven {
++      url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++    }
+   }
+   dependencies {
+     testImplementation "junit:junit:${versions.junit}"
+diff --git a/buildSrc/src/testKit/thirdPartyAudit/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
+index c490d85ff1b..4907fa3e80a 100644
+--- a/buildSrc/src/testKit/thirdPartyAudit/build.gradle
++++ b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
+@@ -42,7 +42,9 @@ repositories {
+     }
+   }
+   maven { url = uri("https://ci.opensearch.org/maven2/") }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
+index 2906cbc78d8..ff92fe05e7e 100644
+--- a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
++++ b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
+@@ -14,7 +14,9 @@ plugins {
+ }
+ repositories {
+   maven { url = uri("https://ci.opensearch.org/maven2/") }
+-  mavenCentral()
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
++  }
+ }
+ 
+ dependencies {
+diff --git a/doc-tools/build.gradle b/doc-tools/build.gradle
+index a02339b67b2..fe6f26554c2 100644
+--- a/doc-tools/build.gradle
++++ b/doc-tools/build.gradle
+@@ -14,7 +14,8 @@ repositories {
+             excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+         }
+     }
+-    mavenCentral {
++    maven {
++        url = uri("https://build-repo.stackable.tech/repository/maven-public/")
+         content {
+             excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+         }
+diff --git a/gradle/code-coverage.gradle b/gradle/code-coverage.gradle
+index 24e43630894..07165443b1c 100644
+--- a/gradle/code-coverage.gradle
++++ b/gradle/code-coverage.gradle
+@@ -21,7 +21,8 @@ repositories {
+       excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+     }
+   }
+-  mavenCentral {
++  maven {
++    url = uri("https://build-repo.stackable.tech/repository/maven-public/")
+     content {
+       excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
+     }

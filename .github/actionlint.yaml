@@ -4,3 +4,10 @@ self-hosted-runner:
   labels:
     - ubicloud-standard-8-arm-ubuntu-2404
     - ubicloud-standard-8-ubuntu-2404
+# actionlint doesn't yet recognize GitHub's "$/" self-repository syntax.
+# See https://github.com/rhysd/actionlint/issues/711
+paths:
+  .github/workflows/**/*.{yaml,yml}:
+    ignore:
+      - reusable workflow call "\$/.+" at "uses" is not following the format
+      - specifying action "\$/.+" in invalid format because ref is missing

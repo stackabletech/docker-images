@@ -1,0 +1,130 @@
+From a8aada47897543df0ba008655852e16aa5ede477 Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Fri, 11 Sep 2026 14:48:51 +0200
+Subject: Resolve every in-reactor dependency against the modules built
+ alongside it
+
+standalone-metastore refers to several modules built in the same reactor through the literal
+hive.version property rather than ${project.version}.
+We use "mvn versions:set" to stamp our Stackable release version and we also expect Hive to
+then honor that. This patch makes sure it does (plus a change in the Dockerfile)
+
+Upstream fixed one instance of this, the metastore-server to metastore-client reference, for
+Hive 4.3.0: https://issues.apache.org/jira/browse/HIVE-29827.
+---
+ standalone-metastore/metastore-rest-catalog/pom.xml    | 10 +++++-----
+ standalone-metastore/metastore-server/pom.xml          |  2 +-
+ .../metastore-tools/metastore-benchmarks/pom.xml       |  2 +-
+ standalone-metastore/metastore-tools/pom.xml           |  2 +-
+ standalone-metastore/packaging/pom.xml                 |  6 +++---
+ 5 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/standalone-metastore/metastore-rest-catalog/pom.xml b/standalone-metastore/metastore-rest-catalog/pom.xml
+index ad6cecb535..8a4054422f 100644
+--- a/standalone-metastore/metastore-rest-catalog/pom.xml
++++ b/standalone-metastore/metastore-rest-catalog/pom.xml
+@@ -34,31 +34,31 @@
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-server</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-common</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-iceberg-catalog</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+     </dependency>
+     <!-- Test dependencies -->
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-common</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <classifier>tests</classifier>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-server</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <classifier>tests</classifier>
+       <scope>test</scope>
+     </dependency>
+diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
+index 0e24b3ebc9..5ffdb4047f 100644
+--- a/standalone-metastore/metastore-server/pom.xml
++++ b/standalone-metastore/metastore-server/pom.xml
+@@ -28,7 +28,7 @@
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-standalone-metastore-client</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.httpcomponents</groupId>
+diff --git a/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml b/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
+index 44281104b1..b6a1037574 100644
+--- a/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
++++ b/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
+@@ -46,7 +46,7 @@
+     <dependency>
+       <groupId>org.apache.hive.hcatalog</groupId>
+       <artifactId>hive-hcatalog-server-extensions</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <exclusions>
+         <exclusion>
+           <groupId>org.apache.zookeeper</groupId>
+diff --git a/standalone-metastore/metastore-tools/pom.xml b/standalone-metastore/metastore-tools/pom.xml
+index 4da5ea9d44..b184241f3e 100644
+--- a/standalone-metastore/metastore-tools/pom.xml
++++ b/standalone-metastore/metastore-tools/pom.xml
+@@ -39,7 +39,7 @@
+       <dependency>
+         <groupId>org.apache.hive.hcatalog</groupId>
+         <artifactId>hive-hcatalog-server-extensions</artifactId>
+-        <version>${hive.version}</version>
++        <version>${project.version}</version>
+         <exclusions>
+           <exclusion>
+             <groupId>org.apache.zookeeper</groupId>
+diff --git a/standalone-metastore/packaging/pom.xml b/standalone-metastore/packaging/pom.xml
+index 5a526cf722..733a203db6 100644
+--- a/standalone-metastore/packaging/pom.xml
++++ b/standalone-metastore/packaging/pom.xml
+@@ -176,7 +176,7 @@
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-metastore</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+@@ -192,13 +192,13 @@
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-exec</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <classifier>core</classifier>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.hive</groupId>
+       <artifactId>hive-iceberg-handler</artifactId>
+-      <version>${hive.version}</version>
++      <version>${project.version}</version>
+       <exclusions>
+         <exclusion>
+           <groupId>org.apache.hive</groupId>

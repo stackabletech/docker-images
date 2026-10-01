@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/zookeeper.git"
+base = "a355171b081b5b60749db8f19cca1528b0df936f"

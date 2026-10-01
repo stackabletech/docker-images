@@ -237,10 +237,21 @@ uv pip install --python /tmp/sbom-venv/bin/python --no-cache-dir cyclonedx-bom==
     /stackable/app
 rm -rf /tmp/sbom-venv
 
-# Add the missing purl to the Superset package. It is installed from a locally built wheel, so
-# cyclonedx-py records the file URL of that wheel instead of a purl.
-jq '.components |= map(if (.purl | not) and (.name | test("^apache[-_]superset")) then
-    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
+# Post-process the SBOM:
+#   * Add the missing purls. Packages that are installed from a locally built wheel
+#     (apache-superset, opa-authorizer) get no purl from cyclonedx-py, because it records the
+#     file URL of that wheel instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/superset-${PRODUCT_VERSION}.cdx.json

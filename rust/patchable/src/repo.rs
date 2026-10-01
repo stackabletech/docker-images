@@ -142,30 +142,36 @@ pub fn resolve_and_fetch_commitish(
             Ok(commit_obj)
         }
         Err(err) if !commitish_is_oid || err.code() == git2::ErrorCode::NotFound => {
-            tracing::info!(
-                error = &err as &dyn std::error::Error,
-                "base commit not found locally, fetching from upstream"
-            );
+            if commitish_is_oid {
+                tracing::info!(
+                    error = &err as &dyn std::error::Error,
+                    "base commit not found locally, fetching from upstream"
+                );
+            } else {
+                tracing::info!("base is not a commit id, resolving it against upstream");
+            }
 
             let (span_recv, mut quant_recv) =
                 setup_progress_tracking(tracing::info_span!("receiving"));
             let (span_index, mut quant_index) =
                 setup_progress_tracking(tracing::info_span!("indexing"));
 
-            let _ = span_recv.enter();
-            let _ = span_index.enter();
+            let recv_progress = span_recv.clone();
+            let index_progress = span_index.clone();
+            let _span_recv = span_recv.entered();
+            let _span_index = span_index.entered();
 
             let mut callbacks = setup_git_credentials();
             callbacks.transfer_progress(move |progress| {
                 quant_recv.update_span_progress(
                     progress.received_objects(),
                     progress.total_objects(),
-                    &span_recv,
+                    &recv_progress,
                 );
                 quant_index.update_span_progress(
                     progress.indexed_objects(),
                     progress.total_objects(),
-                    &span_index,
+                    &index_progress,
                 );
                 true
             });

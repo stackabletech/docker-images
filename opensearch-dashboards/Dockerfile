@@ -127,6 +127,7 @@ COPY \
     /stackable/src/opensearch-dashboards/security-dashboards-plugin/patchable-work/worktree/${OPENSEARCH_DASHBOARDS_SECURITY_DASHBOARDS_PLUGIN_VERSION} \
     /stackable/plugins/security-dashboards-plugin
 
+# libatomic - required by the Node binaries since Node 25
 # tar - extract OpenSearch Dashboards from archive & create source code archive
 # unzip - extract plugin from archive
 # xz - extract Node package
@@ -135,7 +136,7 @@ COPY \
 RUN <<EOF
 ARCH="${TARGETARCH/amd64/x64}"
 microdnf update
-microdnf install tar unzip xz
+microdnf install libatomic tar unzip xz
 microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
@@ -195,10 +196,44 @@ for plugin in $(ls); do
 done
 EOF
 
+# cdxgen runs against the built distribution in /stackable/opensearch-dashboards,
+# not against the source worktree. The worktree is a full development install
+# (yarn osd bootstrap), so scanning it reported every devDependency of the root
+# project, of packages/*, examples/*, test/plugin_functional/plugins/* and of all
+# plugin repositories: Cypress, Selenium WebDriver, ChromeDriver, Jest, Mocha,
+# ESLint, webpack and ~350 @types/* packages, none of which are in the image.
+# The built distribution contains exactly what is shipped.
+#
+# --exclude drops the lockfiles that the OpenSearch Dashboards plugins ship
+# inside their installed plugin directory. cdxgen prefers a lockfile over
+# node_modules, so without this it reads those 15 yarn.lock files and reports
+# each plugin's devDependencies again. Excluding them makes cdxgen walk the
+# installed node_modules instead, which additionally yields a license for almost
+# every component, because an installed package.json records one while a Yarn 1
+# lockfile does not.
+#
+# --include-regex restricts the walk to the package.json of an installed package,
+# which is always the direct child of a node_modules directory or of a scope
+# directory below it. cdxgen otherwise reads every package.json below
+# node_modules which includes test fixtures and benchmarks, we don't want these
+# in the SBOM.
+#
 # --spec-version is passed explicitly because cdxgen changes its default between
 # releases. The value is a global build argument, see boil.toml.
-# --required-only restricts the SBOM to the runtime dependencies.
-RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --target yarn --required-only --json-pretty --spec-version "${CDXGEN_SPEC_VERSION}"
+# --type js restricts cdxgen to the JavaScript ecosystem. Without it, cdxgen
+# auto-detects every ecosystem it finds in the source tree and also reports the
+# GitHub Actions workflows, Gradle and Python files of the build tooling.
+# --no-babel disables the Babel based usage analysis, which is not needed for a
+# dependency inventory.
+# Note: --required-only is not passed and is not needed. It filters a lockfile by
+# the dev flag, which a Yarn 1 lockfile does not record anyway, and no lockfile is
+# read here: the installed node_modules already contains only what was installed.
+RUN PATH="/opt/node-cdxgen/bin:$PATH" cdxgen --type js --no-babel --json-pretty \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --exclude '**/yarn.lock' --exclude '**/package-lock.json' \
+    --include-regex '**/node_modules/{*,@*/*}/package.json' \
+    -o /stackable/bom.json \
+    /stackable/opensearch-dashboards
 
 RUN <<EOF
 # Change the group permissions already in the builder image to reduce
@@ -261,7 +296,7 @@ COPY \
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \
     --from=opensearch-dashboards-builder \
-    /stackable/src/opensearch-dashboards/patchable-work/worktree/${PRODUCT_VERSION}/bom.json \
+    /stackable/bom.json \
     /stackable/opensearch-dashboards-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY \
     --chown=${STACKABLE_USER_UID}:0 \

@@ -39,6 +39,7 @@ EOF
 
 FROM local-image/stackable-devel AS opa-builder
 
+ARG CYCLONEDX_GOMOD_VERSION
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
@@ -71,8 +72,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 opa/stackable/patches/${PRODUCT_VERSION} /s
 WORKDIR /stackable
 
 RUN <<EOF
-# We use version 1.7.0, since a newer version of cyclonedx-gomod is not compatible with the version of Golang (>= 1.23.1)
-go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.7.0
+go install "github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v${CYCLONEDX_GOMOD_VERSION}"
 
 cd "$(/stackable/patchable --images-repo-root=src checkout opa ${PRODUCT_VERSION})"
 
@@ -93,7 +93,19 @@ git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag "v${NEW_VERSION}"
 go build -o opa -buildmode=exe
 # move artifact to /stackable/*/ to copy in final image
-~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -output /stackable/opa/"opa_${NEW_VERSION}.cdx.json" -packages -files
+# -licenses detects the license of every module from the LICENSE file in the
+# module cache, and -assert-licenses puts the result into `licenses` instead of
+# `evidence`. syft and mergebom only read `licenses`, so without
+# -assert-licenses none of it reaches the published image SBOM.
+# -packages and -files are deliberately not used. They describe the module at Go
+# package and file level, which multiplies the component count without adding anything
+# a vulnerability scanner can use.
+# -std is not used either: cyclonedx-gomod emits the standard library as
+# `pkg:golang/std@<go version>` without a license, while syft already reports it
+# as `pkg:golang/stdlib@<version>` with BSD-3-Clause. The purls differ, so
+# mergebom cannot deduplicate them and the image would carry a license-less
+# duplicate.
+~/go/bin/cyclonedx-gomod app -json -output-version 1.5 -licenses -assert-licenses -output /stackable/opa/"opa_${NEW_VERSION}.cdx.json"
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" /stackable/opa/"opa_${NEW_VERSION}.cdx.json"
 # move artifact to /stackable/* to copy in final image
 mv opa /stackable/opa/

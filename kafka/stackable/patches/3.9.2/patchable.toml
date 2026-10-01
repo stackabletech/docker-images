@@ -1,1 +1,2 @@
+mirror = "https://github.com/stackabletech/kafka.git"
 base = "5e9866f43ab8e7e41ef39e5584ac50019381328d"

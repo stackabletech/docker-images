@@ -1,0 +1,407 @@
+From c8d8dbf331280344b8beac46e00c1c26dd6ba0c9 Mon Sep 17 00:00:00 2001
+From: David Handermann <exceptionfactory@apache.org>
+Date: Tue, 22 Sep 2026 04:10:27 -0500
+Subject: NIFI-16369 Removed custom Iceberg REST Client to fix OAuth 2
+ Credentials (#11705)
+
+- Disabled Token Exchange in standard Iceberg REST Client to preserve initial behavior
+---
+ .../catalog/CredentialsRefreshRESTClient.java | 153 ------------------
+ .../iceberg/catalog/RESTIcebergCatalog.java   |   4 +-
+ .../catalog/StandardRESTClientProvider.java   |  34 +---
+ .../CredentialsRefreshRESTClientTest.java     |  94 -----------
+ .../StandardRESTClientProviderTest.java       |  12 +-
+ 5 files changed, 9 insertions(+), 288 deletions(-)
+ delete mode 100644 nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java
+ delete mode 100644 nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java
+
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java
+deleted file mode 100644
+index a98b5bf7c9..0000000000
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java
++++ /dev/null
+@@ -1,153 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with
+- * this work for additional information regarding copyright ownership.
+- * The ASF licenses this file to You under the Apache License, Version 2.0
+- * (the "License"); you may not use this file except in compliance with
+- * the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.nifi.services.iceberg.catalog;
+-
+-import org.apache.iceberg.rest.RESTClient;
+-import org.apache.iceberg.rest.RESTRequest;
+-import org.apache.iceberg.rest.RESTResponse;
+-import org.apache.iceberg.rest.auth.AuthSession;
+-import org.apache.iceberg.rest.responses.ErrorResponse;
+-import org.apache.nifi.logging.ComponentLog;
+-
+-import java.io.IOException;
+-import java.util.HashMap;
+-import java.util.Map;
+-import java.util.Objects;
+-import java.util.Set;
+-import java.util.function.Consumer;
+-import java.util.function.Predicate;
+-
+-/**
+- * Custom implementation of REST Client supporting Token Refresh using Client Credentials instead of Token Exchange from RFC 8693
+- */
+-class CredentialsRefreshRESTClient implements RESTClient {
+-    protected static final String CLIENT_ID_PARAMETER = "client_id";
+-
+-    protected static final String CLIENT_SECRET_PARAMETER = "client_secret";
+-
+-    protected static final String GRANT_TYPE_PARAMETER = "grant_type";
+-
+-    protected static final String CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
+-
+-    protected static final String TOKEN_EXCHANGE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:token-exchange";
+-
+-    private static final String SUBJECT_TOKEN_PARAMETER = "subject_token";
+-
+-    private static final String SUBJECT_TOKEN_TYPE_PARAMETER = "subject_token_type";
+-
+-    private static final Set<String> TOKEN_EXCHANGE_PARAMETERS = Set.of(GRANT_TYPE_PARAMETER, SUBJECT_TOKEN_PARAMETER, SUBJECT_TOKEN_TYPE_PARAMETER);
+-
+-    private final ComponentLog log;
+-
+-    private final RESTClient restClient;
+-
+-    private final String clientId;
+-
+-    private final String clientSecret;
+-
+-    public CredentialsRefreshRESTClient(final ComponentLog log, final RESTClient restClient, final String clientId, final String clientSecret) {
+-        this.log = Objects.requireNonNull(log, "Component Log required");
+-        this.restClient = Objects.requireNonNull(restClient, "REST Client required");
+-        this.clientId = Objects.requireNonNull(clientId, "Client ID required");
+-        this.clientSecret = Objects.requireNonNull(clientSecret, "Client Secret required");
+-    }
+-
+-    @Override
+-    public void head(final String path, final Map<String, String> headers, final Consumer<ErrorResponse> errorHandler) {
+-        restClient.head(path, headers, errorHandler);
+-    }
+-
+-    @Override
+-    public <T extends RESTResponse> T delete(final String path, final Class<T> responseType, final Map<String, String> headers, final Consumer<ErrorResponse> errorHandler) {
+-        return restClient.delete(path, responseType, headers, errorHandler);
+-    }
+-
+-    @Override
+-    public <T extends RESTResponse> T get(final String path, final Map<String, String> queryParams, final Class<T> responseType, final Map<String, String> headers,
+-                                          final Consumer<ErrorResponse> errorHandler) {
+-        return restClient.get(path, queryParams, responseType, headers, errorHandler);
+-    }
+-
+-    @Override
+-    public <T extends RESTResponse> T post(final String path, final RESTRequest body, final Class<T> responseType, final Map<String, String> headers, final Consumer<ErrorResponse> errorHandler) {
+-        return restClient.post(path, body, responseType, headers, errorHandler);
+-    }
+-
+-    @Override
+-    public <T extends RESTResponse> T postForm(final String path, final Map<String, String> formData, final Class<T> responseType, final Map<String, String> headers,
+-                                               final Consumer<ErrorResponse> errorHandler) {
+-        final Map<String, String> postFormData;
+-
+-        if (isTokenExchangeFormData(formData)) {
+-            // Replace Token Exchange parameters with Client Credentials parameters for requests from OAuth2Util.tokenExchangeRequest()
+-            postFormData = getClientCredentialsFormData(formData);
+-            log.debug("Token Refresh with Client Credentials requested");
+-        } else {
+-            postFormData = formData;
+-        }
+-
+-        return restClient.postForm(path, postFormData, responseType, headers, errorHandler);
+-    }
+-
+-    @Override
+-    public void close() throws IOException {
+-        restClient.close();
+-    }
+-
+-    /**
+-     * Build REST Client with authentication session using current configuration
+-     *
+-     * @param session Authentication Session
+-     * @return REST Client
+-     */
+-    @Override
+-    public RESTClient withAuthSession(final AuthSession session) {
+-        final RESTClient sessionRestClient = restClient.withAuthSession(session);
+-        return new CredentialsRefreshRESTClient(log, sessionRestClient, clientId, clientSecret);
+-    }
+-
+-    private boolean isTokenExchangeFormData(final Map<String, String> formData) {
+-        final boolean tokenExchangeFound;
+-
+-        final String grantType = formData.get(GRANT_TYPE_PARAMETER);
+-        if (grantType == null) {
+-            tokenExchangeFound = false;
+-        } else {
+-            tokenExchangeFound = TOKEN_EXCHANGE_GRANT_TYPE.contentEquals(grantType);
+-        }
+-
+-        return tokenExchangeFound;
+-    }
+-
+-    private Map<String, String> getClientCredentialsFormData(final Map<String, String> formData) {
+-        final Map<String, String> clientCredentialsFormData = new HashMap<>();
+-
+-        formData.keySet()
+-                .stream()
+-                .filter(Predicate.not(TOKEN_EXCHANGE_PARAMETERS::contains))
+-                .forEach(formDataKey -> {
+-                    final String formDataValue = formData.get(formDataKey);
+-                    clientCredentialsFormData.put(formDataKey, formDataValue);
+-                });
+-
+-        clientCredentialsFormData.put(GRANT_TYPE_PARAMETER, CLIENT_CREDENTIALS_GRANT_TYPE);
+-        clientCredentialsFormData.put(CLIENT_ID_PARAMETER, clientId);
+-        clientCredentialsFormData.put(CLIENT_SECRET_PARAMETER, clientSecret);
+-
+-        return clientCredentialsFormData;
+-    }
+-}
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
+index adb9743819..8242e6c1ff 100644
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
++++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
+@@ -277,10 +277,12 @@ public class RESTIcebergCatalog extends AbstractControllerService implements Ice
+                 final String clientSecret = context.getProperty(CLIENT_SECRET).getValue();
+                 final String clientCredentials = CLIENT_CREDENTIALS_FORMAT.formatted(clientId, clientSecret);
+                 properties.put(OAuth2Properties.CREDENTIAL, clientCredentials);
++                // Token Exchange disabled to force requests for new Access Token using Client Credentials
++                properties.put(OAuth2Properties.TOKEN_EXCHANGE_ENABLED, Boolean.FALSE.toString());
+             }
+         }
+
+-        final RESTClientProvider restClientProvider = new StandardRESTClientProvider(getLogger());
++        final RESTClientProvider restClientProvider = new StandardRESTClientProvider();
+         final IcebergFileIOProvider icebergFileIoProvider = context.getProperty(FILE_IO_PROVIDER).asControllerService(IcebergFileIOProvider.class);
+         return getSessionCatalog(restClientProvider::build, icebergFileIoProvider, properties);
+     }
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
+index afd50c26bf..55174df013 100644
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
++++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
+@@ -20,13 +20,9 @@ import org.apache.iceberg.CatalogProperties;
+ import org.apache.iceberg.rest.HTTPClient;
+ import org.apache.iceberg.rest.RESTClient;
+ import org.apache.iceberg.rest.auth.AuthSession;
+-import org.apache.iceberg.rest.auth.OAuth2Properties;
+-import org.apache.nifi.logging.ComponentLog;
+
+ import java.util.Map;
+ import java.util.Objects;
+-import java.util.regex.Matcher;
+-import java.util.regex.Pattern;
+
+ /**
+  * Standard implementation of REST Client Provider supporting configurable Access Delegation
+@@ -35,18 +31,6 @@ class StandardRESTClientProvider implements RESTClientProvider {
+     /** Access Delegation HTTP Request Header added in Apache Iceberg 1.5.0 */
+     static final String ICEBERG_ACCESS_DELEGATION_HEADER = "X-Iceberg-Access-Delegation";
+
+-    private static final Pattern CLIENT_CREDENTIALS_PATTERN = Pattern.compile("^([^:]+):(.+)$");
+-
+-    private static final int CLIENT_ID_GROUP = 1;
+-
+-    private static final int CLIENT_SECRET_GROUP = 2;
+-
+-    private final ComponentLog log;
+-
+-    StandardRESTClientProvider(final ComponentLog log) {
+-        this.log = Objects.requireNonNull(log, "Component Log required");
+-    }
+-
+     @Override
+     public RESTClient build(final Map<String, String> properties) {
+         Objects.requireNonNull(properties, "Properties required");
+@@ -60,22 +44,6 @@ class StandardRESTClientProvider implements RESTClientProvider {
+             builder.withHeader(ICEBERG_ACCESS_DELEGATION_HEADER, accessDelegationHeader);
+         }
+
+-        final RESTClient restClient;
+-
+-        if (properties.containsKey(OAuth2Properties.CREDENTIAL)) {
+-            final String credential = properties.get(OAuth2Properties.CREDENTIAL);
+-            final Matcher clientCredentialsMatcher = CLIENT_CREDENTIALS_PATTERN.matcher(credential);
+-            if (clientCredentialsMatcher.matches()) {
+-                final String clientId = clientCredentialsMatcher.group(CLIENT_ID_GROUP);
+-                final String clientSecret = clientCredentialsMatcher.group(CLIENT_SECRET_GROUP);
+-                restClient = new CredentialsRefreshRESTClient(log, builder.build(), clientId, clientSecret);
+-            } else {
+-                throw new IllegalStateException("OAuth 2 Client Credentials format not found");
+-            }
+-        } else {
+-            restClient = builder.build();
+-        }
+-
+-        return restClient;
++        return builder.build();
+     }
+ }
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java
+deleted file mode 100644
+index 69f5bd9ac0..0000000000
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/*
+- * Licensed to the Apache Software Foundation (ASF) under one or more
+- * contributor license agreements.  See the NOTICE file distributed with
+- * this work for additional information regarding copyright ownership.
+- * The ASF licenses this file to You under the Apache License, Version 2.0
+- * (the "License"); you may not use this file except in compliance with
+- * the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package org.apache.nifi.services.iceberg.catalog;
+-
+-import org.apache.iceberg.rest.ErrorHandlers;
+-import org.apache.iceberg.rest.RESTClient;
+-import org.apache.iceberg.rest.responses.OAuthTokenResponse;
+-import org.apache.nifi.logging.ComponentLog;
+-import org.junit.jupiter.api.BeforeEach;
+-import org.junit.jupiter.api.Test;
+-import org.junit.jupiter.api.extension.ExtendWith;
+-import org.mockito.ArgumentCaptor;
+-import org.mockito.Captor;
+-import org.mockito.Mock;
+-import org.mockito.junit.jupiter.MockitoExtension;
+-
+-import java.util.Map;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-import static org.mockito.ArgumentMatchers.any;
+-import static org.mockito.ArgumentMatchers.eq;
+-import static org.mockito.Mockito.when;
+-
+-@ExtendWith(MockitoExtension.class)
+-class CredentialsRefreshRESTClientTest {
+-    private static final String CLIENT_ID = "CLIENT-ID";
+-
+-    private static final String CLIENT_SECRET = "CLIENT-SECRET";
+-
+-    private static final String PATH = "http://localhost";
+-
+-    @Mock
+-    private ComponentLog log;
+-
+-    @Mock
+-    private RESTClient restClient;
+-
+-    @Captor
+-    private ArgumentCaptor<Map<String, String>> formDataCaptor;
+-
+-    private CredentialsRefreshRESTClient client;
+-
+-    @BeforeEach
+-    void setClient() {
+-        client = new CredentialsRefreshRESTClient(log, restClient, CLIENT_ID, CLIENT_SECRET);
+-    }
+-
+-    @Test
+-    void testPostForm() {
+-        final Map<String, String> formData = Map.of();
+-        final Map<String, String> headers = Map.of();
+-
+-        final OAuthTokenResponse tokenResponse = OAuthTokenResponse.builder().build();
+-        when(restClient.postForm(eq(PATH), eq(formData), eq(OAuthTokenResponse.class), eq(headers), any())).thenReturn(tokenResponse);
+-
+-        final OAuthTokenResponse response = client.postForm(PATH, formData, OAuthTokenResponse.class, headers, ErrorHandlers.oauthErrorHandler());
+-
+-        assertEquals(tokenResponse, response);
+-    }
+-
+-    @Test
+-    void testPostFormTokenExchangeGrantType() {
+-        final Map<String, String> formData = Map.of(
+-            CredentialsRefreshRESTClient.GRANT_TYPE_PARAMETER, CredentialsRefreshRESTClient.TOKEN_EXCHANGE_GRANT_TYPE
+-        );
+-        final Map<String, String> headers = Map.of();
+-
+-        final OAuthTokenResponse tokenResponse = OAuthTokenResponse.builder().build();
+-        when(restClient.postForm(eq(PATH), formDataCaptor.capture(), eq(OAuthTokenResponse.class), eq(headers), any())).thenReturn(tokenResponse);
+-
+-        final OAuthTokenResponse response = client.postForm(PATH, formData, OAuthTokenResponse.class, headers, ErrorHandlers.oauthErrorHandler());
+-
+-        assertEquals(tokenResponse, response);
+-
+-        final Map<String, String> postFormData = formDataCaptor.getValue();
+-        assertEquals(CredentialsRefreshRESTClient.CLIENT_CREDENTIALS_GRANT_TYPE, postFormData.get(CredentialsRefreshRESTClient.GRANT_TYPE_PARAMETER));
+-        assertEquals(CLIENT_ID, postFormData.get(CredentialsRefreshRESTClient.CLIENT_ID_PARAMETER));
+-        assertEquals(CLIENT_SECRET, postFormData.get(CredentialsRefreshRESTClient.CLIENT_SECRET_PARAMETER));
+-    }
+-}
+diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
+index 821386fcf8..1aac505189 100644
+--- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
++++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
+@@ -17,10 +17,9 @@
+ package org.apache.nifi.services.iceberg.catalog;
+
+ import org.apache.iceberg.CatalogProperties;
++import org.apache.iceberg.rest.HTTPClient;
+ import org.apache.iceberg.rest.RESTClient;
+ import org.apache.iceberg.rest.auth.OAuth2Properties;
+-import org.apache.nifi.logging.ComponentLog;
+-import org.apache.nifi.util.MockComponentLog;
+ import org.junit.jupiter.api.Test;
+
+ import java.util.Map;
+@@ -34,9 +33,7 @@ class StandardRESTClientProviderTest {
+
+     private static final String CLIENT_CREDENTIALS = "CLIENT_ID:CLIENT_SECRET";
+
+-    private static final ComponentLog COMPONENT_LOG = new MockComponentLog(StandardRESTClientProvider.class.getName(), StandardRESTClientProvider.class);
+-
+-    private final StandardRESTClientProvider provider = new StandardRESTClientProvider(COMPONENT_LOG);
++    private final StandardRESTClientProvider provider = new StandardRESTClientProvider();
+
+     @Test
+     void testBuild() {
+@@ -45,6 +42,7 @@ class StandardRESTClientProviderTest {
+         final RESTClient restClient = provider.build(properties);
+
+         assertNotNull(restClient);
++        assertInstanceOf(HTTPClient.class, restClient);
+     }
+
+     @Test
+@@ -57,6 +55,7 @@ class StandardRESTClientProviderTest {
+         final RESTClient restClient = provider.build(properties);
+
+         assertNotNull(restClient);
++        assertInstanceOf(HTTPClient.class, restClient);
+     }
+
+     @Test
+@@ -68,7 +67,6 @@ class StandardRESTClientProviderTest {
+
+         final RESTClient restClient = provider.build(properties);
+
+-        assertNotNull(restClient);
+-        assertInstanceOf(CredentialsRefreshRESTClient.class, restClient);
++        assertInstanceOf(HTTPClient.class, restClient);
+     }
+ }

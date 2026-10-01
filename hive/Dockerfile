@@ -83,9 +83,13 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   )
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
+  # The main reactor pins its dependencies on the standalone-metastore modules through `standalone-metastore.version`.
+  # This is _not_ changed by `mvn versions:set` above.
+  # If we do not change it here it'd download those dependencies (without the -stackableXXXX suffix) from Maven central.
   mvn \
     clean package \
     -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
+    -Dstandalone-metastore.version=${NEW_VERSION} \
     -DskipTests \
     -Pdist
   # Looks like we can not filter the projects using "--projects standalone-metastore/metastore-server --also-make",
