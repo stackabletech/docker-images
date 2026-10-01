@@ -45,6 +45,7 @@ curl --fail -LO --progress-bar "https://github.com/trinodb/trino/releases/downlo
 # echo "Adding pinned public key for signature"
 # # We lock the public key here until trino has a better workflow for signing
 # gpg --no-default-keyring --keyring "${WORK_DIR}"/keyring --import <<-EOF
+# spellchecker:off
 # -----BEGIN PGP PUBLIC KEY BLOCK-----
 # Comment: Hostname:
 # Version: Hockeypuck 2.1.0-223-gdc2762b
@@ -76,6 +77,7 @@ curl --fail -LO --progress-bar "https://github.com/trinodb/trino/releases/downlo
 # LoKR7XroVADNIdggJawYzZNyU6clw/O1if5vSURumLeul13T
 # =p7ZF
 # -----END PGP PUBLIC KEY BLOCK-----
+# spellchecker:on
 # EOF
 #
 # echo "Validating signature"
