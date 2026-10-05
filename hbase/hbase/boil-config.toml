@@ -16,7 +16,7 @@ cdxgen-version = "13.0.1"
 
 # Experimental in 26.11
 [versions."3.0.0".local-images]
-"hadoop/hadoop" = "3.4.3"
+"hadoop/hadoop" = "3.5.0"
 java-base = "17"
 java-devel = "17"
 

@@ -22,7 +22,7 @@ with-phoenix = "true"
 "hbase/hbase-operator-tools" = "1.3.0-hbase3.0.0"
 # No hbase/phoenix: Phoenix does not support HBase 3.x yet (see with-phoenix below)
 "hbase/hbase-opa-authorizer" = "0.3.0"
-"hadoop/hadoop" = "3.4.3"
+"hadoop/hadoop" = "3.5.0"
 java-base = "17"
 java-devel = "17"
 
