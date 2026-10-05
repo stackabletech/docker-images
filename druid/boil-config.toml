@@ -1,44 +1,6 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-# Deprecated since 26.7
-[versions."30.0.1".local-images]
-# https://druid.apache.org/docs/30.0.1/operations/java/
-java-base = "17"
-java-devel = "17"
-"hadoop/hadoop" = "3.3.6"
-
-[versions."30.0.1".build-arguments]
-authorizer-version = "0.7.0"
-# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
-# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
-# renovate: datasource=npm packageName=@cdxgen/cdxgen
-cdxgen-version = "13.0.1"
-# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
-# assets, so it gets its own Node installation.
-# Find the latest release here: https://github.com/nodejs/node/releases
-# renovate: datasource=node-version packageName=node
-cdxgen-nodejs-version = "24.19.0"
-
-# Deprecated since 26.7
-[versions."35.0.1".local-images]
-# https://druid.apache.org/docs/35.0.1/operations/java/
-java-base = "21"
-java-devel = "21"
-"hadoop/hadoop" = "3.4.3"
-
-[versions."35.0.1".build-arguments]
-authorizer-version = "0.7.0"
-# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
-# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
-# renovate: datasource=npm packageName=@cdxgen/cdxgen
-cdxgen-version = "13.0.1"
-# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
-# assets, so it gets its own Node installation.
-# Find the latest release here: https://github.com/nodejs/node/releases
-# renovate: datasource=node-version packageName=node
-cdxgen-nodejs-version = "24.19.0"
-
 # LTS since 26.7
 [versions."37.0.0".local-images]
 # https://druid.apache.org/docs/37.0.0/operations/java/

@@ -9,18 +9,30 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9,<3.13"
 
+# Deliberately loose. The wheel is installed into the environment Airflow was
+# installed into under airflow/stackable/constraints/, which pins requests and
+# cachetools itself; exact pins here would fight what Airflow resolved.
+# overrides is not in the constraints file, so it stays pinned.
 dependencies = [
-    "requests~=2.32.3",
-    "cachetools~=5.5.0",
+    "requests>=2.31",
+    "cachetools>=5.3",
     "overrides~=7.7.0",
 ]
 
 [dependency-groups]
+# Test tooling only, and uv's default group; see the airflow-3 project for why
+# Airflow itself is not in here.
 dev = [
-    "apache-airflow~=2.9.3",
     "pylint~=3.3.1",
     "pytest~=8.3.3",
     "flask-limiter~=3.9.0",
+]
+
+# Adds an Airflow to run the tests against outside the image build, where there
+# is no constraints file: `uv run --group local pytest`. Unused by the build.
+local = [
+    { include-group = "dev" },
+    "apache-airflow~=2.9.3",
 ]
 
 [build-system]
