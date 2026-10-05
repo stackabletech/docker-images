@@ -11,7 +11,7 @@ hbase-thirdparty-version = "4.1.13" # Needs to match https://github.com/apache/h
 delete-caches = "true"
 
 [versions."1.3.0-hbase3.0.0".local-images]
-"hadoop/hadoop" = "3.5.0"
+"hadoop/hadoop" = "3.4.3"
 "hbase/hbase" = "3.0.0"
 "java-devel" = "17"
 
