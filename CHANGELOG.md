@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - opensearch: Add `3.8.0` ([#1669]).
+- opensearch: Add the `repository-azure` plugin ([#????]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
