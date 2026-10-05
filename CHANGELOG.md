@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- testing-tools: Pull `grpcurl` from our own mirror instead of directly from Docker Hub ([#1671]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 - vector: Build with `--locked` ([#1674]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
@@ -107,6 +108,7 @@ All notable changes to this project will be documented in this file.
 [#1667]: https://github.com/stackabletech/docker-images/pull/1667
 [#1669]: https://github.com/stackabletech/docker-images/pull/1669
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1671]: https://github.com/stackabletech/docker-images/pull/1671
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
 [#1674]: https://github.com/stackabletech/docker-images/pull/1674
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
