@@ -1,0 +1,43 @@
+From a3d42d047bf2bedd4324a3ddcacaa286555c521c Mon Sep 17 00:00:00 2001
+From: monster <60029759+MonsterChenzhuo@users.noreply.github.com>
+Date: Mon, 16 Feb 2026 03:15:50 +0800
+Subject: =?UTF-8?q?Fix=20FAB=20auth=5Fmanager=20load=5Fuser=20causing=20Pe?=
+ =?UTF-8?q?ndingRollbackError=20and=20Inter=E2=80=A6=20(#61943)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+* Fix FAB auth_manager load_user causing PendingRollbackError and Internal Server Error
+
+* Fix FAB auth_manager load_user causing PendingRollbackError and Internal Server Error
+
+---------
+
+Co-authored-by: zhuoyuchen <>
+(cherry picked from commit 133738f84dcc364b9e5efb2b684dcc688a998eb6)
+---
+ .../fab/auth_manager/security_manager/override.py     | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py b/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
+index d5fbf1108a..1f1f29d808 100644
+--- a/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
++++ b/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
+@@ -1392,9 +1392,14 @@ class FabAirflowSecurityManagerOverride(AirflowSecurityManagerV2):
+             return False
+ 
+     def load_user(self, pk: int) -> Any | None:
+-        user = self.get_user_by_id(int(pk))
+-        if user and user.is_active:
+-            return user
++        try:
++            user = self.get_user_by_id(int(pk))
++            if user and user.is_active:
++                return user
++        except Exception as e:
++            log.error("Error loading user: %s", e)
++            self.session.rollback()
++            return None
+         return None
+ 
+     def get_user_by_id(self, pk):

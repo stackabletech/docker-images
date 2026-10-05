@@ -1,0 +1,39 @@
+From ea5232355916ab3ab20ffb55d57fea499e031016 Mon Sep 17 00:00:00 2001
+From: monster <60029759+MonsterChenzhuo@users.noreply.github.com>
+Date: Thu, 5 Feb 2026 23:17:10 +0800
+Subject: =?UTF-8?q?Fix:=20Add=20session=20rollback=20to=20FAB=20find=5Fuse?=
+ =?UTF-8?q?r=20on=20error=20to=20prevent=20invali=E2=80=A6=20(#61374)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+(cherry picked from commit 0e66a216e27c15019ec0d2641a62533a438d9427)
+---
+ .../fab/auth_manager/security_manager/override.py          | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py b/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
+index 8170446110..d5fbf1108a 100644
+--- a/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
++++ b/providers/fab/src/airflow/providers/fab/auth_manager/security_manager/override.py
+@@ -1446,13 +1446,20 @@ class FabAirflowSecurityManagerOverride(AirflowSecurityManagerV2):
+                 ).one_or_none()
+             except MultipleResultsFound:
+                 log.error("Multiple results found for user %s", username)
++            except Exception as e:
++                log.error("Error finding user %s: %s", username, e)
++                self.session.rollback()
+                 return None
+         elif email:
+             try:
+                 return self.session.scalars(select(self.user_model).filter_by(email=email)).one_or_none()
+             except MultipleResultsFound:
+                 log.error("Multiple results found for user with email %s", email)
++            except Exception as e:
++                log.error("Error finding user with email %s: %s", email, e)
++                self.session.rollback()
+                 return None
++        return None
+ 
+     def update_user(self, user: User) -> bool:
+         try:

@@ -88,3 +88,6 @@ airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,
 
 opa-auth-manager = "airflow-3"
 nodejs-version = "22"
+# Patchable version (directory in stackable/patches) of the FAB provider to build from source.
+# Must match the apache-airflow-providers-fab version pinned in the constraints.
+fab-provider-patchable-version = "providers-fab-3.1.1"

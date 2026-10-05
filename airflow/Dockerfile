@@ -61,6 +61,8 @@ ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
 ARG AIRFLOW_EXTRAS_EXTERNAL_SERVICES=""
 ARG AIRFLOW_EXTRAS_LOCALLY_INSTALLED_SOFTWARE=""
 ARG AIRFLOW_EXTRAS_OTHER=""
+# If set, the FAB provider is built from this patchable version instead of being installed from PyPI.
+ARG FAB_PROVIDER_PATCHABLE_VERSION=""
 
 RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
     microdnf update && \
@@ -100,6 +102,7 @@ COPY --from=opa-auth-manager-builder /tmp/opa-auth-manager/dist/opa_auth_manager
 
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/patchable.toml /stackable/src/airflow/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/${PRODUCT_VERSION} /stackable/src/airflow/stackable/patches/${PRODUCT_VERSION}
+COPY --chown=${STACKABLE_USER_UID}:0 airflow/stackable/patches/providers-fab-3.1.1 /stackable/src/airflow/stackable/patches/providers-fab-3.1.1
 
 WORKDIR /stackable
 
@@ -146,6 +149,16 @@ if [ -d "./airflow-core" ]; then
   uv pip install --no-cache-dir apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
   # Then install the locally built core wheel to override the core package
   uv pip install --no-cache-dir dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+
+  if [ -n "${FAB_PROVIDER_PATCHABLE_VERSION}" ]; then
+    # The FAB provider is not part of the core wheel and is installed from PyPI above.
+    # Replace it with a wheel built from the patched source.
+    # Its UI assets (www/static/dist) are committed upstream, so no frontend build is needed.
+    cd "$(/stackable/patchable --images-repo-root=/stackable/src checkout airflow ${FAB_PROVIDER_PATCHABLE_VERSION})/providers/fab"
+    tar -czf /stackable/airflow-${FAB_PROVIDER_PATCHABLE_VERSION}-src.tar.gz .
+    uv build --wheel --out-dir /tmp/fab-dist --build-constraints /tmp/build-constraints.txt
+    uv pip install --no-cache-dir --no-deps --reinstall-package apache-airflow-providers-fab /tmp/fab-dist/apache_airflow_providers_fab-*-py3-none-any.whl
+  fi
 else
   # Airflow 2.x
   # build front-end assets
