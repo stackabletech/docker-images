@@ -1,22 +1,6 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-# Deprecated since 26.7.0
-[versions."2.6.4".local-images]
-"hbase/hbase" = "2.6.4"
-"hbase/hbase-operator-tools" = "1.3.0-hbase2.6.4"
-"hbase/phoenix" = "5.3.0-hbase2.6.4"
-"hbase/hbase-opa-authorizer" = "0.3.0"
-"hadoop/hadoop" = "3.4.3"
-java-base = "11"
-java-devel = "11"
-
-[versions."2.6.4".build-arguments]
-hbase-profile = "2.6"
-delete-caches = "true"
-
-
-
 # LTS since 26.7.0
 [versions."2.6.6".local-images]
 "hbase/hbase" = "2.6.6"
@@ -30,3 +14,20 @@ java-devel = "11"
 [versions."2.6.6".build-arguments]
 hbase-profile = "2.6"
 delete-caches = "true"
+with-phoenix = "true"
+
+# Experimental in 26.11.0
+[versions."3.0.0".local-images]
+"hbase/hbase" = "3.0.0"
+"hbase/hbase-operator-tools" = "1.3.0-hbase3.0.0"
+# No hbase/phoenix: Phoenix does not support HBase 3.x yet (see with-phoenix below)
+"hbase/hbase-opa-authorizer" = "1.0.0"
+"hadoop/hadoop" = "3.4.3"
+java-base = "17"
+java-devel = "17"
+
+[versions."3.0.0".build-arguments]
+hbase-profile = "3.0"
+delete-caches = "true"
+# Selects the final-phoenix-false stage in the Dockerfile, which leaves out Phoenix
+with-phoenix = "false"
