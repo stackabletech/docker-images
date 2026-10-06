@@ -85,6 +85,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 - nifi: Remove `2.7.2` ([#1667]).
+- hadoop: Remove `3.4.2` ([#1683]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -115,6 +116,7 @@ All notable changes to this project will be documented in this file.
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
+[#1683]: https://github.com/stackabletech/docker-images/pull/1683
 
 ## [26.7.0] - 2026-07-21
 
