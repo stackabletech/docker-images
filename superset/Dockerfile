@@ -55,9 +55,9 @@ RUN microdnf update \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
         diffutils \
         # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
-        # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
+        # distribution. However, while adding ARM support we noticed that this does not seem to be the case for the
         # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
-        # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
+        # compilation flags (and probably to not build sqlite from source(?)), see snippet [1] at the end of file
         make \
         gcc \
         gcc-c++ \
@@ -122,7 +122,7 @@ EOF
 
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
-# DL3042 false-positive, --no-chache-dir is specified a few lines below.
+# DL3042 false-positive, --no-cache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
 RUN <<EOF
@@ -206,7 +206,7 @@ uv pip install --no-cache-dir \
 
 # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
 # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
-# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentially downgrade the version
+# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentally downgrade the version
 if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
     echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135"
     uv pip install gunicorn==22.0.0
