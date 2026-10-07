@@ -168,12 +168,20 @@ NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 # have one central place for dependant images to pull them from
 mkdir -p /stackable/hadoop-cloud-libraries/
 
-cp /stackable/hadoop/share/hadoop/common/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
-# Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
-curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
-# Starting with Hadoop 3.4.3 the S3A InputStreamType factory references analyticsaccelerator-s3 (software.amazon.s3.analyticsaccelerator.request.ObjectClient) during S3AFileSystem.initialize.
-curl -o /stackable/hadoop-cloud-libraries/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/analyticsaccelerator-s3-${ANALYTICSACCELERATOR_S3_VERSION}.jar"
-cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
-cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
-cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+# N.B. Version 3.3.6 is not part of SDP as of 25.7.0, but is still required for hbase, hive, spark-k8s
+if [[ "$PRODUCT_VERSION" == "3.3.6" ]]; then
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    # For some reason it was renamed from "aws-java-sdk-bundle" to "bundle"
+    cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
+    cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+else
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    # Starting with Hadoop 3.4.3 the aws-java-sdk-bundle is not included any more.
+    curl -o /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar --fail "https://repo.stackable.tech/repository/packages/aws/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar"
+    cp /stackable/hadoop/share/hadoop/common/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+    cp /stackable/hadoop/share/hadoop/common/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/
+fi
 EOF
