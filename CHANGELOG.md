@@ -71,6 +71,7 @@ All notable changes to this project will be documented in this file.
   ([#1670]).
 - hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
+- nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#XXXX]).
 
 ### Removed
 
@@ -117,6 +118,7 @@ All notable changes to this project will be documented in this file.
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
 
 ## [26.7.0] - 2026-07-21
 

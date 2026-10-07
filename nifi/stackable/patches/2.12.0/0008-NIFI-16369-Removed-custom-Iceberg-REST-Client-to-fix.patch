@@ -186,7 +186,7 @@ index adb9743819..8242e6c1ff 100644
 +                properties.put(OAuth2Properties.TOKEN_EXCHANGE_ENABLED, Boolean.FALSE.toString());
              }
          }
-
+ 
 -        final RESTClientProvider restClientProvider = new StandardRESTClientProvider(getLogger());
 +        final RESTClientProvider restClientProvider = new StandardRESTClientProvider();
          final IcebergFileIOProvider icebergFileIoProvider = context.getProperty(FILE_IO_PROVIDER).asControllerService(IcebergFileIOProvider.class);
@@ -202,18 +202,18 @@ index afd50c26bf..55174df013 100644
  import org.apache.iceberg.rest.auth.AuthSession;
 -import org.apache.iceberg.rest.auth.OAuth2Properties;
 -import org.apache.nifi.logging.ComponentLog;
-
+ 
  import java.util.Map;
  import java.util.Objects;
 -import java.util.regex.Matcher;
 -import java.util.regex.Pattern;
-
+ 
  /**
   * Standard implementation of REST Client Provider supporting configurable Access Delegation
 @@ -35,18 +31,6 @@ class StandardRESTClientProvider implements RESTClientProvider {
      /** Access Delegation HTTP Request Header added in Apache Iceberg 1.5.0 */
      static final String ICEBERG_ACCESS_DELEGATION_HEADER = "X-Iceberg-Access-Delegation";
-
+ 
 -    private static final Pattern CLIENT_CREDENTIALS_PATTERN = Pattern.compile("^([^:]+):(.+)$");
 -
 -    private static final int CLIENT_ID_GROUP = 1;
@@ -232,7 +232,7 @@ index afd50c26bf..55174df013 100644
 @@ -60,22 +44,6 @@ class StandardRESTClientProvider implements RESTClientProvider {
              builder.withHeader(ICEBERG_ACCESS_DELEGATION_HEADER, accessDelegationHeader);
          }
-
+ 
 -        final RESTClient restClient;
 -
 -        if (properties.containsKey(OAuth2Properties.CREDENTIAL)) {
@@ -359,7 +359,7 @@ index 821386fcf8..1aac505189 100644
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
 @@ -17,10 +17,9 @@
  package org.apache.nifi.services.iceberg.catalog;
-
+ 
  import org.apache.iceberg.CatalogProperties;
 +import org.apache.iceberg.rest.HTTPClient;
  import org.apache.iceberg.rest.RESTClient;
@@ -367,39 +367,39 @@ index 821386fcf8..1aac505189 100644
 -import org.apache.nifi.logging.ComponentLog;
 -import org.apache.nifi.util.MockComponentLog;
  import org.junit.jupiter.api.Test;
-
+ 
  import java.util.Map;
 @@ -34,9 +33,7 @@ class StandardRESTClientProviderTest {
-
+ 
      private static final String CLIENT_CREDENTIALS = "CLIENT_ID:CLIENT_SECRET";
-
+ 
 -    private static final ComponentLog COMPONENT_LOG = new MockComponentLog(StandardRESTClientProvider.class.getName(), StandardRESTClientProvider.class);
 -
 -    private final StandardRESTClientProvider provider = new StandardRESTClientProvider(COMPONENT_LOG);
 +    private final StandardRESTClientProvider provider = new StandardRESTClientProvider();
-
+ 
      @Test
      void testBuild() {
 @@ -45,6 +42,7 @@ class StandardRESTClientProviderTest {
          final RESTClient restClient = provider.build(properties);
-
+ 
          assertNotNull(restClient);
 +        assertInstanceOf(HTTPClient.class, restClient);
      }
-
+ 
      @Test
 @@ -57,6 +55,7 @@ class StandardRESTClientProviderTest {
          final RESTClient restClient = provider.build(properties);
-
+ 
          assertNotNull(restClient);
 +        assertInstanceOf(HTTPClient.class, restClient);
      }
-
+ 
      @Test
 @@ -68,7 +67,6 @@ class StandardRESTClientProviderTest {
-
+ 
          final RESTClient restClient = provider.build(properties);
-
+ 
 -        assertNotNull(restClient);
 -        assertInstanceOf(CredentialsRefreshRESTClient.class, restClient);
 +        assertInstanceOf(HTTPClient.class, restClient);
