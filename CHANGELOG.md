@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
+- vector: Upgrade to 0.58.0 ([#1680]).
 
 ### Fixed
 
