@@ -27,9 +27,11 @@ All notable changes to this project will be documented in this file.
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- testing-tools: Pull `grpcurl` from our own mirror instead of directly from Docker Hub ([#1671]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
+- vector: Build with `--locked` ([#1674]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
-- vector: Upgrade to 0.58.0 ([#1680]).
+- ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
 
 ### Fixed
 
@@ -85,6 +87,7 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 - nifi: Remove `2.7.2` ([#1667]).
 - vector: Remove `0.55.0` ([#1680]).
+- hadoop: Remove `3.4.2` ([#1683]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -108,11 +111,15 @@ All notable changes to this project will be documented in this file.
 [#1667]: https://github.com/stackabletech/docker-images/pull/1667
 [#1669]: https://github.com/stackabletech/docker-images/pull/1669
 [#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1671]: https://github.com/stackabletech/docker-images/pull/1671
 [#1673]: https://github.com/stackabletech/docker-images/pull/1673
+[#1674]: https://github.com/stackabletech/docker-images/pull/1674
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 [#1680]: https://github.com/stackabletech/docker-images/pull/1680
+[#1681]: https://github.com/stackabletech/docker-images/pull/1681
+[#1683]: https://github.com/stackabletech/docker-images/pull/1683
 
 ## [26.7.0] - 2026-07-21
 
