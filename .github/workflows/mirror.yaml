@@ -17,6 +17,7 @@ on:
           - registry-1.docker.io/library/golang
           - registry-1.docker.io/library/postgres
           - registry-1.docker.io/dxflrs/garage
+          - registry-1.docker.io/fullstorydev/grpcurl
           - ghcr.io/astral-sh/uv
       image-index-manifest-tag:
         description: |
