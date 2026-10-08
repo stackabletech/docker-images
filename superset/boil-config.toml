@@ -60,8 +60,8 @@ python-version = "3.12"
 uv-version = "0.11.18"
 # https://github.com/apache/superset/blob/6.1.0/superset-frontend/.nvmrc
 nodejs-version = "22.22.0"
-# npm 12 requires Node ^22.22.2, so the latest npm (which --latest-npm used to install) is not
-# supported on this Node version. Kept on 10.x like 4.1.4, which is the version Node 22 bundles.
+# superset-frontend requires npm ^10.8.1 (https://github.com/apache/superset/blob/6.1.0/superset-frontend/package.json,
+# search for `"engines"`). The latest 10.x release.
 npm-version = "10.9.9"
 # Independent of Superset, use the latest release: https://github.com/nvm-sh/nvm/releases
 nvm-version = "v0.40.4"
