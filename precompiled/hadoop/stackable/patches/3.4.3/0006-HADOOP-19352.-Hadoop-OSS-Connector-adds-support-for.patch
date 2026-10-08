@@ -1,4 +1,4 @@
-From e67476ea801e929feb3d89d023d915efbf82336f Mon Sep 17 00:00:00 2001
+From 701aa813622cc8f78ac5c49ba9c4a9d638596657 Mon Sep 17 00:00:00 2001
 From: xeniape <xenia.fischer@stackable.tech>
 Date: Wed, 10 Sep 2025 14:41:46 +0200
 Subject: HADOOP-19352.-Hadoop-OSS-Connector-adds-support-for-
@@ -14,10 +14,10 @@ Subject: HADOOP-19352.-Hadoop-OSS-Connector-adds-support-for-
  create mode 100644 hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
 
 diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
-index 70f64bf55c..6d05a218d0 100644
+index f837b1f5201..f8c7f2388f3 100644
 --- a/hadoop-project/pom.xml
 +++ b/hadoop-project/pom.xml
-@@ -1663,7 +1663,7 @@
+@@ -1692,7 +1692,7 @@
        <dependency>
          <groupId>com.aliyun.oss</groupId>
          <artifactId>aliyun-sdk-oss</artifactId>
@@ -27,7 +27,7 @@ index 70f64bf55c..6d05a218d0 100644
            <exclusion>
              <groupId>org.apache.httpcomponents</groupId>
 diff --git a/hadoop-tools/hadoop-aliyun/pom.xml b/hadoop-tools/hadoop-aliyun/pom.xml
-index c2e04623ad..5b12e4a4ef 100644
+index 50d6d4576c5..42fa66976af 100644
 --- a/hadoop-tools/hadoop-aliyun/pom.xml
 +++ b/hadoop-tools/hadoop-aliyun/pom.xml
 @@ -165,5 +165,31 @@
@@ -63,7 +63,7 @@ index c2e04623ad..5b12e4a4ef 100644
    </dependencies>
  </project>
 diff --git a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
-index ccd5d1ea25..30da259fd5 100644
+index ccd5d1ea25c..30da259fd51 100644
 --- a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
 +++ b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/AliyunOSSFileSystemStore.java
 @@ -73,6 +73,7 @@ import java.util.List;
@@ -104,7 +104,7 @@ index ccd5d1ea25..30da259fd5 100644
      int listVersion = conf.getInt(LIST_VERSION, DEFAULT_LIST_VERSION);
      if (listVersion < 1 || listVersion > 2) {
 diff --git a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
-index baeb919937..176669ed15 100644
+index baeb9199377..176669ed152 100644
 --- a/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
 +++ b/hadoop-tools/hadoop-aliyun/src/main/java/org/apache/hadoop/fs/aliyun/oss/Constants.java
 @@ -211,4 +211,19 @@ public final class Constants {
@@ -129,7 +129,7 @@ index baeb919937..176669ed15 100644
  }
 diff --git a/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java b/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
 new file mode 100644
-index 0000000000..5070f2a581
+index 00000000000..5070f2a5816
 --- /dev/null
 +++ b/hadoop-tools/hadoop-aliyun/src/test/java/org/apache/hadoop/fs/aliyun/oss/ITAliyunOSSSignatureV4.java
 @@ -0,0 +1,98 @@
@@ -232,7 +232,7 @@ index 0000000000..5070f2a581
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties b/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
-index bb5cbe5ec3..2167f68811 100644
+index bb5cbe5ec32..2167f68811a 100644
 --- a/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
 +++ b/hadoop-tools/hadoop-aliyun/src/test/resources/log4j.properties
 @@ -21,3 +21,6 @@ log4j.threshold=ALL

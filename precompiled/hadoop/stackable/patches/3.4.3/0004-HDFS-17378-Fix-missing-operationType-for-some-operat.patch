@@ -1,4 +1,4 @@
-From 2b131b13ad062695d5de8840be744900fa4a71c1 Mon Sep 17 00:00:00 2001
+From a79df04a30b4477372e850a7628bd47dcb665955 Mon Sep 17 00:00:00 2001
 From: xeniape <xenia.fischer@stackable.tech>
 Date: Wed, 10 Sep 2025 14:40:41 +0200
 Subject: HDFS-17378-Fix-missing-operationType-for-some-operat
@@ -8,7 +8,7 @@ Subject: HDFS-17378-Fix-missing-operationType-for-some-operat
  1 file changed, 24 insertions(+), 17 deletions(-)
 
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
-index cfc7f24381..e9c5fc0da2 100644
+index cfc7f24381f..e9c5fc0da25 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/FSNamesystem.java
 @@ -2618,15 +2618,16 @@ public class FSNamesystem implements Namesystem, FSNamesystemMBean,

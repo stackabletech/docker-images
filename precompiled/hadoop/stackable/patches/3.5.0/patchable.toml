@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/hadoop.git"
+base = "dbcc7cd797100e6b32cd84f85b53a5193a5f9af0"
