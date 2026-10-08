@@ -156,8 +156,8 @@ if [ -d "./airflow-core" ]; then
     # Its UI assets (www/static/dist) are committed upstream, so no frontend build is needed.
     cd "$(/stackable/patchable --images-repo-root=/stackable/src checkout airflow ${FAB_PROVIDER_PATCHABLE_VERSION})/providers/fab"
     tar -czf /stackable/airflow-${FAB_PROVIDER_PATCHABLE_VERSION}-src.tar.gz .
-    uv build --wheel --out-dir /tmp/fab-dist --build-constraints /tmp/build-constraints.txt
-    uv pip install --no-cache-dir --no-deps --reinstall-package apache-airflow-providers-fab /tmp/fab-dist/apache_airflow_providers_fab-*-py3-none-any.whl
+    uv build --wheel --out-dir /stackable/fab-dist --build-constraints /tmp/build-constraints.txt
+    uv pip install --no-cache-dir --no-deps --reinstall-package apache-airflow-providers-fab /stackable/fab-dist/apache_airflow_providers_fab-*-py3-none-any.whl
   fi
 else
   # Airflow 2.x
