@@ -35,10 +35,18 @@ RUN <<EOF
     # Create snapshot of the source code including custom patches
     tar -czf /stackable/protobuf-${PROTOBUF_VERSION}-src.tar.gz .
 
-    ./autogen.sh
-    ./configure --prefix=/opt/protobuf
-    make "-j$(nproc)"
-    make install
+    if [ "$PROTOBUF_VERSION" == "3.7.1" ] || [ "$PROTOBUF_VERSION" == "3.21.12" ]; then
+        ./autogen.sh
+        ./configure --prefix=/opt/protobuf
+        make "-j$(nproc)"
+        make install
+    else
+        # protobuf > 3.21 bundles abseil-cpp and utf8_range as git submodules
+        git submodule update --init --recursive
+        cmake -S . -B build -DCMAKE_POSITION_INDEPENDENT_CODE=ON -Dprotobuf_BUILD_TESTS=OFF
+        cmake --build build --parallel "$(nproc)"
+        cmake --install build --prefix /opt/protobuf
+    fi
     (cd .. && rm -r ${PROTOBUF_VERSION})
 EOF
 
