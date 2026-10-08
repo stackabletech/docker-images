@@ -80,7 +80,7 @@ RUN --mount=type=cache,id=maven-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},tar
 cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
 rm /tmp/DRUID_SOURCE_DIR
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION

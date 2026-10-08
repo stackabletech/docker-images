@@ -70,7 +70,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
 mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION

@@ -73,6 +73,12 @@ ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 # Find the latest version here: https://github.com/mojohaus/versions/releases
 # renovate: datasource=maven packageName=org.codehaus.mojo:versions-maven-plugin
 ENV VERSIONS_MAVEN_PLUGIN_VERSION="2.22.0"
+# Find the latest version here: https://github.com/apache/maven-help-plugin/releases
+# renovate: datasource=maven packageName=org.apache.maven.plugins:maven-help-plugin
+ENV HELP_MAVEN_PLUGIN_VERSION="3.5.2"
+# Find the latest version here: https://github.com/apache/maven-dependency-plugin/releases
+# renovate: datasource=maven packageName=org.apache.maven.plugins:maven-dependency-plugin
+ENV DEPENDENCY_MAVEN_PLUGIN_VERSION="3.11.0"
 
 ARG GITHUB_RUN_ATTEMPT="<unknown>"
 ENV GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
