@@ -1,19 +1,20 @@
-From 7469915d465acd03e09cc6400941b20713e4f4d2 Mon Sep 17 00:00:00 2001
+From 12860d8c0cbcbc9019895f09b125cc49cd75fc60 Mon Sep 17 00:00:00 2001
 From: dervoeti <lukas.krug@stackable.tech>
 Date: Thu, 26 Mar 2026 20:51:26 +0000
 Subject: Scope CycloneDX SBOM to shipped components only
 
 Exclude plugin subprojects that are not included in the opensearch-min
-distribution from the CycloneDX BOM generation. Only repository-s3 and
-telemetry-otel are shipped from the local build. Other plugins like
-ingest-attachment (which pulls in tika-core) are not installed in the
-Stackable image and should not appear in the runtime SBOM.
+distribution from the CycloneDX BOM generation. Only repository-azure,
+repository-s3 and telemetry-otel are shipped from the local build. Other
+plugins like ingest-attachment (which pulls in tika-core) are not
+installed in the Stackable image and should not appear in the runtime
+SBOM.
 ---
  build.gradle | 34 ++++++++++++++++++++++++++++++++++
  1 file changed, 34 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 78a15b418e7..b8cbb13be3d 100644
+index 78a15b418e7..1770e1afec9 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -78,6 +78,40 @@ allprojects {
@@ -22,7 +23,7 @@ index 78a15b418e7..b8cbb13be3d 100644
  cyclonedxBom {
 +  // Only include subprojects that are part of the opensearch-min distribution
 +  // (server, libs, modules) plus the core plugins shipped in the Stackable
-+  // image (repository-s3 and telemetry-otel). This prevents build-only plugin
++  // image (repository-azure, repository-s3 and telemetry-otel). This prevents build-only plugin
 +  // dependencies (e.g. tika-core from ingest-attachment) from appearing in the
 +  // runtime SBOM as false positives.
 +  // The test framework, the test fixtures, the QA projects and the benchmarks are not
@@ -35,7 +36,7 @@ index 78a15b418e7..b8cbb13be3d 100644
 +  // ends up asserting versions that are not in the image.
 +  // Note that :distribution must not be excluded. The launchers and CLI tools under
 +  // :distribution:tools are shipped in lib/tools.
-+  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
++  def shippedPlugins = ['repository-azure', 'repository-s3', 'telemetry-otel'] as Set
 +  skipProjects = subprojects.findAll { sub ->
 +    (sub.path.startsWith(':plugins:') && !(sub.name in shippedPlugins)) ||
 +    sub.path.startsWith(':example-plugins') ||

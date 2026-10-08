@@ -18,9 +18,11 @@ All notable changes to this project will be documented in this file.
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - opensearch: Add `3.8.0` ([#1669]).
+- opensearch: Add the `repository-azure` plugin ([#1689]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
+- vector: Add `0.58.0` ([#1680]).
 
 ### Changed
 
@@ -75,6 +77,7 @@ All notable changes to this project will be documented in this file.
   ([#1670]).
 - hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
+- nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
 
 ### Removed
 
@@ -89,6 +92,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 - nifi: Remove `2.7.2` ([#1667]).
+- vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -119,9 +123,12 @@ All notable changes to this project will be documented in this file.
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
+[#1680]: https://github.com/stackabletech/docker-images/pull/1680
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
 [#1682]: https://github.com/stackabletech/docker-images/pull/1682
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
+[#1686]: https://github.com/stackabletech/docker-images/pull/1686
+[#1689]: https://github.com/stackabletech/docker-images/pull/1689
 
 ## [26.7.0] - 2026-07-21
 

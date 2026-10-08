@@ -1,4 +1,4 @@
-From 88acf360a467f9dca7c36f0a6c5b0dffe3daeb3c Mon Sep 17 00:00:00 2001
+From c3124bcacad46e5be3b28c1a27b110dc3b3bd086 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Mon, 22 Jun 2026 16:46:43 +0200
 Subject: Add CycloneDX plugin
@@ -9,7 +9,7 @@ Subject: Add CycloneDX plugin
  2 files changed, 36 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
-index 667bc41b438..2546b0344e6 100644
+index 667bc41b438..2c6e9684175 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -58,6 +58,7 @@ plugins {
@@ -27,10 +27,10 @@ index 667bc41b438..2546b0344e6 100644
 +
 +  // Only include subprojects that are part of the opensearch-min distribution
 +  // (server, libs, modules) plus the core plugins shipped in the Stackable
-+  // image (repository-s3 and telemetry-otel). This prevents build-only
++  // image (repository-azure, repository-s3 and telemetry-otel). This prevents build-only
 +  // dependencies (e.g. tika-core from ingest-attachment, or test fixtures such
 +  // as hdfs-fixture) from appearing in the runtime SBOM as false positives.
-+  def shippedPlugins = ['repository-s3', 'telemetry-otel'] as Set
++  def shippedPlugins = ['repository-azure', 'repository-s3', 'telemetry-otel'] as Set
 +  def isShipped = project.path == ':server' ||
 +                  project.path.startsWith(':libs:') ||
 +                  project.path.startsWith(':modules:') ||
