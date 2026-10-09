@@ -21,7 +21,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout trino/airlift ${PRODU
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION -DartifactId='*' -DgroupId='*' -DgenerateBackupPoms=false
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION -DartifactId='*' -DgroupId='*' -DgenerateBackupPoms=false
 
 mvn \
   install \

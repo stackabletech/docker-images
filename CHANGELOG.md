@@ -33,6 +33,10 @@ All notable changes to this project will be documented in this file.
 - vector: Build with `--locked` ([#1674]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
+- java-devel: Pin `versions-maven-plugin` to `2.22.0` for `mvn versions:set`, `maven-help-plugin` to `3.5.2` for `mvn help:evaluate` and `maven-dependency-plugin` to `3.11.0` for `mvn dependency:get`, which otherwise resolve the latest release on every build unless the product POM pins them ([#1682]).
+- spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
+- airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
+- superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
 
 ### Fixed
 
@@ -121,6 +125,7 @@ All notable changes to this project will be documented in this file.
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
 [#1680]: https://github.com/stackabletech/docker-images/pull/1680
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
+[#1682]: https://github.com/stackabletech/docker-images/pull/1682
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689

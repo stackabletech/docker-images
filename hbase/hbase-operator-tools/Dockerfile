@@ -41,12 +41,12 @@ cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase-operator-
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${HBASE_OPERATOR_TOOLS_VERSION}-stackable${RELEASE_VERSION}"
 FULL_HBASE_OPERATOR_TOOLS_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}" # This includes the HBase version and the Stackable release suffix
 PATCHED_HBASE_VERSION="${HBASE_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hbase-operator-tools-${FULL_HBASE_OPERATOR_TOOLS_VERSION}-src.tar.gz .

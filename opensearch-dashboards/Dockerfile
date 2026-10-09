@@ -141,7 +141,10 @@ microdnf clean all
 rm -rf /var/cache/yum
 curl "https://repo.stackable.tech/repository/packages/node/node-v${NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/usr/local --strip-components=1
-npm install -g yarn@${YARN_VERSION}
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" yarn@${YARN_VERSION}
 
 # cdxgen requires Node >= 24, which is newer than the Node version OpenSearch Dashboards
 # is built with, so it gets its own Node installation in /opt/node-cdxgen and is invoked
@@ -150,7 +153,10 @@ npm install -g yarn@${YARN_VERSION}
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
