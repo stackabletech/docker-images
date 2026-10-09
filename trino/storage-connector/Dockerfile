@@ -19,28 +19,32 @@ USER ${STACKABLE_USER_UID}
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
 RUN --mount=type=cache,id=maven-${PRODUCT_VERSION},target=/stackable/.m2/repository,uid=${STACKABLE_USER_UID} <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT_VERSION})"
+# Only build trino-storage-connector for older versions
+# We no longer bundle it since Trino 483
+if [[ -n "${NIFI_ICEBERG_BUNDLE_VERSION:-}" ]] ; then
+  cd "$(/stackable/patchable --images-repo-root=src checkout trino-storage-connector ${PRODUCT_VERSION})"
 
-# Make Maven aware of custom Stackable libraries
-cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
+  # Make Maven aware of custom Stackable libraries
+  cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
-ORIGINAL_VERSION="${PRODUCT_VERSION}"
-NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
+  ORIGINAL_VERSION="${PRODUCT_VERSION}"
+  NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-# Create snapshot of the source code including custom patches
-tar -czf /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz .
+  # Create snapshot of the source code including custom patches
+  tar -czf /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz .
 
-mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=${NEW_VERSION}
+  mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=${NEW_VERSION}
 
-mvn \
-  package \
-  -DskipTests `# Skip test execution` \
-  -Ddep.trino.version=${NEW_VERSION} `# Use custom Stackable Trino version in tests` \
-  -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
-  -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
-  -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)`
-sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" target/bom.json
+  mvn \
+    package \
+    -DskipTests `# Skip test execution` \
+    -Ddep.trino.version=${NEW_VERSION} `# Use custom Stackable Trino version in tests` \
+    -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
+    -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
+    -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)`
+  sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" target/bom.json
 
-# Set correct permissions
-chmod --recursive g=u target /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz
+  # Set correct permissions
+  chmod --recursive g=u target /stackable/trino-storage-connector-${NEW_VERSION}-src.tar.gz
+fi
 EOF

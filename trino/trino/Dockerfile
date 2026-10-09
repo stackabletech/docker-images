@@ -74,9 +74,6 @@ git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 
 SKIP_PROJECTS="!docs"
-if [ "$PRODUCT_VERSION" = "470" ] || [ "$PRODUCT_VERSION" = "451" ]; then
-  SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
-fi
 
 mvn \
   install \
