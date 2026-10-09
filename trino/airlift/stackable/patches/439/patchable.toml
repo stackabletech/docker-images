@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/airlift.git"
+base = "e09fa20174f2102c61c889611038123d8114b27d"
