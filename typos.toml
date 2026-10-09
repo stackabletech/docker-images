@@ -1,0 +1,50 @@
+# Configuration for typos (https://github.com/crate-ci/typos), run via the prek
+# hook in .pre-commit-config.yaml.
+
+[files]
+# Bare `typos` skips hidden dirs by default, but prek passes explicit paths and
+# so does check them. Turn it off so both agree.
+ignore-hidden = false
+
+extend-exclude = [
+    # Ignore `.git`, which the above `ignore-hidden = false` would otherwise pull in.
+    ".git/",
+    # Upstream patches, already skipped by the prek `exclude: \.patch$`. Listed here
+    # so a bare `typos` run agrees.
+    "*.patch",
+    # Verbatim third-party licence texts. Not ours to correct.
+    "**/licenses/**",
+    # Base64-encoded CA certificates.
+    "stackable-base/stackable/ca-cert-blocklist/**",
+    # pip constraint files taken from upstream Airflow. They are lists of
+    # package names, not prose.
+    "airflow/stackable/constraints/**",
+]
+
+[default]
+# typos has no native suppression directive
+# (https://github.com/crate-ci/typos/issues/316), so these regexes provide one.
+# A marker must sit in a comment: after `#`, `//` or `;` (free text may follow),
+# or inside a closed `<!-- -->`, `/* */` or `{# #}` (free text may precede the
+# closer). An unterminated `typos:ignore-block-start` suppresses nothing.
+#
+# Use one of the following when the word is correct at one place but would still be a typo elsewhere:
+#
+#   # typos:ignore-line        at the end of the line it applies to
+#   # typos:ignore-next-line   on its own line, above the offending line
+#   # typos:ignore-block-start / typos:ignore-block-end   around a block
+extend-ignore-re = [
+    '(?Rm)^.*?(?:(?:^|[^{])(?:#|//|;)[ \t]*typos:ignore-line\b.*|(?:<!--[ \t]*typos:ignore-line\b.*?-->|/\*[ \t]*typos:ignore-line\b.*?\*/|\{#[ \t]*typos:ignore-line\b.*?#\})[ \t]*)$',
+    '(?Rm)^[ \t]*(?:(?:#|//|;)[ \t]*typos:ignore-next-line\b.*|(?:<!--[ \t]*typos:ignore-next-line\b.*?-->|/\*[ \t]*typos:ignore-next-line\b.*?\*/|\{#[ \t]*typos:ignore-next-line\b.*?#\})[ \t]*)\r?\n.*$',
+    '(?ms)(?:(?:^|[^{])(?:#|//|;)[ \t]*typos:ignore-block-start\b|<!--[ \t]*typos:ignore-block-start\b[^\n]*?-->|/\*[ \t]*typos:ignore-block-start\b[^\n]*?\*/|\{#[ \t]*typos:ignore-block-start\b[^\n]*?#\}).*?(?:(?:^|[^{])(?:#|//|;)[ \t]*typos:ignore-block-end\b|<!--[ \t]*typos:ignore-block-end\b[^\n]*?-->|/\*[ \t]*typos:ignore-block-end\b[^\n]*?\*/|\{#[ \t]*typos:ignore-block-end\b[^\n]*?#\})',
+]
+
+# Before adding an entry in here, consider an in-place marker instead.
+# Every entry below gets a one-line comment saying what the word is.
+[default.extend-words]
+# Vertica, the database. `apache-airflow-providers-vertica` is a real package
+# name in airflow/boil-config.toml, on lines too long to carry a marker.
+vertica = "vertica"
+# Maven profile activation flag, as in `mvn -Prelease` (hbase/hbase/Dockerfile).
+# It sits inside a RUN continuation, where a trailing comment would break the line.
+Prelease = "Prelease"

@@ -284,8 +284,8 @@ unset PIP_USER
 # check_uid_gid
 # STACKABLE PATCH END
 
-# Set umask to 0002 to make all the directories created by the current user group-writeable
-# This allows the same directories to be writeable for any arbitrary user the image will be
+# Set umask to 0002 to make all the directories created by the current user group-writable
+# This allows the same directories to be writable for any arbitrary user the image will be
 # run with, when the directory is created on a mounted volume and when that volume is later
 # reused with a different UID (but with GID=0)
 umask 0002

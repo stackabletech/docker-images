@@ -285,7 +285,7 @@ impl Targets {
                 }
 
                 // Remove the last dependency as soon as we are done looking at that particular
-                // dependency (name+version combination). We do this because we are not decending
+                // dependency (name+version combination). We do this because we are not descending
                 // down the chain for this particular dependency anymore, but instead move to the
                 // next dependency at the same level of depth. Illustration:
                 //
