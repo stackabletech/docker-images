@@ -22,7 +22,7 @@ All notable changes to this project will be documented in this file.
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
-- vector: Add `0.58.0` ([#1680]).
+- vector: Add `0.58.0` ([#1680], [#1693]).
 
 ### Changed
 
@@ -129,6 +129,7 @@ All notable changes to this project will be documented in this file.
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1693]: https://github.com/stackabletech/docker-images/pull/1693
 
 ## [26.7.0] - 2026-07-21
 
