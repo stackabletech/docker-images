@@ -17,22 +17,23 @@ RUN <<EOF
 . "$HOME/.cargo/env"
 
 cd /
-git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs
+git clone --depth 1 --branch "config-utils-${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/operator-rs config-utils
+git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs containerdebug
 git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
 cd /config-utils
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
-cd /operator-rs
-cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo auditable --quiet build --package config-utils --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
+cd /containerdebug
+cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 cd /secret-operator
-cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 EOF
 
 # Find the latest version:
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi9/ubi-minimal --format '{{json .Manifest.Digest}}'
 #
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1bc3c5c15720506a0cf48adfdf8b623dfe704377e007d7bbae8d14876392ca6a AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:5ed244b62bbf4095080144d9d35eb8fcd3d39a9801f94aadd63b9d10978a01ae AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -173,12 +174,12 @@ EOF
 # **config-utils**
 # Utility to replace values in a file with values from environment variables and files
 COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/crates/config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/target/release/containerdebug /stackable/containerdebug
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /operator-rs/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
@@ -191,7 +192,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.s
 
 ENV PATH="${PATH}:/stackable"
 
-# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# These labels have mostly been superseded by the OpenContainer spec annotations below but it doesn't hurt to include them
 # http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"

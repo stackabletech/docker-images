@@ -6,7 +6,7 @@ stackable-devel = "1.0.0"
 [versions."1.0.0".build-arguments]
 # Find the latest version here: https://github.com/stackabletech/config-utils/tags
 # renovate: datasource=github-tags packageName=stackabletech/config-utils
-config-utils-version = "0.4.0"
+config-utils-version = "0.5.0"
 
 # Find the latest version here: https://github.com/stackabletech/containerdebug/tags
 # renovate: datasource=github-tags packageName=stackabletech/containerdebug

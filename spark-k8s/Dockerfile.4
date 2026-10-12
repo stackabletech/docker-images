@@ -21,7 +21,7 @@ cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT_V
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
@@ -45,6 +45,7 @@ ARG TARGETARCH
 ARG TINI_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG CDXGEN_SPEC_VERSION
 
 WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 
@@ -52,6 +53,20 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     /stackable/src/spark-k8s/patchable-work/worktree/${PRODUCT_VERSION} \
     ./
 COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-libs /stackable/patched-libs
+
+# Install Python to run shared/sbom/vendored_js.py, which creates the SBOM of the third-party
+# JavaScript that Spark checks into its source tree for the web UI, see the invocation further
+# down. The CycloneDX Maven plugin only covers the Java dependencies, and those files have no
+# package manifest and no lockfile, so cdxgen cannot see them either.
+RUN <<EOF
+    microdnf update
+    microdnf install python3
+    microdnf clean all
+    rm -rf /var/cache/yum
+EOF
+
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/vendored_js.py /stackable/vendored_js.py
+COPY --chown=${STACKABLE_USER_UID}:0 spark-k8s/stackable/vendored-js/${PRODUCT_VERSION}.json /stackable/vendored-js.json
 
 # >>> Build spark
 RUN <<EOF
@@ -75,6 +90,21 @@ RUN <<EOF
     -P'hadoop-3' -Pkubernetes -Phive -Phive-thriftserver
 
     sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" assembly/target/bom.json
+
+    # Create the SBOM of the third-party JavaScript that Spark checks into its source tree for
+    # the web UI. These are pre-built files without any package manifest, so no SBOM generator
+    # can discover them and they are instead recorded in vendored-js.json. That manifest pins the
+    # SHA-256 of every file it describes, so this fails the build if a Spark upgrade changed any
+    # of them and the recorded versions have to be revisited.
+    python3 /stackable/vendored_js.py bom \
+        /stackable/vendored-js.json \
+        . \
+        "/stackable/spark-web-ui-${NEW_VERSION}.cdx.json" \
+        "${ORIGINAL_VERSION}" \
+        "${CDXGEN_SPEC_VERSION}"
+
+    # The final image checks that group permissions match the owner's.
+    chmod g=u "/stackable/spark-web-ui-${NEW_VERSION}.cdx.json"
 EOF
 
 # To avoid classpath conflicts with existing spark applications,
@@ -111,15 +141,15 @@ WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/ext
 
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-mvn dependency:get -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
 cp /root/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
 
-mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
 cp /root/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
 
-mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
 cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
 
@@ -181,6 +211,7 @@ ENV PYTHONPATH=$SPARK_HOME/python
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
+COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/spark/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
 COPY --from=spark-builder /usr/bin/tini /usr/bin/tini
 

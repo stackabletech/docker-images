@@ -35,7 +35,7 @@ jobs:
 
   build_image:
     name: Reusable Workflow
-    uses: ./.github/workflows/reusable_build_image.yaml
+    uses: $/.github/workflows/reusable_build_image.yaml
     needs: [generate_build_timestamp]
     secrets:
       harbor-robot-secret: ${{ secrets.HARBOR_ROBOT_PRECOMPILED_GITHUB_ACTION_BUILD_SECRET }}
@@ -45,10 +45,6 @@ jobs:
       id-token: write
       # Needed for checkout
       contents: read
-      # Both needed by the nested SLSA provenance job (see reusable_build_image.yaml);
-      # packages: write is required until slsa-github-generator#1257 is resolved.
-      actions: read
-      packages: write
     with:
       product-name: precompiled/hadoop
       registry-namespace: precompiled

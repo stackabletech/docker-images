@@ -12,7 +12,7 @@
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi9/ubi-minimal --format '{{json .Manifest.Digest}}'
 #
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1bc3c5c15720506a0cf48adfdf8b623dfe704377e007d7bbae8d14876392ca6a AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:5ed244b62bbf4095080144d9d35eb8fcd3d39a9801f94aadd63b9d10978a01ae AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -45,14 +45,14 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # TODO (@NickLarsenNZ): Move the version into boil-config.toml once renovate can look there
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.95.0
+ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.97.1
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=${RUST_DEFAULT_TOOLCHAIN_VERSION}
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
 ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.9
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.5
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.7
 
 RUN <<EOF
 microdnf update
@@ -112,12 +112,19 @@ microdnf update
 microdnf install openssl-devel pkg-config
 cd /patchable
 . "$HOME/.cargo/env"
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 mv /patchable/target/release/patchable /stackable/patchable
 microdnf clean all
 chown ${STACKABLE_USER_UID}:0 /stackable/patchable
 rm -rf /patchable
 EOF
+
+ARG GITHUB_RUN_ATTEMPT="<unknown>"
+ENV GITHUB_RUN_ATTEMPT=${GITHUB_RUN_ATTEMPT}
+
+ARG GITHUB_RUN_ID="<unknown>"
+ENV GITHUB_RUN_ID=${GITHUB_RUN_ID}
 
 # Make sure NPM and YARN use our build mirror
 # In theory YARN should (I believe) fall back to the npmrc file but we want to make sure...

@@ -103,7 +103,8 @@ ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
 tar -czf /app/stackable-src.tar.gz .
 cargo auditable --quiet build --release --workspace
-cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 
 # -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
 # -regex filters out tests

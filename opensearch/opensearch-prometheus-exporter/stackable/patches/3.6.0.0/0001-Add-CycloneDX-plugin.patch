@@ -1,17 +1,17 @@
-From 523bb67bd099d627bd787c66cdb2a9501cf214c7 Mon Sep 17 00:00:00 2001
+From e8e606c896c5fcb7006bdf02cb3a7a1f7bb2a55b Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 19 Jun 2026 11:14:39 +0200
 Subject: Add CycloneDX plugin
 
 ---
- build.gradle | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ build.gradle | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index a0486c2..e6b1c3f 100644
+index a0486c2..35406db 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -30,8 +30,17 @@ buildscript {
+@@ -30,8 +30,26 @@ buildscript {
      }
  }
  
@@ -19,6 +19,15 @@ index a0486c2..e6b1c3f 100644
 -    zipArchive
 +plugins {
 +    id("org.cyclonedx.bom") version "3.2.4"
++}
++
++// The SBOM must only describe what is shipped, so restrict it to the runtime dependencies.
++// Without this it also contains the test and build tooling (JUnit, Mockito, JaCoCo,
++// Checkstyle, ...). This has to be configured on the `cyclonedxDirectBom` task, the
++// `cyclonedxBom` extension below only configures the aggregation.
++cyclonedxDirectBom {
++    includeConfigs = ["runtimeClasspath"]
++    skipConfigs = ["compileClasspath", "testCompileClasspath"]
 +}
 +
 +cyclonedxBom {

@@ -1,0 +1,71 @@
+From 443a6ad14c239789461ed0d952e91042e55a534c Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Wed, 16 Sep 2026 17:56:45 +0200
+Subject: Allow overriding the logging configuration
+
+---
+ .../src/airflow_shared/logging/structlog.py   | 30 ++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/shared/logging/src/airflow_shared/logging/structlog.py b/shared/logging/src/airflow_shared/logging/structlog.py
+index b13be19144..117e6f655b 100644
+--- a/shared/logging/src/airflow_shared/logging/structlog.py
++++ b/shared/logging/src/airflow_shared/logging/structlog.py
+@@ -532,6 +532,18 @@ def structlog_processors(
+     return shared_processors, console, console
+ 
+ 
++def update_config(
++    config: dict,
++    updates: Mapping,
++):
++    for key, value in updates.items():
++        if isinstance(value, Mapping):
++            config[key] = update_config(config.get(key, {}), value)
++        else:
++            config[key] = value
++    return config
++
++
+ def configure_logging(
+     *,
+     json_output: bool = False,
+@@ -600,6 +612,19 @@ def configure_logging(
+     PER_LOGGER_LEVELS[""] = NAME_TO_LEVEL[log_level.lower()]
+     PER_LOGGER_LEVELS.update(parse_namespace_log_levels(namespace_log_levels))
+ 
++    # Use the log levels defined in stdlib_config for structlog
++    logger_configs = stdlib_config.get("loggers", {})
++    logger_configs[""] = stdlib_config.get("root", {})
++    for logger, logger_config in logger_configs.items():
++        if "level" in logger_config:
++            loglevel = logger_config["level"]
++            if isinstance(loglevel, str):
++                try:
++                    loglevel = NAME_TO_LEVEL[loglevel.lower()]
++                except KeyError:
++                    raise ValueError(f"Invalid log level for logger {logger!r}: {loglevel!r}") from None
++            PER_LOGGER_LEVELS[logger] = loglevel
++
+     shared_pre_chain, for_stdlib, for_structlog = structlog_processors(
+         json_output,
+         log_format=log_format,
+@@ -646,7 +671,7 @@ def configure_logging(
+ 
+     import logging.config
+ 
+-    config = {**stdlib_config}
++    config = {}
+     config.setdefault("version", 1)
+     config.setdefault("disable_existing_loggers", False)
+     config["formatters"] = {**config.get("formatters", {})}
+@@ -700,6 +725,9 @@ def configure_logging(
+         "propagate": True,
+     }
+ 
++    # Merge stdlib_config into config and override existing values
++    update_config(config, stdlib_config)
++
+     logging.config.dictConfig(config)
+ 
+     if json_output:

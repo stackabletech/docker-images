@@ -9,7 +9,7 @@ use std::{
 use serde::Deserialize;
 use snafu::{ResultExt as _, Snafu, ensure};
 
-use crate::core::docker;
+use crate::core::docker::{self, BuildArguments};
 
 #[derive(Debug, PartialEq, Snafu)]
 pub enum ParseImageSelectorError {
@@ -37,13 +37,13 @@ impl FromStr for ImageSelector {
     type Err = ParseImageSelectorError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        // Get rid of any leading and traling whitespace
+        // Get rid of any leading and trailing whitespace
         let input = input.trim();
         ensure!(!input.is_empty(), EmptyInputSnafu);
 
         let parts: Vec<_> = input.split('=').collect();
 
-        // Ensure that the path/image name is not empty, doesn't contain '~', and is not abolute.
+        // Ensure that the path/image name is not empty, doesn't contain '~', and is not absolute.
         ensure!(!parts[0].is_empty(), InvalidFormatSnafu);
         ensure!(!parts[0].contains('~'), UnsupportedCharsSnafu);
         ensure!(!parts[0].starts_with('/'), AbsolutePathSnafu);
@@ -111,9 +111,14 @@ pub enum ImageConfigError {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct ImageConfig {
     #[serde(default)]
     pub metadata: ImageMetadata,
+
+    /// Shared build arguments across all versions, but can be overwritten on a image version level.
+    #[serde(default, deserialize_with = "docker::deserialize_args")]
+    pub build_arguments: BuildArguments,
 
     pub versions: ImageVersions,
 }
@@ -179,12 +184,12 @@ pub struct ImageVersionOptions {
 
     // NOTE (@Techassi): Potentially add a dependencies field here which will be automatically be
     // suffixed with _VERSION.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "docker::deserialize_args")]
     pub build_arguments: docker::BuildArguments,
 
     /// A custom path to a Dockerfile/Containerfile for a particular version of an image.
     ///
-    /// This is usefull for cases where the same image is being built differently depending on it's
+    /// This is useful for cases where the same image is being built differently depending on it's
     /// version and it is too difficult/messy to do it the same Dockerfile/Containerfile.
     #[serde(alias = "containerfile")]
     pub dockerfile: Option<PathBuf>,

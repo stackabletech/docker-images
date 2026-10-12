@@ -4,11 +4,131 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- zookeeper: Add 3.9.6 ([#1662]).
+- airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
+- nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
+- hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
+- trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
+- hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
+- hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
+- hive: Add `4.2.1` ([#1637]).
+- kafka: Add `4.3.1` ([#1659]).
+- stats-exporter: Add `0.31.0` ([#1664]).
+- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
+- opensearch: Add `3.8.0` ([#1669]).
+- opensearch: Add the `repository-azure` plugin ([#1689]).
+- opensearch-dashboards: Add `3.8.0` ([#1675]).
+- nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
+- nifi: Add `2.12.0` ([#1667]).
+- vector: Add `0.58.0` ([#1680]).
+
+### Changed
+
+- opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
+- opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- testing-tools: Pull `grpcurl` from our own mirror instead of directly from Docker Hub ([#1671]).
+- superset: change statsd-exporter to `0.31.0` ([#1673]).
+- vector: Build with `--locked` ([#1674]).
+- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
+- ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
+- java-devel: Pin `versions-maven-plugin` to `2.22.0` for `mvn versions:set`, `maven-help-plugin` to `3.5.2` for `mvn help:evaluate` and `maven-dependency-plugin` to `3.11.0` for `mvn dependency:get`, which otherwise resolve the latest release on every build unless the product POM pins them ([#1682]).
+- spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
+- airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
+- superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
+
+### Fixed
+
+- spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
+- superset: Fix the broken builds by excluding the `cypress-base` end-to-end test project from the frontend SBOM ([#1616]).
+- superset: Fix the broken 4.1.4 build by also excluding `packages/superset-ui-switchboard` from the frontend SBOM ([#1621]).
+- superset: Install nvm into `/opt/nvm` so that Node and npm, which are only needed to build the frontend, are no longer shipped in the final image (about 161 MB) ([#1623]).
+- vector: Generate the SBOM with the same feature set the binary is built with, so that the integrations that are not compiled in are no longer reported ([#1630]).
+- base images: Exclude the build-time dependencies from the Rust SBOMs ([#1630]).
+- kafka: Exclude the non-runtime configurations and the projects that are not shipped from the SBOM ([#1630]).
+- opensearch: Exclude the test framework, the test fixtures, the QA projects and the benchmarks from the SBOM of `3.1.0` ([#1630]).
+- opensearch: Restrict the SBOM of the Prometheus exporter to the runtime dependencies ([#1630]).
+- opensearch-dashboards: Pass `--required-only` to cdxgen ([#1630]). This turned out to have no
+  effect, see [#1635].
+- opensearch-dashboards: Pass `--type js` to cdxgen instead of the non-existing `--target` option.
+  cdxgen silently ignored it and auto-detected every ecosystem in the source tree, which added the
+  GitHub Actions workflows and the Gradle and Python files of the build tooling to the SBOM
+  ([#1635]).
+- kafka: Include the `releaseOnly` configuration in the SBOM of `4.1.1` and `4.2.1`. The `core` and
+  `tools` projects declare the Log4j runtime bindings there, so they were shipped in `libs/` without
+  being part of the SBOM ([#1635]).
+- kafka: Exclude the `generator`, integration test and Connect test plugin projects from the SBOM ([#1635]).
+- opensearch: Exclude the `build-tools` project and the remaining unshipped projects from the SBOM of `3.1.0` ([#1635]).
+- airflow, superset: Add the missing purls to all packages that are installed from a local wheel or
+  a direct URL, and normalize the names in the purls as defined in the Python packaging
+  specification ([#1635]).
+- hbase: Exclude the optional npm dependencies from the web UI SBOM ([#1630]).
+- airflow, superset: Create the Python SBOM from a separate environment, so that neither cyclonedx-bom nor its dependencies end up in the SBOM and in the image ([#1630]).
+- airflow, superset: Add the missing purl to the Airflow and Superset packages in the Python SBOM. They are installed from a locally built wheel, and without a purl they show up twice in the image SBOM ([#1630]).
+- opa, statsd-exporter: Detect the licenses of the Go dependencies ([#1639]).
+- opa, statsd-exporter: Report the Go dependencies at module level instead of package and file
+  level ([#1639]).
+- opensearch-dashboards: Generate the SBOM from the built distribution instead of the source
+  worktree, so dev dependencies are excluded ([#1663]).
+- opensearch-dashboards: Only read the package.json of installed packages when generating the SBOM.
+  The subpath stubs, test fixtures, benchmarks and examples that packages ship below their own
+  directory were reported as components that do not exist on npmjs, most of them without a version
+  ([#1670]).
+- hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
+  Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
+- nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
+
 ### Removed
 
+- zookeeper: Remove 3.9.4 ([#1662]).
+- hive: Remove `4.0.1` ([#1637]).
 - omid: remove 1.1.2 ([#1593]).
+- ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
+- kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
+- airflow: Remove `3.1.6` ([#1665]).
+- opensearch: Removed `3.4.0` ([#1669]).
+- superset: Remove `6.0.0` ([#1673]).
+- opensearch-dashboards: Remove `3.4.0` ([#1675]).
+- druid: Remove `30.0.1`, `35.0.1` ([#1677]).
+- nifi: Remove `2.7.2` ([#1667]).
+- vector: Remove `0.55.0` ([#1680]).
+- hadoop: Remove `3.4.2` ([#1683]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
+[#1595]: https://github.com/stackabletech/docker-images/pull/1595
+[#1596]: https://github.com/stackabletech/docker-images/pull/1596
+[#1600]: https://github.com/stackabletech/docker-images/pull/1600
+[#1611]: https://github.com/stackabletech/docker-images/pull/1611
+[#1616]: https://github.com/stackabletech/docker-images/pull/1616
+[#1620]: https://github.com/stackabletech/docker-images/pull/1620
+[#1621]: https://github.com/stackabletech/docker-images/pull/1621
+[#1623]: https://github.com/stackabletech/docker-images/pull/1623
+[#1630]: https://github.com/stackabletech/docker-images/pull/1630
+[#1635]: https://github.com/stackabletech/docker-images/pull/1635
+[#1636]: https://github.com/stackabletech/docker-images/pull/1636
+[#1637]: https://github.com/stackabletech/docker-images/pull/1637
+[#1639]: https://github.com/stackabletech/docker-images/pull/1639
+[#1659]: https://github.com/stackabletech/docker-images/pull/1659
+[#1662]: https://github.com/stackabletech/docker-images/pull/1662
+[#1663]: https://github.com/stackabletech/docker-images/pull/1663
+[#1664]: https://github.com/stackabletech/docker-images/pull/1664
+[#1665]: https://github.com/stackabletech/docker-images/pull/1665
+[#1667]: https://github.com/stackabletech/docker-images/pull/1667
+[#1669]: https://github.com/stackabletech/docker-images/pull/1669
+[#1670]: https://github.com/stackabletech/docker-images/pull/1670
+[#1671]: https://github.com/stackabletech/docker-images/pull/1671
+[#1673]: https://github.com/stackabletech/docker-images/pull/1673
+[#1674]: https://github.com/stackabletech/docker-images/pull/1674
+[#1675]: https://github.com/stackabletech/docker-images/pull/1675
+[#1676]: https://github.com/stackabletech/docker-images/pull/1676
+[#1677]: https://github.com/stackabletech/docker-images/pull/1677
+[#1680]: https://github.com/stackabletech/docker-images/pull/1680
+[#1681]: https://github.com/stackabletech/docker-images/pull/1681
+[#1682]: https://github.com/stackabletech/docker-images/pull/1682
+[#1683]: https://github.com/stackabletech/docker-images/pull/1683
+[#1686]: https://github.com/stackabletech/docker-images/pull/1686
+[#1689]: https://github.com/stackabletech/docker-images/pull/1689
 
 ## [26.7.0] - 2026-07-21
 
@@ -928,7 +1048,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove unsupported version 428 ([#687]).
 - nifi: Remove unsupported version 1.23.2 ([#744]).
 - kafka: Remove unsupported version `3.5.2` ([#745]).
-- airflow: Remove unsupprted version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
+- airflow: Remove unsupported version `2.7.2`, `2.7.3` and `2.8.3` ([#762]).
 - superset: Remove version `2.1.1`, `3.0.1` and `3.0.3` ([#768]).
 - druid: Remove support for 27.0.0 ([#731])
 - spark-k8s: Remove support for `3.4.1` and `3.5.0` ([#771]).

@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/statsd_exporter.git"
+base = "715f2b6565c491d017c1bf3b431e02d5515ffbf0"

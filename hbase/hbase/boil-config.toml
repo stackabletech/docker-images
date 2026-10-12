@@ -7,6 +7,10 @@ java-devel = "11"
 [versions."2.6.4".build-arguments]
 async-profiler-version = "2.9"
 delete-caches = "true"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"
 
 
 
@@ -19,3 +23,7 @@ java-devel = "11"
 [versions."2.6.6".build-arguments]
 async-profiler-version = "2.9"
 delete-caches = "true"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.0.1"

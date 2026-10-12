@@ -6,9 +6,11 @@ mod utils;
 
 use core::str;
 use std::{
+    cell::RefCell,
     fs::File,
     io::{IsTerminal, Write},
     path::PathBuf,
+    rc::Rc,
 };
 
 use git2::{Oid, Repository};
@@ -270,6 +272,8 @@ pub enum Error {
         source: std::io::Error,
         path: PathBuf,
     },
+    #[snafu(display("configuration already exists at {path:?}, delete it to re-run init"))]
+    VersionConfigExists { path: PathBuf },
 
     #[snafu(display("failed to rewrite URL for SSH"))]
     UrlRewrite { source: utils::UrlRewriteError },
@@ -286,6 +290,12 @@ pub enum Error {
         url: String,
         refspec: String,
         commit: Oid,
+    },
+    #[snafu(display("mirror {url:?} rejected the update of {reference}: {reason}"))]
+    MirrorRejectedPush {
+        url: String,
+        reference: String,
+        reason: String,
     },
 
     #[snafu(display("failed to find images repository"))]
@@ -330,13 +340,16 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[snafu::report]
 fn main() -> Result<()> {
+    // The fmt layer must write through the IndicatifLayer.
+    // Writing to stderr directly prints log lines on top of the progress bar without clearing it first.
+    let indicatif_layer = IndicatifLayer::new();
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::fmt::layer()
-                .with_ansi(std::io::stdout().is_terminal())
-                .with_writer(std::io::stderr),
+                .with_ansi(std::io::stderr().is_terminal())
+                .with_writer(indicatif_layer.get_stderr_writer()),
         )
-        .with(IndicatifLayer::new())
+        .with(indicatif_layer)
         .with(
             tracing_subscriber::EnvFilter::builder()
                 .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
@@ -566,6 +579,13 @@ fn main() -> Result<()> {
                 images_repo_root,
             };
 
+            // Checked before the fetch and the push, so that a re-run fails immediately instead of
+            // after mirroring.
+            let config_path = ctx.version_config_path();
+            if config_path.exists() {
+                return VersionConfigExistsSnafu { path: config_path }.fail();
+            }
+
             let product_repo_root = ctx.product_repo();
             let product_repo = tracing::info_span!(
                 "finding product repository",
@@ -589,34 +609,52 @@ fn main() -> Result<()> {
             tracing::info!(?base, base.commit = ?base_commit, "resolved base commit");
 
             let mirror_url = if mirror {
-                let mut mirror_url = config
+                let mirror_url = config
                     .default_mirror
                     .filter(|s| !s.is_empty())
                     .context(InitMirrorNotConfiguredSnafu)?;
-                if ssh {
-                    mirror_url =
-                        utils::rewrite_git_https_url_to_ssh(&mirror_url).context(UrlRewriteSnafu)?
+                // --ssh only picks a transport for this invocation.
+                // patchable.toml is shared with everyone else, including CI, so it keeps the URL
+                // from the product configuration.
+                // Otherwise it'd change it to a ssh:// URL which is not what we want.
+                let push_url = if ssh {
+                    utils::rewrite_git_https_url_to_ssh(&mirror_url).context(UrlRewriteSnafu)?
+                } else {
+                    mirror_url.clone()
                 };
                 // Add mirror remote
                 let mut mirror_remote =
                     product_repo
-                        .remote_anonymous(&mirror_url)
+                        .remote_anonymous(&push_url)
                         .context(AddMirrorRemoteSnafu {
-                            url: mirror_url.clone(),
+                            url: push_url.clone(),
                         })?;
 
                 // Push the base commit to the mirror
-                tracing::info!(commit = %base_commit, base = base, url = mirror_url, "pushing commit to mirror");
+                tracing::info!(commit = %base_commit, base = base, url = push_url, "pushing commit to mirror");
                 let mut callbacks = setup_git_credentials();
+
+                // libgit2 reports a refused reference through this callback rather than by failing
+                // the push, so without it a rejected push looks exactly like a successful one.
+                let rejection = Rc::new(RefCell::new(None));
+                let rejection_sink = Rc::clone(&rejection);
+                callbacks.push_update_reference(move |reference, status| {
+                    if let Some(status) = status {
+                        *rejection_sink.borrow_mut() =
+                            Some((reference.to_owned(), status.to_owned()));
+                    }
+                    Ok(())
+                });
 
                 // Add progress tracking for push operation
                 let (span_push, mut quant_push) =
                     utils::setup_progress_tracking(tracing::info_span!("pushing"));
-                let _ = span_push.enter();
+                let push_progress = span_push.clone();
+                let _span_push = span_push.entered();
 
                 callbacks.push_transfer_progress(move |current, total, _| {
                     if total > 0 {
-                        quant_push.update_span_progress(current, total, &span_push);
+                        quant_push.update_span_progress(current, total, &push_progress);
                     }
                 });
 
@@ -631,10 +669,19 @@ fn main() -> Result<()> {
                 mirror_remote
                     .push(&[&refspec], Some(&mut push_options))
                     .context(PushToMirrorSnafu {
-                        url: &mirror_url,
+                        url: &push_url,
                         refspec: &refspec,
                         commit: base_commit,
                     })?;
+
+                if let Some((reference, reason)) = rejection.take() {
+                    return MirrorRejectedPushSnafu {
+                        url: &push_url,
+                        reference,
+                        reason,
+                    }
+                    .fail();
+                }
 
                 tracing::info!("successfully pushed base ref to mirror");
                 Some(mirror_url)
@@ -650,7 +697,6 @@ fn main() -> Result<()> {
                 base: base_commit,
                 mirror: mirror_url,
             };
-            let config_path = ctx.version_config_path();
             if let Some(config_dir) = config_path.parent() {
                 std::fs::create_dir_all(config_dir)
                     .context(CreatePatchDirSnafu { path: config_dir })?;

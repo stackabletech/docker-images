@@ -7,7 +7,7 @@
 # The primary reason for this is that it made the release process unnecessary
 # chaotic. The RH tech portal is notoriously unstable, and in cases where it
 # failed to respond, a way to re-run the preflight checks was necessary.
-# But the preflight checks were trigerred only after a successful release
+# But the preflight checks were triggered only after a successful release
 # workflow, which it's self was only triggered by a new tag.
 #
 # As you can imagine, retagging this repository just to force a new round
@@ -81,7 +81,7 @@ jobs:
     env:
       GITHUB_REF_NAME: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
