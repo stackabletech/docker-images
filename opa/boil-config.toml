@@ -10,9 +10,9 @@ cyclonedx-gomod-version = "1.12.0"
 # Version 1.12.3
 [versions."1.12.3".local-images]
 stackable-devel = "1.0.0"
-vector = "0.55.0"
+vector = "0.58.0"
 
 # Version 1.16.2
 [versions."1.16.2".local-images]
 stackable-devel = "1.0.0"
-vector = "0.55.0"
+vector = "0.58.0"

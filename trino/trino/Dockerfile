@@ -30,7 +30,10 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 
 microdnf update
 microdnf install python3
@@ -51,14 +54,14 @@ cp -r /stackable/patched-libs/maven/* /root/.m2/repository
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
+# why someone would do that over just picking the version from the pom.xml, but they probably
 # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
 # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
 # smoke test checks that "select version()" is working.
@@ -66,7 +69,7 @@ tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
+git config user.name "Fake committer"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 

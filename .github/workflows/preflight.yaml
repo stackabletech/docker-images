@@ -7,7 +7,7 @@
 # The primary reason for this is that it made the release process unnecessary
 # chaotic. The RH tech portal is notoriously unstable, and in cases where it
 # failed to respond, a way to re-run the preflight checks was necessary.
-# But the preflight checks were trigerred only after a successful release
+# But the preflight checks were triggered only after a successful release
 # workflow, which it's self was only triggered by a new tag.
 #
 # As you can imagine, retagging this repository just to force a new round

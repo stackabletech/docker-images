@@ -33,7 +33,7 @@ EOF
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi9/ubi-minimal --format '{{json .Manifest.Digest}}'
 #
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1bc3c5c15720506a0cf48adfdf8b623dfe704377e007d7bbae8d14876392ca6a AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:5ed244b62bbf4095080144d9d35eb8fcd3d39a9801f94aadd63b9d10978a01ae AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -192,7 +192,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.s
 
 ENV PATH="${PATH}:/stackable"
 
-# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# These labels have mostly been superseded by the OpenContainer spec annotations below but it doesn't hurt to include them
 # http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"

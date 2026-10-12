@@ -1,0 +1,404 @@
+From 7487b9ea17719b795c752f5cbd9ccd3acdcabd83 Mon Sep 17 00:00:00 2001
+From: Fabian Grosch <grosch.fabian@outlook.de>
+Date: Tue, 6 Oct 2026 17:33:25 +0200
+Subject: NIFI-16431 Allow HashiCorp Vault Parameter Provider to list secrets
+ under a path prefix (#11763)
+
+---
+ .../HashiCorpVaultCommunicationService.java   |  15 ++
+ ...ardHashiCorpVaultCommunicationService.java |  14 +-
+ ...ardHashiCorpVaultCommunicationService.java | 146 ++++++++++++++++++
+ .../HashiCorpVaultParameterProvider.java      |  11 +-
+ .../TestHashiCorpVaultParameterProvider.java  |  62 +++++++-
+ 5 files changed, 241 insertions(+), 7 deletions(-)
+
+diff --git a/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
+index 33ab496f66..e2aa4fa709 100644
+--- a/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
++++ b/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
+@@ -114,4 +114,19 @@ public interface HashiCorpVaultCommunicationService {
+      * @return The list of secret names
+      */
+     List<String> listKeyValueSecrets(String keyValuePath, String version);
++
++    /**
++     * Lists the secrets under the given path in the Key/Value Secrets Engine.
++     * @param keyValuePath The mount path of the Key/Value Secrets Engine
++     * @param version the Key/Value Secrets engine version
++     * @param secretPathPrefix The path within the Key/Value Secrets Engine mount to list
++     * @return The list of secret names
++     * @throws UnsupportedOperationException if a non-empty prefix is not supported by the implementation
++     */
++    default List<String> listKeyValueSecrets(final String keyValuePath, final String version, final String secretPathPrefix) {
++        if (secretPathPrefix == null || secretPathPrefix.isEmpty()) {
++            return listKeyValueSecrets(keyValuePath, version);
++        }
++        throw new UnsupportedOperationException("Secret path prefixes are not supported by this implementation");
++    }
+ }
+diff --git a/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
+index 48c5cb1135..38adf4c17e 100644
+--- a/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
++++ b/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
+@@ -174,8 +174,20 @@ public class StandardHashiCorpVaultCommunicationService implements HashiCorpVaul
+ 
+     @Override
+     public List<String> listKeyValueSecrets(final String keyValuePath, final String version) {
++        return listKeyValueSecrets(keyValuePath, version, "");
++    }
++
++    @Override
++    public List<String> listKeyValueSecrets(final String keyValuePath, final String version, final String secretPathPrefix) {
+         final VaultKeyValueOperations keyValueOperations = vaultTemplate.opsForKeyValue(keyValuePath, KeyValueBackend.valueOf(version));
+-        return listKeyValueSecrets(keyValueOperations, "");
++        String path = secretPathPrefix == null ? "" : secretPathPrefix;
++        if (path.startsWith("/")) {
++            path = path.substring(1);
++        }
++        if (!path.isEmpty() && !path.endsWith("/")) {
++            path = path + "/";
++        }
++        return listKeyValueSecrets(keyValueOperations, path);
+     }
+ 
+     private List<String> listKeyValueSecrets(final VaultKeyValueOperations keyValueOperations, final String path) {
+diff --git a/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
+index e013449a98..0bb64ccdb9 100644
+--- a/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
++++ b/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
+@@ -20,7 +20,10 @@ import org.apache.nifi.vault.hashicorp.config.HashiCorpVaultProperties;
+ import org.junit.jupiter.api.AfterEach;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.EnumSource;
+ import org.mockito.Mockito;
++import org.springframework.vault.VaultException;
+ import org.springframework.vault.core.VaultKeyValueOperations;
+ import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
+ import org.springframework.vault.core.VaultTemplate;
+@@ -34,6 +37,10 @@ import java.util.List;
+ import java.util.Optional;
+ 
+ import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertThrows;
++import static org.mockito.ArgumentMatchers.anyString;
++import static org.mockito.ArgumentMatchers.eq;
++import static org.mockito.Mockito.doCallRealMethod;
+ import static org.mockito.Mockito.when;
+ 
+ public class TestStandardHashiCorpVaultCommunicationService {
+@@ -62,6 +69,17 @@ public class TestStandardHashiCorpVaultCommunicationService {
+         return new StandardHashiCorpVaultCommunicationService(properties);
+     }
+ 
++    @Test
++    public void testDefaultSecretPathPrefixMethodPreservesExistingImplementations() {
++        final HashiCorpVaultCommunicationService communicationService = Mockito.mock(HashiCorpVaultCommunicationService.class);
++        when(communicationService.listKeyValueSecrets("kv", KeyValueBackend.KV_1.name())).thenReturn(List.of("secret"));
++        doCallRealMethod().when(communicationService).listKeyValueSecrets(eq("kv"), eq(KeyValueBackend.KV_1.name()), anyString());
++
++        assertEquals(List.of("secret"), communicationService.listKeyValueSecrets("kv", KeyValueBackend.KV_1.name(), ""));
++        assertThrows(UnsupportedOperationException.class,
++                () -> communicationService.listKeyValueSecrets("kv", KeyValueBackend.KV_1.name(), "nested"));
++    }
++
+     @Test
+     public void testBasicConfiguration() throws Exception {
+         try (StandardHashiCorpVaultCommunicationService ignored = this.configureService()) {
+@@ -107,4 +125,132 @@ public class TestStandardHashiCorpVaultCommunicationService {
+             assertEquals(Arrays.asList("test", "nested/nifi"), secrets);
+         }
+     }
++
++    @ParameterizedTest
++    @EnumSource(KeyValueBackend.class)
++    public void testListKeyValueSecretsStartsAtSecretPathPrefix(final KeyValueBackend backend) throws Exception {
++        when(properties.getKvVersion()).thenReturn(backend == KeyValueBackend.KV_1 ? 1 : 2);
++
++        try (StandardHashiCorpVaultCommunicationService service = this.configureService()) {
++
++            final VaultTemplate vaultTemplate = Mockito.mock(VaultTemplate.class);
++            final VaultKeyValueOperations keyValueOperations = Mockito.mock(VaultKeyValueOperations.class);
++
++            final Field vaultTemplateField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("vaultTemplate");
++            vaultTemplateField.setAccessible(true);
++            vaultTemplateField.set(service, vaultTemplate);
++
++            final Field keyValueBackendField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("keyValueBackend");
++            keyValueBackendField.setAccessible(true);
++            final KeyValueBackend keyValueBackend = (KeyValueBackend) keyValueBackendField.get(service);
++
++            when(vaultTemplate.opsForKeyValue("kv", keyValueBackend)).thenReturn(keyValueOperations);
++            when(keyValueOperations.list("groups/my-group/")).thenReturn(Arrays.asList("app", "nested/"));
++            when(keyValueOperations.list("groups/my-group/nested/")).thenReturn(List.of("nifi"));
++
++            final List<String> secrets = service.listKeyValueSecrets("kv", keyValueBackend.name(), "groups/my-group");
++            assertEquals(Arrays.asList("groups/my-group/app", "groups/my-group/nested/nifi"), secrets);
++            Mockito.verify(keyValueOperations, Mockito.never()).list("/");
++            Mockito.verify(keyValueOperations, Mockito.never()).list("groups/");
++            Mockito.verify(keyValueOperations).list("groups/my-group/");
++            Mockito.verify(keyValueOperations).list("groups/my-group/nested/");
++            Mockito.verifyNoMoreInteractions(keyValueOperations);
++        }
++    }
++
++    @ParameterizedTest
++    @EnumSource(KeyValueBackend.class)
++    public void testListKeyValueSecretsNormalizesSecretPathPrefixSlashes(final KeyValueBackend backend) throws Exception {
++        when(properties.getKvVersion()).thenReturn(backend == KeyValueBackend.KV_1 ? 1 : 2);
++
++        try (StandardHashiCorpVaultCommunicationService service = this.configureService()) {
++
++            final VaultTemplate vaultTemplate = Mockito.mock(VaultTemplate.class);
++            final VaultKeyValueOperations keyValueOperations = Mockito.mock(VaultKeyValueOperations.class);
++
++            final Field vaultTemplateField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("vaultTemplate");
++            vaultTemplateField.setAccessible(true);
++            vaultTemplateField.set(service, vaultTemplate);
++
++            final Field keyValueBackendField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("keyValueBackend");
++            keyValueBackendField.setAccessible(true);
++            final KeyValueBackend keyValueBackend = (KeyValueBackend) keyValueBackendField.get(service);
++
++            when(vaultTemplate.opsForKeyValue("kv", keyValueBackend)).thenReturn(keyValueOperations);
++            when(keyValueOperations.list("groups/my-group/")).thenReturn(List.of("app"));
++
++            for (final String prefix : List.of("groups/my-group", "groups/my-group/", "/groups/my-group", "/groups/my-group/")) {
++                assertEquals(List.of("groups/my-group/app"), service.listKeyValueSecrets("kv", keyValueBackend.name(), prefix));
++            }
++        }
++    }
++
++    @Test
++    public void testListKeyValueSecretsBlankSecretPathPrefixListsRoot() throws Exception {
++        try (StandardHashiCorpVaultCommunicationService service = this.configureService()) {
++
++            final VaultTemplate vaultTemplate = Mockito.mock(VaultTemplate.class);
++            final VaultKeyValueOperations keyValueOperations = Mockito.mock(VaultKeyValueOperations.class);
++
++            final Field vaultTemplateField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("vaultTemplate");
++            vaultTemplateField.setAccessible(true);
++            vaultTemplateField.set(service, vaultTemplate);
++
++            final Field keyValueBackendField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("keyValueBackend");
++            keyValueBackendField.setAccessible(true);
++            final KeyValueBackend keyValueBackend = (KeyValueBackend) keyValueBackendField.get(service);
++
++            when(vaultTemplate.opsForKeyValue("kv", keyValueBackend)).thenReturn(keyValueOperations);
++            when(keyValueOperations.list("/")).thenReturn(List.of("test"));
++
++            assertEquals(List.of("test"), service.listKeyValueSecrets("kv", keyValueBackend.name(), null));
++            assertEquals(List.of("test"), service.listKeyValueSecrets("kv", keyValueBackend.name(), ""));
++            assertEquals(List.of("test"), service.listKeyValueSecrets("kv", keyValueBackend.name(), "/"));
++        }
++    }
++
++    @Test
++    public void testListKeyValueSecretsMissingSecretPathPrefixReturnsEmpty() throws Exception {
++        try (StandardHashiCorpVaultCommunicationService service = this.configureService()) {
++
++            final VaultTemplate vaultTemplate = Mockito.mock(VaultTemplate.class);
++            final VaultKeyValueOperations keyValueOperations = Mockito.mock(VaultKeyValueOperations.class);
++
++            final Field vaultTemplateField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("vaultTemplate");
++            vaultTemplateField.setAccessible(true);
++            vaultTemplateField.set(service, vaultTemplate);
++
++            final Field keyValueBackendField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("keyValueBackend");
++            keyValueBackendField.setAccessible(true);
++            final KeyValueBackend keyValueBackend = (KeyValueBackend) keyValueBackendField.get(service);
++
++            when(vaultTemplate.opsForKeyValue("kv", keyValueBackend)).thenReturn(keyValueOperations);
++            when(keyValueOperations.list("groups/unknown/")).thenReturn(null);
++
++            assertEquals(List.of(), service.listKeyValueSecrets("kv", keyValueBackend.name(), "groups/unknown"));
++        }
++    }
++
++    @Test
++    public void testListKeyValueSecretsDeniedSecretPathPrefixDoesNotFallBackToRoot() throws Exception {
++        try (StandardHashiCorpVaultCommunicationService service = this.configureService()) {
++            final VaultTemplate vaultTemplate = Mockito.mock(VaultTemplate.class);
++            final VaultKeyValueOperations keyValueOperations = Mockito.mock(VaultKeyValueOperations.class);
++
++            final Field vaultTemplateField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("vaultTemplate");
++            vaultTemplateField.setAccessible(true);
++            vaultTemplateField.set(service, vaultTemplate);
++
++            final Field keyValueBackendField = StandardHashiCorpVaultCommunicationService.class.getDeclaredField("keyValueBackend");
++            keyValueBackendField.setAccessible(true);
++            final KeyValueBackend keyValueBackend = (KeyValueBackend) keyValueBackendField.get(service);
++
++            when(vaultTemplate.opsForKeyValue("kv", keyValueBackend)).thenReturn(keyValueOperations);
++            when(keyValueOperations.list("groups/my-group/")).thenThrow(new VaultException("Permission denied"));
++
++            assertThrows(VaultException.class, () -> service.listKeyValueSecrets("kv", keyValueBackend.name(), "groups/my-group"));
++            Mockito.verify(keyValueOperations).list("groups/my-group/");
++            Mockito.verifyNoMoreInteractions(keyValueOperations);
++        }
++    }
+ }
+diff --git a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
+index 0d9f44a51a..5544ff2188 100644
+--- a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
++++ b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
+@@ -70,6 +70,13 @@ public class HashiCorpVaultParameterProvider extends AbstractParameterProvider i
+             .allowableValues(KV_1, KV_2)
+             .defaultValue(KV_1)
+             .build();
++    public static final PropertyDescriptor SECRET_PATH_PREFIX = new PropertyDescriptor.Builder()
++            .name("secret-path-prefix")
++            .displayName("Secret Path Prefix")
++            .description("Optional path prefix relative to the Key/Value Secrets Engine mount. When set, only secrets under this path are listed (for example, 'nested/path').")
++            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
++            .required(false)
++            .build();
+     public static final PropertyDescriptor SECRET_NAME_PATTERN = new PropertyDescriptor.Builder()
+             .name("secret-name-pattern")
+             .displayName("Secret Name Pattern")
+@@ -83,6 +90,7 @@ public class HashiCorpVaultParameterProvider extends AbstractParameterProvider i
+             VAULT_CLIENT_SERVICE,
+             KV_PATH,
+             KV_VERSION,
++            SECRET_PATH_PREFIX,
+             SECRET_NAME_PATTERN
+     );
+ 
+@@ -104,8 +112,9 @@ public class HashiCorpVaultParameterProvider extends AbstractParameterProvider i
+                                                             final ConfigurationContext context) {
+         final String kvPath = context.getProperty(KV_PATH).getValue();
+         final String kvVersion = context.getProperty(KV_VERSION).getValue();
++        final String secretPathPrefix = context.getProperty(SECRET_PATH_PREFIX).getValue();
+         final String secretIncludeRegex = context.getProperty(SECRET_NAME_PATTERN).getValue();
+-        final List<String> allSecretNames = vaultCommunicationService.listKeyValueSecrets(kvPath, kvVersion);
++        final List<String> allSecretNames = vaultCommunicationService.listKeyValueSecrets(kvPath, kvVersion, secretPathPrefix);
+         final List<String> secretNames = allSecretNames.stream()
+                 .filter(name -> name.matches(secretIncludeRegex))
+                 .collect(Collectors.toList());
+diff --git a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
+index 023152a95c..9ba2d98b88 100644
+--- a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
++++ b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
+@@ -52,6 +52,8 @@ public class TestHashiCorpVaultParameterProvider {
+ 
+     private List<ParameterGroup> mockedGroups;
+ 
++    private String mockedSecretPathPrefix;
++
+     @BeforeEach
+     public void init() {
+         vaultCommunicationService = mock(HashiCorpVaultCommunicationService.class);
+@@ -67,6 +69,7 @@ public class TestHashiCorpVaultParameterProvider {
+                 return mock(ComponentLog.class);
+             }
+         };
++        mockedSecretPathPrefix = "";
+         mockedGroups = new ArrayList<>();
+         mockedGroups.add(new ParameterGroup("groupA", Arrays.asList(
+                 createParameter("paramA", "valueA"),
+@@ -85,12 +88,13 @@ public class TestHashiCorpVaultParameterProvider {
+     @Test
+     public void testFetchParameters() {
+         final String kvVersion = "KV_1";
+-        mockSecrets("kv2", kvVersion, mockedGroups);
++        mockSecrets("kv2", kvVersion, mockedSecretPathPrefix, mockedGroups);
+ 
+         final Map<PropertyDescriptor, String> properties = new HashMap<>();
+         properties.put(HashiCorpVaultParameterProvider.KV_PATH, "kv2");
+         properties.put(HashiCorpVaultParameterProvider.KV_VERSION, kvVersion);
+         properties.put(HashiCorpVaultParameterProvider.VAULT_CLIENT_SERVICE, "service");
++        properties.put(HashiCorpVaultParameterProvider.SECRET_PATH_PREFIX, mockedSecretPathPrefix);
+         properties.put(HashiCorpVaultParameterProvider.SECRET_NAME_PATTERN, ".*");
+         final ConfigurationContext context = mockContext(properties);
+ 
+@@ -104,12 +108,13 @@ public class TestHashiCorpVaultParameterProvider {
+     @Test
+     public void testFetchParametersSecretRegex() {
+         final String kvVersion = "KV_2";
+-        mockSecrets("kv2", kvVersion, mockedGroups);
++        mockSecrets("kv2", kvVersion, mockedSecretPathPrefix, mockedGroups);
+ 
+         final Map<PropertyDescriptor, String> properties = new HashMap<>();
+         properties.put(HashiCorpVaultParameterProvider.KV_PATH, "kv2");
+         properties.put(HashiCorpVaultParameterProvider.KV_VERSION, kvVersion);
+         properties.put(HashiCorpVaultParameterProvider.VAULT_CLIENT_SERVICE, "service");
++        properties.put(HashiCorpVaultParameterProvider.SECRET_PATH_PREFIX, mockedSecretPathPrefix);
+         properties.put(HashiCorpVaultParameterProvider.SECRET_NAME_PATTERN, ".*A");
+         final ConfigurationContext context = mockContext(properties);
+ 
+@@ -120,15 +125,62 @@ public class TestHashiCorpVaultParameterProvider {
+         });
+     }
+ 
++    @Test
++    public void testFetchParametersSecretPathPrefix() {
++        final String kvVersion = "KV_2";
++        final String secretPathPrefix = "groups/my-group";
++        final List<ParameterGroup> prefixedGroups = Arrays.asList(
++                new ParameterGroup("groups/my-group/app", List.of(createParameter("paramA", "valueA"))),
++                new ParameterGroup("groups/my-group/nested/nifi", List.of(createParameter("paramB", "valueB"))));
++        mockSecrets("kv", kvVersion, secretPathPrefix, prefixedGroups);
++
++        final Map<PropertyDescriptor, String> properties = new HashMap<>();
++        properties.put(HashiCorpVaultParameterProvider.KV_PATH, "kv");
++        properties.put(HashiCorpVaultParameterProvider.KV_VERSION, kvVersion);
++        properties.put(HashiCorpVaultParameterProvider.VAULT_CLIENT_SERVICE, "service");
++        properties.put(HashiCorpVaultParameterProvider.SECRET_PATH_PREFIX, secretPathPrefix);
++        properties.put(HashiCorpVaultParameterProvider.SECRET_NAME_PATTERN, ".*");
++        final ConfigurationContext context = mockContext(properties);
++
++        final List<ParameterGroup> results = parameterProvider.fetchParameters(context);
++
++        assertEquals(List.of("groups/my-group/app", "groups/my-group/nested/nifi"),
++                results.stream().map(ParameterGroup::getGroupName).collect(Collectors.toList()));
++    }
++
++    @Test
++    public void testFetchParametersSecretPathPrefixWithSecretRegex() {
++        final String kvVersion = "KV_2";
++        final String secretPathPrefix = "groups/my-group";
++        final List<ParameterGroup> prefixedGroups = Arrays.asList(
++                new ParameterGroup("groups/my-group/app", List.of(createParameter("paramA", "valueA"))),
++                new ParameterGroup("groups/my-group/nested/nifi", List.of(createParameter("paramB", "valueB"))));
++        mockSecrets("kv", kvVersion, secretPathPrefix, prefixedGroups);
++
++        final Map<PropertyDescriptor, String> properties = new HashMap<>();
++        properties.put(HashiCorpVaultParameterProvider.KV_PATH, "kv");
++        properties.put(HashiCorpVaultParameterProvider.KV_VERSION, kvVersion);
++        properties.put(HashiCorpVaultParameterProvider.VAULT_CLIENT_SERVICE, "service");
++        properties.put(HashiCorpVaultParameterProvider.SECRET_PATH_PREFIX, secretPathPrefix);
++        properties.put(HashiCorpVaultParameterProvider.SECRET_NAME_PATTERN, ".*/nested/.*");
++        final ConfigurationContext context = mockContext(properties);
++
++        final List<ParameterGroup> results = parameterProvider.fetchParameters(context);
++
++        assertEquals(List.of("groups/my-group/nested/nifi"),
++                results.stream().map(ParameterGroup::getGroupName).collect(Collectors.toList()));
++    }
++
+     @Test
+     public void testVerifyParameters() {
+         final String kvVersion = "KV_1";
+-        mockSecrets("kv2", kvVersion, mockedGroups);
++        mockSecrets("kv2", kvVersion, mockedSecretPathPrefix, mockedGroups);
+ 
+         final Map<PropertyDescriptor, String> properties = new HashMap<>();
+         properties.put(HashiCorpVaultParameterProvider.KV_PATH, "kv2");
+         properties.put(HashiCorpVaultParameterProvider.KV_VERSION, kvVersion);
+         properties.put(HashiCorpVaultParameterProvider.VAULT_CLIENT_SERVICE, "service");
++        properties.put(HashiCorpVaultParameterProvider.SECRET_PATH_PREFIX, mockedSecretPathPrefix);
+         properties.put(HashiCorpVaultParameterProvider.SECRET_NAME_PATTERN, ".*");
+         final ConfigurationContext context = mockContext(properties);
+ 
+@@ -151,8 +203,8 @@ public class TestHashiCorpVaultParameterProvider {
+         lenient().when(context.getProperty(descriptor)).thenReturn(propertyValue);
+     }
+ 
+-    private void mockSecrets(final String kvPath, final String kvVersion, final List<ParameterGroup> parameterGroups) {
+-        when(vaultCommunicationService.listKeyValueSecrets(kvPath, kvVersion))
++    private void mockSecrets(final String kvPath, final String kvVersion, final String secretPathPrefix, final List<ParameterGroup> parameterGroups) {
++        when(vaultCommunicationService.listKeyValueSecrets(kvPath, kvVersion, secretPathPrefix))
+                 .thenReturn(parameterGroups.stream().map(group -> group.getGroupName()).collect(Collectors.toList()));
+         for (final ParameterGroup parameterGroup : parameterGroups) {
+             final Map<String, String> keyValues = parameterGroup.getParameters().stream()

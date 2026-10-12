@@ -37,13 +37,13 @@ impl FromStr for ImageSelector {
     type Err = ParseImageSelectorError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        // Get rid of any leading and traling whitespace
+        // Get rid of any leading and trailing whitespace
         let input = input.trim();
         ensure!(!input.is_empty(), EmptyInputSnafu);
 
         let parts: Vec<_> = input.split('=').collect();
 
-        // Ensure that the path/image name is not empty, doesn't contain '~', and is not abolute.
+        // Ensure that the path/image name is not empty, doesn't contain '~', and is not absolute.
         ensure!(!parts[0].is_empty(), InvalidFormatSnafu);
         ensure!(!parts[0].contains('~'), UnsupportedCharsSnafu);
         ensure!(!parts[0].starts_with('/'), AbsolutePathSnafu);

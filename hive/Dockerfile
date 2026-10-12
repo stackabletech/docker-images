@@ -54,7 +54,7 @@ cd "$BUILD_SRC_DIR"
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 # generateBackupPoms=false is needed for the Hive 4.0.0 build to succeed, otherwise it fails with the obscure reason: `Too many files with unapproved license`
-mvn versions:set -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -DgenerateBackupPoms=false
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -DgenerateBackupPoms=false
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hive-${NEW_VERSION}-src.tar.gz .

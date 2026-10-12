@@ -2,7 +2,9 @@
 # check=error=true
 
 ARG GRPCURL_VERSION
-FROM fullstorydev/grpcurl:v${GRPCURL_VERSION} AS grpcurl
+# Mirrored from registry-1.docker.io/fullstorydev/grpcurl via .github/workflows/mirror.yaml.
+# For updated versions check https://github.com/fullstorydev/grpcurl/releases
+FROM oci.stackable.tech/sdp/fullstorydev/grpcurl:v${GRPCURL_VERSION} AS grpcurl
 
 # Find the latest version:
 #

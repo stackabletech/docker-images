@@ -133,7 +133,7 @@ class OpaFabAuthManager(FabAuthManager, LoggingMixin):
         """
         Send a POST request to OPA.
 
-        This function can be overriden in tests.
+        This function can be overridden in tests.
 
         :param url: URL for the OPA rule
         :param json: json to send in the body

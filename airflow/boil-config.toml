@@ -4,7 +4,7 @@
 # Deprecated since SDP 25.11
 [versions."2.9.3".local-images]
 "shared/statsd-exporter" = "0.31.0"
-vector = "0.55.0"
+vector = "0.58.0"
 stackable-devel = "1.0.0"
 
 [versions."2.9.3".build-arguments]
@@ -44,7 +44,7 @@ nodejs-version = "22"
 # LTS
 [versions."3.0.6".local-images]
 "shared/statsd-exporter" = "0.31.0"
-vector = "0.55.0"
+vector = "0.58.0"
 stackable-devel = "1.0.0"
 
 [versions."3.0.6".build-arguments]
@@ -105,7 +105,7 @@ nodejs-version = "22"
 # Deprecated
 [versions."3.2.2".local-images]
 "shared/statsd-exporter" = "0.31.0"
-vector = "0.55.0"
+vector = "0.58.0"
 stackable-devel = "1.0.0"
 
 [versions."3.2.2".build-arguments]
@@ -166,7 +166,7 @@ nodejs-version = "22"
 # Supported
 [versions."3.3.1".local-images]
 "shared/statsd-exporter" = "0.31.0"
-vector = "0.55.0"
+vector = "0.58.0"
 stackable-devel = "1.0.0"
 
 [versions."3.3.1".build-arguments]
