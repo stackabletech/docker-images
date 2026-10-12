@@ -108,25 +108,23 @@ mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trin
   export PATH="/opt/node-cdxgen/bin:$PATH"
   WEB_UI="core/trino-web-ui/src/main/resources"
 
-  # cdxgen resolves the dependency tree from the lockfile, and returns nothing at all when a
-  # project has both a package-lock.json and a yarn.lock, which webapp/src does. Copying just the
-  # manifest and the npm lockfile into a scratch directory avoids that.
+  # Copy just the manifest and the bun lockfile into a scratch directory.
   # --required-only keeps what the lockfile marks as non-dev.
   # --no-babel disables the usage analysis, which would otherwise mark every package that is not
   #   imported directly as optional and thereby drop genuine transitive runtime dependencies.
   # --project-version is passed because the frontends declare a placeholder version upstream, and
   #   --project-name because cdxgen otherwise names the root component after the scratch directory.
-  for FRONTEND in "webapp/src:trino-web-ui" "webapp-preview:trino-web-ui-preview"; do
+  for FRONTEND in "webapp:trino-web-ui" "webapp-legacy/src:trino-web-ui-legacy"; do
     SOURCE="${WEB_UI}/${FRONTEND%%:*}"
     NAME="${FRONTEND##*:}"
 
     SCRATCH="$(mktemp --directory)"
-    cp "${SOURCE}/package.json" "${SOURCE}/package-lock.json" "${SCRATCH}/"
+    cp "${SOURCE}/package.json" "${SOURCE}/bun.lock" "${SCRATCH}/"
 
     (
       cd "${SCRATCH}"
       cdxgen \
-        --type js \
+        --type bun \
         --required-only \
         --no-babel \
         --spec-version "${CDXGEN_SPEC_VERSION}" \

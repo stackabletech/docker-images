@@ -1,3 +1,6 @@
+[versions."477"]
+containerfile = "Dockerfile.legacy"
+
 [versions."477".local-images]
 java-devel = "24" # Same version as the "trino" image
 "trino/airlift" = "361" # https://github.com/trinodb/trino/blob/477/pom.xml#L184 (dep.airlift.version)
@@ -7,6 +10,9 @@ java-devel = "24" # Same version as the "trino" image
 # Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
 # renovate: datasource=npm packageName=@cdxgen/cdxgen
 cdxgen-version = "13.0.1"
+
+[versions."481"]
+containerfile = "Dockerfile.legacy"
 
 [versions."481".local-images]
 java-devel = "25" # Same version as the "trino" image
