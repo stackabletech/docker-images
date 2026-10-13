@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
 - vector: Add `0.58.0` ([#1680]).
-- opa: Add 1.20.2, remove 1.12.3 ([#1697]).
+- opa: Add 1.20.2
 
 ### Changed
 
@@ -96,6 +96,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.7.2` ([#1667]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
+- opa: Remove 1.12.3 ([#1697]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
