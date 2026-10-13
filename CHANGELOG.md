@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
 - vector: Add `0.58.0` ([#1680], [#1693]).
+- vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
+  the interpolation of environment variables in the Vector configuration files ([#1693]).
 
 ### Changed
 

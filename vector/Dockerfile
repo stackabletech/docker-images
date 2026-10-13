@@ -126,6 +126,7 @@ ARG STACKABLE_USER_UID
 LABEL maintainer="Stackable GmbH"
 
 COPY --chown=${STACKABLE_USER_UID}:0 vector/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 vector/stackable/bin /stackable/bin
 COPY --from=vector-builder --chown=${STACKABLE_USER_UID}:0 /app/* /usr/local/bin/
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.
