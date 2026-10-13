@@ -41,7 +41,7 @@ USER ${STACKABLE_USER_UID}
 # Packages are intentionally installed in "user mode" to reduce the container attack surface.
 # - pyspark[connect] = spark connect client libs
 # - jupyterlab = notebook client used in demos
-# - pyarrow < 26 = pyarrow 26 requires NumPy < 2, but scikit-learn 1.3.1 requires
+# - pyarrow < 26 = pyarrow 26 requires NumPy >= 2, but scikit-learn 1.3.1 requires
 #   NumPy 1.x. pyarrow does not declare NumPy as a dependency, thus pip cannot detect the conflict
 #   and the client fails at runtime when creating a Spark Connect session.
 RUN pip install --no-cache-dir --user \
