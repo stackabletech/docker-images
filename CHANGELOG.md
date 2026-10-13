@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
 - vector: Add `0.58.0` ([#1680]).
+- opa: Add 1.20.2, remove 1.12.3 ([#1697]).
 
 ### Changed
 
@@ -37,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
 - airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
 - superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
+- opa: update golang to 1.27.1 ([#1697]).
 
 ### Fixed
 
@@ -129,6 +131,7 @@ All notable changes to this project will be documented in this file.
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1697]: https://github.com/stackabletech/docker-images/pull/1697
 
 ## [26.7.0] - 2026-07-21
 
