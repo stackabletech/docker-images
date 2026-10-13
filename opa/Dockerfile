@@ -2,7 +2,7 @@
 # check=error=true;skip=InvalidDefaultArgInFrom
 
 ARG GOLANG_VERSION
-FROM oci.stackable.tech/sdp/library/golang:${GOLANG_VERSION} AS golang-image
+FROM oci.stackable.tech/stackable/library/golang:${GOLANG_VERSION} AS golang-image
 
 FROM local-image/stackable-devel AS multilog-builder
 
