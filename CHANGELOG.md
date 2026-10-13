@@ -25,6 +25,9 @@ All notable changes to this project will be documented in this file.
 - hbase: Add `3.0.0` as an experimental version, with `hbase-opa-authorizer` `1.0.0`.
   It does not include Phoenix (no HBase 3.x support yet) ([#1678]).
 - vector: Add `0.58.0` ([#1680]).
+- trino: Add `483` ([#1690]).
+- trino-cli: Add `483` ([#1690]).
+- opa: Add 1.20.2 ([#1697]).
 
 ### Changed
 
@@ -39,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
 - airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
 - superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
+- opa: update golang to 1.27.1 ([#1697]).
 
 ### Fixed
 
@@ -97,6 +101,9 @@ All notable changes to this project will be documented in this file.
 - hbase: Remove `2.6.4` ([#1678]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
+- trino: Remove `479` ([#1690]).
+- trino-cli: Remove `481` ([#1690]).
+- opa: Remove 1.12.3 ([#1697]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -133,6 +140,8 @@ All notable changes to this project will be documented in this file.
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1690]: https://github.com/stackabletech/docker-images/pull/1690
+[#1697]: https://github.com/stackabletech/docker-images/pull/1697
 
 ## [26.7.0] - 2026-07-21
 
