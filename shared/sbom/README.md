@@ -6,7 +6,9 @@ trivy do not see them. The libraries ship in our images and appear in no SBOM.
 
 The fix is a hand-written manifest per product version:
 
-    <product>/stackable/vendored-js/<version>.json
+```text
+<product>/stackable/vendored-js/<version>.json
+```
 
 The build turns it into a CycloneDX SBOM and fails if the source tree and the manifest disagree.
 
