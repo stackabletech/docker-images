@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
 - nifi: Add `2.12.0` ([#1667]).
 - vector: Add `0.58.0` ([#1680]).
+- trino: Add `483` ([#1690]).
+- trino-cli: Add `483` ([#1690]).
 - opa: Add 1.20.2 ([#1697]).
 
 ### Changed
@@ -96,6 +98,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.7.2` ([#1667]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
+- trino: Remove `479` ([#1690]).
+- trino-cli: Remove `481` ([#1690]).
 - opa: Remove 1.12.3 ([#1697]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -132,6 +136,7 @@ All notable changes to this project will be documented in this file.
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1690]: https://github.com/stackabletech/docker-images/pull/1690
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
 
 ## [26.7.0] - 2026-07-21
