@@ -2,7 +2,7 @@
 "oci.stackable.tech" = { namespace = "sdp" }
 
 [build-arguments]
-golang-version = "1.26.0"
+golang-version = "1.27.1"
 # Find the latest version here: https://github.com/CycloneDX/cyclonedx-gomod/releases
 # renovate: datasource=github-releases packageName=CycloneDX/cyclonedx-gomod
 cyclonedx-gomod-version = "1.12.0"
