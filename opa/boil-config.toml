@@ -7,7 +7,6 @@ golang-version = "1.27.1"
 # renovate: datasource=github-releases packageName=CycloneDX/cyclonedx-gomod
 cyclonedx-gomod-version = "1.12.0"
 
-# Deprecated since SDP 26.11
 # Version 1.16.2
 [versions."1.16.2".local-images]
 stackable-devel = "1.0.0"
