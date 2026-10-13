@@ -1,0 +1,59 @@
+From 4315e5c7e8bb3d655fd152b661e06856c541f76d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Fri, 4 Sep 2026 11:04:21 +0000
+Subject: NIFI-16294 Guard against null controller status in
+ SiteToSiteStatusReportingTask
+
+Return early when getControllerStatus() is null (flow not yet
+initialized) instead of passing it unguarded into serialization.
+
+Log at debug level, this is a transient error that'll correct itself when the cluster is stable again and should arguably not clutter the logs.
+
+This differs from the null guard in SiteToSiteMetricsReportingTask.java:227 which chose to log at the error level, but I'd argue that debug is more appropriate here.
+---
+ .../reporting/SiteToSiteStatusReportingTask.java   |  6 +++++-
+ .../TestSiteToSiteStatusReportingTask.java         | 14 ++++++++++++++
+ 2 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/main/java/org/apache/nifi/reporting/SiteToSiteStatusReportingTask.java b/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/main/java/org/apache/nifi/reporting/SiteToSiteStatusReportingTask.java
+index 1bc0495130..c9d4c4f42c 100644
+--- a/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/main/java/org/apache/nifi/reporting/SiteToSiteStatusReportingTask.java
++++ b/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/main/java/org/apache/nifi/reporting/SiteToSiteStatusReportingTask.java
+@@ -124,7 +124,11 @@ public class SiteToSiteStatusReportingTask extends AbstractSiteToSiteReportingTa
+         processGroupIDToPath = new HashMap<>();
+ 
+         final ProcessGroupStatus procGroupStatus = context.getEventAccess().getControllerStatus();
+-        final String rootGroupName = procGroupStatus == null ? null : procGroupStatus.getName();
++        if (procGroupStatus == null) {
++            getLogger().debug("Controller status is not yet available; will report status on a subsequent trigger.");
++            return;
++        }
++        final String rootGroupName = procGroupStatus.getName();
+ 
+         final String nifiUrl = context.getProperty(SiteToSiteUtils.INSTANCE_URL).evaluateAttributeExpressions().getValue();
+         URL url;
+diff --git a/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/test/java/org/apache/nifi/reporting/TestSiteToSiteStatusReportingTask.java b/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/test/java/org/apache/nifi/reporting/TestSiteToSiteStatusReportingTask.java
+index fdabe2aee7..dea32d1104 100644
+--- a/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/test/java/org/apache/nifi/reporting/TestSiteToSiteStatusReportingTask.java
++++ b/nifi-extension-bundles/nifi-site-to-site-reporting-bundle/nifi-site-to-site-reporting-task/src/test/java/org/apache/nifi/reporting/TestSiteToSiteStatusReportingTask.java
+@@ -123,6 +123,20 @@ public class TestSiteToSiteStatusReportingTask {
+         assertEquals("UP_TO_DATE", versionedFlowState.getString());
+     }
+ 
++    @Test
++    public void testNullControllerStatus() throws IOException, InitializationException {
++        final Map<PropertyDescriptor, String> properties = new HashMap<>();
++        properties.put(SiteToSiteUtils.BATCH_SIZE, "4");
++        properties.put(SiteToSiteStatusReportingTask.COMPONENT_NAME_FILTER_REGEX, "Awesome.*");
++        properties.put(SiteToSiteStatusReportingTask.COMPONENT_TYPE_FILTER_REGEX, ".*");
++
++        // The controller status is not yet available (e.g. during startup before the flow is initialized)
++        MockSiteToSiteStatusReportingTask task = initTask(properties, null);
++        assertDoesNotThrow(() -> task.onTrigger(context));
++
++        assertTrue(task.dataSent.isEmpty());
++    }
++
+     @Test
+     public void testComponentTypeFilter() throws IOException, InitializationException {
+         final ProcessGroupStatus pgStatus = generateProcessGroupStatus("root", "Awesome", 1, 0);
