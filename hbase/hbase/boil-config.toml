@@ -1,4 +1,4 @@
-# LTS since 26.7.0
+# Deprecated since 26.11.0
 [versions."2.6.6".local-images]
 "hadoop/hadoop" = "3.4.3"
 java-base = "11"
@@ -13,6 +13,22 @@ hadoop-profile = "3.0"
 # Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
 # renovate: datasource=npm packageName=@cdxgen/cdxgen
 cdxgen-version = "13.0.1"
+
+# LTS since 26.11.0
+[versions."2.6.7".local-images]
+"hadoop/hadoop" = "3.4.3"
+java-base = "11"
+java-devel = "11"
+
+[versions."2.6.7".build-arguments]
+async-profiler-version = "4.4"
+delete-caches = "true"
+# Selects the hadoop-3.0 Maven profile (activated by hadoop.profile=3.0 in 2.x)
+hadoop-profile = "3.0"
+# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
+# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
+# renovate: datasource=npm packageName=@cdxgen/cdxgen
+cdxgen-version = "13.1.0"
 
 # Experimental in 26.11
 [versions."3.0.0".local-images]
