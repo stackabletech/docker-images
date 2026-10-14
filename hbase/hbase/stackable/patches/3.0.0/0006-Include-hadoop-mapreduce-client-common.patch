@@ -1,0 +1,111 @@
+From caa7ca0e21342b690e2189f84ce7f1fe7dea67d6 Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Tue, 6 Oct 2026 10:41:17 +0200
+Subject: Include hadoop-mapreduce-client-common
+
+It provides the LocalClientProtocolProvider which MapReduce based tools
+like ExportSnapshot need to run without a YARN cluster ("Cannot initialize
+Cluster. Please check your configuration for mapreduce.framework.name").
+HBase 2.x shipped it as a transitive dependency of hbase-testing-util,
+which HBase 3.x only includes in the assemblyForTesting profile.
+
+Adding it as a dependency of hbase-assembly puts it into lib/ and into the
+CycloneDX SBOM. It uses the same exclusions as hadoop-mapreduce-client-core,
+so that its Hadoop YARN dependencies do not bring back excluded artifacts.
+---
+ hbase-assembly/pom.xml | 16 +++++++++++++
+ pom.xml                | 54 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
+
+diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
+index e6dd9f6542..acd3c1d3d3 100644
+--- a/hbase-assembly/pom.xml
++++ b/hbase-assembly/pom.xml
+@@ -338,6 +338,22 @@
+     </plugins>
+   </build>
+   <profiles>
++    <!-- Profile for building against Hadoop 3.0.0. Activate by default -->
++    <profile>
++      <id>hadoop-3.0</id>
++      <activation>
++        <property>
++          <name>!hadoop.profile</name>
++        </property>
++      </activation>
++      <dependencies>
++        <dependency>
++          <!-- Needed to run MapReduce based tools like ExportSnapshot without a YARN cluster -->
++          <groupId>org.apache.hadoop</groupId>
++          <artifactId>hadoop-mapreduce-client-common</artifactId>
++        </dependency>
++      </dependencies>
++    </profile>
+     <profile>
+       <id>assemblyForTesting</id>
+       <activation>
+diff --git a/pom.xml b/pom.xml
+index 8e37531651..57f5104da5 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3635,6 +3635,60 @@
+               </exclusion>
+             </exclusions>
+           </dependency>
++          <dependency>
++            <!-- Provides the LocalClientProtocolProvider which MapReduce based tools like
++                 ExportSnapshot need to run without a YARN cluster. HBase 2.x shipped it as a
++                 transitive dependency of hbase-testing-util. -->
++            <groupId>org.apache.hadoop</groupId>
++            <artifactId>hadoop-mapreduce-client-common</artifactId>
++            <version>${hadoop-three.version}</version>
++            <exclusions>
++              <exclusion>
++                <groupId>com.google.guava</groupId>
++                <artifactId>guava</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>com.sun.jersey</groupId>
++                <artifactId>jersey-core</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>javax.xml.bind</groupId>
++                <artifactId>jaxb-api</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>javax.ws.rs</groupId>
++                <artifactId>jsr311-api</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>org.codehaus.jackson</groupId>
++                <artifactId>*</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>javax.servlet</groupId>
++                <artifactId>servlet-api</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>javax.inject</groupId>
++                <artifactId>javax.inject</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>org.slf4j</groupId>
++                <artifactId>slf4j-log4j12</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>log4j</groupId>
++                <artifactId>log4j</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>ch.qos.reload4j</groupId>
++                <artifactId>reload4j</artifactId>
++              </exclusion>
++              <exclusion>
++                <groupId>org.slf4j</groupId>
++                <artifactId>slf4j-reload4j</artifactId>
++              </exclusion>
++            </exclusions>
++          </dependency>
+           <dependency>
+             <groupId>org.apache.hadoop</groupId>
+             <artifactId>hadoop-mapreduce-client-app</artifactId>

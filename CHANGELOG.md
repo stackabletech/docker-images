@@ -17,26 +17,29 @@ All notable changes to this project will be documented in this file.
 - kafka: Add `4.3.1` ([#1659]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
+- nifi: Add `2.12.0` ([#1667]).
 - opensearch: Add `3.8.0` ([#1669]).
 - opensearch: Add the `repository-azure` plugin ([#1689]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
-- nifi: Add `2.12.0` ([#1667]).
+- hbase: Add `2.6.7` ([#1678]).
+- hbase: Add `3.0.0` as an experimental version, with `hbase-opa-authorizer` `1.0.0`.
+  It does not include Phoenix (no HBase 3.x support yet) ([#1678]).
 - vector: Add `0.58.0` ([#1680], [#1693]).
-- vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
-  the interpolation of environment variables in the Vector configuration files ([#1693]).
 - trino: Add `483` ([#1690]).
 - trino-cli: Add `483` ([#1690]).
+- vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
+  the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
 
 ### Changed
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - testing-tools: Pull `grpcurl` from our own mirror instead of directly from Docker Hub ([#1671]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 - vector: Build with `--locked` ([#1674]).
-- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
 - java-devel: Pin `versions-maven-plugin` to `2.22.0` for `mvn versions:set`, `maven-help-plugin` to `3.5.2` for `mvn help:evaluate` and `maven-dependency-plugin` to `3.11.0` for `mvn dependency:get`, which otherwise resolve the latest release on every build unless the product POM pins them ([#1682]).
 - spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
@@ -94,11 +97,12 @@ All notable changes to this project will be documented in this file.
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
 - airflow: Remove `3.1.6` ([#1665]).
+- nifi: Remove `2.7.2` ([#1667]).
 - opensearch: Removed `3.4.0` ([#1669]).
 - superset: Remove `6.0.0` ([#1673]).
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
-- nifi: Remove `2.7.2` ([#1667]).
+- hbase: Remove `2.6.4` ([#1678]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
 - trino: Remove `479` ([#1690]).
@@ -133,6 +137,7 @@ All notable changes to this project will be documented in this file.
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
+[#1678]: https://github.com/stackabletech/docker-images/pull/1678
 [#1680]: https://github.com/stackabletech/docker-images/pull/1680
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
 [#1682]: https://github.com/stackabletech/docker-images/pull/1682
