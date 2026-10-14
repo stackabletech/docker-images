@@ -12,7 +12,7 @@ ARG STACKABLE_USER_UID
 
 # Find the latest version here: https://github.com/apache/maven/releases
 # renovate: datasource=github-tags packageName=apache/maven
-ARG MAVEN_VERSION="3.9.16"
+ARG MAVEN_VERSION="3.10.0"
 
 # See: https://adoptium.net/en-gb/installation/linux/#_centosrhelfedora_instructions
 RUN cat <<EOF > /etc/yum.repos.d/adoptium.repo
@@ -72,7 +72,7 @@ ENV MAVEN_ARGS="--batch-mode --no-transfer-progress"
 # latest release unless the project POM pins them, so their version would change silently between builds.
 # Find the latest version here: https://github.com/mojohaus/versions/releases
 # renovate: datasource=maven packageName=org.codehaus.mojo:versions-maven-plugin
-ENV VERSIONS_MAVEN_PLUGIN_VERSION=2.22.0
+ENV VERSIONS_MAVEN_PLUGIN_VERSION=2.23.0
 # Find the latest version here: https://github.com/apache/maven-help-plugin/releases
 # renovate: datasource=maven packageName=org.apache.maven.plugins:maven-help-plugin
 ENV HELP_MAVEN_PLUGIN_VERSION=3.5.2

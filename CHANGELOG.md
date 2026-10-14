@@ -22,12 +22,15 @@ All notable changes to this project will be documented in this file.
 - opensearch: Add the `repository-azure` plugin ([#1689]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
+- nifi: Add `2.12.0` ([#1667]).
 - hbase: Add `2.6.7` ([#1678]).
 - hbase: Add `3.0.0` as an experimental version, with `hbase-opa-authorizer` `1.0.0`.
   It does not include Phoenix (no HBase 3.x support yet) ([#1678]).
-- vector: Add `0.58.0` ([#1680]).
+- vector: Add `0.58.0` ([#1680], [#1693]).
 - trino: Add `483` ([#1690]).
 - trino-cli: Add `483` ([#1690]).
+- vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
+  the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
 
 ### Changed
@@ -44,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
 - superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
 - opa: update golang to 1.27.1 ([#1697]).
+- spark: Pin pyarrow below 26 to satisfy scikit-learn dependency on NumPy 1.x ([#1695]).
 
 ### Fixed
 
@@ -142,6 +146,8 @@ All notable changes to this project will be documented in this file.
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
 [#1690]: https://github.com/stackabletech/docker-images/pull/1690
+[#1695]: https://github.com/stackabletech/docker-images/pull/1695
+[#1693]: https://github.com/stackabletech/docker-images/pull/1693
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
 
 ## [26.7.0] - 2026-07-21
