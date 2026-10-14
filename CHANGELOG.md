@@ -22,7 +22,6 @@ All notable changes to this project will be documented in this file.
 - opensearch: Add the `repository-azure` plugin ([#1689]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
-- nifi: Add `2.12.0` ([#1667]).
 - hbase: Add `2.6.7` ([#1678]).
 - hbase: Add `3.0.0` as an experimental version, with `hbase-opa-authorizer` `1.0.0`.
   It does not include Phoenix (no HBase 3.x support yet) ([#1678]).
