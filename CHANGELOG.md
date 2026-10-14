@@ -99,6 +99,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove `2.7.2` ([#1667]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
+- trino: Remove `479` ([#1690]).
+- trino-cli: Remove `481` ([#1690]).
 - opa: Remove 1.12.3 ([#1697]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
@@ -135,6 +137,7 @@ All notable changes to this project will be documented in this file.
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1690]: https://github.com/stackabletech/docker-images/pull/1690
 [#1695]: https://github.com/stackabletech/docker-images/pull/1695
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
 
