@@ -346,7 +346,7 @@ index 406bea011da83aee55f385029a4df1af94400e4c..41ac266cc06bc35529331a1de4860151
 -    return true;
 -  }
 -
-   /**
+-  /**
 -   * Add new elements to the classpath.
 -   *
 -   * @param newPaths
@@ -377,7 +377,7 @@ index 406bea011da83aee55f385029a4df1af94400e4c..41ac266cc06bc35529331a1de4860151
 -    return new UDFClassLoader(curPaths.toArray(new URL[0]), loader);
 -  }
 -
--  /**
+   /**
 -   * remove elements from the classpath.
 +   * Remove elements from the classpath, if possible. This will only work if the current thread context class loader is
 +   * an UDFClassLoader (i.e. if we have created it).
