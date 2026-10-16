@@ -1,4 +1,4 @@
-From e9b5503e9c952ab691952fb14724ac55a6890420 Mon Sep 17 00:00:00 2001
+From 7f287a1a044cc5b9d18e15986a4ddea04b1f0318 Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Mon, 24 Nov 2025 18:05:16 +0100
 Subject: Relocate jline in shading plugin
@@ -13,13 +13,13 @@ Exception in thread "main" java.lang.NoSuchMethodError: 'void org.jline.reader.i
     at sqlline.SqlLine.<init>(SqlLine.java:229)
     at org.apache.hadoop.hive.metastore.tools.schematool.MetastoreSchemaTool.execSql(MetastoreSchemaTool.java:313)
 
-This does not affect versions >= 4.1.x since the non shaded jar is used.  
+This does not affect versions >= 4.1.x since the non shaded jar is used.
 ---
  hms-v4/pom.xml | 6 ++++++
  1 file changed, 6 insertions(+)
 
 diff --git a/hms-v4/pom.xml b/hms-v4/pom.xml
-index 4ebeac4..b2940ab 100644
+index 4ebeac4fc991bbaa8d87b6b931f3f482977ba700..b2940ab304879fc5730157beb2d7bc9174533956 100644
 --- a/hms-v4/pom.xml
 +++ b/hms-v4/pom.xml
 @@ -67,6 +67,12 @@

@@ -8,7 +8,7 @@ Subject: NIFI-15801 Stop processors in synchronizeProcessors before updating
  1 file changed, 40 insertions(+), 21 deletions(-)
 
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
-index b79ee4d6e8..c3e059171e 100644
+index b79ee4d6e87c7b6b381e72db77ae458bb7211b8c..c3e059171eb68ea9516bb52d0afb7c2bdb81417c 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
 @@ -269,8 +269,8 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen

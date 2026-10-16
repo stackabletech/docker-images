@@ -11,7 +11,7 @@ extensions from the build.
  1 file changed, 29 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 6548d3a661..d252009bc4 100644
+index 6548d3a6610d6ac1b60c8b99b220b95dab1597fc..d252009bc4c5c636f03279e7bc623c25a2256cc4 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -235,37 +235,8 @@

@@ -8,7 +8,7 @@ Subject: YARN-11527-Update-node.js
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
-index b9eacd5ba3..70f64bf55c 100644
+index b9eacd5ba306ca10ae511a1ecab10e65c7b6d867..70f64bf55c148c99658353a958b4e8522446777c 100644
 --- a/hadoop-project/pom.xml
 +++ b/hadoop-project/pom.xml
 @@ -234,7 +234,7 @@

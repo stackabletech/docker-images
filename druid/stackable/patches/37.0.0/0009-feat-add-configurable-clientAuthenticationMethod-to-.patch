@@ -11,7 +11,7 @@ Subject: feat: add configurable clientAuthenticationMethod to druid-pac4j OIDC
  3 files changed, 45 insertions(+), 1 deletion(-)
 
 diff --git a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
-index 50b04455db..d83e04717a 100644
+index 50b04455dbc59a0a9505736fba8ebd3c81879066..d83e04717a0f6bcc05be3f2c2caf874cd301ddc6 100644
 --- a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
 +++ b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/OIDCConfig.java
 @@ -44,13 +44,17 @@ public class OIDCConfig
@@ -53,7 +53,7 @@ index 50b04455db..d83e04717a 100644
 +  }
  }
 diff --git a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
-index ef30f4c7e6..59a6fa0782 100644
+index ef30f4c7e69d7918203d1bdd9a89563da29ae321..59a6fa0782f5f98537d51f836baa952d27b6f937 100644
 --- a/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
 +++ b/extensions-core/druid-pac4j/src/main/java/org/apache/druid/security/pac4j/Pac4jAuthenticator.java
 @@ -27,6 +27,7 @@ import com.google.common.base.Supplier;
@@ -76,7 +76,7 @@ index ef30f4c7e6..59a6fa0782 100644
      oidcConf.setUseNonce(true);
      oidcConf.setReadTimeout(Ints.checkedCast(pac4jCommonConfig.getReadTimeout().getMillis()));
 diff --git a/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java b/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
-index c4192c020d..0b6128e61b 100644
+index c4192c020dfa9c60dacd809e36e2e4269e54c0ea..0b6128e61bb45335742f9b022421bd855d05566e 100644
 --- a/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
 +++ b/extensions-core/druid-pac4j/src/test/java/org/apache/druid/security/pac4j/OIDCConfigTest.java
 @@ -46,6 +46,7 @@ public class OIDCConfigTest

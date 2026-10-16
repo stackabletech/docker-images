@@ -8,7 +8,7 @@ Subject: HDFS-17891 fix for hostname resolution bug with datanodes
  1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
-index d12e5fbae13..3da753f1cb0 100644
+index d12e5fbae13626ad74d522d8e8be4b42bb8386f5..3da753f1cb09f0232e37948f419e3a067b2716db 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/HostSet.java
 @@ -18,10 +18,11 @@

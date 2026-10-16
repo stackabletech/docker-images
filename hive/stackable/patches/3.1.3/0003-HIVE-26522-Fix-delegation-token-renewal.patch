@@ -15,10 +15,10 @@ decided to include this patch
  create mode 100644 standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/security/TestTokenStoreDelegationTokenSecretManager.java
 
 diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/security/TokenStoreDelegationTokenSecretManager.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/security/TokenStoreDelegationTokenSecretManager.java
-index 7b325449ce..ee2ace8cbe 100644
+index 7b325449ce185654dc20b6d85e345f2d0853f428..ee2ace8cbedc9dcee34eaed9b9e7f0c13ebe6107 100644
 --- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/security/TokenStoreDelegationTokenSecretManager.java
 +++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/security/TokenStoreDelegationTokenSecretManager.java
-@@ -161,7 +161,10 @@ public long renewToken(Token<DelegationTokenIdentifier> token, String renewer) t
+@@ -161,7 +161,10 @@ public class TokenStoreDelegationTokenSecretManager extends DelegationTokenSecre
      synchronized (this) {
        super.currentTokens.put(id,  tokenInfo);
        try {
@@ -32,7 +32,7 @@ index 7b325449ce..ee2ace8cbe 100644
        }
 diff --git a/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/security/TestTokenStoreDelegationTokenSecretManager.java b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/security/TestTokenStoreDelegationTokenSecretManager.java
 new file mode 100644
-index 0000000000..40f9226a54
+index 0000000000000000000000000000000000000000..40f9226a542c4c0d46f59ff100beb1220a4c717e
 --- /dev/null
 +++ b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/security/TestTokenStoreDelegationTokenSecretManager.java
 @@ -0,0 +1,121 @@

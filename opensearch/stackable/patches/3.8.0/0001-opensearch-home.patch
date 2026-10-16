@@ -13,7 +13,7 @@ Subject: opensearch home
  6 files changed, 25 insertions(+), 25 deletions(-)
 
 diff --git a/distribution/docker/src/docker/bin/docker-entrypoint.sh b/distribution/docker/src/docker/bin/docker-entrypoint.sh
-index 099d788c90d..f8697f133db 100644
+index 099d788c90dc8ed077b0bb893012a3bb9c47a426..f8697f133db9aaba39e96c45f777c574bc76ce8a 100644
 --- a/distribution/docker/src/docker/bin/docker-entrypoint.sh
 +++ b/distribution/docker/src/docker/bin/docker-entrypoint.sh
 @@ -46,7 +46,7 @@ fi
@@ -64,7 +64,7 @@ index 099d788c90d..f8697f133db 100644
 -run_as_other_user_if_needed /usr/share/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
 +run_as_other_user_if_needed /stackable/opensearch/bin/opensearch <<<"$KEYSTORE_PASSWORD"
 diff --git a/distribution/packages/build.gradle b/distribution/packages/build.gradle
-index d9410b766ea..64cfad844f2 100644
+index d9410b766ea3f056d97e911ff39e5bc54356f292..64cfad844f205b8bc8628ce5c079560346b388d1 100644
 --- a/distribution/packages/build.gradle
 +++ b/distribution/packages/build.gradle
 @@ -88,7 +88,7 @@ void addProcessFilesTask(String type, boolean jdk) {
@@ -143,7 +143,7 @@ index d9410b766ea..64cfad844f2 100644
        filePermissions {
          unix 0644
 diff --git a/distribution/packages/src/common/env/opensearch b/distribution/packages/src/common/env/opensearch
-index a8b68297669..bd5ad77ded1 100644
+index a8b6829766924454599298916b7be6a7f7753d02..bd5ad77ded1d703f4b0ec0049534e5aa38ec8dc3 100644
 --- a/distribution/packages/src/common/env/opensearch
 +++ b/distribution/packages/src/common/env/opensearch
 @@ -3,7 +3,7 @@
@@ -156,7 +156,7 @@ index a8b68297669..bd5ad77ded1 100644
  # OpenSearch Java path
  #OPENSEARCH_JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto
 diff --git a/distribution/packages/src/common/scripts/postinst b/distribution/packages/src/common/scripts/postinst
-index 308e86b8502..54baa373520 100644
+index 308e86b8502472c67d6404081bc9e7f315ed35e6..54baa373520454d6c081861ec221f23f39a81856 100644
 --- a/distribution/packages/src/common/scripts/postinst
 +++ b/distribution/packages/src/common/scripts/postinst
 @@ -103,16 +103,16 @@ fi
@@ -180,7 +180,7 @@ index 308e86b8502..54baa373520 100644
      fi
  fi
 diff --git a/distribution/packages/src/common/scripts/postrm b/distribution/packages/src/common/scripts/postrm
-index 75eded92a8e..7d494d5bf19 100644
+index 75eded92a8e41e6b3cbe65223f266b18fb283c72..7d494d5bf19f11ae3898938d73eb94365f933174 100644
 --- a/distribution/packages/src/common/scripts/postrm
 +++ b/distribution/packages/src/common/scripts/postrm
 @@ -59,16 +59,16 @@ if [ "$REMOVE_DIRS" = "true" ]; then
@@ -205,7 +205,7 @@ index 75eded92a8e..7d494d5bf19 100644
      fi
  
 diff --git a/distribution/packages/src/common/systemd/opensearch.service b/distribution/packages/src/common/systemd/opensearch.service
-index 91adbf3c839..f01faf02115 100644
+index 91adbf3c839f9341c1edb721939fc903c2d8b595..f01faf021157df91028338cc04ef101db9f78d26 100644
 --- a/distribution/packages/src/common/systemd/opensearch.service
 +++ b/distribution/packages/src/common/systemd/opensearch.service
 @@ -21,7 +21,7 @@ PrivateTmp=true

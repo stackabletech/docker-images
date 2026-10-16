@@ -10,7 +10,7 @@ Required for the REST Catalog.
  2 files changed, 7 insertions(+)
 
 diff --git a/standalone-metastore/metastore-rest-catalog/pom.xml b/standalone-metastore/metastore-rest-catalog/pom.xml
-index 5fb601fe1a..682259d334 100644
+index 5fb601fe1ab0e95fa5a5cacbe6b9dbd793f3843c..682259d334c16628757b5c249c8e45634c6bdeec 100644
 --- a/standalone-metastore/metastore-rest-catalog/pom.xml
 +++ b/standalone-metastore/metastore-rest-catalog/pom.xml
 @@ -26,6 +26,11 @@
@@ -26,7 +26,7 @@ index 5fb601fe1a..682259d334 100644
        <groupId>org.apache.hive</groupId>
        <artifactId>hive-standalone-metastore-server</artifactId>
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 6517b3cc22..45d804e172 100644
+index 6517b3cc22210a251778fd0e67f611eb1afaf9c3..45d804e17218148baa7a92f4afa099295d93bec5 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -117,6 +117,8 @@

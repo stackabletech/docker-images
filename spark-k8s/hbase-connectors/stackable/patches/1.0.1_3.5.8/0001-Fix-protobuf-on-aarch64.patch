@@ -9,7 +9,7 @@ Subject: Fix protobuf on aarch64
  2 files changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index e849cd1..f514e14 100644
+index e849cd167ccb42b7cd4f8c5c912a03e7cf15a9e7..f514e14d4d1d9c3e65ae3bed624494ab52eda31e 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -157,7 +157,10 @@
@@ -45,7 +45,7 @@ index e849cd1..f514e14 100644
    </profiles>
  </project>
 diff --git a/spark/pom.xml b/spark/pom.xml
-index 3f1eb21..fcdc73e 100644
+index 3f1eb21c42d00cc39e6af8b1fa32b5fd45eaee30..fcdc73eda8b55716c19972c0a7b2c17b63ccdfa1 100644
 --- a/spark/pom.xml
 +++ b/spark/pom.xml
 @@ -84,7 +84,7 @@

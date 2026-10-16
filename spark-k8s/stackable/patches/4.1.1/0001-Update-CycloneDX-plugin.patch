@@ -9,7 +9,7 @@ Subject: Update CycloneDX plugin
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/dev/make-distribution.sh b/dev/make-distribution.sh
-index 16598bda873..327fa763144 100755
+index 16598bda87339bcbb1b15e318dc9e100f18f5296..327fa7631442e1f99e46022df9165515166819f1 100755
 --- a/dev/make-distribution.sh
 +++ b/dev/make-distribution.sh
 @@ -185,7 +185,6 @@ else
@@ -21,7 +21,7 @@ index 16598bda873..327fa763144 100755
  fi
  
 diff --git a/pom.xml b/pom.xml
-index dc757d78812..05f1af034f3 100644
+index dc757d788121c69f371e740f9b6a78c65f13216c..05f1af034f3a73e380504430992784c939f4d68d 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3333,6 +3333,11 @@

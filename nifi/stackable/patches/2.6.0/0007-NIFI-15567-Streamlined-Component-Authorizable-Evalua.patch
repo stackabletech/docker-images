@@ -26,7 +26,7 @@ Signed-off-by: Pierre Villard <pierre.villard.fr@gmail.com>
 
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java
 new file mode 100644
-index 0000000000..5de5d8ccd9
+index 0000000000000000000000000000000000000000..5de5d8ccd9b706d1582d556f4aad20e8ba92fd99
 --- /dev/null
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeComponentReference.java
 @@ -0,0 +1,86 @@
@@ -117,7 +117,7 @@ index 0000000000..5de5d8ccd9
 +    }
 +}
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
-index fb89bc37fd..572e6605a9 100644
+index fb89bc37fda397b94ac4f2fc51f4de916362549a..572e6605a9b2dc19d68b6f157c6f27cd57e5e26b 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/authorization/AuthorizeParameterReference.java
 @@ -28,10 +28,6 @@ import org.apache.nifi.parameter.ParameterTokenList;
@@ -157,7 +157,7 @@ index fb89bc37fd..572e6605a9 100644
       * If any parameter is referenced by the given component node, will authorize user against the given group's Parameter context
       * @param destinationGroup the group that the component is being moved to
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
-index 89b122ba67..9a94e3bef4 100644
+index 89b122ba67ce3fce6528f01f26f04c8d83a3b885..9a94e3bef4c07becd4d5b209f2f208f3eb8d773d 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/StandardNiFiWebConfigurationContext.java
 @@ -27,7 +27,7 @@ import org.apache.nifi.action.StandardRequestDetails;
@@ -240,7 +240,7 @@ index 89b122ba67..9a94e3bef4 100644
  
              FlowRegistryClientEntity entity;
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
-index f507fbb5ad..3ce020565b 100644
+index f507fbb5ada951c920014538d1734701ef9b80a1..3ce020565ba0a732dea5baaef9058fecce6d63b2 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerResource.java
 @@ -40,6 +40,7 @@ import jakarta.ws.rs.core.MediaType;
@@ -388,7 +388,7 @@ index f507fbb5ad..3ce020565b 100644
                  () -> serviceFacade.verifyCreateControllerService(requestControllerService),
                  (controllerServiceEntity) -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
-index 3e6fd20347..4855bd475f 100644
+index 3e6fd20347257b825b95ebd12cae3e0d4bb80d1b..4855bd475f0f6c828f36e5613af6addde140e518 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ControllerServiceResource.java
 @@ -39,8 +39,8 @@ import jakarta.ws.rs.core.Context;
@@ -416,7 +416,7 @@ index 3e6fd20347..4855bd475f 100644
                  () -> serviceFacade.verifyUpdateControllerService(requestControllerServiceDTO),
                  (revision, controllerServiceEntity) -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
-index da78992a9b..88d308c9fb 100644
+index da78992a9b68623b447fb28b864f06913c8edac0..88d308c9fbab2128d0509a7e2d9aab1583c909d6 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ParameterProviderResource.java
 @@ -42,6 +42,7 @@ import jakarta.ws.rs.core.MediaType;
@@ -440,7 +440,7 @@ index da78992a9b..88d308c9fb 100644
                  () -> serviceFacade.verifyUpdateParameterProvider(requestParameterProviderDTO),
                  (revision, parameterProviderEntity) -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
-index 308b9520f2..6955b3f7c9 100644
+index 308b9520f2ca1cfa68d0d39c6c779fd11d320671..6955b3f7c966612af3b9f31dd04e047c185a6f4f 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessGroupResource.java
 @@ -45,6 +45,7 @@ import jakarta.ws.rs.core.Response.Status;
@@ -533,7 +533,7 @@ index 308b9520f2..6955b3f7c9 100644
                  () -> serviceFacade.verifyCreateControllerService(requestControllerService),
                  controllerServiceEntity -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
-index 07d8103fe0..be81a6c8f5 100644
+index 07d8103fe0ef09c11f457b632dd3f37fbac9a359..be81a6c8f5bdafdcedda8639b941bd69125e0afc 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ProcessorResource.java
 @@ -39,8 +39,8 @@ import jakarta.ws.rs.core.Context;
@@ -561,7 +561,7 @@ index 07d8103fe0..be81a6c8f5 100644
                  () -> serviceFacade.verifyUpdateProcessor(requestProcessorDTO),
                  (revision, processorEntity) -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
-index 7b98fa8a36..bfd27953f5 100644
+index 7b98fa8a36e33f750cc1ae1de91488c9c0a74aa4..bfd27953f55ed5b2ec8d20bd7abb7734b60611c8 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/main/java/org/apache/nifi/web/api/ReportingTaskResource.java
 @@ -39,6 +39,7 @@ import jakarta.ws.rs.core.Context;
@@ -594,7 +594,7 @@ index 7b98fa8a36..bfd27953f5 100644
                  (revision, reportingTaskEntity) -> {
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java
 new file mode 100644
-index 0000000000..6aa694bbda
+index 0000000000000000000000000000000000000000..6aa694bbda9d9a9899a6cb6adb057d60e27cb677
 --- /dev/null
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-web-api/src/test/java/org/apache/nifi/authorization/AuthorizeComponentReferenceTest.java
 @@ -0,0 +1,82 @@

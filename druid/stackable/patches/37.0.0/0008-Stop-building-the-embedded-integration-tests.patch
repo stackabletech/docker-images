@@ -8,7 +8,7 @@ Subject: Stop building the embedded integration tests
  1 file changed, 1 deletion(-)
 
 diff --git a/pom.xml b/pom.xml
-index a4a8f0e1e8..73ce663463 100644
+index a4a8f0e1e87189d3d0c7c8cdbe905cf153d094ca..73ce663463c7af3cf54fca31743e091fe1837636 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -241,7 +241,6 @@

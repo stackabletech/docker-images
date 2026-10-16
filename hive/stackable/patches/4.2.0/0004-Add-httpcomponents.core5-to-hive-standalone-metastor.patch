@@ -1,4 +1,4 @@
-From 897f67b3bd6f200affe80423a37c7de202f13782 Mon Sep 17 00:00:00 2001
+From f3b3500f10845a5abfbd765b111cc52aed450035 Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Tue, 25 Nov 2025 14:44:35 +0100
 Subject: Add httpcomponents.core5 to hive-standalone-metastore
@@ -10,7 +10,7 @@ Required for the REST Catalog.
  2 files changed, 7 insertions(+)
 
 diff --git a/standalone-metastore/metastore-rest-catalog/pom.xml b/standalone-metastore/metastore-rest-catalog/pom.xml
-index c1692e7ba2..ad6cecb535 100644
+index c1692e7ba2e269715b901828fcb5e7776e2a385c..ad6cecb5352a08b9d00a435449e822a3c542523a 100644
 --- a/standalone-metastore/metastore-rest-catalog/pom.xml
 +++ b/standalone-metastore/metastore-rest-catalog/pom.xml
 @@ -26,6 +26,11 @@
@@ -26,7 +26,7 @@ index c1692e7ba2..ad6cecb535 100644
        <groupId>org.apache.hive</groupId>
        <artifactId>hive-standalone-metastore-server</artifactId>
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 34eb45fb96..94b883b801 100644
+index 34eb45fb96954bc90c1e6e419373241fe7388dab..445024b43dbfabd969554dc7109d456e43638c0b 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -117,6 +117,8 @@

@@ -8,7 +8,7 @@ Subject: no zip assembly
  1 file changed, 1 deletion(-)
 
 diff --git a/nifi-assembly/pom.xml b/nifi-assembly/pom.xml
-index dc7fe6fff3..911cbc83d3 100644
+index dc7fe6fff3363e54d7055d001e61d1cd30247a95..911cbc83d3c03cf0b54835e9fcbfda609c4bd7f3 100644
 --- a/nifi-assembly/pom.xml
 +++ b/nifi-assembly/pom.xml
 @@ -66,7 +66,6 @@ language governing permissions and limitations under the License. -->
