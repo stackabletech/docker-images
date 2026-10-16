@@ -364,6 +364,9 @@ pub fn format_patches(
                 "--keep-subject",
                 // By default, git includes its own version number as a suffix, which makes patches unstable across git versions
                 "--no-signature",
+                // By default, git abbreviates the blob hashes in the `index` line to a length derived from
+                // the object count of the local repository, which makes patches unstable across clones
+                "--full-index",
             ])
             .status()
     })
