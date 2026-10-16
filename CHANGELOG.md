@@ -88,6 +88,8 @@ All notable changes to this project will be documented in this file.
 - hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 - nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
+- nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
+- hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/NIFI-16431) into `3.5.0` ([#1704]).
 
 ### Removed
 
@@ -148,6 +150,7 @@ All notable changes to this project will be documented in this file.
 [#1695]: https://github.com/stackabletech/docker-images/pull/1695
 [#1693]: https://github.com/stackabletech/docker-images/pull/1693
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
+[#1704]: https://github.com/stackabletech/docker-images/pull/1704
 
 ## [26.7.0] - 2026-07-21
 
@@ -175,6 +178,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
+- spark: Add the OpenLineage listener under the dedicated directory `/stackable/spark/openlineage/` ([#1577]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 - spark: Add hbase-connector protobuf classes ([#1573]).
@@ -249,6 +253,7 @@ All notable changes to this project will be documented in this file.
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
+[#1577]: https://github.com/stackabletech/docker-images/pull/1577
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561
