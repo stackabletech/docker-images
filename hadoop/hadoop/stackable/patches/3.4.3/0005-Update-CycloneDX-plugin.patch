@@ -8,7 +8,7 @@ Subject: Update-CycloneDX-plugin
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index d34fb58e22c..d30fd28be1f 100644
+index d34fb58e22c907851633ed37c06e75567c2f21e2..d30fd28be1fe4eb37ad06f6df4c05568ef7541ce 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -121,7 +121,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x

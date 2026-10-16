@@ -8,7 +8,7 @@ Subject: Add CycloneDX plugin
  1 file changed, 12 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index bb2e65ab..15a882a2 100644
+index bb2e65ab9df155f4b1720089c4a29673e8f8a4ab..15a882a2441b7e51bdab5e3f4780eab16edf1d5c 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -71,6 +71,7 @@ plugins {

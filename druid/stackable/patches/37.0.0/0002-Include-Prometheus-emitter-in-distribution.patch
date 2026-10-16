@@ -8,7 +8,7 @@ Subject: Include Prometheus emitter in distribution
  1 file changed, 45 insertions(+)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index 51ce7563ea..28dc3f6a5f 100644
+index 51ce7563ea1d3960339789886effa4a68f46492b..28dc3f6a5f0a72d23c2a8cfb08dfb150e34918e0 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
 @@ -457,5 +457,50 @@

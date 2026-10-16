@@ -9,7 +9,7 @@ This is again a similar issue like #1363.
  1 file changed, 1 insertion(+)
 
 diff --git a/superset-frontend/package.json b/superset-frontend/package.json
-index 0f59fff60..bc2746107 100644
+index 0f59fff6045122c516ba9307f488f45e3ad0bfdf..bc2746107eda6131155c9de8f37cc6b34bbe0af4 100644
 --- a/superset-frontend/package.json
 +++ b/superset-frontend/package.json
 @@ -365,6 +365,7 @@

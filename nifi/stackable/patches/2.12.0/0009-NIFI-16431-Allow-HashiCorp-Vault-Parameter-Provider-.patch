@@ -13,7 +13,7 @@ Subject: NIFI-16431 Allow HashiCorp Vault Parameter Provider to list secrets
  5 files changed, 241 insertions(+), 7 deletions(-)
 
 diff --git a/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
-index 33ab496f66..e2aa4fa709 100644
+index 33ab496f667642c08ae0315704feb8c348c3b4c8..e2aa4fa70926d7d4e202f658710daa05e4c076e0 100644
 --- a/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
 +++ b/nifi-commons/nifi-hashicorp-vault-api/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultCommunicationService.java
 @@ -114,4 +114,19 @@ public interface HashiCorpVaultCommunicationService {
@@ -37,7 +37,7 @@ index 33ab496f66..e2aa4fa709 100644
 +    }
  }
 diff --git a/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
-index 7b10615f5c..a08e764912 100644
+index 7b10615f5c334192c3d41e9eed8dfd8b6186d4fd..a08e76491226b132a84d5bf28e4e3bb4b585a71c 100644
 --- a/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
 +++ b/nifi-commons/nifi-hashicorp-vault/src/main/java/org/apache/nifi/vault/hashicorp/StandardHashiCorpVaultCommunicationService.java
 @@ -217,8 +217,20 @@ public class StandardHashiCorpVaultCommunicationService implements HashiCorpVaul
@@ -63,7 +63,7 @@ index 7b10615f5c..a08e764912 100644
  
      private List<String> listKeyValueSecrets(final VaultKeyValueOperations keyValueOperations, final String path) {
 diff --git a/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java b/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
-index d9de2fbcc2..9c422e6bb3 100644
+index d9de2fbcc2a8fbba4ce2ca3e3b2be0181c124bec..9c422e6bb39bac4e5239410475dc50d04cda6b81 100644
 --- a/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
 +++ b/nifi-commons/nifi-hashicorp-vault/src/test/java/org/apache/nifi/vault/hashicorp/TestStandardHashiCorpVaultCommunicationService.java
 @@ -20,7 +20,10 @@ import org.apache.nifi.vault.hashicorp.config.HashiCorpVaultProperties;
@@ -240,7 +240,7 @@ index d9de2fbcc2..9c422e6bb3 100644
 +    }
  }
 diff --git a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
-index 0d9f44a51a..5544ff2188 100644
+index 0d9f44a51a297eca15911813c45dc57df0cf66fe..5544ff218889c8490c55ab556f7a347fac61320a 100644
 --- a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
 +++ b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/main/java/org/apache/nifi/vault/hashicorp/HashiCorpVaultParameterProvider.java
 @@ -70,6 +70,13 @@ public class HashiCorpVaultParameterProvider extends AbstractParameterProvider i
@@ -277,7 +277,7 @@ index 0d9f44a51a..5544ff2188 100644
                  .filter(name -> name.matches(secretIncludeRegex))
                  .collect(Collectors.toList());
 diff --git a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
-index 023152a95c..9ba2d98b88 100644
+index 023152a95cb63c4a9e418930908431148528f6fe..9ba2d98b8863361ab1992b69843aa80e25285bcc 100644
 --- a/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
 +++ b/nifi-extension-bundles/nifi-hashicorp-vault-bundle/nifi-hashicorp-vault-parameter-provider/src/test/java/org/apache/nifi/vault/hashicorp/TestHashiCorpVaultParameterProvider.java
 @@ -52,6 +52,8 @@ public class TestHashiCorpVaultParameterProvider {

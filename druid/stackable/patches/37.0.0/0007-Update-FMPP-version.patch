@@ -12,7 +12,7 @@ which we don't want.
  1 file changed, 7 insertions(+)
 
 diff --git a/sql/pom.xml b/sql/pom.xml
-index d62a265bbf..b8c07203bb 100644
+index d62a265bbf0854cf874004e57d0e87c6d16c8d36..b8c07203bb4059f3bf4b544db090bf9e46f5c3ca 100644
 --- a/sql/pom.xml
 +++ b/sql/pom.xml
 @@ -382,6 +382,13 @@

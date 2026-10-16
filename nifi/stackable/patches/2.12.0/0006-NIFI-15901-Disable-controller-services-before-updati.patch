@@ -8,7 +8,7 @@ Subject: NIFI-15901 Disable controller services before updating
  1 file changed, 37 insertions(+), 7 deletions(-)
 
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
-index e7930d84c3..eff9a5f0f0 100644
+index e7930d84c329c16d29258707190c85a2c7b7db7f..eff9a5f0f0d9fa9b0a1aff28b79f79e174a6c3b8 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-components/src/main/java/org/apache/nifi/flow/synchronization/StandardVersionedComponentSynchronizer.java
 @@ -727,7 +727,7 @@ public class StandardVersionedComponentSynchronizer implements VersionedComponen

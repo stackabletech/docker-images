@@ -9,7 +9,7 @@ Subject: Update CycloneDX plugin
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/dev/make-distribution.sh b/dev/make-distribution.sh
-index 16607e45ae6..44e345a245d 100755
+index 16607e45ae6563506477554b57841da014c74959..44e345a245d85237e6b4621dc67f906b397888d8 100755
 --- a/dev/make-distribution.sh
 +++ b/dev/make-distribution.sh
 @@ -176,7 +176,6 @@ BUILD_COMMAND=("$MVN" clean package \
@@ -21,7 +21,7 @@ index 16607e45ae6..44e345a245d 100755
  
  # Actually build the jar
 diff --git a/pom.xml b/pom.xml
-index 22922143fc3..59c3747c625 100644
+index 22922143fc342549e9af76886ce0f74e54a28bc5..59c3747c625f9bf63e481e99ff92f1bc333ebb3e 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3327,6 +3327,11 @@

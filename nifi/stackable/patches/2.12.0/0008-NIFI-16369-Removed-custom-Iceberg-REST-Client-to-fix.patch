@@ -17,7 +17,7 @@ Subject: NIFI-16369 Removed custom Iceberg REST Client to fix OAuth 2
 
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java
 deleted file mode 100644
-index a98b5bf7c9..0000000000
+index a98b5bf7c92f29264e57343debab8f112335e7e2..0000000000000000000000000000000000000000
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClient.java
 +++ /dev/null
 @@ -1,153 +0,0 @@
@@ -175,7 +175,7 @@ index a98b5bf7c9..0000000000
 -    }
 -}
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
-index adb9743819..8242e6c1ff 100644
+index adb97438195e4c29e6e4faecfffc55a20f517d7c..8242e6c1ff3941939a551688f951466959de348e 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/RESTIcebergCatalog.java
 @@ -277,10 +277,12 @@ public class RESTIcebergCatalog extends AbstractControllerService implements Ice
@@ -193,7 +193,7 @@ index adb9743819..8242e6c1ff 100644
          return getSessionCatalog(restClientProvider::build, icebergFileIoProvider, properties);
      }
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
-index afd50c26bf..55174df013 100644
+index afd50c26bf8a39685a4c306a561c1e6ede9ef06c..55174df0130545b3cb1f1dd962743cd7a4e48f3d 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/main/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProvider.java
 @@ -20,13 +20,9 @@ import org.apache.iceberg.CatalogProperties;
@@ -255,7 +255,7 @@ index afd50c26bf..55174df013 100644
  }
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java
 deleted file mode 100644
-index 69f5bd9ac0..0000000000
+index 69f5bd9ac0374d9466a19eba2eb3ef5c8411cf3a..0000000000000000000000000000000000000000
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/CredentialsRefreshRESTClientTest.java
 +++ /dev/null
 @@ -1,94 +0,0 @@
@@ -354,7 +354,7 @@ index 69f5bd9ac0..0000000000
 -    }
 -}
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
-index 821386fcf8..1aac505189 100644
+index 821386fcf8841a239ffc73442750243949eb7015..1aac5051894c51f9bae1eb7bd14977aaec1eff73 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-rest-catalog/src/test/java/org/apache/nifi/services/iceberg/catalog/StandardRESTClientProviderTest.java
 @@ -17,10 +17,9 @@

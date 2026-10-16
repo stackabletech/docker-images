@@ -1,4 +1,4 @@
-From e8e606c896c5fcb7006bdf02cb3a7a1f7bb2a55b Mon Sep 17 00:00:00 2001
+From d7ea558564bd4188072b0e80e1e057b9b8895c07 Mon Sep 17 00:00:00 2001
 From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
 Date: Fri, 19 Jun 2026 11:14:39 +0200
 Subject: Add CycloneDX plugin
@@ -8,7 +8,7 @@ Subject: Add CycloneDX plugin
  1 file changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index a0486c2..35406db 100644
+index a0486c21f3aabe272a76f5ac6718168558dbc9bb..35406db86b66db6cd291ed93095f342876d3b5c0 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -30,8 +30,26 @@ buildscript {

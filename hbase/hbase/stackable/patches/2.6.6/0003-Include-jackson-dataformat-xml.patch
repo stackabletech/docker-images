@@ -12,7 +12,7 @@ it.
  2 files changed, 12 insertions(+)
 
 diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
-index 8ff8fcdf2a..1e425d3c05 100644
+index 8ff8fcdf2a71c1c902e1e39ea1fec0eaad4baf2d..1e425d3c05666f3638c394fa19ecc1c706be343f 100644
 --- a/hbase-assembly/pom.xml
 +++ b/hbase-assembly/pom.xml
 @@ -221,6 +221,11 @@
@@ -28,7 +28,7 @@ index 8ff8fcdf2a..1e425d3c05 100644
        <groupId>org.apache.logging.log4j</groupId>
        <artifactId>log4j-slf4j-impl</artifactId>
 diff --git a/pom.xml b/pom.xml
-index ed13ea269b..495d62bd4e 100644
+index ed13ea269bb7471de2dcaef5aa9bcde62963c6d9..495d62bd4eecd53820a74fe4d9d5917b42895c47 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1196,6 +1196,13 @@

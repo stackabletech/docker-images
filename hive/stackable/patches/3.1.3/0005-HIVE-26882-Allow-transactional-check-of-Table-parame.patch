@@ -8,7 +8,7 @@ Subject: HIVE-26882: Allow transactional check of Table parameter before
  .../gen-cpp/hive_metastore_constants.cpp      |   5 +-
  .../thrift/gen-cpp/hive_metastore_constants.h |   2 +
  .../api/hive_metastoreConstants.java          |   4 +
- .../gen/thrift/gen-php/metastore/Types.php    |  10 +-
+ .../gen/thrift/gen-php/metastore/Types.php    |  12 ++-
  .../thrift/gen-py/hive_metastore/constants.py |   2 +
  .../thrift/gen-rb/hive_metastore_constants.rb |   3 +
  .../hive/metastore/HiveAlterHandler.java      |  19 +++-
@@ -16,10 +16,10 @@ Subject: HIVE-26882: Allow transactional check of Table parameter before
  .../hadoop/hive/metastore/RawStore.java       |  16 ++-
  .../src/main/thrift/hive_metastore.thrift     |   3 +
  .../TestTablesCreateDropAlterTruncate.java    | 102 ++++++++++++++++++
- 11 files changed, 184 insertions(+), 10 deletions(-)
+ 11 files changed, 185 insertions(+), 11 deletions(-)
 
 diff --git a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
-index 1c1b3ce5ee..7d560f0430 100644
+index 1c1b3ce5eeb62fc10af2d605c56dcfcecc8265c1..7d560f04304243bb6cf62ab19c7830487f518499 100644
 --- a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
 +++ b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.cpp
 @@ -61,7 +61,10 @@ hive_metastoreConstants::hive_metastoreConstants() {
@@ -35,7 +35,7 @@ index 1c1b3ce5ee..7d560f0430 100644
  }}} // namespace
 -
 diff --git a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
-index 1f062530e4..4cffc9491f 100644
+index 1f062530e4d87e2d2522c88449ec2ebf374645c1..4cffc9491fb278bb7dbf5b69c47ce49291262ee1 100644
 --- a/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
 +++ b/standalone-metastore/src/gen/thrift/gen-cpp/hive_metastore_constants.h
 @@ -40,6 +40,8 @@ class hive_metastoreConstants {
@@ -48,10 +48,10 @@ index 1f062530e4..4cffc9491f 100644
  
  extern const hive_metastoreConstants g_hive_metastore_constants;
 diff --git a/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java b/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
-index 2ee81df1dc..76be19a7d0 100644
+index 2ee81df1dc115a90dc5f793646da620b9e0df835..76be19a7d0e99fc746bcc8a2614223abcae1a7c3 100644
 --- a/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
 +++ b/standalone-metastore/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/hive_metastoreConstants.java
-@@ -86,4 +86,8 @@
+@@ -86,4 +86,8 @@ import org.slf4j.LoggerFactory;
  
    public static final String TABLE_BUCKETING_VERSION = "bucketing_version";
  
@@ -61,7 +61,7 @@ index 2ee81df1dc..76be19a7d0 100644
 +
  }
 diff --git a/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php b/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
-index 84f7e3320c..6255f8fa6d 100644
+index 84f7e3320c87f2584d64608a25495ab9c99669ce..6255f8fa6de384e9094f2c660349d6d2b9c4444a 100644
 --- a/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
 +++ b/standalone-metastore/src/gen/thrift/gen-php/metastore/Types.php
 @@ -31377,6 +31377,8 @@ final class Constant extends \Thrift\Type\TConstant {
@@ -77,28 +77,29 @@ index 84f7e3320c..6255f8fa6d 100644
    static protected function init_TABLE_BUCKETING_VERSION() {
      return "bucketing_version";
    }
--}
- 
++
 +  static protected function init_EXPECTED_PARAMETER_KEY() {
 +    return "expected_parameter_key";
 +  }
- 
++
 +  static protected function init_EXPECTED_PARAMETER_VALUE() {
 +    return "expected_parameter_value";
 +  }
-+}
+ }
+-
+-
 diff --git a/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py b/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
-index c27745a607..261b3bf82a 100644
+index c27745a6078eeec8a66342f72c86eac069220de3..261b3bf82aa1d596883afc44b20c2b1f5594a093 100644
 --- a/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
 +++ b/standalone-metastore/src/gen/thrift/gen-py/hive_metastore/constants.py
-@@ -34,3 +34,5 @@
+@@ -34,3 +34,5 @@ TABLE_IS_TRANSACTIONAL = "transactional"
  TABLE_NO_AUTO_COMPACT = "no_auto_compaction"
  TABLE_TRANSACTIONAL_PROPERTIES = "transactional_properties"
  TABLE_BUCKETING_VERSION = "bucketing_version"
 +EXPECTED_PARAMETER_KEY = "expected_parameter_key"
 +EXPECTED_PARAMETER_VALUE = "expected_parameter_value"
 diff --git a/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb b/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
-index 9e6cedd43d..db9d5cbfcf 100644
+index 9e6cedd43d728e7428b4cf5c09823e9b641150d9..db9d5cbfcf828a294630ccc4f82d94aaddddd56a 100644
 --- a/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
 +++ b/standalone-metastore/src/gen/thrift/gen-rb/hive_metastore_constants.rb
 @@ -57,3 +57,6 @@ TABLE_TRANSACTIONAL_PROPERTIES = %q"transactional_properties"
@@ -109,10 +110,10 @@ index 9e6cedd43d..db9d5cbfcf 100644
 +
 +EXPECTED_PARAMETER_VALUE = %q"expected_parameter_value"
 diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
-index f328ad1815..f010f0d2cc 100644
+index f328ad1815581d0845f962ff426c4b461877d0e7..f010f0d2cca867c38d4e209d98f8ef4d74cf6d88 100644
 --- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
 +++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/HiveAlterHandler.java
-@@ -49,6 +49,7 @@
+@@ -49,6 +49,7 @@ import org.apache.hadoop.hive.metastore.api.Partition;
  import org.apache.hadoop.hive.metastore.api.Table;
  import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
  
@@ -120,7 +121,7 @@ index f328ad1815..f010f0d2cc 100644
  import java.io.IOException;
  import java.net.URI;
  import java.util.ArrayList;
-@@ -146,7 +147,17 @@ public void alterTable(RawStore msdb, Warehouse wh, String catName, String dbnam
+@@ -146,7 +147,17 @@ public class HiveAlterHandler implements AlterHandler {
          rename = true;
        }
  
@@ -139,7 +140,7 @@ index f328ad1815..f010f0d2cc 100644
        // get old table
        oldt = msdb.getTable(catName, dbname, name);
        if (oldt == null) {
-@@ -154,6 +165,12 @@ public void alterTable(RawStore msdb, Warehouse wh, String catName, String dbnam
+@@ -154,6 +165,12 @@ public class HiveAlterHandler implements AlterHandler {
              Warehouse.getCatalogQualifiedTableName(catName, dbname, name) + " doesn't exist");
        }
  
@@ -153,10 +154,10 @@ index f328ad1815..f010f0d2cc 100644
          isPartitionedTable = true;
        }
 diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
-index 99fc74e6d4..815ee4184d 100644
+index 99fc74e6d450eef1ee4e0e062b57490619da4a83..815ee4184d8a1f98dc4703873edd02e767d58517 100644
 --- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
 +++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/ObjectStore.java
-@@ -704,17 +704,31 @@ public void shutdown() {
+@@ -704,17 +704,31 @@ public class ObjectStore implements RawStore, Configurable {
    }
  
    /**
@@ -191,7 +192,7 @@ index 99fc74e6d4..815ee4184d 100644
        currentTransaction.begin();
        transactionStatus = TXN_STATUS.OPEN;
      } else {
-@@ -724,10 +738,16 @@ public boolean openTransaction() {
+@@ -724,10 +738,16 @@ public class ObjectStore implements RawStore, Configurable {
          throw new RuntimeException("openTransaction called in an interior"
              + " transaction scope, but currentTransaction is not active.");
        }
@@ -210,7 +211,7 @@ index 99fc74e6d4..815ee4184d 100644
    }
  
 diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
-index f350aa9fd7..a6ffcf417e 100644
+index f350aa9fd7c007590a6cfa34808d2ebf69f83492..a6ffcf417e92e42744bb2caf112c29e9cad68a96 100644
 --- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
 +++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/RawStore.java
 @@ -104,14 +104,24 @@ public interface RawStore extends Configurable {
@@ -242,7 +243,7 @@ index f350aa9fd7..a6ffcf417e 100644
     * if this is the commit of the first open call then an actual commit is
     * called.
 diff --git a/standalone-metastore/src/main/thrift/hive_metastore.thrift b/standalone-metastore/src/main/thrift/hive_metastore.thrift
-index ad1dc1f769..1ad3255da1 100644
+index ad1dc1f76966f745b4922824a5cb358ccd3e811c..1ad3255da1c1cafa876150cb9c93b1ea8491b9df 100644
 --- a/standalone-metastore/src/main/thrift/hive_metastore.thrift
 +++ b/standalone-metastore/src/main/thrift/hive_metastore.thrift
 @@ -2243,3 +2243,6 @@ const string TABLE_NO_AUTO_COMPACT = "no_auto_compaction",
@@ -253,10 +254,10 @@ index ad1dc1f769..1ad3255da1 100644
 +const string EXPECTED_PARAMETER_KEY = "expected_parameter_key",
 +const string EXPECTED_PARAMETER_VALUE = "expected_parameter_value",
 diff --git a/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
-index c1eff55b11..a2ab9e807f 100644
+index c1eff55b11c377de5dc369422b61bece110d26a7..a2ab9e807f3772ebe274126fd94d3852fda509d9 100644
 --- a/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
 +++ b/standalone-metastore/src/test/java/org/apache/hadoop/hive/metastore/client/TestTablesCreateDropAlterTruncate.java
-@@ -23,7 +23,9 @@
+@@ -23,7 +23,9 @@ import org.apache.hadoop.hive.common.StatsSetupConst;
  import org.apache.hadoop.hive.metastore.ColumnType;
  import org.apache.hadoop.hive.metastore.IMetaStoreClient;
  import org.apache.hadoop.hive.metastore.MetaStoreTestUtils;
@@ -266,7 +267,7 @@ index c1eff55b11..a2ab9e807f 100644
  import org.apache.hadoop.hive.metastore.annotation.MetastoreCheckinTest;
  import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
  import org.apache.hadoop.hive.metastore.api.Catalog;
-@@ -33,6 +35,7 @@
+@@ -33,6 +35,7 @@ import org.apache.hadoop.hive.metastore.api.EnvironmentContext;
  import org.apache.hadoop.hive.metastore.api.FieldSchema;
  import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
  import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -274,7 +275,7 @@ index c1eff55b11..a2ab9e807f 100644
  import org.apache.hadoop.hive.metastore.api.MetaException;
  import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
  import org.apache.hadoop.hive.metastore.api.Partition;
-@@ -65,15 +68,21 @@
+@@ -65,15 +68,21 @@ import java.net.URI;
  import java.net.URISyntaxException;
  import java.util.ArrayList;
  import java.util.Arrays;
@@ -296,7 +297,7 @@ index c1eff55b11..a2ab9e807f 100644
  
  /**
   * Test class for IMetaStoreClient API. Testing the Table related functions for metadata
-@@ -1075,6 +1084,99 @@ public void testAlterTableAlreadyExists() throws Exception {
+@@ -1075,6 +1084,99 @@ public class TestTablesCreateDropAlterTruncate extends MetaStoreClientTest {
      }
    }
  

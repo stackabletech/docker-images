@@ -1,4 +1,4 @@
-From 923efe9f649c947de8809f78cbc899d238545d05 Mon Sep 17 00:00:00 2001
+From a9d61668e585f212d90ebe673fad377687420a7c Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Tue, 10 Feb 2026 11:35:36 +0100
 Subject: Configure git-commit-id-plugin to use native git
@@ -13,7 +13,7 @@ https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/hbase-hbck2/pom.xml b/hbase-hbck2/pom.xml
-index 7bebf32..e3c246f 100644
+index 7bebf3206593bf9f0060b12372cb0faf5349c30b..e3c246f77b2bf19dda86f60fcd82a7cc0a87234f 100644
 --- a/hbase-hbck2/pom.xml
 +++ b/hbase-hbck2/pom.xml
 @@ -214,8 +214,9 @@

@@ -8,7 +8,7 @@ Subject: set correct OPENSEARCH_DASHBOARDS_HOME in docker entrypoint
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh b/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
-index 055354ba..33d98353 100755
+index 055354ba98649de264adef88721392086b1ac396..33d98353d880c74238b647fd0f91171516145299 100755
 --- a/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
 +++ b/docker/release/config/opensearch-dashboards/opensearch-dashboards-docker-entrypoint-3.x.sh
 @@ -16,7 +16,7 @@

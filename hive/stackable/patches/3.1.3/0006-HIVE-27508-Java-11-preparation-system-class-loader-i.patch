@@ -26,10 +26,10 @@ HIVE-21584: Java 11 preparation: system class loader is not URLClassLoader
  create mode 100644 ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
 
 diff --git a/beeline/src/java/org/apache/hive/beeline/Commands.java b/beeline/src/java/org/apache/hive/beeline/Commands.java
-index 851042f3f9..f14564a81a 100644
+index 851042f3f9d71173001086ae6ff82f338f0bf1e7..f14564a81acc3b36c9156b8c79ba89176f9875c9 100644
 --- a/beeline/src/java/org/apache/hive/beeline/Commands.java
 +++ b/beeline/src/java/org/apache/hive/beeline/Commands.java
-@@ -169,7 +169,7 @@ public boolean addlocaldriverjar(String line) {
+@@ -169,7 +169,7 @@ public class Commands {
        return false;
      }
  
@@ -39,7 +39,7 @@ index 851042f3f9..f14564a81a 100644
        beeLine.debug(jarPath + " is added to the local beeline.");
        URLClassLoader newClassLoader = new URLClassLoader(new URL[]{p.toURL()}, classLoader);
 diff --git a/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java b/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
-index 54d6b65fa1..93f591fe2a 100644
+index 54d6b65fa1792b2a0965cfd45ead88b54d48bf98..93f591fe2a20f24ffb0e2943fd3f033660c437d7 100644
 --- a/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
 +++ b/common/src/java/org/apache/hadoop/hive/common/JavaUtils.java
 @@ -18,12 +18,8 @@
@@ -55,7 +55,7 @@ index 54d6b65fa1..93f591fe2a 100644
  import java.net.URLClassLoader;
  import java.util.Arrays;
  import java.util.List;
-@@ -38,22 +34,6 @@
+@@ -38,22 +34,6 @@ import org.slf4j.LoggerFactory;
   */
  public final class JavaUtils {
    private static final Logger LOG = LoggerFactory.getLogger(JavaUtils.class);
@@ -78,7 +78,7 @@ index 54d6b65fa1..93f591fe2a 100644
  
    /**
     * Standard way of getting classloader in Hive code (outside of Hadoop).
-@@ -91,8 +71,10 @@ public static boolean closeClassLoadersTo(ClassLoader current, ClassLoader stop)
+@@ -91,8 +71,10 @@ public final class JavaUtils {
        try {
          closeClassLoader(current);
        } catch (IOException e) {
@@ -91,7 +91,7 @@ index 54d6b65fa1..93f591fe2a 100644
        }
      }
      return true;
-@@ -108,35 +90,12 @@ private static boolean isValidHierarchy(ClassLoader current, ClassLoader stop) {
+@@ -108,35 +90,12 @@ public final class JavaUtils {
      return current == stop;
    }
  
@@ -132,10 +132,10 @@ index 54d6b65fa1..93f591fe2a 100644
    LogFactory.release(loader);
    }
 diff --git a/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java b/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
-index 2a6ef3a246..136fe2a3b3 100644
+index 2a6ef3a2461fb4e4331da678ac8521135f304018..136fe2a3b385d384fc2434f3e3f757b9659ac1c1 100644
 --- a/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
 +++ b/llap-server/src/java/org/apache/hadoop/hive/llap/daemon/impl/FunctionLocalizer.java
-@@ -18,8 +18,10 @@
+@@ -18,8 +18,10 @@ import java.io.File;
  import java.io.IOException;
  import java.net.URI;
  import java.net.URISyntaxException;
@@ -147,7 +147,7 @@ index 2a6ef3a246..136fe2a3b3 100644
  import java.util.IdentityHashMap;
  import java.util.LinkedList;
  import java.util.List;
-@@ -33,10 +35,10 @@
+@@ -33,10 +35,10 @@ import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
  import org.apache.hadoop.hive.metastore.api.Function;
  import org.apache.hadoop.hive.metastore.api.MetaException;
  import org.apache.hadoop.hive.metastore.api.ResourceUri;
@@ -181,7 +181,7 @@ index 2a6ef3a246..136fe2a3b3 100644
      this.workThread = new Thread(new Runnable() {
        @Override
        public void run() {
-@@ -223,7 +226,8 @@ public void refreshClassloader() throws IOException {
+@@ -223,7 +226,8 @@ public class FunctionLocalizer implements GenericUDFBridge.UdfWhitelistChecker {
      recentlyLocalizedJars.clear();
      ClassLoader updatedCl = null;
      try {
@@ -193,7 +193,7 @@ index 2a6ef3a246..136fe2a3b3 100644
        }
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
 new file mode 100644
-index 0000000000..a2ffbb1f24
+index 0000000000000000000000000000000000000000..a2ffbb1f24056b5f3930321c7117232ae8b685a8
 --- /dev/null
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/AddToClassPathAction.java
 @@ -0,0 +1,87 @@
@@ -285,10 +285,10 @@ index 0000000000..a2ffbb1f24
 +  }
 +}
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
-index 406bea011d..41ac266cc0 100644
+index 406bea011da83aee55f385029a4df1af94400e4c..41ac266cc06bc35529331a1de486015117e17d86 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/Utilities.java
-@@ -42,6 +42,7 @@
+@@ -42,6 +42,7 @@ import java.net.URI;
  import java.net.URL;
  import java.net.URLClassLoader;
  import java.net.URLDecoder;
@@ -296,7 +296,7 @@ index 406bea011d..41ac266cc0 100644
  import java.sql.Connection;
  import java.sql.DriverManager;
  import java.sql.PreparedStatement;
-@@ -418,8 +419,10 @@ private static BaseWork getBaseWork(Configuration conf, String name) {
+@@ -418,8 +419,10 @@ public final class Utilities {
          // threads, should be unnecessary while SPARK-5377 is resolved.
          String addedJars = conf.get(HIVE_ADDED_JARS);
          if (StringUtils.isNotEmpty(addedJars)) {
@@ -309,7 +309,7 @@ index 406bea011d..41ac266cc0 100644
            Thread.currentThread().setContextClassLoader(newLoader);
            kryo.setClassLoader(newLoader);
          }
-@@ -1544,9 +1547,8 @@ public static void mvFileToFinalPath(Path specPath, Configuration hconf,
+@@ -1544,9 +1547,8 @@ public final class Utilities {
     * Check the existence of buckets according to bucket specification. Create empty buckets if
     * needed.
     *
@@ -320,7 +320,7 @@ index 406bea011d..41ac266cc0 100644
     * @param reporter The mapreduce reporter object
     * @throws HiveException
     * @throws IOException
-@@ -2000,7 +2002,7 @@ public static void restoreSessionSpecifiedClassLoader(ClassLoader prev) {
+@@ -2000,7 +2002,7 @@ public final class Utilities {
     * @param onestr  path string
     * @return
     */
@@ -329,7 +329,7 @@ index 406bea011d..41ac266cc0 100644
      URL oneurl = null;
      try {
        if (StringUtils.indexOf(onestr, "file:/") == 0) {
-@@ -2014,59 +2016,26 @@ private static URL urlFromPathString(String onestr) {
+@@ -2014,59 +2016,26 @@ public final class Utilities {
      return oneurl;
    }
  
@@ -346,7 +346,7 @@ index 406bea011d..41ac266cc0 100644
 -    return true;
 -  }
 -
--  /**
+   /**
 -   * Add new elements to the classpath.
 -   *
 -   * @param newPaths
@@ -377,7 +377,7 @@ index 406bea011d..41ac266cc0 100644
 -    return new UDFClassLoader(curPaths.toArray(new URL[0]), loader);
 -  }
 -
-   /**
+-  /**
 -   * remove elements from the classpath.
 +   * Remove elements from the classpath, if possible. This will only work if the current thread context class loader is
 +   * an UDFClassLoader (i.e. if we have created it).
@@ -402,7 +402,7 @@ index 406bea011d..41ac266cc0 100644
      Set<URL> newPath = new HashSet<URL>(Arrays.asList(loader.getURLs()));
  
      for (String onestr : pathsToRemove) {
-@@ -2076,9 +2045,9 @@ public static void removeFromClassPath(String[] pathsToRemove) throws IOExceptio
+@@ -2076,9 +2045,9 @@ public final class Utilities {
        }
      }
      JavaUtils.closeClassLoader(loader);
@@ -414,7 +414,7 @@ index 406bea011d..41ac266cc0 100644
        reg.removeFromUDFLoaders(loader);
      }
  
-@@ -4515,4 +4484,27 @@ public static int getBucketingVersion(final String versionStr) {
+@@ -4515,4 +4484,27 @@ public final class Utilities {
      }
      return bucketingVersion;
    }
@@ -443,10 +443,10 @@ index 406bea011d..41ac266cc0 100644
 +  }
  }
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
-index 7ff8ddc6a0..c784701983 100644
+index 7ff8ddc6a0a8e0387bd85e87c09c9b74aeb08cca..c7847019831278efd363f46f9513fb062fefdea8 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecDriver.java
-@@ -24,7 +24,9 @@
+@@ -24,7 +24,9 @@ import java.io.OutputStream;
  import java.io.Serializable;
  import java.lang.management.ManagementFactory;
  import java.lang.management.MemoryMXBean;
@@ -456,7 +456,7 @@ index 7ff8ddc6a0..c784701983 100644
  import java.util.Collection;
  import java.util.Collections;
  import java.util.Iterator;
-@@ -33,6 +35,7 @@
+@@ -33,6 +35,7 @@ import java.util.Map;
  import java.util.Properties;
  
  import org.apache.commons.lang.StringUtils;
@@ -464,7 +464,7 @@ index 7ff8ddc6a0..c784701983 100644
  import org.apache.hadoop.hive.ql.exec.SerializationUtilities;
  import org.apache.hadoop.hive.ql.log.LogDivertAppenderForTest;
  import org.apache.hadoop.mapreduce.MRJobConfig;
-@@ -752,7 +755,9 @@ public static void main(String[] args) throws IOException, HiveException {
+@@ -752,7 +755,9 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
        // see also - code in CliDriver.java
        ClassLoader loader = conf.getClassLoader();
        if (StringUtils.isNotBlank(libjars)) {
@@ -475,13 +475,13 @@ index 7ff8ddc6a0..c784701983 100644
        }
        conf.setClassLoader(loader);
        // Also set this to the Thread ContextClassLoader, so new threads will
-@@ -894,4 +899,3 @@ private void killJob() {
+@@ -894,4 +899,3 @@ public class ExecDriver extends Task<MapredWork> implements Serializable, Hadoop
      }
    }
  }
 -
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
-index 99b33a3aad..d0038cd3d8 100644
+index 99b33a3aad8c1f7b1c97380bbcb8297e352bdcc8..d0038cd3d87bba7867dd68bef5712cba80131881 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecMapper.java
 @@ -19,13 +19,9 @@
@@ -498,7 +498,7 @@ index 99b33a3aad..d0038cd3d8 100644
  import org.apache.hadoop.conf.Configuration;
  import org.apache.hadoop.hive.conf.HiveConf;
  import org.apache.hadoop.hive.ql.CompilationOpContext;
-@@ -39,6 +35,8 @@
+@@ -39,6 +35,8 @@ import org.apache.hadoop.hive.ql.exec.vector.VectorMapOperator;
  import org.apache.hadoop.hive.ql.plan.MapWork;
  import org.apache.hadoop.hive.ql.plan.MapredLocalWork;
  import org.apache.hadoop.hive.ql.plan.OperatorDesc;
@@ -507,7 +507,7 @@ index 99b33a3aad..d0038cd3d8 100644
  import org.apache.hadoop.io.Writable;
  import org.apache.hadoop.mapred.JobConf;
  import org.apache.hadoop.mapred.MapReduceBase;
-@@ -46,6 +44,8 @@
+@@ -46,6 +44,8 @@ import org.apache.hadoop.mapred.Mapper;
  import org.apache.hadoop.mapred.OutputCollector;
  import org.apache.hadoop.mapred.Reporter;
  import org.apache.hadoop.util.StringUtils;
@@ -536,7 +536,7 @@ index 99b33a3aad..d0038cd3d8 100644
  
      try {
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
-index 829006d375..7ce1544839 100644
+index 829006d3754b1a41f6e37da07face12757d2807c..7ce1544839f166e9c130a2a3ebaa3e2c572c601c 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/mr/ExecReducer.java
 @@ -19,16 +19,10 @@
@@ -556,7 +556,7 @@ index 829006d375..7ce1544839 100644
  import org.apache.hadoop.hive.ql.exec.MapredContext;
  import org.apache.hadoop.hive.ql.exec.Operator;
  import org.apache.hadoop.hive.ql.exec.Utilities;
-@@ -49,6 +43,8 @@
+@@ -49,6 +43,8 @@ import org.apache.hadoop.mapred.Reducer;
  import org.apache.hadoop.mapred.Reporter;
  import org.apache.hadoop.util.ReflectionUtils;
  import org.apache.hadoop.util.StringUtils;
@@ -565,7 +565,7 @@ index 829006d375..7ce1544839 100644
  
  /**
   * ExecReducer is the generic Reducer class for Hive. Together with ExecMapper it is
-@@ -94,17 +90,7 @@ public void configure(JobConf job) {
+@@ -94,17 +90,7 @@ public class ExecReducer extends MapReduceBase implements Reducer {
      ObjectInspector[] valueObjectInspector = new ObjectInspector[Byte.MAX_VALUE];
      ObjectInspector keyObjectInspector;
  
@@ -585,7 +585,7 @@ index 829006d375..7ce1544839 100644
  
      ReduceWork gWork = Utilities.getReduceWork(job);
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
-index cb5bd7ada2..c5b33f89f1 100644
+index cb5bd7ada2d5ad4f1f654cf80ddaf4504be5d035..c5b33f89f13d0ae82e1d492db37fe595cc2c65cc 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/spark/SparkRecordHandler.java
 @@ -18,21 +18,23 @@
@@ -620,7 +620,7 @@ index cb5bd7ada2..c5b33f89f1 100644
  
  public abstract class SparkRecordHandler {
    protected static final String CLASS_NAME = SparkRecordHandler.class.getName();
-@@ -60,16 +62,7 @@ public <K, V> void init(JobConf job, OutputCollector<K, V> output, Reporter repo
+@@ -60,16 +62,7 @@ public abstract class SparkRecordHandler {
      rp = reporter;
  
      LOG.info("maximum memory = " + memoryMXBean.getHeapMemoryUsage().getMax());
@@ -639,7 +639,7 @@ index cb5bd7ada2..c5b33f89f1 100644
  
    /**
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java b/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
-index 0ec7a04ce7..86390963c8 100644
+index 0ec7a04ce7a219f3a48a38f16d4626e8f2fc87b3..86390963c851c345751e60385e246fa9d57ea9f3 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/exec/tez/RecordProcessor.java
 @@ -16,9 +16,7 @@
@@ -652,7 +652,7 @@ index 0ec7a04ce7..86390963c8 100644
  import java.util.List;
  import java.util.Map;
  import java.util.Map.Entry;
-@@ -80,19 +78,7 @@ void init(MRTaskReporter mrReporter,
+@@ -80,19 +78,7 @@ public abstract class RecordProcessor extends InterruptibleProcessing {
      this.outputs = outputs;
  
      checkAbortCondition();
@@ -674,10 +674,10 @@ index 0ec7a04ce7..86390963c8 100644
  
    /**
 diff --git a/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java b/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
-index 7a5866cb1c..711d4603db 100644
+index 7a5866cb1c174221688b21948a4f1713f1b9aa4b..711d4603db251169e4d29b020bbfb75be0a9742c 100644
 --- a/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
 +++ b/ql/src/java/org/apache/hadoop/hive/ql/session/SessionState.java
-@@ -27,11 +27,12 @@
+@@ -27,11 +27,12 @@ import java.io.PrintStream;
  import java.lang.management.ManagementFactory;
  import java.net.URI;
  import java.net.URISyntaxException;
@@ -691,7 +691,7 @@ index 7a5866cb1c..711d4603db 100644
  import java.util.HashMap;
  import java.util.HashSet;
  import java.util.LinkedHashMap;
-@@ -68,6 +69,7 @@
+@@ -68,6 +69,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
  import org.apache.hadoop.hive.metastore.cache.CachedStore;
  import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
  import org.apache.hadoop.hive.ql.MapRedStats;
@@ -699,7 +699,7 @@ index 7a5866cb1c..711d4603db 100644
  import org.apache.hadoop.hive.ql.exec.FunctionInfo;
  import org.apache.hadoop.hive.ql.exec.Registry;
  import org.apache.hadoop.hive.ql.exec.Utilities;
-@@ -410,7 +412,9 @@ public SessionState(HiveConf conf, String userName) {
+@@ -410,7 +412,9 @@ public class SessionState {
      // classloader as parent can pollute the session. See HIVE-11878
      parentLoader = SessionState.class.getClassLoader();
      // Make sure that each session has its own UDFClassloader. For details see {@link UDFClassLoader}
@@ -710,7 +710,7 @@ index 7a5866cb1c..711d4603db 100644
      this.sessionConf.setClassLoader(currentLoader);
      resourceDownloader = new ResourceDownloader(conf,
          HiveConf.getVar(conf, ConfVars.DOWNLOADED_RESOURCES_DIR));
-@@ -1301,6 +1305,21 @@ static void validateFiles(List<String> newFiles) throws IllegalArgumentException
+@@ -1301,6 +1305,21 @@ public class SessionState {
      }
    }
  
@@ -732,7 +732,7 @@ index 7a5866cb1c..711d4603db 100644
    /**
     * Load the jars under the path specified in hive.aux.jars.path property. Add
     * the jars to the classpath so the local task can refer to them.
-@@ -1311,17 +1330,17 @@ public void loadAuxJars() throws IOException {
+@@ -1311,17 +1330,17 @@ public class SessionState {
      if (ArrayUtils.isEmpty(jarPaths)) {
        return;
      }
@@ -755,7 +755,7 @@ index 7a5866cb1c..711d4603db 100644
     * @throws IOException
     */
    public void loadReloadableAuxJars() throws IOException {
-@@ -1336,7 +1355,7 @@ public void loadReloadableAuxJars() throws IOException {
+@@ -1336,7 +1355,7 @@ public class SessionState {
      Set<String> jarPaths = FileUtils.getJarFilesByPath(renewableJarPath, sessionConf);
  
      // load jars under the hive.reloadable.aux.jars.path
@@ -764,7 +764,7 @@ index 7a5866cb1c..711d4603db 100644
        reloadedAuxJars.addAll(jarPaths);
      }
  
-@@ -1346,11 +1365,9 @@ public void loadReloadableAuxJars() throws IOException {
+@@ -1346,11 +1365,9 @@ public class SessionState {
      }
  
      if (reloadedAuxJars != null && !reloadedAuxJars.isEmpty()) {
@@ -779,7 +779,7 @@ index 7a5866cb1c..711d4603db 100644
        sessionConf.setClassLoader(currentCLoader);
        Thread.currentThread().setContextClassLoader(currentCLoader);
      }
-@@ -1358,20 +1375,6 @@ public void loadReloadableAuxJars() throws IOException {
+@@ -1358,20 +1375,6 @@ public class SessionState {
      preReloadableAuxJars.addAll(reloadedAuxJars);
    }
  
@@ -802,7 +802,7 @@ index 7a5866cb1c..711d4603db 100644
      try {
 diff --git a/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java b/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
 new file mode 100644
-index 0000000000..e524bb5772
+index 0000000000000000000000000000000000000000..e524bb5772af85443b36979e26ac88aa04fd738f
 --- /dev/null
 +++ b/ql/src/test/org/apache/hadoop/hive/ql/exec/TestAddToClassPathAction.java
 @@ -0,0 +1,142 @@
@@ -949,10 +949,10 @@ index 0000000000..e524bb5772
 +
 +}
 diff --git a/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java b/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
-index d3cb3dd7a1..ca861400b4 100644
+index d3cb3dd7a1c626d73afe5790d9c3b988fc1e84ae..ca861400b496e89f5e465d12721a9cd8fbb2b9ec 100644
 --- a/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
 +++ b/spark-client/src/main/java/org/apache/hive/spark/client/SparkClientUtilities.java
-@@ -27,6 +27,7 @@
+@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
  import java.net.URL;
  import java.net.URLClassLoader;
  import java.util.ArrayList;
@@ -993,7 +993,7 @@ index d3cb3dd7a1..ca861400b4 100644
      List<String> localNewPaths = new ArrayList<>();
  
      boolean newPathAdded = false;
-@@ -75,7 +92,7 @@ public static List<String> addToClassPath(Map<String, Long> newPaths, Configurat
+@@ -75,7 +92,7 @@ public class SparkClientUtilities {
  
      if (newPathAdded) {
        URLClassLoader newLoader =
@@ -1003,10 +1003,10 @@ index d3cb3dd7a1..ca861400b4 100644
      }
      return localNewPaths;
 diff --git a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
-index aa5457d1c4..9904158564 100644
+index aa5457d1c436561f3c5da52c5c83320282d14872..990415856462364b3f7f5e0a2c9afa7df5f70464 100644
 --- a/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
 +++ b/standalone-metastore/src/main/java/org/apache/hadoop/hive/metastore/utils/MetaStoreUtils.java
-@@ -84,7 +84,7 @@
+@@ -84,7 +84,7 @@ import java.security.MessageDigest;
  import java.text.DateFormat;
  import java.text.SimpleDateFormat;
  import java.util.ArrayList;
@@ -1015,7 +1015,7 @@ index aa5457d1c4..9904158564 100644
  import java.util.Collection;
  import java.util.HashMap;
  import java.util.Iterator;
-@@ -1096,6 +1096,19 @@ public static Map<String, String> getMetaStoreSaslProperties(Configuration conf,
+@@ -1096,6 +1096,19 @@ public class MetaStoreUtils {
      return HadoopThriftAuthBridge.getBridge().getHadoopSaslProperties(conf);
    }
  
@@ -1035,7 +1035,7 @@ index aa5457d1c4..9904158564 100644
    /**
     * Add new elements to the classpath.
     *
-@@ -1103,8 +1116,7 @@ public static Map<String, String> getMetaStoreSaslProperties(Configuration conf,
+@@ -1103,8 +1116,7 @@ public class MetaStoreUtils {
     *          Array of classpath elements
     */
    public static ClassLoader addToClassPath(ClassLoader cloader, String[] newPaths) throws Exception {
@@ -1045,7 +1045,7 @@ index aa5457d1c4..9904158564 100644
      ArrayList<URL> newPath = new ArrayList<>(curPath.size());
  
      // get a list with the current classpath components
-@@ -1120,7 +1132,7 @@ public static ClassLoader addToClassPath(ClassLoader cloader, String[] newPaths)
+@@ -1120,7 +1132,7 @@ public class MetaStoreUtils {
        }
      }
  

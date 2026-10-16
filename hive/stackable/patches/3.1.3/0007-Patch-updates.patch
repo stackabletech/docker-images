@@ -10,7 +10,7 @@ Subject: Patch updates
  3 files changed, 46 insertions(+), 46 deletions(-)
 
 diff --git a/druid-handler/pom.xml b/druid-handler/pom.xml
-index 1ea4935863..303892078c 100644
+index 1ea4935863aaa720cca92034cb54f62124d1f82e..303892078cd163c07f25585d57098d0b3afb1b57 100644
 --- a/druid-handler/pom.xml
 +++ b/druid-handler/pom.xml
 @@ -29,7 +29,7 @@
@@ -23,7 +23,7 @@ index 1ea4935863..303892078c 100644
    </properties>
  
 diff --git a/pom.xml b/pom.xml
-index cb54806ef5..ccc5d12547 100644
+index cb54806ef5cad6650837e2370207d7272f133c76..ccc5d12547457047632d812ee0d51feb3369955b 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -95,17 +95,17 @@
@@ -174,7 +174,7 @@ index cb54806ef5..ccc5d12547 100644
      <felix.version>2.4.0</felix.version>
      <curator.version>2.12.0</curator.version>
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 6007b7961b..3b35b0ba71 100644
+index 6007b7961bf79818fb65a015ad01dcd0f2406811..3b35b0ba71e8e80eebc7f45b6265a26eebfd8cbe 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -59,34 +59,34 @@

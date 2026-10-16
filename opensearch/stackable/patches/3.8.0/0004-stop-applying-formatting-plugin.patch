@@ -12,7 +12,7 @@ Subject: stop applying formatting plugin
  5 files changed, 27 deletions(-)
 
 diff --git a/benchmarks/build.gradle b/benchmarks/build.gradle
-index 732e77934b4..47a7c1b1066 100644
+index 732e77934b42792722bc5577353eaa967c61acd4..47a7c1b1066c2c94ce0ac6f48b5f0d157a66a3f2 100644
 --- a/benchmarks/build.gradle
 +++ b/benchmarks/build.gradle
 @@ -76,14 +76,5 @@ thirdPartyAudit.ignoreViolations(
@@ -31,7 +31,7 @@ index 732e77934b4..47a7c1b1066 100644
  // Add support for incubator modules on supported Java versions.
  run.jvmArgs += ['--add-modules=jdk.incubator.vector']
 diff --git a/build.gradle b/build.gradle
-index 2c6e9684175..d36f458331b 100644
+index 2c6e9684175a7926a5c52118af8b13a296f29469..d36f458331b72c0b247bbf8c042ff808d8a5882d 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -65,7 +65,6 @@ apply from: 'gradle/build-complete.gradle'
@@ -43,7 +43,7 @@ index 2c6e9684175..d36f458331b 100644
  apply from: 'gradle/run.gradle'
  apply from: 'gradle/missing-javadoc.gradle'
 diff --git a/libs/concurrent-queue/build.gradle b/libs/concurrent-queue/build.gradle
-index f5d834aa72b..769df7a618d 100644
+index f5d834aa72b08feb18e4d32cc937dbb961b4a274..769df7a618d92ebae6cc951e0396c0bbd8100bdf 100644
 --- a/libs/concurrent-queue/build.gradle
 +++ b/libs/concurrent-queue/build.gradle
 @@ -61,9 +61,3 @@ tasks.register('jmh', JavaExec) {
@@ -57,7 +57,7 @@ index f5d834aa72b..769df7a618d 100644
 -  }
 -}
 diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
-index 50492118a97..a420221a263 100644
+index 50492118a97b69664463cafcf4750b9f75528952..a420221a263f928b25d807089a49785047f19e7c 100644
 --- a/plugins/arrow-flight-rpc/build.gradle
 +++ b/plugins/arrow-flight-rpc/build.gradle
 @@ -95,13 +95,6 @@ internalClusterTest {
@@ -75,7 +75,7 @@ index 50492118a97..a420221a263 100644
  tasks.named("dependencyLicenses").configure {
    mapping from: /netty-.*/, to: 'netty'
 diff --git a/qa/wildfly/build.gradle b/qa/wildfly/build.gradle
-index 12f2eacccd9..a559d08dc9e 100644
+index 12f2eacccd98217fc8ebd9d12e27a43b4df8d594..a559d08dc9e72feed9eaae5e36597bb167648d9e 100644
 --- a/qa/wildfly/build.gradle
 +++ b/qa/wildfly/build.gradle
 @@ -88,10 +88,6 @@ preProcessFixture {

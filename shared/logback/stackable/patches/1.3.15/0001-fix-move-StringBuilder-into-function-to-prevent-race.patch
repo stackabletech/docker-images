@@ -8,7 +8,7 @@ Subject: fix: move StringBuilder into function to prevent race
  1 file changed, 1 insertion(+), 9 deletions(-)
 
 diff --git a/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java b/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
-index 4bc04388a..405f4ef26 100644
+index 4bc04388a82af03f11abd3de78aace37d7424bf9..405f4ef2603bdb1fde6a51e78ca6d950a17e8135 100644
 --- a/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
 +++ b/logback-classic/src/main/java/ch/qos/logback/classic/log4j/XMLLayout.java
 @@ -38,9 +38,7 @@ import ch.qos.logback.core.helpers.Transform;

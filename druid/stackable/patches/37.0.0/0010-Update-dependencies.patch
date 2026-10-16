@@ -10,7 +10,7 @@ Subject: Update dependencies
  3 files changed, 17 insertions(+), 12 deletions(-)
 
 diff --git a/extensions-core/druid-pac4j/pom.xml b/extensions-core/druid-pac4j/pom.xml
-index 76cd236ebf..f7512d3c4f 100644
+index 76cd236ebfc6b2b4b97890ff5f15fedf785e04af..f7512d3c4f0cf0b0d0f8ef736583c7c7fff50f08 100644
 --- a/extensions-core/druid-pac4j/pom.xml
 +++ b/extensions-core/druid-pac4j/pom.xml
 @@ -34,11 +34,12 @@
@@ -29,7 +29,7 @@ index 76cd236ebf..f7512d3c4f 100644
    </properties>
  
 diff --git a/extensions-core/orc-extensions/pom.xml b/extensions-core/orc-extensions/pom.xml
-index 5e16ebb8ae..21f833e080 100644
+index 5e16ebb8ae1eb186c01302c12e5362c97810eb22..21f833e08089962ab56556c8e52a857e0c6d5f7d 100644
 --- a/extensions-core/orc-extensions/pom.xml
 +++ b/extensions-core/orc-extensions/pom.xml
 @@ -31,7 +31,7 @@
@@ -42,7 +42,7 @@ index 5e16ebb8ae..21f833e080 100644
      <dependencies>
          <dependency>
 diff --git a/pom.xml b/pom.xml
-index 73ce663463..8e5dd97e38 100644
+index 73ce663463c7af3cf54fca31743e091fe1837636..8e5dd97e38944076f0dd5bfcd968fa659dcacb28 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -73,7 +73,7 @@

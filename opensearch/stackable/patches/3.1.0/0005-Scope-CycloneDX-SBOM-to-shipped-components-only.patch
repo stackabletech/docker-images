@@ -14,7 +14,7 @@ SBOM.
  1 file changed, 34 insertions(+)
 
 diff --git a/build.gradle b/build.gradle
-index 78a15b418e7..1770e1afec9 100644
+index 78a15b418e7a3fc7d671234e2187f9b7239067fd..1770e1afec96479bd8291e4e3dfe0c74f321f249 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -78,6 +78,40 @@ allprojects {

@@ -13,10 +13,10 @@ JDBC part so if anyone reuses the JDBC jar this fix might be useful
  1 file changed, 53 insertions(+), 18 deletions(-)
 
 diff --git a/jdbc/src/java/org/apache/hive/jdbc/HiveConnection.java b/jdbc/src/java/org/apache/hive/jdbc/HiveConnection.java
-index a654b05425..5d013dc336 100644
+index a654b0542514a16246ac4508434c4d7490738f3d..5d013dc336f886d2fb610f3704b657663777e0d2 100644
 --- a/jdbc/src/java/org/apache/hive/jdbc/HiveConnection.java
 +++ b/jdbc/src/java/org/apache/hive/jdbc/HiveConnection.java
-@@ -237,6 +237,12 @@ public HiveConnection(String uri, Properties info) throws SQLException {
+@@ -237,6 +237,12 @@ public class HiveConnection implements java.sql.Connection {
            LOG.warn("Failed to connect to " + connParams.getHost() + ":" + connParams.getPort());
            String errMsg = null;
            String warnMsg = "Could not open client transport with JDBC Uri: " + jdbcUriString + ": ";
@@ -29,7 +29,7 @@ index a654b05425..5d013dc336 100644
            if (ZooKeeperHiveClientHelper.isZkDynamicDiscoveryMode(sessConfMap)) {
              errMsg = "Could not open client transport for any of the Server URI's in ZooKeeper: ";
              // Try next available server in zookeeper, or retry all the servers again if retry is enabled
-@@ -267,15 +273,15 @@ public HiveConnection(String uri, Properties info) throws SQLException {
+@@ -267,15 +273,15 @@ public class HiveConnection implements java.sql.Connection {
  
    private void executeInitSql() throws SQLException {
      if (initFile != null) {
@@ -50,7 +50,7 @@ index a654b05425..5d013dc336 100644
              }
            }
          }
-@@ -817,6 +823,9 @@ public void abort(Executor executor) throws SQLException {
+@@ -817,6 +823,9 @@ public class HiveConnection implements java.sql.Connection {
    }
  
    public String getDelegationToken(String owner, String renewer) throws SQLException {
@@ -60,7 +60,7 @@ index a654b05425..5d013dc336 100644
      TGetDelegationTokenReq req = new TGetDelegationTokenReq(sessHandle, owner, renewer);
      try {
        TGetDelegationTokenResp tokenResp = client.GetDelegationToken(req);
-@@ -829,6 +838,9 @@ public String getDelegationToken(String owner, String renewer) throws SQLExcepti
+@@ -829,6 +838,9 @@ public class HiveConnection implements java.sql.Connection {
    }
  
    public void cancelDelegationToken(String tokenStr) throws SQLException {
@@ -70,7 +70,7 @@ index a654b05425..5d013dc336 100644
      TCancelDelegationTokenReq cancelReq = new TCancelDelegationTokenReq(sessHandle, tokenStr);
      try {
        TCancelDelegationTokenResp cancelResp =
-@@ -842,6 +854,9 @@ public void cancelDelegationToken(String tokenStr) throws SQLException {
+@@ -842,6 +854,9 @@ public class HiveConnection implements java.sql.Connection {
    }
  
    public void renewDelegationToken(String tokenStr) throws SQLException {
@@ -80,7 +80,7 @@ index a654b05425..5d013dc336 100644
      TRenewDelegationTokenReq cancelReq = new TRenewDelegationTokenReq(sessHandle, tokenStr);
      try {
        TRenewDelegationTokenResp renewResp =
-@@ -873,17 +888,19 @@ public void clearWarnings() throws SQLException {
+@@ -873,17 +888,19 @@ public class HiveConnection implements java.sql.Connection {
  
    @Override
    public void close() throws SQLException {
@@ -110,7 +110,7 @@ index a654b05425..5d013dc336 100644
        }
      }
    }
-@@ -994,6 +1011,9 @@ public Statement createStatement(int resultSetType, int resultSetConcurrency)
+@@ -994,6 +1011,9 @@ public class HiveConnection implements java.sql.Connection {
        throw new SQLException("Statement with resultset type " + resultSetType +
            " is not supported", "HYC00"); // Optional feature not implemented
      }
@@ -120,7 +120,7 @@ index a654b05425..5d013dc336 100644
      return new HiveStatement(this, client, sessHandle,
          resultSetType == ResultSet.TYPE_SCROLL_INSENSITIVE, fetchSize);
    }
-@@ -1180,6 +1200,9 @@ public boolean isValid(int timeout) throws SQLException {
+@@ -1180,6 +1200,9 @@ public class HiveConnection implements java.sql.Connection {
      if (timeout < 0) {
        throw new SQLException("timeout value was negative");
      }
@@ -130,7 +130,7 @@ index a654b05425..5d013dc336 100644
      boolean rc = false;
      try {
        String productName = new HiveDatabaseMetaData(this, client, sessHandle)
-@@ -1249,6 +1272,9 @@ public CallableStatement prepareCall(String sql, int resultSetType,
+@@ -1249,6 +1272,9 @@ public class HiveConnection implements java.sql.Connection {
  
    @Override
    public PreparedStatement prepareStatement(String sql) throws SQLException {
@@ -140,7 +140,7 @@ index a654b05425..5d013dc336 100644
      return new HivePreparedStatement(this, client, sessHandle, sql);
    }
  
-@@ -1261,6 +1287,9 @@ public PreparedStatement prepareStatement(String sql) throws SQLException {
+@@ -1261,6 +1287,9 @@ public class HiveConnection implements java.sql.Connection {
    @Override
    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
        throws SQLException {
@@ -150,7 +150,7 @@ index a654b05425..5d013dc336 100644
      return new HivePreparedStatement(this, client, sessHandle, sql);
    }
  
-@@ -1300,6 +1329,9 @@ public PreparedStatement prepareStatement(String sql, String[] columnNames)
+@@ -1300,6 +1329,9 @@ public class HiveConnection implements java.sql.Connection {
    @Override
    public PreparedStatement prepareStatement(String sql, int resultSetType,
        int resultSetConcurrency) throws SQLException {
@@ -160,7 +160,7 @@ index a654b05425..5d013dc336 100644
      return new HivePreparedStatement(this, client, sessHandle, sql);
    }
  
-@@ -1419,6 +1451,9 @@ public void setClientInfo(String name, String value) throws SQLClientInfoExcepti
+@@ -1419,6 +1451,9 @@ public class HiveConnection implements java.sql.Connection {
  
  
    private void sendClientInfo() throws SQLClientInfoException {
@@ -170,7 +170,7 @@ index a654b05425..5d013dc336 100644
      TSetClientInfoReq req = new TSetClientInfoReq(sessHandle);
      Map<String, String> map = new HashMap<>();
      if (clientInfo != null) {
-@@ -1505,9 +1540,9 @@ public void setSchema(String schema) throws SQLException {
+@@ -1505,9 +1540,9 @@ public class HiveConnection implements java.sql.Connection {
      if (schema == null || schema.isEmpty()) {
        throw new SQLException("Schema name is null or empty");
      }

@@ -9,7 +9,7 @@ Subject: disable host port validation if list of allowed hosts only contains
  1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
-index c3cd71d369..9d4c5f56a2 100644
+index c3cd71d369319f55e749d587bf33e4d3632f0e7b..9d4c5f56a21baa0f49cc789e545dbe1e2852dbbf 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
 @@ -60,6 +60,8 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact

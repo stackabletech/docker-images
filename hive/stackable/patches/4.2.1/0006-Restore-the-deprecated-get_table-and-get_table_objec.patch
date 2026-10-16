@@ -49,7 +49,7 @@ convention in the rest of the file. Regenerate with
  3 files changed, 2331 insertions(+)
 
 diff --git a/standalone-metastore/metastore-common/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.java b/standalone-metastore/metastore-common/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.java
-index f2746b3582..4f3235f204 100644
+index f2746b3582f46d813602aaa7930a3c9b2def5ddd..4f3235f204ad647a3db3b3fee946dca1a56f4868 100644
 --- a/standalone-metastore/metastore-common/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.java
 +++ b/standalone-metastore/metastore-common/src/gen/thrift/gen-javabean/org/apache/hadoop/hive/metastore/api/ThriftHiveMetastore.java
 @@ -583,6 +583,10 @@ package org.apache.hadoop.hive.metastore.api;
@@ -2414,7 +2414,7 @@ index f2746b3582..4f3235f204 100644
 +
  }
 diff --git a/standalone-metastore/metastore-common/src/main/thrift/hive_metastore.thrift b/standalone-metastore/metastore-common/src/main/thrift/hive_metastore.thrift
-index 32071a087b..57fe135d13 100644
+index 32071a087be379c6a894f1fc97a16870a290ad88..57fe135d13d94f2c0b1597383a78dab04da5cd38 100644
 --- a/standalone-metastore/metastore-common/src/main/thrift/hive_metastore.thrift
 +++ b/standalone-metastore/metastore-common/src/main/thrift/hive_metastore.thrift
 @@ -3325,6 +3325,19 @@ PartitionsResponse get_partitions_req(1:PartitionsRequest req)
@@ -2438,7 +2438,7 @@ index 32071a087b..57fe135d13 100644
  
  // * Note about the DDL_TIME: When creating or altering a table or a partition,
 diff --git a/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/HMSHandler.java b/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/HMSHandler.java
-index 7ab569383a..40bbc51571 100644
+index 7ab569383afc807a0c5680330cd32dcb17c44a4c..40bbc51571891144e15e79bfa707c869acc6ccdf 100644
 --- a/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/HMSHandler.java
 +++ b/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/HMSHandler.java
 @@ -3632,6 +3632,16 @@ public class HMSHandler extends FacebookBase implements IHMSHandler {

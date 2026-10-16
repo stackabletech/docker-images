@@ -9,7 +9,7 @@ protoc:2.5.0 dependency has broken building on aarch64
  1 file changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index e36f1e64f0..6007b7961b 100644
+index e36f1e64f04621d4efeec4cdcd249a1c400acedc..6007b7961bf79818fb65a015ad01dcd0f2406811 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -81,7 +81,10 @@

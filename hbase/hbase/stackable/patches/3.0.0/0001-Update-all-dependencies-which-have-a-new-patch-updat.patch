@@ -8,7 +8,7 @@ Subject: Update all dependencies which have a new patch update
  1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/pom.xml b/pom.xml
-index 57eaaf8998..8267221deb 100644
+index 57eaaf89981d423f7cd51dd4b84a6006b6770418..8267221debd16530b06bc75fdf03bb9ede4fa5f4 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -821,7 +821,7 @@

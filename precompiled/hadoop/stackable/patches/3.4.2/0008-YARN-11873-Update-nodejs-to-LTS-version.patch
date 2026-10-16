@@ -1,14 +1,14 @@
-From 08a7206a29f212e1f0e3bd81e0cb0be7907907a4 Mon Sep 17 00:00:00 2001
+From e42d7c74a101ba1e7cd6b61f58884930bc6f5ff2 Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
 Date: Wed, 1 Oct 2025 17:28:41 +0200
-Subject: Update nodejs to LTS version
+Subject: YARN-11873 Update nodejs to LTS version
 
 ---
  hadoop-project/pom.xml | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/hadoop-project/pom.xml b/hadoop-project/pom.xml
-index 2e21ff7394..a7d5faf760 100644
+index 2e21ff73948b7a0a3df9857196ed624115b55d0d..a7d5faf760f4fe6e11a8bc0bfba19831c4fb3de3 100644
 --- a/hadoop-project/pom.xml
 +++ b/hadoop-project/pom.xml
 @@ -234,7 +234,7 @@

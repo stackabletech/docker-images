@@ -11,7 +11,7 @@ build.gradle
  2 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
-index 3658f51e11..ad325b2835 100644
+index 3658f51e11a5b05d5ceb64564f2a771238c95ec1..ad325b28357cbbd98411f4f8aa264822ccb1fdda 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -214,13 +214,15 @@ ext {
@@ -120,7 +120,7 @@ index 3658f51e11..ad325b2835 100644
      testImplementation libs.mockitoCore
      testImplementation libs.mockitoJunitJupiter
 diff --git a/gradle/dependencies.gradle b/gradle/dependencies.gradle
-index 58aef4e575..f4a3c6dd31 100644
+index 58aef4e5759a3a67fd665a1b8238ae73a10c0812..f4a3c6dd317c0aaa6901cdda4909b31012332010 100644
 --- a/gradle/dependencies.gradle
 +++ b/gradle/dependencies.gradle
 @@ -163,6 +163,7 @@ libs += [
