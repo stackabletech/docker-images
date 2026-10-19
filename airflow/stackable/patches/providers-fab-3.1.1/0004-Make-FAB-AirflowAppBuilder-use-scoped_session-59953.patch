@@ -1,0 +1,69 @@
+From 25be02851ebe853d1a01cf4c93b20a9dc0603b3b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Katarzyna=20Ka=C5=82ek?=
+ <145936017+trina242@users.noreply.github.com>
+Date: Mon, 5 Jan 2026 17:09:11 +0100
+Subject: Make FAB AirflowAppBuilder use scoped_session (#59953)
+
+  (cherry picked from commit 3ed08df2216315d12f4b92e20634f228f884fe4d, Python changes only)
+---
+ providers/fab/src/airflow/providers/fab/www/app.py       | 9 ++-------
+ .../providers/fab/www/extensions/init_appbuilder.py      | 5 +++--
+ 2 files changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/providers/fab/src/airflow/providers/fab/www/app.py b/providers/fab/src/airflow/providers/fab/www/app.py
+index 57f21d95a4..5846ad49a1 100644
+--- a/providers/fab/src/airflow/providers/fab/www/app.py
++++ b/providers/fab/src/airflow/providers/fab/www/app.py
+@@ -31,7 +31,7 @@ from airflow.api_fastapi.app import get_auth_manager
+ from airflow.configuration import conf
+ from airflow.exceptions import AirflowConfigException
+ from airflow.logging_config import configure_logging
+-from airflow.providers.fab.www.extensions.init_appbuilder import AirflowAppBuilder
++from airflow.providers.fab.www.extensions.init_appbuilder import init_appbuilder
+ from airflow.providers.fab.www.extensions.init_jinja_globals import init_jinja_globals
+ from airflow.providers.fab.www.extensions.init_manifest_files import configure_manifest_files
+ from airflow.providers.fab.www.extensions.init_security import init_api_auth
+@@ -93,12 +93,7 @@ def create_app(enable_plugins: bool):
+     init_api_auth(flask_app)
+ 
+     with flask_app.app_context():
+-        AirflowAppBuilder(
+-            app=flask_app,
+-            session=db.session(),
+-            base_template="airflow/main.html",
+-            enable_plugins=enable_plugins,
+-        )
++        init_appbuilder(flask_app, enable_plugins=enable_plugins)
+         init_error_handlers(flask_app)
+         # In two scenarios a Flask application can be created:
+         # - To support Airflow 2 plugins relying on Flask (``enable_plugins`` is True)
+diff --git a/providers/fab/src/airflow/providers/fab/www/extensions/init_appbuilder.py b/providers/fab/src/airflow/providers/fab/www/extensions/init_appbuilder.py
+index 81d7e6a69f..97ed27940a 100644
+--- a/providers/fab/src/airflow/providers/fab/www/extensions/init_appbuilder.py
++++ b/providers/fab/src/airflow/providers/fab/www/extensions/init_appbuilder.py
+@@ -49,6 +49,7 @@ if TYPE_CHECKING:
+     from flask_appbuilder import BaseView
+     from flask_appbuilder.security.manager import BaseSecurityManager
+     from sqlalchemy.orm import Session
++    from sqlalchemy.orm.scoping import scoped_session
+ 
+ 
+ # This product contains a modified portion of 'Flask App Builder' developed by Daniel Vaz Gaspar.
+@@ -102,7 +103,7 @@ class AirflowAppBuilder:
+     def __init__(
+         self,
+         app=None,
+-        session: Session | None = None,
++        session: scoped_session | None = None,
+         menu=None,
+         indexview=None,
+         base_template="airflow/main.html",
+@@ -597,7 +598,7 @@ def init_appbuilder(app: Flask, enable_plugins: bool) -> AirflowAppBuilder:
+         raise RuntimeError("Session not configured. Call configure_orm() first.")
+     return AirflowAppBuilder(
+         app=app,
+-        session=settings.Session(),
++        session=settings.Session,
+         base_template="airflow/main.html",
+         enable_plugins=enable_plugins,
+     )
