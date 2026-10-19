@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
   the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
+- patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 
 ### Changed
 
@@ -151,6 +152,7 @@ All notable changes to this project will be documented in this file.
 [#1693]: https://github.com/stackabletech/docker-images/pull/1693
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
 [#1704]: https://github.com/stackabletech/docker-images/pull/1704
+[#1705]: https://github.com/stackabletech/docker-images/pull/1705
 [#1706]: https://github.com/stackabletech/docker-images/pull/1706
 
 ## [26.7.0] - 2026-07-21

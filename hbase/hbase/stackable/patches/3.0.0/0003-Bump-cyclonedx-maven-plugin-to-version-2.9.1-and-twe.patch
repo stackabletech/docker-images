@@ -9,7 +9,7 @@ Subject: Bump cyclonedx-maven-plugin to version 2.9.1 and tweak its
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/pom.xml b/pom.xml
-index 0a90f04581..8e37531651 100644
+index 0a90f04581ff5183e2d68876e82d447003e103b1..8e375316516c37d6e2f50e22715a677a462a64ae 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3544,7 +3544,11 @@

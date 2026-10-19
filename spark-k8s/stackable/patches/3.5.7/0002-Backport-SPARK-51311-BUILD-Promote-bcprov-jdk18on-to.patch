@@ -12,7 +12,7 @@ Subject: Backport [SPARK-51311][BUILD] Promote bcprov-jdk18on to compile scope
  create mode 100644 licenses-binary/LICENSE-bouncycastle.txt
 
 diff --git a/LICENSE-binary b/LICENSE-binary
-index 05645977a0..9834cf333f 100644
+index 05645977a0ba54832ad134ac26f46b6d7206fddf..9834cf333f7d4478d795961752a9ae19f714eb40 100644
 --- a/LICENSE-binary
 +++ b/LICENSE-binary
 @@ -480,6 +480,7 @@ org.typelevel:algebra_2.12:jar
@@ -24,7 +24,7 @@ index 05645977a0..9834cf333f 100644
  org.slf4j:jul-to-slf4j
  org.slf4j:slf4j-api
 diff --git a/assembly/pom.xml b/assembly/pom.xml
-index ffa6a0e2b0..19032d6054 100644
+index ffa6a0e2b06af2ad773e6fd306403513a642ef4a..19032d60541acb26818435fbcee0bb2e50736853 100644
 --- a/assembly/pom.xml
 +++ b/assembly/pom.xml
 @@ -85,8 +85,22 @@
@@ -51,7 +51,7 @@ index ffa6a0e2b0..19032d6054 100644
      <plugins>
        <plugin>
 diff --git a/dev/deps/spark-deps-hadoop-3-hive-2.3 b/dev/deps/spark-deps-hadoop-3-hive-2.3
-index f110a1988f..88324d3e27 100644
+index f110a1988fbf506a8fd96116906925ffabf6c01f..88324d3e2735aafe5d66c6662e8ff92a05dc8f62 100644
 --- a/dev/deps/spark-deps-hadoop-3-hive-2.3
 +++ b/dev/deps/spark-deps-hadoop-3-hive-2.3
 @@ -28,6 +28,7 @@ aws-java-sdk-bundle/1.12.262//aws-java-sdk-bundle-1.12.262.jar
@@ -64,7 +64,7 @@ index f110a1988f..88324d3e27 100644
  breeze-macros_2.12/2.1.0//breeze-macros_2.12-2.1.0.jar
 diff --git a/licenses-binary/LICENSE-bouncycastle.txt b/licenses-binary/LICENSE-bouncycastle.txt
 new file mode 100644
-index 0000000000..277dcd1ebb
+index 0000000000000000000000000000000000000000..277dcd1ebbb8a5b9a6087ce66338eb61351161ff
 --- /dev/null
 +++ b/licenses-binary/LICENSE-bouncycastle.txt
 @@ -0,0 +1,13 @@

@@ -17,7 +17,7 @@ Subject: Use the Nexus Build Repo
  10 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index b10d06eb6fd..a4865034d8b 100644
+index b10d06eb6fdf9f33ec895189c714b2a95cc0655d..a4865034d8b7635d3e93bf6d5447df9bf8f0d7ef 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
 @@ -106,7 +106,8 @@ repositories {
@@ -31,7 +31,7 @@ index b10d06eb6fd..a4865034d8b 100644
        excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
      }
 diff --git a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
-index 250c3c7e389..388b5e382eb 100644
+index 250c3c7e389070622ee89a5a9b976b63e0372a92..388b5e382ebde0ad98d1aec735b18bd3bfa907de 100644
 --- a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
 +++ b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
 @@ -54,7 +54,9 @@ class OpenSearchTestBasePluginFuncTest extends AbstractGradleFuncTest {
@@ -46,7 +46,7 @@ index 250c3c7e389..388b5e382eb 100644
  
              dependencies {
 diff --git a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
-index c41a9774d13..8aca13e3d6d 100644
+index c41a9774d132a097105f02b1f31420ca12064119..8aca13e3d6dab98501287917e254e65ca2720b10 100644
 --- a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
 +++ b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
 @@ -92,7 +92,10 @@ public class RepositoriesSetupPlugin implements Plugin<Project> {
@@ -62,7 +62,7 @@ index c41a9774d13..8aca13e3d6d 100644
          String luceneVersion = VersionProperties.getLucene();
          if (luceneVersion.contains("-snapshot")) {
 diff --git a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
-index 021779ba935..9bc37efc602 100644
+index 021779ba9351c6f32b3831658fbb53d6ed33c131..9bc37efc602c010401b0f6b28ab677bcce1e23b0 100644
 --- a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
 +++ b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
 @@ -19,7 +19,9 @@ version = '1.0.0'
@@ -77,7 +77,7 @@ index 021779ba935..9bc37efc602 100644
  
  dependencies {
 diff --git a/buildSrc/src/testKit/opensearch.build/build.gradle b/buildSrc/src/testKit/opensearch.build/build.gradle
-index 4a37e9d2cbd..210a1293aeb 100644
+index 4a37e9d2cbdd84deeaa6a9fced871589264cf0c1..210a1293aebe30097755ae49437a358f4f00c64b 100644
 --- a/buildSrc/src/testKit/opensearch.build/build.gradle
 +++ b/buildSrc/src/testKit/opensearch.build/build.gradle
 @@ -40,7 +40,9 @@ repositories {
@@ -103,7 +103,7 @@ index 4a37e9d2cbd..210a1293aeb 100644
  
  // todo remove offending rules
 diff --git a/buildSrc/src/testKit/testingConventions/build.gradle b/buildSrc/src/testKit/testingConventions/build.gradle
-index 565890dcfe2..156ac5cc37f 100644
+index 565890dcfe24951ceb9df8c69bedecce7a72b0ad..156ac5cc37f445e79d9eb03b7bfe1e4328851423 100644
 --- a/buildSrc/src/testKit/testingConventions/build.gradle
 +++ b/buildSrc/src/testKit/testingConventions/build.gradle
 @@ -19,7 +19,9 @@ allprojects {
@@ -118,7 +118,7 @@ index 565890dcfe2..156ac5cc37f 100644
    dependencies {
      testImplementation "junit:junit:${versions.junit}"
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
-index c490d85ff1b..4907fa3e80a 100644
+index c490d85ff1b948798c5df7a171fc337e68d7b0e4..4907fa3e80aacd295c9de75666de1c03e83434d4 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/build.gradle
 +++ b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
 @@ -42,7 +42,9 @@ repositories {
@@ -133,7 +133,7 @@ index c490d85ff1b..4907fa3e80a 100644
  
  dependencies {
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
-index 2906cbc78d8..ff92fe05e7e 100644
+index 2906cbc78d8621810a756c34be0960b30fdee9b4..ff92fe05e7e3c90604dd600130c57fc6592f5050 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 +++ b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 @@ -14,7 +14,9 @@ plugins {
@@ -148,7 +148,7 @@ index 2906cbc78d8..ff92fe05e7e 100644
  
  dependencies {
 diff --git a/doc-tools/build.gradle b/doc-tools/build.gradle
-index a02339b67b2..fe6f26554c2 100644
+index a02339b67b240b24003b0458e043173e9ae44307..fe6f26554c2e9af4d373892dced270eb3ad297eb 100644
 --- a/doc-tools/build.gradle
 +++ b/doc-tools/build.gradle
 @@ -14,7 +14,8 @@ repositories {
@@ -162,7 +162,7 @@ index a02339b67b2..fe6f26554c2 100644
              excludeGroupByRegex "adoptium.*|adoptopenjdk.*|openjdk.*"
          }
 diff --git a/gradle/code-coverage.gradle b/gradle/code-coverage.gradle
-index 24e43630894..07165443b1c 100644
+index 24e43630894f097a7651c28af1582df98a074a38..07165443b1cbb95c1d7e123ddee97531aa8cc09c 100644
 --- a/gradle/code-coverage.gradle
 +++ b/gradle/code-coverage.gradle
 @@ -21,7 +21,8 @@ repositories {

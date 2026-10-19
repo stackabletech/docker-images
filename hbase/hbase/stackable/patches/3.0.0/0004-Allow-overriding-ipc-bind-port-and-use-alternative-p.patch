@@ -14,7 +14,7 @@ Subject: Allow overriding ipc bind port and use alternative port from listener
  7 files changed, 100 insertions(+), 26 deletions(-)
 
 diff --git a/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java b/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
-index 1051686d32..47a7884755 100644
+index 1051686d32e855c699a5f69a2e649dd05a618c75..47a7884755c381aa462824e07eeb385ad7ae4c06 100644
 --- a/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
 +++ b/hbase-common/src/main/java/org/apache/hadoop/hbase/HConstants.java
 @@ -190,18 +190,27 @@ public final class HConstants {
@@ -88,7 +88,7 @@ index 1051686d32..47a7884755 100644
    public static final String REPLICATION_CODEC_CONF_KEY = "hbase.replication.rpc.codec";
  
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseRpcServicesBase.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseRpcServicesBase.java
-index b2a0e78036..82be143e3c 100644
+index b2a0e780362495c775276639260a9eea4800e3d5..82be143e3c0ea0933cae2f606b17457a2a664182 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseRpcServicesBase.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseRpcServicesBase.java
 @@ -129,7 +129,8 @@ public abstract class HBaseRpcServicesBase<S extends HBaseServerBase<?>>
@@ -111,7 +111,7 @@ index b2a0e78036..82be143e3c 100644
  
    protected abstract int getDefaultPort();
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseServerBase.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseServerBase.java
-index 5beeceadf0..d7a88b93c9 100644
+index 5beeceadf06394a3d64b7e8737f7606c2ef96f11..d7a88b93c9c3244305e99c7451632c2423c7dbaf 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseServerBase.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/HBaseServerBase.java
 @@ -21,6 +21,7 @@ import static org.apache.hadoop.hbase.ChoreService.CHORE_SERVICE_INITIAL_POOL_SI
@@ -201,7 +201,7 @@ index 5beeceadf0..d7a88b93c9 100644
  
    protected abstract DNS.ServerType getDNSServerType();
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
-index c8e70db5b9..29138a2ddd 100644
+index c8e70db5b9474eafbf600ff7b0e54d626d60a84a..29138a2ddd5ea29fac2fd108015fbee64ea69deb 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/HMaster.java
 @@ -17,6 +17,8 @@
@@ -253,7 +253,7 @@ index c8e70db5b9..29138a2ddd 100644
            break;
          }
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/MasterRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/MasterRpcServices.java
-index 790ff28d28..9c63ef649a 100644
+index 790ff28d28e5527b89515f622d4b6fdb20f01a56..9c63ef649a123d26e456009bcc502c9e84a00aa5 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/master/MasterRpcServices.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/master/MasterRpcServices.java
 @@ -450,6 +450,8 @@ import org.apache.hadoop.hbase.shaded.protobuf.generated.ReplicationProtos.Updat
@@ -280,7 +280,7 @@ index 790ff28d28..9c63ef649a 100644
  
    @Override
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
-index 0874b808e6..0901f75d0c 100644
+index 0874b808e6812cfae2afcff2a842522820e0b174..0901f75d0cffa386cb6b8f3f84f2741472bac849 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/HRegionServer.java
 @@ -22,6 +22,8 @@ import static org.apache.hadoop.hbase.HConstants.DEFAULT_HBASE_SPLIT_WAL_MAX_SPL
@@ -355,7 +355,7 @@ index 0874b808e6..0901f75d0c 100644
        request.setServerCurrentTime(now);
        result = rss.regionServerStartup(null, request.build());
 diff --git a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
-index fdfea375e0..378bb8c761 100644
+index fdfea375e096c760fc3f6a7d126aa8f42f053325..378bb8c7610a2093912090eb233157fec9f4f9d2 100644
 --- a/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
 +++ b/hbase-server/src/main/java/org/apache/hadoop/hbase/regionserver/RSRpcServices.java
 @@ -247,6 +247,8 @@ import org.apache.hadoop.hbase.shaded.protobuf.generated.WALProtos.BulkLoadDescr

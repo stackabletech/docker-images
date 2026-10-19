@@ -9,7 +9,7 @@ This is needed, because dist depends on parts of client-modules. At least when s
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/pom.xml b/pom.xml
-index de001775ab..ccb15235c8 100644
+index de001775abaf39477f94e133ce9be2399bbc36f2..ccb15235c8407db1e914bed2443259b0fc3a3cb4 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -133,9 +133,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x

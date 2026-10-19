@@ -8,7 +8,7 @@ Subject: Allow overriding the logging configuration
  1 file changed, 29 insertions(+), 1 deletion(-)
 
 diff --git a/shared/logging/src/airflow_shared/logging/structlog.py b/shared/logging/src/airflow_shared/logging/structlog.py
-index b13be19144..117e6f655b 100644
+index b13be19144567978e6f0fb2ae35d9474a941028c..117e6f655b394e7b27c01bb8ce1e0e11b995d0e8 100644
 --- a/shared/logging/src/airflow_shared/logging/structlog.py
 +++ b/shared/logging/src/airflow_shared/logging/structlog.py
 @@ -532,6 +532,18 @@ def structlog_processors(

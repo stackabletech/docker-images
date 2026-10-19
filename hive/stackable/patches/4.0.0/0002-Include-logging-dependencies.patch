@@ -9,7 +9,7 @@ This adds dependencies required for use of the XmlLayout for logging
  1 file changed, 5 insertions(+)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index e3cbd821bd..205fc31ec7 100644
+index e3cbd821bd46352a3f429decf2739c1aa8939d20..205fc31ec78d57901b16b6ca51b89c7579f8485c 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -493,6 +493,11 @@

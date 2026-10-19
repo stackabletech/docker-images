@@ -9,7 +9,7 @@ Subject: Apply max response header size to Jetty maxResponseHeaderSize
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/http-server/src/main/java/io/airlift/http/server/HttpServer.java b/http-server/src/main/java/io/airlift/http/server/HttpServer.java
-index 6da8193ebe..5a8f4009bf 100644
+index 6da8193ebe5546fbe6dc6ba07edad4cdc3fb6f4e..5a8f4009bf4cebc57ffb9dffe48c723baef655a4 100644
 --- a/http-server/src/main/java/io/airlift/http/server/HttpServer.java
 +++ b/http-server/src/main/java/io/airlift/http/server/HttpServer.java
 @@ -193,7 +193,7 @@ public class HttpServer
@@ -22,7 +22,7 @@ index 6da8193ebe..5a8f4009bf 100644
          if (config.getOutputBufferSize() != null) {
              baseHttpConfiguration.setOutputBufferSize(toIntExact(config.getOutputBufferSize().toBytes()));
 diff --git a/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java b/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
-index c4ebbdf9d3..760f72347a 100644
+index c4ebbdf9d3e89f688268cc6a7a864093dafc3a72..760f72347a79d13bac1daa2b86279b8385fa666e 100644
 --- a/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
 +++ b/http-server/src/main/java/io/airlift/http/server/HttpServerConfig.java
 @@ -372,6 +372,7 @@ public class HttpServerConfig

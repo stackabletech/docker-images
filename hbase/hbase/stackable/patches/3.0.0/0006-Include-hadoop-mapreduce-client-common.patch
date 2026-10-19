@@ -18,7 +18,7 @@ so that its Hadoop YARN dependencies do not bring back excluded artifacts.
  2 files changed, 70 insertions(+)
 
 diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
-index e6dd9f6542..acd3c1d3d3 100644
+index e6dd9f65422a5f3eba898171247f48f779482696..acd3c1d3d3fb1564909bdee72b7b233562ec5d2c 100644
 --- a/hbase-assembly/pom.xml
 +++ b/hbase-assembly/pom.xml
 @@ -338,6 +338,22 @@
@@ -45,7 +45,7 @@ index e6dd9f6542..acd3c1d3d3 100644
        <id>assemblyForTesting</id>
        <activation>
 diff --git a/pom.xml b/pom.xml
-index 8e37531651..57f5104da5 100644
+index 8e375316516c37d6e2f50e22715a677a462a64ae..57f5104da553c44fd0f1ca76b342d032f6d42a9b 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -3635,6 +3635,60 @@

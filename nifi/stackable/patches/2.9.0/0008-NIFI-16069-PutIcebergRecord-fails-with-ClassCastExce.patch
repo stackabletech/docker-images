@@ -13,7 +13,7 @@ Subject: NIFI-16069 - PutIcebergRecord fails with ClassCastException when
  create mode 100644 nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/RecordConverterTest.java
 
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-parquet-writer/src/test/java/org/apache/nifi/services/iceberg/parquet/ParquetIcebergWriterTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-parquet-writer/src/test/java/org/apache/nifi/services/iceberg/parquet/ParquetIcebergWriterTest.java
-index 636b0ba091..b0159191fe 100644
+index 636b0ba091f1686336d21440a032df362f1c8b44..b0159191fe44c49f24a9c780b4aa0282520e30c0 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-parquet-writer/src/test/java/org/apache/nifi/services/iceberg/parquet/ParquetIcebergWriterTest.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-parquet-writer/src/test/java/org/apache/nifi/services/iceberg/parquet/ParquetIcebergWriterTest.java
 @@ -47,6 +47,8 @@ import java.io.IOException;
@@ -70,7 +70,7 @@ index 636b0ba091..b0159191fe 100644
          final GenericRecord row = GenericRecord.create(schema);
          row.setField(FIRST_FIELD_NAME, FIRST_FIELD_VALUE);
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
-index 3267cc3221..ac98c06f37 100644
+index 3267cc32214f2e8866d5f101c4d358c01cfe3010..ac98c06f370547d7681f9191c51db3b416f7911e 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
 @@ -38,8 +38,8 @@ public class DelegatedRecord implements Record {
@@ -84,7 +84,7 @@ index 3267cc3221..ac98c06f37 100644
  
      @Override
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/RecordConverter.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/RecordConverter.java
-index b84159d4af..b2212341c8 100644
+index b84159d4af0aac30aaec4ad7858ac9de74184627..b2212341c82d9ab0a587445dd9e6a691e802bd06 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/RecordConverter.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/RecordConverter.java
 @@ -16,7 +16,8 @@
@@ -222,7 +222,7 @@ index b84159d4af..b2212341c8 100644
  }
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/RecordConverterTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/RecordConverterTest.java
 new file mode 100644
-index 0000000000..0b77598b2a
+index 0000000000000000000000000000000000000000..0b77598b2a09c8fda44cde13873a7b5ef82bd89d
 --- /dev/null
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/RecordConverterTest.java
 @@ -0,0 +1,162 @@

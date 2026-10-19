@@ -12,7 +12,7 @@ build.
  1 file changed, 5 insertions(+)
 
 diff --git a/server/pom.xml b/server/pom.xml
-index 06f26c6da6..79e0dafe5f 100644
+index 06f26c6da6ce20f54cd76e82853a7036d6d6838f..79e0dafe5fbaf6a2e58ec1ab12295c0cbd8d45e1 100644
 --- a/server/pom.xml
 +++ b/server/pom.xml
 @@ -212,6 +212,11 @@

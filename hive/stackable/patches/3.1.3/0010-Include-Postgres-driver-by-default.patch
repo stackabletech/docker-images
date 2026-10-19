@@ -8,7 +8,7 @@ Subject: Include Postgres driver by default
  1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 702ff61892..e2665473af 100644
+index 702ff618924062455b0435e86608187dc68e4f77..e2665473af82a2510d6ce392af5eb984647d38cf 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -93,6 +93,12 @@

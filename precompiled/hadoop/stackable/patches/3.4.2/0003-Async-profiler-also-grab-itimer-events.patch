@@ -8,7 +8,7 @@ Subject: Async-profiler-also-grab-itimer-events
  1 file changed, 2 insertions(+)
 
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
-index ce53274151..909892ff90 100644
+index ce532741512fcd4a4dea316c43d8434aa8fd84d8..909892ff903519d993d5f0b199ebe4c7b0ad5033 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfileServlet.java
 @@ -76,6 +76,7 @@ import org.apache.hadoop.util.ProcessUtils;

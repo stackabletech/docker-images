@@ -361,9 +361,19 @@ pub fn format_patches(
             .arg("-o")
             .arg(patch_dir)
             .args([
+                // TODO (@NickLarsenNZ): Add arg to ignore user config
+                // Otherwise when a version is exported, there will sometimes be changes to patches that were irrelevant
+                // to what the user was doing.
                 "--keep-subject",
                 // By default, git includes its own version number as a suffix, which makes patches unstable across git versions
                 "--no-signature",
+                // By default, git abbreviates the blob hashes in the `index` line to a length derived from
+                // the object count of the local repository, which makes patches unstable across clones
+                "--full-index",
+                // Git's default diff algorithm is myers. Setting it explicitly so patches aren't reexported by users
+                // who have a different algorithm set.
+                // TODO (@NickLarsenNZ): Explore using a better diff algorithm like patience or histogram.
+                "--diff-algorithm=myers",
             ])
             .status()
     })

@@ -9,7 +9,7 @@ Subject: Removes all traces of the druid ranger extension
  2 files changed, 3 deletions(-)
 
 diff --git a/distribution/pom.xml b/distribution/pom.xml
-index a1b2da00d3..51ce7563ea 100644
+index a1b2da00d3c1d165e870c9cc2b761289a4a1f8bc..51ce7563ea1d3960339789886effa4a68f46492b 100644
 --- a/distribution/pom.xml
 +++ b/distribution/pom.xml
 @@ -448,8 +448,6 @@
@@ -22,7 +22,7 @@ index a1b2da00d3..51ce7563ea 100644
                                      </arguments>
                                  </configuration>
 diff --git a/pom.xml b/pom.xml
-index 614ab31c09..6548d3a661 100644
+index 614ab31c09142fcf38b3578e229df378d4923389..6548d3a6610d6ac1b60c8b99b220b95dab1597fc 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -266,7 +266,6 @@

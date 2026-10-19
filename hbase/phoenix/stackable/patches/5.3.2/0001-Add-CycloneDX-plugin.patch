@@ -8,7 +8,7 @@ Subject: Add CycloneDX plugin
  1 file changed, 17 insertions(+)
 
 diff --git a/pom.xml b/pom.xml
-index a43a3b6ac..849111b18 100644
+index a43a3b6ac3e5205f31d54611e50b8d823f179ec4..849111b18faf6c2a833c3f632bb1eb72ca47b31d 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1930,6 +1930,23 @@

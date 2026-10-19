@@ -9,7 +9,7 @@ Subject: Add CycloneDX plugin
  2 files changed, 36 insertions(+), 1 deletion(-)
 
 diff --git a/build.gradle b/build.gradle
-index 667bc41b438..2c6e9684175 100644
+index 667bc41b4382c562656d14e5f4300c9255bcd0bb..2c6e9684175a7926a5c52118af8b13a296f29469 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -58,6 +58,7 @@ plugins {
@@ -60,7 +60,7 @@ index 667bc41b438..2c6e9684175 100644
  
  configure(allprojects - project(':distribution:archives:integ-test-zip')) {
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index d1cb9276e60..b10d06eb6fd 100644
+index d1cb9276e60b927ccabeffe068cc2c48c5f598cc..b10d06eb6fdf9f33ec895189c714b2a95cc0655d 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
 @@ -139,7 +139,9 @@ dependencies {

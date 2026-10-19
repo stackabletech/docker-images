@@ -9,7 +9,7 @@ Subject: Declare junit before the HBase test jars so the real JUnit 4 Assert
  1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/phoenix-core/pom.xml b/phoenix-core/pom.xml
-index 094ea5d3a..eaa0d89a2 100644
+index 094ea5d3a6387b67ca07c4dbdef4fbaee90cd01e..eaa0d89a28ae2df4da3d226598dbbae5c09fdeac 100644
 --- a/phoenix-core/pom.xml
 +++ b/phoenix-core/pom.xml
 @@ -202,6 +202,15 @@

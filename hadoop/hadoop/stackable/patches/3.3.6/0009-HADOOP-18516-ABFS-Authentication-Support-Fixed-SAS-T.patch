@@ -26,7 +26,7 @@ Contributed by Anuj Modi
  create mode 100644 hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
-index 1bf7c569da..98534f75e0 100644
+index 1bf7c569da13ba4db5417561b5be3d64895557cb..98534f75e00a805c016307324bf8fb087b456b17 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AbfsConfiguration.java
 @@ -59,6 +59,7 @@ import org.apache.hadoop.fs.azurebfs.oauth2.UserPasswordTokenProvider;
@@ -121,7 +121,7 @@ index 1bf7c569da..98534f75e0 100644
    }
  
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
-index 5fb2c6e170..8bfaf2fa5e 100644
+index 5fb2c6e1700a819aa574931b8a6341927ced8e5f..8bfaf2fa5e2a226a01eb7f0fb5f793146a4e3c44 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystem.java
 @@ -1273,10 +1273,9 @@ public class AzureBlobFileSystem extends FileSystem
@@ -137,7 +137,7 @@ index 5fb2c6e170..8bfaf2fa5e 100644
    @Override
    public boolean exists(Path f) throws IOException {
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
-index cd33da401c..dc6d100173 100644
+index cd33da401c9d37ded2c38f43edea4f54b6b40fa3..dc6d100173e858b9fa898cdc82b4cb267bd8c579 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/AzureBlobFileSystemStore.java
 @@ -1611,7 +1611,7 @@ public class AzureBlobFileSystemStore implements Closeable, ListingSupport {
@@ -150,7 +150,7 @@ index cd33da401c..dc6d100173 100644
      } else {
        LOG.trace("Fetching token provider");
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
-index 872364a8e6..5458bf4d8b 100644
+index 872364a8e61673aad087c487cf461977d3c357dd..5458bf4d8bc163d78e174ffad0b958d93a89cd34 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/constants/ConfigurationKeys.java
 @@ -248,7 +248,10 @@ public final class ConfigurationKeys {
@@ -166,7 +166,7 @@ index 872364a8e6..5458bf4d8b 100644
  
    /** For performance, AbfsInputStream/AbfsOutputStream re-use SAS tokens until the expiry is within this number of seconds. **/
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
-index 1767274f36..8255bbb76c 100644
+index 1767274f360684aefe2cbcd05ee33a371bede716..8255bbb76ca5cf288344a5d2fd6aace393883e5e 100644
 --- a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/AbfsClient.java
 @@ -891,6 +891,7 @@ public class AbfsClient implements Closeable {
@@ -208,7 +208,7 @@ index 1767274f36..8255bbb76c 100644
      }
 diff --git a/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java
 new file mode 100644
-index 0000000000..1a2614dcc1
+index 0000000000000000000000000000000000000000..1a2614dcc1d2f3cfe35a6516280ad140642abcd4
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/main/java/org/apache/hadoop/fs/azurebfs/services/FixedSASTokenProvider.java
 @@ -0,0 +1,65 @@
@@ -278,7 +278,7 @@ index 0000000000..1a2614dcc1
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md b/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
-index aff1e32b83..a994b3892c 100644
+index aff1e32b83f2d27acd056676ff05e3bc3e882c37..a994b3892c4c2bfaac09e10f1354ee4944476b3f 100644
 --- a/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
 +++ b/hadoop-tools/hadoop-azure/src/site/markdown/abfs.md
 @@ -12,7 +12,7 @@
@@ -464,7 +464,7 @@ index aff1e32b83..a994b3892c 100644
  ## <a name="technical"></a> Technical notes
  
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
-index 74655fd573..be4c4541eb 100644
+index 74655fd5736200ab0ed0dec5ec0c0ce5c79651f9..be4c4541eb055b36f79b85db0b58a090d66fec33 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/AbstractAbfsIntegrationTest.java
 @@ -282,13 +282,30 @@ public abstract class AbstractAbfsIntegrationTest extends
@@ -503,7 +503,7 @@ index 74655fd573..be4c4541eb 100644
      }
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java
 new file mode 100644
-index 0000000000..d8db901151
+index 0000000000000000000000000000000000000000..d8db901151fe776d7b68eec2e280aad9180caade
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/ITestAzureBlobFileSystemChooseSAS.java
 @@ -0,0 +1,182 @@
@@ -690,7 +690,7 @@ index 0000000000..d8db901151
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
-index cf7d51da4c..d1e5dd4519 100644
+index cf7d51da4c44aa238f01dce9c741d33b4b7c30b4..d1e5dd4519d0361af4293c183f8508434cec0ec3 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockDelegationSASTokenProvider.java
 @@ -40,7 +40,7 @@ import org.apache.hadoop.fs.azurebfs.utils.SASGenerator;
@@ -703,7 +703,7 @@ index cf7d51da4c..d1e5dd4519 100644
  public class MockDelegationSASTokenProvider implements SASTokenProvider {
  
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
-index 50ac20970f..3fda128a9c 100644
+index 50ac20970f45f26dd291c058ed443154fcb1a716..3fda128a9c01d88d9a9d989e29d0a41955cbdf7e 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/extensions/MockSASTokenProvider.java
 @@ -20,7 +20,11 @@ package org.apache.hadoop.fs.azurebfs.extensions;
@@ -748,7 +748,7 @@ index 50ac20970f..3fda128a9c 100644
    @Override
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 new file mode 100644
-index 0000000000..2af741b7a4
+index 0000000000000000000000000000000000000000..2af741b7a4c12d9ad4d68bd9cfc54f0ff600ee29
 --- /dev/null
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/AccountSASGenerator.java
 @@ -0,0 +1,103 @@
@@ -856,7 +856,7 @@ index 0000000000..2af741b7a4
 +  }
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
-index 2e9289d8d4..a80ddac5ed 100644
+index 2e9289d8d44c7ac6fcbe15da9abe55b2a95a4b6c..a80ddac5ed36f7ad5817194deadc12b35d9b46af 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/SASGenerator.java
 @@ -29,6 +29,10 @@ import javax.crypto.spec.SecretKeySpec;
@@ -927,7 +927,7 @@ index 2e9289d8d4..a80ddac5ed 100644
 \ No newline at end of file
 +}
 diff --git a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
-index 24a1cea255..0ae5239e8f 100644
+index 24a1cea255b4aa80bb8672bec5ea871cc0a5665b..0ae5239e8f2a577c293960a69889c1e2a27fda70 100644
 --- a/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
 +++ b/hadoop-tools/hadoop-azure/src/test/java/org/apache/hadoop/fs/azurebfs/utils/ServiceSASGenerator.java
 @@ -20,23 +20,26 @@ package org.apache.hadoop.fs.azurebfs.utils;
