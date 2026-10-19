@@ -90,6 +90,7 @@ All notable changes to this project will be documented in this file.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 - nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
 - nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
+- hive: Remove develocity extension which is not compatible with Maven 3.10 ([#1707]).
 - hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/NIFI-16431) into `3.5.0` ([#1704]).
 
 ### Removed
@@ -154,6 +155,7 @@ All notable changes to this project will be documented in this file.
 [#1704]: https://github.com/stackabletech/docker-images/pull/1704
 [#1705]: https://github.com/stackabletech/docker-images/pull/1705
 [#1706]: https://github.com/stackabletech/docker-images/pull/1706
+[#1707]: https://github.com/stackabletech/docker-images/pull/1707
 
 ## [26.7.0] - 2026-07-21
 
