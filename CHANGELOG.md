@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
 - hive: Add `4.2.1` ([#1637]).
-- kafka: Add `4.3.1` ([#1659]).
+- kafka: Add `4.3.1` and deprecate `4.2.1` ([#1659], [#1706]).
 - stats-exporter: Add `0.31.0` ([#1664]).
 - airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
 - nifi: Add `2.12.0` ([#1667]).
@@ -153,6 +153,7 @@ All notable changes to this project will be documented in this file.
 [#1697]: https://github.com/stackabletech/docker-images/pull/1697
 [#1704]: https://github.com/stackabletech/docker-images/pull/1704
 [#1705]: https://github.com/stackabletech/docker-images/pull/1705
+[#1706]: https://github.com/stackabletech/docker-images/pull/1706
 
 ## [26.7.0] - 2026-07-21
 
