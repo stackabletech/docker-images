@@ -113,7 +113,9 @@ apache-airflow-providers-asana==2.11.3
 apache-airflow-providers-atlassian-jira==3.3.3
 apache-airflow-providers-celery==3.20.0
 apache-airflow-providers-cloudant==4.3.4
-apache-airflow-providers-cncf-kubernetes==10.17.1
+# Stackable patch:
+# Bump from 10.17.1 to fix https://github.com/stackabletech/airflow-operator/issues/855
+apache-airflow-providers-cncf-kubernetes==10.18.0
 apache-airflow-providers-cohere==1.6.5
 apache-airflow-providers-common-ai==0.3.0
 apache-airflow-providers-common-compat==1.15.0

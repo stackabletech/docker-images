@@ -92,6 +92,8 @@ All notable changes to this project will be documented in this file.
 - nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
 - hive: Remove develocity extension which is not compatible with Maven 3.10 ([#1707]).
 - hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/NIFI-16431) into `3.5.0` ([#1704]).
+- airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
+  KubernetesExecutor ([#]).
 
 ### Removed
 
