@@ -1,19 +1,19 @@
-From 443a6ad14c239789461ed0d952e91042e55a534c Mon Sep 17 00:00:00 2001
+From e36994ed267c581f17d9eae66f4bed02b544ecfa Mon Sep 17 00:00:00 2001
 From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
-Date: Wed, 16 Sep 2026 17:56:45 +0200
+Date: Tue, 20 Oct 2026 10:59:01 +0200
 Subject: Allow overriding the logging configuration
 
 ---
- .../src/airflow_shared/logging/structlog.py   | 30 ++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ .../src/airflow_shared/logging/structlog.py   | 28 ++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/shared/logging/src/airflow_shared/logging/structlog.py b/shared/logging/src/airflow_shared/logging/structlog.py
-index b13be19144567978e6f0fb2ae35d9474a941028c..117e6f655b394e7b27c01bb8ce1e0e11b995d0e8 100644
+index b13be19144567978e6f0fb2ae35d9474a941028c..75406fe6dd7141b2276c9cb0cdd213fd66298686 100644
 --- a/shared/logging/src/airflow_shared/logging/structlog.py
 +++ b/shared/logging/src/airflow_shared/logging/structlog.py
-@@ -532,6 +532,18 @@ def structlog_processors(
-     return shared_processors, console, console
+@@ -531,6 +531,16 @@ def structlog_processors(
  
+     return shared_processors, console, console
  
 +def update_config(
 +    config: dict,
@@ -25,12 +25,10 @@ index b13be19144567978e6f0fb2ae35d9474a941028c..117e6f655b394e7b27c01bb8ce1e0e11
 +        else:
 +            config[key] = value
 +    return config
-+
-+
+ 
  def configure_logging(
      *,
-     json_output: bool = False,
-@@ -600,6 +612,19 @@ def configure_logging(
+@@ -600,6 +610,19 @@ def configure_logging(
      PER_LOGGER_LEVELS[""] = NAME_TO_LEVEL[log_level.lower()]
      PER_LOGGER_LEVELS.update(parse_namespace_log_levels(namespace_log_levels))
  
@@ -50,7 +48,7 @@ index b13be19144567978e6f0fb2ae35d9474a941028c..117e6f655b394e7b27c01bb8ce1e0e11
      shared_pre_chain, for_stdlib, for_structlog = structlog_processors(
          json_output,
          log_format=log_format,
-@@ -646,7 +671,7 @@ def configure_logging(
+@@ -646,7 +669,7 @@ def configure_logging(
  
      import logging.config
  
@@ -59,7 +57,7 @@ index b13be19144567978e6f0fb2ae35d9474a941028c..117e6f655b394e7b27c01bb8ce1e0e11
      config.setdefault("version", 1)
      config.setdefault("disable_existing_loggers", False)
      config["formatters"] = {**config.get("formatters", {})}
-@@ -700,6 +725,9 @@ def configure_logging(
+@@ -700,6 +723,9 @@ def configure_logging(
          "propagate": True,
      }
  
