@@ -45,7 +45,7 @@ java-base = "21"
 java-devel = "21"
 
 [versions."4.2.0".build-arguments]
-python-version = "3.12"
+python-version = "3.14"
 jackson-dataformat-xml-version = "2.21.2" # Needs to match https://mvnrepository.com/artifact/org.apache.spark/spark-parent_2.13/4.2.0
 stax2-api-version = "4.2.2"               # Needs to match https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.21.2
 woodstox-core-version = "7.1.1"           # Needs to match https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.21.2
