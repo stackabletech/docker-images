@@ -30,8 +30,11 @@ To keep the installation tightly coupled to the associated constraints it is bes
 Applying the filter above results in the omission of the following providers:
 
 - `apache-atlas`
+- `apache-beam`
+- `apache-cassandra`
 - `apache-webhdfs`
 - `ibm-mq`
+- `tabular`
 
 Other than the above, the only other providers that are currently excluded are:
 

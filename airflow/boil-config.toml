@@ -207,10 +207,10 @@ airflow-extras-core = "async,graphviz,kerberos,memray,otel,sentry,standard,stats
 airflow-extras-meta = "aiobotocore,amazon-aws-auth,cloudpickle,github-enterprise,google-auth,graphviz,gunicorn,ldap,leveldb,pandas,polars,rabbitmq,s3fs,saml,uv"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.2/extra-packages-ref.html#apache-software-extras
-airflow-extras-provider-apache = "apache-beam,apache-cassandra,apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot,apache-tinkerpop"
+airflow-extras-provider-apache = "apache-drill,apache-druid,apache-flink,apache-hdfs,apache-hive,apache-iceberg,apache-impala,apache-kafka,apache-kylin,apache-livy,apache-pig,apache-pinot,apache-tinkerpop"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.2/extra-packages-ref.html#external-services-extras
-airflow-extras-external-services = "airbyte,akeyless,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,clickhousedb,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,tabular,telegram,vertica,vespa,weaviate,yandex,ydb,zendesk"
+airflow-extras-external-services = "airbyte,akeyless,alibaba,apprise,amazon,asana,atlassian-jira,microsoft-azure,clickhousedb,cloudant,cohere,databricks,datadog,dbt-cloud,dingding,discord,facebook,github,google,hashicorp,openai,opsgenie,pagerduty,pgvector,pinecone,qdrant,salesforce,sendgrid,segment,slack,snowflake,tableau,telegram,vertica,vespa,weaviate,yandex,ydb,zendesk"
 
 # See https://airflow.apache.org/docs/apache-airflow/3.3.2/extra-packages-ref.html#locally-installed-software-extras
 airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,docker,edge3,elasticsearch,exasol,fab,git,github,influxdb,jenkins,mongo,microsoft-mssql,neo4j,odbc,openfaas,oracle,postgres,presto,redis,samba,singularity,teradata,trino"
