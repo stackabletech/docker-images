@@ -60,7 +60,7 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 # package manifest and no lockfile, so cdxgen cannot see them either.
 RUN <<EOF
     microdnf update
-    microdnf install python3
+    microdnf install python3 zip
     microdnf clean all
     rm -rf /var/cache/yum
 EOF
