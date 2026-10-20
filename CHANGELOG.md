@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
   the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
+- spark: Add 4.2.0 ([#1710]).
 
 ### Changed
 
@@ -159,6 +160,7 @@ All notable changes to this project will be documented in this file.
 [#1706]: https://github.com/stackabletech/docker-images/pull/1706
 [#1707]: https://github.com/stackabletech/docker-images/pull/1707
 [#1709]: https://github.com/stackabletech/docker-images/pull/1709
+[#1710]: https://github.com/stackabletech/docker-images/pull/1710
 
 ## [26.7.0] - 2026-07-21
 
