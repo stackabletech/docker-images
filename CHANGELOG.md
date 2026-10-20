@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - hive: Add `4.2.1` ([#1637]).
 - kafka: Add `4.3.1` and deprecate `4.2.1` ([#1659], [#1706]).
 - stats-exporter: Add `0.31.0` ([#1664]).
-- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
+- airflow: Add `3.3.2`, deprecate `3.2.2` ([#1665], [#1708]).
 - nifi: Add `2.12.0` ([#1667]).
 - opensearch: Add `3.8.0` ([#1669]).
 - opensearch: Add the `repository-azure` plugin ([#1689]).
@@ -158,6 +158,7 @@ All notable changes to this project will be documented in this file.
 [#1705]: https://github.com/stackabletech/docker-images/pull/1705
 [#1706]: https://github.com/stackabletech/docker-images/pull/1706
 [#1707]: https://github.com/stackabletech/docker-images/pull/1707
+[#1708]: https://github.com/stackabletech/docker-images/pull/1708
 [#1709]: https://github.com/stackabletech/docker-images/pull/1709
 
 ## [26.7.0] - 2026-07-21
