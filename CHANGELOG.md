@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file.
   the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
-- spark: Add 4.2.0 ([#1710]).
+- spark: Add 4.1.3 and 4.2.0 ([#1710]).
 
 ### Changed
 
