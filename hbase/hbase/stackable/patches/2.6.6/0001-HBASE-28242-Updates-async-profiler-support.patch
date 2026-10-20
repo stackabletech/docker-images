@@ -8,7 +8,7 @@ Subject: HBASE-28242: Updates async-profiler support
  1 file changed, 120 insertions(+), 83 deletions(-)
 
 diff --git a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
-index 94611694ef..5c2df0076d 100644
+index 94611694ef5a4599715314e5edfca56cd653ac24..5c2df0076d44210671bea4c496277575c1e2b06c 100644
 --- a/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
 +++ b/hbase-http/src/main/java/org/apache/hadoop/hbase/http/ProfileServlet.java
 @@ -28,9 +28,11 @@ import java.util.concurrent.TimeUnit;

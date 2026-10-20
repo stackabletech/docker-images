@@ -9,7 +9,7 @@ Contributed by Sebastian Klemke
  1 file changed, 64 insertions(+), 4 deletions(-)
 
 diff --git a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
-index abff7ea5f1..f17169dec2 100644
+index abff7ea5f17ff606298d6b20e910d35eacb204c1..f17169dec247195b4e15df13ff7d3263fd52eeed 100644
 --- a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
 +++ b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
 @@ -24,6 +24,57 @@

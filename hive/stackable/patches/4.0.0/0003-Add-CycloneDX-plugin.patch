@@ -8,7 +8,7 @@ Subject: Add CycloneDX plugin
  1 file changed, 18 insertions(+)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 205fc31ec7..2982a45ca0 100644
+index 205fc31ec78d57901b16b6ca51b89c7579f8485c..2982a45ca07082c373199281cb34b00688839c21 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -41,6 +41,7 @@

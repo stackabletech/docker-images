@@ -10,7 +10,7 @@ and #1316. For more details, see the linked PRs.
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/superset-frontend/package.json b/superset-frontend/package.json
-index cd6ca2a53..0f59fff60 100644
+index cd6ca2a53fe4dbafc0e4cae54971f31b32696778..0f59fff6045122c516ba9307f488f45e3ad0bfdf 100644
 --- a/superset-frontend/package.json
 +++ b/superset-frontend/package.json
 @@ -365,11 +365,12 @@

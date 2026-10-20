@@ -15,7 +15,7 @@ These defaults mean that SNI is not required (this is the current behavior alrea
  3 files changed, 38 insertions(+)
 
 diff --git a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
-index 892755cded..856ef646b0 100644
+index 892755cdedddda6ea2d989aa0e78f950f4a2e88b..856ef646b01a1f72007cb91c949546d87af1ec88 100644
 --- a/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
 +++ b/nifi-commons/nifi-jetty-configuration/src/main/java/org/apache/nifi/jetty/configuration/connector/StandardServerConnectorFactory.java
 @@ -70,6 +70,10 @@ public class StandardServerConnectorFactory implements ServerConnectorFactory {
@@ -64,7 +64,7 @@ index 892755cded..856ef646b0 100644
          }
  
 diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-index 94f79197d9..11ca1424ab 100644
+index 94f79197d980fdd3cc98de0b031a389e03b31738..11ca1424aba4c02a33d6609a8e75b25d48100ee9 100644
 --- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 +++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 @@ -219,6 +219,8 @@ public class NiFiProperties extends ApplicationProperties {
@@ -92,7 +92,7 @@ index 94f79197d9..11ca1424ab 100644
          return getProperty(WEB_MAX_HEADER_SIZE, DEFAULT_WEB_MAX_HEADER_SIZE);
      }
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
-index 526695b9da..1ad87bacce 100644
+index 526695b9da75b7129fa091900f74a592ba3a83a9..1ad87bacce1829ffa9fce9bbb09d4c83bed2ea68 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-web/nifi-jetty/src/main/java/org/apache/nifi/web/server/connector/FrameworkServerConnectorFactory.java
 @@ -90,6 +90,10 @@ public class FrameworkServerConnectorFactory extends StandardServerConnectorFact

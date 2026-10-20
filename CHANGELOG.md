@@ -14,29 +14,40 @@ All notable changes to this project will be documented in this file.
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
 - hadoop, spark: Add SBOMs for the pre-built JavaScript that is vendored into the source tree for the HDFS and Spark web UIs ([#1620]).
 - hive: Add `4.2.1` ([#1637]).
-- kafka: Add `4.3.1` ([#1659]).
+- kafka: Add `4.3.1` and deprecate `4.2.1` ([#1659], [#1706]).
 - stats-exporter: Add `0.31.0` ([#1664]).
-- airflow: Add `3.3.1`, deprecate `3.2.2` ([#1665]).
+- airflow: Add `3.3.2`, deprecate `3.2.2` ([#1665], [#1708]).
+- nifi: Add `2.12.0` ([#1667]).
 - opensearch: Add `3.8.0` ([#1669]).
 - opensearch: Add the `repository-azure` plugin ([#1689]).
 - opensearch-dashboards: Add `3.8.0` ([#1675]).
 - nifi: Ship `QueryNiFiReportingTask` with the image ([#1676]).
-- nifi: Add `2.12.0` ([#1667]).
-- vector: Add `0.58.0` ([#1680]).
+- hbase: Add `2.6.7` ([#1678]).
+- hbase: Add `3.0.0` as an experimental version, with `hbase-opa-authorizer` `1.0.0`.
+  It does not include Phoenix (no HBase 3.x support yet) ([#1678]).
+- vector: Add `0.58.0` ([#1680], [#1693]).
+- trino: Add `483` ([#1690]).
+- trino-cli: Add `483` ([#1690]).
+- vector: Add the wrapper script `/stackable/bin/vector-with-env-var-interpolation` which enables
+  the interpolation of environment variables in the Vector configuration files ([#1693]).
+- opa: Add 1.20.2 ([#1697]).
+- patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 
 ### Changed
 
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
+- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - testing-tools: Pull `grpcurl` from our own mirror instead of directly from Docker Hub ([#1671]).
 - superset: change statsd-exporter to `0.31.0` ([#1673]).
 - vector: Build with `--locked` ([#1674]).
-- nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
 - ci: Bump `stackabletech/actions` to `v0.18.4` ([#1681]).
 - java-devel: Pin `versions-maven-plugin` to `2.22.0` for `mvn versions:set`, `maven-help-plugin` to `3.5.2` for `mvn help:evaluate` and `maven-dependency-plugin` to `3.11.0` for `mvn dependency:get`, which otherwise resolve the latest release on every build unless the product POM pins them ([#1682]).
 - spark: Remove duplicated arguments from the `mvn dependency:get` calls for `stax2-api` and `woodstox-core` ([#1682]).
 - airflow, druid, hbase, nifi, opensearch-dashboards, superset, trino: Install global npm packages (cdxgen, pnpm, yarn, npm) with `--ignore-scripts`, and only resolve versions that were published at least 7 days ago (`--before`) ([#1682]).
 - superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
+- opa: update golang to 1.27.1 ([#1697]).
+- spark: Pin pyarrow below 26 to satisfy scikit-learn dependency on NumPy 1.x ([#1695]).
 
 ### Fixed
 
@@ -78,6 +89,11 @@ All notable changes to this project will be documented in this file.
 - hive: Build against the Hive modules built alongside each other (in the same reactor) rather than the ones published on Maven Central, for `4.2.0`.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 - nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
+- nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
+- hive: Remove develocity extension which is not compatible with Maven 3.10 ([#1707]).
+- hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/HADOOP-19885) into `3.5.0` ([#1704]).
+- airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
+  KubernetesExecutor ([#1709]).
 
 ### Removed
 
@@ -87,13 +103,17 @@ All notable changes to this project will be documented in this file.
 - ci: Remove SLSA build provenance generation for published image indexes ([#1596]).
 - kafka: Removed `3.9.1`, `4.1.1` ([#1659]).
 - airflow: Remove `3.1.6` ([#1665]).
+- nifi: Remove `2.7.2` ([#1667]).
 - opensearch: Removed `3.4.0` ([#1669]).
 - superset: Remove `6.0.0` ([#1673]).
 - opensearch-dashboards: Remove `3.4.0` ([#1675]).
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
-- nifi: Remove `2.7.2` ([#1667]).
+- hbase: Remove `2.6.4` ([#1678]).
 - vector: Remove `0.55.0` ([#1680]).
 - hadoop: Remove `3.4.2` ([#1683]).
+- trino: Remove `479` ([#1690]).
+- trino-cli: Remove `481` ([#1690]).
+- opa: Remove 1.12.3 ([#1697]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -123,12 +143,23 @@ All notable changes to this project will be documented in this file.
 [#1675]: https://github.com/stackabletech/docker-images/pull/1675
 [#1676]: https://github.com/stackabletech/docker-images/pull/1676
 [#1677]: https://github.com/stackabletech/docker-images/pull/1677
+[#1678]: https://github.com/stackabletech/docker-images/pull/1678
 [#1680]: https://github.com/stackabletech/docker-images/pull/1680
 [#1681]: https://github.com/stackabletech/docker-images/pull/1681
 [#1682]: https://github.com/stackabletech/docker-images/pull/1682
 [#1683]: https://github.com/stackabletech/docker-images/pull/1683
 [#1686]: https://github.com/stackabletech/docker-images/pull/1686
 [#1689]: https://github.com/stackabletech/docker-images/pull/1689
+[#1690]: https://github.com/stackabletech/docker-images/pull/1690
+[#1695]: https://github.com/stackabletech/docker-images/pull/1695
+[#1693]: https://github.com/stackabletech/docker-images/pull/1693
+[#1697]: https://github.com/stackabletech/docker-images/pull/1697
+[#1704]: https://github.com/stackabletech/docker-images/pull/1704
+[#1705]: https://github.com/stackabletech/docker-images/pull/1705
+[#1706]: https://github.com/stackabletech/docker-images/pull/1706
+[#1707]: https://github.com/stackabletech/docker-images/pull/1707
+[#1708]: https://github.com/stackabletech/docker-images/pull/1708
+[#1709]: https://github.com/stackabletech/docker-images/pull/1709
 
 ## [26.7.0] - 2026-07-21
 
@@ -156,6 +187,7 @@ All notable changes to this project will be documented in this file.
 - druid: Add `37.0.0` ([#1535]).
 - hbase: Add `2.6.6` ([#1547]).
 - spark: Add `4.1.2` ([#1550]).
+- spark: Add the OpenLineage listener under the dedicated directory `/stackable/spark/openlineage/` ([#1577]).
 - opensearch: Add `3.6.0` ([#1549]).
 - opensearch-dashboards: Add `3.6.0` ([#1551]).
 - spark: Add hbase-connector protobuf classes ([#1573]).
@@ -230,6 +262,7 @@ All notable changes to this project will be documented in this file.
 [#1548]: https://github.com/stackabletech/docker-images/pull/1548
 [#1549]: https://github.com/stackabletech/docker-images/pull/1549
 [#1550]: https://github.com/stackabletech/docker-images/pull/1550
+[#1577]: https://github.com/stackabletech/docker-images/pull/1577
 [#1551]: https://github.com/stackabletech/docker-images/pull/1551
 [#1559]: https://github.com/stackabletech/docker-images/pull/1559
 [#1561]: https://github.com/stackabletech/docker-images/pull/1561

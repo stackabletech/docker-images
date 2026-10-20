@@ -1,0 +1,32 @@
+From f570f5cdc470841865daf54ec23d17d7bacf70b7 Mon Sep 17 00:00:00 2001
+From: Cheng Pan <chengpan@apache.org>
+Date: Fri, 8 May 2026 15:43:39 +0800
+Subject: HADOOP-19885. Fix duplicated dependency declaration in pom (#8481)
+
+Backport of apache/hadoop a5cecdda3ffde075bce6991dff75bb3759dab905
+(https://github.com/apache/hadoop/pull/8481), which landed after 3.5.0
+was cut.
+
+hadoop-yarn-server-nodemanager declares org.mockito:mockito-junit-jupiter
+twice. Maven 3.10.0 treats a duplicate dependency declaration as an error
+instead of a warning, so the reactor can no longer be built.
+---
+ .../hadoop-yarn-server-nodemanager/pom.xml                   | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/pom.xml b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/pom.xml
+index f4cfb943f5..1f9b1b41dd 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/pom.xml
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/pom.xml
+@@ -113,11 +113,6 @@
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-api</artifactId>
+     </dependency>
+-    <dependency>
+-      <groupId>org.mockito</groupId>
+-      <artifactId>mockito-junit-jupiter</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+     <!-- 'mvn dependency:analyze' fails to detect use of this dependency -->
+     <dependency>
+       <groupId>org.apache.hadoop</groupId>

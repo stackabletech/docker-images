@@ -13,7 +13,7 @@ Related: NIFI-4737
  2 files changed, 68 insertions(+), 15 deletions(-)
 
 diff --git a/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/PartitionedWriteAheadEventStore.java b/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/PartitionedWriteAheadEventStore.java
-index 749ca1d04e..f242a01976 100644
+index 749ca1d04e99ccd4f1a792decca847281697c6b6..f242a01976c7531f281d27b49b17ca1a3dc80a1c 100644
 --- a/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/PartitionedWriteAheadEventStore.java
 +++ b/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/PartitionedWriteAheadEventStore.java
 @@ -24,6 +24,8 @@ import org.apache.nifi.provenance.index.EventIndex;
@@ -83,7 +83,7 @@ index 749ca1d04e..f242a01976 100644
          }
      }
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
-index 15ec9e78cd..9204a496b3 100644
+index 15ec9e78cddf4adf493ffa7a82e4cfef7e2c15ac..9204a496b34ad19fb1734836e08beda18ad8373c 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
 @@ -72,6 +72,7 @@ import java.util.concurrent.Future;

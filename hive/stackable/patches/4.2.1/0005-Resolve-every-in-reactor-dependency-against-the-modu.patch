@@ -38,7 +38,7 @@ genuinely are external, so this patch must not be carried back to it unchanged.
  5 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/standalone-metastore/metastore-rest-catalog/pom.xml b/standalone-metastore/metastore-rest-catalog/pom.xml
-index 682259d334..d863231977 100644
+index 682259d334c16628757b5c249c8e45634c6bdeec..d8632319777d1ae42084bc206debf05a1a102b71 100644
 --- a/standalone-metastore/metastore-rest-catalog/pom.xml
 +++ b/standalone-metastore/metastore-rest-catalog/pom.xml
 @@ -34,31 +34,31 @@
@@ -79,7 +79,7 @@ index 682259d334..d863231977 100644
        <scope>test</scope>
      </dependency>
 diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
-index b07aa0228d..91d938db40 100644
+index b07aa0228d46bec00356c00075720ce082b920f4..91d938db40575303519f2b93f2144c3d30ffabda 100644
 --- a/standalone-metastore/metastore-server/pom.xml
 +++ b/standalone-metastore/metastore-server/pom.xml
 @@ -28,7 +28,7 @@
@@ -92,7 +92,7 @@ index b07aa0228d..91d938db40 100644
      <dependency>
        <groupId>org.apache.httpcomponents</groupId>
 diff --git a/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml b/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
-index 1a2d781ff1..6c9e1a9cf0 100644
+index 1a2d781ff1193c429da14671559f294ec2c61e43..6c9e1a9cf050150e389de9005656383dd650be35 100644
 --- a/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
 +++ b/standalone-metastore/metastore-tools/metastore-benchmarks/pom.xml
 @@ -46,7 +46,7 @@
@@ -105,7 +105,7 @@ index 1a2d781ff1..6c9e1a9cf0 100644
          <exclusion>
            <groupId>org.apache.zookeeper</groupId>
 diff --git a/standalone-metastore/metastore-tools/pom.xml b/standalone-metastore/metastore-tools/pom.xml
-index 82612a5057..f1b4c35af6 100644
+index 82612a5057be7461f317388205a86c2b6313ef82..f1b4c35af63c991c99d11c68e222908ee3e8ff1b 100644
 --- a/standalone-metastore/metastore-tools/pom.xml
 +++ b/standalone-metastore/metastore-tools/pom.xml
 @@ -39,7 +39,7 @@
@@ -118,7 +118,7 @@ index 82612a5057..f1b4c35af6 100644
            <exclusion>
              <groupId>org.apache.zookeeper</groupId>
 diff --git a/standalone-metastore/packaging/pom.xml b/standalone-metastore/packaging/pom.xml
-index 1f4ad53899..a0de88e1a3 100644
+index 1f4ad538992c73f73177e4e306f850ed30c1dfb0..a0de88e1a36911b3cc9cead9a2730298a32f681c 100644
 --- a/standalone-metastore/packaging/pom.xml
 +++ b/standalone-metastore/packaging/pom.xml
 @@ -176,7 +176,7 @@

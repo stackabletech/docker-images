@@ -8,7 +8,7 @@ Subject: Adjust version regex to match custom stackable versions
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/phoenix-core-client/pom.xml b/phoenix-core-client/pom.xml
-index e1ba8727f..90794c228 100644
+index e1ba8727f3bbb998740e97fe7410be204c343ee4..90794c228dc46b1ee4e051d79983cbfa4f27959e 100644
 --- a/phoenix-core-client/pom.xml
 +++ b/phoenix-core-client/pom.xml
 @@ -275,7 +275,7 @@

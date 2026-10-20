@@ -11,7 +11,7 @@ Subject: Use the Maven repository of OpenSearch instead of Sonatype
  4 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/build.gradle b/build.gradle
-index 15a882a2..78b46262 100644
+index 15a882a2441b7e51bdab5e3f4780eab16edf1d5c..78b46262b49241f56c28057fb842a93772c751d7 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -48,7 +48,7 @@ buildscript {
@@ -33,7 +33,7 @@ index 15a882a2..78b46262 100644
          maven { url "https://build.shibboleth.net/nexus/content/repositories/releases" }
      }
 diff --git a/bwc-test/build.gradle b/bwc-test/build.gradle
-index d5f4db95..d6c7b2bc 100644
+index d5f4db951ef7df6a5871a98d88946076b92dfee5..d6c7b2bc6c47ced920df776a255a59193ec2cae2 100644
 --- a/bwc-test/build.gradle
 +++ b/bwc-test/build.gradle
 @@ -51,7 +51,7 @@ buildscript {
@@ -55,7 +55,7 @@ index d5f4db95..d6c7b2bc 100644
      maven { url "https://plugins.gradle.org/m2/" }
  }
 diff --git a/sample-resource-plugin/build.gradle b/sample-resource-plugin/build.gradle
-index a881b781..d9975b0b 100644
+index a881b781007d184a254d278fd32bc339854a11d9..d9975b0b670fdef5f072c2fdde03b4047eb58413 100644
 --- a/sample-resource-plugin/build.gradle
 +++ b/sample-resource-plugin/build.gradle
 @@ -55,7 +55,7 @@ ext {
@@ -68,7 +68,7 @@ index a881b781..d9975b0b 100644
  
  configurations.all {
 diff --git a/spi/build.gradle b/spi/build.gradle
-index f75814f7..f35a4091 100644
+index f75814f78abdec0767f201ecaa18a8f899aa719a..f35a409137e63f29fd18c980a0025d456aa3e0c5 100644
 --- a/spi/build.gradle
 +++ b/spi/build.gradle
 @@ -16,7 +16,7 @@ ext {

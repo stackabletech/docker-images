@@ -9,7 +9,7 @@ Subject: Backport HADOOP-18077
  2 files changed, 11 insertions(+), 3 deletions(-)
 
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
-index 1f66a7e809..96794086cb 100644
+index 1f66a7e809c822e54a0ccf85ca8a1ea3823aaafe..96794086cb87d4e75ef001c8c54caa9da3c70520 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/HttpServer2.java
 @@ -745,10 +745,11 @@ public final class HttpServer2 implements FilterContainer {
@@ -35,7 +35,7 @@ index 1f66a7e809..96794086cb 100644
        addServlet("prof", "/prof", ProfilerDisabledServlet.class);
        LOG.info("ASYNC_PROFILER_HOME environment variable and async.profiler.home system property "
 diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
-index 459485ffa5..c488b57499 100644
+index 459485ffa5b56ff6fe8b20a0f39748154f6ec8c7..c488b574990ccb2db33e960999556dbd809d450b 100644
 --- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
 +++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/http/ProfilerDisabledServlet.java
 @@ -36,9 +36,15 @@ public class ProfilerDisabledServlet extends HttpServlet {
