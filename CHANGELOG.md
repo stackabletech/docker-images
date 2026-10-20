@@ -115,6 +115,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove `479` ([#1690]).
 - trino-cli: Remove `481` ([#1690]).
 - opa: Remove 1.12.3 ([#1697]).
+- spark: Remove 3.5.8 and 4.1.1 ([#1710]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
