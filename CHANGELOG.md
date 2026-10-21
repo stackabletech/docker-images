@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file.
   the interpolation of environment variables in the Vector configuration files ([#1693]).
 - opa: Add 1.20.2 ([#1697]).
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
+- spark: Add 4.1.3 and 4.2.0 ([#1710]).
 
 ### Changed
 
@@ -114,6 +115,7 @@ All notable changes to this project will be documented in this file.
 - trino: Remove `479` ([#1690]).
 - trino-cli: Remove `481` ([#1690]).
 - opa: Remove 1.12.3 ([#1697]).
+- spark: Remove 3.5.8 and 4.1.1 ([#1710]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -160,6 +162,7 @@ All notable changes to this project will be documented in this file.
 [#1707]: https://github.com/stackabletech/docker-images/pull/1707
 [#1708]: https://github.com/stackabletech/docker-images/pull/1708
 [#1709]: https://github.com/stackabletech/docker-images/pull/1709
+[#1710]: https://github.com/stackabletech/docker-images/pull/1710
 
 ## [26.7.0] - 2026-07-21
 
