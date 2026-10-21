@@ -41,8 +41,8 @@ containerfile = "Dockerfile.4"
 
 [versions."4.2.0".local-images]
 "hadoop/hadoop" = "3.5.0"
-java-base = "21"
-java-devel = "21"
+java-base = "25"
+java-devel = "25"
 
 [versions."4.2.0".build-arguments]
 python-version = "3.14"
