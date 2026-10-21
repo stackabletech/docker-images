@@ -97,6 +97,12 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
+- stackable-base: Remove the `emSign ECC Root CA - G3` root certificate from the system trust store, as private keys of eMudhra intermediate CAs chaining to it were compromised ([GHSA-6q48-6c7w-9gw2]).
+- airflow: Bump certifi to `2026.10.19` and uv to `0.13.4`, and point grpcio to the system trust store ([GHSA-6q48-6c7w-9gw2], [GHSA-hq85-5cpj-mr62]).
+- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. For Airflow 2.9.3, which uses Python 3.9 and cannot use this pip version, point pip to the system trust store instead ([GHSA-6q48-6c7w-9gw2]).
+- superset: Bump certifi to `2026.10.19` and uv to `0.13.4` ([GHSA-6q48-6c7w-9gw2], [GHSA-hq85-5cpj-mr62]).
+- opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([GHSA-6q48-6c7w-9gw2]).
+- spark-connect-client: Point grpcio to the system trust store ([GHSA-6q48-6c7w-9gw2]).
 
 ### Removed
 
@@ -167,6 +173,8 @@ All notable changes to this project will be documented in this file.
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
 [#1713]: https://github.com/stackabletech/docker-images/pull/1713
+[GHSA-6q48-6c7w-9gw2]: https://github.com/advisories/GHSA-6q48-6c7w-9gw2
+[GHSA-hq85-5cpj-mr62]: https://github.com/advisories/GHSA-hq85-5cpj-mr62
 
 ## [26.7.0] - 2026-07-21
 

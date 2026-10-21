@@ -150,13 +150,19 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
 # Until they are removed by default from ca-certificates, we should remove them manually
+#
+# GHSA-6q48-6c7w-9gw2 / GHSA-hq85-5cpj-mr62: Remove "emSign ECC Root CA - G3" root certificate
+# Private keys of eight eMudhra intermediate CAs chaining to this root were compromised.
+# Mozilla removed the root from NSS, until it is removed from ca-certificates, we remove it manually
 EXPECTED_CERTS_PACKAGE="ca-certificates-2025.2.80_v9.0.305-91.el9.noarch"
 ACTUAL_CERTS_PACKAGE="$(rpm -qa ca-certificates)"
 if [ "$ACTUAL_CERTS_PACKAGE" != "$EXPECTED_CERTS_PACKAGE" ]; then
-  echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra root certificates are present. \
+  echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra and emSign ECC Root CA - G3 root certificates are present. \
 When they have been removed, manually blacklisting them should be removed"
   echo "Let me help you by running trust list --filter=ca-anchors | grep 'E-Tugra'"
   trust list --filter=ca-anchors | grep 'E-Tugra'
+  echo "Let me help you by running trust list --filter=ca-anchors | grep 'emSign ECC Root CA - G3'"
+  trust list --filter=ca-anchors | grep 'emSign ECC Root CA - G3'
   echo "If the cert appears above, please update the expected package: EXPECTED_CERTS_PACKAGE=\"$ACTUAL_CERTS_PACKAGE\""
   exit 1;
 fi
@@ -167,6 +173,10 @@ RUN <<EOF
 update-ca-trust
 if [ "$(trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "0" ]; then
   echo "Still found E-Tugra root certificates, this should not happen!"
+  exit 1;
+fi
+if [ "$(trust list --filter=ca-anchors | grep -c 'emSign ECC Root CA - G3')" != "0" ]; then
+  echo "Still found emSign ECC Root CA - G3 root certificate, this should not happen!"
   exit 1;
 fi
 EOF
