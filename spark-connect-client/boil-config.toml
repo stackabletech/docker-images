@@ -27,6 +27,13 @@ pyarrow-max-version = "26"
 spark-k8s = "4.2.0"
 java-base = "21"
 
+# Use this command to fetch the latest versions of these dependencies:
+#
+# printf 'pyspark[connect]==4.2.0\njupyterlab\nscikit-learn\nmatplotlib\npyarrow\n' \
+#   | uv pip compile - --python-version 3.14 --no-header --no-annotate \
+#   | grep -iE '^(pyspark|jupyterlab|scikit-learn|matplotlib|pyarrow|numpy|pandas)=='
+#
+# Change the pyspark[connect] version accordingly.
 [versions."4.2.0".build-arguments]
 python-version = "3.14"
 jupyterlab-version = "4.6.4"
