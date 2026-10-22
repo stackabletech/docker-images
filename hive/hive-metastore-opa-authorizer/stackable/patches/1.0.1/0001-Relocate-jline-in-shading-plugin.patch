@@ -1,4 +1,4 @@
-From 7f287a1a044cc5b9d18e15986a4ddea04b1f0318 Mon Sep 17 00:00:00 2001
+From ad214a97c22b10e54c66b700c5ae5201a92b73ba Mon Sep 17 00:00:00 2001
 From: Malte Sander <malte.sander.it@gmail.com>
 Date: Mon, 24 Nov 2025 18:05:16 +0100
 Subject: Relocate jline in shading plugin

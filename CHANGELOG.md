@@ -95,6 +95,7 @@ All notable changes to this project will be documented in this file.
 - hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/HADOOP-19885) into `3.5.0` ([#1704]).
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
+- hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
 
 ### Removed
 
@@ -163,6 +164,7 @@ All notable changes to this project will be documented in this file.
 [#1708]: https://github.com/stackabletech/docker-images/pull/1708
 [#1709]: https://github.com/stackabletech/docker-images/pull/1709
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
+[#1712]: https://github.com/stackabletech/docker-images/pull/1712
 
 ## [26.7.0] - 2026-07-21
 
