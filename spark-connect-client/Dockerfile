@@ -5,6 +5,10 @@ FROM local-image/spark-k8s AS spark-builder
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
+ARG JUPYTERLAB_VERSION
+ARG SCIKIT_LEARN_VERSION
+ARG MATPLOTLIB_VERSION
+ARG PYARROW_MAX_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
@@ -41,13 +45,14 @@ USER ${STACKABLE_USER_UID}
 # Packages are intentionally installed in "user mode" to reduce the container attack surface.
 # - pyspark[connect] = spark connect client libs
 # - jupyterlab = notebook client used in demos
-# - pyarrow < 26 = pyarrow 26 requires NumPy >= 2, but scikit-learn 1.3.1 requires
-#   NumPy 1.x. pyarrow does not declare NumPy as a dependency, thus pip cannot detect the conflict.
+# - pyarrow < PYARROW_MAX_VERSION = for Spark 4.1.x, capped at < 26: pyarrow 26 requires NumPy >= 2, but
+#   scikit-learn 1.3.1 requires NumPy 1.x. pyarrow does not declare NumPy as a dependency, thus pip
+#   cannot detect the conflict. Newer scikit-learn (used for 4.2.0) supports NumPy 2.
 RUN pip install --no-cache-dir --user \
   "pyspark[connect]==${PRODUCT_VERSION}" \
-  "pyarrow<26" \
-  "jupyterlab==4.4.1" \
-  "scikit-learn==1.3.1" \
-  "matplotlib==3.10.1"
+  "pyarrow<${PYARROW_MAX_VERSION}" \
+  "jupyterlab==${JUPYTERLAB_VERSION}" \
+  "scikit-learn==${SCIKIT_LEARN_VERSION}" \
+  "matplotlib==${MATPLOTLIB_VERSION}"
 
 WORKDIR /stackable
