@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - superset: Pin npm to `10.9.9` instead of installing the latest version with `nvm install --latest-npm` ([#1682]).
 - opa: update golang to 1.27.1 ([#1697]).
 - spark: Pin pyarrow below 26 to satisfy scikit-learn dependency on NumPy 1.x ([#1695]).
+- spark-connect-client: Replace hard-coded Python dependency versions with image dependencies and bump them for Spark 4.2.0 ([#1713]).
 
 ### Fixed
 
@@ -165,6 +166,7 @@ All notable changes to this project will be documented in this file.
 [#1709]: https://github.com/stackabletech/docker-images/pull/1709
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
+[#1713]: https://github.com/stackabletech/docker-images/pull/1713
 
 ## [26.7.0] - 2026-07-21
 
