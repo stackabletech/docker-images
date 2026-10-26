@@ -1,0 +1,152 @@
+From 06ca63e5b1837127de5660a20191aea56913a8bc Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Mon, 26 Oct 2026 12:57:22 +0100
+Subject: Fall back to the managed warehouse in the Iceberg REST catalog
+
+Creating a namespace through the HMS-embedded Iceberg REST catalog fails with
+
+    Warehouse location is not set: hive.metastore.warehouse.external.dir=null
+
+when only hive.metastore.warehouse.dir is configured. Hive's copy of the Iceberg HiveCatalog
+requires the external warehouse to be set, while HMS itself (Warehouse#getWhRootExternal) falls
+back to hive.metastore.warehouse.dir. This patch adds the same fallback to HiveCatalog, so
+namespaces created through the REST catalog get the same location as databases created through
+Thrift.
+
+It also backports the HiveCatalog#initialize part of HIVE-29461 (fixed in Hive 4.3.0): the
+external-warehouse catalog property, which HMSCatalogFactory already passes, is now applied. This
+makes the metastore.warehouse.external.dir spelling work as well. HMSCatalogFactory now only passes
+the property when it is non-empty, as MetastoreConf defaults it to "" and initialize would reject
+that.
+
+The fallback is not fixed upstream yet, Hive master still requires the external warehouse.
+---
+ .../org/apache/iceberg/hive/HiveCatalog.java  | 20 +++++++++++-
+ .../apache/iceberg/hive/TestHiveCatalog.java  | 31 +++++++++++++++++++
+ .../iceberg/rest/HMSCatalogFactory.java       |  6 ++--
+ 3 files changed, 54 insertions(+), 3 deletions(-)
+
+diff --git a/iceberg/iceberg-catalog/src/main/java/org/apache/iceberg/hive/HiveCatalog.java b/iceberg/iceberg-catalog/src/main/java/org/apache/iceberg/hive/HiveCatalog.java
+index 72280449ad54bbf79326fa7ded44b0145c2cdf8a..431cbb87ab055858f865fd102679268b5d11dd21 100644
+--- a/iceberg/iceberg-catalog/src/main/java/org/apache/iceberg/hive/HiveCatalog.java
++++ b/iceberg/iceberg-catalog/src/main/java/org/apache/iceberg/hive/HiveCatalog.java
+@@ -23,6 +23,7 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ import java.util.stream.Collectors;
++import org.apache.commons.lang3.StringUtils;
+ import org.apache.hadoop.conf.Configurable;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.Path;
+@@ -78,6 +79,13 @@ public class HiveCatalog extends BaseMetastoreViewCatalog
+   public static final String LIST_ALL_TABLES = "list-all-tables";
+   public static final String LIST_ALL_TABLES_DEFAULT = "false";
+ 
++  /**
++   * Catalog property for the external (unmanaged) warehouse location, propagated by
++   * {@link #initialize(String, Map)} to {@code hive.metastore.warehouse.external.dir}.
++   * Mirrors {@link CatalogProperties#WAREHOUSE_LOCATION} which targets the managed warehouse.
++   */
++  public static final String EXTERNAL_WAREHOUSE_LOCATION = "external-warehouse";
++
+   public static final String HMS_TABLE_OWNER = "hive.metastore.table.owner";
+   public static final String HMS_DB_OWNER = "hive.metastore.database.owner";
+   public static final String HMS_DB_OWNER_TYPE = "hive.metastore.database.owner-type";
+@@ -115,6 +123,11 @@ public class HiveCatalog extends BaseMetastoreViewCatalog
+           LocationUtil.stripTrailingSlash(properties.get(CatalogProperties.WAREHOUSE_LOCATION)));
+     }
+ 
++    if (properties.containsKey(EXTERNAL_WAREHOUSE_LOCATION)) {
++      this.conf.set(HiveConf.ConfVars.HIVE_METASTORE_WAREHOUSE_EXTERNAL.varname,
++          LocationUtil.stripTrailingSlash(properties.get(EXTERNAL_WAREHOUSE_LOCATION)));
++    }
++
+     this.listAllTables = Boolean.parseBoolean(properties.getOrDefault(LIST_ALL_TABLES, LIST_ALL_TABLES_DEFAULT));
+ 
+     String fileIOImpl = properties.get(CatalogProperties.FILE_IO_IMPL);
+@@ -714,8 +727,13 @@ public class HiveCatalog extends BaseMetastoreViewCatalog
+ 
+   private String getExternalWarehouseLocation() {
+     String warehouseLocation = conf.get(HiveConf.ConfVars.HIVE_METASTORE_WAREHOUSE_EXTERNAL.varname);
++    if (StringUtils.isBlank(warehouseLocation)) {
++      // Same fallback as Warehouse#getWhRootExternal: without an external warehouse, use the managed one
++      warehouseLocation = conf.get(HiveConf.ConfVars.METASTORE_WAREHOUSE.varname);
++    }
+     Preconditions.checkNotNull(warehouseLocation,
+-        "Warehouse location is not set: hive.metastore.warehouse.external.dir=null");
++        "Warehouse location is not set: " +
++            "hive.metastore.warehouse.external.dir and hive.metastore.warehouse.dir are null");
+     return warehouseLocation;
+   }
+ 
+diff --git a/iceberg/iceberg-catalog/src/test/java/org/apache/iceberg/hive/TestHiveCatalog.java b/iceberg/iceberg-catalog/src/test/java/org/apache/iceberg/hive/TestHiveCatalog.java
+index b59828466d64c237e1d907c1b1ecdd9c9ebcdb43..551790fb621968d9f40381d96e54a2a38f447de8 100644
+--- a/iceberg/iceberg-catalog/src/test/java/org/apache/iceberg/hive/TestHiveCatalog.java
++++ b/iceberg/iceberg-catalog/src/test/java/org/apache/iceberg/hive/TestHiveCatalog.java
+@@ -283,6 +283,22 @@ public class TestHiveCatalog extends CatalogTests<HiveCatalog> {
+         .isEqualTo("/user/hive/testwarehouse");
+   }
+ 
++  @Test
++  public void testInitializeCatalogWithExternalWarehouseProperty() {
++    Map<String, String> properties = Maps.newHashMap();
++    properties.put("warehouse", "/user/hive/testwarehouse/");
++    properties.put(HiveCatalog.EXTERNAL_WAREHOUSE_LOCATION, "/user/hive/external/");
++    HiveCatalog hiveCatalog = new HiveCatalog();
++    hiveCatalog.initialize("hive", properties);
++
++    // Both warehouse properties should be propagated to the Hadoop configuration
++    // and trailing slashes should be stripped (matching the managed warehouse behavior).
++    assertThat(hiveCatalog.getConf().get("hive.metastore.warehouse.dir"))
++        .isEqualTo("/user/hive/testwarehouse");
++    assertThat(hiveCatalog.getConf().get("hive.metastore.warehouse.external.dir"))
++        .isEqualTo("/user/hive/external");
++  }
++
+   @Test
+   public void testCreateTableTxnBuilder() throws Exception {
+     Schema schema = getTestSchema();
+@@ -1259,4 +1275,19 @@ public class TestHiveCatalog extends CatalogTests<HiveCatalog> {
+ 
+     assertThat(database.getLocationUri()).isEqualTo("s3://bucket/database.db");
+   }
++
++  @Test
++  public void testDatabaseLocationWithoutExternalWarehouseDir() {
++    Configuration conf = new Configuration();
++    conf.set("hive.metastore.warehouse.dir", "s3://bucket/warehouse");
++
++    HiveCatalog hiveCatalog = new HiveCatalog();
++    hiveCatalog.setConf(conf);
++
++    Database database = hiveCatalog.convertToDatabase(Namespace.of("database"), ImmutableMap.of());
++
++    // Falls back to the managed warehouse, like HMS itself does
++    assertThat(database.getLocationUri()).isEqualTo("s3://bucket/warehouse/database.db");
++    assertThat(database.getManagedLocationUri()).isEqualTo("s3://bucket/warehouse/database.db");
++  }
+ }
+diff --git a/standalone-metastore/metastore-rest-catalog/src/main/java/org/apache/iceberg/rest/HMSCatalogFactory.java b/standalone-metastore/metastore-rest-catalog/src/main/java/org/apache/iceberg/rest/HMSCatalogFactory.java
+index 4b085e9d34cfb488b4bf6d725bb80136088253c5..6a5b1e0c5639741077c06fc207bdbba8c01e2e2b 100644
+--- a/standalone-metastore/metastore-rest-catalog/src/main/java/org/apache/iceberg/rest/HMSCatalogFactory.java
++++ b/standalone-metastore/metastore-rest-catalog/src/main/java/org/apache/iceberg/rest/HMSCatalogFactory.java
+@@ -23,6 +23,7 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.TreeMap;
+ import javax.servlet.http.HttpServlet;
++import org.apache.commons.lang3.StringUtils;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.hive.metastore.ServletSecurity;
+ import org.apache.hadoop.hive.metastore.ServletSecurity.AuthType;
+@@ -79,8 +80,9 @@ public class HMSCatalogFactory {
+       properties.put("warehouse", configWarehouse);
+     }
+     final String configExtWarehouse = MetastoreConf.getVar(configuration, MetastoreConf.ConfVars.WAREHOUSE_EXTERNAL);
+-    if (configExtWarehouse != null) {
+-      properties.put("external-warehouse", configExtWarehouse);
++    // MetastoreConf defaults this to "", which HiveCatalog#initialize would reject
++    if (!StringUtils.isEmpty(configExtWarehouse)) {
++      properties.put(HiveCatalog.EXTERNAL_WAREHOUSE_LOCATION, configExtWarehouse);
+     }
+     if (configuration.get(SERVLET_ID_KEY) != null) {
+       // For the testing purpose. HiveCatalog caches a metastore client in a static field. As our tests can spin up
