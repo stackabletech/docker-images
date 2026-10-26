@@ -9,13 +9,13 @@ java-devel = "21"
 [versions."1.1.0-SNAPSHOT-07f5791_4.1.2".build-arguments]
 spark-version = "4.1.2"
 hadoop-version = "3.4.3"
-hbase-version = "2.6.6"
+hbase-version = "2.6.7"
 # The following two must match the hbase-thirdparty (and its bundled protobuf)
 # shipped by the hbase-shaded-client in the final Spark image. That client comes
-# from the `hbase` local-image in spark-k8s/boil-config.toml (currently 2.6.6),
-# whose hbase-thirdparty is 4.1.13 -> protobuf 4.34.0. Keep these in sync if the
+# from the `hbase` local-image in spark-k8s/boil-config.toml (currently 2.6.7),
+# whose hbase-thirdparty is 4.1.14 -> protobuf 4.34.0. Keep these in sync if the
 # Spark image's HBASE_VERSION changes.
-hbase-thirdparty-version = "4.1.13"
+hbase-thirdparty-version = "4.1.14"
 thirdparty-protobuf-version = "4.34.0"
 
 [versions."1.1.0-SNAPSHOT-07f5791_4.1.3".local-images]
@@ -24,9 +24,9 @@ java-devel = "21"
 [versions."1.1.0-SNAPSHOT-07f5791_4.1.3".build-arguments]
 spark-version = "4.1.3"
 hadoop-version = "3.4.3"
-hbase-version = "2.6.6"
+hbase-version = "2.6.7"
 # See the comment above.
-hbase-thirdparty-version = "4.1.13"
+hbase-thirdparty-version = "4.1.14"
 thirdparty-protobuf-version = "4.34.0"
 
 [versions."1.1.0-SNAPSHOT-07f5791_4.2.0".local-images]
@@ -35,7 +35,7 @@ java-devel = "25"
 [versions."1.1.0-SNAPSHOT-07f5791_4.2.0".build-arguments]
 spark-version = "4.2.0"
 hadoop-version = "3.5.0"
-hbase-version = "2.6.6"
+hbase-version = "2.6.7"
 # See the comment above.
-hbase-thirdparty-version = "4.1.13"
+hbase-thirdparty-version = "4.1.14"
 thirdparty-protobuf-version = "4.34.0"
