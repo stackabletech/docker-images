@@ -10,3 +10,6 @@ kubectl-version = "1.37.1"
 
 # See https://github.com/mikefarah/yq/releases for the latest release.
 yq-version = "4.54.1"
+
+# See https://github.com/jqlang/jq/releases for the latest release.
+jq-version = "1.8.2"
