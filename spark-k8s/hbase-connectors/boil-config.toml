@@ -28,3 +28,14 @@ hbase-version = "2.6.6"
 # See the comment above.
 hbase-thirdparty-version = "4.1.13"
 thirdparty-protobuf-version = "4.34.0"
+
+[versions."1.1.0-SNAPSHOT-07f5791_4.2.0".local-images]
+java-devel = "25"
+
+[versions."1.1.0-SNAPSHOT-07f5791_4.2.0".build-arguments]
+spark-version = "4.2.0"
+hadoop-version = "3.5.0"
+hbase-version = "2.6.6"
+# See the comment above.
+hbase-thirdparty-version = "4.1.13"
+thirdparty-protobuf-version = "4.34.0"
