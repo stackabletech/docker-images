@@ -147,17 +147,24 @@ if [[ -n "${NIFI_ICEBERG_BUNDLE_VERSION:-}" ]] ; then
 
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT_VERSION}/g" pom.xml
 
+    # We need "-Denforcer.skip=true", as the Maven version is too old.
+    # "-DincludeProvidedScope=false" keeps the provided dependencies (e.g. Jetty, which the NiFi
+    # framework supplies) out of the per-NAR SBOMs, so that they only list what the NAR bundles.
     mvn \
         clean package \
         -D nifi.version=${PRODUCT_VERSION} \
         -Dmaven.javadoc.skip=true \
-        -Denforcer.skip=true
-    # We need "-Denforcer.skip=true", as the Maven version is too old
+        -Denforcer.skip=true \
+        -DincludeProvidedScope=false
 
-    cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./target/bom.json /stackable/nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE_VERSION}.cdx.json
+    # Ship the SBOM of each NAR instead of the aggregate SBOM of the build. The aggregate SBOM
+    # merges the dependency graphs of all Maven modules, including the test-only
+    # nifi-iceberg-test-utils module and the standalone resolution of nifi-iceberg-common, so it
+    # lists dependency versions that are not shipped in any NAR.
+    for NAR in nifi-iceberg-services-api-nar nifi-iceberg-services-nar nifi-iceberg-processors-nar; do
+        cp "./${NAR}/target/${NAR}-${NIFI_ICEBERG_BUNDLE_VERSION}.nar" /stackable
+        cp "./${NAR}/target/bom.json" "/stackable/${NAR}-${NIFI_ICEBERG_BUNDLE_VERSION}.cdx.json"
+    done
 
     # Save disk space, even for intermediate images
     (cd .. && rm -r ${NIFI_ICEBERG_BUNDLE_VERSION})
