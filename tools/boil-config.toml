@@ -7,3 +7,6 @@ stackable-base = "1.0.0"
 [versions."1.0.0".build-arguments]
 # See https://dl.k8s.io/release/stable.txt for the latest stable release.
 kubectl-version = "1.37.1"
+
+# See https://github.com/mikefarah/yq/releases for the latest release.
+yq-version = "4.54.1"
