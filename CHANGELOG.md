@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- tools: Bump kubectl to `1.37.1`, yq to `4.54.1`, jq to `1.8.2` ([#1718]).
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
@@ -167,6 +168,7 @@ All notable changes to this project will be documented in this file.
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
 [#1713]: https://github.com/stackabletech/docker-images/pull/1713
+[#1718]: https://github.com/stackabletech/docker-images/pull/1718
 
 ## [26.7.0] - 2026-07-21
 
