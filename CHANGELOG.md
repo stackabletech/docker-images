@@ -93,6 +93,7 @@ All notable changes to this project will be documented in this file.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 - nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
 - nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
+- nifi: Ship one SBOM per nifi-iceberg-bundle NAR instead of the aggregate SBOM of the build, which listed dependencies of test-only modules and other versions that are not shipped and caused false positive vulnerability findings ([#1714]).
 - hive: Remove develocity extension which is not compatible with Maven 3.10 ([#1707]).
 - hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/HADOOP-19885) into `3.5.0` ([#1704]).
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
@@ -168,6 +169,7 @@ All notable changes to this project will be documented in this file.
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
 [#1713]: https://github.com/stackabletech/docker-images/pull/1713
+[#1714]: https://github.com/stackabletech/docker-images/pull/1714
 [#1718]: https://github.com/stackabletech/docker-images/pull/1718
 
 ## [26.7.0] - 2026-07-21
