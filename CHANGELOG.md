@@ -36,6 +36,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- testing-tools: Bump various tools and Python dependencies ([#1720]).
+- ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
+- tools: Bump kubectl to `1.37.1`, yq to `4.54.1`, jq to `1.8.2` ([#1718]).
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
 - opa, statsd-exporter: Bump cyclonedx-gomod to 1.12.0 ([#1639]).
 - nifi: Updated dependencies for `2.6.0` and `2.9.0` ([#1667]).
@@ -92,16 +95,17 @@ All notable changes to this project will be documented in this file.
   Upstream fixed one instance of this for Hive 4.3.0 in [HIVE-29827](https://issues.apache.org/jira/browse/HIVE-29827) but there are others. ([#1636]).
 - nifi: Backport [NIFI-16431](https://issues.apache.org/jira/browse/NIFI-16431) into `2.12.0` and `2.9.0` ([#1686]).
 - nifi: Remove develocity extension which is not compatible with Maven 3.10 ([#1704]).
+- nifi: Ship one SBOM per nifi-iceberg-bundle NAR instead of the aggregate SBOM of the build, which listed dependencies of test-only modules and other versions that are not shipped and caused false positive vulnerability findings ([#1714]).
 - hive: Remove develocity extension which is not compatible with Maven 3.10 ([#1707]).
 - hadoop: Backport [HADOOP-19885](https://issues.apache.org/jira/browse/HADOOP-19885) into `3.5.0` ([#1704]).
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
-- airflow: Bump certifi to `2026.10.19` and uv to `0.13.4`, and point grpcio to the system trust store ([GHSA-6q48-6c7w-9gw2], [GHSA-hq85-5cpj-mr62], [#1715]).
-- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. For Airflow 2.9.3, which uses Python 3.9 and cannot use this pip version, point pip to the system trust store instead ([GHSA-6q48-6c7w-9gw2], [#1715]).
-- superset: Bump certifi to `2026.10.19` and uv to `0.13.4` ([GHSA-6q48-6c7w-9gw2], [GHSA-hq85-5cpj-mr62], [#1715]).
-- opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([GHSA-6q48-6c7w-9gw2], [#1715]).
-- spark-connect-client: Point grpcio to the system trust store ([GHSA-6q48-6c7w-9gw2], [#1715]).
+- airflow: Bump certifi to `2026.10.19` and uv to `0.13.4`, and point grpcio to the system trust store ([#1715]).
+- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. For Airflow 2.9.3, which uses Python 3.9 and cannot use this pip version, point pip to the system trust store instead ([#1715]).
+- superset: Bump certifi to `2026.10.19` and uv to `0.13.4` ([#1715]).
+- opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
+- spark-connect-client: Point grpcio to the system trust store ([#1715]).
 
 ### Removed
 
@@ -172,9 +176,11 @@ All notable changes to this project will be documented in this file.
 [#1710]: https://github.com/stackabletech/docker-images/pull/1710
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
 [#1713]: https://github.com/stackabletech/docker-images/pull/1713
+[#1714]: https://github.com/stackabletech/docker-images/pull/1714
 [#1715]: https://github.com/stackabletech/docker-images/pull/1715
-[GHSA-6q48-6c7w-9gw2]: https://github.com/advisories/GHSA-6q48-6c7w-9gw2
-[GHSA-hq85-5cpj-mr62]: https://github.com/advisories/GHSA-hq85-5cpj-mr62
+[#1717]: https://github.com/stackabletech/docker-images/pull/1717
+[#1718]: https://github.com/stackabletech/docker-images/pull/1718
+[#1720]: https://github.com/stackabletech/docker-images/pull/1720
 
 ## [26.7.0] - 2026-07-21
 
