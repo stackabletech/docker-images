@@ -55,8 +55,7 @@ ARG RELEASE_VERSION
 ARG HADOOP_VERSION
 ARG HBASE_VERSION
 ARG HBASE_THIRDPARTY_VERSION
-ARG PROTOBUF_VERSION
-ARG PROTOBUF_PLUGIN_VERSION
+ARG THIRDPARTY_PROTOBUF_VERSION
 ARG STACKABLE_USER_UID
 
 # Patch the hbase-connectors source code
@@ -74,27 +73,21 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder \
     spark/env
 
 RUN <<EOF
-cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${PRODUCT_VERSION})"/spark
+cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s/hbase-connectors ${PRODUCT_VERSION})"
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
-
-mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hbase-connector-${NEW_VERSION}-src.tar.gz .
 
-# Building the hbase-connectors with JDK 17 is not yet supported, see
-# https://github.com/apache/hbase-connectors/pull/132.
-# As there are no JDK profiles, access to the non-public elements must
-# be enabled with --add-opens, see https://openjdk.org/jeps/403 and
-# https://openjdk.org/jeps/261#Breaking-encapsulation.
-export JDK_JAVA_OPTIONS="\
-    --add-opens java.base/java.lang=ALL-UNNAMED \
-    --add-opens java.base/java.util=ALL-UNNAMED"
-
 . /stackable/spark/env
 
-# Build the Spark HBase connector
+# Build the Spark 4 HBase connector.
+# The `spark4` modules are not part of the default reactor, hence the profile.
+# The Scala binary version is deliberately not overridden: it must stay 2.13 for the spark4
+# modules and 2.12 for the spark ones, otherwise both reactors produce the same
+# hbase-spark-pushdown artifact and Maven rejects the build as a duplicate.
+# `revision` is the project version (CI friendly version).
 # Skip the tests because the MiniHBaseCluster does not get ready for
 # whatever reason:
 #   Caused by: java.lang.RuntimeException: Master not active after 30000ms
@@ -105,23 +98,25 @@ export JDK_JAVA_OPTIONS="\
 mvn \
     --batch-mode \
     --no-transfer-progress \
-    --define spark.version="${SPARK_VERSION}" \
+    --activate-profiles spark4 \
+    --projects spark4/hbase-spark4 \
+    --also-make \
+    --define revision="${NEW_VERSION}" \
+    --define spark4.version="${SPARK_VERSION}" \
     --define scala.version="${SCALA_VERSION}" \
-    --define scala.binary.version="${SCALA_BINARY_VERSION}" \
     --define hadoop-three.version="${HADOOP_VERSION}" \
     --define hbase.version="${HBASE_VERSION}" \
     --define hbase-thirdparty.version="${HBASE_THIRDPARTY_VERSION}" \
-    --define external.protobuf.version="${PROTOBUF_VERSION}" \
-    --define protobuf.plugin.version="${PROTOBUF_PLUGIN_VERSION}" \
+    --define thirdparty.protobuf.version="${THIRDPARTY_PROTOBUF_VERSION}" \
     --define skipTests \
     --define maven.test.skip=true \
     clean package
 
-
-cp "$(pwd)/hbase-spark/target/hbase-spark-${NEW_VERSION}.jar" /stackable/spark/jars/hbase-spark-${NEW_VERSION}.jar
-# The hbase-spark JAR is a plain module JAR and does not bundle its
-# dependencies. The generated protobuf classes live here.
-cp "$(pwd)/hbase-spark-protocol-shaded/target/hbase-spark-protocol-shaded-${NEW_VERSION}.jar" /stackable/spark/jars/hbase-spark-protocol-shaded-${NEW_VERSION}.jar
+cp "$(pwd)/spark4/hbase-spark4/target/hbase-spark4-${NEW_VERSION}.jar" /stackable/spark/jars/
+# hbase-spark4 is a plain module JAR and does not bundle its dependencies, so ship the
+# modules it needs at runtime: the shared SQL pushdown filters and the generated protobuf classes.
+cp "$(pwd)/spark4/hbase-spark-pushdown/target/hbase-spark-pushdown_${SCALA_BINARY_VERSION}-${NEW_VERSION}.jar" /stackable/spark/jars/
+cp "$(pwd)/spark/hbase-spark-protocol-shaded/target/hbase-spark-protocol-shaded-${NEW_VERSION}.jar" /stackable/spark/jars/
 
 chmod g=u /stackable/hbase-connector-${NEW_VERSION}-src.tar.gz .
 EOF
