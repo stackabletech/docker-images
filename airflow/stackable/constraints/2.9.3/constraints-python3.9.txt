@@ -241,7 +241,7 @@ cachetools==5.3.3
 cassandra-driver==3.29.1
 cattrs==23.2.3
 celery==5.4.0
-certifi==2026.10.19
+certifi==2026.10.23
 cffi==1.16.0
 cfgv==3.4.0
 cfn-lint==1.6.0
