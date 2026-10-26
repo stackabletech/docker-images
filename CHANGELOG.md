@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- testing-tools: Bump various tools and Python dependencies ([#1720]).
 - ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
 - tools: Bump kubectl to `1.37.1`, yq to `4.54.1`, jq to `1.8.2` ([#1718]).
 - opensearch-dashboards: Bump cdxgen to 13.2.0 and pin the CycloneDX spec version to 1.6 ([#1600], [#1675]).
@@ -173,6 +174,7 @@ All notable changes to this project will be documented in this file.
 [#1714]: https://github.com/stackabletech/docker-images/pull/1714
 [#1717]: https://github.com/stackabletech/docker-images/pull/1717
 [#1718]: https://github.com/stackabletech/docker-images/pull/1718
+[#1720]: https://github.com/stackabletech/docker-images/pull/1720
 
 ## [26.7.0] - 2026-07-21
 

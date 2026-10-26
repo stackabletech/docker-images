@@ -1,7 +1,17 @@
+# See https://pypi.org/project/hive-metastore-client/ for latest release.
 hive-metastore-client==1.0.9
+
+# See https://pypi.org/project/thrift/ for latest release.
+# NOTE (@Techassi): hive-metastore-client at 1.0.9 depends on thrift 0.13.0.
+#                   0.25.0 is available, but it contains a breaking change.
 thrift==0.13.0
 
-# gssapi/kerberos/pure-sasl are needed for using the python metastore client with kerberos.
+# The following packages are needed for using the python metastore client with kerberos.
+# See https://pypi.org/project/gssapi/ for the latest release.
 gssapi==1.10.1
+
+# See https://pypi.org/project/kerberos/ for the latest release.
 kerberos==1.3.1
+
+# See https://pypi.org/project/pure-sasl/ for the latest release.
 pure-sasl==0.6.2

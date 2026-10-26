@@ -83,10 +83,10 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-python3.12 -m pip install --no-cache-dir --upgrade pip
-python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
+"python${PYTHON_VERSION}" -m pip install --no-cache-dir --upgrade pip
+"python${PYTHON_VERSION}" -m pip install --no-cache-dir -r /stackable/requirements.txt
 
-ln -s /usr/bin/python3.12 /usr/bin/python
+ln -s "/usr/bin/python${PYTHON_VERSION}" /usr/bin/python
 
 # Install kubectl
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt
