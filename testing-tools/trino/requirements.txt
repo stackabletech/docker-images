@@ -1,1 +1,2 @@
-trino==0.336.0
+# See https://pypi.org/project/trino/ for the latest release.
+trino==0.340.0

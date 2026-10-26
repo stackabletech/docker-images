@@ -1,2 +1,4 @@
 # Should match the version in nifi/Dockerfile
-nipyapi==0.22.0
+# See https://pypi.org/project/nipyapi/1.8.1/ for the latest release.
+# nipyapi 1.x targets NiFi 2.x.
+nipyapi==1.8.1

@@ -1,13 +1,31 @@
 # Base requirements for all testing-tools images
+# ----------------------------------------------
+
 # Beautiful Soup pulls data out of HTML.
-beautifulsoup4==4.14.2
-requests==2.32.5
+# See https://pypi.org/project/beautifulsoup4/ for latest release.
+beautifulsoup4==4.15.0
+
+# See https://pypi.org/project/requests/ for latest release.
+requests==2.34.2
+
 # Needed to run Python tests
-pytest==9.0.2
+# See https://pypi.org/project/pytest/ for latest release.
+pytest==9.1.1
 
 # Packages that were previously installed as system packages
-certifi==2025.11.12
-idna==3.11
-semver==3.0.4
+# ----------------------------------------------------------
+
+# See https://pypi.org/project/certifi/ for latest release.
+certifi==2026.10.23
+
+# See https://pypi.org/project/idna/ for latest release.
+idna==3.20
+
+# See https://pypi.org/project/semver/ for latest release.
+semver==3.1.0
+
+# See https://pypi.org/project/toml/ for latest release.
 toml==0.10.2
-urllib3==2.5.0
+
+# See https://pypi.org/project/urllib3/ for latest release.
+urllib3==2.8.0
