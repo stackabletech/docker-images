@@ -101,6 +101,8 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
+- hive: Fall back to `hive.metastore.warehouse.dir` when creating namespaces through the Iceberg REST catalog without `hive.metastore.warehouse.external.dir` set,
+  matching what the HMS Thrift API already does, for `4.2.0` and `4.2.1` ([#XXXX]).
 
 ### Removed
 
