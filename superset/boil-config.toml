@@ -25,7 +25,7 @@ authlib-version = "1.2.1"
 # and upstream CI tests 3.10 and 3.11 (https://github.com/apache/superset/blob/4.1.4/.github/actions/setup-backend/action.yml)
 python-version = "3.11"
 # Independent of Superset, use the latest release: https://github.com/astral-sh/uv/releases
-uv-version = "0.11.18"
+uv-version = "0.13.4"
 # https://github.com/apache/superset/blob/4.1.4/superset-frontend/.nvmrc
 nodejs-version = "18.20.1"
 # The latest 10.x release. 11.x requires Node ^20.17.0 || >=22.9.0.
@@ -57,7 +57,7 @@ authlib-version = "1.2.1"
 # and a py312 image variant is published. We use 3.12
 python-version = "3.12"
 # Independent of Superset, use the latest release: https://github.com/astral-sh/uv/releases
-uv-version = "0.11.18"
+uv-version = "0.13.4"
 # https://github.com/apache/superset/blob/6.1.0/superset-frontend/.nvmrc
 nodejs-version = "22.22.0"
 # superset-frontend requires npm ^10.8.1 (https://github.com/apache/superset/blob/6.1.0/superset-frontend/package.json,
