@@ -54,7 +54,7 @@ All notable changes to this project will be documented in this file.
 - opa: update golang to 1.27.1 ([#1697]).
 - spark: Pin pyarrow below 26 to satisfy scikit-learn dependency on NumPy 1.x ([#1695]).
 - spark-connect-client: Replace hard-coded Python dependency versions with image dependencies and bump them for Spark 4.2.0 ([#1713]).
-- phoenix: add patch for PHOENIX-5215 ([#1725]).
+- phoenix: Backport PHOENIX-5215 (HTrace to OpenTelemetry migration) to reduce the number of CVEs. Removes the HBase-table trace sink; `TRACE ON/OFF` and `phoenix.trace.*` no longer have any effect ([#1725]).
 
 ### Fixed
 
