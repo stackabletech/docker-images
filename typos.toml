@@ -48,3 +48,6 @@ vertica = "vertica"
 # Maven profile activation flag, as in `mvn -Prelease` (hbase/hbase/Dockerfile).
 # It sits inside a RUN continuation, where a trailing comment would break the line.
 Prelease = "Prelease"
+# Python package with Mozilla's root certificates, referenced in Dockerfiles,
+# boil-config.toml files and CHANGELOG.md.
+certifi = "certifi"

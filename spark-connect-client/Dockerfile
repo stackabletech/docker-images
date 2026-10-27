@@ -52,4 +52,10 @@ RUN pip install --no-cache-dir --user \
   "scikit-learn==${SCIKIT_LEARN_VERSION}" \
   "matplotlib==${MATPLOTLIB_VERSION}"
 
+# grpcio uses its own bundled roots.pem instead of the system trust store.
+# Point it to the system trust store, so it does not trust the compromised
+# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# See https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/pki/tls/certs/ca-bundle.crt
+
 WORKDIR /stackable

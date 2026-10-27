@@ -155,7 +155,19 @@ ENV UV_LINK_MODE=copy
 ENV UV_PYTHON_INSTALL_DIR=/stackable/python
 
 # This installs the Python runtime
-RUN uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+RUN <<EOF
+uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+
+# The pip bundled with the uv-managed Python trusts the certificates of its vendored certifi,
+# which contains the compromised "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2).
+# pip 26.2.2 ships a fixed certifi, but requires Python >= 3.10. For Python 3.9, pip falls back
+# to PIP_CERT (set in the final image) instead.
+if [ "${PYTHON_VERSION}" != "3.9" ]; then
+  # Upgrade pip in the uv-managed base interpreter (not the venv), which is where pip lives.
+  # uv marks this interpreter as externally managed, so --break-system-packages is required.
+  uv pip install --python "$(uv python find --system --managed-python "${PYTHON_VERSION}")" --break-system-packages pip==26.2.2
+fi
+EOF
 
 # Instead of activating the environment each time
 ENV VIRTUAL_ENV=/stackable/app
@@ -325,6 +337,16 @@ ENV VIRTUAL_ENV=$HOME/app
 ENV AIRFLOW_USER_HOME_DIR=$HOME
 ENV PATH=$HOME/app/bin:$PATH:/bin
 ENV AIRFLOW_HOME=$HOME/airflow
+# On Python 3.9 (Airflow 2.x), pip uses its own vendored copy of certifi instead of the system trust store.
+# Point it to the system trust store, so it does not trust the compromised
+# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# On newer Python versions pip ignores this in favour of truststore, see the pip upgrade in the build stage.
+# PIP_CERT sets pip's --cert option, see https://pip.pypa.io/en/stable/cli/pip/#cmdoption-cert
+# and https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+ENV PIP_CERT=/etc/pki/tls/certs/ca-bundle.crt
+# Same for grpcio, which bundles its own roots.pem,
+# see https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/pki/tls/certs/ca-bundle.crt
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 
