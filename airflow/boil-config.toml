@@ -33,7 +33,7 @@ tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
 # Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.11.19"
+uv-version = "0.13.4"
 airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
 opa-auth-manager = "airflow-2"
 # Node module stream used to install pnpm/yarn and build the frontend assets.
@@ -73,7 +73,7 @@ tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
 # Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.11.19"
+uv-version = "0.13.4"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
 # The lists will be concatenated and duplicates removed in the dockerfile.
@@ -134,7 +134,7 @@ tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
 # Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.11.19"
+uv-version = "0.13.4"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
 # The lists will be concatenated and duplicates removed in the dockerfile.
@@ -195,7 +195,7 @@ tini-version = "0.19.0"
 # Bump to the latest release found here: https://github.com/astral-sh/uv/releases
 # Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
 # Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.11.19"
+uv-version = "0.13.4"
 
 # Airflow extras are defined in separate lists to make them easier to check against the links below.
 # The lists will be concatenated and duplicates removed in the dockerfile.
