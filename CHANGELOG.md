@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - opa: Add 1.20.2 ([#1697]).
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 - spark: Add 4.1.3 and 4.2.0 ([#1710]).
+- spark: Add HBase connector images for Spark 4.x. There is no connector release that supports Spark 4.x yet, so this is built from an upstream commit (`07f5791`) on the master branch ([#1723])
 
 ### Changed
 
@@ -184,6 +185,7 @@ All notable changes to this project will be documented in this file.
 [#1718]: https://github.com/stackabletech/docker-images/pull/1718
 [#1720]: https://github.com/stackabletech/docker-images/pull/1720
 [#1721]: https://github.com/stackabletech/docker-images/pull/1721
+[#1723]: https://github.com/stackabletech/docker-images/pull/1723
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
 
 ## [26.7.0] - 2026-07-21
