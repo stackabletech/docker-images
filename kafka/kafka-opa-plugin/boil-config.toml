@@ -1,2 +1,5 @@
 [versions."1.5.1".local-images]
 java-devel = "11"
+
+[versions."977e4ad".local-images]
+java-devel = "21"
