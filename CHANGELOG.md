@@ -37,6 +37,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- stackable-base, stackable-devel: Build on UBI 10 instead of UBI 9, which affects every image. java-base installs gzip, which UBI 9 pulled in through krb5-workstation and UBI 10 does not ([#1534]).
+- hadoop: Build the native code against OpenSSL 3 without the ENGINE API in `3.3.6`, `3.4.3` and `3.5.0`, by applying apache/hadoop#8550 ([HADOOP-19872](https://issues.apache.org/jira/browse/HADOOP-19872)) and two patches of our own that guard the remaining ENGINE calls ([#1534]).
+- hadoop: Backport [HADOOP-19551](https://issues.apache.org/jira/browse/HADOOP-19551) and [HDFS-17226](https://issues.apache.org/jira/browse/HDFS-17226) into `3.3.6`, so its native code compiles with GCC 14 ([#1534]).
 - krb5: Bump base image ([#1721]).
 - testing-tools: Bump various tools and Python dependencies ([#1720]).
 - ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
@@ -131,6 +134,7 @@ All notable changes to this project will be documented in this file.
 - opa: Remove 1.12.3 ([#1697]).
 - spark: Remove 3.5.8 and 4.1.1 ([#1710]).
 
+[#1534]: https://github.com/stackabletech/docker-images/pull/1534
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
 [#1596]: https://github.com/stackabletech/docker-images/pull/1596
