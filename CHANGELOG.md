@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- stackable-devel: Bump Rust toolchain version to 1.99.0 ([#1728]).
 - krb5: Bump base image ([#1721]).
 - testing-tools: Bump various tools and Python dependencies ([#1720]).
 - ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
@@ -187,6 +188,7 @@ All notable changes to this project will be documented in this file.
 [#1721]: https://github.com/stackabletech/docker-images/pull/1721
 [#1723]: https://github.com/stackabletech/docker-images/pull/1723
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
+[#1728]: https://github.com/stackabletech/docker-images/pull/1728
 
 ## [26.7.0] - 2026-07-21
 
