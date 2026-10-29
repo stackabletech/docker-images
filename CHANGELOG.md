@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Add 3.9.6 ([#1662]).
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
-- nifi: Backport [NIFI-15958](https://issues.apache.org/jira/browse/NIFI-15958) to log progress during the content archive scan and provenance re-index ([#1611] and [#1726]).
+- nifi: Backport [NIFI-15958](https://issues.apache.org/jira/browse/NIFI-15958) to log progress during the content archive scan and provenance re-index ([#1611] and [#1727]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
@@ -187,7 +187,7 @@ All notable changes to this project will be documented in this file.
 [#1721]: https://github.com/stackabletech/docker-images/pull/1721
 [#1723]: https://github.com/stackabletech/docker-images/pull/1723
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
-[#1726]: https://github.com/stackabletech/docker-images/pull/1726
+[#1727]: https://github.com/stackabletech/docker-images/pull/1727
 
 ## [26.7.0] - 2026-07-21
 
