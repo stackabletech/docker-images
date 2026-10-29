@@ -4,6 +4,68 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-08-24
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.3..boil-0.4.0)
+
+### Bug Fixes
+
+- **BREAKING:** Don't override image manifest URIs in output ([#1613](https://github.com/stackabletech/docker-images/pull/1613)).
+
+## [0.3.3] - 2026-08-21
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.2..boil-0.3.3)
+
+### Features
+
+- Add floating-tag tool ([#1607](https://github.com/stackabletech/docker-images/pull/1607)).
+- Add circular local image dependency detection ([#1605](https://github.com/stackabletech/docker-images/pull/1605)).
+
+### Bug Fixes
+
+- Only include prerelease data if present ([#1606](https://github.com/stackabletech/docker-images/pull/1606)).
+
+## [0.3.2] - 2026-08-18
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.1..boil-0.3.2)
+
+### Features
+
+- Support for per-image build arguments ([#1603](https://github.com/stackabletech/docker-images/pull/1603)).
+
+## [0.3.1] - 2026-08-18
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.3.0..boil-0.3.1)
+
+### Bug Fixes
+
+- Include prerelease data in floating tag ([#1601](https://github.com/stackabletech/docker-images/pull/1601)).
+
+## [0.3.0] - 2026-08-17
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.3-rc.1..boil-0.3.0)
+
+### Features
+
+- **BREAKING:** Output structured data in boil-target-tags file ([#1598](https://github.com/stackabletech/docker-images/pull/1598)).
+
+### Bug Fixes
+
+- Improve VersionExt::is_floating impl ([#1571](https://github.com/stackabletech/docker-images/pull/1571)).
+
+## [0.2.3-rc.1] - 2026-07-06
+
+[See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.2..boil-0.2.3-rc.1)
+
+### Features
+
+- Add support for floating tags ([#1555](https://github.com/stackabletech/docker-images/pull/1555)).
+- Add image size command ([#1536](https://github.com/stackabletech/docker-images/pull/1536)).
+
+### Documentation
+
+- Add config section to README ([#1538](https://github.com/stackabletech/docker-images/pull/1538)).
+
 ## [0.2.2] - 2026-06-12
 
 [See complete diff](https://github.com/stackabletech/docker-images/compare/boil-0.2.1..boil-0.2.2)

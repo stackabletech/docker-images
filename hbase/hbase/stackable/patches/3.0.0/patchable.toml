@@ -1,0 +1,2 @@
+mirror = "https://github.com/stackabletech/hbase.git"
+base = "da418afa6973bf4222231c1d233410d8c18ac7ec"

@@ -17,23 +17,46 @@ FROM local-image/shared/statsd-exporter AS statsd_exporter-builder
 FROM local-image/vector AS opa-auth-manager-builder
 
 ARG OPA_AUTH_MANAGER
+ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG STACKABLE_USER_UID
 
 COPY airflow/opa-auth-manager/${OPA_AUTH_MANAGER} /tmp/opa-auth-manager
+
+# The tests need the same constraints the image is built with, see the comment
+# in the RUN block below.
+COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
 
 WORKDIR /tmp/opa-auth-manager
 
 COPY --from=uv-image --chown=${STACKABLE_USER_UID}:0 /uv /uvx /bin/
 
 RUN <<EOF
-
 # This folder is required by the tests to set up an sqlite database
 mkdir /root/airflow
 
+# Provides the test tooling, and the project itself so the tests can import it.
+# --locked fails the build if uv.lock is out of date with pyproject.toml, rather
+# than silently re-resolving it here.
+uv sync --locked --python "${PYTHON_VERSION}"
+
+# The OPA auth manager subclasses FabAuthManager, so a signature change in the
+# FAB provider breaks it at import time. One source tree is shared by several
+# Airflow versions (see opa-auth-manager in airflow/boil-config.toml), so the
+# only way for the tests to see what a given image ships is to install Airflow
+# at PRODUCT_VERSION and let that version's constraints file pin the FAB
+# provider. Without this, a provider signature change only surfaces at runtime.
+uv pip install \
+  --python .venv/bin/python \
+  --constraint /tmp/constraints.txt \
+  "apache-airflow==${PRODUCT_VERSION}" \
+  apache-airflow-providers-fab
+
 # Warnings are disabled because they come from various third party testing libraries
 # that we have no control over.
-uv run pytest --disable-warnings
+# --no-sync keeps uv from reverting the versions installed just above.
+uv run --no-sync pytest --disable-warnings
+
 uv build
 EOF
 
@@ -46,6 +69,9 @@ ARG STACKABLE_USER_UID
 ARG NODEJS_VERSION
 ARG S3FS_VERSION
 ARG CYCLONEDX_BOM_VERSION
+ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 
 # Airflow "extras" packages are listed here: https://airflow.apache.org/docs/apache-airflow/stable/extra-packages-ref.html
 # They evolve over time and thus belong to the version-specific arguments.
@@ -53,7 +79,7 @@ ARG CYCLONEDX_BOM_VERSION
 # Requires implementation of https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh
 # The providers are split into separate lists to make it easier to manage
 # (and to compare to the online links). Default values are provided for
-# backwards compatability.
+# backwards compatibility.
 ARG AIRFLOW_EXTRAS_CORE=""
 ARG AIRFLOW_EXTRAS_META=""
 ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
@@ -87,9 +113,28 @@ RUN microdnf module enable -y nodejs:${NODEJS_VERSION} && \
         # Needed to modify the SBOM
         jq \
         # Needed to create the source code snapshot
-        tar && \
+        tar \
+        # Needed to unpack the Node tarball used for cdxgen
+        xz && \
     microdnf clean all && \
     rm -rf /var/cache/yum
+
+# cdxgen creates the SBOM for the frontend (npm) dependencies of the Airflow UI.
+# These are not covered by cyclonedx-py, which only looks at the Python environment.
+# cdxgen requires Node >= 24, which is newer than the Node version Airflow uses to build the
+# UI assets, so it gets its own Node installation in /opt/node-cdxgen and is invoked with
+# that prepended to PATH.
+RUN <<EOF
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+EOF
 
 COPY airflow/stackable/constraints/${PRODUCT_VERSION}/constraints-python${PYTHON_VERSION}.txt /tmp/constraints.txt
 COPY airflow/stackable/constraints/${PRODUCT_VERSION}/build-constraints-python${PYTHON_VERSION}.txt /tmp/build-constraints.txt
@@ -110,7 +155,19 @@ ENV UV_LINK_MODE=copy
 ENV UV_PYTHON_INSTALL_DIR=/stackable/python
 
 # This installs the Python runtime
-RUN uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+RUN <<EOF
+uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
+
+# The pip bundled with the uv-managed Python trusts the certificates of its vendored certifi,
+# which contains the compromised "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2).
+# pip 26.2.2 ships a fixed certifi, but requires Python >= 3.10. For Python 3.9, pip falls back
+# to PIP_CERT (set in the final image) instead.
+if [ "${PYTHON_VERSION}" != "3.9" ]; then
+  # Upgrade pip in the uv-managed base interpreter (not the venv), which is where pip lives.
+  # uv marks this interpreter as externally managed, so --break-system-packages is required.
+  uv pip install --python "$(uv python find --system --managed-python "${PYTHON_VERSION}")" --break-system-packages pip==26.2.2
+fi
+EOF
 
 # Instead of activating the environment each time
 ENV VIRTUAL_ENV=/stackable/app
@@ -138,9 +195,27 @@ if [ -d "./airflow-core" ]; then
 
   # build front-end assets
   # TODO: Consider making the pnpm version an ARG
-  npm install -g pnpm@10.18.2
+  # --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+  # --before only resolves versions published at least 7 days ago, including the transitive ones,
+  # so that a freshly published malicious version is not picked up before it is taken down.
+  npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" pnpm@10.18.2
   pnpm install --frozen-lockfile
   pnpm run build
+
+  # Create the SBOM for the frontend assets.
+  # --required-only drops the devDependencies.
+  # --no-babel is required in combination with --required-only: the babel based usage
+  #   analysis marks every package as optional unless it is imported directly, which would
+  #   also drop all transitive runtime dependencies.
+  # --project-version is passed because the frontends declare a placeholder version
+  #   upstream.
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json"
 
   # build airflow wheel from airflow root folder
   # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
@@ -155,9 +230,24 @@ else
   # build front-end assets
   cd airflow/www
   # TODO: Consider making the yarn version an ARG
-  npm install -g yarn@1.22.22
+  # --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+  # --before only resolves versions published at least 7 days ago, including the transitive ones,
+  # so that a freshly published malicious version is not picked up before it is taken down.
+  npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" yarn@1.22.22
   yarn install --frozen-lockfile
   yarn run build
+
+  # Create the SBOM for the frontend assets, see the comment in the Airflow 3.x branch above.
+  # NOTE: A Yarn 1 lockfile does not record whether a package is a dev dependency, so
+  # cdxgen marks everything as required and --required-only has no effect here. The SBOM
+  # for Airflow 2.x therefore also contains the frontend build tooling.
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/airflow-www-${PRODUCT_VERSION}.cdx.json"
 
   # build airflow wheel from airflow root folder
   cd ../..
@@ -170,7 +260,7 @@ fi
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 # TODO: s3fs may already be installed via the s3fs extra and constraints. Check if this explicit install is still needed.
-uv pip install --python ${VIRTUAL_ENV}/bin/python s3fs==${S3FS_VERSION} cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+uv pip install --python ${VIRTUAL_ENV}/bin/python s3fs==${S3FS_VERSION}
 # Needed for OIDC
 uv pip install --python ${VIRTUAL_ENV}/bin/python Flask_OIDC==2.2.0 Flask-OpenID==1.3.1
 
@@ -178,12 +268,35 @@ uv pip install --python ${VIRTUAL_ENV}/bin/python /tmp/opa_auth_manager-0.1.0-py
 
 # Create the SBOM for Airflow
 # Important: All `pip install` commands must be above this line, otherwise the SBOM will be incomplete
-${VIRTUAL_ENV}/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json
-uv pip uninstall cyclonedx-bom
+# cyclonedx-bom is installed into a throw-away environment instead of the Airflow one. It would
+# otherwise be part of the SBOM itself, and uninstalling it afterwards leaves its dependencies
+# behind in the image.
+uv venv /tmp/sbom-venv
+uv pip install --python /tmp/sbom-venv/bin/python cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+/tmp/sbom-venv/bin/cyclonedx-py environment --spec-version 1.5 --output-file /tmp/sbom.json "${VIRTUAL_ENV}"
+rm -rf /tmp/sbom-venv
 
-# Break circular dependencies by removing the apache-airflow dependency from the providers
-jq '.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
+# Post-process the SBOM:
+#   * Break circular dependencies by removing the apache-airflow dependency from the providers.
+#   * Add the missing purls. Packages that are installed from a local wheel or a direct URL
+#     (apache-airflow, opa-auth-manager, pip) get no purl from cyclonedx-py, because it records
+#     the file URL instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.dependencies |= map(if .ref | test("^apache-airflow-providers-") then
     .dependsOn |= map(select(. != "apache-airflow=='${PRODUCT_VERSION}'"))
+else
+    .
+end)
+| .components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/airflow-${PRODUCT_VERSION}.cdx.json
@@ -224,6 +337,16 @@ ENV VIRTUAL_ENV=$HOME/app
 ENV AIRFLOW_USER_HOME_DIR=$HOME
 ENV PATH=$HOME/app/bin:$PATH:/bin
 ENV AIRFLOW_HOME=$HOME/airflow
+# On Python 3.9 (Airflow 2.x), pip uses its own vendored copy of certifi instead of the system trust store.
+# Point it to the system trust store, so it does not trust the compromised
+# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# On newer Python versions pip ignores this in favour of truststore, see the pip upgrade in the build stage.
+# PIP_CERT sets pip's --cert option, see https://pip.pypa.io/en/stable/cli/pip/#cmdoption-cert
+# and https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
+ENV PIP_CERT=/etc/pki/tls/certs/ca-bundle.crt
+# Same for grpcio, which bundles its own roots.pem,
+# see https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/pki/tls/certs/ca-bundle.crt
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
 

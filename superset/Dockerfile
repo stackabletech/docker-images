@@ -41,8 +41,12 @@ ARG AUTHLIB_VERSION
 ARG TARGETARCH
 ARG TARGETOS
 ARG CYCLONEDX_BOM_VERSION
+ARG CDXGEN_VERSION
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
+ARG NPM_VERSION
 ARG NVM_VERSION
 ARG STACKABLE_USER_UID
 
@@ -52,12 +56,14 @@ RUN microdnf update \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
         diffutils \
         # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
-        # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
+        # distribution. However, while adding ARM support we noticed that this does not seem to be the case for the
         # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
-        # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
+        # compilation flags (and probably to not build sqlite from source(?)), see snippet [1] at the end of file
         make \
         gcc \
         gcc-c++ \
+        # Needed to modify the SBOM
+        jq \
         libffi-devel \
         openldap-devel \
         openssl-devel \
@@ -70,6 +76,8 @@ RUN microdnf update \
         tar \
         # Needed by `npm run build`:
         which \
+        # Needed to unpack the Node tarball used for cdxgen
+        xz \
         zstd \
     && microdnf clean all && \
     rm -rf /var/cache/yum
@@ -83,26 +91,50 @@ COPY --chown=${STACKABLE_USER_UID}:0 superset/stackable/patches/${PRODUCT_VERSIO
 
 WORKDIR /stackable
 
+# nvm derives its installation directory from the location of nvm.sh if NVM_DIR is not set.
+# It must not end up anywhere below /stackable, because the final image copies that directory
+# as a whole and would then ship Node and npm, which are only needed to build the frontend.
+ENV NVM_DIR=/opt/nvm
+
 RUN <<EOF
 # Download nvm to manage Node and npm installation
-curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o /stackable/nvm.sh
-. /stackable/nvm.sh
+mkdir -p "${NVM_DIR}"
+curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
+. "${NVM_DIR}/nvm.sh"
 
-# Install the specified version of Node (including the latest compatible version of npm)
-nvm install "$NODEJS_VERSION" --latest-npm
+# Install the specified versions of Node and npm.
+# --latest-npm is not used because it installs whatever npm version is newest at build time.
+# See the cdxgen install below for --ignore-scripts and --before.
+nvm install "$NODEJS_VERSION"
+npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "npm@${NPM_VERSION}"
 
 node --version
 npm --version
+
+# cdxgen creates the SBOM for the frontend (npm) dependencies of Superset.
+# These are not covered by cyclonedx-py, which only looks at the Python environment.
+# cdxgen requires Node >= 24, which is newer than the Node version Superset pins for the
+# frontend build, so it gets its own Node installation in /opt/node-cdxgen and is invoked
+# with that prepended to PATH. This keeps it out of the way of nvm entirely.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
-# DL3042 false-positive, --no-chache-dir is specified a few lines below.
+# DL3042 false-positive, --no-cache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
 RUN <<EOF
 # This makes node and npm available in the path
-. /stackable/nvm.sh
+. "${NVM_DIR}/nvm.sh"
 
 python${PYTHON_VERSION} -m venv --system-site-packages /stackable/app
 
@@ -122,6 +154,34 @@ cd superset-frontend
 
 npm ci
 npm run build
+
+# Create the SBOM for the frontend assets.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+# --exclude skips the directories that are independent npm projects, because they ship
+#   their own package-lock.json:
+#   * cypress-base holds the end-to-end tests. Its dependencies are never installed
+#     (`npm ci` runs in superset-frontend) nor shipped, so they have no place in the SBOM.
+#   * packages/superset-ui-switchboard (4.1.4 only) has a lock file without any
+#     dependencies. The package itself is already covered by the top-level lock file.
+#   Excluding them also avoids a cdxgen bug: for such nested projects it emits the
+#   `license` string from package.json verbatim instead of a CycloneDX `licenses` array,
+#   which makes cdxgen fail its own schema validation and write no SBOM at all. This is
+#   fixed upstream in cdxgen, but not in a released version yet, see
+#   https://github.com/cdxgen/cdxgen/issues/4326.
+PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --exclude "**/cypress-base/**" \
+    --exclude "**/packages/superset-ui-switchboard/**" \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${PRODUCT_VERSION}" \
+    --output "/stackable/app/superset-frontend-${PRODUCT_VERSION}.cdx.json"
 
 # Install build to properly handle pyproject.toml
 uv pip install --no-cache-dir build
@@ -153,15 +213,13 @@ uv pip install --no-cache-dir \
 
 # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
 # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
-# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentially downgrade the version
+# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentally downgrade the version
 if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
     echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135"
     uv pip install gunicorn==22.0.0
 fi
 
-uv pip install --no-cache-dir \
-    python-json-logger \
-    cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+uv pip install --no-cache-dir python-json-logger
 
 if [ -n "$AUTHLIB_VERSION" ]; then
     uv pip install Authlib==${AUTHLIB_VERSION}
@@ -175,8 +233,35 @@ uv pip install --no-cache-dir /tmp/opa_authorizer-0.1.0-py3-none-any.whl
 # See https://setuptools.pypa.io/en/stable/history.html#v82-0-0
 uv pip install --no-cache-dir setuptools==75.2.0
 
-cyclonedx-py environment --schema-version 1.5 --outfile /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
-uv pip uninstall cyclonedx-bom
+# Create the SBOM of the Python environment.
+# cyclonedx-bom is installed into a throw-away environment instead of the Superset one:
+# it would otherwise be part of the SBOM itself, and uninstalling it afterwards leaves its
+# dependencies (cyclonedx-python-lib, pip-requirements-parser, ...) behind in the image.
+uv venv /tmp/sbom-venv
+uv pip install --python /tmp/sbom-venv/bin/python --no-cache-dir cyclonedx-bom==${CYCLONEDX_BOM_VERSION}
+/tmp/sbom-venv/bin/cyclonedx-py environment --schema-version 1.5 \
+    --outfile /tmp/sbom.json \
+    /stackable/app
+rm -rf /tmp/sbom-venv
+
+# Post-process the SBOM:
+#   * Add the missing purls. Packages that are installed from a locally built wheel
+#     (apache-superset, opa-authorizer) get no purl from cyclonedx-py, because it records the
+#     file URL of that wheel instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
+else
+    .
+end)' /tmp/sbom.json > /stackable/app/superset-${PRODUCT_VERSION}.cdx.json
 
 # Clean up build artifacts and temporary files to reduce image size
 cd /stackable

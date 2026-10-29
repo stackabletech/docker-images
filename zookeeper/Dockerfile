@@ -30,10 +30,10 @@ cp -r /stackable/patched-logback-libs/* /stackable/.m2/repository
 
 cd "$(/stackable/patchable --images-repo-root=src checkout zookeeper ${PRODUCT_VERSION})"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/zookeeper-${NEW_VERSION}-src.tar.gz .
@@ -97,7 +97,8 @@ COPY zookeeper/licenses /licenses
 RUN <<EOF
 microdnf update
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
+# List all rpm packages installed in the system
+rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum

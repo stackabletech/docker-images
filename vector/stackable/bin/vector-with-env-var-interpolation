@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# Usage: vector-with-env-var-interpolation <vector-options>
+#
+# Starts Vector with the interpolation of environment variables in the
+# configuration files enabled. All arguments are forwarded to Vector unchanged.
+#
+# Only use this script in a controlled environment where the configuration
+# files and the environment variables are trusted. Start the `vector` binary
+# directly otherwise.
+
+set -euo pipefail
+
+# Vector disabled the interpolation of environment variables in configuration
+# files by default and considers it dangerous because it allows a configuration
+# file to read arbitrary environment variables, like secrets which were meant
+# for another process. The Stackable Data Platform relies on this interpolation
+# to inject deployment-specific values into the Vector configuration, like log
+# directories and file names, log levels, information about the role group the
+# pod belongs to, and the address of the Vector aggregator. It also generates
+# the configuration files itself, so the option can safely be enabled here.
+exec /usr/local/bin/vector --dangerously-allow-env-var-interpolation "$@"

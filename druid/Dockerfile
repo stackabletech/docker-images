@@ -12,6 +12,10 @@ ARG STAX2_API
 ARG WOODSTOX_CORE
 ARG AUTHORIZER_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
@@ -33,6 +37,21 @@ microdnf install python-pyyaml
 
 microdnf clean all
 rm -rf /var/cache/yum
+
+# Install Node and cdxgen to create the SBOM of the web console (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# cdxgen requires Node >= 24 and is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node
+# installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -61,10 +80,10 @@ RUN --mount=type=cache,id=maven-${PRODUCT_VERSION},uid=${STACKABLE_USER_UID},tar
 cd "$(cat /tmp/DRUID_SOURCE_DIR)" || exit 1
 rm /tmp/DRUID_SOURCE_DIR
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
@@ -80,12 +99,31 @@ mvn \
   -Dcheckstyle.skip `# Skip checkstyle checks. We dont care if the code is properly formatted, it just wastes time` \
   -Dmaven.javadoc.skip=true `# Dont generate javadoc` \
   -Dmaven.gitcommitid.skip=true `# The gitcommitid plugin cannot work with git workspaces (ie: patchable)` \
-  $(if [[ ${PRODUCT_VERSION} != 30.* ]]; then echo --projects '!quidem-ut'; fi) `# This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:0.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...`
+  --projects '!quidem-ut' # This is just a maven module for tests. https://github.com/apache/druid/pull/16867 added https://raw.githubusercontent.com/kgyrtkirk/datasets/repo/ as a Maven repository, which fails to pull for us (Failed to execute goal on project druid-quidem-ut: Could not resolve dependencies for project org.apache.druid:druid-quidem-ut:jar:33.0.0: com.github.kgyrtkirk.datasets:kttm-nested:jar:0.1 was not found in https://build-repo.stackable.tech/repository/maven-public/). By disabling the maven module we dont pull in this weird dependency...
 
 mv distribution/target/apache-druid-${NEW_VERSION}-bin/apache-druid-${NEW_VERSION} /stackable/
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" distribution/target/bom.json
 mv distribution/target/bom.json /stackable/apache-druid-${NEW_VERSION}/apache-druid-${NEW_VERSION}.cdx.json
 rm -rf /stackable/apache-druid-${NEW_VERSION}-src
+
+# Create the SBOM for the web console, which is an npm project and therefore not covered
+# by the CycloneDX Maven plugin.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+(
+  cd web-console
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${ORIGINAL_VERSION}" \
+    --output "/stackable/apache-druid-${NEW_VERSION}/druid-web-console-${NEW_VERSION}.cdx.json"
+)
 
 # We're removing these to make the intermediate layer smaller
 # This can be necessary even though it's only a builder image because the GitHub Action Runners only have very limited space available
@@ -145,7 +183,8 @@ COPY --chown=${STACKABLE_USER_UID}:0 druid/licenses /licenses
 RUN <<EOF
 microdnf update
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
+# List all rpm packages installed in the system
+rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum

@@ -41,7 +41,7 @@ tar -czf /stackable/opa-authorizer-src/hive-metastore-opa-authorizer-${AUTHORIZE
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 # Set version
-mvn versions:set -DnewVersion=${AUTHORIZER_VERSION}
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=${AUTHORIZER_VERSION}
 
 # The if part can be removed once we do no longer support Hive 3.x.x
 # Hive 3.1.3 only works with the shaded jar

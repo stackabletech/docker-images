@@ -1,0 +1,4 @@
+# krb5
+
+This image is only intended for Stackable-internal tests. It should not be considered a production-ready
+Kerberos KDC.

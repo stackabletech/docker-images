@@ -1,6 +1,59 @@
-use std::process::Command;
+use std::{process::Command, str::FromStr, sync::LazyLock};
+
+use regex::Regex;
+use snafu::{ResultExt, Snafu};
 
 use crate::{cli::HostPort, core::platform::Architecture};
+
+/// A regular expression to check whether the prerelease string of a semantic version is considered
+/// floating.
+///
+/// Used in [`VersionExt::is_floating`].
+static SEMVER_PRERELEASE_FLOATING: LazyLock<Regex> = LazyLock::new(|| {
+    // https://regex101.com/?regex=%5Edev%28%3F%3A-.%2B%29%3F%24%7C%5Epr.%2B%24&testString=dev-pr-321-amd64&flags=gmu&flavor=rust&delimiter=%22
+    Regex::new("^dev(?:-.+)?$|^pr.+$").expect("static regular expression must compile")
+});
+
+// FIXME (@Techassi): We should pull this in from a central piece of code, like stackable-shared.
+// stackable-shared needs to add a few features to be able to properly select _only_ what is needed
+// without pulling in too many unused deps.
+pub trait VersionExt {
+    fn is_floating(&self) -> bool;
+
+    fn floating(&self) -> String;
+}
+
+impl VersionExt for semver::Version {
+    fn is_floating(&self) -> bool {
+        self.major == 0
+            && self.minor == 0
+            && self.patch == 0
+            && SEMVER_PRERELEASE_FLOATING.is_match(&self.pre)
+    }
+
+    fn floating(&self) -> String {
+        if self.is_floating() {
+            self.to_string()
+        } else {
+            let mut version = format!("{major}.{minor}", major = self.major, minor = self.minor,);
+            if !self.pre.is_empty() {
+                version.push('-');
+                version.push_str(&self.pre);
+            }
+
+            version
+        }
+    }
+}
+
+#[derive(Debug, Snafu)]
+pub enum ParseFloatingVendorVersionError {
+    #[snafu(display("failed to parse {version:?} as semantic version"))]
+    ParseSemanticVersion {
+        source: semver::Error,
+        version: String,
+    },
+}
 
 /// Formats and returns the image repository URI, eg. `oci.stackable.tech/sdp/opa`.
 pub fn format_image_repository_uri(
@@ -49,6 +102,28 @@ pub fn format_registry_token_env_var_name(registry_uri: &str) -> String {
     )
 }
 
+pub fn parse_floating_vendor_version(
+    vendor_image_version: &str,
+    floating_tag: bool,
+) -> Result<Option<String>, ParseFloatingVendorVersionError> {
+    if floating_tag {
+        let version =
+            semver::Version::from_str(vendor_image_version).context(ParseSemanticVersionSnafu {
+                version: vendor_image_version,
+            })?;
+
+        // Return None because the selected version is already considered a floating version as is.
+        // There is no need to add a second, identical tag to the image.
+        if version.is_floating() {
+            return Ok(None);
+        }
+
+        Ok(Some(version.floating()))
+    } else {
+        Ok(None)
+    }
+}
+
 pub trait CommandExt {
     /// Adds an argument to the command if the `predicate` is `true`.
     fn arg_if<S>(&mut self, predicate: bool, arg: S) -> &mut Self
@@ -62,5 +137,54 @@ impl CommandExt for Command {
         S: AsRef<std::ffi::OsStr>,
     {
         if predicate { self.arg(arg) } else { self }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case("0.0.0-pr1234-extra-tag-data1234-amd64")]
+    #[case("0.0.0-pr1234-extra-tag-data1234")]
+    #[case("0.0.0-dev-extra-tag-data1234")]
+    #[case("0.0.0-pr1234")]
+    #[case("0.0.0-dev")]
+    fn is_floating(#[case] input: &str) {
+        let version =
+            semver::Version::from_str(input).expect("input must be valid semantic version");
+        assert!(version.is_floating());
+    }
+
+    #[rstest]
+    #[case("0.0.0-bar1234-amd64")]
+    #[case("0.0.0-devel")]
+    #[case("0.0.0-foo")]
+    #[case("0.0.0-pr")]
+    #[case("0.0.0")]
+    fn is_not_floating(#[case] input: &str) {
+        let version =
+            semver::Version::from_str(input).expect("input must be valid semantic version");
+        assert!(!version.is_floating());
+    }
+
+    #[rstest]
+    // Already considered floating, returned unchanged
+    #[case("0.0.0-pr1234-extra-tag-data1234-amd64", None)]
+    #[case("0.0.0-pr1234-extra-tag-data1234", None)]
+    #[case("0.0.0-dev-extra-tag-data1234", None)]
+    #[case("0.0.0-pr1234", None)]
+    #[case("0.0.0-dev", None)]
+    // Not floating, so the expected tag is different from the input
+    #[case("1.2.3-pr321", Some("1.2-pr321"))]
+    #[case("1.2.3-rc.1", Some("1.2-rc.1"))]
+    #[case("1.2.3", Some("1.2"))]
+    fn floating_tag(#[case] input: &str, #[case] expected: Option<&str>) {
+        let floating_version = semver::Version::from_str(input)
+            .expect("input must be valid semantic version")
+            .floating();
+        assert_eq!(floating_version, expected.unwrap_or(input));
     }
 }

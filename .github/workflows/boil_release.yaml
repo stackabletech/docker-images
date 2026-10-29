@@ -9,7 +9,8 @@ on:
 permissions: {}
 
 env:
-  RUST_VERSION: 1.89.0
+  RUST_TOOLCHAIN_VERSION: 1.97.1
+  RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
   create-release:
@@ -21,23 +22,24 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
 
       - name: Generate Changelog
         id: changelog
-        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # v4.7.0
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4.8.0
         with:
           config: rust/boil/cliff.toml
           args: --latest --strip header
 
       - name: Create Draft Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          body: ${{ steps.changelog.outputs.content }}
-          draft: true
+        env:
+          RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release create --draft --verify-tag --latest --notes "${RELEASE_NOTES}" "${RELEASE_TAG}"
 
   build:
     name: Build boil
@@ -56,14 +58,15 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-          targets: ${{ matrix.targets.target }}
+      - name: Setup Rust Toolchain
+        env:
+          RUST_TARGETS: ${{ matrix.targets.target }}
+        shell: bash
+        run: rustup toolchain install "${RUST_TOOLCHAIN_VERSION}" --target "${RUST_TARGETS}"
 
       - name: Build Binary
         env:
@@ -76,12 +79,13 @@ jobs:
         run: mv "target/$TARGET/release/boil" "boil-$TARGET"
 
       - name: Upload Artifact to Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
-        with:
-          files: boil-${{ matrix.targets.target }}
-          draft: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release upload "${RELEASE_TAG}" boil-${{ matrix.targets.target }}
 
   finish-release:
+    name: Finish Release
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
@@ -89,7 +93,14 @@ jobs:
       # See https://github.com/softprops/action-gh-release/blob/153bb8e04406b158c6c84fc1615b65b24149a1fe/README.md?plain=1#L281
       contents: write
     steps:
-      - name: Finish Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+      # This checkout is only here so that a .git directory is present because the gh CLI needs it.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          draft: false
+          persist-credentials: false
+
+      - name: Finish Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release edit --draft=false "${RELEASE_TAG}"

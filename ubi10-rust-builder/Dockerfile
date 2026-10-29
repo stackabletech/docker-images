@@ -1,13 +1,11 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-the-image
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-# The website is broken, so you can use this to find it:
-# curl https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c \
-# | grep -oE 'registry.redhat.io/ubi10/ubi-minimal@sha256:[a-z0-9]{64}'
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:a74a7a92d3069bfac09c6882087771fc7db59fa9d8e16f14f4e012fe7288554c AS builder
+# Find the latest version:
+#
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
+#
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713 AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -19,17 +17,17 @@ ENV RUSTUP_VERSION=1.28.2
 # This SHOULD be kept in sync with operator-templating and other tools to reduce build times
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.93.0
+ENV RUST_DEFAULT_TOOLCHAIN_VERSION=1.97.1
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx
-ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.7
+ENV CARGO_CYCLONEDX_CRATE_VERSION=0.5.9
 # Find the latest version here: https://crates.io/crates/cargo-auditable
 # renovate: datasource=crate packageName=cargo-auditable
-ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
+ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.5
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=31.1
+ENV PROTOC_VERSION=36.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -107,7 +105,8 @@ ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
 tar -czf /app/stackable-src.tar.gz .
 cargo auditable --quiet build --release --workspace
-cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 
 # -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
 # -regex filters out tests

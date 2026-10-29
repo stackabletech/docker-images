@@ -2,12 +2,15 @@
 # check=error=true
 
 ARG GRPCURL_VERSION
-FROM fullstorydev/grpcurl:v${GRPCURL_VERSION} AS grpcurl
+# Mirrored from registry-1.docker.io/fullstorydev/grpcurl via .github/workflows/mirror.yaml.
+# For updated versions check https://github.com/fullstorydev/grpcurl/releases
+FROM oci.stackable.tech/sdp/fullstorydev/grpcurl:v${GRPCURL_VERSION} AS grpcurl
 
-# Find the latest version at https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c#get-this-image
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:67aafc6c9c44374e1baf340110d4c835457d59a0444c068ba9ac6431a6d9e7ac
+# Find the latest version:
+#
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
+#
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
@@ -80,10 +83,10 @@ microdnf install \
 microdnf clean all
 rm -rf /var/cache/yum
 
-python3.12 -m pip install --no-cache-dir --upgrade pip
-python3.12 -m pip install --no-cache-dir -r /stackable/requirements.txt
+"python${PYTHON_VERSION}" -m pip install --no-cache-dir --upgrade pip
+"python${PYTHON_VERSION}" -m pip install --no-cache-dir -r /stackable/requirements.txt
 
-ln -s /usr/bin/python3.12 /usr/bin/python
+ln -s "/usr/bin/python${PYTHON_VERSION}" /usr/bin/python
 
 # Install kubectl
 # Get latest stable version from curl -L -s https://dl.k8s.io/release/stable.txt

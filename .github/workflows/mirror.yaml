@@ -15,7 +15,9 @@ on:
           - registry.k8s.io/sig-storage/csi-provisioner
           - registry.k8s.io/git-sync/git-sync
           - registry-1.docker.io/library/golang
+          - registry-1.docker.io/library/postgres
           - registry-1.docker.io/dxflrs/garage
+          - ghcr.io/fullstorydev/grpcurl
           - ghcr.io/astral-sh/uv
       image-index-manifest-tag:
         description: |
@@ -51,7 +53,7 @@ jobs:
           - amd64
           - arm64
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -73,25 +75,25 @@ jobs:
 
       - name: Publish Container Image on oci.stackable.tech/sdp
         if: inputs.destination-project == 'sdp'
-        uses: stackabletech/actions/publish-image@1b8db26b7406c66a7ab74e344a9e54edb2bc2690 # v0.14.3
+        uses: stackabletech/actions/publish-image@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
-          image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
-          source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
+          canonical-image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
+          canonical-source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
       - name: Publish Container Image on oci.stackable.tech/stackable
         if: inputs.destination-project == 'stackable'
-        uses: stackabletech/actions/publish-image@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
+        uses: stackabletech/actions/publish-image@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$stackable+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('stackable/{0}', env.IMAGE_REPOSITORY) }}
-          image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
-          source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
+          canonical-image-manifest-tag: ${{ format('{0}-{1}', inputs.image-index-manifest-tag, matrix.arch) }}
+          canonical-source-image-uri: ${{ format('{0}:{1}', inputs.image-repository-uri, inputs.image-index-manifest-tag) }}
 
   publish_manifests:
     name: Build/Publish Image Index Manifest
@@ -101,7 +103,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -113,23 +115,23 @@ jobs:
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech/sdp
         if: inputs.destination-project == 'sdp'
-        uses: stackabletech/actions/publish-image-index-manifest@1b8db26b7406c66a7ab74e344a9e54edb2bc2690 # v0.14.3
+        uses: stackabletech/actions/publish-image-index-manifest@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$sdp+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_SDP_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('sdp/{0}', env.IMAGE_REPOSITORY) }}
-          image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
+          canonical-image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
       - name: Publish and Sign Image Index Manifest to oci.stackable.tech/stackable
         if: inputs.destination-project == 'stackable'
-        uses: stackabletech/actions/publish-image-index-manifest@8a8085be0a8cec3d24ad3970e602d65be487da6a # v0.14.1
+        uses: stackabletech/actions/publish-image-index-manifest@d5c85b3cef351617f19de803812b42b839e20168 # v0.18.4
         with:
           image-registry-uri: oci.stackable.tech
           image-registry-username: robot$stackable+github-action-build
           image-registry-password: ${{ secrets.HARBOR_ROBOT_STACKABLE_GITHUB_ACTION_BUILD_SECRET }}
           image-repository: ${{ format('stackable/{0}', env.IMAGE_REPOSITORY) }}
-          image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
+          canonical-image-index-manifest-tag: ${{ inputs.image-index-manifest-tag }}
 
   # NOTE (@Techassi) It is currently not possible to use our own action here, because the inputs
   # assume it is used to report on image build results, not mirror results. The action needs to be

@@ -12,6 +12,7 @@ ARG AZURE_STORAGE_VERSION
 ARG AZURE_KEYVAULT_CORE_VERSION
 ARG ANALYTICSACCELERATOR_S3_VERSION
 ARG STACKABLE_USER_UID
+ARG CDXGEN_SPEC_VERSION
 
 WORKDIR /stackable
 
@@ -21,8 +22,9 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/protobuf/stackable/patches/${PROTOBU
 RUN <<EOF
 microdnf update
 # libstdc++ is a runtime dependency for boost,
-# automake and libtool are needed to build protobuf
-microdnf install libstdc++ automake libtool
+# automake and libtool are needed to build protobuf,
+# python3 runs shared/sbom/vendored_js.py, see the invocation further down
+microdnf install libstdc++ automake libtool python3
 microdnf clean all
 rm -rf /var/cache/yum
 mkdir /opt/protobuf
@@ -67,6 +69,8 @@ WORKDIR /build
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/patches/patchable.toml /build/src/hadoop/hadoop/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/patches/${PRODUCT_VERSION} /build/src/hadoop/hadoop/stackable/patches/${PRODUCT_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/fuse_dfs_wrapper /build
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/vendored_js.py /build/vendored_js.py
+COPY --chown=${STACKABLE_USER_UID}:0 hadoop/hadoop/stackable/vendored-js/${PRODUCT_VERSION}.json /build/vendored-js.json
 USER ${STACKABLE_USER_UID}
 # Hadoop Pipes requires libtirpc to build, whose headers are not packaged in RedHat UBI, so skip building this module
 # Build from source to enable FUSE module, and to apply custom patches.
@@ -76,10 +80,10 @@ USER ${STACKABLE_USER_UID}
 RUN <<EOF
 cd "$(/stackable/patchable --images-repo-root=src checkout hadoop/hadoop ${PRODUCT_VERSION})"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 
-mvn versions:set -DnewVersion=${NEW_VERSION}
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=${NEW_VERSION}
 
 # Since we skip building the hadoop-pipes module, we need to set the version to the original version so it can be pulled from Maven Central
 sed -e '/<artifactId>hadoop-pipes<\/artifactId>/,/<\/dependency>/ { s/<version>.*<\/version>/<version>'"$ORIGINAL_VERSION"'<\/version>/ }' -i hadoop-tools/hadoop-tools-dist/pom.xml
@@ -114,6 +118,18 @@ rm hadoop-dist/target/hadoop-${NEW_VERSION}/share/hadoop/tools/lib/hadoop-minicl
 cp -r hadoop-dist/target/hadoop-${NEW_VERSION} /stackable/hadoop-${NEW_VERSION}
 sed -i "s/${NEW_VERSION}/${ORIGINAL_VERSION}/g" hadoop-dist/target/bom.json
 mv hadoop-dist/target/bom.json /stackable/hadoop-${NEW_VERSION}/hadoop-${NEW_VERSION}.cdx.json
+
+# Create the SBOM of the third-party JavaScript that is checked into the source tree, mostly
+# for the HDFS web UI. These are pre-built files without any package manifest, so no SBOM
+# generator can discover them and they are instead recorded in vendored-js.json. That manifest
+# pins the SHA-256 of every file it describes, so this fails the build if a Hadoop upgrade
+# changed any of them and the recorded versions have to be revisited.
+python3 /build/vendored_js.py bom \
+  /build/vendored-js.json \
+  . \
+  "/stackable/hadoop-${NEW_VERSION}/hadoop-webapps-${NEW_VERSION}.cdx.json" \
+  "${ORIGINAL_VERSION}" \
+  "${CDXGEN_SPEC_VERSION}"
 
 # HDFS fuse-dfs is not part of the regular dist output, so we need to copy it in ourselves
 cp hadoop-hdfs-project/hadoop-hdfs-native-client/target/main/native/fuse-dfs/fuse_dfs /stackable/hadoop-${NEW_VERSION}/bin
@@ -152,14 +168,11 @@ NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 # have one central place for dependant images to pull them from
 mkdir -p /stackable/hadoop-cloud-libraries/
 
-if [[ "$PRODUCT_VERSION" == "3.3.6" || "$PRODUCT_VERSION" == "3.4.2" ]]; then
+# N.B. Version 3.3.6 is not part of SDP as of 25.7.0, but is still required for hbase, hive, spark-k8s
+if [[ "$PRODUCT_VERSION" == "3.3.6" ]]; then
     cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     # For some reason it was renamed from "aws-java-sdk-bundle" to "bundle"
-    if [[ "$PRODUCT_VERSION" == "3.3.6" ]]; then
-        cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
-    else
-        cp /stackable/hadoop/share/hadoop/tools/lib/bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
-    fi
+    cp /stackable/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar /stackable/hadoop-cloud-libraries/aws-java-sdk-bundle-${AWS_JAVA_SDK_BUNDLE_VERSION}.jar
     cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-azure-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/tools/lib/azure-storage-${AZURE_STORAGE_VERSION}.jar /stackable/hadoop-cloud-libraries/
     cp /stackable/hadoop/share/hadoop/tools/lib/azure-keyvault-core-${AZURE_KEYVAULT_CORE_VERSION}.jar /stackable/hadoop-cloud-libraries/

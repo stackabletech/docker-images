@@ -1,0 +1,17 @@
+---
+fail_fast: false
+exclude: \.patch$
+
+default_language_version:
+  node: system
+
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-test
+        name: cargo-test
+        language: system
+        entry: cargo test --package boil
+        stages: [pre-commit, pre-merge-commit]
+        pass_filenames: false
+        files: .*\.rs$|Cargo\.toml

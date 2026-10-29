@@ -1,0 +1,37 @@
+From dc43e63b9cbf8d0262cc902807988922b89300d0 Mon Sep 17 00:00:00 2001
+From: Nick Larsen <nick.larsen@stackable.tech>
+Date: Mon, 26 Jan 2026 11:10:17 +0100
+Subject: Add CycloneDX plugin
+
+---
+ pom.xml | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/pom.xml b/pom.xml
+index a43a3b6ac3e5205f31d54611e50b8d823f179ec4..849111b18faf6c2a833c3f632bb1eb72ca47b31d 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1930,6 +1930,23 @@
+         <extensions>true</extensions>
+         <inherited>true</inherited>
+       </plugin>
++      <plugin>
++        <groupId>org.cyclonedx</groupId>
++        <artifactId>cyclonedx-maven-plugin</artifactId>
++        <version>2.9.1</version>
++        <configuration>
++          <projectType>application</projectType>
++          <schemaVersion>1.5</schemaVersion>
++        </configuration>
++        <executions>
++          <execution>
++          <goals>
++            <goal>makeBom</goal>
++          </goals>
++          <phase>package</phase>
++          </execution>
++        </executions>
++      </plugin>
+       <plugin>
+         <groupId>com.diffplug.spotless</groupId>
+         <artifactId>spotless-maven-plugin</artifactId>

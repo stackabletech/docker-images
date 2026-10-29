@@ -9,45 +9,31 @@
 
 FROM local-image/stackable-devel AS rust-binaries
 
-# Find the latest version here: https://github.com/stackabletech/config-utils/tags
-# renovate: datasource=github-tags packageName=stackabletech/config-utils
-ENV CONFIG_UTILS_VERSION=0.4.0
-# Find the latest version here: https://github.com/stackabletech/containerdebug/tags
-# renovate: datasource=github-tags packageName=stackabletech/containerdebug
-ENV CONTAINERDEBUG_VERSION=0.4.0
-# Find the latest version here: https://github.com/stackabletech/secret-operator/tags
-# I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
-# so I was unable to add a renovate hint.
-ENV CERT_TOOLS_VERSION=0.1.1
+ARG CONFIG_UTILS_VERSION
+ARG CONTAINERDEBUG_VERSION
+ARG CERT_TOOLS_VERSION
 
 RUN <<EOF
 . "$HOME/.cargo/env"
 
 cd /
-git clone --depth 1 --branch "${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/config-utils
-git clone --depth 1 --branch "${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/containerdebug
+git clone --depth 1 --branch "config-utils-${CONFIG_UTILS_VERSION}" https://github.com/stackabletech/operator-rs config-utils
+git clone --depth 1 --branch "containerdebug-${CONTAINERDEBUG_VERSION}" https://github.com/stackabletech/operator-rs containerdebug
 git clone --depth 1 --branch "cert-tools-${CERT_TOOLS_VERSION}" https://github.com/stackabletech/secret-operator
 cd /config-utils
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo auditable --quiet build --package config-utils --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 cd /containerdebug
-cargo auditable --quiet build --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cargo auditable --quiet build --package containerdebug --release && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 cd /secret-operator
-cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries
+cargo auditable --quiet build --release --package cert-tools && cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 EOF
 
-# Find the latest version at https://catalog.redhat.com
-# Use the search to find the image you are interested in because navigating the catalog folders is impossible.
-#
-# IMPORTANT: Make sure to use the "Manifest List Digest" that references the images for multiple architectures
-# rather than just the "Image Digest" that references the image for the selected architecture.
-#
-# The website is awful/broken, so you can use one of the following tools to find it:
+# Find the latest version:
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
-#   # or
-#   skopeo inspect --format '{{.Digest}}' docker://registry.access.redhat.com/ubi10/ubi-minimal
 #
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713 AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -188,12 +174,12 @@ EOF
 # **config-utils**
 # Utility to replace values in a file with values from environment variables and files
 COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/target/release/config-utils /stackable/config-utils
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /config-utils/crates/config-utils/config-utils_bin.cdx.xml /stackable/config-utils.cdx.xml
 
 # **containerdebug**
 # Debug tool that logs generic system information.
 COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/target/release/containerdebug /stackable/containerdebug
-COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
+COPY --from=rust-binaries --chown=${STACKABLE_USER_UID}:0 /containerdebug/crates/containerdebug/containerdebug_bin.cdx.xml /stackable/containerdebug_bin.cdx.xml
 
 # **cert-tools**
 # A CLI tool to merge two truststores in PEM or PKCS12 format in such as way that they are accepted by the JVM
@@ -206,7 +192,7 @@ COPY --chown=${STACKABLE_USER_UID}:0 shared/checks/check-permissions-ownership.s
 
 ENV PATH="${PATH}:/stackable"
 
-# These labels have mostly been superceded by the OpenContainer spec annotations below but it doesn't hurt to include them
+# These labels have mostly been superseded by the OpenContainer spec annotations below but it doesn't hurt to include them
 # http://label-schema.org/rc1/
 LABEL maintainer="info@stackable.tech"
 LABEL vendor="Stackable GmbH"

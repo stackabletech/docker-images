@@ -1,12 +1,11 @@
 # syntax=docker/dockerfile:1.16.0@sha256:e2dd261f92e4b763d789984f6eab84be66ab4f5f08052316d8eb8f173593acf7
 # check=error=true
 
-# Find the latest version at https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?container-tabs=gti
-# IMPORTANT: Be sure to use the Manifest List Digest for multi-arch support
-# The website is broken, so you can use this to find it:
-# curl https://catalog.redhat.com/en/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5 \
-# | grep -oE 'registry.redhat.io/ubi9/ubi-minimal@sha256:[a-z0-9]{64}'
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c7d44146f826037f6873d99da479299b889473492d3c1ab8af86f08af04ec8a0 AS builder
+# Find the latest version:
+#
+#   docker buildx imagetools inspect registry.access.redhat.com/ubi9/ubi-minimal --format '{{json .Manifest.Digest}}'
+#
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:1bc3c5c15720506a0cf48adfdf8b623dfe704377e007d7bbae8d14876392ca6a AS builder
 
 LABEL maintainer="Stackable GmbH"
 
@@ -28,7 +27,7 @@ ENV CARGO_AUDITABLE_CRATE_VERSION=0.7.2
 # Find the latest version here: https://github.com/protocolbuffers/protobuf/releases
 # Upload any newer version to nexus with ./.scripts/upload_new_protoc_version.sh
 # renovate: datasource=github-releases packageName=protocolbuffers/protobuf
-ENV PROTOC_VERSION=31.1
+ENV PROTOC_VERSION=36.2
 
 # Sets the default shell to Bash with strict error handling and robust pipeline processing.
 # "-e": Exits immediately if a command exits with a non-zero status
@@ -104,7 +103,8 @@ ONBUILD RUN <<EOF
 . "$HOME/.cargo/env"
 tar -czf /app/stackable-src.tar.gz .
 cargo auditable --quiet build --release --workspace
-cargo cyclonedx --all --spec-version 1.5 --describe binaries
+# --no-build-deps leaves out the build-time dependencies.
+cargo cyclonedx --all --spec-version 1.5 --describe binaries --no-build-deps
 
 # -maxdepth 1: The interesting binaries are all directly in ${BUILD_DIR}.
 # -regex filters out tests

@@ -9,7 +9,7 @@ For some reason, npm tries to use a newer version of esbuild than the version in
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/nifi-frontend/src/main/frontend/package.json b/nifi-frontend/src/main/frontend/package.json
-index ee125e7663..6914c5f00c 100644
+index ee125e7663501c6b815c233f18ea4174a890df07..6914c5f00cca1a3a07c5ff4de5a1341d41d8f4d4 100644
 --- a/nifi-frontend/src/main/frontend/package.json
 +++ b/nifi-frontend/src/main/frontend/package.json
 @@ -114,10 +114,11 @@

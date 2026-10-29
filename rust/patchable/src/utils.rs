@@ -132,3 +132,16 @@ pub fn setup_git_credentials<'a>() -> git2::RemoteCallbacks<'a> {
     });
     callbacks
 }
+
+/// Proxy configuration for Git operations.
+///
+/// Enables libgit2's automatic proxy detection, which honours the `http.proxy`
+/// Git config and the `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` environment variables
+/// (just like the `git` CLI). This is what lets patchable run inside sandboxes
+/// (e.g. nono) that force all traffic through an HTTP proxy; it is a no-op when no
+/// proxy is configured.
+pub fn setup_git_proxy<'a>() -> git2::ProxyOptions<'a> {
+    let mut proxy_options = git2::ProxyOptions::new();
+    proxy_options.auto();
+    proxy_options
+}

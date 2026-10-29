@@ -1,0 +1,47 @@
+From 5c2b9cf1fecb60229225e597e4df3acab6409f88 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Fri, 12 Jul 2024 17:30:12 -0400
+Subject: Include jackson-dataformat-xml.
+
+This is needed for XmlLayout to work so our structured logging works.
+It is an optional dependency of log4j2 so we need to make sure to include
+it.
+---
+ hbase-assembly/pom.xml | 5 +++++
+ pom.xml                | 7 +++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/hbase-assembly/pom.xml b/hbase-assembly/pom.xml
+index 8ff8fcdf2a71c1c902e1e39ea1fec0eaad4baf2d..1e425d3c05666f3638c394fa19ecc1c706be343f 100644
+--- a/hbase-assembly/pom.xml
++++ b/hbase-assembly/pom.xml
+@@ -221,6 +221,11 @@
+       <groupId>org.apache.logging.log4j</groupId>
+       <artifactId>log4j-core</artifactId>
+     </dependency>
++    <dependency>
++      <!-- This is an optional dependency of log4j which is needed to use XmlLayout -->
++      <groupId>com.fasterxml.jackson.dataformat</groupId>
++      <artifactId>jackson-dataformat-xml</artifactId>
++    </dependency>
+     <dependency>
+       <groupId>org.apache.logging.log4j</groupId>
+       <artifactId>log4j-slf4j-impl</artifactId>
+diff --git a/pom.xml b/pom.xml
+index ed13ea269bb7471de2dcaef5aa9bcde62963c6d9..495d62bd4eecd53820a74fe4d9d5917b42895c47 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1196,6 +1196,13 @@
+         <artifactId>log4j-1.2-api</artifactId>
+         <version>${log4j2.version}</version>
+       </dependency>
++      <dependency>
++        <!-- This is an optional dependency of log4j which is needed to use XmlLayout -->
++        <groupId>com.fasterxml.jackson.dataformat</groupId>
++        <artifactId>jackson-dataformat-xml</artifactId>
++        <version>${jackson.version}</version>
++      </dependency>
++
+       <!-- Avro dependencies we mostly get transitively, manual version coallescing -->
+       <dependency>
+         <groupId>org.apache.avro</groupId>

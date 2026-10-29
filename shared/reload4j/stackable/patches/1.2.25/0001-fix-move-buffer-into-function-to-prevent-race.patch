@@ -9,7 +9,7 @@ Subject: fix: move buffer into function to prevent race
  2 files changed, 3 insertions(+), 11 deletions(-)
 
 diff --git a/src/main/java/org/apache/log4j/helpers/Transform.java b/src/main/java/org/apache/log4j/helpers/Transform.java
-index ad77e165..5f0aba25 100644
+index ad77e16546f6a69c621025df569bffbd4e1ed149..5f0aba2559c560969396da6e3ba65c44686fb2bf 100644
 --- a/src/main/java/org/apache/log4j/helpers/Transform.java
 +++ b/src/main/java/org/apache/log4j/helpers/Transform.java
 @@ -76,11 +76,11 @@ public class Transform {
@@ -27,7 +27,7 @@ index ad77e165..5f0aba25 100644
              int end = str.indexOf(CDATA_END);
              if (end < 0) {
 diff --git a/src/main/java/org/apache/log4j/xml/XMLLayout.java b/src/main/java/org/apache/log4j/xml/XMLLayout.java
-index 4f0d99f3..35ef30d8 100644
+index 4f0d99f3e2d32760a45fd8e48b64e04f2201e40e..35ef30d8bc3e29092efc4c60cb9f5c52642b9d2d 100644
 --- a/src/main/java/org/apache/log4j/xml/XMLLayout.java
 +++ b/src/main/java/org/apache/log4j/xml/XMLLayout.java
 @@ -64,9 +64,7 @@ import java.util.Arrays;

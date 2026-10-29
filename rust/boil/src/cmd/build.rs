@@ -17,8 +17,11 @@ pub enum Error {
     #[snafu(display("failed to create bakefile"))]
     CreateBakefile { source: bakefile::Error },
 
-    #[snafu(display("failed to write image manifest URIs to file"))]
-    WriteImageManifestUrisFile { source: std::io::Error },
+    #[snafu(display("failed to create image manifest URIs file"))]
+    CreateImageManifestUrisFile { source: std::io::Error },
+
+    #[snafu(display("failed to serialize image manifest URIs file as JSON"))]
+    SerializeImageManifestUrisFile { source: serde_json::Error },
 
     #[snafu(display("failed to serialize bakefile as JSON"))]
     SerializeBakefile { source: serde_json::Error },
@@ -45,15 +48,17 @@ pub enum Error {
 /// This is the `boil build` command handler function.
 pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Error> {
     // TODO (@Techassi): Parse Dockerfile instead to build the target graph
-    // Create bakefile
     let bakefile = Bakefile::from_cli_args(&args, config).context(CreateBakefileSnafu)?;
     let image_manifest_uris = bakefile.image_manifest_uris();
-    let count = image_manifest_uris.len();
+    let image_count = image_manifest_uris
+        .iter()
+        .fold(0, |acc, (_, tag_sets)| acc + tag_sets.len());
 
     // Write the image manifest URIs to file if requested
     if let Some(path) = args.write_image_manifest_uris {
-        std::fs::write(path, image_manifest_uris.join("\n"))
-            .context(WriteImageManifestUrisFileSnafu)?;
+        let file = std::fs::File::create(path).context(CreateImageManifestUrisFileSnafu)?;
+        serde_json::to_writer(file, &image_manifest_uris)
+            .context(SerializeImageManifestUrisFileSnafu)?;
     }
 
     // Output the bakefile contents if in dry-run mode
@@ -104,10 +109,34 @@ pub fn run_command(args: Box<BuildArguments>, config: Config) -> Result<(), Erro
         }
     );
 
-    println!(
-        "Successfully built {count} image{plural}:\n{images}",
-        plural = if count > 1 { "s" } else { "" },
-        images = image_manifest_uris.join("\n")
+    // Take care of formatting output
+    let mut built_images = String::new();
+    for (name, tag_sets) in image_manifest_uris {
+        let tag_count = tag_sets.iter().fold(0, |acc, tag_set| acc + tag_set.len());
+
+        // Add the image name line first. It also includes the number of tags for that particular
+        // image.
+        built_images.push_str(&format!(
+            "{name} ({tag_count} tag{plural}):\n",
+            plural = if tag_count > 1 { "s" } else { "" }
+        ));
+
+        // Add an indented list of tags, one tag set per line.
+        built_images.push_str(&format!(
+            "  {tags}",
+            tags = tag_sets
+                .iter()
+                .map(|tag_set| tag_set.to_string())
+                .collect::<Vec<String>>()
+                .join("\n  ")
+        ));
+
+        built_images.push('\n');
+    }
+
+    print!(
+        "Successfully built {image_count} image{plural}:\n{built_images}",
+        plural = if image_count > 1 { "s" } else { "" },
     );
 
     Ok(())

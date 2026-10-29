@@ -3,15 +3,17 @@ use std::{path::PathBuf, sync::LazyLock};
 use clap::{Parser, Subcommand};
 use regex::Regex;
 use snafu::Snafu;
+use url::Host;
 
 mod build;
 mod completions;
 mod image;
+mod tools;
 
 pub use build::*;
 pub use completions::*;
 pub use image::*;
-use url::Host;
+pub use tools::*;
 
 // This is derived from the general rule where the length of the tag can be up to 128 chars
 // See: https://github.com/opencontainers/distribution-spec/blob/main/spec.md
@@ -20,7 +22,7 @@ static VALID_IMAGE_TAG: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9_][a-zA-Z0-9_.-]+$").expect("regex is valid"));
 
 #[derive(Debug, Snafu)]
-pub enum ParseImageVersionError {
+pub enum ParseVendorVersionError {
     #[snafu(display("invalid image tag characters for {version:?}"))]
     ParseVersion { version: String },
 }
@@ -41,7 +43,7 @@ impl Cli {
         PathBuf::from("./boil.toml")
     }
 
-    pub(super) fn default_image_version() -> String {
+    pub(super) fn default_vendor_version() -> String {
         "0.0.0-dev".to_owned()
     }
 
@@ -53,7 +55,7 @@ impl Cli {
     }
 
     /// Ensure that the given version will be valid for use in the image tag
-    pub(super) fn parse_image_version(version: &str) -> Result<String, ParseImageVersionError> {
+    pub(super) fn parse_vendor_version(version: &str) -> Result<String, ParseVendorVersionError> {
         if !VALID_IMAGE_TAG.is_match(version) {
             return ParseVersionSnafu { version }.fail();
         }
@@ -75,6 +77,9 @@ pub enum Command {
 
     /// Alias for `image list`.
     Images(ImageListArguments),
+
+    /// Various small tools for working with images and versions.
+    Tools(ToolsArguments),
 
     /// Generate shell completions.
     Completions(CompletionsArguments),

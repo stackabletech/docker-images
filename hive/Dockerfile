@@ -54,7 +54,7 @@ cd "$BUILD_SRC_DIR"
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
 # generateBackupPoms=false is needed for the Hive 4.0.0 build to succeed, otherwise it fails with the obscure reason: `Too many files with unapproved license`
-mvn versions:set -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -DgenerateBackupPoms=false
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION -DartifactId=* -DgroupId=* -DgenerateBackupPoms=false
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hive-${NEW_VERSION}-src.tar.gz .
@@ -83,9 +83,13 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   )
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
+  # The main reactor pins its dependencies on the standalone-metastore modules through `standalone-metastore.version`.
+  # This is _not_ changed by `mvn versions:set` above.
+  # If we do not change it here it'd download those dependencies (without the -stackableXXXX suffix) from Maven central.
   mvn \
     clean package \
     -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
+    -Dstandalone-metastore.version=${NEW_VERSION} \
     -DskipTests \
     -Pdist
   # Looks like we can not filter the projects using "--projects standalone-metastore/metastore-server --also-make",
@@ -175,7 +179,8 @@ COPY hive/licenses /licenses
 RUN <<EOF
 microdnf update
 microdnf clean all
-rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE_VERSION}\n" | sort > /stackable/package_manifest.txt
+# List all rpm packages installed in the system
+rpm -qa --queryformat "%{NAME}-%{VERSION}-%{RELEASE}\n" | sort > /stackable/package_manifest.txt
 chown ${STACKABLE_USER_UID}:0 /stackable/package_manifest.txt
 chmod g=u /stackable/package_manifest.txt
 rm -rf /var/cache/yum

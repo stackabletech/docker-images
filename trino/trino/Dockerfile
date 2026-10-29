@@ -8,12 +8,41 @@ ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 ARG TRINO_AIRLIFT_VERSION
+ARG TARGETARCH
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 
 WORKDIR /stackable
 
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/patchable.toml /stackable/src/trino/trino/stackable/patches/patchable.toml
 COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/patches/${PRODUCT_VERSION} /stackable/src/trino/trino/stackable/patches/${PRODUCT_VERSION}
 COPY --chown=${STACKABLE_USER_UID}:0 --from=airlift-builder /stackable/patched-libs /stackable/patched-libs
+
+RUN <<EOF
+# Install Node, cdxgen and Python to create the SBOMs of the web UI dependencies, which the
+# CycloneDX Maven plugin does not cover. Python runs shared/sbom/vendored_js.py.
+# cdxgen requires Node >= 24, which is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node installation in
+# /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+
+microdnf update
+microdnf install python3
+microdnf clean all
+rm -rf /var/cache/yum
+EOF
+
+COPY --chown=${STACKABLE_USER_UID}:0 shared/sbom/vendored_js.py /stackable/vendored_js.py
+COPY --chown=${STACKABLE_USER_UID}:0 trino/trino/stackable/vendored-js/${PRODUCT_VERSION}.json /stackable/vendored-js.json
 
 # adding a hadolint ignore for SC2215, due to https://github.com/hadolint/hadolint/issues/980
 # hadolint ignore=SC2215
@@ -25,14 +54,14 @@ cp -r /stackable/patched-libs/maven/* /root/.m2/repository
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 
 # Trino is using something (git-commit-id-plugin in the past, maybe something else now) that is
 # reading the Git history and searches for a tag to pull the version from. It sounds weird to me
-# why someone would do that over just picking the version from the pom.xml, but they propably
+# why someone would do that over just picking the version from the pom.xml, but they probably
 # have their reasons. See e.g. https://github.com/trinodb/trino/discussions/18963.
 # So we fake it till we make it and create a Git repo and the correct tag. The trino-operator
 # smoke test checks that "select version()" is working.
@@ -40,14 +69,11 @@ tar -czf /stackable/trino-${NEW_VERSION}-src.tar.gz .
 rm .git
 git init
 git config user.email "fake.commiter@stackable.tech"
-git config user.name "Fake commiter"
+git config user.name "Fake committer"
 git commit --allow-empty --message "Fake commit, so that we can create a tag"
 git tag ${NEW_VERSION}
 
 SKIP_PROJECTS="!docs"
-if [ "$PRODUCT_VERSION" = "470" ] || [ "$PRODUCT_VERSION" = "451" ]; then
-  SKIP_PROJECTS="$SKIP_PROJECTS,!core/trino-server-rpm"
-fi
 
 mvn \
   install \
@@ -69,6 +95,56 @@ rm -r plugin/*/target core/trino-server/target/trino-server-${NEW_VERSION}
 # while the raw output folder does not
 tar -xzf core/trino-server/target/trino-server-${NEW_VERSION}.tar.gz -C /stackable
 mv core/trino-server/target/bom.json /stackable/trino-server-${NEW_VERSION}/trino-server-${NEW_VERSION}.cdx.json
+
+# The web UI is three separate things that the CycloneDX Maven plugin does not cover, so each
+# gets its own SBOM:
+#   webapp/src      the npm project behind the current UI, bundled by webpack
+#   webapp-preview  the npm project behind the preview UI, bundled by vite
+#   webapp/vendor   pre-built libraries checked into the source tree, see vendored_js.py
+# Trino 483 renamed these (webapp-preview became webapp and the old UI moved to webapp-legacy),
+# so this needs revisiting when such a version is added. The paths below fail the build rather
+# than silently producing nothing.
+(
+  export PATH="/opt/node-cdxgen/bin:$PATH"
+  WEB_UI="core/trino-web-ui/src/main/resources"
+
+  # Copy just the manifest and the bun lockfile into a scratch directory.
+  # --required-only keeps what the lockfile marks as non-dev.
+  # --no-babel disables the usage analysis, which would otherwise mark every package that is not
+  #   imported directly as optional and thereby drop genuine transitive runtime dependencies.
+  # --project-version is passed because the frontends declare a placeholder version upstream, and
+  #   --project-name because cdxgen otherwise names the root component after the scratch directory.
+  for FRONTEND in "webapp:trino-web-ui" "webapp-legacy/src:trino-web-ui-legacy"; do
+    SOURCE="${WEB_UI}/${FRONTEND%%:*}"
+    NAME="${FRONTEND##*:}"
+
+    SCRATCH="$(mktemp --directory)"
+    cp "${SOURCE}/package.json" "${SOURCE}/bun.lock" "${SCRATCH}/"
+
+    (
+      cd "${SCRATCH}"
+      cdxgen \
+        --type bun \
+        --required-only \
+        --no-babel \
+        --spec-version "${CDXGEN_SPEC_VERSION}" \
+        --project-name "${NAME}" \
+        --project-version "${PRODUCT_VERSION}" \
+        --output "/stackable/trino-server-${NEW_VERSION}/${NAME}-${NEW_VERSION}.cdx.json"
+    )
+    rm -r "${SCRATCH}"
+  done
+
+  # The vendored libraries have no package manifest and no lockfile, so cdxgen cannot see them.
+  # vendored-js.json records them and pins the SHA-256 of every file, which fails the build if a
+  # Trino upgrade changed any of them and the recorded versions have to be revisited.
+  python3 /stackable/vendored_js.py bom \
+    /stackable/vendored-js.json \
+    . \
+    "/stackable/trino-server-${NEW_VERSION}/trino-web-ui-vendor-${NEW_VERSION}.cdx.json" \
+    "${PRODUCT_VERSION}" \
+    "${CDXGEN_SPEC_VERSION}"
+)
 
 # Delete intermediate build products to free some space and keep runners happy
 (cd .. && rm -r ${PRODUCT_VERSION})

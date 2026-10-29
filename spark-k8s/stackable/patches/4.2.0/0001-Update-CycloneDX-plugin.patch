@@ -1,0 +1,38 @@
+From 324c7f01e42472e6cad6dc539da63dcff6662245 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <84674+razvan@users.noreply.github.com>
+Date: Thu, 15 Jan 2026 14:27:23 +0100
+Subject: Update CycloneDX plugin
+
+---
+ dev/make-distribution.sh | 1 -
+ pom.xml                  | 5 +++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/dev/make-distribution.sh b/dev/make-distribution.sh
+index b9792530f440293961cf0199942119bb8b839ea4..cfa3551daf71f06ec86ab10d39b78c8041edefbc 100755
+--- a/dev/make-distribution.sh
++++ b/dev/make-distribution.sh
+@@ -199,7 +199,6 @@ else
+       -Dmaven.javadoc.skip=true \
+       -Dmaven.scaladoc.skip=true \
+       -Dmaven.source.skip \
+-      -Dcyclonedx.skip=true \
+       $@)
+ fi
+ 
+diff --git a/pom.xml b/pom.xml
+index 46558134f4177e1f60e7efc9cf9250f41b721367..77325b351b1f13220234a9bf86d84721d7e47ae2 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3384,6 +3384,11 @@
+         <groupId>org.cyclonedx</groupId>
+         <artifactId>cyclonedx-maven-plugin</artifactId>
+         <version>2.9.1</version>
++        <configuration>
++          <projectType>application</projectType>
++          <schemaVersion>1.5</schemaVersion>
++          <skipNotDeployed>false</skipNotDeployed>
++        </configuration>
+         <executions>
+           <execution>
+             <phase>package</phase>

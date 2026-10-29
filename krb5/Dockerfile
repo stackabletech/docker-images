@@ -3,7 +3,7 @@
 
 # RedHat UBI does not package krb5-server, so we cannot use it as a KDC
 # FROM local-image/stackable-base
-FROM rockylinux:9.3@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
+FROM rockylinux/rockylinux:9.8.20260525.0-ubi@sha256:01d66807e8ec11cf13002b6c0f9300cd09a28e7f1e135950bbac0492e940ea96
 
 ARG PRODUCT_VERSION
 

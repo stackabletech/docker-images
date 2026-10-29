@@ -1,7 +1,13 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-[versions."0.3.0".build-arguments]
-kubectl-version = "1.35.0"
-python-version = "3.12"
-grpcurl-version = "1.9.3"
+[versions."0.4.0".build-arguments]
+# See https://dl.k8s.io/release/stable.txt for the latest stable release.
+kubectl-version = "1.37.1"
+
+# See https://www.python.org/downloads/ for the latest release.
+# NOTE (@Techassi): As of 2026-10-26 Python 3.15 was not available as a package yet.
+python-version = "3.14"
+
+# See https://github.com/fullstorydev/grpcurl/releases for the latest release.
+grpcurl-version = "1.9.4"

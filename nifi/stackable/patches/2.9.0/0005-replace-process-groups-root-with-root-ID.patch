@@ -14,7 +14,7 @@ Subject: replace process groups root with root ID
  create mode 100644 nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
 
 diff --git a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
-index 11ca1424ab..777de8d565 100644
+index 11ca1424aba4c02a33d6609a8e75b25d48100ee9..777de8d565e8e774050e7b649a4f14f458b0b6f7 100644
 --- a/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 +++ b/nifi-commons/nifi-properties/src/main/java/org/apache/nifi/util/NiFiProperties.java
 @@ -348,6 +348,9 @@ public class NiFiProperties extends ApplicationProperties {
@@ -29,7 +29,7 @@ index 11ca1424ab..777de8d565 100644
      public static final String DEFAULT_AUTHORIZER_CONFIGURATION_FILE = "conf/authorizers.xml";
 diff --git a/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java b/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java
 new file mode 100644
-index 0000000000..7f81967537
+index 0000000000000000000000000000000000000000..7f81967537097cc6aeb7acddfd186a2689f54250
 --- /dev/null
 +++ b/nifi-framework-api/src/main/java/org/apache/nifi/flow/FlowInitializationCallback.java
 @@ -0,0 +1,11 @@
@@ -45,7 +45,7 @@ index 0000000000..7f81967537
 +
 +
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
-index 3d271dd394..f153cea1ae 100644
+index 3d271dd3945796b99f28d76e2da7ca1c8204f271..f153cea1aeef7b611f375ccad43d7700ae8664f7 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAccessPolicyProvider.java
 @@ -16,6 +16,7 @@
@@ -138,7 +138,7 @@ index 3d271dd394..f153cea1ae 100644
       *
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
 new file mode 100644
-index 0000000000..f67328ef84
+index 0000000000000000000000000000000000000000..f67328ef84a188af5da6445f7d9140b819d742ac
 --- /dev/null
 +++ b/nifi-framework-bundle/nifi-framework/nifi-file-authorizer/src/main/java/org/apache/nifi/authorization/FileAuthorizerInitializer.java
 @@ -0,0 +1,25 @@
@@ -169,7 +169,7 @@ index 0000000000..f67328ef84
 +}
 \ No newline at end of file
 diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
-index fc212ad88e..72137e3a83 100644
+index fc212ad88e41194ed523b13340942eaa0f82133e..72137e3a83d77d250b76766de2198d9d5f32a9fe 100644
 --- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
 +++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/StandardFlowService.java
 @@ -55,6 +55,7 @@ import org.apache.nifi.controller.serialization.FlowSynchronizationException;

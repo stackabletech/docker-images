@@ -12,11 +12,30 @@ FROM local-image/java-devel AS nifi-builder
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
+ARG TARGETARCH
+ARG CDXGEN_NODEJS_VERSION
+ARG CDXGEN_SPEC_VERSION
+ARG CDXGEN_VERSION
 
 RUN <<EOF
 microdnf update
 microdnf clean all
 rm -rf /var/cache/yum
+
+# Install Node and cdxgen to create the SBOM of the NiFi frontend (npm) dependencies.
+# The CycloneDX Maven plugin only covers the Java dependencies.
+# cdxgen requires Node >= 24 and is unrelated to the Node version that the
+# frontend-maven-plugin downloads for the actual build, so it gets its own Node
+# installation in /opt/node-cdxgen and is invoked with that prepended to PATH.
+# -fsSL is not needed: the shared /root/.curlrc sets location, fail, silent and show-error.
+ARCH="${TARGETARCH/amd64/x64}"
+mkdir -p /opt/node-cdxgen
+curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
+    tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 USER ${STACKABLE_USER_UID}
@@ -37,29 +56,22 @@ curl 'https://repo.stackable.tech/repository/m2/tech/stackable/nifi/stackable-bc
 
 cd "$(/stackable/patchable --images-repo-root=src checkout nifi ${PRODUCT_VERSION})"
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/nifi-${NEW_VERSION}-src.tar.gz .
 
-# NOTE: Since NiFi 2.0.0 PutIceberg Processor and services were removed, so including the `include-iceberg` profile does nothing.
-# Additionally some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
-if [[ "${PRODUCT_VERSION}" != 1.* ]] ; then
-    mvn \
+# Some modules were moved to optional build profiles, so we need to add `include-hadoop` to get `nifi-parquet-nar` for example.
+# We enable "include-sql-reporting" to be able to publish NiFi status information based on the results of a user-specified SQL query,
+# see https://github.com/stackabletech/docker-images/issues/1608.
+mvn \
     clean install \
     -Dmaven.javadoc.skip=true \
     -DskipTests \
-    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
-else
-    mvn \
-    clean install \
-    -Dmaven.javadoc.skip=true \
-    -DskipTests \
-    --activate-profiles include-iceberg,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp
-fi
+    --activate-profiles include-hadoop,include-hadoop-aws,include-hadoop-azure,include-hadoop-gcp,include-sql-reporting
 
 # Copy the binaries to the /stackable folder
 mv nifi-assembly/target/nifi-${NEW_VERSION}-bin/nifi-${NEW_VERSION} /stackable/nifi-${NEW_VERSION}
@@ -81,6 +93,25 @@ for nar in $NARS; do
         cp "$match" "/stackable/nifi-${NEW_VERSION}/$nar.cdx.json"
     fi
 done
+
+# Create the SBOM for the frontend, which is an npm project and therefore not covered by
+# the CycloneDX Maven plugin.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+(
+  cd nifi-frontend/src/main/frontend
+  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+    --type js \
+    --required-only \
+    --no-babel \
+    --spec-version "${CDXGEN_SPEC_VERSION}" \
+    --project-version "${ORIGINAL_VERSION}" \
+    --output "/stackable/nifi-${NEW_VERSION}/nifi-frontend-${NEW_VERSION}.cdx.json"
+)
 
 # Remove sources
 (cd .. && rm -r ${PRODUCT_VERSION})
@@ -116,17 +147,24 @@ if [[ -n "${NIFI_ICEBERG_BUNDLE_VERSION:-}" ]] ; then
 
     sed -i -e "s/{{ NIFI_VERSION }}/${PRODUCT_VERSION}/g" pom.xml
 
+    # We need "-Denforcer.skip=true", as the Maven version is too old.
+    # "-DincludeProvidedScope=false" keeps the provided dependencies (e.g. Jetty, which the NiFi
+    # framework supplies) out of the per-NAR SBOMs, so that they only list what the NAR bundles.
     mvn \
         clean package \
         -D nifi.version=${PRODUCT_VERSION} \
         -Dmaven.javadoc.skip=true \
-        -Denforcer.skip=true
-    # We need "-Denforcer.skip=true", as the Maven version is too old
+        -Denforcer.skip=true \
+        -DincludeProvidedScope=false
 
-    cp ./nifi-iceberg-services-api-nar/target/nifi-iceberg-services-api-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./nifi-iceberg-services-nar/target/nifi-iceberg-services-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./nifi-iceberg-processors-nar/target/nifi-iceberg-processors-nar-${NIFI_ICEBERG_BUNDLE_VERSION}.nar /stackable
-    cp ./target/bom.json /stackable/nifi-iceberg-bundle-${NIFI_ICEBERG_BUNDLE_VERSION}.cdx.json
+    # Ship the SBOM of each NAR instead of the aggregate SBOM of the build. The aggregate SBOM
+    # merges the dependency graphs of all Maven modules, including the test-only
+    # nifi-iceberg-test-utils module and the standalone resolution of nifi-iceberg-common, so it
+    # lists dependency versions that are not shipped in any NAR.
+    for NAR in nifi-iceberg-services-api-nar nifi-iceberg-services-nar nifi-iceberg-processors-nar; do
+        cp "./${NAR}/target/${NAR}-${NIFI_ICEBERG_BUNDLE_VERSION}.nar" /stackable
+        cp "./${NAR}/target/bom.json" "/stackable/${NAR}-${NIFI_ICEBERG_BUNDLE_VERSION}.cdx.json"
+    done
 
     # Save disk space, even for intermediate images
     (cd .. && rm -r ${NIFI_ICEBERG_BUNDLE_VERSION})
@@ -160,6 +198,8 @@ tar -czf /stackable/nifi-opa-plugin-${NIFI_OPA_AUTHORIZER_PLUGIN_VERSION}-src.ta
 mvn \
     clean package \
     -DskipTests \
+    -Dmaven.javadoc.skip=true \
+    -Dmaven.site.skip=true \
     -Pnifi-${PRODUCT_VERSION}
 
 cp ./target/opa-authorizer.nar /stackable/opa-authorizer.nar
@@ -198,30 +238,18 @@ COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/ni
 COPY --chown=${STACKABLE_USER_UID}:0 --from=opa-authorizer-builder /stackable/LICENSE /licenses/NIFI_OPA_PLUGIN_LICENSE
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/stackable/bin /stackable/bin
 COPY --chown=${STACKABLE_USER_UID}:0 nifi/licenses /licenses
-COPY --chown=${STACKABLE_USER_UID}:0 nifi/python /stackable/python
-
-# The nipyapi is required until NiFi 2.0.x for the ReportingTaskJob
-# This can be removed once the 1.x.x line is removed
-# Note: Keep this in sync with the version installed in testing-tools! (See the requirements.txt file)
-# Find the latest version here: https://pypi.org/project/nipyapi/
-# renovate: datasource=pypi packageName=nipyapi
-ENV NIPYAPI_VERSION=0.22.0
 
 RUN <<EOF
 microdnf update
 
 # git: Required for git-sync
-# python-pip: Required to install Python packages
-# Note: Python is also required for the Python processors (ExecuteScript and other for NiFi < 2.0 and custom Python processors for NiFi > 2.0)
+# python-pip: Required to install Python packages, as they might be pulled in by custom Python processors
 microdnf install \
   git \
   python-pip
 
 microdnf clean all
 rm -rf /var/cache/yum
-
-pip install --no-cache-dir \
-    nipyapi==${NIPYAPI_VERSION}
 
 # For backwards compatibility we create a softlink in /bin where the jar used to be as long as we are root
 # This can be removed once older versions / operators using this are no longer supported
@@ -231,7 +259,6 @@ ln -s /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION} /stackable/
 
 # fix missing permissions / ownership
 chown --no-dereference ${STACKABLE_USER_UID}:0 /stackable/nifi
-chmod --recursive g=u /stackable/python
 chmod --recursive g=u /stackable/bin
 chmod g=u /stackable/nifi-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 chmod g=u /stackable/*-src.tar.gz
