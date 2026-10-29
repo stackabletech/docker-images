@@ -1,0 +1,25 @@
+From 1f03c768e00e80142bbdf8a73daffb6c61fccb5a Mon Sep 17 00:00:00 2001
+From: Malte Sander <malte.sander.it@gmail.com>
+Date: Tue, 25 Nov 2025 11:30:24 +0100
+Subject: Include logging dependencies
+
+---
+ standalone-metastore/pom.xml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
+index 00c967e546..1d69343b1d 100644
+--- a/standalone-metastore/pom.xml
++++ b/standalone-metastore/pom.xml
+@@ -676,6 +676,11 @@
+       <groupId>com.fasterxml.jackson.core</groupId>
+       <artifactId>jackson-databind</artifactId>
+     </dependency>
++    <dependency>
++      <!-- Optional log4j dependency to be able to use the XmlLayout -->
++      <groupId>com.fasterxml.jackson.dataformat</groupId>
++      <artifactId>jackson-dataformat-xml</artifactId>
++    </dependency>
+   </dependencies>
+   <build>
+     <pluginManagement>
