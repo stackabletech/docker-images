@@ -1,0 +1,100 @@
+From 5f93946bccf8c77d9aacf548f32a44ea151aaefc Mon Sep 17 00:00:00 2001
+From: exceptionfactory <exceptionfactory@apache.org>
+Date: Fri, 11 Sep 2026 11:09:10 -0500
+Subject: =?UTF-8?q?NIFI-15958=20Added=20progress=20logging=20for=20reposit?=
+ =?UTF-8?q?ory=20scanning=0AThis=20closes=20#11671?=
+
+---
+ .../provenance/store/WriteAheadStorePartition.java | 10 ++++++++++
+ .../repository/FileSystemRepository.java           | 14 ++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/WriteAheadStorePartition.java b/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/WriteAheadStorePartition.java
+index 1ccc25beb289d3056dc9d55e50eee372988e4ebc..a6dee4e4c1e43c6709aa824e275b0aaff95eec34 100644
+--- a/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/WriteAheadStorePartition.java
++++ b/nifi-framework-bundle/nifi-framework-extensions/nifi-provenance-repository-bundle/nifi-persistent-provenance-repository/src/main/java/org/apache/nifi/provenance/store/WriteAheadStorePartition.java
+@@ -57,6 +57,7 @@ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicLong;
+ import java.util.concurrent.atomic.AtomicReference;
+ import java.util.stream.Collectors;
+@@ -64,6 +65,7 @@ import java.util.stream.Stream;
+ 
+ public class WriteAheadStorePartition implements EventStorePartition {
+     private static final Logger logger = LoggerFactory.getLogger(WriteAheadStorePartition.class);
++    private static final int REINDEX_FILE_PROGRESS_LOG_INTERVAL = 25;
+ 
+     private final RepositoryConfiguration config;
+     private final File partitionDirectory;
+@@ -605,6 +607,8 @@ public class WriteAheadStorePartition implements EventStorePartition {
+         final ExecutorService executor = Executors.newFixedThreadPool(Math.min(4, eventFilesToReindex.size()), new NamedThreadFactory("Re-Index Provenance Events", true));
+         final List<Future<?>> futures = new ArrayList<>(eventFilesToReindex.size());
+         final AtomicLong reindexedCount = new AtomicLong(0L);
++        final AtomicInteger filesReindexed = new AtomicInteger(0);
++        final int totalFilesToReindex = eventFilesToReindex.size();
+ 
+         // Re-Index the last bunch of events.
+         // We don't use an Event Iterator here because it's possible that one of the event files could be corrupt (for example, if NiFi does while
+@@ -653,6 +657,12 @@ public class WriteAheadStorePartition implements EventStorePartition {
+                     logger.warn("Failed to find event with ID {} in Event File {}", minEventIdToReindex, eventFile, eof);
+                 } catch (final Exception e) {
+                     logger.error("Failed to index Provenance Events found in {}", eventFile, e);
++                } finally {
++                    final int filesCompleted = filesReindexed.incrementAndGet();
++                    if (filesCompleted == 1 || filesCompleted == totalFilesToReindex || filesCompleted % REINDEX_FILE_PROGRESS_LOG_INTERVAL == 0) {
++                        logger.info("Re-indexed {} of {} Files for Partition [{}] including {} Events",
++                                filesCompleted, totalFilesToReindex, partitionName, reindexedCount.get());
++                    }
+                 }
+             };
+ 
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
+index 15ec9e78cddf4adf493ffa7a82e4cfef7e2c15ac..336130e3814474f8f30462d1dace3ffb5b4179a7 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-core/src/main/java/org/apache/nifi/controller/repository/FileSystemRepository.java
+@@ -87,6 +87,7 @@ public class FileSystemRepository implements ContentRepository {
+     public static final long MIN_CLEANUP_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(1L);
+     public static final long DEFAULT_CLEANUP_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1L);
+     public static final String ARCHIVE_DIR_NAME = "archive";
++    private static final int ARCHIVE_SCAN_SECTION_LOG_INTERVAL = 256;
+     // 100 MB cap for the configurable NiFiProperties.MAX_APPENDABLE_CLAIM_SIZE property to prevent
+     // unnecessarily large resource claim files
+     public static final String APPENDABLE_CLAIM_LENGTH_CAP = "100 MB";
+@@ -313,7 +314,7 @@ public class FileSystemRepository implements ContentRepository {
+ 
+             // If the path didn't exist to begin with, there's no archive directory, so don't bother scanning.
+             if (pathExists) {
+-                futures.add(executor.submit(() -> scanArchiveDirectories(realPath.toFile(), containerState)));
++                futures.add(executor.submit(() -> scanArchiveDirectories(containerName, realPath.toFile(), containerState)));
+             }
+         }
+ 
+@@ -336,7 +337,8 @@ public class FileSystemRepository implements ContentRepository {
+         containers.putAll(realPathMap);
+     }
+ 
+-    private void scanArchiveDirectories(final File containerDir, final ContainerState containerState) {
++    private void scanArchiveDirectories(final String containerName, final File containerDir, final ContainerState containerState) {
++        long archivedFilesFound = 0L;
+         for (int i = 0; i < SECTIONS_PER_CONTAINER; i++) {
+             final File sectionDir = new File(containerDir, String.valueOf(i));
+             final File archiveDir = new File(sectionDir, ARCHIVE_DIR_NAME);
+@@ -350,7 +352,15 @@ public class FileSystemRepository implements ContentRepository {
+             }
+ 
+             containerState.incrementArchiveCount(filenames.length);
++            archivedFilesFound += filenames.length;
++
++            final int sectionsScanned = i + 1;
++            if (sectionsScanned % ARCHIVE_SCAN_SECTION_LOG_INTERVAL == 0 && sectionsScanned < SECTIONS_PER_CONTAINER) {
++                LOG.info("Scanned {} Sections for [{}] found {} Archived Files", sectionsScanned, containerName, archivedFilesFound);
++            }
+         }
++
++        LOG.info("Finished scanning {} Sections for [{}] found {} Archived Files", SECTIONS_PER_CONTAINER, containerName, archivedFilesFound);
+     }
+ 
+     // Visible for testing

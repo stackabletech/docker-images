@@ -1,4 +1,4 @@
-From 4863150986fcdcdd335c6c87d34de04f58aca7a3 Mon Sep 17 00:00:00 2001
+From 2fdf71b8cd45ec2ec0f6fec3a4fd1aa173e20ab1 Mon Sep 17 00:00:00 2001
 From: Nick Larsen <nick.larsen@stackable.tech>
 Date: Thu, 15 Oct 2026 13:36:39 +0200
 Subject: Remove Develocity Maven extension
@@ -19,7 +19,7 @@ instead of bumping it.
 
 diff --git a/.mvn/develocity.xml b/.mvn/develocity.xml
 deleted file mode 100644
-index f320f96953..0000000000
+index f320f96953a712dbd490b57906d014a90b320530..0000000000000000000000000000000000000000
 --- a/.mvn/develocity.xml
 +++ /dev/null
 @@ -1,47 +0,0 @@
@@ -72,7 +72,7 @@ index f320f96953..0000000000
 -</develocity>
 diff --git a/.mvn/extensions.xml b/.mvn/extensions.xml
 deleted file mode 100644
-index 3eddf27e9f..0000000000
+index 3eddf27e9f83028669ab4d4c6383c1a8c263b6dc..0000000000000000000000000000000000000000
 --- a/.mvn/extensions.xml
 +++ /dev/null
 @@ -1,34 +0,0 @@
