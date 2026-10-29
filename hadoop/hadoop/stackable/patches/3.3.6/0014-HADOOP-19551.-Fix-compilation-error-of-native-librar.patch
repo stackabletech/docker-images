@@ -1,0 +1,26 @@
+From 26af6e62c84f24ce7d81c5c27f5fcae0a4edfd2b Mon Sep 17 00:00:00 2001
+From: Masatake Iwasaki <iwasakims@apache.org>
+Date: Wed, 7 May 2025 15:01:01 +0900
+Subject: HADOOP-19551. Fix compilation error of native libraries on newer GCC.
+ (#7644)
+
+Reviewed-by: Chris Nauroth <cnauroth@apache.org>
+(cherry picked from commit 7ea3f51287c54ac563ef19d42c5bc102699ea025)
+---
+ hadoop-common-project/hadoop-common/HadoopCommon.cmake | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/hadoop-common-project/hadoop-common/HadoopCommon.cmake b/hadoop-common-project/hadoop-common/HadoopCommon.cmake
+index 4de70ac3f78e2de5128e1ac48b9c1a20f1f4d18b..ade701675ad79915d29258e4be9c23ca02be4ffa 100644
+--- a/hadoop-common-project/hadoop-common/HadoopCommon.cmake
++++ b/hadoop-common-project/hadoop-common/HadoopCommon.cmake
+@@ -145,6 +145,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+     # Make GNU extensions available.
+     hadoop_add_compiler_flags("-D_GNU_SOURCE")
+ 
++    # using old default behavior on GCC >= 14.0
++    hadoop_add_compiler_flags("-Wno-error=implicit-function-declaration")
++
+     # If JVM_ARCH_DATA_MODEL is 32, compile all binaries as 32-bit.
+     if(JVM_ARCH_DATA_MODEL EQUAL 32)
+         # Force 32-bit code generation on amd64/x86_64, ppc64, sparc64
