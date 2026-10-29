@@ -1,0 +1,112 @@
+From 6099a11bc5ccd6f8cd2be4eccb3d3736e41d72db Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Tue, 27 Oct 2026 16:12:48 +0100
+Subject: HADOOP-19872. Guard OpenSSL ENGINE code paths as a whole and update
+ RNG docs
+
+---
+ .../crypto/random/OpensslSecureRandom.java       |  9 ++++-----
+ .../hadoop/crypto/random/OpensslSecureRandom.c   | 16 ++++++++++------
+ .../random/org_apache_hadoop_crypto_random.h     |  2 ++
+ 3 files changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/random/OpensslSecureRandom.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/random/OpensslSecureRandom.java
+index b9f569d0c90780fee218258c0d1c34aa276d16d7..2d30b57e9d55893efb18b1bf7e3ed1b8dfdf48ca 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/random/OpensslSecureRandom.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/crypto/random/OpensslSecureRandom.java
+@@ -32,11 +32,10 @@ import org.slf4j.LoggerFactory;
+  * This implementation is thread-safe.
+  * <p>
+  * 
+- * If using an Intel chipset with RDRAND, the high-performance hardware 
+- * random number generator will be used and it's much faster than
+- * {@link java.security.SecureRandom}. If RDRAND is unavailable, default
+- * OpenSSL secure random generator will be used. It's still faster
+- * and can generate strong random bytes.
++ * When built against OpenSSL older than 3.0 on a CPU with RDRAND, the
++ * hardware random number generator is used through OpenSSL's RDRAND engine.
++ * Otherwise, including every build against OpenSSL 3.0 or later, OpenSSL's
++ * default secure random generator is used.
+  * <p>
+  * See https://wiki.openssl.org/index.php/Random_Numbers
+  * See http://en.wikipedia.org/wiki/RdRand
+diff --git a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/OpensslSecureRandom.c b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/OpensslSecureRandom.c
+index d4351c1a5d70da0a73cfb64f2937b4bd04dcd541..8fb88365f715ce95195c2596f21953177fab3219 100644
+--- a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/OpensslSecureRandom.c
++++ b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/OpensslSecureRandom.c
+@@ -90,8 +90,10 @@ static __dlsym_RAND_bytes dlsym_RAND_bytes;
+ static __dlsym_ERR_get_error dlsym_ERR_get_error;
+ #endif
+ 
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
+ static ENGINE * openssl_rand_init(void);
+ static void openssl_rand_clean(ENGINE *eng, int clean_locks);
++#endif
+ static int openssl_rand_bytes(unsigned char *buf, int num);
+ 
+ JNIEXPORT void JNICALL Java_org_apache_hadoop_crypto_random_OpensslSecureRandom_initSR
+@@ -170,7 +172,9 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_crypto_random_OpensslSecureRandom_
+                       env, openssl, "ERR_get_error");
+ #endif
+ 
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
+   openssl_rand_init();
++#endif
+ }
+ 
+ JNIEXPORT jboolean JNICALL Java_org_apache_hadoop_crypto_random_OpensslSecureRandom_nextRandBytes___3B
+@@ -307,12 +311,14 @@ static unsigned long pthreads_thread_id(void)
+ #endif /* UNIX */
+ 
+ /**
+- * If using an Intel chipset with RDRAND, the high-performance hardware
+- * random number generator will be used.
++ * Before OpenSSL 3.0, the RDRAND engine is made the default RAND method if
++ * the CPU supports it. OpenSSL 3.0 deprecates the ENGINE API and some
++ * distributions build without it, so from 3.0 on RAND_bytes uses OpenSSL's
++ * default DRBG.
+  */
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
+ static ENGINE * openssl_rand_init(void)
+ {
+-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+ #if OPENSSL_VERSION_NUMBER < 0x10100000L
+   locks_setup();
+   
+@@ -344,12 +350,10 @@ static ENGINE * openssl_rand_init(void)
+   }
+   
+   return eng;
+-#endif
+ }
+ 
+ static void openssl_rand_clean(ENGINE *eng, int clean_locks)
+ {
+-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+   if (NULL != eng) {
+     dlsym_ENGINE_finish(eng);
+     dlsym_ENGINE_free(eng);
+@@ -360,8 +364,8 @@ static void openssl_rand_clean(ENGINE *eng, int clean_locks)
+     locks_cleanup();
+   }
+ #endif
+-#endif
+ }
++#endif
+ 
+ static int openssl_rand_bytes(unsigned char *buf, int num)
+ {
+diff --git a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/org_apache_hadoop_crypto_random.h b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/org_apache_hadoop_crypto_random.h
+index 1200718e69f301408e4aae92ef4e331f82a70fb4..8e2eb94e6149f4b26fb00cde7ead5dc609859051 100644
+--- a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/org_apache_hadoop_crypto_random.h
++++ b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/random/org_apache_hadoop_crypto_random.h
+@@ -33,7 +33,9 @@
+ #define UNUSED(x) ((void)(x))
+ 
+ #include <openssl/crypto.h>
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
+ #include <openssl/engine.h>
++#endif
+ #include <openssl/rand.h>
+ #include <openssl/err.h>
+ 

@@ -1,0 +1,110 @@
+From c53b426246d05cefb425d1ddf1302508ea80f3a8 Mon Sep 17 00:00:00 2001
+From: Lars Francke <git@lars-francke.de>
+Date: Thu, 29 Oct 2026 11:34:54 +0100
+Subject: HADOOP-19872. Guard the cipher's ENGINE lookups with
+ OPENSSL_NO_ENGINE
+
+OpensslCipher still resolved ENGINE_by_id and ENGINE_free in initIDs.
+Against a libcrypto that exports neither, initIDs throws
+UnsatisfiedLinkError and the AES-CTR codec falls back to JCE with only a
+warning. It loads on RHEL 10 only because that libcrypto still exports
+the ENGINE symbols although its headers define OPENSSL_NO_ENGINE.
+
+The guard is OPENSSL_NO_ENGINE rather than the OpenSSL version, because
+OpenSSL 3 builds that keep ENGINE still honour
+hadoop.security.openssl.engine.id.
+
+Also fix the Windows lookup of ENGINE_free, which asked for
+"ENGINE_by_free".
+
+Generated-by: Claude (Anthropic)
+---
+ .../org/apache/hadoop/crypto/OpensslCipher.c   | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
+index 33be4a394f467cbffefba13d74d3cd8da5c7bb78..0c000f39050886eb8c2eedba850db2e3dc944b95 100644
+--- a/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
++++ b/hadoop-common-project/hadoop-common/src/main/native/src/org/apache/hadoop/crypto/OpensslCipher.c
+@@ -101,9 +101,11 @@ static EVP_CIPHER * (*dlsym_EVP_aes_128_ctr)(void);
+ static EVP_CIPHER * (*dlsym_EVP_sm4_ctr)(void);
+ static int (*dlsym_OPENSSL_init_crypto)(uint64_t opts, \
+             const OPENSSL_INIT_SETTINGS *settings);
++#ifndef OPENSSL_NO_ENGINE
+ static ENGINE * (*dlsym_ENGINE_by_id)(const char *id);
+ static int (*dlsym_ENGINE_free)(ENGINE *);
+ #endif
++#endif
+ static void *openssl;
+ #endif
+ 
+@@ -146,14 +148,16 @@ static __dlsym_EVP_aes_128_ctr dlsym_EVP_aes_128_ctr;
+ typedef EVP_CIPHER * (__cdecl *__dlsym_EVP_sm4_ctr)(void);
+ typedef int (__cdecl *__dlsym_OPENSSL_init_crypto)(uint64_t opts, \
+              const OPENSSL_INIT_SETTINGS *settings);
+-typedef ENGINE * (__cdecl *__dlsym_ENGINE_by_id)(const char *id);
+-typedef int (__cdecl *__dlsym_ENGINE_free)(ENGINE *e);
+ 
+ static __dlsym_EVP_sm4_ctr dlsym_EVP_sm4_ctr;
+ static __dlsym_OPENSSL_init_crypto dlsym_OPENSSL_init_crypto;
++#ifndef OPENSSL_NO_ENGINE
++typedef ENGINE * (__cdecl *__dlsym_ENGINE_by_id)(const char *id);
++typedef int (__cdecl *__dlsym_ENGINE_free)(ENGINE *e);
+ static __dlsym_ENGINE_by_id dlsym_ENGINE_by_id;
+ static __dlsym_ENGINE_free dlsym_ENGINE_free;
+ #endif
++#endif
+ static HMODULE openssl;
+ #endif
+ 
+@@ -244,12 +248,14 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_crypto_OpensslCipher_initIDs
+ #if OPENSSL_VERSION_NUMBER >= 0x10101001L
+   LOAD_DYNAMIC_SYMBOL(dlsym_OPENSSL_init_crypto, env, openssl,  \
+                       "OPENSSL_init_crypto");
++#ifndef OPENSSL_NO_ENGINE
+   LOAD_DYNAMIC_SYMBOL(dlsym_ENGINE_by_id, env, openssl,  \
+                       "ENGINE_by_id");
+   LOAD_DYNAMIC_SYMBOL(dlsym_ENGINE_free, env, openssl,  \
+                       "ENGINE_free");
+ #endif
+ #endif
++#endif
+ 
+ #ifdef WINDOWS
+   LOAD_DYNAMIC_SYMBOL(__dlsym_EVP_CIPHER_CTX_new, dlsym_EVP_CIPHER_CTX_new,  \
+@@ -284,10 +290,12 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_crypto_OpensslCipher_initIDs
+ #if OPENSSL_VERSION_NUMBER >= 0x10101001L
+   LOAD_DYNAMIC_SYMBOL(__dlsym_OPENSSL_init_crypto, dlsym_OPENSSL_init_crypto,  \
+                       env, openssl, "OPENSSL_init_crypto");
++#ifndef OPENSSL_NO_ENGINE
+   LOAD_DYNAMIC_SYMBOL(__dlsym_ENGINE_by_id, dlsym_ENGINE_by_id,  \
+                       env, openssl, "ENGINE_by_id");
+   LOAD_DYNAMIC_SYMBOL(__dlsym_ENGINE_free, dlsym_ENGINE_free,  \
+-                      env, openssl, "ENGINE_by_free");
++                      env, openssl, "ENGINE_free");
++#endif
+ #endif
+ #endif
+ 
+@@ -362,7 +370,7 @@ JNIEXPORT jlong JNICALL Java_org_apache_hadoop_crypto_OpensslCipher_initEngine
+ {
+   ENGINE *e = NULL;
+ 
+-#if OPENSSL_VERSION_NUMBER >= 0x10101001L
++#if OPENSSL_VERSION_NUMBER >= 0x10101001L && !defined(OPENSSL_NO_ENGINE)
+   if (engineId != NULL) {
+     const char *id = (*env)->GetStringUTFChars(env, engineId, NULL);
+     if (id != NULL) {
+@@ -574,10 +582,12 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_crypto_OpensslCipher_clean
+     dlsym_EVP_CIPHER_CTX_free(context);
+   }
+ 
++#if OPENSSL_VERSION_NUMBER >= 0x10101001L && !defined(OPENSSL_NO_ENGINE)
+   ENGINE *e = LONG_TO_ENGINE(engine);
+   if (e) {
+     dlsym_ENGINE_free(e);
+   }
++#endif
+ }
+ 
+ JNIEXPORT jstring JNICALL Java_org_apache_hadoop_crypto_OpensslCipher_getLibraryName
