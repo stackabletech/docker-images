@@ -40,6 +40,9 @@ RUN microdnf update && \
     tzdata-java \
     # Most of the Java tools needs at least "klist" and "kinit" for Kerberos integration
     krb5-workstation \
+    # Needed by `tar -z`, e.g. when hadoop unpacks async-profiler. UBI 9 pulled it in through krb5-workstation, UBI 10 does not.
+    # Added 2026-10 as gzip-1.13-4.el10_2, which includes the fixes for CVE-2026-41991 and CVE-2026-41992 (RHSA-2026:61625).
+    gzip \
     --nodocs && \
     microdnf clean all
 

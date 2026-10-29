@@ -33,7 +33,7 @@ EOF
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi10/ubi-minimal --format '{{json .Manifest.Digest}}'
 #
-FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:76c113359a458e3f04057762b5bd4a9837a6987520434dea158c728280116713 AS builder
+FROM registry.access.redhat.com/ubi10/ubi-minimal@sha256:ab67cd02caf8706e34a695a1432ebe965934f6128ec352a6c3f4048b43a4fb5e AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -150,7 +150,7 @@ chown ${STACKABLE_USER_UID}:0 /stackable/.curlrc
 # CVE-2023-37920: Remove "e-Tugra" root certificates
 # e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems
 # Until they are removed by default from ca-certificates, we should remove them manually
-EXPECTED_CERTS_PACKAGE="ca-certificates-2025.2.80_v9.0.305-102.el10_1.noarch"
+EXPECTED_CERTS_PACKAGE="ca-certificates-2026.2.92_v9.0.319-100.3.el10_2.noarch"
 ACTUAL_CERTS_PACKAGE="$(rpm -qa ca-certificates)"
 if [ "$ACTUAL_CERTS_PACKAGE" != "$EXPECTED_CERTS_PACKAGE" ]; then
   echo "The ca-certificates package was updated to $ACTUAL_CERTS_PACKAGE. Please check if the e-Tugra root certificates are present. \
