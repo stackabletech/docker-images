@@ -1,0 +1,61 @@
+From 4e739baadfd68b94abd45fe9e2df1c8bfa2bc880 Mon Sep 17 00:00:00 2001
+From: Kengo Seki <sekikn@apache.org>
+Date: Wed, 23 Apr 2025 00:12:22 +0900
+Subject: HDFS-17226. Building native libraries fails on Fedora 38. (#6191)
+
+(cherry picked from commit a47df85360bfebbb7dfd658630b7c66d982a49cf)
+---
+ .../src/main/native/libhdfspp/include/hdfspp/content_summary.h   | 1 +
+ .../src/main/native/libhdfspp/include/hdfspp/fsinfo.h            | 1 +
+ .../src/main/native/libhdfspp/include/hdfspp/statinfo.h          | 1 +
+ .../src/main/native/libhdfspp/include/hdfspp/uri.h               | 1 +
+ 4 files changed, 4 insertions(+)
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/content_summary.h b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/content_summary.h
+index 6762a65ca908b513a8fdea0a117a52835af126b7..d9809bab59291b6aec68b72dcba798606b5ad3ee 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/content_summary.h
++++ b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/content_summary.h
+@@ -19,6 +19,7 @@
+ #define HDFSPP_CONTENT_SUMMARY_H_
+ 
+ #include <string>
++#include <cstdint>
+ 
+ namespace hdfs {
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/fsinfo.h b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/fsinfo.h
+index 103cf133bec221e9450c38fbc33eec035d73e767..156ed445181a331760df3e245201df1ec84f5da5 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/fsinfo.h
++++ b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/fsinfo.h
+@@ -19,6 +19,7 @@
+ #define HDFSPP_FSINFO_H_
+ 
+ #include <string>
++#include <cstdint>
+ 
+ namespace hdfs {
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/statinfo.h b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/statinfo.h
+index 1da1f18a592bdcc6173443b6418694fdf8c1c361..5924d1db005870c5beb26a881db9a30702039e2d 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/statinfo.h
++++ b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/statinfo.h
+@@ -19,6 +19,7 @@
+ #define HDFSPP_STATINFO_H_
+ 
+ #include <string>
++#include <cstdint>
+ 
+ namespace hdfs {
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/uri.h b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/uri.h
+index bc3d8b96d3f66e7b8904d19f69a9006441f8f647..a7f735afb5dbc1c1bc7c80621d5cebc38ea95927 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/uri.h
++++ b/hadoop-hdfs-project/hadoop-hdfs-native-client/src/main/native/libhdfspp/include/hdfspp/uri.h
+@@ -22,6 +22,7 @@
+ #include <iostream>
+ #include <string>
+ #include <vector>
++#include <cstdint>
+ #include <stdexcept>
+ 
+ namespace hdfs
