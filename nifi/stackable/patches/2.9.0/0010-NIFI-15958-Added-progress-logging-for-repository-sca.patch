@@ -1,8 +1,7 @@
 From 5f93946bccf8c77d9aacf548f32a44ea151aaefc Mon Sep 17 00:00:00 2001
 From: exceptionfactory <exceptionfactory@apache.org>
 Date: Fri, 11 Sep 2026 11:09:10 -0500
-Subject: =?UTF-8?q?NIFI-15958=20Added=20progress=20logging=20for=20reposit?=
- =?UTF-8?q?ory=20scanning=0AThis=20closes=20#11671?=
+Subject: NIFI-15958 Added progress logging for repository scanning
 
 ---
  .../provenance/store/WriteAheadStorePartition.java | 10 ++++++++++
