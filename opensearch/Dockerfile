@@ -67,6 +67,7 @@ tar -xzf "artifacts/dist/opensearch-min-${PRODUCT_VERSION}-linux-${ARCH}.tar.gz"
 # (stackable/patches/<version>/0005-Scope-CycloneDX-SBOM-to-shipped-components-only.patch)
 # to include them in the shippedPlugins list, otherwise their dependencies will
 # be missing from the SBOM.
+unzip artifacts/core-plugins/repository-azure-${PRODUCT_VERSION}.zip -d /stackable/opensearch-${PRODUCT_VERSION}/plugins/repository-azure/
 unzip artifacts/core-plugins/repository-s3-${PRODUCT_VERSION}.zip -d /stackable/opensearch-${PRODUCT_VERSION}/plugins/repository-s3/
 mv /stackable/opensearch-${PRODUCT_VERSION}/plugins/repository-s3/config /stackable/opensearch-${PRODUCT_VERSION}/config/repository-s3
 unzip artifacts/core-plugins/telemetry-otel-${PRODUCT_VERSION}.zip -d /stackable/opensearch-${PRODUCT_VERSION}/plugins/telemetry-otel/

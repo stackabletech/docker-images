@@ -20,7 +20,7 @@ rules:
       app_id: "$1"
 
   # These come from the application driver
-  # Emulate timers for DAGScheduler like messagePRocessingTime
+  # Emulate timers for DAGScheduler like messageProcessingTime
   - pattern: "metrics<name=(.*)\\.driver\\.DAGScheduler\\.(.*), type=counters><>Count"
     name: spark_driver_DAGScheduler_$2_total
     type: COUNTER

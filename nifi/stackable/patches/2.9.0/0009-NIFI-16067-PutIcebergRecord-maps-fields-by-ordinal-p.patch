@@ -10,7 +10,7 @@ Subject: NIFI-16067 - PutIcebergRecord maps fields by ordinal position instead
  2 files changed, 101 insertions(+), 10 deletions(-)
 
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
-index ac98c06f37..273a362edf 100644
+index ac98c06f370547d7681f9191c51db3b416f7911e..273a362edf5a4f57eeb71e932b0e249097028b6d 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/main/java/org/apache/nifi/processors/iceberg/record/DelegatedRecord.java
 @@ -19,7 +19,6 @@ package org.apache.nifi.processors.iceberg.record;
@@ -67,7 +67,7 @@ index ac98c06f37..273a362edf 100644
  
      @Override
 diff --git a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/DelegatedRecordTest.java b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/DelegatedRecordTest.java
-index 7e43a5c444..e676bde331 100644
+index 7e43a5c444891de912de6392bc1a154232e8dd20..e676bde33148d6956e99de19c40e08a4190ba421 100644
 --- a/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/DelegatedRecordTest.java
 +++ b/nifi-extension-bundles/nifi-iceberg-bundle/nifi-iceberg-processors/src/test/java/org/apache/nifi/processors/iceberg/record/DelegatedRecordTest.java
 @@ -25,6 +25,7 @@ import org.apache.nifi.serialization.record.RecordFieldType;

@@ -113,7 +113,9 @@ apache-airflow-providers-asana==2.11.3
 apache-airflow-providers-atlassian-jira==3.3.3
 apache-airflow-providers-celery==3.20.0
 apache-airflow-providers-cloudant==4.3.4
-apache-airflow-providers-cncf-kubernetes==10.17.1
+# Stackable patch:
+# Bump from 10.17.1 to fix https://github.com/stackabletech/airflow-operator/issues/855
+apache-airflow-providers-cncf-kubernetes==10.18.0
 apache-airflow-providers-cohere==1.6.5
 apache-airflow-providers-common-ai==0.3.0
 apache-airflow-providers-common-compat==1.15.0
@@ -242,7 +244,7 @@ cachetools==7.1.4
 cadwyn==6.2.2
 cattrs==26.1.0
 celery==5.6.3
-certifi==2026.5.20
+certifi==2026.10.23
 cffi==2.0.0
 chardet==6.0.0.post1
 charset-normalizer==3.4.7
@@ -658,7 +660,7 @@ universal_pathlib==0.3.10
 uritemplate==4.2.0
 urllib3==2.7.0
 uuid6==2025.0.1
-uv==0.11.16
+uv==0.13.4
 uvicorn==0.47.0
 uvloop==0.22.1
 validators==0.35.0

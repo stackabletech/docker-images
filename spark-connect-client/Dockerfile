@@ -5,6 +5,10 @@ FROM local-image/spark-k8s AS spark-builder
 
 ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
+ARG JUPYTERLAB_VERSION
+ARG SCIKIT_LEARN_VERSION
+ARG MATPLOTLIB_VERSION
+ARG PYARROW_MAX_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
@@ -43,8 +47,15 @@ USER ${STACKABLE_USER_UID}
 # - jupyterlab = notebook client used in demos
 RUN pip install --no-cache-dir --user \
   "pyspark[connect]==${PRODUCT_VERSION}" \
-  "jupyterlab==4.4.1" \
-  "scikit-learn==1.3.1" \
-  "matplotlib==3.10.1"
+  "pyarrow<${PYARROW_MAX_VERSION}" \
+  "jupyterlab==${JUPYTERLAB_VERSION}" \
+  "scikit-learn==${SCIKIT_LEARN_VERSION}" \
+  "matplotlib==${MATPLOTLIB_VERSION}"
+
+# grpcio uses its own bundled roots.pem instead of the system trust store.
+# Point it to the system trust store, so it does not trust the compromised
+# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# See https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /stackable

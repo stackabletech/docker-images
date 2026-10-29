@@ -1,4 +1,4 @@
-From da1488197ea92be58b0daffa30e442d93ed2e5f4 Mon Sep 17 00:00:00 2001
+From f02d4dca13a435458798f6b62032ff1eb6036034 Mon Sep 17 00:00:00 2001
 From: Siegfried Weber <mail@siegfriedweber.net>
 Date: Wed, 6 Aug 2025 13:12:12 +0200
 Subject: Use the Nexus Build Repo
@@ -17,7 +17,7 @@ Subject: Use the Nexus Build Repo
  10 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index 94e3baecf2a..b2e07494fbb 100644
+index 94e3baecf2a309f7630aef53ea704428333879c1..b2e07494fbb70f4d867e9bef866d8041ff843551 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
 @@ -94,7 +94,9 @@ tasks.withType(JavaCompile).configureEach {
@@ -32,7 +32,7 @@ index 94e3baecf2a..b2e07494fbb 100644
  }
  
 diff --git a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
-index fb61bbded5e..85df5b10c4a 100644
+index fb61bbded5e09016d2ed8d937b161299d35a0950..85df5b10c4a8c38c98233af3517ae2e44858a7f6 100644
 --- a/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
 +++ b/buildSrc/src/integTest/groovy/org/opensearch/gradle/OpenSearchTestBasePluginFuncTest.groovy
 @@ -53,7 +53,9 @@ class OpenSearchTestBasePluginFuncTest extends AbstractGradleFuncTest {
@@ -47,7 +47,7 @@ index fb61bbded5e..85df5b10c4a 100644
  
              dependencies {
 diff --git a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
-index 0c901b97269..8a4e8c9c53a 100644
+index 0c901b9726992da8a8ba0a933222f09ed1c4b796..8a4e8c9c53a52178871ca47acea673efcc9d4660 100644
 --- a/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
 +++ b/buildSrc/src/main/java/org/opensearch/gradle/RepositoriesSetupPlugin.java
 @@ -82,7 +82,7 @@ public class RepositoriesSetupPlugin implements Plugin<Project> {
@@ -60,7 +60,7 @@ index 0c901b97269..8a4e8c9c53a 100644
          String luceneVersion = VersionProperties.getLucene();
          if (luceneVersion.contains("-snapshot")) {
 diff --git a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
-index ebcf758f578..af8ce7143ff 100644
+index ebcf758f578d8ddff502a89102631c9a5c8a3704..af8ce7143ffd0be771175219396566b7847551d5 100644
 --- a/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
 +++ b/buildSrc/src/test/resources/plugin/optional-dependencies.gradle
 @@ -18,7 +18,9 @@ group = "org.custom.group"
@@ -75,7 +75,7 @@ index ebcf758f578..af8ce7143ff 100644
  
  dependencies {
 diff --git a/buildSrc/src/testKit/opensearch.build/build.gradle b/buildSrc/src/testKit/opensearch.build/build.gradle
-index a0093eb1d2c..8267594fb64 100644
+index a0093eb1d2cd1cf11ef4b94b4b61fed69f423b70..8267594fb642aaca74d48b079be9a5b9a052a16d 100644
 --- a/buildSrc/src/testKit/opensearch.build/build.gradle
 +++ b/buildSrc/src/testKit/opensearch.build/build.gradle
 @@ -39,7 +39,9 @@ repositories {
@@ -101,7 +101,7 @@ index a0093eb1d2c..8267594fb64 100644
  
  // todo remove offending rules
 diff --git a/buildSrc/src/testKit/testingConventions/build.gradle b/buildSrc/src/testKit/testingConventions/build.gradle
-index afd3f06a4ed..cb5a8154303 100644
+index afd3f06a4ed68be10c0e0eab95a7bedf7d74a41d..cb5a8154303e0ac2033a7f7e83a6b48230c0bda6 100644
 --- a/buildSrc/src/testKit/testingConventions/build.gradle
 +++ b/buildSrc/src/testKit/testingConventions/build.gradle
 @@ -18,7 +18,9 @@ allprojects {
@@ -116,7 +116,7 @@ index afd3f06a4ed..cb5a8154303 100644
    dependencies {
      testImplementation "junit:junit:${versions.junit}"
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
-index caaaa6bd1ac..e9a107cf125 100644
+index caaaa6bd1aceb6b9f33c7f7ce4dc5f0dbb6b4eb0..e9a107cf12591591ce15224c0a1b6c3acc88d633 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/build.gradle
 +++ b/buildSrc/src/testKit/thirdPartyAudit/build.gradle
 @@ -36,7 +36,9 @@ repositories {
@@ -131,7 +131,7 @@ index caaaa6bd1ac..e9a107cf125 100644
  
  dependencies {
 diff --git a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
-index 6c6ff235582..04f58363b75 100644
+index 6c6ff235582ede1c9a1663836c860557f0d20cf1..04f58363b75e433a271a72f12f2c75cff67e41ff 100644
 --- a/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 +++ b/buildSrc/src/testKit/thirdPartyAudit/sample_jars/build.gradle
 @@ -13,7 +13,9 @@ plugins {
@@ -146,7 +146,7 @@ index 6c6ff235582..04f58363b75 100644
  
  dependencies {
 diff --git a/doc-tools/build.gradle b/doc-tools/build.gradle
-index 9639c7d7048..3bd6ed063ba 100644
+index 9639c7d7048d6217c916ab7b46d34b2c3e87b233..3bd6ed063ba7dc0b8960d99efb74c5ccec21e027 100644
 --- a/doc-tools/build.gradle
 +++ b/doc-tools/build.gradle
 @@ -8,5 +8,7 @@ base {
@@ -159,7 +159,7 @@ index 9639c7d7048..3bd6ed063ba 100644
 +    }
  }
 diff --git a/gradle/code-coverage.gradle b/gradle/code-coverage.gradle
-index 11a8a1253e1..8ae530d4773 100644
+index 11a8a1253e1d1f23f8564a3cf26203c50002a189..8ae530d4773eb5787a6d248770bc75cbec6a0d40 100644
 --- a/gradle/code-coverage.gradle
 +++ b/gradle/code-coverage.gradle
 @@ -9,7 +9,9 @@

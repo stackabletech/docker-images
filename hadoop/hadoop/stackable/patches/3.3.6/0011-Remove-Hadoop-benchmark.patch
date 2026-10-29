@@ -8,7 +8,7 @@ Subject: Remove Hadoop benchmark
  1 file changed, 1 deletion(-)
 
 diff --git a/hadoop-tools/pom.xml b/hadoop-tools/pom.xml
-index 88b3da867b..08811db902 100644
+index 88b3da867b5d39e03c742353b1ac33418ec71683..08811db902d778bac51e15ea84de4ac772022889 100644
 --- a/hadoop-tools/pom.xml
 +++ b/hadoop-tools/pom.xml
 @@ -50,7 +50,6 @@

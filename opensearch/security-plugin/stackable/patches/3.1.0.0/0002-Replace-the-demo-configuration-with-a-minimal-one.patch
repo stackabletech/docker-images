@@ -18,7 +18,7 @@ Subject: Replace the demo configuration with a minimal one
  delete mode 100644 config/opensearch.yml.example
 
 diff --git a/config/action_groups.yml b/config/action_groups.yml
-index 7c40612b..43f33f62 100644
+index 7c40612b83635513bf38841bf0b443ddfca97a41..43f33f62e9b21f0bdb65a2b7479407ea4bf50386 100644
 --- a/config/action_groups.yml
 +++ b/config/action_groups.yml
 @@ -1,3 +1,4 @@
@@ -28,7 +28,7 @@ index 7c40612b..43f33f62 100644
 +  type: actiongroups
    config_version: 2
 diff --git a/config/allowlist.yml b/config/allowlist.yml
-index e669557d..f7f1bfb1 100644
+index e669557d7ee90ef5f107e8c325c6b05e8072f3d1..f7f1bfb1f0d1f1055959fc1d156321149fc3b5b9 100644
 --- a/config/allowlist.yml
 +++ b/config/allowlist.yml
 @@ -1,69 +1,7 @@
@@ -103,7 +103,7 @@ index e669557d..f7f1bfb1 100644
 -    /_cat/nodes:
 -      - GET
 diff --git a/config/audit.yml b/config/audit.yml
-index dcfbad8d..9033c5a6 100644
+index dcfbad8dd7fe2d9a939af0af1d49d436540fb55f..9033c5a6d4424da368a41cc9278a1d062ea6d1eb 100644
 --- a/config/audit.yml
 +++ b/config/audit.yml
 @@ -1,85 +1,7 @@
@@ -196,7 +196,7 @@ index dcfbad8d..9033c5a6 100644
 -      - kibanaserver
 +  enabled: false
 diff --git a/config/config.yml b/config/config.yml
-index 1493a0d7..a3a46ef2 100644
+index 1493a0d7f17a6f237f425db7066cf8c6c5788a08..a3a46ef25b8939ecebcafdcd2087f482eddbe939 100644
 --- a/config/config.yml
 +++ b/config/config.yml
 @@ -1,250 +1,10 @@
@@ -455,7 +455,7 @@ index 1493a0d7..a3a46ef2 100644
 +    authc: {}
 +    authz: {}
 diff --git a/config/internal_users.yml b/config/internal_users.yml
-index f4d31e52..8ea240e0 100644
+index f4d31e52c6d3e22be4a6ea58ce608762165e0345..8ea240e0f700bd74b7f46af103db14fefc32fa10 100644
 --- a/config/internal_users.yml
 +++ b/config/internal_users.yml
 @@ -1,63 +1,4 @@
@@ -524,7 +524,7 @@ index f4d31e52..8ea240e0 100644
 -  - "snapshotrestore"
 -  description: "Demo snapshotrestore user, using external role mapping"
 diff --git a/config/nodes_dn.yml b/config/nodes_dn.yml
-index 7f8304cf..2cbb0b7e 100644
+index 7f8304cf0db0a606149bb3165eb0c7eed3893c5e..2cbb0b7e2e175cf1bec54610ecf2252b4b014d1d 100644
 --- a/config/nodes_dn.yml
 +++ b/config/nodes_dn.yml
 @@ -1,8 +1,4 @@
@@ -540,7 +540,7 @@ index 7f8304cf..2cbb0b7e 100644
 -#       - CN=*.example.com
 diff --git a/config/opensearch.yml.example b/config/opensearch.yml.example
 deleted file mode 100644
-index d02a2544..00000000
+index d02a2544410c733ac0436974a83509ea84290490..0000000000000000000000000000000000000000
 --- a/config/opensearch.yml.example
 +++ /dev/null
 @@ -1,228 +0,0 @@
@@ -773,7 +773,7 @@ index d02a2544..00000000
 -# Specify a list of indices to mark as system. These indices will only be visible / mutable by members of the above setting, in addition to needing permission to the index via a normal role.
 -# plugins.security.system_indices.indices: ['.opendistro-alerting-config', '.opendistro-ism-*', '.opendistro-reports-*', '.opensearch-notifications-*', '.opensearch-notebooks', '.opensearch-observability', '.opendistro-asynchronous-search-response*', '.replication-metadata-store']
 diff --git a/config/roles.yml b/config/roles.yml
-index c65e2a83..5f8152a3 100644
+index c65e2a833a8438e9f5a08088db8e9de2177c5f5c..5f8152a3b6c29fc3eb8cd31de27a7a3a6d6d7f26 100644
 --- a/config/roles.yml
 +++ b/config/roles.yml
 @@ -1,538 +1,4 @@
@@ -1318,7 +1318,7 @@ index c65e2a83..5f8152a3 100644
 -        - 'indices:data/write*'
 -        - 'indices_monitor'
 diff --git a/config/roles_mapping.yml b/config/roles_mapping.yml
-index 89f46bf2..22a1f231 100644
+index 89f46bf2602f0bf4028b7d1c978c1d492c5223db..22a1f23162b54c4ef4311eb283dff84f085cb84d 100644
 --- a/config/roles_mapping.yml
 +++ b/config/roles_mapping.yml
 @@ -1,49 +1,4 @@
@@ -1373,7 +1373,7 @@ index 89f46bf2..22a1f231 100644
 -  users:
 -  - "kibanaserver"
 diff --git a/config/tenants.yml b/config/tenants.yml
-index 04104dce..d98bd71d 100644
+index 04104dce00de58fa5b08c4724299dba20c16580e..d98bd71d8f9b8c001bf3075b935d613b241ce75d 100644
 --- a/config/tenants.yml
 +++ b/config/tenants.yml
 @@ -1,11 +1,4 @@

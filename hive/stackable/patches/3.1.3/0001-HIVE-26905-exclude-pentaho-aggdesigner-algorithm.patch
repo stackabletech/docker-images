@@ -9,7 +9,7 @@ Backport HIVE-25173 to 3.2.0: Exclude pentaho-aggdesigner-algorithm from upgrade
  1 file changed, 6 insertions(+)
 
 diff --git a/upgrade-acid/pom.xml b/upgrade-acid/pom.xml
-index f95117e07d..b25b332b34 100644
+index f95117e07d1738302ad348eff4d0f6906dc579b8..b25b332b34bbd8f50beabec99d16e99fe201665b 100644
 --- a/upgrade-acid/pom.xml
 +++ b/upgrade-acid/pom.xml
 @@ -80,6 +80,12 @@

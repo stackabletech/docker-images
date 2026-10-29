@@ -8,7 +8,7 @@ Subject: Gets rid of a warning during build
  1 file changed, 5 deletions(-)
 
 diff --git a/serde/pom.xml b/serde/pom.xml
-index c2f9de16fe..69f284aa00 100644
+index c2f9de16fecf73245da1cd79793ef45ab34d41b9..69f284aa00e06828cc19a945c8ec42d0a4366086 100644
 --- a/serde/pom.xml
 +++ b/serde/pom.xml
 @@ -70,11 +70,6 @@

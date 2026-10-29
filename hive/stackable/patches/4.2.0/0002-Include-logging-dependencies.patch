@@ -8,7 +8,7 @@ Subject: Include logging dependencies
  1 file changed, 5 insertions(+)
 
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 0bf9d09c0b..40bd4fcd83 100644
+index 0bf9d09c0b0933f00dfe18f104ddae0eef92d12d..40bd4fcd83a9c5fdd586b80abcaf357a1fd73b5c 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -582,6 +582,11 @@

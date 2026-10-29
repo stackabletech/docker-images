@@ -1,0 +1,42 @@
+From 6a1f99aa331edc8dfe762c4567dec5f83d849111 Mon Sep 17 00:00:00 2001
+From: Andrew Kenworthy <andrew.kenworthy@stackable.tech>
+Date: Wed, 14 Oct 2026 12:58:25 +0200
+Subject: Declare junit before the HBase test jars so the real JUnit 4 Assert
+ wins
+
+---
+ phoenix-core/pom.xml | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/phoenix-core/pom.xml b/phoenix-core/pom.xml
+index 094ea5d3a6387b67ca07c4dbdef4fbaee90cd01e..eaa0d89a28ae2df4da3d226598dbbae5c09fdeac 100644
+--- a/phoenix-core/pom.xml
++++ b/phoenix-core/pom.xml
+@@ -202,6 +202,15 @@
+       <scope>test</scope>
+     </dependency>
+ 
++    <!-- JUnit 4 must precede the HBase test jars on the classpath: the hbase-common test jar
++         from HBase 2.6.7 contains a JUnit 4 shim org.junit.Assert (HBASE-30200) that lacks
++         assertThrows and the boolean[] assertArrayEquals overload. -->
++    <dependency>
++      <groupId>junit</groupId>
++      <artifactId>junit</artifactId>
++      <scope>test</scope>
++    </dependency>
++
+     <!-- HBase test dependencies -->
+     <dependency>
+       <groupId>org.apache.hbase</groupId>
+@@ -330,11 +339,6 @@
+       <artifactId>HdrHistogram</artifactId>
+       <scope>test</scope>
+     </dependency>
+-    <dependency>
+-      <groupId>junit</groupId>
+-      <artifactId>junit</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+     <dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-core</artifactId>

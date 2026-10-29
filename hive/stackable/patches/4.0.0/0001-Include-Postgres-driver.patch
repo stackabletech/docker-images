@@ -9,7 +9,7 @@ Subject: Include Postgres driver
  2 files changed, 2 deletions(-)
 
 diff --git a/standalone-metastore/metastore-server/pom.xml b/standalone-metastore/metastore-server/pom.xml
-index a8f680928c..7102f1b5ca 100644
+index a8f680928c611d0ae1d212eadacb2a6e2667c5cc..7102f1b5ca1b9613a9ec7362f4aa48210cf21b30 100644
 --- a/standalone-metastore/metastore-server/pom.xml
 +++ b/standalone-metastore/metastore-server/pom.xml
 @@ -334,7 +334,6 @@
@@ -21,7 +21,7 @@ index a8f680928c..7102f1b5ca 100644
      <dependency>
        <groupId>org.eclipse.jetty</groupId>
 diff --git a/standalone-metastore/pom.xml b/standalone-metastore/pom.xml
-index 28ac5ceb65..e3cbd821bd 100644
+index 28ac5ceb65f5671ed68b4fc8ab252660e464aaf4..e3cbd821bd46352a3f429decf2739c1aa8939d20 100644
 --- a/standalone-metastore/pom.xml
 +++ b/standalone-metastore/pom.xml
 @@ -397,7 +397,6 @@

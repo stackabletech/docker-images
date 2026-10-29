@@ -11,7 +11,7 @@ Subject: Allow-overriding-datanode-registration-addresses
  4 files changed, 135 insertions(+), 22 deletions(-)
 
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
-index f92a2ad565..25bcd438c7 100755
+index f92a2ad56581b9e4fd5344d5fa056faa205ff715..25bcd438c7f520ba88965db2749e75a626f25a69 100755
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSConfigKeys.java
 @@ -152,6 +152,13 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
@@ -38,7 +38,7 @@ index f92a2ad565..25bcd438c7 100755
    public static final boolean DFS_NAMENODE_DATANODE_REGISTRATION_IP_HOSTNAME_CHECK_DEFAULT = true;
  
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
-index ebd2fa992e..c56f254478 100644
+index ebd2fa992e97668da418cade50cf364823458ddc..c56f254478bd6b6ea119e539936cfd62227e866e 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
 @@ -181,6 +181,8 @@ public class DatanodeManager {
@@ -110,7 +110,7 @@ index ebd2fa992e..c56f254478 100644
        // it will be disallowed from registering. 
        if (!hostConfigManager.isIncluded(nodeReg)) {
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
-index 21b92db307..5d3437239c 100644
+index 21b92db3073a1fd49e3b50c6395955936a55d8fd..5d3437239ce682314b89357776f5e6414ae0bbe1 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DNConf.java
 @@ -101,6 +101,11 @@ public class DNConf {
@@ -205,7 +205,7 @@ index 21b92db307..5d3437239c 100644
     * Returns socket timeout
     * 
 diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
-index 956f5bbe51..22ae127d98 100644
+index 956f5bbe519d4b69f67b5071c522575951c8a474..22ae127d98d0f61149ee746a9a68cd18a69291f6 100644
 --- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataNode.java
 @@ -135,6 +135,7 @@ import java.util.HashSet;

@@ -8,6 +8,8 @@ ARG ASYNC_PROFILER_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+# Value for -Dhadoop.profile; leave empty to omit the flag (required for HBase 3.x)
+ARG HADOOP_PROFILE
 ARG TARGETARCH
 ARG TARGETOS
 ARG STACKABLE_USER_UID
@@ -32,7 +34,10 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 
 microdnf update
 microdnf install python3
@@ -67,10 +72,10 @@ cd "$(/stackable/patchable --images-repo-root=src checkout hbase/hbase ${PRODUCT
 # Make Maven aware of custom Stackable libraries
 cp -r /stackable/patched-libs/maven/* /stackable/.m2/repository
 
-ORIGINAL_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+ORIGINAL_VERSION=$(mvn "org.apache.maven.plugins:maven-help-plugin:${HELP_MAVEN_PLUGIN_VERSION}:evaluate" -Dexpression=project.version -q -DforceStdout)
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/hbase-${NEW_VERSION}-src.tar.gz .
@@ -79,13 +84,13 @@ tar -czf /stackable/hbase-${NEW_VERSION}-src.tar.gz .
 # I chose to replicate that exact behavior for consistency so please don't merge the two mvn runs into one unless you really know what you're doing!
 # Cannot skip building tests here because the assembly plugin needs a shell script from the test directory.
 mvn \
-  -Dhadoop.profile=3.0 \
+  ${HADOOP_PROFILE:+-Dhadoop.profile=${HADOOP_PROFILE}} \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   clean install
 
 mvn \
-  -Dhadoop.profile=3.0 \
+  ${HADOOP_PROFILE:+-Dhadoop.profile=${HADOOP_PROFILE}} \
   -Dhadoop-three.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
   -DskipTests \
   -Dcheckstyle.skip=true \

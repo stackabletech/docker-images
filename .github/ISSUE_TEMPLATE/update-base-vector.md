@@ -38,8 +38,9 @@ Add/Change/Remove anything that isn't applicable anymore
 - [ ] Update all `boil-config.toml` files which reference vector.
 - [ ] Add any patches required for this version (delete patches for removed versions).
 - [ ] Update other dependencies if applicable (eg: inotify_tools, etc).
-- [ ] Check other operators (getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
+- [ ] Check operators (tests / getting_started / kuttl / supported-versions) for usage of the versions. Add the PR(s) to the list below.
 - [ ] Update the version in demos. Add the PR(s) to the list below.
+- [ ] Update the version used by Jenkins in the `ci` repository.
 
 ## Related Pull Requests
 
@@ -51,7 +52,7 @@ Add/Change/Remove anything that isn't applicable anymore
 - _Link to the operator PR (getting_started / kuttl / supported-versions)_
 - _Link to any other operator PRs (getting_started / kuttl)_
 - _Link to demo PR (raise against the `main` branch)_
-- _Link to the Release Notes PR in the documentation repo (if not a comment below)_
+- _Link to ci PR_
 
 ## Acceptance
 
@@ -61,7 +62,6 @@ Add/Change/Remove anything that isn't applicable anymore
 
 - [ ] Can build image (either locally, or in CI)
 - [ ] All kuttl tests pass (either locally, or in CI)
-- [ ] Release notes added to documentation and linked as a PR above
 - [ ] Release notes written in a comment below
 - [ ] Applicable `release-note` label added to this issue
 

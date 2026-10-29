@@ -81,12 +81,15 @@ tar -czf /stackable/vector-${NEW_VERSION}-src.tar.gz .
 #   - console/blackhole: Useful for debugging and are "cheap"
 # Other:
 #   - api: Needed for /health checks (or /graphql queries)
-#   - unix: Enables jemalloc allocator on Linux for better performance
+#   - tikv-jemallocator: Enables jemalloc allocator on Linux for better performance
 # cargo-cyclonedx does not split the feature list on newlines, so it has to be a single line
 # to be usable for both the build and the SBOM generation below.
-VECTOR_FEATURES="sources-file,sources-internal_logs,transforms-remap,transforms-filter,transforms-route,sinks-vector,sinks-opentelemetry,sinks-console,sinks-blackhole,api,unix"
+VECTOR_FEATURES="sources-file,sources-internal_logs,transforms-remap,transforms-filter,transforms-route,sinks-vector,sinks-opentelemetry,sinks-console,sinks-blackhole,api,tikv-jemallocator"
 
-cargo auditable --quiet build --release --no-default-features --features "${VECTOR_FEATURES}"
+# --locked makes the build fail instead of silently updating Cargo.lock. Without it a
+# dependency could resolve to a newer version than the one upstream locked, which would
+# make the build non-reproducible and bypass the checksums recorded in Cargo.lock.
+cargo auditable --quiet build --locked --release --no-default-features --features "${VECTOR_FEATURES}"
 
 # Generate SBOMs and copy them to /app (via a script)
 # The feature flags must be the same as for the build above. Without them cargo-cyclonedx
@@ -123,6 +126,7 @@ ARG STACKABLE_USER_UID
 LABEL maintainer="Stackable GmbH"
 
 COPY --chown=${STACKABLE_USER_UID}:0 vector/licenses /licenses
+COPY --chown=${STACKABLE_USER_UID}:0 vector/stackable/bin /stackable/bin
 COPY --from=vector-builder --chown=${STACKABLE_USER_UID}:0 /app/* /usr/local/bin/
 
 # Init Jobs/Pods often start a Vector Sidecar Container which collects the logs.

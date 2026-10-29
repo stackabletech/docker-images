@@ -10,7 +10,7 @@ again. So, instead we just skip the compression step entirely.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/distribution/src/assembly/assembly.xml b/distribution/src/assembly/assembly.xml
-index 2b510ea85d..0fe10032ca 100644
+index 2b510ea85dd9ed3c82828d84840e84045b5fdc40..0fe10032cad5b4078f7248db1c2671467324d020 100644
 --- a/distribution/src/assembly/assembly.xml
 +++ b/distribution/src/assembly/assembly.xml
 @@ -23,7 +23,7 @@

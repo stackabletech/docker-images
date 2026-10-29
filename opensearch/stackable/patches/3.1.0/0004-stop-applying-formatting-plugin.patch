@@ -10,7 +10,7 @@ Subject: stop applying formatting plugin
  3 files changed, 17 deletions(-)
 
 diff --git a/benchmarks/build.gradle b/benchmarks/build.gradle
-index 732e77934b4..47a7c1b1066 100644
+index 732e77934b42792722bc5577353eaa967c61acd4..47a7c1b1066c2c94ce0ac6f48b5f0d157a66a3f2 100644
 --- a/benchmarks/build.gradle
 +++ b/benchmarks/build.gradle
 @@ -76,14 +76,5 @@ thirdPartyAudit.ignoreViolations(
@@ -29,7 +29,7 @@ index 732e77934b4..47a7c1b1066 100644
  // Add support for incubator modules on supported Java versions.
  run.jvmArgs += ['--add-modules=jdk.incubator.vector']
 diff --git a/build.gradle b/build.gradle
-index 7975584f690..78a15b418e7 100644
+index 7975584f690474635c33d15d76095a60c15e9ea2..78a15b418e7a3fc7d671234e2187f9b7239067fd 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -65,7 +65,6 @@ apply from: 'gradle/build-complete.gradle'
@@ -41,7 +41,7 @@ index 7975584f690..78a15b418e7 100644
  apply from: 'gradle/run.gradle'
  apply from: 'gradle/missing-javadoc.gradle'
 diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
-index 1d05464d0ee..0659d0a3369 100644
+index 1d05464d0ee87095be558d0cd5f6f6c22e2f43c3..0659d0a3369e5140d6c0550fc3c1938bb98236de 100644
 --- a/plugins/arrow-flight-rpc/build.gradle
 +++ b/plugins/arrow-flight-rpc/build.gradle
 @@ -93,13 +93,6 @@ internalClusterTest {

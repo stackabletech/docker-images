@@ -1,23 +1,42 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "stackable" }
 
-[versions."3.5.8".local-images]
-spark-k8s = "3.5.8"
-java-base = "17"
-
-[versions."3.5.8".build-arguments]
-python-version = "3.11"
-
-[versions."4.1.1".local-images]
-spark-k8s = "4.1.1"
-java-base = "21"
-
-[versions."4.1.1".build-arguments]
-python-version = "3.12"
-
 [versions."4.1.2".local-images]
 spark-k8s = "4.1.2"
 java-base = "21"
 
 [versions."4.1.2".build-arguments]
 python-version = "3.12"
+jupyterlab-version = "4.4.1"
+scikit-learn-version = "1.3.1"
+matplotlib-version = "3.10.1"
+pyarrow-max-version = "26"
+
+[versions."4.1.3".local-images]
+spark-k8s = "4.1.3"
+java-base = "21"
+
+[versions."4.1.3".build-arguments]
+python-version = "3.12"
+jupyterlab-version = "4.4.1"
+scikit-learn-version = "1.3.1"
+matplotlib-version = "3.10.1"
+pyarrow-max-version = "26"
+
+[versions."4.2.0".local-images]
+spark-k8s = "4.2.0"
+java-base = "21"
+
+# Use this command to fetch the latest versions of these dependencies:
+#
+# printf 'pyspark[connect]==4.2.0\njupyterlab\nscikit-learn\nmatplotlib\npyarrow\n' \
+#   | uv pip compile - --python-version 3.14 --no-header --no-annotate \
+#   | grep -iE '^(pyspark|jupyterlab|scikit-learn|matplotlib|pyarrow|numpy|pandas)=='
+#
+# Change the pyspark[connect] version accordingly.
+[versions."4.2.0".build-arguments]
+python-version = "3.14"
+jupyterlab-version = "4.6.4"
+scikit-learn-version = "1.9.1"
+matplotlib-version = "3.11.2"
+pyarrow-max-version = "27"

@@ -1,4 +1,4 @@
-From 52b4fd3f084400a89f4e9acfc62caa2941356809 Mon Sep 17 00:00:00 2001
+From a471e40a574b1cdb5d6b4227b12fa6877955dcc2 Mon Sep 17 00:00:00 2001
 From: Benedikt Labrenz <benedikt@labrenz.org>
 Date: Tue, 2 Sep 2025 12:01:22 +0200
 Subject: stop applying formatting plugin
@@ -11,7 +11,7 @@ Subject: stop applying formatting plugin
  4 files changed, 21 deletions(-)
 
 diff --git a/benchmarks/build.gradle b/benchmarks/build.gradle
-index 732e77934b4..47a7c1b1066 100644
+index 732e77934b42792722bc5577353eaa967c61acd4..47a7c1b1066c2c94ce0ac6f48b5f0d157a66a3f2 100644
 --- a/benchmarks/build.gradle
 +++ b/benchmarks/build.gradle
 @@ -76,14 +76,5 @@ thirdPartyAudit.ignoreViolations(
@@ -30,7 +30,7 @@ index 732e77934b4..47a7c1b1066 100644
  // Add support for incubator modules on supported Java versions.
  run.jvmArgs += ['--add-modules=jdk.incubator.vector']
 diff --git a/build.gradle b/build.gradle
-index dc520b0acf6..9c6f1475781 100644
+index 399af9f0625909dfe6b99f39d0254e63a47a4eea..a86e4557f12ed9e8e3699baf5b34979db6056ec8 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -66,7 +66,6 @@ apply from: 'gradle/build-complete.gradle'
@@ -42,7 +42,7 @@ index dc520b0acf6..9c6f1475781 100644
  apply from: 'gradle/run.gradle'
  apply from: 'gradle/missing-javadoc.gradle'
 diff --git a/plugins/arrow-flight-rpc/build.gradle b/plugins/arrow-flight-rpc/build.gradle
-index a94c9301a40..31e34c58526 100644
+index a94c9301a404168c14a409f2884e4c2b20a44f0f..31e34c585269f9790641936ac340fa5b3733e26b 100644
 --- a/plugins/arrow-flight-rpc/build.gradle
 +++ b/plugins/arrow-flight-rpc/build.gradle
 @@ -102,13 +102,6 @@ internalClusterTest {
@@ -60,7 +60,7 @@ index a94c9301a40..31e34c58526 100644
  tasks.named("dependencyLicenses").configure {
    mapping from: /netty-.*/, to: 'netty'
 diff --git a/qa/wildfly/build.gradle b/qa/wildfly/build.gradle
-index 12f2eacccd9..a559d08dc9e 100644
+index 12f2eacccd98217fc8ebd9d12e27a43b4df8d594..a559d08dc9e72feed9eaae5e36597bb167648d9e 100644
 --- a/qa/wildfly/build.gradle
 +++ b/qa/wildfly/build.gradle
 @@ -88,10 +88,6 @@ preProcessFixture {

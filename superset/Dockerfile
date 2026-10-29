@@ -46,6 +46,7 @@ ARG CDXGEN_NODEJS_VERSION
 ARG CDXGEN_SPEC_VERSION
 ARG UV_VERSION
 ARG NODEJS_VERSION
+ARG NPM_VERSION
 ARG NVM_VERSION
 ARG STACKABLE_USER_UID
 
@@ -55,9 +56,9 @@ RUN microdnf update \
         # Needed by ./configure to work out SQLite compilation flags, see snippet [1] at the end of file
         diffutils \
         # According to https://stackoverflow.com/q/19530974 normally sqlite3 should be shipped with the Python
-        # distribution. However, while addig ARM support we noticed that this does not seem to be the case for the
+        # distribution. However, while adding ARM support we noticed that this does not seem to be the case for the
         # Python installation shipped in the ARM image variant. So I guess Make is used to find out the sqlite
-        # compilation flags (and propably to not build sqlite from source(?)), see snippet [1] at the end of file
+        # compilation flags (and probably to not build sqlite from source(?)), see snippet [1] at the end of file
         make \
         gcc \
         gcc-c++ \
@@ -101,8 +102,11 @@ mkdir -p "${NVM_DIR}"
 curl "https://repo.stackable.tech/repository/packages/nvm/nvm-${NVM_VERSION}.sh" -o "${NVM_DIR}/nvm.sh"
 . "${NVM_DIR}/nvm.sh"
 
-# Install the specified version of Node (including the latest compatible version of npm)
-nvm install "$NODEJS_VERSION" --latest-npm
+# Install the specified versions of Node and npm.
+# --latest-npm is not used because it installs whatever npm version is newest at build time.
+# See the cdxgen install below for --ignore-scripts and --before.
+nvm install "$NODEJS_VERSION"
+npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "npm@${NPM_VERSION}"
 
 node --version
 npm --version
@@ -117,12 +121,15 @@ ARCH="${TARGETARCH/amd64/x64}"
 mkdir -p /opt/node-cdxgen
 curl "https://repo.stackable.tech/repository/packages/node/node-v${CDXGEN_NODEJS_VERSION}-linux-${ARCH}.tar.xz" | \
     tar --extract --xz --directory=/opt/node-cdxgen --strip-components=1
-PATH="/opt/node-cdxgen/bin:$PATH" npm install --global "@cdxgen/cdxgen@${CDXGEN_VERSION}"
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+PATH="/opt/node-cdxgen/bin:$PATH" npm install --global --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" "@cdxgen/cdxgen@${CDXGEN_VERSION}"
 EOF
 
 # Upgrade pip to the latest version
 # Also install uv to get support for build constraints
-# DL3042 false-positive, --no-chache-dir is specified a few lines below.
+# DL3042 false-positive, --no-cache-dir is specified a few lines below.
 #        See https://github.com/hadolint/hadolint/issues/1042.
 # hadolint ignore=DL3042
 RUN <<EOF
@@ -206,7 +213,7 @@ uv pip install --no-cache-dir \
 
 # We bumped this from 21.2.0 to 22.0.0 to fix CVE-2024-1135
 # Superset 4.1.0 will contain at least 22.0.0, the bump was done in https://github.com/apache/superset/commit/4f693c6db0dc5c7286a36b8d23e90541943ff13f
-# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentially downgrade the version
+# We only want to bump this for the 4.0.x line, as the others already have updated and we do not want to accidentally downgrade the version
 if [[ "$PRODUCT_VERSION" =~ ^4\.0\..* ]]; then
     echo "Superset 4.0.x detected, installing gunicorn 22.0.0 to fix CVE-2024-1135"
     uv pip install gunicorn==22.0.0
@@ -237,10 +244,21 @@ uv pip install --python /tmp/sbom-venv/bin/python --no-cache-dir cyclonedx-bom==
     /stackable/app
 rm -rf /tmp/sbom-venv
 
-# Add the missing purl to the Superset package. It is installed from a locally built wheel, so
-# cyclonedx-py records the file URL of that wheel instead of a purl.
-jq '.components |= map(if (.purl | not) and (.name | test("^apache[-_]superset")) then
-    .purl = "pkg:pypi/" + (.name | ascii_downcase | gsub("[-_.]+"; "-")) + "@" + .version
+# Post-process the SBOM:
+#   * Add the missing purls. Packages that are installed from a locally built wheel
+#     (apache-superset, opa-authorizer) get no purl from cyclonedx-py, because it records the
+#     file URL of that wheel instead. Without a purl they show up twice in the image SBOM.
+#   * Normalize the names in the purls as defined in the Python packaging specification.
+#     cyclonedx-py keeps the name as it is written in the metadata (`pkg:pypi/zope.event`),
+#     while Syft normalizes it (`pkg:pypi/zope-event`), which again results in duplicates.
+jq 'def normalize_name: ascii_downcase | gsub("[-_.]+"; "-");
+.components |= map(if (.purl | not) and (.name != null) and (.version != null) then
+    .purl = "pkg:pypi/" + (.name | normalize_name) + "@" + .version
+else
+    .
+end
+| if (.purl // "") | startswith("pkg:pypi/") then
+    .purl |= sub("^pkg:pypi/(?<name>[^@]+)"; "pkg:pypi/" + (.name | normalize_name))
 else
     .
 end)' /tmp/sbom.json > /stackable/app/superset-${PRODUCT_VERSION}.cdx.json

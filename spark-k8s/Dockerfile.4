@@ -4,6 +4,9 @@
 # hadoop-builder: Provides Hadoop libraries
 FROM local-image/hadoop/hadoop AS hadoop-builder
 
+# hbase-builder: Provides HBase libraries
+FROM local-image/hbase AS hbase-builder
+
 # spark-source-builder: Clone the Spark source code and apply patches
 FROM local-image/java-devel AS spark-source-builder
 
@@ -21,12 +24,16 @@ cd "$(/stackable/patchable --images-repo-root=src checkout spark-k8s ${PRODUCT_V
 
 NEW_VERSION="${PRODUCT_VERSION}-stackable${RELEASE_VERSION}"
 
-mvn versions:set -DnewVersion=$NEW_VERSION
+mvn "org.codehaus.mojo:versions-maven-plugin:${VERSIONS_MAVEN_PLUGIN_VERSION}:set" -DnewVersion=$NEW_VERSION
 
 # Create snapshot of the source code including custom patches
 tar -czf /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz .
 chmod g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz
 EOF
+
+# hbase-connectors-builder: Build the Spark HBase connector and copy
+# required JARs into /stackable/spark/jars
+FROM local-image/spark-k8s/hbase-connectors AS hbase-connectors-builder
 
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT_VERSION}/dist,
 # download additional JARs and perform checks
@@ -36,9 +43,11 @@ ARG PRODUCT_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ARG HBASE_VERSION
 ARG JACKSON_DATAFORMAT_XML_VERSION
 ARG STAX2_API_VERSION
 ARG WOODSTOX_CORE_VERSION
+ARG OPENLINEAGE_SPARK_VERSION
 ARG JMX_EXPORTER_VERSION
 ARG TARGETARCH
 ARG TINI_VERSION
@@ -59,7 +68,8 @@ COPY --from=hadoop-builder --chown=${STACKABLE_USER_UID}:0 /stackable/patched-li
 # package manifest and no lockfile, so cdxgen cannot see them either.
 RUN <<EOF
     microdnf update
-    microdnf install python3
+    # since 4.2.0 make-distribution.sh requires zip
+    microdnf install python3 zip
     microdnf clean all
     rm -rf /var/cache/yum
 EOF
@@ -134,23 +144,55 @@ WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/jar
 # Copy cloud libraries for s3a:// and abfs:// support
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar ./
 
+# Copy the HBase connector including required modules
+COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/spark/jars/* \
+    ./
+
+# Copy modules required to access HBase
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE_VERSION}-stackable${RELEASE_VERSION}.jar \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE_VERSION}-stackable${RELEASE_VERSION}.jar \
+    ./
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
+    ./
+
 COPY spark-k8s/stackable/jmx /stackable/jmx
 
 WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars
 
 RUN <<EOF
 # Download jackson-dataformat-xml, stax2-api, and woodstox-core which are required for logging.
-mvn dependency:get -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${JACKSON_DATAFORMAT_XML_VERSION}
 cp /root/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/${JACKSON_DATAFORMAT_XML_VERSION}/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/jackson-dataformat-xml-${JACKSON_DATAFORMAT_XML_VERSION}.jar
 
-mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=org.codehaus.woodstox:stax2-api:${STAX2_API_VERSION}
 cp /root/.m2/repository/org/codehaus/woodstox/stax2-api/${STAX2_API_VERSION}/stax2-api-${STAX2_API_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/stax2-api-${STAX2_API_VERSION}.jar
 
-mvn dependency:get -Dartifact=mvn dependency:get -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact=com.fasterxml.woodstox:woodstox-core:${WOODSTOX_CORE_VERSION}
 cp /root/.m2/repository/com/fasterxml/woodstox/woodstox-core/${WOODSTOX_CORE_VERSION}/woodstox-core-${WOODSTOX_CORE_VERSION}.jar \
   /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars/woodstox-core-${WOODSTOX_CORE_VERSION}.jar
+
+SCALA_BINARY_VERSION=$(grep "scala.binary.version" "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/pom.xml" | head -n1 | awk -F '[<>]' '{print $3}')
+
+# Download the OpenLineage Spark listener jar into a DEDICATED directory (dist/openlineage),
+# NOT dist/extra-jars. The operator references it via `--jars local:///stackable/spark/openlineage/...`
+# so it loads on Spark's child/user classloader, sharing it with connectors delivered via `--packages`
+# (e.g. Iceberg). If it landed on extra-jars it would be added to the system classloader via
+# extraClassPath, OpenLineage's connector probe would fail, and no datasets would be emitted.
+mkdir -p /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage
+mvn "org.apache.maven.plugins:maven-dependency-plugin:${DEPENDENCY_MAVEN_PLUGIN_VERSION}:get" -Dartifact="io.openlineage:openlineage-spark_${SCALA_BINARY_VERSION}:${OPENLINEAGE_SPARK_VERSION}"
+cp "/root/.m2/repository/io/openlineage/openlineage-spark_${SCALA_BINARY_VERSION}/${OPENLINEAGE_SPARK_VERSION}/openlineage-spark_${SCALA_BINARY_VERSION}-${OPENLINEAGE_SPARK_VERSION}.jar" \
+  "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark_${SCALA_BINARY_VERSION}-${OPENLINEAGE_SPARK_VERSION}.jar"
+# Symlink to a stable, version- and Scala-independent name
+# so the operator can reference the jar without knowing the version or Scala build baked here.
+ln -s "openlineage-spark_${SCALA_BINARY_VERSION}-${OPENLINEAGE_SPARK_VERSION}.jar" \
+  "/stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/openlineage/openlineage-spark.jar"
 
 # Get the correct `tini` binary for our architecture.
 curl --fail "https://repo.stackable.tech/repository/packages/tini/tini-${TINI_VERSION}-${TARGETARCH}" \
@@ -173,6 +215,7 @@ ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG JMX_EXPORTER_VERSION
+ARG HBASE_CONNECTOR_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Spark" \
@@ -195,6 +238,7 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/spark/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx
