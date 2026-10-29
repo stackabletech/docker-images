@@ -18,7 +18,7 @@ jmx-exporter-version = "1.3.0"
 java-base = "25"
 java-devel = "25"
 "kafka/kcat" = "1.7.0"
-"kafka/kafka-opa-plugin" = "1.5.1"
+"kafka/kafka-opa-plugin" = "977e4ad"
 # TODO: this is not used in this version but it's added
 # to avoid major changes to the Kafka image build on short notice.
 # Building this image is quick and in CI should not even be noticed.
@@ -33,7 +33,7 @@ jmx-exporter-version = "1.3.0"
 java-base = "25"
 java-devel = "25"
 "kafka/kcat" = "1.7.0"
-"kafka/kafka-opa-plugin" = "1.5.1"
+"kafka/kafka-opa-plugin" = "977e4ad"
 # TODO: this is not used in this version but it's added
 # to avoid major changes to the Kafka image build on short notice.
 # Building this image is quick and in CI should not even be noticed.
