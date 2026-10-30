@@ -1,0 +1,120 @@
+From 67a6016c0ffe539f9ccbf14a950aab7ad0b1bb9d Mon Sep 17 00:00:00 2001
+From: "Schoder Philipp (BD/DPA-BDP3)" <Philipp.Schoder@de.bosch.com>
+Date: Tue, 20 Oct 2026 09:15:13 +0200
+Subject: feat(trino): Expose Iceberg REST client proxy settings
+
+The Iceberg REST client (HTTPClient) already supports proxy settings via
+rest.client.proxy.hostname, .port, .username and .password, but Trino's
+REST catalog has no way to set them.
+
+Add iceberg.rest-catalog.http-proxy, .http-proxy.username and
+.http-proxy.password and pass them through to those client properties.
+Nothing changes unless the new options are set.
+---
+ .../rest/IcebergRestCatalogConfig.java        | 58 +++++++++++++++++++
+ .../IcebergRestCatalogPropertiesProvider.java |  6 ++
+ 2 files changed, 64 insertions(+)
+
+diff --git a/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogConfig.java b/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogConfig.java
+index 001e93d694f..4bb7f1ce94c 100644
+--- a/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogConfig.java
++++ b/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogConfig.java
+@@ -14,11 +14,14 @@
+ package io.trino.plugin.iceberg.catalog.rest;
+ 
+ import com.google.common.collect.ImmutableMap;
++import com.google.common.net.HostAndPort;
+ import io.airlift.configuration.Config;
+ import io.airlift.configuration.ConfigDescription;
++import io.airlift.configuration.ConfigSecuritySensitive;
+ import io.airlift.configuration.DefunctConfig;
+ import io.airlift.units.Duration;
+ import io.airlift.units.MinDuration;
++import jakarta.validation.constraints.AssertTrue;
+ import jakarta.validation.constraints.NotNull;
+ import org.apache.iceberg.CatalogProperties;
+ 
+@@ -66,6 +69,9 @@ public class IcebergRestCatalogConfig
+     private boolean caseInsensitiveNameMatching;
+     private Map<String, String> httpHeaders = ImmutableMap.of();
+     private Duration caseInsensitiveNameMatchingCacheTtl = new Duration(1, MINUTES);
++    private Optional<HostAndPort> httpProxy = Optional.empty();
++    private Optional<String> httpProxyUsername = Optional.empty();
++    private Optional<String> httpProxyPassword = Optional.empty();
+ 
+     @NotNull
+     public URI getBaseUri()
+@@ -265,4 +271,56 @@ public class IcebergRestCatalogConfig
+         this.caseInsensitiveNameMatchingCacheTtl = caseInsensitiveNameMatchingCacheTtl;
+         return this;
+     }
++
++    public Optional<HostAndPort> getHttpProxy()
++    {
++        return httpProxy;
++    }
++
++    @Config("iceberg.rest-catalog.http-proxy")
++    @ConfigDescription("HTTP proxy host and port to use for all REST catalog server communication")
++    public IcebergRestCatalogConfig setHttpProxy(HostAndPort httpProxy)
++    {
++        this.httpProxy = Optional.ofNullable(httpProxy);
++        return this;
++    }
++
++    public Optional<String> getHttpProxyUsername()
++    {
++        return httpProxyUsername;
++    }
++
++    @Config("iceberg.rest-catalog.http-proxy.username")
++    @ConfigDescription("HTTP proxy username")
++    public IcebergRestCatalogConfig setHttpProxyUsername(String httpProxyUsername)
++    {
++        this.httpProxyUsername = Optional.ofNullable(httpProxyUsername);
++        return this;
++    }
++
++    public Optional<String> getHttpProxyPassword()
++    {
++        return httpProxyPassword;
++    }
++
++    @Config("iceberg.rest-catalog.http-proxy.password")
++    @ConfigSecuritySensitive
++    @ConfigDescription("HTTP proxy password")
++    public IcebergRestCatalogConfig setHttpProxyPassword(String httpProxyPassword)
++    {
++        this.httpProxyPassword = Optional.ofNullable(httpProxyPassword);
++        return this;
++    }
++
++    @AssertTrue(message = "iceberg.rest-catalog.http-proxy must be set when iceberg.rest-catalog.http-proxy.username or iceberg.rest-catalog.http-proxy.password is set")
++    public boolean isHttpProxyConfigValid()
++    {
++        return httpProxy.isPresent() || (httpProxyUsername.isEmpty() && httpProxyPassword.isEmpty());
++    }
++
++    @AssertTrue(message = "iceberg.rest-catalog.http-proxy.username and iceberg.rest-catalog.http-proxy.password must be set together")
++    public boolean isHttpProxyCredentialsValid()
++    {
++        return httpProxyUsername.isPresent() == httpProxyPassword.isPresent();
++    }
+ }
+diff --git a/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogPropertiesProvider.java b/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogPropertiesProvider.java
+index fe07af48316..f76a6d0ce92 100644
+--- a/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogPropertiesProvider.java
++++ b/plugin/trino-iceberg/src/main/java/io/trino/plugin/iceberg/catalog/rest/IcebergRestCatalogPropertiesProvider.java
+@@ -47,6 +47,12 @@ public class IcebergRestCatalogPropertiesProvider
+         properties.put(AUTH_SESSION_TIMEOUT_MS, String.valueOf(restConfig.getSessionTimeout().toMillis()));
+         restConfig.getConnectionTimeout().ifPresent(duration -> properties.put("rest.client.connection-timeout-ms", String.valueOf(duration.toMillis())));
+         restConfig.getSocketTimeout().ifPresent(timeout -> properties.put("rest.client.socket-timeout-ms", String.valueOf(timeout.toMillis())));
++        restConfig.getHttpProxy().ifPresent(proxy -> {
++            properties.put("rest.client.proxy.hostname", proxy.getHost());
++            properties.put("rest.client.proxy.port", String.valueOf(proxy.getPort()));
++        });
++        restConfig.getHttpProxyUsername().ifPresent(username -> properties.put("rest.client.proxy.username", username));
++        restConfig.getHttpProxyPassword().ifPresent(password -> properties.put("rest.client.proxy.password", password));
+         properties.putAll(securityProperties.get());
+         if (restConfig.isVendedCredentialsEnabled()) {
+             properties.put("header.X-Iceberg-Access-Delegation", "vended-credentials");
