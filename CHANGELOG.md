@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Add 3.9.6 ([#1662]).
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
-- nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
+- nifi: Backport [NIFI-15958](https://issues.apache.org/jira/browse/NIFI-15958) to log progress during the content archive scan and provenance re-index ([#1611] and [#1727]).
+- nifi: Backport [NIFI-16294](https://issues.apache.org/jira/browse/NIFI-16294) to guard against a null controller status in `SiteToSiteStatusReportingTask` during startup, for `2.6.0` and `2.9.0` ([#1629]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
@@ -33,9 +34,11 @@ All notable changes to this project will be documented in this file.
 - opa: Add 1.20.2 ([#1697]).
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 - spark: Add 4.1.3 and 4.2.0 ([#1710]).
+- spark: Add HBase connector images for Spark 4.x. There is no connector release that supports Spark 4.x yet, so this is built from an upstream commit (`07f5791`) on the master branch ([#1723])
 
 ### Changed
 
+- stackable-devel: Bump Rust toolchain version to 1.99.0 ([#1728]).
 - krb5: Bump base image ([#1721]).
 - testing-tools: Bump various tools and Python dependencies ([#1720]).
 - ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
@@ -54,6 +57,7 @@ All notable changes to this project will be documented in this file.
 - opa: update golang to 1.27.1 ([#1697]).
 - spark: Pin pyarrow below 26 to satisfy scikit-learn dependency on NumPy 1.x ([#1695]).
 - spark-connect-client: Replace hard-coded Python dependency versions with image dependencies and bump them for Spark 4.2.0 ([#1713]).
+- phoenix: Backport PHOENIX-5215 (HTrace to OpenTelemetry migration) to reduce the number of CVEs. Removes the HBase-table trace sink; `TRACE ON/OFF` and `phoenix.trace.*` no longer have any effect ([#1725]).
 
 ### Fixed
 
@@ -102,6 +106,11 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
+- airflow: Bump certifi to `2026.10.23` and uv to `0.13.4`, and point grpcio to the system trust store ([#1715]).
+- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. For Airflow 2.9.3, which uses Python 3.9 and cannot use this pip version, point pip to the system trust store instead ([#1715]).
+- superset: Bump certifi to `2026.10.23` and uv to `0.13.4` ([#1715]).
+- opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
+- spark-connect-client: Point grpcio to the system trust store ([#1715]).
 - hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511].
 
 ### Removed
@@ -134,6 +143,7 @@ All notable changes to this project will be documented in this file.
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
 [#1621]: https://github.com/stackabletech/docker-images/pull/1621
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
+[#1629]: https://github.com/stackabletech/docker-images/pull/1629
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1636]: https://github.com/stackabletech/docker-images/pull/1636
@@ -174,10 +184,15 @@ All notable changes to this project will be documented in this file.
 [#1712]: https://github.com/stackabletech/docker-images/pull/1712
 [#1713]: https://github.com/stackabletech/docker-images/pull/1713
 [#1714]: https://github.com/stackabletech/docker-images/pull/1714
+[#1715]: https://github.com/stackabletech/docker-images/pull/1715
 [#1717]: https://github.com/stackabletech/docker-images/pull/1717
 [#1718]: https://github.com/stackabletech/docker-images/pull/1718
 [#1720]: https://github.com/stackabletech/docker-images/pull/1720
 [#1721]: https://github.com/stackabletech/docker-images/pull/1721
+[#1723]: https://github.com/stackabletech/docker-images/pull/1723
+[#1725]: https://github.com/stackabletech/docker-images/pull/1725
+[#1727]: https://github.com/stackabletech/docker-images/pull/1727
+[#1728]: https://github.com/stackabletech/docker-images/pull/1728
 
 ## [26.7.0] - 2026-07-21
 

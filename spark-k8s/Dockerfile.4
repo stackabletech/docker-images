@@ -4,6 +4,9 @@
 # hadoop-builder: Provides Hadoop libraries
 FROM local-image/hadoop/hadoop AS hadoop-builder
 
+# hbase-builder: Provides HBase libraries
+FROM local-image/hbase AS hbase-builder
+
 # spark-source-builder: Clone the Spark source code and apply patches
 FROM local-image/java-devel AS spark-source-builder
 
@@ -28,6 +31,10 @@ tar -czf /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar
 chmod g=u /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz
 EOF
 
+# hbase-connectors-builder: Build the Spark HBase connector and copy
+# required JARs into /stackable/spark/jars
+FROM local-image/spark-k8s/hbase-connectors AS hbase-connectors-builder
+
 # spark-builder: Build Spark into /stackable/spark-${PRODUCT_VERSION}/dist,
 # download additional JARs and perform checks
 FROM local-image/java-devel AS spark-builder
@@ -36,6 +43,7 @@ ARG PRODUCT_VERSION
 ARG HADOOP_HADOOP_VERSION
 # Reassign the arg to `HADOOP_VERSION` for better readability.
 ENV HADOOP_VERSION=${HADOOP_HADOOP_VERSION}
+ARG HBASE_VERSION
 ARG JACKSON_DATAFORMAT_XML_VERSION
 ARG STAX2_API_VERSION
 ARG WOODSTOX_CORE_VERSION
@@ -136,6 +144,22 @@ WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/jar
 # Copy cloud libraries for s3a:// and abfs:// support
 COPY --chown=${STACKABLE_USER_UID}:0 --from=hadoop-builder /stackable/hadoop-cloud-libraries/*.jar ./
 
+# Copy the HBase connector including required modules
+COPY --from=hbase-connectors-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/spark/jars/* \
+    ./
+
+# Copy modules required to access HBase
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-client-byo-hadoop-${HBASE_VERSION}-stackable${RELEASE_VERSION}.jar \
+    /stackable/hbase/lib/shaded-clients/hbase-shaded-mapreduce-${HBASE_VERSION}-stackable${RELEASE_VERSION}.jar \
+    ./
+COPY --from=hbase-builder --chown=${STACKABLE_USER_UID}:0 \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-api-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-context-*.jar \
+    /stackable/hbase/lib/client-facing-thirdparty/opentelemetry-semconv-*-alpha.jar \
+    ./
+
 COPY spark-k8s/stackable/jmx /stackable/jmx
 
 WORKDIR /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist/extra-jars
@@ -191,6 +215,7 @@ ARG PRODUCT_VERSION
 ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG JMX_EXPORTER_VERSION
+ARG HBASE_CONNECTOR_VERSION
 ARG STACKABLE_USER_UID
 
 LABEL name="Apache Spark" \
@@ -213,6 +238,7 @@ ENV PYTHONPATH=$SPARK_HOME/python
 
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/dist /stackable/spark
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-source-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
+COPY --chown=${STACKABLE_USER_UID}:0 --from=hbase-connectors-builder /stackable/hbase-connector-${HBASE_CONNECTOR_VERSION}-stackable${RELEASE_VERSION}-src.tar.gz /stackable
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}/assembly/target/bom.json /stackable/spark/spark-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json /stackable/spark/spark-web-ui-${PRODUCT_VERSION}-stackable${RELEASE_VERSION}.cdx.json
 COPY --chown=${STACKABLE_USER_UID}:0 --from=spark-builder /stackable/jmx /stackable/jmx

@@ -264,7 +264,7 @@ cattrs==25.1.1
 # Bumped to newest version (from 5.5.2) to reduce celery on redis issues
 # See https://github.com/stackabletech/airflow-operator/issues/676
 celery==5.5.3
-certifi==2025.8.3
+certifi==2026.10.23
 cffi==1.17.1
 cfgv==3.4.0
 cfn-lint==1.39.0
@@ -809,7 +809,7 @@ uritemplate==4.2.0
 urllib3==2.5.0
 userpath==1.9.2
 uuid6==2025.0.1
-uv==0.8.13
+uv==0.13.4
 # Stackable patch:
 # The original version 0.35.0 hard codes the worker timeout to 5s.
 # This has been fixed in 0.37.0 so that the value passed through from Airflow

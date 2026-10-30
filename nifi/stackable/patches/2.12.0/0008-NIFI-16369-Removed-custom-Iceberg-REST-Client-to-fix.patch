@@ -1,4 +1,4 @@
-From c8d8dbf331280344b8beac46e00c1c26dd6ba0c9 Mon Sep 17 00:00:00 2001
+From a29d0205697f62f2426979fda1a5b8407b414a8a Mon Sep 17 00:00:00 2001
 From: David Handermann <exceptionfactory@apache.org>
 Date: Tue, 22 Sep 2026 04:10:27 -0500
 Subject: NIFI-16369 Removed custom Iceberg REST Client to fix OAuth 2

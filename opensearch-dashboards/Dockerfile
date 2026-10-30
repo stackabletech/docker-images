@@ -344,6 +344,12 @@ USER ${STACKABLE_USER_UID}
 ENV HOME=${HOME}
 ENV OPENSEARCH_DASHBOARDS_HOME=${OPENSEARCH_DASHBOARDS_HOME}
 ENV PATH="${PATH}:/${OPENSEARCH_DASHBOARDS_HOME}:${OPENSEARCH_DASHBOARDS_HOME}/bin"
+# Node.js uses its own bundled copy of the Mozilla root certificates instead of the system trust store.
+# Use the system trust store instead, so Node.js does not trust the compromised
+# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# See https://nodejs.org/docs/latest-v20.x/api/cli.html#--use-bundled-ca---use-openssl-ca
+# and https://nodejs.org/docs/latest-v20.x/api/cli.html#node_optionsoptions
+ENV NODE_OPTIONS="--use-openssl-ca"
 
 WORKDIR ${OPENSEARCH_DASHBOARDS_HOME}
 CMD ["opensearch-dashboards-docker-entrypoint.sh"]
