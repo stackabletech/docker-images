@@ -111,7 +111,7 @@ All notable changes to this project will be documented in this file.
 - superset: Bump certifi to `2026.10.23` and uv to `0.13.4` ([#1715]).
 - opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
 - spark-connect-client: Point grpcio to the system trust store ([#1715]).
-- hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511].
+- hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511] ([#1731]).
 
 ### Removed
 
@@ -193,6 +193,7 @@ All notable changes to this project will be documented in this file.
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
 [#1727]: https://github.com/stackabletech/docker-images/pull/1727
 [#1728]: https://github.com/stackabletech/docker-images/pull/1728
+[#1731]: https://github.com/stackabletech/docker-images/pull/1731
 
 ## [26.7.0] - 2026-07-21
 
