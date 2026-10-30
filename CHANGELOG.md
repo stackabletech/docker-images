@@ -102,6 +102,7 @@ All notable changes to this project will be documented in this file.
 - airflow: Bump `apache-airflow-providers-cncf-kubernetes` to `10.18.0` for `3.2.2`. This version includes a fix for scheduler crashloops when using
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
+- hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511].
 
 ### Removed
 
