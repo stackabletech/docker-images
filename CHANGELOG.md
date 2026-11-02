@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 - spark: Add 4.1.3 and 4.2.0 ([#1710]).
 - spark: Add HBase connector images for Spark 4.x. There is no connector release that supports Spark 4.x yet, so this is built from an upstream commit (`07f5791`) on the master branch ([#1723])
+- trino: Add patch to support Proxy configs for Iceberg Rest Catalogs.
 
 ### Changed
 
