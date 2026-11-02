@@ -12,7 +12,7 @@
 #
 #   docker buildx imagetools inspect registry.access.redhat.com/ubi9/ubi-minimal --format '{{json .Manifest.Digest}}'
 #
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:5ed244b62bbf4095080144d9d35eb8fcd3d39a9801f94aadd63b9d10978a01ae AS builder
+FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:bba2b4bbf0ed15cfe7dd72a1e17ae7d2015a141f306b304e1a2785c41400e39c AS builder
 
 # intentionally unused
 ARG PRODUCT_VERSION
@@ -45,7 +45,7 @@ COPY stackable-base/stackable/curlrc /root/.curlrc
 # Find the latest version here: https://doc.rust-lang.org/stable/releases.html
 # TODO (@NickLarsenNZ): Move the version into boil-config.toml once renovate can look there
 # renovate: datasource=github-releases packageName=rust-lang/rust
-ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.97.1
+ARG RUST_DEFAULT_TOOLCHAIN_VERSION=1.99.0
 ENV RUST_DEFAULT_TOOLCHAIN_VERSION=${RUST_DEFAULT_TOOLCHAIN_VERSION}
 # Find the latest version here: https://crates.io/crates/cargo-cyclonedx
 # renovate: datasource=crate packageName=cargo-cyclonedx

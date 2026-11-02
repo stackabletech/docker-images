@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - zookeeper: Add 3.9.6 ([#1662]).
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
-- nifi: Backport NIFI-15958 to log periodic progress while waiting for the content archive scan and provenance re-index, for `2.6.0`, `2.7.2`, and `2.9.0` ([#1611]).
+- nifi: Backport [NIFI-15958](https://issues.apache.org/jira/browse/NIFI-15958) to log progress during the content archive scan and provenance re-index ([#1611] and [#1727]).
+- nifi: Backport [NIFI-16294](https://issues.apache.org/jira/browse/NIFI-16294) to guard against a null controller status in `SiteToSiteStatusReportingTask` during startup, for `2.6.0` and `2.9.0` ([#1629]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- stackable-devel: Bump Rust toolchain version to 1.99.0 ([#1728]).
 - krb5: Bump base image ([#1721]).
 - testing-tools: Bump various tools and Python dependencies ([#1720]).
 - ubi-rust-builders: Bump protoc to `36.2` ([#1717]).
@@ -110,6 +112,7 @@ All notable changes to this project will be documented in this file.
 - superset: Bump certifi to `2026.10.23` and uv to `0.13.4` ([#1715]).
 - opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
 - spark-connect-client: Point grpcio to the system trust store ([#1715]).
+- hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511] ([#1731]).
 
 ### Removed
 
@@ -141,6 +144,7 @@ All notable changes to this project will be documented in this file.
 [#1620]: https://github.com/stackabletech/docker-images/pull/1620
 [#1621]: https://github.com/stackabletech/docker-images/pull/1621
 [#1623]: https://github.com/stackabletech/docker-images/pull/1623
+[#1629]: https://github.com/stackabletech/docker-images/pull/1629
 [#1630]: https://github.com/stackabletech/docker-images/pull/1630
 [#1635]: https://github.com/stackabletech/docker-images/pull/1635
 [#1636]: https://github.com/stackabletech/docker-images/pull/1636
@@ -188,7 +192,10 @@ All notable changes to this project will be documented in this file.
 [#1721]: https://github.com/stackabletech/docker-images/pull/1721
 [#1723]: https://github.com/stackabletech/docker-images/pull/1723
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
+[#1727]: https://github.com/stackabletech/docker-images/pull/1727
+[#1728]: https://github.com/stackabletech/docker-images/pull/1728
 [#1730]: https://github.com/stackabletech/docker-images/pull/1730
+[#1731]: https://github.com/stackabletech/docker-images/pull/1731
 
 ## [26.7.0] - 2026-07-21
 

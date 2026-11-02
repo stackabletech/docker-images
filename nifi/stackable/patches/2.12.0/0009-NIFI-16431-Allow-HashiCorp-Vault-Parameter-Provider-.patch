@@ -1,4 +1,4 @@
-From c0c336f0bb4f460487d1183629d31a4c281ecfbb Mon Sep 17 00:00:00 2001
+From 40f64728560fae1b6c6337e453dae05f40f7f889 Mon Sep 17 00:00:00 2001
 From: Fabian Grosch <grosch.fabian@outlook.de>
 Date: Tue, 6 Oct 2026 17:33:25 +0200
 Subject: NIFI-16431 Allow HashiCorp Vault Parameter Provider to list secrets
