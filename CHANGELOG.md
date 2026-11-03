@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - patchable: Use long hashes, and myers diff algorithm for portability ([#1705]).
 - spark: Add 4.1.3 and 4.2.0 ([#1710]).
 - spark: Add HBase connector images for Spark 4.x. There is no connector release that supports Spark 4.x yet, so this is built from an upstream commit (`07f5791`) on the master branch ([#1723])
+- kafka: Add new image for `kafka/kafka-opa-plugin` that is compatible with Kafka 4.x. The image is built from a specific master commit because the project has not released an appropriate version ([#1730]).
 
 ### Changed
 
@@ -194,6 +195,7 @@ All notable changes to this project will be documented in this file.
 [#1725]: https://github.com/stackabletech/docker-images/pull/1725
 [#1727]: https://github.com/stackabletech/docker-images/pull/1727
 [#1728]: https://github.com/stackabletech/docker-images/pull/1728
+[#1730]: https://github.com/stackabletech/docker-images/pull/1730
 [#1731]: https://github.com/stackabletech/docker-images/pull/1731
 [#1732]: https://github.com/stackabletech/docker-images/pull/1732
 

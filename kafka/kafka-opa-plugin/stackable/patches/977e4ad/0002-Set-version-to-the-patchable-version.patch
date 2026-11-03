@@ -1,0 +1,32 @@
+From 04665506f39ad99ffbe76c61125761f2390c3d93 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <razvan.mihai@stackable.tech>
+Date: Thu, 29 Oct 2026 15:52:19 +0100
+Subject: Set version to the patchable version
+
+The Stackable Dockerfiles expect the jar to be named opa-authorizer-<patchable version>-all.jar.
+---
+ build.gradle | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/build.gradle b/build.gradle
+index 9fb85e87d75db462ca1ef52d5f8fcd10ea2261d5..416e4622db67226b2ef33a87423271c6906651a9 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -8,7 +8,7 @@ plugins {
+ }
+ 
+ group 'org.openpolicyagent.kafka'
+-version '1.5.1'
++version '977e4ad'
+ 
+ java {
+     sourceCompatibility = JavaVersion.VERSION_17
+@@ -65,7 +65,7 @@ publishing {
+         mavenJava(MavenPublication) {
+             groupId ='org.openpolicyagent.kafka'
+             artifactId = 'opa-authorizer'
+-            version = '1.5.1'
++            version = '977e4ad'
+ 
+             from components.java
+ 

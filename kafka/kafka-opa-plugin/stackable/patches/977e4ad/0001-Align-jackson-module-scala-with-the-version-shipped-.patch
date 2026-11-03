@@ -1,0 +1,23 @@
+From 55775a39f714464463785bf659abfc106bd8df28 Mon Sep 17 00:00:00 2001
+From: Razvan-Daniel Mihai <razvan.mihai@stackable.tech>
+Date: Thu, 29 Oct 2026 15:52:19 +0100
+Subject: Align jackson-module-scala with the version shipped by Kafka 4.2/4.3
+
+jackson-module-scala must match the jackson-databind version shipped by Kafka (2.21.2).
+---
+ build.gradle | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build.gradle b/build.gradle
+index 9b910ad1429ba65ffc1228ba521dc705b337db7b..9fb85e87d75db462ca1ef52d5f8fcd10ea2261d5 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -25,7 +25,7 @@ repositories {
+ dependencies {
+     compileOnly group: 'org.apache.kafka', name: 'kafka_2.13', version: '4.0.0'
+     compileOnly group: 'com.typesafe.scala-logging', name: 'scala-logging_2.13', version: '3.9.5'
+-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-scala_2.13', version: '2.16.2'
++    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-scala_2.13', version: '2.21.2'
+     implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.0'
+ 
+     testImplementation group: 'org.scalatest', name: 'scalatest_2.13', version: '3.2.17'
