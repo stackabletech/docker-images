@@ -5,11 +5,13 @@ stackable-devel = "1.0.0"
 
 [versions."1.0.0".build-arguments]
 # Find the latest version here: https://github.com/stackabletech/operator-rs/tags
-# renovate: datasource=github-tags packageName=stackabletech/config-utils
+# I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
+# so I was unable to add a renovate hint.
 config-utils-version = "0.5.1"
 
 # Find the latest version here: https://github.com/stackabletech/operator-rs/tags
-# renovate: datasource=github-tags packageName=stackabletech/containerdebug
+# I could not find support for prefixes or regex in https://docs.renovatebot.com/modules/datasource/github-tags/,
+# so I was unable to add a renovate hint.
 containerdebug-version = "0.5.0"
 
 # Find the latest version here: https://github.com/stackabletech/secret-operator/tags
