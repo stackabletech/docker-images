@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- stackable-base: Bump `config-utils` to `0.5.1` and `containerdebug` to `0.5.0` ([#1732]).
 - stackable-devel: Bump Rust toolchain version to 1.99.0 ([#1728]).
 - krb5: Bump base image ([#1721]).
 - testing-tools: Bump various tools and Python dependencies ([#1720]).
@@ -194,6 +195,7 @@ All notable changes to this project will be documented in this file.
 [#1727]: https://github.com/stackabletech/docker-images/pull/1727
 [#1728]: https://github.com/stackabletech/docker-images/pull/1728
 [#1731]: https://github.com/stackabletech/docker-images/pull/1731
+[#1732]: https://github.com/stackabletech/docker-images/pull/1732
 
 ## [26.7.0] - 2026-07-21
 
