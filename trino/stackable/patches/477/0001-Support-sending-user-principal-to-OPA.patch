@@ -1,0 +1,321 @@
+From 60656d4fbfd9be5cd4675c1cfe5c118c733e0e3e Mon Sep 17 00:00:00 2001
+From: Sebastian Bernauer <sebastian.bernauer@stackable.tech>
+Date: Tue, 4 Nov 2025 13:30:07 +0100
+Subject: Support sending user principal to OPA
+
+---
+ .../sphinx/security/opa-access-control.md     |  2 ++
+ .../io/trino/plugin/opa/OpaAccessControl.java | 12 ++++---
+ .../plugin/opa/OpaBatchAccessControl.java     |  2 +-
+ .../java/io/trino/plugin/opa/OpaConfig.java   | 14 ++++++++
+ .../plugin/opa/schema/TrinoIdentity.java      | 12 +++++--
+ .../io/trino/plugin/opa/schema/TrinoUser.java |  4 +--
+ .../plugin/opa/SerializableTestPrincipal.java | 35 +++++++++++++++++++
+ .../plugin/opa/TestOpaAccessControl.java      | 35 +++++++++++++++++++
+ .../io/trino/plugin/opa/TestOpaConfig.java    |  7 ++--
+ 9 files changed, 110 insertions(+), 13 deletions(-)
+ create mode 100644 plugin/trino-opa/src/test/java/io/trino/plugin/opa/SerializableTestPrincipal.java
+
+diff --git a/docs/src/main/sphinx/security/opa-access-control.md b/docs/src/main/sphinx/security/opa-access-control.md
+index 6a16bd9b6b..e0ed21cc1f 100644
+--- a/docs/src/main/sphinx/security/opa-access-control.md
++++ b/docs/src/main/sphinx/security/opa-access-control.md
+@@ -61,6 +61,8 @@ The following table lists the configuration properties for the OPA access contro
+ * - `opa.allow-permission-management-operations`
+   - Configure if permission management operations are allowed. Find more details in
+     [](opa-permission-management). Defaults to `false`.
++* - `opa.include-user-principal`
++  - Whether to include the users principal when sending authorization requests to OPA. Defaults to `false`.
+ * - `opa.http-client.*`
+   - Optional HTTP client configurations for the connection from Trino to OPA,
+     for example `opa.http-client.http-proxy` for configuring the HTTP proxy.
+diff --git a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaAccessControl.java b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaAccessControl.java
+index a0b92afee6..16e1fa6eba 100644
+--- a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaAccessControl.java
++++ b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaAccessControl.java
+@@ -90,6 +90,7 @@ public sealed class OpaAccessControl
+     private final LifeCycleManager lifeCycleManager;
+     private final OpaHighLevelClient opaHighLevelClient;
+     private final boolean allowPermissionManagementOperations;
++    protected final boolean includeUserPrincipal;
+     private final OpaPluginContext pluginContext;
+ 
+     @Inject
+@@ -98,6 +99,7 @@ public sealed class OpaAccessControl
+         this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
+         this.opaHighLevelClient = requireNonNull(opaHighLevelClient, "opaHighLevelClient is null");
+         this.allowPermissionManagementOperations = config.getAllowPermissionManagementOperations();
++        this.includeUserPrincipal = config.getIncludeUserPrincipal();
+         this.pluginContext = requireNonNull(pluginContext, "pluginContext is null");
+     }
+ 
+@@ -124,7 +126,7 @@ public sealed class OpaAccessControl
+     @Override
+     public void checkCanViewQueryOwnedBy(Identity identity, Identity queryOwner)
+     {
+-        opaHighLevelClient.queryAndEnforce(buildQueryContext(identity), "ViewQueryOwnedBy", AccessDeniedException::denyViewQuery, OpaQueryInputResource.builder().user(new TrinoUser(queryOwner)).build());
++        opaHighLevelClient.queryAndEnforce(buildQueryContext(identity), "ViewQueryOwnedBy", AccessDeniedException::denyViewQuery, OpaQueryInputResource.builder().user(new TrinoUser(queryOwner, this.includeUserPrincipal)).build());
+     }
+ 
+     @Override
+@@ -135,13 +137,13 @@ public sealed class OpaAccessControl
+                 queryOwner -> buildQueryInputForSimpleResource(
+                         buildQueryContext(identity),
+                         "FilterViewQueryOwnedBy",
+-                        OpaQueryInputResource.builder().user(new TrinoUser(queryOwner)).build()));
++                        OpaQueryInputResource.builder().user(new TrinoUser(queryOwner, this.includeUserPrincipal)).build()));
+     }
+ 
+     @Override
+     public void checkCanKillQueryOwnedBy(Identity identity, Identity queryOwner)
+     {
+-        opaHighLevelClient.queryAndEnforce(buildQueryContext(identity), "KillQueryOwnedBy", AccessDeniedException::denyKillQuery, OpaQueryInputResource.builder().user(new TrinoUser(queryOwner)).build());
++        opaHighLevelClient.queryAndEnforce(buildQueryContext(identity), "KillQueryOwnedBy", AccessDeniedException::denyKillQuery, OpaQueryInputResource.builder().user(new TrinoUser(queryOwner, this.includeUserPrincipal)).build());
+     }
+ 
+     @Override
+@@ -802,11 +804,11 @@ public sealed class OpaAccessControl
+ 
+     OpaQueryContext buildQueryContext(Identity trinoIdentity)
+     {
+-        return new OpaQueryContext(TrinoIdentity.fromTrinoIdentity(trinoIdentity), pluginContext);
++        return new OpaQueryContext(TrinoIdentity.fromTrinoIdentity(trinoIdentity, this.includeUserPrincipal), pluginContext);
+     }
+ 
+     OpaQueryContext buildQueryContext(SystemSecurityContext securityContext)
+     {
+-        return new OpaQueryContext(TrinoIdentity.fromTrinoIdentity(securityContext.getIdentity()), pluginContext);
++        return new OpaQueryContext(TrinoIdentity.fromTrinoIdentity(securityContext.getIdentity(), this.includeUserPrincipal), pluginContext);
+     }
+ }
+diff --git a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaBatchAccessControl.java b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaBatchAccessControl.java
+index d836ef9a63..53853c9401 100644
+--- a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaBatchAccessControl.java
++++ b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaBatchAccessControl.java
+@@ -74,7 +74,7 @@ public final class OpaBatchAccessControl
+                 "FilterViewQueryOwnedBy",
+                 queryOwners,
+                 queryOwner -> OpaQueryInputResource.builder()
+-                        .user(new TrinoUser(queryOwner))
++                        .user(new TrinoUser(queryOwner, this.includeUserPrincipal))
+                         .build());
+     }
+ 
+diff --git a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaConfig.java b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaConfig.java
+index 5442f49490..605184f61f 100644
+--- a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaConfig.java
++++ b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/OpaConfig.java
+@@ -28,6 +28,7 @@ public class OpaConfig
+     private boolean logRequests;
+     private boolean logResponses;
+     private boolean allowPermissionManagementOperations;
++    private boolean includeUserPrincipal;
+     private Optional<URI> opaRowFiltersUri = Optional.empty();
+     private Optional<URI> opaColumnMaskingUri = Optional.empty();
+     private Optional<URI> opaBatchColumnMaskingUri = Optional.empty();
+@@ -99,6 +100,19 @@ public class OpaConfig
+         return this;
+     }
+ 
++    public boolean getIncludeUserPrincipal()
++    {
++        return this.includeUserPrincipal;
++    }
++
++    @Config("opa.include-user-principal")
++    @ConfigDescription("Whether to include the users principal when sending authorization requests to OPA")
++    public OpaConfig setIncludeUserPrincipal(boolean includeUserPrincipal)
++    {
++        this.includeUserPrincipal = includeUserPrincipal;
++        return this;
++    }
++
+     @NotNull
+     public Optional<URI> getOpaRowFiltersUri()
+     {
+diff --git a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoIdentity.java b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoIdentity.java
+index feeface478..81768a764e 100644
+--- a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoIdentity.java
++++ b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoIdentity.java
+@@ -16,24 +16,30 @@ package io.trino.plugin.opa.schema;
+ import com.google.common.collect.ImmutableSet;
+ import io.trino.spi.security.Identity;
+ 
++import java.security.Principal;
++import java.util.Optional;
+ import java.util.Set;
+ 
+ import static java.util.Objects.requireNonNull;
+ 
+ public record TrinoIdentity(
+         String user,
+-        Set<String> groups)
++        Set<String> groups,
++        Optional<Principal> principal)
+ {
+-    public static TrinoIdentity fromTrinoIdentity(Identity identity)
++    public static TrinoIdentity fromTrinoIdentity(Identity identity, boolean includeUserPrincipal)
+     {
+         return new TrinoIdentity(
+                 identity.getUser(),
+-                identity.getGroups());
++                identity.getGroups(),
++                includeUserPrincipal ? identity.getPrincipal() : Optional.empty()
++        );
+     }
+ 
+     public TrinoIdentity
+     {
+         requireNonNull(user, "user is null");
+         groups = ImmutableSet.copyOf(requireNonNull(groups, "groups is null"));
++        requireNonNull(principal, "principal is null");
+     }
+ }
+diff --git a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoUser.java b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoUser.java
+index 90829cd427..53fb21f806 100644
+--- a/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoUser.java
++++ b/plugin/trino-opa/src/main/java/io/trino/plugin/opa/schema/TrinoUser.java
+@@ -38,8 +38,8 @@ public record TrinoUser(String user, @JsonUnwrapped TrinoIdentity identity)
+         this(name, null);
+     }
+ 
+-    public TrinoUser(Identity identity)
++    public TrinoUser(Identity identity, boolean includeUserPrincipal)
+     {
+-        this(null, TrinoIdentity.fromTrinoIdentity(identity));
++        this(null, TrinoIdentity.fromTrinoIdentity(identity, includeUserPrincipal));
+     }
+ }
+diff --git a/plugin/trino-opa/src/test/java/io/trino/plugin/opa/SerializableTestPrincipal.java b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/SerializableTestPrincipal.java
+new file mode 100644
+index 0000000000..0de95954a7
+--- /dev/null
++++ b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/SerializableTestPrincipal.java
+@@ -0,0 +1,35 @@
++/*
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package io.trino.plugin.opa;
++
++import com.fasterxml.jackson.annotation.JsonProperty;
++import com.fasterxml.jackson.databind.annotation.JsonSerialize;
++
++import java.security.Principal;
++
++// A Principal for tests that can be serialized using Jackson
++@JsonSerialize
++public class SerializableTestPrincipal implements Principal {
++    private String name;
++
++    public SerializableTestPrincipal(String name) {
++        this.name = name;
++    }
++
++    @Override
++    @JsonProperty
++    public String getName() {
++        return name;
++    }
++}
+diff --git a/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaAccessControl.java b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaAccessControl.java
+index 4740ebdf94..abeda71245 100644
+--- a/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaAccessControl.java
++++ b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaAccessControl.java
+@@ -28,6 +28,7 @@ import io.trino.spi.connector.CatalogSchemaName;
+ import io.trino.spi.connector.CatalogSchemaRoutineName;
+ import io.trino.spi.connector.CatalogSchemaTableName;
+ import io.trino.spi.connector.ColumnSchema;
++import io.trino.spi.security.BasicPrincipal;
+ import io.trino.spi.security.Identity;
+ import io.trino.spi.security.PrincipalType;
+ import io.trino.spi.security.SystemAccessControlFactory;
+@@ -221,6 +222,7 @@ final class TestOpaAccessControl
+     {
+         Identity dummyIdentity = Identity.forUser("dummy-user")
+                 .withGroups(ImmutableSet.of("some-group"))
++                .withPrincipal(new BasicPrincipal("basic-principal"))
+                 .build();
+         ThrowingMethodWrapper wrappedMethod = new ThrowingMethodWrapper(
+                 accessControl -> callable.accept(accessControl, TEST_IDENTITY, dummyIdentity));
+@@ -687,6 +689,39 @@ final class TestOpaAccessControl
+         assertStringRequestsEqual(ImmutableSet.of(expectedRequest), mockClient.getRequests(), "/input");
+     }
+ 
++    @Test
++    void testIncludeUserPrincipal() {
++        InstrumentedHttpClient mockClient = createMockHttpClient(OPA_SERVER_URI, request -> OK_RESPONSE);
++        OpaAccessControl authorizer = (OpaAccessControl) OpaAccessControlFactory.create(
++                ImmutableMap.of("opa.policy.uri", OPA_SERVER_URI.toString(), "opa.include-user-principal", "true"),
++                Optional.of(mockClient),
++                Optional.empty());
++        Identity sampleIdentityWithGroupsAndPrincipal = Identity.forUser("test_user").withGroups(ImmutableSet.of("some_group")).withPrincipal(new SerializableTestPrincipal("test_principal")).build();
++        authorizer.checkCanExecuteQuery(sampleIdentityWithGroupsAndPrincipal, TEST_QUERY_ID);
++
++        String expectedRequest =
++                """
++                {
++                    "action": {
++                        "operation": "ExecuteQuery"
++                    },
++                    "context": {
++                        "identity": {
++                            "user": "test_user",
++                            "groups": ["some_group"],
++                            "principal": {
++                                "name": "test_principal"
++                            }
++                        },
++                        "softwareStack": {
++                            "trinoVersion": "UNKNOWN"
++                        }
++                    }
++                }\
++                """;
++        assertStringRequestsEqual(ImmutableSet.of(expectedRequest), mockClient.getRequests(), "/input");
++    }
++
+     @Test
+     void testGetRowFiltersThrowsForIllegalResponse()
+     {
+diff --git a/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaConfig.java b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaConfig.java
+index 992b645302..d70975eb27 100644
+--- a/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaConfig.java
++++ b/plugin/trino-opa/src/test/java/io/trino/plugin/opa/TestOpaConfig.java
+@@ -36,7 +36,8 @@ final class TestOpaConfig
+                 .setOpaBatchColumnMaskingUri(null)
+                 .setLogRequests(false)
+                 .setLogResponses(false)
+-                .setAllowPermissionManagementOperations(false));
++                .setAllowPermissionManagementOperations(false)
++                .setIncludeUserPrincipal(false));
+     }
+ 
+     @Test
+@@ -51,6 +52,7 @@ final class TestOpaConfig
+                 .put("opa.log-requests", "true")
+                 .put("opa.log-responses", "true")
+                 .put("opa.allow-permission-management-operations", "true")
++                .put("opa.include-user-principal", "true")
+                 .buildOrThrow();
+ 
+         OpaConfig expected = new OpaConfig()
+@@ -61,7 +63,8 @@ final class TestOpaConfig
+                 .setOpaBatchColumnMaskingUri(URI.create("https://opa-column-masking.example.com"))
+                 .setLogRequests(true)
+                 .setLogResponses(true)
+-                .setAllowPermissionManagementOperations(true);
++                .setAllowPermissionManagementOperations(true)
++                .setIncludeUserPrincipal(true);
+ 
+         assertFullMapping(properties, expected);
+     }
