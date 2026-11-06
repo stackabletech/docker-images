@@ -63,6 +63,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- superset: Fix the broken 4.1.4 build by pinning the d3-selection package to 3.0.0 ([#1735]).
 - spark: Propagate the entrypoint's exit code so failed applications are no longer reported as successful ([#1595]).
 - superset: Fix the broken builds by excluding the `cypress-base` end-to-end test project from the frontend SBOM ([#1616]).
 - superset: Fix the broken 4.1.4 build by also excluding `packages/superset-ui-switchboard` from the frontend SBOM ([#1621]).
@@ -198,6 +199,7 @@ All notable changes to this project will be documented in this file.
 [#1730]: https://github.com/stackabletech/docker-images/pull/1730
 [#1731]: https://github.com/stackabletech/docker-images/pull/1731
 [#1732]: https://github.com/stackabletech/docker-images/pull/1732
+[#1735]: https://github.com/stackabletech/docker-images/pull/1735
 
 ## [26.7.0] - 2026-07-21
 
