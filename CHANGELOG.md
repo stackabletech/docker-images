@@ -114,6 +114,7 @@ All notable changes to this project will be documented in this file.
 - superset: Bump certifi to `2026.10.23` and uv to `0.13.4` ([#1715]).
 - opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
 - spark-connect-client: Point grpcio to the system trust store ([#1715]).
+- nifi: Bump Hazelcast to `5.7.0` (partial backport of [NIFI-15942](https://issues.apache.org/jira/browse/NIFI-15942)) to fix CVE-2026-107726, for `2.6.0` and `2.9.0`.
 - superset: Bump brotli to `1.2.1` to fix CVE-2026-111497.
 - hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511] ([#1731]).
 

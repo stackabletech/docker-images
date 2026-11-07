@@ -1,0 +1,22 @@
+From ff477029b4b343d4fcab23dc6b74a86f27f1e46c Mon Sep 17 00:00:00 2001
+From: dervoeti <lukas.krug@stackable.tech>
+Date: Mon, 2 Nov 2026 20:41:48 +0000
+Subject: NIFI-15942 Bump Hazelcast from 5.5.0 to 5.7.0 to fix CVE-2026-107726
+
+---
+ .../nifi-hazelcast-bundle/nifi-hazelcast-services/pom.xml       | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/nifi-extension-bundles/nifi-hazelcast-bundle/nifi-hazelcast-services/pom.xml b/nifi-extension-bundles/nifi-hazelcast-bundle/nifi-hazelcast-services/pom.xml
+index 259ab9def0866205bc1c3ac598d5946c73a63fc0..8190f5849ced7c1daabdc0f358aecec3a3b666bf 100644
+--- a/nifi-extension-bundles/nifi-hazelcast-bundle/nifi-hazelcast-services/pom.xml
++++ b/nifi-extension-bundles/nifi-hazelcast-bundle/nifi-hazelcast-services/pom.xml
+@@ -43,7 +43,7 @@
+         <dependency>
+             <groupId>com.hazelcast</groupId>
+             <artifactId>hazelcast</artifactId>
+-            <version>5.5.0</version>
++            <version>5.7.0</version>
+         </dependency>
+     </dependencies>
+ </project>
