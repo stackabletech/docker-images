@@ -1,0 +1,28 @@
+From b0c6c5a565a7d20e7497bddc0f1e251b2b2881ec Mon Sep 17 00:00:00 2001
+From: Techassi <git@techassi.dev>
+Date: Fri, 6 Nov 2026 11:50:59 +0100
+Subject: Pin d3-selection to 3.0.0
+
+---
+ superset-frontend/package.json | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/superset-frontend/package.json b/superset-frontend/package.json
+index bc2746107eda6131155c9de8f37cc6b34bbe0af4..f6dd7ba565b09d9cd13f6082b22e7880507e712e 100644
+--- a/superset-frontend/package.json
++++ b/superset-frontend/package.json
+@@ -131,6 +131,7 @@
+     "classnames": "^2.2.5",
+     "core-js": "^3.37.1",
+     "d3-scale": "^2.1.2",
++    "d3-selection": "3.0.0",
+     "dom-to-image-more": "^3.2.0",
+     "dom-to-pdf": "^0.3.2",
+     "emotion-rgba": "0.0.12",
+@@ -374,4 +375,4 @@
+     "allowTopLevel": true
+   },
+   "_id": "superset@0.0.0-dev"
+-}
+\ No newline at end of file
++}
