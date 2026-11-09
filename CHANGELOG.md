@@ -117,6 +117,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Bump Hazelcast to `5.7.0` (partial backport of [NIFI-15942](https://issues.apache.org/jira/browse/NIFI-15942)) to fix CVE-2026-107726, for `2.6.0` and `2.9.0` ([#1737]).
 - superset: Bump brotli to `1.2.1` to fix CVE-2026-111497 ([#1737]).
 - hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511] ([#1731]).
+- trino: Backport [trinodb/trino#26806](https://github.com/trinodb/trino/pull/26806) to `477` to fix `appendPositions` on `RowBlockBuilder` ignoring the offset ([#1738]).
 
 ### Removed
 
@@ -203,6 +204,7 @@ All notable changes to this project will be documented in this file.
 [#1732]: https://github.com/stackabletech/docker-images/pull/1732
 [#1735]: https://github.com/stackabletech/docker-images/pull/1735
 [#1737]: https://github.com/stackabletech/docker-images/pull/1737
+[#1738]: https://github.com/stackabletech/docker-images/pull/1738
 
 ## [26.7.0] - 2026-07-21
 
