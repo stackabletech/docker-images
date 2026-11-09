@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - airflow, superset, druid, nifi: Add SBOMs for the frontend (npm) dependencies ([#1600]).
 - nifi: Backport [NIFI-15958](https://issues.apache.org/jira/browse/NIFI-15958) to log progress during the content archive scan and provenance re-index ([#1611] and [#1727]).
 - nifi: Backport [NIFI-16294](https://issues.apache.org/jira/browse/NIFI-16294) to guard against a null controller status in `SiteToSiteStatusReportingTask` during startup, for `2.6.0` and `2.9.0` ([#1629]).
+- nifi: Apply [NIFI-16547](https://issues.apache.org/jira/browse/NIFI-16547) to add a connect timeout (`nifi.cluster.node.connection.timeout`) to cluster protocol sockets, so heartbeats no longer hang for minutes when a peer is unreachable ([#XXXX]).
 - hbase: Add an SBOM for the web UI (npm) dependencies, which are unpacked from webjars and therefore not covered by the CycloneDX Maven plugin ([#1620]).
 - trino: Add SBOMs for the web UI, both for the two npm projects behind it and for the pre-built JavaScript vendored into the source tree ([#1620]).
 - hive: Restore the `get_table` and `get_table_objects_by_name` Thrift methods that HIVE-26537 removed in Hive 4.0.1, for `4.2.0` ([#1636]).
