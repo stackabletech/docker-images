@@ -47,3 +47,20 @@ java-devel = "21"
 
 [versions."4.2.1".build-arguments]
 jmx-exporter-version = "1.3.0"
+
+
+# We want https://issues.apache.org/jira/browse/HIVE-29391, so we build a snapshot version to serve
+# as a preview and unblock further work (in hive-operator).
+[versions."4.3.0-snapshot-f499507".local-images]
+# TODO: Update once on a fix version
+java-base = "21"
+# TODO: Update once on a fix version
+java-devel = "21"
+# TODO: Update once on a fix version
+"hadoop/hadoop" = "3.4.3"
+# hive-metastore-opa-authorizer from: https://github.com/boschglobal/hive-metastore-opa-authorizer
+# TODO: Update once on a fix version
+"hive/hive-metastore-opa-authorizer" = "v1.0.0-hive-4.2.1-hadoop-3.4.3"
+
+[versions."4.3.0-snapshot-f499507".build-arguments]
+jmx-exporter-version = "1.3.0"
