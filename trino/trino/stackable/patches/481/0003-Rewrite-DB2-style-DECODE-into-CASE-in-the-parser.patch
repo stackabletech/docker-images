@@ -1,0 +1,329 @@
+From b8d79fc9b59efb62b001fbefb466eb3a4b7b4354 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Wed, 11 Nov 2026 22:05:32 +0000
+Subject: Rewrite DB2-style DECODE into CASE in the parser
+
+DECODE(e, s1, r1, s2, r2, ..., [default]) is rewritten to
+CASE WHEN NOT (e IS DISTINCT FROM s1) THEN r1 ... ELSE default END,
+so a NULL operand matches a NULL search value. The rewrite happens
+before analysis, so calls with more than 127 arguments work.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../java/io/trino/sql/query/TestDecode.java   | 172 ++++++++++++++++++
+ .../java/io/trino/sql/parser/AstBuilder.java  |  33 ++++
+ .../io/trino/sql/parser/TestSqlParser.java    |  78 ++++++++
+ 3 files changed, 283 insertions(+)
+ create mode 100644 core/trino-main/src/test/java/io/trino/sql/query/TestDecode.java
+
+diff --git a/core/trino-main/src/test/java/io/trino/sql/query/TestDecode.java b/core/trino-main/src/test/java/io/trino/sql/query/TestDecode.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..bbe10da6ba82172146e935eb4ee285fc9023c2dd
+--- /dev/null
++++ b/core/trino-main/src/test/java/io/trino/sql/query/TestDecode.java
+@@ -0,0 +1,172 @@
++/*
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package io.trino.sql.query;
++
++import org.junit.jupiter.api.AfterAll;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.TestInstance;
++import org.junit.jupiter.api.parallel.Execution;
++
++import java.util.function.IntFunction;
++
++import static io.trino.spi.StandardErrorCode.TYPE_MISMATCH;
++import static java.util.stream.Collectors.joining;
++import static java.util.stream.IntStream.rangeClosed;
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
++import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
++
++@TestInstance(PER_CLASS)
++@Execution(CONCURRENT)
++public class TestDecode
++{
++    private final QueryAssertions assertions = new QueryAssertions();
++
++    @AfterAll
++    public void teardown()
++    {
++        assertions.close();
++    }
++
++    @Test
++    public void testBasic()
++    {
++        assertThat(assertions.query("SELECT decode(1, 1, 'one', 2, 'two')")).matches("VALUES 'one'");
++        assertThat(assertions.query("SELECT decode(2, 1, 'one', 2, 'two')")).matches("VALUES 'two'");
++        assertThat(assertions.query("SELECT decode(3, 1, 'one', 2, 'two', 'other')")).matches("VALUES 'other'");
++        assertThat(assertions.query("SELECT DECODE(2, 1, 'one', 2, 'two', 'other')")).matches("VALUES CAST('two' AS varchar(5))");
++
++        assertThat(assertions.query(
++                """
++                SELECT x, decode(x, 1, 'one', 2, 'two', 'other')
++                FROM (VALUES 1, 2, 3, NULL) t(x)
++                """))
++                .matches("VALUES (1, CAST('one' AS varchar(5))), (2, 'two'), (3, 'other'), (NULL, 'other')");
++    }
++
++    @Test
++    public void testNoMatchWithoutDefault()
++    {
++        assertThat(assertions.query("SELECT decode(3, 1, 'one', 2, 'two')")).matches("VALUES CAST(NULL AS varchar(3))");
++    }
++
++    @Test
++    public void testNullMatchesNull()
++    {
++        assertThat(assertions.query("SELECT decode(NULL, NULL, 'n', 'other')")).matches("VALUES CAST('n' AS varchar(5))");
++        assertThat(assertions.query("SELECT decode(1, NULL, 'n', 'other')")).matches("VALUES 'other'");
++        assertThat(assertions.query("SELECT decode(NULL, 1, 'one', 'other')")).matches("VALUES 'other'");
++        assertThat(assertions.query(
++                """
++                SELECT x, decode(x, 1, 'one', NULL, 'null', 'other')
++                FROM (VALUES 1, 2, NULL) t(x)
++                """))
++                .matches("VALUES (1, CAST('one' AS varchar(5))), (2, 'other'), (NULL, 'null')");
++        assertThat(assertions.query(
++                """
++                SELECT decode(x, s, 'match', 'other')
++                FROM (VALUES (1, 1), (1, 2), (1, NULL), (NULL, 1), (NULL, NULL)) t(x, s)
++                """))
++                .matches("VALUES 'match', 'other', 'other', 'other', 'match'");
++    }
++
++    @Test
++    public void testFirstMatchWins()
++    {
++        assertThat(assertions.query("SELECT decode(1, 1, 'first', 1, 'second', 'other')")).matches("VALUES CAST('first' AS varchar(6))");
++        assertThat(assertions.query("SELECT decode(NULL, NULL, 'first', NULL, 'second')")).matches("VALUES CAST('first' AS varchar(6))");
++    }
++
++    @Test
++    public void testShortCircuit()
++    {
++        assertThat(assertions.query(
++                """
++                SELECT decode(x, 1, 'ok', 2, CAST(1 / (x - 1) AS varchar))
++                FROM (VALUES 1) t(x)
++                """))
++                .matches("VALUES VARCHAR 'ok'");
++        assertThat(assertions.query(
++                """
++                SELECT decode(x, 1, 'ok', CAST(1 / (x - 1) AS varchar))
++                FROM (VALUES 1) t(x)
++                """))
++                .matches("VALUES VARCHAR 'ok'");
++    }
++
++    @Test
++    public void testExpressionsAsArguments()
++    {
++        assertThat(assertions.query(
++                """
++                SELECT decode(x + 1, y * 2, 'a', y * 3, 'b', concat('c', CAST(x AS varchar)))
++                FROM (VALUES (3, 2), (5, 2), (7, 3)) t(x, y)
++                """))
++                .matches("VALUES VARCHAR 'a', 'b', 'c7'");
++    }
++
++    @Test
++    public void testResultTypeCoercion()
++    {
++        assertThat(assertions.query("SELECT decode(1, 1, 1, 2, 2.5, 3e0)")).matches("VALUES 1e0");
++        assertThat(assertions.query("SELECT decode(BIGINT '1', 1, 'one')")).matches("VALUES 'one'");
++    }
++
++    @Test
++    public void testTypeMismatch()
++    {
++        assertThat(assertions.query("SELECT decode('a', 1, 'x')"))
++                .failure()
++                .hasErrorCode(TYPE_MISMATCH)
++                .hasMessageContaining("line 1:20: Cannot check if varchar(1) is identical to integer");
++        assertThat(assertions.query("SELECT decode(1, 1, 'x', 2, 3)"))
++                .failure()
++                .hasErrorCode(TYPE_MISMATCH);
++    }
++
++    @Test
++    public void testManyArguments()
++    {
++        // 127 is the maximum number of arguments for a function call, DECODE is rewritten before that check.
++        // The input comes from UNNEST rather than VALUES, so that the planner cannot fold the expressions into
++        // constants and the generated bytecode, which is subject to the JVM method size limit, gets exercised.
++        String input = "UNNEST(sequence(BIGINT '0', BIGINT '1000') || ARRAY[CAST(NULL AS bigint)]) t(x)";
++        for (int argumentCount : new int[] {127, 128, 253, 254, 499, 500}) {
++            int pairs = (argumentCount - 1) / 2;
++            boolean hasDefault = argumentCount % 2 == 0;
++
++            String bigintDecode = "decode(x" + pairs(pairs, i -> i + ", 'r" + i + "'") + (hasDefault ? ", 'default'" : "") + ")";
++            String bigintExpected = "IF(x BETWEEN 1 AND " + pairs + ", 'r' || CAST(x AS varchar), " + (hasDefault ? "'default'" : "NULL") + ")";
++            assertThat(assertions.query(
++                    "SELECT count(*), count_if(" + bigintDecode + " IS DISTINCT FROM " + bigintExpected + ") FROM " + input))
++                    .matches("VALUES (BIGINT '1002', BIGINT '0')");
++            assertThat(assertions.query(
++                    "SELECT x FROM " + input + " WHERE " + bigintDecode + " = 'r" + pairs + "'"))
++                    .matches("VALUES BIGINT '" + pairs + "'");
++
++            String varcharDecode = "decode(CAST(x AS varchar)" + pairs(pairs, i -> "'" + i + "', " + i) + (hasDefault ? ", -1" : "") + ")";
++            String varcharExpected = "IF(x BETWEEN 1 AND " + pairs + ", x, " + (hasDefault ? "-1" : "NULL") + ")";
++            assertThat(assertions.query(
++                    "SELECT count(*), count_if(" + varcharDecode + " IS DISTINCT FROM " + varcharExpected + ") FROM " + input))
++                    .matches("VALUES (BIGINT '1002', BIGINT '0')");
++        }
++    }
++
++    private static String pairs(int count, IntFunction<String> pair)
++    {
++        return rangeClosed(1, count)
++                .mapToObj(pair)
++                .collect(joining(", ", ", ", ""));
++    }
++}
+diff --git a/core/trino-parser/src/main/java/io/trino/sql/parser/AstBuilder.java b/core/trino-parser/src/main/java/io/trino/sql/parser/AstBuilder.java
+index b3155362bc79c9a42319d1ecd1502683c47dce31..71edab3e4832447a9a8625f129caedce5f94fd17 100644
+--- a/core/trino-parser/src/main/java/io/trino/sql/parser/AstBuilder.java
++++ b/core/trino-parser/src/main/java/io/trino/sql/parser/AstBuilder.java
+@@ -3102,6 +3102,39 @@ class AstBuilder
+             return new CoalesceExpression(getLocation(context), visit(context.expression(), Expression.class));
+         }
+ 
++        if (name.toString().equalsIgnoreCase("decode")) {
++            check(context.expression().size() >= 3, "The 'decode' function must have at least three arguments", context);
++            check(window.isEmpty(), "OVER clause not valid for 'decode' function", context);
++            check(!distinct, "DISTINCT not valid for 'decode' function", context);
++            check(nullTreatment == null, "Null treatment clause not valid for 'decode' function", context);
++            check(processingMode == null, "Running or final semantics not valid for 'decode' function", context);
++            check(filter.isEmpty(), "FILTER not valid for 'decode' function", context);
++
++            // DB2-style DECODE(e, s1, r1, ..., [default]) where a NULL e matches a NULL si:
++            // CASE WHEN NOT (e IS DISTINCT FROM s1) THEN r1 ... ELSE default END
++            List<SqlBaseParser.ExpressionContext> expressions = context.expression();
++            SqlBaseParser.ExpressionContext operand = expressions.getFirst();
++            ImmutableList.Builder<WhenClause> whenClauses = ImmutableList.builder();
++            for (int i = 1; i + 1 < expressions.size(); i += 2) {
++                SqlBaseParser.ExpressionContext search = expressions.get(i);
++                // visit the operand per branch so that each branch gets its own tree nodes
++                Expression condition = new NotExpression(
++                        getLocation(search),
++                        new ComparisonExpression(
++                                getLocation(search),
++                                ComparisonExpression.Operator.IS_DISTINCT_FROM,
++                                (Expression) visit(operand),
++                                (Expression) visit(search)));
++                whenClauses.add(new WhenClause(getLocation(search), condition, (Expression) visit(expressions.get(i + 1))));
++            }
++            Optional<Expression> defaultValue = Optional.empty();
++            if (expressions.size() % 2 == 0) {
++                defaultValue = Optional.of((Expression) visit(expressions.getLast()));
++            }
++
++            return new SearchedCaseExpression(getLocation(context), whenClauses.build(), defaultValue);
++        }
++
+         if (name.toString().equalsIgnoreCase("try")) {
+             check(context.expression().size() == 1, "The 'try' function must have exactly one argument", context);
+             check(window.isEmpty(), "OVER clause not valid for 'try' function", context);
+diff --git a/core/trino-parser/src/test/java/io/trino/sql/parser/TestSqlParser.java b/core/trino-parser/src/test/java/io/trino/sql/parser/TestSqlParser.java
+index 2394c6a35961db0f364c667686b11cdc71ef1802..be8ab02ea883fa810e32d239b956b5e581d7bd1c 100644
+--- a/core/trino-parser/src/test/java/io/trino/sql/parser/TestSqlParser.java
++++ b/core/trino-parser/src/test/java/io/trino/sql/parser/TestSqlParser.java
+@@ -851,6 +851,84 @@ public class TestSqlParser
+         assertInvalidExpression("nullif(42, 87) OVER ()", "OVER clause not valid for 'nullif' function");
+     }
+ 
++    @Test
++    public void testDecode()
++    {
++        assertThat(expression("decode(a, 1, 'x')"))
++                .isEqualTo(new SearchedCaseExpression(
++                        location(1, 1),
++                        ImmutableList.of(
++                                new WhenClause(
++                                        location(1, 11),
++                                        new NotExpression(
++                                                location(1, 11),
++                                                new ComparisonExpression(
++                                                        location(1, 11),
++                                                        ComparisonExpression.Operator.IS_DISTINCT_FROM,
++                                                        new Identifier(location(1, 8), "a", false),
++                                                        new LongLiteral(location(1, 11), "1"))),
++                                        new StringLiteral(location(1, 14), "x"))),
++                        Optional.empty()));
++        Expression decodeWithDefault = new SearchedCaseExpression(
++                location(1, 1),
++                ImmutableList.of(
++                        new WhenClause(
++                                location(1, 11),
++                                new NotExpression(
++                                        location(1, 11),
++                                        new ComparisonExpression(
++                                                location(1, 11),
++                                                ComparisonExpression.Operator.IS_DISTINCT_FROM,
++                                                new Identifier(location(1, 8), "a", false),
++                                                new LongLiteral(location(1, 11), "1"))),
++                                new StringLiteral(location(1, 14), "x"))),
++                Optional.of(new StringLiteral(location(1, 19), "y")));
++        assertThat(expression("decode(a, 1, 'x', 'y')")).isEqualTo(decodeWithDefault);
++        assertThat(expression("DECODE(a, 1, 'x', 'y')")).isEqualTo(decodeWithDefault);
++        assertThat(expression("Decode(a, 1, 'x', 'y')")).isEqualTo(decodeWithDefault);
++        assertThat(expression("decode(a, 1, 'x', null, 'n')"))
++                .isEqualTo(new SearchedCaseExpression(
++                        location(1, 1),
++                        ImmutableList.of(
++                                new WhenClause(
++                                        location(1, 11),
++                                        new NotExpression(
++                                                location(1, 11),
++                                                new ComparisonExpression(
++                                                        location(1, 11),
++                                                        ComparisonExpression.Operator.IS_DISTINCT_FROM,
++                                                        new Identifier(location(1, 8), "a", false),
++                                                        new LongLiteral(location(1, 11), "1"))),
++                                        new StringLiteral(location(1, 14), "x")),
++                                new WhenClause(
++                                        location(1, 19),
++                                        new NotExpression(
++                                                location(1, 19),
++                                                new ComparisonExpression(
++                                                        location(1, 19),
++                                                        ComparisonExpression.Operator.IS_DISTINCT_FROM,
++                                                        new Identifier(location(1, 8), "a", false),
++                                                        new NullLiteral(location(1, 19)))),
++                                        new StringLiteral(location(1, 25), "n"))),
++                        Optional.empty()));
++        assertThat(expression("x.decode(a, 1, 'x')"))
++                .isEqualTo(new FunctionCall(
++                        location(1, 1),
++                        QualifiedName.of(ImmutableList.of(new Identifier(location(1, 1), "x", false), new Identifier(location(1, 3), "decode", false))),
++                        ImmutableList.of(
++                                new Identifier(location(1, 10), "a", false),
++                                new LongLiteral(location(1, 13), "1"),
++                                new StringLiteral(location(1, 16), "x"))));
++
++        assertInvalidExpression("decode()", "The 'decode' function must have at least three arguments");
++        assertInvalidExpression("decode(a)", "The 'decode' function must have at least three arguments");
++        assertInvalidExpression("decode(a, 1)", "The 'decode' function must have at least three arguments");
++        assertInvalidExpression("decode(a, 1, 'x') OVER ()", "OVER clause not valid for 'decode' function");
++        assertInvalidExpression("decode(a, 1, 'x') filter (where true)", "FILTER not valid for 'decode' function");
++        assertInvalidExpression("decode(DISTINCT a, 1, 'x')", "DISTINCT not valid for 'decode' function");
++        assertInvalidExpression("RUNNING decode(a, 1, 'x')", "Running or final semantics not valid for 'decode' function");
++    }
++
+     @Test
+     public void testDoubleInQuery()
+     {
