@@ -89,7 +89,9 @@ mkdir -p /stackable/patched-libs/maven/io
 cp -r /root/.m2/repository/io/trino /stackable/patched-libs/maven/io
 
 # Delete intermediate build products to free some space and keep runners happy
-rm -r plugin/*/target core/trino-server/target/trino-server-${NEW_VERSION}
+rm -r plugin/*/target
+# Since 484, provisio streams the tarball and no longer writes the raw output folder
+rm -rf core/trino-server/target/trino-server-${NEW_VERSION}
 
 # Extract from tarball to save space; the tarball deduplicates jars (replacing them with symlinks),
 # while the raw output folder does not
