@@ -1,0 +1,173 @@
+From cb99f8a8696b76b064984d4e97e0bce6f568d5d4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?S=C3=B6nke=20Liebau?= <soenke.liebau@stackable.tech>
+Date: Tue, 17 Nov 2026 05:24:46 +0100
+Subject: NIFI-16547 Add connect timeout to cluster protocol sockets (#11924)
+
+- Create an unconnected socket and connect with a timeout. The hostname is still resolved on every attempt and kept for TLS hostname verification.
+- Add connectTimeout to SocketConfiguration, set from nifi.cluster.node.connection.timeout for the cluster protocol.
+- Treat a connect timeout like a ConnectException when notifying the subject node of a status change, so it is not retried 5 times on the heartbeat monitor thread.
+
+Signed-off-by: David Handermann <exceptionfactory@apache.org>
+---
+ ...ndardClusterCoordinationProtocolSender.java | 10 ++++++++--
+ .../FrameworkClusterProtocolConfiguration.java |  2 ++
+ .../nifi/io/socket/SocketConfiguration.java    |  9 +++++++++
+ .../org/apache/nifi/io/socket/SocketUtils.java | 15 +++++++++++++--
+ .../apache/nifi/io/socket/SocketUtilsTest.java | 18 ++++++++++++++++++
+ 5 files changed, 50 insertions(+), 4 deletions(-)
+
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/cluster/protocol/impl/StandardClusterCoordinationProtocolSender.java b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/cluster/protocol/impl/StandardClusterCoordinationProtocolSender.java
+index 9eb98372dfd80a9534431da7a3c2a5840979f663..11c586ac8e8221e327e266389f58361671a48159 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/cluster/protocol/impl/StandardClusterCoordinationProtocolSender.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/cluster/protocol/impl/StandardClusterCoordinationProtocolSender.java
+@@ -46,6 +46,7 @@ import java.net.ConnectException;
+ import java.net.InetSocketAddress;
+ import java.net.Socket;
+ import java.net.SocketException;
++import java.net.SocketTimeoutException;
+ import java.util.Objects;
+ import java.util.Set;
+ import java.util.concurrent.ExecutorService;
+@@ -200,6 +201,11 @@ public class StandardClusterCoordinationProtocolSender implements ClusterCoordin
+         this.handshakeTimeoutSeconds = (int) FormatUtils.getTimeDuration(handshakeTimeout, TimeUnit.SECONDS);
+     }
+ 
++    private static boolean isConnectFailure(final Throwable cause) {
++        // A SocketTimeoutException wrapped by createSocket can only come from connect, so the node could not be reached
++        return cause instanceof ConnectException || cause instanceof SocketTimeoutException;
++    }
++
+     private Socket createSocket(final NodeIdentifier nodeId, final boolean applyHandshakeTimeout) {
+         return createSocket(nodeId.getSocketAddress(), nodeId.getSocketPort(), applyHandshakeTimeout);
+     }
+@@ -296,8 +302,8 @@ public class StandardClusterCoordinationProtocolSender implements ClusterCoordin
+                         final OutputStream out = socket.getOutputStream();
+                         out.write(msgBytes);
+                     } catch (final Exception e) {
+-                        if (e instanceof ProtocolException && e.getCause() instanceof ConnectException && nodeId.equals(msg.getNodeId())) {
+-                            // We treat Connect Exceptions different because it means we're not able to reach the node at all. If that is the case and the
++                        if (e instanceof ProtocolException && isConnectFailure(e.getCause()) && nodeId.equals(msg.getNodeId())) {
++                            // We treat connect failures different because it means we're not able to reach the node at all. If that is the case and the
+                             // node is the affected node, we don't want to retry. This is common when trying to remove a node that has been terminated, etc.
+                             // and retrying is not likely to help; additionally, when the node reconnects to the cluster, it will get the update at that point
+                             // and does not need the update until then.
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/framework/configuration/FrameworkClusterProtocolConfiguration.java b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/framework/configuration/FrameworkClusterProtocolConfiguration.java
+index 8bb11d2a6cab95e532e7996c89b562f9b18d4c7d..43a147963cd8fd192fea522a04fbe8f01c19dfbe 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/framework/configuration/FrameworkClusterProtocolConfiguration.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/framework/configuration/FrameworkClusterProtocolConfiguration.java
+@@ -77,6 +77,8 @@ public class FrameworkClusterProtocolConfiguration {
+ 
+         final int timeout = (int) FormatUtils.getPreciseTimeDuration(properties.getClusterNodeReadTimeout(), TimeUnit.MILLISECONDS);
+         configuration.setSocketTimeout(timeout);
++        final int connectTimeout = (int) FormatUtils.getPreciseTimeDuration(properties.getClusterNodeConnectionTimeout(), TimeUnit.MILLISECONDS);
++        configuration.setConnectTimeout(connectTimeout);
+         configuration.setReuseAddress(true);
+         configuration.setSslContext(sslContext);
+ 
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketConfiguration.java b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketConfiguration.java
+index b8b2ea250d52dc923a042b1d06ec2b4c86e115d2..d44297c2e3ff65038c09eeb5a7bc373836002520 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketConfiguration.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketConfiguration.java
+@@ -20,6 +20,7 @@ import javax.net.ssl.SSLContext;
+ 
+ public final class SocketConfiguration {
+ 
++    private Integer connectTimeout;
+     private Integer socketTimeout;
+     private Integer receiveBufferSize;
+     private Integer sendBufferSize;
+@@ -38,6 +39,14 @@ public final class SocketConfiguration {
+         this.sslContext = sslContext;
+     }
+ 
++    public Integer getConnectTimeout() {
++        return connectTimeout;
++    }
++
++    public void setConnectTimeout(Integer connectTimeout) {
++        this.connectTimeout = connectTimeout;
++    }
++
+     public Integer getSocketTimeout() {
+         return socketTimeout;
+     }
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketUtils.java b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketUtils.java
+index 05ca248e19437c103b26cdf4cdd6f5fde51c830d..522959b6b2e227c60a89e9184031b0e3aecc2473 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketUtils.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/main/java/org/apache/nifi/io/socket/SocketUtils.java
+@@ -57,12 +57,12 @@ public final class SocketUtils {
+ 
+         final SSLContext sslContext = config.getSslContext();
+         if (sslContext == null) {
+-            socket = new Socket(address.getHostName(), address.getPort());
++            socket = new Socket();
+         } else {
+             /* This would ideally be refactored to a shared create method but Socket and ServerSocket
+              * do not share a common interface; Socket is effectively "client socket" in this context
+              */
+-            Socket tempSocket = sslContext.getSocketFactory().createSocket(address.getHostName(), address.getPort());
++            Socket tempSocket = sslContext.getSocketFactory().createSocket();
+             final SSLSocket sslSocket = (SSLSocket) tempSocket;
+             // Set Preferred TLS Protocol Versions
+             sslSocket.setEnabledProtocols(TlsPlatform.getPreferredProtocols().toArray(new String[0]));
+@@ -105,6 +105,17 @@ public final class SocketUtils {
+             socket.setTcpNoDelay(config.getTcpNoDelay());
+         }
+ 
++        // Connect via a freshly resolved address built from the hostname: the given address may be unresolved,
++        // and TLS endpoint identification checks against the hostname
++        final InetSocketAddress connectAddress = new InetSocketAddress(address.getHostName(), address.getPort());
++        final int connectTimeout = config.getConnectTimeout() == null ? 0 : config.getConnectTimeout();
++        try {
++            socket.connect(connectAddress, connectTimeout);
++        } catch (final IOException e) {
++            closeQuietly(socket);
++            throw e;
++        }
++
+         return socket;
+     }
+ 
+diff --git a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/test/java/org/apache/nifi/io/socket/SocketUtilsTest.java b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/test/java/org/apache/nifi/io/socket/SocketUtilsTest.java
+index c964bfebde2c15fa5ad3bd1d08af09a3ff25cd1a..f58d733472856c7c8fdd29a60059d5e8a0296a58 100644
+--- a/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/test/java/org/apache/nifi/io/socket/SocketUtilsTest.java
++++ b/nifi-framework-bundle/nifi-framework/nifi-framework-cluster-protocol/src/test/java/org/apache/nifi/io/socket/SocketUtilsTest.java
+@@ -23,6 +23,8 @@ import org.junit.jupiter.api.AfterEach;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.Test;
+ 
++import java.io.IOException;
++import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+ import java.net.ServerSocket;
+ import java.net.Socket;
+@@ -53,6 +55,8 @@ class SocketUtilsTest {
+ 
+     private static final int TIMEOUT_MILLISECONDS = 5000;
+ 
++    private static final int CONNECT_TIMEOUT_MILLISECONDS = 500;
++
+     private static final String LOCALHOST = "localhost";
+ 
+     private static final String NON_MATCHING_HOST = "nifi.apache.org";
+@@ -89,6 +93,20 @@ class SocketUtilsTest {
+         assertThrows(SSLHandshakeException.class, () -> connectAndHandshake(keyPair, certificate));
+     }
+ 
++    @Test
++    void testCreateSocketConnected() throws IOException {
++        try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
++            final SocketConfiguration config = new SocketConfiguration();
++            config.setConnectTimeout(CONNECT_TIMEOUT_MILLISECONDS);
++            config.setSocketTimeout(TIMEOUT_MILLISECONDS);
++
++            try (Socket socket = SocketUtils.createSocket(InetSocketAddress.createUnresolved(LOCALHOST, serverSocket.getLocalPort()), config)) {
++                assertTrue(socket.isConnected());
++                assertEquals(TIMEOUT_MILLISECONDS, socket.getSoTimeout());
++            }
++        }
++    }
++
+     private void connectAndHandshake(final KeyPair serverKeyPair, final X509Certificate serverCertificate) throws Exception {
+         final SSLContext serverSslContext = buildServerSslContext(serverKeyPair, serverCertificate);
+         final SSLContext clientSslContext = buildClientSslContext(serverCertificate);
