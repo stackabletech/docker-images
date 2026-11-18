@@ -60,6 +60,14 @@ ENV JAVA_VERSION=$PRODUCT_VERSION
 # disables the vulnerable feature
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 
+# Mitigation for CVE-2026-114938 (Java4Shell)
+# The HotSpot Base64 decode intrinsic in OpenJDK 17.0.6 and later can write out of bounds on
+# x86-64 CPUs with AVX-512 VBMI. This disables the Base64 intrinsics, so that the JVM falls back
+# to the pure Java implementation.
+# NOTE: The JVM logs "Picked up JAVA_TOOL_OPTIONS: ..." to stderr on every start.
+# TODO: Remove once every Temurin version we install contains the upstream fix.
+ENV JAVA_TOOL_OPTIONS="-XX:-UseBASE64Intrinsics"
+
 # We are adding jvmkill, as it improves shutdown of the JVM in case it runs out of native threads.
 # See https://github.com/stackabletech/docker-images/issues/1578 for motivation/details.
 COPY --chown=${STACKABLE_USER_UID}:0 --from=jvmkill-builder /stackable/libjvmkill.so /stackable/libjvmkill.so
