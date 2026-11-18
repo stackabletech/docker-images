@@ -67,8 +67,9 @@ ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 # NOTE: The JVM logs "Picked up JAVA_TOOL_OPTIONS: ..." to stderr on every start, also when empty.
 # TODO: Remove once every Temurin version we install contains the upstream fix.
 ARG TARGETARCH
-ARG BASE64_MITIGATION="${TARGETARCH/amd64/-XX:-UseBASE64Intrinsics}"
-ENV JAVA_TOOL_OPTIONS="${BASE64_MITIGATION/arm64/}"
+# "amd64" on amd64, empty on arm64
+ARG IS_AMD64=${TARGETARCH%arm64}
+ENV JAVA_TOOL_OPTIONS="${IS_AMD64:+-XX:-UseBASE64Intrinsics}"
 
 # We are adding jvmkill, as it improves shutdown of the JVM in case it runs out of native threads.
 # See https://github.com/stackabletech/docker-images/issues/1578 for motivation/details.
