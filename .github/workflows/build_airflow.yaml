@@ -9,7 +9,9 @@ on:
     - cron: '0 0 1/2 * *' # https://crontab.guru/#0_0_1/2_*_*
   push:
     branches: [main]
-    tags: ['*']
+    tags:
+      - "[0-9][0-9].[0-9]+.[0-9]+"
+      - "[0-9][0-9].[0-9]+.[0-9]+-rc[0-9]+"
     paths:
       # To check dependencies, run this ( you will need to consider transitive dependencies)
       # bake --product PRODUCT -d | grep -v 'docker buildx bake' | jq '.target | keys[]'
