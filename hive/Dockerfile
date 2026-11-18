@@ -83,13 +83,23 @@ elif [[ "${PRODUCT_VERSION}" == 4.0.* ]]; then
   )
 else
   # Starting with 4.1.0 the build process changed again in https://github.com/apache/hive/pull/5936 (HIVE-29062)
-  # The main reactor pins its dependencies on the standalone-metastore modules through `standalone-metastore.version`.
-  # This is _not_ changed by `mvn versions:set` above.
-  # If we do not change it here it'd download those dependencies (without the -stackableXXXX suffix) from Maven central.
+  # Some in-reactor dependencies are pinned through properties rather than the project version:
+  # - `standalone-metastore.version`: the main reactor's dependencies on the standalone-metastore modules
+  # - `storage-api.version`: hive-storage-api (used by both the main reactor and standalone-metastore)
+  # - `hive.version`: references from standalone-metastore into the main reactor (e.g. hive-exec)
+  # These properties are _not_ changed by `mvn versions:set` above, which only rewrites module and literal dependency versions.
+  # If we do not change them here it'd download those dependencies (without the -stackableXXXX suffix) from Maven central,
+  # or fail entirely for snapshot versions, as those are not published there.
+  #
+  # We only ship the standalone metastore, so we skip Beeline and the full Hive distribution (hive-packaging, which depends on Beeline).
+  # Starting with 4.3.0 the Beeline dist profile builds a native installer using jpackage, which requires rpmbuild on RHEL based images.
   mvn \
     clean package \
+    --projects '!:hive-beeline,!:hive-packaging' \
     -Dhadoop.version=${HADOOP_VERSION}-stackable${RELEASE_VERSION} \
     -Dstandalone-metastore.version=${NEW_VERSION} \
+    -Dstorage-api.version=${NEW_VERSION} \
+    -Dhive.version=${NEW_VERSION} \
     -DskipTests \
     -Pdist
   # Looks like we can not filter the projects using "--projects standalone-metastore/metastore-server --also-make",
