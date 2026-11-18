@@ -142,6 +142,14 @@ rm -r jdk
     "org.opensearch.plugin:opensearch-ubi:${OPENSEARCH_UBI_PLUGIN_VERSION}" \
     "org.opensearch.plugin:query-insights:${QUERY_INSIGHTS_PLUGIN_VERSION}"
 
+# Mitigation for CVE-2026-114938 (Java4Shell), see jdk-base/Dockerfile.
+# OpenSearch ignores JAVA_TOOL_OPTIONS (see bin/opensearch-env), so the flag set in jdk-base has
+# no effect here. It is passed via jvm.options.d instead, only on amd64.
+# TODO: Remove together with the mitigation in jdk-base, see https://github.com/stackabletech/docker-images/pull/1741
+if [ "${TARGETARCH}" = "amd64" ]; then
+    echo "-XX:-UseBASE64Intrinsics" > config/jvm.options.d/cve-2026-114938.options
+fi
+
 # Change the group permissions already in the builder image to reduce
 # the size of the final image.
 # see https://github.com/stackabletech/docker-images/issues/961
