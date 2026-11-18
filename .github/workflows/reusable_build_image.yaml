@@ -10,6 +10,10 @@ on:
       registry-namespace:
         required: true
         type: string
+      extra-tag-data:
+        description: Extra data appended to the image tags after the SDP version (eg. `nifi16547`)
+        default: ""
+        type: string
     secrets:
       harbor-robot-secret:
         description: The secret for the Harbor robot user used to push images and manifest
@@ -62,6 +66,7 @@ jobs:
           product-name: ${{ inputs.product-name }}
           product-version: ${{ matrix.versions }}
           sdp-version: ${{ inputs.sdp-version }}
+          extra-tag-data: ${{ inputs.extra-tag-data }}
 
       - name: Publish Container Image on oci.stackable.tech
         uses: stackabletech/actions/publish-image@497f3e3cbfe9b89b1e570351b97d050eebcad5d0 # 0.8.3
@@ -96,7 +101,7 @@ jobs:
           image-registry-username: robot$${{ inputs.registry-namespace }}+github-action-build
           image-registry-password: ${{ secrets.harbor-robot-secret }}
           image-repository: ${{ inputs.registry-namespace }}/${{ inputs.product-name }}
-          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}
+          image-index-manifest-tag: ${{ matrix.versions }}-stackable${{ inputs.sdp-version }}${{ inputs.extra-tag-data && format('-{0}', inputs.extra-tag-data) || '' }}
 
   notify:
     name: Failure Notification
