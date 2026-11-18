@@ -117,6 +117,7 @@ All notable changes to this project will be documented in this file.
 - nifi: Bump Hazelcast to `5.7.0` (partial backport of [NIFI-15942](https://issues.apache.org/jira/browse/NIFI-15942)) to fix CVE-2026-107726, for `2.6.0` and `2.9.0` ([#1737]).
 - superset: Bump brotli to `1.2.1` to fix CVE-2026-111497 ([#1737]).
 - java-base, jdk-base: Disable the HotSpot Base64 intrinsics on amd64 via `JAVA_TOOL_OPTIONS` to mitigate CVE-2026-114938 ([#1741]).
+- opensearch: Disable the HotSpot Base64 intrinsics on amd64 via `jvm.options.d`, as OpenSearch ignores `JAVA_TOOL_OPTIONS` ([#XXXX]).
 - hbase: Add `hadoop-azure` to the HBase `lib` directory again, so that `abfs://` works. This regressed in 26.7.0 with [#1511] ([#1731]).
 - trino: Backport [trinodb/trino#26806](https://github.com/trinodb/trino/pull/26806) to `477` to fix `appendPositions` on `RowBlockBuilder` ignoring the offset ([#1738]).
 
