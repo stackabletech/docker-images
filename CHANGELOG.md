@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [26.11.0-rc1] - 2026-11-19
+
 ### Added
 
 - zookeeper: Add 3.9.6 ([#1662]).
