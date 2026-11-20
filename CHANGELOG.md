@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- hive: Backport [HIVE-29818](https://issues.apache.org/jira/browse/HIVE-29818) to cache proxy users in the Iceberg REST Catalog and prevent running out of memory, for `4.2.0` and `4.2.1` ([#XXXX]).
+
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+
+## [26.11.0] - 2026-11-20
+
+## [26.11.0-rc1] - 2026-11-19
+
 ### Added
 
 - zookeeper: Add 3.9.6 ([#1662]).
