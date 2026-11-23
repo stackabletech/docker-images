@@ -115,7 +115,7 @@ All notable changes to this project will be documented in this file.
   KubernetesExecutor ([#1709]).
 - hive: Bump hive-metastore-opa-authorizer to 1.0.1 to fix a [serialization bug](https://github.com/boschglobal/hive-metastore-opa-authorizer/pull/3) ([#1712]).
 - airflow: Bump certifi to `2026.10.23` and uv to `0.13.4`, and point grpcio to the system trust store ([#1715]).
-- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. For Airflow 2.9.3, which uses Python 3.9 and cannot use this pip version, point pip to the system trust store instead ([#1715]).
+- airflow: Bump the bundled pip to `26.2.2` for Airflow 3.x. ([#1715]).
 - superset: Bump certifi to `2026.10.23` and uv to `0.13.4` ([#1715]).
 - opensearch-dashboards: Use the system trust store for Node.js instead of its bundled root certificates ([#1715]).
 - spark-connect-client: Point grpcio to the system trust store ([#1715]).
@@ -146,6 +146,7 @@ All notable changes to this project will be documented in this file.
 - trino-cli: Remove `481` ([#1690]).
 - opa: Remove 1.12.3 ([#1697]).
 - spark: Remove 3.5.8 and 4.1.1 ([#1710]).
+- airflow: Remove `2.9.3` ([#1754]).
 
 [#1593]: https://github.com/stackabletech/docker-images/pull/1593
 [#1595]: https://github.com/stackabletech/docker-images/pull/1595
@@ -215,6 +216,7 @@ All notable changes to this project will be documented in this file.
 [#1740]: https://github.com/stackabletech/docker-images/pull/1740
 [#1741]: https://github.com/stackabletech/docker-images/pull/1741
 [#1745]: https://github.com/stackabletech/docker-images/pull/1745
+[#1754]: https://github.com/stackabletech/docker-images/pull/1754
 
 ## [26.7.0] - 2026-07-21
 
