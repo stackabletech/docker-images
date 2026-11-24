@@ -15,8 +15,11 @@ use crate::sbom::{Package, Relationship, Spdx};
 
 const DOCUMENT_ID: &str = "SPDXRef-DOCUMENT";
 
-/// Share of third-party packages that may name us as supplier. `syft convert` once set us as the
-/// supplier of every package.
+/// The share of third-party packages in the image that may name Stackable as their supplier.
+///
+/// Stackable is the supplier of the image itself, not of the packages in it, which come from other
+/// suppliers. The limit is not zero, so that a few packages are tolerated. It is there to catch the
+/// supplier being set on (nearly) every package, which `syft convert` once did.
 const MAX_SHARE_STACKABLE_SUPPLIER: f64 = 0.05;
 
 static SPDX_ID: LazyLock<Regex> = LazyLock::new(|| {

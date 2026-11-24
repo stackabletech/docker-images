@@ -497,20 +497,18 @@ fn check_components(
 
     check_rpm_versions(result, &packages);
 
-    let mut bloat = BTreeMap::<String, usize>::new();
-    for property in components
+    // The number of components per syft property, with the index in its name replaced.
+    let bloat = components
         .iter()
         .flat_map(|component| &component.properties)
-    {
-        if let Some(name) = property.name.as_deref()
-            && name.starts_with("syft:")
-            && !KEPT_SYFT_PROPERTY.is_match(name)
-        {
+        .filter_map(|property| property.name.as_deref())
+        .filter(|name| name.starts_with("syft:") && !KEPT_SYFT_PROPERTY.is_match(name))
+        .fold(BTreeMap::<String, usize>::new(), |mut bloat, name| {
             *bloat
                 .entry(INDEX.replace_all(name, ":N:").into_owned())
                 .or_default() += 1;
-        }
-    }
+            bloat
+        });
     if !bloat.is_empty() {
         result.error(
             "cdx-syft-properties",
@@ -580,8 +578,7 @@ fn check_rpm_versions(result: &mut ImageResult, packages: &[&Component]) {
 
 /// Returns the keys of a map where the value (signifying a count) is greater than 1.
 fn duplicates<'a>(map: &BTreeMap<&'a str, usize>) -> Vec<&'a str> {
-    map
-        .iter()
+    map.iter()
         .filter(|(_, value)| **value > 1)
         .map(|(key, _)| *key)
         .collect()

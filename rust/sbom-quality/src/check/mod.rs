@@ -2,6 +2,8 @@
 
 mod cyclonedx;
 mod spdx;
+#[cfg(test)]
+mod tests;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -378,6 +380,3 @@ pub fn share(part: usize, total: usize) -> f64 {
 pub fn percent(value: f64) -> String {
     format!("{percentage:.1}%", percentage = value * 100.0)
 }
-
-#[cfg(test)]
-mod tests;
