@@ -347,7 +347,10 @@ where
             if item.chars().count() <= MAX_LENGTH {
                 item.to_owned()
             } else {
-                format!("{}...", item.chars().take(MAX_LENGTH).collect::<String>())
+                format!(
+                    "{truncated}...",
+                    truncated = item.chars().take(MAX_LENGTH).collect::<String>()
+                )
             }
         })
         .collect();
@@ -360,7 +363,7 @@ where
     if items.len() <= LIMIT {
         shown
     } else {
-        format!("{shown} and {} more", items.len() - LIMIT)
+        format!("{shown} and {more} more", more = items.len() - LIMIT)
     }
 }
 
@@ -373,7 +376,7 @@ pub fn share(part: usize, total: usize) -> f64 {
 }
 
 pub fn percent(value: f64) -> String {
-    format!("{:.1}%", value * 100.0)
+    format!("{percentage:.1}%", percentage = value * 100.0)
 }
 
 #[cfg(test)]

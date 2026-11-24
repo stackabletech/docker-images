@@ -75,7 +75,7 @@ pub fn print_text(results: &[ImageResult], problems: &[String], verbose: bool) {
                 names.iter().take(2).cloned().collect::<Vec<_>>().join(", ")
             };
             if !verbose && names.len() > 2 {
-                location.push_str(&format!(" and {} more", names.len() - 2));
+                location.push_str(&format!(" and {more} more", more = names.len() - 2));
             }
             let message = found
                 .first()
@@ -85,8 +85,8 @@ pub fn print_text(results: &[ImageResult], problems: &[String], verbose: bool) {
         }
         if shown.len() > limit {
             println!(
-                "        ... and {} more kinds, see --verbose",
-                shown.len() - limit
+                "        ... and {more} more kinds, see --verbose",
+                more = shown.len() - limit
             );
         }
         println!();
@@ -151,7 +151,7 @@ pub fn print_json(results: &[ImageResult], problems: &[String]) -> Result<(), se
             })
             .collect(),
     };
-    println!("{}", serde_json::to_string_pretty(&output)?);
+    println!("{json}", json = serde_json::to_string_pretty(&output)?);
     Ok(())
 }
 
@@ -210,8 +210,8 @@ pub fn print_suggested_floors(
             .fold(1.0_f64, f64::min);
         println!("[{table}]");
         println!(
-            "min-license-coverage = {}",
-            ((coverage - 0.05) * 100.0).floor().max(0.0) / 100.0
+            "min-license-coverage = {minimum}",
+            minimum = ((coverage - 0.05) * 100.0).floor().max(0.0) / 100.0
         );
 
         // The build-time SBOMs that every version and architecture has, biggest first. An image

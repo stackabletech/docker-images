@@ -192,7 +192,10 @@ fn check_format(
     if bom.bom_format.as_deref() != Some("CycloneDX") {
         result.error(
             "cdx-format",
-            format!("bomFormat is {format}", format = describe(bom.bom_format.as_deref())),
+            format!(
+                "bomFormat is {format}",
+                format = describe(bom.bom_format.as_deref())
+            ),
         );
     }
 
@@ -232,8 +235,8 @@ fn check_root(result: &mut ImageResult, root: &Component, registry: &str) {
         result.error(
             "cdx-root-identity",
             format!(
-                "root component type is {}",
-                describe(root.component_type.as_deref())
+                "root component type is {component_type}",
+                component_type = describe(root.component_type.as_deref())
             ),
         );
     }
@@ -241,9 +244,9 @@ fn check_root(result: &mut ImageResult, root: &Component, registry: &str) {
         result.error(
             "cdx-root-identity",
             format!(
-                "root component name is {}, expected {:?}",
-                describe(root.name.as_deref()),
-                target.image
+                "root component name is {name}, expected {expected:?}",
+                name = describe(root.name.as_deref()),
+                expected = target.image
             ),
         );
     }
@@ -251,9 +254,9 @@ fn check_root(result: &mut ImageResult, root: &Component, registry: &str) {
         result.error(
             "cdx-root-identity",
             format!(
-                "root component version is {}, expected {:?}",
-                describe(root.version.as_deref()),
-                target.canonical_tag()
+                "root component version is {version}, expected {expected:?}",
+                version = describe(root.version.as_deref()),
+                expected = target.canonical_tag()
             ),
         );
     }
@@ -263,8 +266,8 @@ fn check_root(result: &mut ImageResult, root: &Component, registry: &str) {
             result.error(
                 "cdx-root-identity",
                 format!(
-                    "root component purl is {}, expected {purl:?}",
-                    describe(root.purl.as_deref())
+                    "root component purl is {actual}, expected {purl:?}",
+                    actual = describe(root.purl.as_deref())
                 ),
             );
         }
@@ -598,7 +601,7 @@ fn component_counts(components: &[Component]) -> BTreeMap<String, u64> {
         };
         if component.found_by() == Some(EMBEDDED_SBOM_CATALOGER) {
             *counts
-                .entry(format!("embedded-{}", purl.package_type))
+                .entry(format!("embedded-{kind}", kind = purl.package_type))
                 .or_default() += 1;
         }
         *counts.entry(purl.package_type).or_default() += 1;
@@ -638,7 +641,10 @@ fn check_operating_system(
     if systems.len() != 1 {
         result.error(
             "cdx-operating-system",
-            format!("{} operating-system components, expected 1", systems.len()),
+            format!(
+                "{count} operating-system components, expected 1",
+                count = systems.len()
+            ),
         );
     }
     for system in systems {
@@ -788,9 +794,9 @@ fn check_component_counts(result: &mut ImageResult, expectations: &Expectations)
         findings.push((
             "license-coverage",
             format!(
-                "{} of the components have a license, expected at least {}",
-                percent(actual),
-                percent(minimum)
+                "{actual} of the components have a license, expected at least {minimum}",
+                actual = percent(actual),
+                minimum = percent(minimum)
             ),
         ));
     }

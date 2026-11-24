@@ -121,7 +121,7 @@ fn main() -> ExitCode {
     match run(Cli::parse()) {
         Ok(exit_code) => exit_code,
         Err(error) => {
-            eprintln!("{}", snafu::Report::from_error(error));
+            eprintln!("{report}", report = snafu::Report::from_error(error));
             ExitCode::from(2)
         }
     }
@@ -294,9 +294,9 @@ fn check_target(
             result.error(
                 attestation.check(),
                 format!(
-                    "no verified {} attestation: {}",
-                    attestation.cosign_type(),
-                    error_chain(&error)
+                    "no verified {kind} attestation: {error}",
+                    kind = attestation.cosign_type(),
+                    error = error_chain(&error)
                 ),
             );
             None

@@ -204,13 +204,22 @@ pub struct Target {
 
 impl Target {
     pub fn canonical_tag(&self) -> String {
-        format!("{}-{}", self.tag, self.architecture)
+        format!(
+            "{tag}-{architecture}",
+            tag = self.tag,
+            architecture = self.architecture
+        )
     }
 }
 
 impl fmt::Display for Target {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}:{}", self.image, self.canonical_tag())
+        write!(
+            formatter,
+            "{image}:{tag}",
+            image = self.image,
+            tag = self.canonical_tag()
+        )
     }
 }
 

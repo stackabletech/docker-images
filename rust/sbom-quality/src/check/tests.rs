@@ -347,8 +347,8 @@ fn cyclonedx_defects(
     let result = run_checks(Some(&cyclonedx), None, &expectations);
     assert!(
         checks(&result).contains(check),
-        "{check} should report {:?}",
-        result.findings
+        "{check} should report {findings:?}",
+        findings = result.findings
     );
 }
 
@@ -398,8 +398,8 @@ fn spdx_defects(
     let result = run_checks(Some(&cyclonedx), Some(&spdx), &expectations);
     assert!(
         checks(&result).contains(check),
-        "{check} should report {:?}",
-        result.findings
+        "{check} should report {findings:?}",
+        findings = result.findings
     );
 }
 

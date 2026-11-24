@@ -68,8 +68,8 @@ pub fn check(result: &mut ImageResult, document: &Spdx, registry: &str) -> BTree
         result.error(
             "spdx-root",
             format!(
-                "the document describes {} packages, expected 1",
-                described.len()
+                "the document describes {count} packages, expected 1",
+                count = described.len()
             ),
         );
         return BTreeSet::new();
@@ -99,8 +99,8 @@ fn check_format(result: &mut ImageResult, document: &Spdx) {
         result.error(
             "spdx-format",
             format!(
-                "spdxVersion is {}",
-                describe(document.spdx_version.as_deref())
+                "spdxVersion is {version}",
+                version = describe(document.spdx_version.as_deref())
             ),
         );
     }
@@ -108,15 +108,15 @@ fn check_format(result: &mut ImageResult, document: &Spdx) {
         result.error(
             "spdx-format",
             format!(
-                "dataLicense is {}",
-                describe(document.data_license.as_deref())
+                "dataLicense is {license}",
+                license = describe(document.data_license.as_deref())
             ),
         );
     }
     if document.spdx_id.as_deref() != Some(DOCUMENT_ID) {
         result.error(
             "spdx-format",
-            format!("SPDXID is {}", describe(document.spdx_id.as_deref())),
+            format!("SPDXID is {id}", id = describe(document.spdx_id.as_deref())),
         );
     }
     // The namespace itself is not printed, it is different in every document.
@@ -226,8 +226,8 @@ fn check_root(result: &mut ImageResult, root: &Package, registry: &str) {
         result.error(
             "spdx-root",
             format!(
-                "primaryPackagePurpose of the image is {}",
-                describe(root.primary_package_purpose.as_deref())
+                "primaryPackagePurpose of the image is {purpose}",
+                purpose = describe(root.primary_package_purpose.as_deref())
             ),
         );
     }
@@ -262,8 +262,8 @@ fn check_root(result: &mut ImageResult, root: &Package, registry: &str) {
         result.error(
             "spdx-root",
             format!(
-                "supplier of the image is {}",
-                describe(root.supplier.as_deref())
+                "supplier of the image is {supplier}",
+                supplier = describe(root.supplier.as_deref())
             ),
         );
     }
