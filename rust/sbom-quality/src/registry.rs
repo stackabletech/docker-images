@@ -95,7 +95,7 @@ pub fn resolve_digests(
     ensure!(
         output.status.success(),
         FetchIndexSnafu {
-            message: last_line(&output.stderr)
+            message: last_line(&output.stderr).unwrap_or_else(|| "no output".to_owned())
         }
     );
 
@@ -162,7 +162,7 @@ pub fn fetch_sbom(
     ensure!(
         output.status.success(),
         VerifyAttestationSnafu {
-            message: last_line(&output.stderr)
+            message: last_line(&output.stderr).unwrap_or_else(|| "no output".to_owned())
         }
     );
 
@@ -220,12 +220,12 @@ fn run(program: &'static str, arguments: &[&str]) -> Result<Output, Error> {
         .context(RunSnafu { program })
 }
 
-/// The last line a tool printed, which is where crane and cosign put the reason they failed.
-fn last_line(output: &[u8]) -> String {
+/// The last non-empty line a tool printed, which is where crane and cosign put the reason they
+/// failed.
+fn last_line(output: &[u8]) -> Option<String> {
     String::from_utf8_lossy(output)
         .lines()
         .rev()
         .find(|line| !line.trim().is_empty())
-        .unwrap_or("no output")
-        .to_owned()
+        .map(ToOwned::to_owned)
 }
