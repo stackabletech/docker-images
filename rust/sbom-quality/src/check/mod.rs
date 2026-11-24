@@ -369,6 +369,22 @@ where
     }
 }
 
+/// How often each item occurs.
+pub fn occurrences<'a>(items: impl IntoIterator<Item = &'a str>) -> BTreeMap<&'a str, usize> {
+    items.into_iter().fold(BTreeMap::new(), |mut counts, item| {
+        *counts.entry(item).or_default() += 1;
+        counts
+    })
+}
+
+/// Returns the keys of a map where the value (signifying a count) is greater than 1.
+pub fn duplicates<'a>(map: &BTreeMap<&'a str, usize>) -> Vec<&'a str> {
+    map.iter()
+        .filter(|(_, value)| **value > 1)
+        .map(|(key, _)| *key)
+        .collect()
+}
+
 pub fn share(part: usize, total: usize) -> f64 {
     if total == 0 {
         0.0

@@ -14,8 +14,8 @@ use serde_json::Value;
 use time::OffsetDateTime;
 
 use super::{
-    ImageResult, ORGANIZATION, describe, examples, expected_image_purl, is_valid_license,
-    matches_version, parse_timestamp, percent, share, substitute,
+    ImageResult, ORGANIZATION, describe, duplicates, examples, expected_image_purl,
+    is_valid_license, matches_version, occurrences, parse_timestamp, percent, share, substitute,
 };
 use crate::{
     expectations::Expectations,
@@ -479,11 +479,7 @@ fn check_components(
 
     // mergebom merges components with the same purl, so a duplicate means it did not run or
     // regressed.
-    let mut purl_counts = BTreeMap::<&str, usize>::new();
-    for purl in &purls {
-        *purl_counts.entry(purl).or_default() += 1;
-    }
-    let duplicate_purls = duplicates(&purl_counts);
+    let duplicate_purls = duplicates(&occurrences(purls.iter().copied()));
     if !duplicate_purls.is_empty() {
         result.error(
             "cdx-duplicate-purls",
@@ -574,14 +570,6 @@ fn check_rpm_versions(result: &mut ImageResult, packages: &[&Component]) {
             ),
         );
     }
-}
-
-/// Returns the keys of a map where the value (signifying a count) is greater than 1.
-fn duplicates<'a>(map: &BTreeMap<&'a str, usize>) -> Vec<&'a str> {
-    map.iter()
-        .filter(|(_, value)| **value > 1)
-        .map(|(key, _)| *key)
-        .collect()
 }
 
 /// Component counts: `total`, one per purl type (`maven`), and one per purl type for the

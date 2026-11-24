@@ -8,8 +8,8 @@ use std::{
 use regex::Regex;
 
 use super::{
-    ImageResult, ORGANIZATION, describe, examples, expected_image_purl, is_valid_license,
-    parse_timestamp, share,
+    ImageResult, ORGANIZATION, describe, duplicates, examples, expected_image_purl,
+    is_valid_license, occurrences, parse_timestamp, share,
 };
 use crate::sbom::{Package, Relationship, Spdx};
 
@@ -166,11 +166,11 @@ fn check_format(result: &mut ImageResult, document: &Spdx) {
 }
 
 fn check_packages(result: &mut ImageResult, packages: &[Package]) {
-    let mut ids = BTreeMap::<&str, usize>::new();
-    for package in packages {
-        *ids.entry(package.spdx_id.as_deref().unwrap_or("missing"))
-            .or_default() += 1;
-    }
+    let ids = occurrences(
+        packages
+            .iter()
+            .map(|package| package.spdx_id.as_deref().unwrap_or("missing")),
+    );
 
     let invalid: Vec<&str> = ids
         .keys()
@@ -188,11 +188,7 @@ fn check_packages(result: &mut ImageResult, packages: &[Package]) {
         );
     }
 
-    let duplicate: Vec<&str> = ids
-        .iter()
-        .filter(|(_, count)| **count > 1)
-        .map(|(spdx_id, _)| *spdx_id)
-        .collect();
+    let duplicate = duplicates(&ids);
     if !duplicate.is_empty() {
         result.error(
             "spdx-packages",
@@ -303,17 +299,13 @@ fn check_suppliers(result: &mut ImageResult, others: &[&Package]) {
 
 /// A LicenseRef that is not declared makes the document invalid for strict parsers.
 fn check_license_refs(result: &mut ImageResult, document: &Spdx) {
-    let mut declared = BTreeMap::<&str, usize>::new();
-    for license in &document.has_extracted_licensing_infos {
-        *declared
-            .entry(license.license_id.as_deref().unwrap_or("missing"))
-            .or_default() += 1;
-    }
-    let duplicate: Vec<&str> = declared
-        .iter()
-        .filter(|(_, count)| **count > 1)
-        .map(|(license_id, _)| *license_id)
-        .collect();
+    let declared = occurrences(
+        document
+            .has_extracted_licensing_infos
+            .iter()
+            .map(|license| license.license_id.as_deref().unwrap_or("missing")),
+    );
+    let duplicate = duplicates(&declared);
     if !duplicate.is_empty() {
         result.error(
             "spdx-license-refs",
