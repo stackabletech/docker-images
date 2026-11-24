@@ -502,6 +502,15 @@ mod tests {
     }
 
     #[rstest]
+    #[case::name("kafka", "kafka", None)]
+    #[case::name_and_version("kafka=1.2.3", "kafka", Some("1.2.3"))]
+    fn parse_selectors(#[case] input: &str, #[case] name: &str, #[case] version: Option<&str>) {
+        let selector = parse(input);
+        assert_eq!(selector.name, name);
+        assert_eq!(selector.version.as_deref(), version);
+    }
+
+    #[rstest]
     #[case::empty("")]
     #[case::empty_name("=4.3.1")]
     #[case::empty_version("kafka=")]
