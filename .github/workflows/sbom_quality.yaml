@@ -1,0 +1,83 @@
+---
+# Checks the SBOMs attested to the 0.0.0-dev images, see rust/sbom-quality/README.md.
+#
+# The run fails if there is at least one error finding (or if the check itself fails), so the
+# status of the latest run is the status of our SBOMs. It does not notify anyone by itself.
+name: SBOM quality
+
+on:
+  schedule:
+    - cron: 30 7 * * * # https://crontab.guru/#30_7_*_*_*
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  RUST_TOOLCHAIN_VERSION: 1.99.0
+  # renovate: datasource=github-releases packageName=google/go-containerregistry
+  CRANE_VERSION: v0.21.6
+
+jobs:
+  check:
+    name: Check SBOMs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust Toolchain
+        run: rustup toolchain install "${RUST_TOOLCHAIN_VERSION}"
+
+      - name: Set up cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Built from source with the Go toolchain of the runner, which verifies the module against
+      # the Go checksum database.
+      - name: Set up crane
+        run: |
+          set -euo pipefail
+          go install "github.com/google/go-containerregistry/cmd/crane@${CRANE_VERSION}"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build sbom-quality
+        run: cargo build --release --package sbom-quality
+
+      - name: Check SBOMs
+        run: |
+          set -uo pipefail
+
+          # The summary per check, in the log and on the summary page of the run.
+          ./target/release/sbom-quality --cache-dir "$RUNNER_TEMP/sboms" | tee "$RUNNER_TEMP/report.txt"
+          status=${PIPESTATUS[0]}
+
+          {
+            echo "## SBOM quality"
+            echo
+            case "$status" in
+              0) echo "All SBOMs fulfil the expectations." ;;
+              1) echo "Some SBOMs do not fulfil the expectations." ;;
+              *) echo "The check itself failed (exit code $status), see the log." ;;
+            esac
+            echo
+            echo '```text'
+            cat "$RUNNER_TEMP/report.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Every finding and every affected image. The attestations are cached by now, so this
+          # takes seconds.
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Every finding"
+            ./target/release/sbom-quality --cache-dir "$RUNNER_TEMP/sboms" --verbose
+            echo "::endgroup::"
+          fi
+
+          exit "$status"
