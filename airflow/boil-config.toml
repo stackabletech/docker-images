@@ -1,46 +1,6 @@
 [metadata.registries]
 "oci.stackable.tech" = { namespace = "sdp" }
 
-# Deprecated since SDP 25.11
-[versions."2.9.3".local-images]
-"shared/statsd-exporter" = "0.31.0"
-vector = "0.58.0"
-stackable-devel = "1.0.0"
-
-[versions."2.9.3".build-arguments]
-# NOTE: This can be bumped for new airflow versions, but once set, do not updated it, as it could
-# break many customer DAGs. We generally try to pick the latest supported version unless there are
-# reasons against it.
-# This version of Airflow supports: 3.8 - 3.12 (see https://airflow.apache.org/docs/apache-airflow/2.9.3/installation/prerequisites.html)
-python-version = "3.9"
-git-sync-version = "v4.6.0"
-# Must match the version in the constraints file (search for s3fs==)
-# TODO: Check if this can be removed in favour of letting it come in via the s3fs extra and constraints.
-s3fs-version = "2024.9.0"
-cyclonedx-bom-version = "7.3.0"
-# Used to create the SBOM of the frontend (npm) dependencies.
-# Note: 13.x and later are published as @cdxgen/cdxgen, 12.x and earlier as @cyclonedx/cdxgen.
-# Find the latest version here: https://www.npmjs.com/package/@cdxgen/cdxgen
-# renovate: datasource=npm packageName=@cdxgen/cdxgen
-cdxgen-version = "13.0.1"
-# cdxgen requires Node >= 24, independent of the Node version used to build the frontend
-# assets, so it gets its own Node installation.
-# Find the latest release here: https://github.com/nodejs/node/releases
-# renovate: datasource=node-version packageName=node
-cdxgen-nodejs-version = "24.19.0"
-# Independent of Airflow, use the latest release: https://github.com/krallin/tini/releases
-tini-version = "0.19.0"
-# Bump to the latest release found here: https://github.com/astral-sh/uv/releases
-# Mirror uv (no `v` prefix) via https://github.com/stackabletech/docker-images/actions/workflows/mirror.yaml
-# Note: Mirrored to the `stackable` project, but should probably move elsewhere.
-uv-version = "0.13.4"
-airflow-extras-other = "async,amazon,celery,cncf.kubernetes,docker,dask,elasticsearch,ftp,grpc,hashicorp,http,ldap,google,google_auth,microsoft.azure,odbc,pandas,postgres,redis,sendgrid,sftp,slack,ssh,statsd,virtualenv,trino"
-opa-auth-manager = "airflow-2"
-# Node module stream used to install pnpm/yarn and build the frontend assets.
-# cdxgen has its own Node version, see cdxgen-nodejs-version.
-nodejs-version = "22"
-# TODO: Specify the pnpm version here
-
 # LTS
 [versions."3.0.6".local-images]
 "shared/statsd-exporter" = "0.31.0"
@@ -97,7 +57,7 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-# Node module stream used to install pnpm/yarn and build the frontend assets.
+# Node module stream used to install pnpm and build the frontend assets.
 # cdxgen has its own Node version, see cdxgen-nodejs-version.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
@@ -158,7 +118,7 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh"
 
 opa-auth-manager = "airflow-3"
-# Node module stream used to install pnpm/yarn and build the frontend assets.
+# Node module stream used to install pnpm and build the frontend assets.
 # cdxgen has its own Node version, see cdxgen-nodejs-version.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
@@ -219,7 +179,7 @@ airflow-extras-locally-installed-software = "arangodb,celery,cncf-kubernetes,doc
 airflow-extras-other = "common-ai,common-compat,common-io,common-messaging,common-sql,ftp,grpc,http,imap,jdbc,keycloak,microsoft-psrp,microsoft-winrm,openlineage,opensearch,papermill,sftp,smtp,sqlite,ssh,informatica"
 
 opa-auth-manager = "airflow-3"
-# Node module stream used to install pnpm/yarn and build the frontend assets.
+# Node module stream used to install pnpm and build the frontend assets.
 # cdxgen has its own Node version, see cdxgen-nodejs-version.
 nodejs-version = "22"
 # TODO: Specify the pnpm version here
