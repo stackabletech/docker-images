@@ -47,8 +47,8 @@ enum Error {
         path: PathBuf,
     },
 
-    #[snafu(display("failed to write the JSON output"))]
-    WriteJson { source: serde_json::Error },
+    #[snafu(display("failed to serialize the results as JSON"))]
+    SerializeJson { source: serde_json::Error },
 }
 
 /// Checks the SBOMs attested to the images in the expectations, every architecture, CycloneDX
@@ -149,13 +149,22 @@ fn run(cli: Cli) -> Result<ExitCode, Error> {
     };
 
     if cli.suggest_floors {
-        report::print_suggested_floors(&expectations, &results, cli.margin);
+        print!(
+            "{floors}",
+            floors = report::SuggestedFloors::new(&expectations, &results, cli.margin)
+        );
         return Ok(ExitCode::SUCCESS);
     }
 
     match cli.format {
-        Format::Text => report::print_text(&results, &problems, cli.verbose),
-        Format::Json => report::print_json(&results, &problems).context(WriteJsonSnafu)?,
+        Format::Text => print!(
+            "{report}",
+            report = report::TextReport::new(&results, &problems, cli.verbose)
+        ),
+        Format::Json => println!(
+            "{json}",
+            json = report::to_json(&results, &problems).context(SerializeJsonSnafu)?
+        ),
     }
 
     if problems.is_empty() && !results.iter().any(ImageResult::has_errors) {
