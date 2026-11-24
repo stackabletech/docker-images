@@ -49,7 +49,8 @@ impl Purl {
     }
 }
 
-/// Decodes `%XX` escapes. Invalid escapes are kept as they are.
+/// Decodes `%XX` escapes. Invalid escapes are kept as they are, and bytes that do not form valid
+/// UTF-8 are replaced by U+FFFD.
 pub fn percent_decode(input: &str) -> String {
     let bytes = input.as_bytes();
     let mut decoded = Vec::with_capacity(bytes.len());
@@ -138,6 +139,7 @@ mod tests {
     #[case("100%", "100%")]
     #[case("%zz", "%zz")]
     #[case("%2B%2b", "++")]
+    #[case::invalid_utf8("a%FFb", "a\u{FFFD}b")]
     fn decode_percent_escapes(#[case] input: &str, #[case] decoded: &str) {
         assert_eq!(percent_decode(input), decoded);
     }
