@@ -15,6 +15,18 @@ use crate::{
     expectations::{ExpectationsFile, Target},
 };
 
+/// The maximum number of build-time SBOMs that `--suggest-floors` suggests for `embedded-sboms`.
+/// The ones with the most components are listed first.
+///
+/// Some images have a build-time SBOM per plugin (NiFi has one per NAR, around a hundred), and
+/// listing every one of them would bloat the expectations. The ones that are cut off are still
+/// covered in aggregate by the `embedded-<type>` floors in `min-components`.
+//
+// Raise it when the suggested list of a product is regularly cut off and build-time SBOMs that
+// should be checked by path have to be added to the expectations by hand. Lower it when the review
+// regularly drops most of the suggested paths again.
+const MAX_LISTED_SBOMS: usize = 12;
+
 static NUMBER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\d+").expect("static string must be a valid regular expression"));
 
@@ -227,7 +239,6 @@ impl<'a> SuggestedFloors<'a> {
 impl fmt::Display for SuggestedFloors<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (expectations, results, margin) = (self.expectations, self.results, self.margin);
-        const MAX_LISTED_SBOMS: usize = 12;
 
         let mut by_group = BTreeMap::<Option<&str>, Vec<&ImageResult>>::new();
         for result in results {
