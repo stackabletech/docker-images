@@ -4,16 +4,13 @@ use std::{collections::BTreeMap, str::FromStr};
 
 use purl::GenericPurl;
 
+/// A valid purl. [`Purl::parse`] is the only way to create one.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Purl {
-    pub package_type: String,
-
-    /// The name including the namespace, for example `redhat/glibc`.
-    pub name: String,
-
-    pub version: Option<String>,
-
-    pub qualifiers: BTreeMap<String, String>,
+    package_type: String,
+    name: String,
+    version: Option<String>,
+    qualifiers: BTreeMap<String, String>,
 }
 
 impl Purl {
@@ -39,6 +36,25 @@ impl Purl {
                 .map(|(key, value)| (key.as_ref().to_owned(), value.to_owned()))
                 .collect(),
         })
+    }
+
+    /// The package type in lower case, for example `rpm`.
+    pub fn package_type(&self) -> &str {
+        &self.package_type
+    }
+
+    /// The name including the namespace, for example `redhat/glibc`.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// The version, `None` if it is missing or empty.
+    pub fn version(&self) -> Option<&str> {
+        self.version.as_deref()
+    }
+
+    pub fn qualifier(&self, key: &str) -> Option<&str> {
+        self.qualifiers.get(key).map(String::as_str)
     }
 
     /// The last segment of the name, without the namespace.
@@ -122,7 +138,7 @@ mod tests {
     #[case::encoded_version("pkg:golang/opa@v1.2%2Bdirty", Some("v1.2+dirty"))]
     fn parse_purl_version(#[case] purl: &str, #[case] version: Option<&str>) {
         let purl = Purl::parse(purl).expect("the purl should be valid");
-        assert_eq!(purl.version.as_deref(), version);
+        assert_eq!(purl.version(), version);
     }
 
     #[rstest]

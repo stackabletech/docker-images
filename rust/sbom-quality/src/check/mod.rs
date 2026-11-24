@@ -133,7 +133,7 @@ pub fn check_sboms(
         .iter()
         .flatten()
         .filter_map(|purl| Purl::parse(purl))
-        .map(|purl| (purl.package_type, purl.name))
+        .map(|purl| (purl.package_type().to_owned(), purl.name().to_owned()))
         .collect()
 }
 

@@ -535,7 +535,7 @@ fn compare_architectures(#[case] amd64: &[&str], #[case] arm64: &[&str], #[case]
         purls
             .iter()
             .filter_map(|purl| Purl::parse(purl))
-            .map(|purl| (purl.package_type, purl.name))
+            .map(|purl| (purl.package_type().to_owned(), purl.name().to_owned()))
             .collect()
     };
     let mut results = vec![

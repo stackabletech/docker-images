@@ -541,14 +541,14 @@ fn check_rpm_versions(result: &mut ImageResult, packages: &[&Component]) {
         let Some(purl) = component.purl.as_deref().and_then(Purl::parse) else {
             continue;
         };
-        if purl.package_type == "rpm" {
+        if purl.package_type() == "rpm" {
             rpm_versions
                 .entry((
                     purl.short_name().to_owned(),
-                    purl.qualifiers.get("arch").cloned(),
+                    purl.qualifier("arch").map(ToOwned::to_owned),
                 ))
                 .or_default()
-                .insert(purl.version);
+                .insert(purl.version().map(ToOwned::to_owned));
         }
     }
 
@@ -587,10 +587,10 @@ fn component_counts(components: &[Component]) -> BTreeMap<String, u64> {
         };
         if component.found_by() == Some(EMBEDDED_SBOM_CATALOGER) {
             *counts
-                .entry(format!("embedded-{kind}", kind = purl.package_type))
+                .entry(format!("embedded-{kind}", kind = purl.package_type()))
                 .or_default() += 1;
         }
-        *counts.entry(purl.package_type).or_default() += 1;
+        *counts.entry(purl.package_type().to_owned()).or_default() += 1;
     }
     counts
 }
@@ -666,7 +666,7 @@ fn check_operating_system(
         .copied()
         .filter(|purl| {
             !purl.starts_with(&namespace)
-                || Purl::parse(purl).is_none_or(|purl| !purl.qualifiers.contains_key("distro"))
+                || Purl::parse(purl).is_none_or(|purl| purl.qualifier("distro").is_none())
         })
         .collect();
     if !wrong.is_empty() {
