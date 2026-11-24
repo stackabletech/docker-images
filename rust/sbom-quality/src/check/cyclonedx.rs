@@ -192,7 +192,7 @@ fn check_format(
     if bom.bom_format.as_deref() != Some("CycloneDX") {
         result.error(
             "cdx-format",
-            format!("bomFormat is {}", describe(bom.bom_format.as_deref())),
+            format!("bomFormat is {format}", format = describe(bom.bom_format.as_deref())),
         );
     }
 
@@ -201,8 +201,8 @@ fn check_format(
         result.error(
             "cdx-format",
             format!(
-                "specVersion is {}, expected {expected}",
-                bom.spec_version.as_deref().unwrap_or("missing")
+                "specVersion is {version}, expected {expected}",
+                version = bom.spec_version.as_deref().unwrap_or("missing")
             ),
         );
     }
