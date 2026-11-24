@@ -578,11 +578,12 @@ fn check_rpm_versions(result: &mut ImageResult, packages: &[&Component]) {
     }
 }
 
-fn duplicates<'a>(counts: &BTreeMap<&'a str, usize>) -> Vec<&'a str> {
-    counts
+/// Returns the keys of a map where the value (signifying a count) is greater than 1.
+fn duplicates<'a>(map: &BTreeMap<&'a str, usize>) -> Vec<&'a str> {
+    map
         .iter()
-        .filter(|(_, count)| **count > 1)
-        .map(|(item, _)| *item)
+        .filter(|(_, value)| **value > 1)
+        .map(|(key, _)| *key)
         .collect()
 }
 
