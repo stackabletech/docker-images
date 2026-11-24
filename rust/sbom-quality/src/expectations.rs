@@ -4,6 +4,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fmt,
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 use serde::{Deserialize, Serialize};
@@ -56,6 +57,42 @@ pub enum Error {
 
     #[snafu(display("{product:?} has no version {version:?} in its boil-config.toml"))]
     UnknownVersion { product: String, version: String },
+}
+
+#[derive(Debug, Snafu)]
+pub enum ParseSelectorError {
+    #[snafu(display("the name must not be empty, expected NAME[=VERSION]"))]
+    EmptyName,
+
+    #[snafu(display("the version must not be empty, expected NAME[=VERSION]"))]
+    EmptyVersion,
+}
+
+/// Narrows the check down to a product, a product version or an operator: `kafka`,
+/// `kafka=4.3.1`, `kafka-operator`.
+#[derive(Debug, Clone)]
+pub struct Selector {
+    name: String,
+    version: Option<String>,
+}
+
+impl FromStr for Selector {
+    type Err = ParseSelectorError;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let (name, version) = match input.split_once('=') {
+            Some((name, version)) => {
+                ensure!(!version.is_empty(), EmptyVersionSnafu);
+                (name, Some(version.to_owned()))
+            }
+            None => (input, None),
+        };
+        ensure!(!name.is_empty(), EmptyNameSnafu);
+        Ok(Self {
+            name: name.to_owned(),
+            version,
+        })
+    }
 }
 
 /// The expectations file. Its top-level settings apply to every image.
@@ -306,15 +343,13 @@ impl ExpectationsFile {
     pub fn select_targets(
         &self,
         repository: &Path,
-        selectors: &[String],
+        selectors: &[Selector],
         architectures: &[String],
     ) -> Result<(Vec<Target>, Vec<String>), Error> {
         let mut wanted = BTreeMap::<&str, BTreeSet<Option<&str>>>::new();
         for selector in selectors {
-            let (name, version) = match selector.split_once('=') {
-                Some((name, version)) => (name, Some(version)),
-                None => (selector.as_str(), None),
-            };
+            let name = selector.name.as_str();
+            let version = selector.version.as_deref();
             ensure!(
                 self.products.contains_key(name)
                     || self.operators.images.iter().any(|image| image == name),
@@ -462,6 +497,21 @@ mod tests {
         file
     }
 
+    fn parse(selector: &str) -> Selector {
+        selector.parse().expect("the selector should be valid")
+    }
+
+    #[rstest]
+    #[case::empty("")]
+    #[case::empty_name("=4.3.1")]
+    #[case::empty_version("kafka=")]
+    fn reject_malformed_selectors(#[case] selector: &str) {
+        assert!(
+            selector.parse::<Selector>().is_err(),
+            "{selector:?} should be rejected"
+        );
+    }
+
     /// A docker-images checkout with the given products and their versions.
     fn repository(products: &[(&str, &[&str])]) -> tempfile::TempDir {
         let directory = tempfile::tempdir().expect("a temporary directory should be created");
@@ -551,7 +601,7 @@ mod tests {
         #[case] expected: &[&str],
     ) {
         let repository = repository(&[("kafka", &["3.9.2", "4.3.1"]), ("stackable-devel", &["1"])]);
-        let selectors: Vec<String> = selectors.iter().map(ToString::to_string).collect();
+        let selectors: Vec<Selector> = selectors.iter().map(|selector| parse(selector)).collect();
         let architectures = ["amd64".to_owned(), "arm64".to_owned()];
 
         let (targets, problems) = expectations
@@ -570,7 +620,7 @@ mod tests {
         let repository = repository(&[("kafka", &["3.9.2", "4.3.1"])]);
         let result = expectations.select_targets(
             repository.path(),
-            &[selector.to_owned()],
+            &[parse(selector)],
             &["amd64".to_owned()],
         );
         assert!(result.is_err(), "{selector:?} should be rejected");

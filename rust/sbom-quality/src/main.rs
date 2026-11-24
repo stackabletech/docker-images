@@ -17,7 +17,7 @@ use snafu::{ResultExt, Snafu, ensure};
 
 use crate::{
     check::{Identity, ImageResult},
-    expectations::{DEFAULT_PATH, ExpectationsFile, Target},
+    expectations::{DEFAULT_PATH, ExpectationsFile, Selector, Target},
     registry::Attestation,
 };
 
@@ -61,7 +61,7 @@ enum Error {
 struct Cli {
     /// Only check these products, product versions or operators: `kafka`, `kafka=4.3.1`.
     #[arg(value_name = "NAME[=VERSION]")]
-    selectors: Vec<String>,
+    selectors: Vec<Selector>,
 
     /// The docker-images checkout, for the versions in the boil-config.toml files.
     #[arg(long, default_value = ".")]
