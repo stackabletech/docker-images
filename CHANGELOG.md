@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- hbase: `containerdebug` can be turned off with `CONTAINERDEBUG_ENABLED=false`, and its interval set with `CONTAINERDEBUG_INTERVAL` ([#1760]).
+
+[#1760]: https://github.com/stackabletech/docker-images/pull/1760
+
 ## [26.11.0] - 2026-11-20
 
 ## [26.11.0-rc1] - 2026-11-19
