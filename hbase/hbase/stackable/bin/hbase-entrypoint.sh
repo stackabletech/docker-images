@@ -5,6 +5,8 @@
 # Expects the following env vars:
 # - RUN_REGION_MOVER: if set to true, the region mover will be run before region server shutdown
 # - REGION_MOVER_OPTS: additional options for the region mover
+# - CONTAINERDEBUG_ENABLED: if set to false, containerdebug is not run in the background (default: true)
+# - CONTAINERDEBUG_INTERVAL: the time between two containerdebug runs, e.g. 30m (default: 30m)
 #
 set -x
 set -euo pipefail
@@ -88,7 +90,9 @@ config-utils template /stackable/conf/hbase-site.xml
 
 rm -f "${STACKABLE_LOG_DIR}/_vector/shutdown"
 prepare_signal_handlers
-/stackable/containerdebug --output="${STACKABLE_LOG_DIR}/containerdebug-state.json" --loop &
+if [ "false" != "${CONTAINERDEBUG_ENABLED:-true}" ]; then
+  /stackable/containerdebug --output="${STACKABLE_LOG_DIR}/containerdebug-state.json" --loop="${CONTAINERDEBUG_INTERVAL:-30m}" &
+fi
 /stackable/hbase/bin/hbase "${HBASE_ROLE_NAME}" start &
 wait_for_termination $!
 mkdir -p "${STACKABLE_LOG_DIR}/_vector" && touch "${STACKABLE_LOG_DIR}/_vector/shutdown"
