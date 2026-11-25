@@ -1,3 +1,4 @@
+# Version 3.3.6 is not part of SDP as of 25.7.0, but is still required for Hive.
 [versions."3.3.6".local-images]
 java-devel = "11"
 "shared/boost" = "1.72.0" # I could not find a documented recommended version

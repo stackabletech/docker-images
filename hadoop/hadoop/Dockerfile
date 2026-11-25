@@ -168,7 +168,7 @@ NEW_VERSION=${PRODUCT_VERSION}-stackable${RELEASE_VERSION}
 # have one central place for dependant images to pull them from
 mkdir -p /stackable/hadoop-cloud-libraries/
 
-# N.B. Version 3.3.6 is not part of SDP as of 25.7.0, but is still required for hbase, hive, spark-k8s
+# N.B. Version 3.3.6 is not part of SDP as of 25.7.0, but is still required for Hive.
 if [[ "$PRODUCT_VERSION" == "3.3.6" ]]; then
     cp /stackable/hadoop/share/hadoop/tools/lib/hadoop-aws-${NEW_VERSION}.jar /stackable/hadoop-cloud-libraries/
     # For some reason it was renamed from "aws-java-sdk-bundle" to "bundle"
