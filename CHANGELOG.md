@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- hbase: The `containerdebug` process can be turned off with `CONTAINERDEBUG_ENABLED=false`, and its interval set with `CONTAINERDEBUG_INTERVAL` ([#1760]).
+- hbase: `containerdebug` can be turned off with `CONTAINERDEBUG_ENABLED=false`, and its interval set with `CONTAINERDEBUG_INTERVAL` ([#1760]).
 
 [#1760]: https://github.com/stackabletech/docker-images/pull/1760
 
