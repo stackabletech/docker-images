@@ -1,0 +1,419 @@
+# What sbom-quality expects from the SBOMs of our images. See README.md.
+#
+# The settings below apply to every image. [operators] and each [products.<name>] can override
+# them and add:
+#
+#   main-component        purl of the product itself, which has to be listed in the version of
+#                         the image. "{version}" also matches "{version}-stackable0.0.0-dev".
+#   embedded-sboms        build-time SBOMs in the image that components have to come from.
+#   min-components        smallest allowed number of components: `total`, per purl type
+#                         (`maven`) and per purl type from build-time SBOMs (`embedded-maven`).
+#   min-license-coverage  smallest allowed share of components with a license.
+#   ignore                IDs of checks whose findings are accepted. Say why in a comment.
+#   versions."<version>"  any of the above for one version that differs from the others.
+#
+# {version}, {release} and {image} are replaced in main-component and embedded-sboms.
+#
+# The numbers were generated with `cargo sbom-quality --suggest-floors` (20% below the smallest
+# count of any version and architecture). Lower one when a count dropped for a good reason, and
+# raise them now and then, a floor far below reality catches nothing.
+
+registry = "oci.stackable.tech/sdp"
+release = "0.0.0-dev"
+architectures = ["amd64", "arm64"]
+
+# What publish-image writes once stackabletech/actions#153 and #154 are in use.
+cyclonedx-spec-version = "1.7"
+
+# The dev images are rebuilt every two days. An older image means the build is failing, and
+# then its SBOM does not describe what main would produce either.
+max-image-age-days = 7
+
+# Purl namespace of the installed RPMs and name of the operating-system component.
+operating-system = "redhat"
+
+# Share of components that may lack a purl or a version. A few really have neither, like the
+# launcher stubs that pip ships or the jars of a JDK.
+max-without-purl = 0.05
+max-without-version = 0.05
+
+# Directories with a boil-config.toml that are not checked: intermediate images and optional
+# test images, which SDP customers do not use. Every other one needs a [products.<name>] table,
+# so a new product cannot be forgotten here.
+unchecked = [
+  "java-base",
+  "java-devel",
+  "jdk-base",
+  "kafka-testing-tools",
+  "krb5",
+  "spark-connect-client",
+  "stackable-base",
+  "stackable-devel",
+  "testing-tools",
+  "tools",
+  "trino-cli",
+  "vector",
+]
+
+[operators]
+images = [
+  "airflow-operator",
+  "commons-operator",
+  "druid-operator",
+  "hbase-operator",
+  "hdfs-operator",
+  "hive-operator",
+  "kafka-operator",
+  "listener-operator",
+  "nifi-operator",
+  "opa-operator",
+  "opensearch-operator",
+  "secret-operator",
+  "spark-k8s-operator",
+  "superset-operator",
+  "trino-operator",
+  "zookeeper-operator",
+]
+main-component = "pkg:cargo/stackable-{image}@{release}"
+min-license-coverage = 0.95
+embedded-sboms = [
+  "/usr/local/bin/stackable-{image}_bin.cdx.xml",
+]
+
+[operators.min-components]
+total = 350
+rpm = 84
+cargo = 270
+embedded-cargo = 270
+
+[products.airflow]
+main-component = "pkg:pypi/apache-airflow@{version}"
+min-license-coverage = 0.88
+embedded-sboms = [
+  "/stackable/app/airflow-ui-{version}.cdx.json",
+  "/stackable/app/airflow-{version}.cdx.json",
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/statsd_exporter-*.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.airflow.min-components]
+total = 1900
+rpm = 170
+cargo = 890
+golang = 38
+npm = 300
+pypi = 520
+embedded-cargo = 890
+embedded-golang = 23
+embedded-npm = 290
+embedded-pypi = 510
+
+[products.druid]
+main-component = "pkg:maven/org.apache.druid/druid-server@{version}"
+min-license-coverage = 0.8
+embedded-sboms = [
+  "/stackable/apache-druid-{version}-stackable{release}/apache-druid-{version}-stackable{release}.cdx.json",
+  "/stackable/apache-druid-{version}-stackable{release}/druid-web-console-{version}-stackable{release}.cdx.json",
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.druid.min-components]
+total = 1600
+rpm = 110
+cargo = 890
+maven = 490
+npm = 140
+embedded-cargo = 890
+embedded-maven = 190
+embedded-npm = 140
+
+[products.hadoop]
+main-component = [
+  "pkg:maven/org.apache.hadoop/hadoop-common@{version}",
+  "pkg:maven/org.apache.hadoop/hadoop-hdfs@{version}",
+]
+min-license-coverage = 0.89
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/hadoop-{version}-stackable{release}/hadoop-webapps-{version}-stackable{release}.cdx.json",
+  "/stackable/hadoop-{version}-stackable{release}/hadoop-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.hadoop.min-components]
+total = 1200
+rpm = 110
+cargo = 890
+maven = 230
+embedded-cargo = 890
+embedded-maven = 110
+
+[products.hadoop.versions."3.3.6"]
+min-license-coverage = 0.73
+
+[products.hbase]
+main-component = "pkg:maven/org.apache.hbase/hbase-server@{version}"
+min-license-coverage = 0.7
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/hbase-operator-tools-*/hbase-operator-tools-*-hbase{version}-stackable{release}.cdx.json",
+  "/stackable/hbase-{version}-stackable{release}/hbase-webapps-{version}-stackable{release}.cdx.json",
+  "/stackable/hbase-{version}-stackable{release}/hbase-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.hbase.min-components]
+total = 1700
+rpm = 120
+cargo = 890
+maven = 660
+npm = 76
+embedded-cargo = 890
+embedded-maven = 170
+embedded-npm = 76
+
+[products.hive]
+main-component = "pkg:maven/org.apache.hive/hive-standalone-metastore-server@{version}"
+min-license-coverage = 0.69
+embedded-sboms = [
+  "/stackable/apache-hive-metastore-{version}-stackable{release}-bin/*.cdx.json",
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/hadoop-*/hadoop-*.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.hive.min-components]
+total = 1500
+rpm = 110
+cargo = 890
+maven = 570
+embedded-cargo = 890
+embedded-maven = 190
+
+[products.hive.versions."3.1.3"]
+main-component = "pkg:maven/org.apache.hive/hive-standalone-metastore@{version}"
+
+[products.kafka]
+main-component = "pkg:maven/org.apache.kafka/kafka-clients@{version}"
+min-license-coverage = 0.9
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/kafka_2.13-{version}-stackable{release}/kafka_2.13-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.kafka.min-components]
+total = 1100
+rpm = 110
+cargo = 890
+maven = 130
+embedded-cargo = 890
+embedded-maven = 91
+
+[products.nifi]
+main-component = "pkg:maven/org.apache.nifi/nifi-runtime@{version}"
+min-license-coverage = 0.76
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/nifi-{version}-stackable{release}/nifi-framework-nar.cdx.json",
+  "/stackable/nifi-{version}-stackable{release}/nifi-frontend-{version}-stackable{release}.cdx.json",
+  "/stackable/nifi-{version}-stackable{release}/nifi-standard-nar.cdx.json",
+  "/stackable/nifi-{version}-stackable{release}/nifi-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.nifi.min-components]
+total = 2900
+rpm = 180
+cargo = 890
+golang = 12
+maven = 1700
+npm = 110
+embedded-cargo = 890
+embedded-maven = 1100
+embedded-npm = 110
+
+[products.omid]
+main-component = "pkg:maven/org.apache.omid/omid-tso-server@{version}"
+min-license-coverage = 0.91
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/omid-examples-{version}-stackable{release}/omid-examples-{version}-stackable{release}.cdx.json",
+  "/stackable/omid-tso-server-{version}-stackable{release}/omid-tso-server-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.omid.min-components]
+total = 1100
+rpm = 110
+cargo = 890
+maven = 140
+embedded-cargo = 890
+embedded-maven = 97
+
+[products.opa]
+main-component = "pkg:golang/github.com/open-policy-agent/opa@v{version}"
+min-license-coverage = 0.94
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/opa/opa_{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.opa.min-components]
+total = 1000
+rpm = 92
+cargo = 890
+golang = 79
+embedded-cargo = 890
+embedded-golang = 76
+
+[products.opensearch]
+main-component = "pkg:maven/org.opensearch/opensearch@{version}"
+min-license-coverage = 0.81
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/opensearch-prometheus-exporter-{version}.0-stackable{release}.cdx.json",
+  "/stackable/opensearch-security-{version}.0-stackable{release}.cdx.json",
+  "/stackable/opensearch-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.opensearch.min-components]
+total = 1500
+rpm = 110
+cargo = 890
+maven = 570
+embedded-cargo = 890
+embedded-maven = 250
+
+[products.opensearch-dashboards]
+main-component = "pkg:npm/opensearch-dashboards@{version}"
+min-license-coverage = 0.9
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/opensearch-dashboards-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.opensearch-dashboards.min-components]
+total = 2100
+rpm = 90
+cargo = 890
+npm = 1100
+embedded-cargo = 890
+embedded-npm = 1000
+
+[products.spark-k8s]
+main-component = "pkg:maven/org.apache.spark/spark-core_2.13@{version}"
+min-license-coverage = 0.65
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/spark/spark-web-ui-{version}-stackable{release}.cdx.json",
+  "/stackable/spark/spark-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.spark-k8s.min-components]
+total = 1900
+rpm = 120
+cargo = 890
+maven = 900
+embedded-cargo = 890
+embedded-maven = 250
+
+[products.superset]
+main-component = "pkg:pypi/apache-superset@{version}"
+min-license-coverage = 0.9
+embedded-sboms = [
+  "/stackable/app/superset-frontend-{version}.cdx.json",
+  "/stackable/app/superset-{version}.cdx.json",
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/statsd_exporter-*.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.superset.min-components]
+total = 2100
+rpm = 120
+cargo = 890
+golang = 24
+npm = 940
+pypi = 150
+embedded-cargo = 890
+embedded-golang = 23
+embedded-npm = 940
+embedded-pypi = 140
+
+[products.superset.versions."4.1.4"]
+min-license-coverage = 0.49
+
+[products.trino]
+main-component = "pkg:maven/io.trino/trino-server@{version}"
+min-license-coverage = 0.78
+embedded-sboms = [
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/stackable/trino-server-{version}-stackable{release}/trino-server-{version}-stackable{release}.cdx.json",
+  "/stackable/trino-server-{version}-stackable{release}/trino-web-ui-vendor-{version}-stackable{release}.cdx.json",
+  "/stackable/trino-server-{version}-stackable{release}/trino-web-ui-{version}-stackable{release}.cdx.json",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.trino.min-components]
+total = 2000
+rpm = 120
+cargo = 890
+maven = 860
+npm = 170
+embedded-cargo = 890
+embedded-maven = 550
+embedded-npm = 170
+
+[products.zookeeper]
+main-component = "pkg:maven/org.apache.zookeeper/zookeeper@{version}"
+min-license-coverage = 0.93
+embedded-sboms = [
+  "/stackable/apache-zookeeper-{version}-stackable{release}-bin/apache-zookeeper-{version}-stackable{release}.cdx.json",
+  "/stackable/cert-tools_bin.cdx.xml",
+  "/stackable/config-utils.cdx.xml",
+  "/stackable/containerdebug_bin.cdx.xml",
+  "/usr/local/bin/vector_bin.cdx.xml",
+]
+
+[products.zookeeper.min-components]
+total = 1000
+rpm = 110
+cargo = 890
+maven = 48
+embedded-cargo = 890
+embedded-maven = 33

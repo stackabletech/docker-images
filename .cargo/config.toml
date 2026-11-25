@@ -1,3 +1,5 @@
 [alias]
 patchable = ["run", "--bin", "patchable", "--"]
 boil = ["run", "--bin", "boil", "--"]
+# Release build, it parses a few hundred megabytes of JSON.
+sbom-quality = ["run", "--release", "--bin", "sbom-quality", "--"]

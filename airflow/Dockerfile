@@ -78,8 +78,7 @@ ARG CDXGEN_SPEC_VERSION
 # The mysql provider is currently excluded.
 # Requires implementation of https://github.com/apache/airflow/blob/main/scripts/docker/install_mysql.sh
 # The providers are split into separate lists to make it easier to manage
-# (and to compare to the online links). Default values are provided for
-# backwards compatibility.
+# (and to compare to the online links).
 ARG AIRFLOW_EXTRAS_CORE=""
 ARG AIRFLOW_EXTRAS_META=""
 ARG AIRFLOW_EXTRAS_PROVIDER_APACHE=""
@@ -160,13 +159,10 @@ uv venv --python "${PYTHON_VERSION}" --system-site-packages /stackable/app
 
 # The pip bundled with the uv-managed Python trusts the certificates of its vendored certifi,
 # which contains the compromised "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2).
-# pip 26.2.2 ships a fixed certifi, but requires Python >= 3.10. For Python 3.9, pip falls back
-# to PIP_CERT (set in the final image) instead.
-if [ "${PYTHON_VERSION}" != "3.9" ]; then
-  # Upgrade pip in the uv-managed base interpreter (not the venv), which is where pip lives.
-  # uv marks this interpreter as externally managed, so --break-system-packages is required.
-  uv pip install --python "$(uv python find --system --managed-python "${PYTHON_VERSION}")" --break-system-packages pip==26.2.2
-fi
+# pip 26.2.2 ships a fixed certifi and requires Python >= 3.10, which all supported versions use.
+# Upgrade pip in the uv-managed base interpreter (not the venv), which is where pip lives.
+# uv marks this interpreter as externally managed, so --break-system-packages is required.
+uv pip install --python "$(uv python find --system --managed-python "${PYTHON_VERSION}")" --break-system-packages pip==26.2.2
 EOF
 
 # Instead of activating the environment each time
@@ -189,74 +185,40 @@ cd "$(/stackable/patchable --images-repo-root=src checkout airflow ${PRODUCT_VER
 
 tar -czf /stackable/airflow-${PRODUCT_VERSION}-src.tar.gz .
 
-if [ -d "./airflow-core" ]; then
-  # Airflow 3.x
-  cd airflow-core/src/airflow/ui
+cd airflow-core/src/airflow/ui
 
-  # build front-end assets
-  # TODO: Consider making the pnpm version an ARG
-  # --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
-  # --before only resolves versions published at least 7 days ago, including the transitive ones,
-  # so that a freshly published malicious version is not picked up before it is taken down.
-  npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" pnpm@10.18.2
-  pnpm install --frozen-lockfile
-  pnpm run build
+# build front-end assets
+# TODO: Consider making the pnpm version an ARG
+# --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
+# --before only resolves versions published at least 7 days ago, including the transitive ones,
+# so that a freshly published malicious version is not picked up before it is taken down.
+npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" pnpm@10.18.2
+pnpm install --frozen-lockfile
+pnpm run build
 
-  # Create the SBOM for the frontend assets.
-  # --required-only drops the devDependencies.
-  # --no-babel is required in combination with --required-only: the babel based usage
-  #   analysis marks every package as optional unless it is imported directly, which would
-  #   also drop all transitive runtime dependencies.
-  # --project-version is passed because the frontends declare a placeholder version
-  #   upstream.
-  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
-    --type js \
-    --required-only \
-    --no-babel \
-    --spec-version "${CDXGEN_SPEC_VERSION}" \
-    --project-version "${PRODUCT_VERSION}" \
-    --output "/stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json"
+# Create the SBOM for the frontend assets.
+# --required-only drops the devDependencies.
+# --no-babel is required in combination with --required-only: the babel based usage
+#   analysis marks every package as optional unless it is imported directly, which would
+#   also drop all transitive runtime dependencies.
+# --project-version is passed because the frontends declare a placeholder version
+#   upstream.
+PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
+  --type js \
+  --required-only \
+  --no-babel \
+  --spec-version "${CDXGEN_SPEC_VERSION}" \
+  --project-version "${PRODUCT_VERSION}" \
+  --output "/stackable/app/airflow-ui-${PRODUCT_VERSION}.cdx.json"
 
-  # build airflow wheel from airflow root folder
-  # this picks up the UI assets from the pnpm build, and the dependencies from the root folder
-  cd ../../..
-  /root/.local/bin/hatch build -t wheel
-  # First install the full apache-airflow package to get all dependencies including database drivers
-  uv pip install --python ${VIRTUAL_ENV}/bin/python apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
-  # Then install the locally built core wheel to override the core package
-  uv pip install --python ${VIRTUAL_ENV}/bin/python dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
-else
-  # Airflow 2.x
-  # build front-end assets
-  cd airflow/www
-  # TODO: Consider making the yarn version an ARG
-  # --ignore-scripts keeps the install scripts of (transitive) dependencies from running.
-  # --before only resolves versions published at least 7 days ago, including the transitive ones,
-  # so that a freshly published malicious version is not picked up before it is taken down.
-  npm install -g --ignore-scripts --before="$(date --utc --date='-7 days' --iso-8601=seconds)" yarn@1.22.22
-  yarn install --frozen-lockfile
-  yarn run build
-
-  # Create the SBOM for the frontend assets, see the comment in the Airflow 3.x branch above.
-  # NOTE: A Yarn 1 lockfile does not record whether a package is a dev dependency, so
-  # cdxgen marks everything as required and --required-only has no effect here. The SBOM
-  # for Airflow 2.x therefore also contains the frontend build tooling.
-  PATH="/opt/node-cdxgen/bin:$PATH" cdxgen \
-    --type js \
-    --required-only \
-    --no-babel \
-    --spec-version "${CDXGEN_SPEC_VERSION}" \
-    --project-version "${PRODUCT_VERSION}" \
-    --output "/stackable/app/airflow-www-${PRODUCT_VERSION}.cdx.json"
-
-  # build airflow wheel from airflow root folder
-  cd ../..
-  /root/.local/bin/hatch build -t wheel
-  # First install the full apache-airflow package to get all dependencies including database drivers
-  uv pip install --python ${VIRTUAL_ENV}/bin/python apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
-  # Then install the locally built wheel to override with patched version
-  uv pip install --python ${VIRTUAL_ENV}/bin/python dist/apache_airflow-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
-fi
+# build airflow wheel from airflow root folder
+# this picks up the UI assets from the pnpm build, and the dependencies from the root folder
+cd ../../..
+/root/.local/bin/hatch build -t wheel
+# First install the full apache-airflow package to get all dependencies including database drivers
+uv pip install --python ${VIRTUAL_ENV}/bin/python apache-airflow[${AIRFLOW_EXTRAS}]==${PRODUCT_VERSION} --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
+# Then install the locally built core wheel to override the core package
+uv pip install --python ${VIRTUAL_ENV}/bin/python dist/apache_airflow_core-${PRODUCT_VERSION}-py3-none-any.whl[${AIRFLOW_EXTRAS}] --constraint /tmp/constraints.txt --build-constraints /tmp/build-constraints.txt
 
 # Needed for pandas S3 integration to e.g. write and read csv and parquet files to/from S3
 # TODO: s3fs may already be installed via the s3fs extra and constraints. Check if this explicit install is still needed.
@@ -317,7 +279,6 @@ EOF
 FROM local-image/vector AS airflow-main-image
 
 ARG PRODUCT_VERSION
-ARG PYTHON_VERSION
 ARG RELEASE_VERSION
 ARG TINI_VERSION
 ARG TARGETARCH
@@ -337,15 +298,10 @@ ENV VIRTUAL_ENV=$HOME/app
 ENV AIRFLOW_USER_HOME_DIR=$HOME
 ENV PATH=$HOME/app/bin:$PATH:/bin
 ENV AIRFLOW_HOME=$HOME/airflow
-# On Python 3.9 (Airflow 2.x), pip uses its own vendored copy of certifi instead of the system trust store.
-# Point it to the system trust store, so it does not trust the compromised
-# "emSign ECC Root CA - G3" root certificate (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
-# On newer Python versions pip ignores this in favour of truststore, see the pip upgrade in the build stage.
-# PIP_CERT sets pip's --cert option, see https://pip.pypa.io/en/stable/cli/pip/#cmdoption-cert
-# and https://pip.pypa.io/en/stable/topics/configuration/#environment-variables
-ENV PIP_CERT=/etc/pki/tls/certs/ca-bundle.crt
-# Same for grpcio, which bundles its own roots.pem,
-# see https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
+# grpcio bundles its own roots.pem instead of using the system trust store. Point it to the system
+# trust store, so it does not trust the compromised "emSign ECC Root CA - G3" root certificate
+# (GHSA-6q48-6c7w-9gw2), which the system trust store no longer contains.
+# See https://github.com/grpc/grpc/blob/master/doc/environment_variables.md
 ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/pki/tls/certs/ca-bundle.crt
 
 COPY --from=airflow-build-image --chown=${STACKABLE_USER_UID}:0 /stackable/ ${HOME}/
