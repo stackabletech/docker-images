@@ -7,6 +7,7 @@ use std::{
 use clap::{Args, ValueHint, value_parser};
 use snafu::{ResultExt, Snafu, ensure};
 use strum::EnumDiscriminants;
+use sysinfo::System;
 use url::Host;
 
 use crate::{
@@ -37,6 +38,8 @@ pub struct BuildArguments {
     pub vendor_version: String,
 
     /// Target platform of the image.
+    ///
+    /// Defaults to the system's architecture or linux/amd64 if unknown/not supported.
     #[arg(
         short, long,
         short_alias = 'a', alias = "architecture",
@@ -144,9 +147,13 @@ pub struct BuildArguments {
 }
 
 impl BuildArguments {
-    // TODO: Auto-detect this
     fn default_architecture() -> TargetPlatform {
-        TargetPlatform::Linux(Architecture::Amd64)
+        // NOTE (@Techassi): This is sadly not an enum we could match on, so we kind of have to
+        // treat this like free-form text. As such, we match on both aarch64 and arm64.
+        match System::cpu_arch().as_str() {
+            "aarch64" | "arm64" => TargetPlatform::Linux(Architecture::Arm64),
+            _ => TargetPlatform::Linux(Architecture::Amd64),
+        }
     }
 
     fn default_target_containerfile() -> PathBuf {

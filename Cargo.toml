@@ -20,15 +20,16 @@ humansize = "2.1"
 oci-spec = "0.10"
 purl = { version = "0.1.6", default-features = false }
 reqwest = { version = "0.13", features = ["json"] }
-rstest = "0.27"
-secrecy = "0.10"
 regex = "1.13"
+rstest = "0.29"
+secrecy = "0.10"
 semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 snafu = "0.9"
 spdx = "0.13"
 strum = { version = "0.28", features = ["derive"] }
+sysinfo = { version = "0.40", default-features = false }
 tempfile = "3.27"
 time = { version = "0.3", features = ["parsing", "formatting"] }
 tokio = { version = "1.53", features = ["rt", "macros", "process"] }
