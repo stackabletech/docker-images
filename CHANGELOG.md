@@ -7,7 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - phoenix: Backport the upstream addendum to PHOENIX-5215, which stops the client jars from bundling the OpenTelemetry API, for `5.3.1` and `5.3.2` ([#1761]).
+- hive: Backport [HIVE-29818](https://issues.apache.org/jira/browse/HIVE-29818) to cache proxy users in the Iceberg REST Catalog and prevent running out of memory, for `4.2.0` and `4.2.1` ([#1749]).
 
+[#1749]: https://github.com/stackabletech/docker-images/pull/1749
 [#1761]: https://github.com/stackabletech/docker-images/pull/1761
 
 ## [26.11.0] - 2026-11-20

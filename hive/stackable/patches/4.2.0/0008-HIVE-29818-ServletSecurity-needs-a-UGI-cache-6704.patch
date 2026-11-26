@@ -1,0 +1,374 @@
+From fb7ef615ee375b486faf738a7cd8fb52ee5788b3 Mon Sep 17 00:00:00 2001
+From: Henrib <hbiestro@gmail.com>
+Date: Wed, 16 Sep 2026 23:51:21 +0200
+Subject: HIVE-29818: ServletSecurity needs a UGI cache (#6704)
+
+* HIVE-29818: ServletSecurity needs a UGI cache
+
+The REST Catalog creates a fresh proxy UserGroupInformation per request via
+UserGroupInformation.createProxyUser. Hadoop's FileSystem.CACHE retains a
+reference to every such UGI (and its RPC/IPC resources), so under proxy
+authentication these short-lived UGIs accumulate and eventually exhaust memory
+in long-running deployments.
+
+Cache the proxy UGI in ServletSecurity with a bounded, idle-evicting Caffeine
+cache keyed by (realUser, loginUser). Evicted entries release their resources
+via FileSystem.closeAllForUGI. Two new config vars tune the cache:
+  - metastore.catalog.servlet.ugi.cache.size   (default 1000)
+  - metastore.catalog.servlet.ugi.cache.expiry (default 3600s, 0 disables)
+
+Add TestServletSecurity covering per-user caching, distinct proxies per user,
+eviction-triggered FileSystem cleanup, and disabled expiry.
+
+* HIVE-29818: Address review comments on ServletSecurity UGI cache
+
+- Rename UgiKey.realUser to effectiveUser (impersonated user, not the Hadoop real user)
+- Keep cache size as long end-to-end, dropping the truncating int cast
+- Run removal-listener cleanup on ForkJoinPool.commonPool() instead of the request thread;
+  add a test-only constructor to inject a synchronous executor
+- Downgrade proxy-user creation log from INFO to DEBUG
+
+* CDPD-29818 : Address review comments on ServletSecurity UGI cache (dedicated executor + periodic cleanup)
+
+Replace ForkJoinPool.commonPool() with a dedicated single-thread daemon
+executor ("ugi-cache-cleanup") for Caffeine removal-listener callbacks,
+preventing blocking FileSystem.closeAllForUGI calls from interfering with
+JVM-wide shared pools.
+
+Schedule proxyUserCache.cleanUp() on the same executor at the configured
+expiry interval so that entries accumulated during traffic bursts are
+reaped after they expire, even when no subsequent requests arrive to
+trigger Caffeine's access-piggybacked maintenance.
+
+Add close() / ProxyServlet.destroy() for executor lifecycle management.
+The @VisibleForTesting constructor is unaffected (no scheduler, no
+lifecycle).
+---
+ .../hive/metastore/conf/MetastoreConf.java    |  11 ++
+ .../hive/metastore/ServletSecurity.java       | 149 +++++++++++++++++-
+ .../hive/metastore/TestServletSecurity.java   | 102 ++++++++++++
+ 3 files changed, 260 insertions(+), 2 deletions(-)
+ create mode 100644 standalone-metastore/metastore-server/src/test/java/org/apache/hadoop/hive/metastore/TestServletSecurity.java
+
+diff --git a/standalone-metastore/metastore-common/src/main/java/org/apache/hadoop/hive/metastore/conf/MetastoreConf.java b/standalone-metastore/metastore-common/src/main/java/org/apache/hadoop/hive/metastore/conf/MetastoreConf.java
+index 71e99b0d32e7a39eb1b425f68dce41deb54ea69e..9535227da4467770e7e59704e041a7805bcd066e 100644
+--- a/standalone-metastore/metastore-common/src/main/java/org/apache/hadoop/hive/metastore/conf/MetastoreConf.java
++++ b/standalone-metastore/metastore-common/src/main/java/org/apache/hadoop/hive/metastore/conf/MetastoreConf.java
+@@ -1932,6 +1932,17 @@ public class MetastoreConf {
+         "hive.metastore.iceberg.catalog.cache.expiry", -1,
+         "HMS Iceberg Catalog cache expiry."
+     ),
++    CATALOG_SERVLET_UGI_CACHE_SIZE("metastore.catalog.servlet.ugi.cache.size",
++        "hive.metastore.catalog.servlet.ugi.cache.size", 1000L,
++        "Maximum number of proxy UserGroupInformation instances to keep in the catalog servlet UGI cache. " +
++        "Entries displaced by this limit trigger FileSystem resource cleanup for the evicted UGI."
++    ),
++    CATALOG_SERVLET_UGI_CACHE_EXPIRY("metastore.catalog.servlet.ugi.cache.expiry",
++        "hive.metastore.catalog.servlet.ugi.cache.expiry", 3600, TimeUnit.SECONDS,
++        "Idle-expiry time for cached proxy UserGroupInformation instances in the catalog servlet. " +
++        "After this period of inactivity, the entry is evicted and FileSystem.closeAllForUGI is called " +
++        "to release associated IPC and RPC resources. Set to 0 to disable expiry-based eviction."
++    ),
+     HTTPSERVER_THREADPOOL_MIN("hive.metastore.httpserver.threadpool.min",
+             "hive.metastore.httpserver.threadpool.min", 8,
+             "HMS embedded HTTP server minimum number of threads."
+diff --git a/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/ServletSecurity.java b/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/ServletSecurity.java
+index c5a83ef5d7ffbdb45f0bcc0e0356a20a10b2fa63..abb955046872023a18de844fc998338f6f621504 100644
+--- a/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/ServletSecurity.java
++++ b/standalone-metastore/metastore-server/src/main/java/org/apache/hadoop/hive/metastore/ServletSecurity.java
+@@ -20,10 +20,21 @@ package org.apache.hadoop.hive.metastore;
+ 
+ import static javax.ws.rs.core.HttpHeaders.WWW_AUTHENTICATE;
+ 
++import com.github.benmanes.caffeine.cache.Cache;
++import com.github.benmanes.caffeine.cache.Caffeine;
++import com.github.benmanes.caffeine.cache.RemovalListener;
++import com.github.benmanes.caffeine.cache.Ticker;
++import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.base.Preconditions;
++import java.time.Duration;
+ import java.util.List;
++import java.util.concurrent.Executor;
++import java.util.concurrent.Executors;
++import java.util.concurrent.ScheduledExecutorService;
++import java.util.concurrent.TimeUnit;
+ import java.util.function.Function;
+ import org.apache.hadoop.conf.Configuration;
++import org.apache.hadoop.fs.FileSystem;
+ import org.apache.hadoop.hive.metastore.auth.HttpAuthenticationException;
+ import org.apache.hadoop.hive.metastore.auth.jwt.SimpleJWTAuthenticator;
+ import org.apache.hadoop.hive.metastore.auth.oauth2.OAuth2Authenticator;
+@@ -101,6 +112,14 @@ public class ServletSecurity {
+   private final Function<HttpServletRequest, List<String>> scopeProvider;
+   private SimpleJWTAuthenticator jwtAuthenticator = null;
+   private OAuth2Authenticator oAuth2Authenticator = null;
++  private final Cache<UgiKey, UserGroupInformation> proxyUserCache;
++  private final ScheduledExecutorService cacheMaintenanceExecutor;
++
++  /**
++   * Cache key for a proxy {@link UserGroupInformation}. A proxy UGI is bound to both the effective user it
++   * impersonates and the server login user acting as its real user, so both participate in identity.
++   */
++  record UgiKey(String effectiveUser, String loginUser) {}
+ 
+   public ServletSecurity(AuthType authType, Configuration conf) {
+     this(authType, conf, null);
+@@ -112,6 +131,127 @@ public class ServletSecurity {
+     this.isSecurityEnabled = UserGroupInformation.isSecurityEnabled();
+     this.authType = authType;
+     this.scopeProvider = scopeProvider;
++    this.cacheMaintenanceExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
++      Thread t = new Thread(r, "ugi-cache-cleanup");
++      t.setDaemon(true);
++      return t;
++    });
++    long expiryMs = MetastoreConf.getTimeVar(conf, MetastoreConf.ConfVars.CATALOG_SERVLET_UGI_CACHE_EXPIRY,
++        TimeUnit.MILLISECONDS);
++    this.proxyUserCache = createCacheWithConfig(
++        expiryMs,
++        MetastoreConf.getLongVar(conf, MetastoreConf.ConfVars.CATALOG_SERVLET_UGI_CACHE_SIZE),
++        cacheMaintenanceExecutor);
++    if (expiryMs > 0) {
++      // Periodically flush expired entries that accumulated during idle periods (Caffeine only runs
++      // maintenance when the cache is accessed; without this, a burst followed by silence keeps
++      // UGI/FileSystem resources live past the configured expiry window).
++      cacheMaintenanceExecutor.scheduleAtFixedRate(proxyUserCache::cleanUp,
++          expiryMs, expiryMs, TimeUnit.MILLISECONDS);
++    }
++  }
++
++  @VisibleForTesting
++  ServletSecurity(AuthType authType, Configuration conf,
++      Function<HttpServletRequest, List<String>> scopeProvider, Executor cacheCleanupExecutor) {
++    this.conf = conf;
++    this.isSecurityEnabled = UserGroupInformation.isSecurityEnabled();
++    this.authType = authType;
++    this.scopeProvider = scopeProvider;
++    this.cacheMaintenanceExecutor = null;
++    this.proxyUserCache = createCacheWithConfig(
++        MetastoreConf.getTimeVar(conf, MetastoreConf.ConfVars.CATALOG_SERVLET_UGI_CACHE_EXPIRY, TimeUnit.MILLISECONDS),
++        MetastoreConf.getLongVar(conf, MetastoreConf.ConfVars.CATALOG_SERVLET_UGI_CACHE_SIZE),
++        cacheCleanupExecutor);
++  }
++
++  /**
++   * Creates a UGI cache with the specified expiration time and maximum size.
++   *
++   * @param expirationMs Time in milliseconds after which entries expire due to inactivity
++   * @param maxSize      Maximum number of entries the cache can hold
++   * @param cacheCleanupExecutor executor on which removal-listener cleanup ({@link FileSystem#closeAllForUGI})
++   *                             runs; production uses a dedicated single-thread daemon executor so cleanup stays
++   *                             off request threads and does not interfere with JVM-wide shared pools
++   * @return A configured Caffeine cache for UGI objects
++   */
++  private Cache<UgiKey, UserGroupInformation> createCacheWithConfig(long expirationMs, long maxSize,
++      Executor cacheCleanupExecutor) {
++    // Note: eviction closes the UGI's FileSystems. If an entry is evicted while a request is still inside doAs,
++    // that in-flight operation could see a "FileSystem closed" error. We don't reference-count to prevent this;
++    // instead we rely on generous margins: expiry is idle-based (expireAfterAccess), and both the expiry window
++    // and maximumSize should be kept well above the longest operation / peak concurrent distinct users.
++    RemovalListener<UgiKey, UserGroupInformation> cleanupListener =
++        (key, ugi, cause) -> {
++          if (ugi != null) {
++            try {
++              FileSystem.closeAllForUGI(ugi);
++              if (LOG.isDebugEnabled()) {
++                LOG.debug("Cleaned up FileSystem handles for evicted UGI: {} (cause: {})",
++                    ugi.getUserName(), cause);
++              }
++            } catch (IOException cleanupException) {
++              LOG.error("Failed to clean up FileSystem handles for evicted UGI: {} (cause: {})",
++                  ugi, cause, cleanupException);
++            }
++          }
++        };
++
++    Caffeine<UgiKey, UserGroupInformation> builder = Caffeine.<UgiKey, UserGroupInformation>newBuilder()
++        .maximumSize(maxSize)
++        .executor(cacheCleanupExecutor)
++        .removalListener(cleanupListener);
++
++    if (expirationMs > 0) {
++      builder.expireAfterAccess(Duration.ofMillis(expirationMs))
++          .ticker(Ticker.systemTicker());
++    }
++
++    return builder.build();
++  }
++
++  /**
++   * Returns the (cached) proxy {@link UserGroupInformation} for the given user, creating it on a cache miss.
++   * <p>Caching the proxy UGI prevents Hadoop{@literal '}s {@code FileSystem.CACHE} from accumulating a distinct
++   * entry (and its RPC/IPC resources) for every request; evicted entries are cleaned up through
++   * {@link FileSystem#closeAllForUGI(UserGroupInformation)}.</p>
++   * @param userName the effective user name extracted from the request
++   * @param loginUser the server login user that acts as the real user of the proxy
++   * @return the cached or freshly created proxy user
++   */
++  @VisibleForTesting
++  UserGroupInformation getProxyUser(String userName, UserGroupInformation loginUser) {
++    return proxyUserCache.get(new UgiKey(userName, loginUser.getUserName()), key -> {
++      LOG.debug("Creating proxy user for: {}", key.effectiveUser());
++      return UserGroupInformation.createProxyUser(key.effectiveUser(), loginUser);
++    });
++  }
++
++  /**
++   * Forces the proxy user cache to run any pending maintenance (eviction and cleanup).
++   */
++  @VisibleForTesting
++  void cleanUpProxyUserCache() {
++    proxyUserCache.cleanUp();
++  }
++
++  /**
++   * Releases resources held by this instance: stops the cache maintenance scheduler and runs any
++   * pending eviction cleanup. Should be called when the servlet is destroyed.
++   */
++  public void close() {
++    if (cacheMaintenanceExecutor != null) {
++      cacheMaintenanceExecutor.shutdownNow();
++    }
++  }
++
++  /**
++   * @return the approximate number of entries currently held in the proxy user cache
++   */
++  @VisibleForTesting
++  long proxyUserCacheSize() {
++    proxyUserCache.cleanUp();
++    return proxyUserCache.estimatedSize();
+   }
+ 
+   /**
+@@ -168,6 +308,12 @@ public class ServletSecurity {
+     public String getServletInfo() {
+       return delegate.getServletInfo();
+     }
++
++    @Override
++    public void destroy() {
++      ServletSecurity.this.close();
++      delegate.destroy();
++    }
+   }
+ 
+   /**
+@@ -232,8 +378,7 @@ public class ServletSecurity {
+       // Temporary, and useless for now. Here only to allow this to work on an otherwise kerberized
+       // server.
+       if (isSecurityEnabled || authType == AuthType.JWT || authType == AuthType.OAUTH2) {
+-        LOG.info("Creating proxy user for: {}", userFromHeader);
+-        clientUgi = UserGroupInformation.createProxyUser(userFromHeader, UserGroupInformation.getLoginUser());
++        clientUgi = getProxyUser(userFromHeader, UserGroupInformation.getLoginUser());
+       } else {
+         // Unreachable in the case of NONE
+         Preconditions.checkState(authType == AuthType.SIMPLE);
+diff --git a/standalone-metastore/metastore-server/src/test/java/org/apache/hadoop/hive/metastore/TestServletSecurity.java b/standalone-metastore/metastore-server/src/test/java/org/apache/hadoop/hive/metastore/TestServletSecurity.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e0146f8b6cf168ee1c6abb31c93b39c4bee3f8e3
+--- /dev/null
++++ b/standalone-metastore/metastore-server/src/test/java/org/apache/hadoop/hive/metastore/TestServletSecurity.java
+@@ -0,0 +1,102 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++
++package org.apache.hadoop.hive.metastore;
++
++import java.util.concurrent.TimeUnit;
++import org.apache.hadoop.conf.Configuration;
++import org.apache.hadoop.fs.FileSystem;
++import org.apache.hadoop.hive.metastore.annotation.MetastoreUnitTest;
++import org.apache.hadoop.hive.metastore.conf.MetastoreConf;
++import org.apache.hadoop.hive.metastore.conf.MetastoreConf.ConfVars;
++import org.apache.hadoop.security.UserGroupInformation;
++import org.junit.Assert;
++import org.junit.Test;
++import org.junit.experimental.categories.Category;
++import org.mockito.MockedStatic;
++import org.mockito.Mockito;
++
++/**
++ * Unit tests for the proxy {@link UserGroupInformation} cache used by {@link ServletSecurity} to bound the number of
++ * proxy UGIs (and their associated FileSystem resources) that would otherwise leak through Hadoop's FileSystem cache.
++ */
++@Category(MetastoreUnitTest.class)
++public class TestServletSecurity {
++
++  private static Configuration confWithCache(long maxSize, long expirySeconds) {
++    Configuration conf = MetastoreConf.newMetastoreConf();
++    MetastoreConf.setLongVar(conf, ConfVars.CATALOG_SERVLET_UGI_CACHE_SIZE, maxSize);
++    MetastoreConf.setTimeVar(conf, ConfVars.CATALOG_SERVLET_UGI_CACHE_EXPIRY, expirySeconds, TimeUnit.SECONDS);
++    return conf;
++  }
++
++  @Test
++  public void testProxyUserIsCachedPerUser() throws Exception {
++    ServletSecurity security = new ServletSecurity(ServletSecurity.AuthType.JWT, confWithCache(100, 3600));
++    UserGroupInformation loginUser = UserGroupInformation.getCurrentUser();
++
++    UserGroupInformation first = security.getProxyUser("alice", loginUser);
++    UserGroupInformation second = security.getProxyUser("alice", loginUser);
++
++    Assert.assertSame("Repeated requests for the same user must reuse the cached proxy UGI", first, second);
++    Assert.assertEquals("alice", first.getShortUserName());
++  }
++
++  @Test
++  public void testDistinctUsersGetDistinctProxies() throws Exception {
++    ServletSecurity security = new ServletSecurity(ServletSecurity.AuthType.JWT, confWithCache(100, 3600));
++    UserGroupInformation loginUser = UserGroupInformation.getCurrentUser();
++
++    UserGroupInformation alice = security.getProxyUser("alice", loginUser);
++    UserGroupInformation bob = security.getProxyUser("bob", loginUser);
++
++    Assert.assertNotSame(alice, bob);
++    Assert.assertEquals(2, security.proxyUserCacheSize());
++  }
++
++  @Test
++  public void testEvictionClosesFileSystemForUgi() throws Exception {
++    // A cache bounded to a single entry: inserting a second user evicts the first.
++    // Runnable::run makes removal-listener cleanup run synchronously on this thread, where the static mock is active.
++    ServletSecurity security =
++        new ServletSecurity(ServletSecurity.AuthType.JWT, confWithCache(1, 3600), null, Runnable::run);
++    UserGroupInformation loginUser = UserGroupInformation.getCurrentUser();
++
++    try (MockedStatic<FileSystem> fsMock = Mockito.mockStatic(FileSystem.class)) {
++      UserGroupInformation alice = security.getProxyUser("alice", loginUser);
++      security.getProxyUser("bob", loginUser);
++      // Force any pending size-based eviction (and its synchronous cleanup) to run.
++      security.cleanUpProxyUserCache();
++
++      fsMock.verify(() -> FileSystem.closeAllForUGI(alice));
++    }
++  }
++
++  @Test
++  public void testExpiryDisabledWhenNonPositive() throws Exception {
++    // expiry == 0 disables time-based eviction; the size bound still applies and entries remain until displaced.
++    ServletSecurity security = new ServletSecurity(ServletSecurity.AuthType.JWT, confWithCache(100, 0));
++    UserGroupInformation loginUser = UserGroupInformation.getCurrentUser();
++
++    UserGroupInformation first = security.getProxyUser("carol", loginUser);
++    UserGroupInformation second = security.getProxyUser("carol", loginUser);
++
++    Assert.assertSame(first, second);
++  }
++}
