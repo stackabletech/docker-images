@@ -147,6 +147,8 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 - hbase: Remove `2.6.4` ([#1678]).
 - vector: Remove `0.55.0` ([#1680]).
+- hadoop: Remove `3.3.6`. The `hadoop/hadoop` builder image is kept for this version, because
+  Hive `3.1.3` and `4.0.0` still require it ([#1758]).
 - hadoop: Remove `3.4.2` ([#1683]).
 - trino: Remove `479` ([#1690]).
 - trino-cli: Remove `481` ([#1690]).
@@ -223,6 +225,7 @@ All notable changes to this project will be documented in this file.
 [#1741]: https://github.com/stackabletech/docker-images/pull/1741
 [#1745]: https://github.com/stackabletech/docker-images/pull/1745
 [#1753]: https://github.com/stackabletech/docker-images/pull/1753
+[#1758]: https://github.com/stackabletech/docker-images/pull/1758
 
 ## [26.7.0] - 2026-07-21
 

@@ -104,6 +104,12 @@ license-files = [
     { path = "LICENSE", hash = 0x001c7e6c },
 ]
 
+# MIT-0 is MIT without the attribution requirement. borrow-or-share is a dependency of fluent-uri,
+# which cyclonedx-bom (used by sbom-quality) requires.
+[[licenses.exceptions]]
+name = "borrow-or-share"
+allow = ["MIT-0"]
+
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
