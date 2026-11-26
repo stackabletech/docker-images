@@ -1,0 +1,930 @@
+From 22072f5417d522a2542af978c9241bd50a48945a Mon Sep 17 00:00:00 2001
+From: Andrew Purtell <apurtell@apache.org>
+Date: Fri, 20 Nov 2026 14:33:28 -0800
+Subject: PHOENIX-5215 Addendum: OpenTelemetry packaging changes for 5.4
+
+Backport of apache/phoenix commit 43cb24fe70, pushed to master as a
+follow-up to PR #2586.
+
+Adapted for 5.3.x: the ScanUtil.annotateMutationWithLiteralTTL call in
+MutationState.sendMutations does not exist on this branch and is
+omitted.
+
+Packaging:
+- The client jars no longer bundle the OpenTelemetry API. A bundled,
+  unrelocated copy split the io.opentelemetry packages with the
+  application's own copy. The jars now declare the API as a dependency,
+  as hbase-shaded-client does. The assembly ships the API jars in lib,
+  and the bin scripts add them to the classpath.
+- phoenix-mapreduce-byo-shaded-hbase does not relocate io.opentelemetry.
+- The OpenTelemetry BOM moves from the root dependencyManagement to the
+  modules that compile against the API. Phoenix still compiles against
+  1.15.0, but the packaged artifacts keep the version HBase declares.
+
+MutationState:
+- Restore the single catch (Exception) in sendMutations, so commit
+  reports every failed batch as a CommitException again. Suppress
+  SpotBugs REC_CATCH_EXCEPTION for that method.
+- End the per-table span in one finally block, so it ends on every
+  exit path, including failures before the batch is sent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ bin/performance.py                            |   3 +-
+ bin/pherf-standalone.py                       |   1 +
+ bin/phoenix_utils.py                          |  13 +
+ bin/psql.py                                   |   1 +
+ bin/sqlline.py                                |   1 +
+ bin/traceserver.py                            |   2 +-
+ .../components/all-common-dependencies.xml    |   5 +
+ .../phoenix-client-embedded/pom.xml           |   5 +
+ .../phoenix-client-lite/pom.xml               |   5 +
+ phoenix-client-parent/pom.xml                 |   5 +-
+ phoenix-core-client/pom.xml                   |  14 +
+ .../apache/phoenix/execute/MutationState.java | 500 +++++++++---------
+ phoenix-core-server/pom.xml                   |  14 +
+ phoenix-core/pom.xml                          |  14 +
+ phoenix-mapreduce-byo-shaded-hbase/pom.xml    |   3 +
+ phoenix-server/pom.xml                        |   6 +-
+ pom.xml                                       |  17 +-
+ src/main/config/spotbugs/spotbugs-exclude.xml |   7 +
+ 18 files changed, 341 insertions(+), 275 deletions(-)
+
+diff --git a/bin/performance.py b/bin/performance.py
+index 74d5657026203528007601afb2feea4f5395fcf1..b6f8ba9201d4b743eefa1355080b62d861f9e6ef 100755
+--- a/bin/performance.py
++++ b/bin/performance.py
+@@ -67,7 +67,7 @@ java_cmd = phoenix_utils.java
+ 
+ opts = os.getenv('PHOENIX_OPTS') or os.getenv('HBASE_OPTS') or ''
+ 
+-execute = ('%s %s ' + opts + ' -cp "%s%s%s%s%s%s%s"' +
++execute = ('%s %s ' + opts + ' -cp "%s%s%s%s%s%s%s%s%s"' +
+            ' -Djava.util.logging.config.class=org.apache.hadoop.hbase.logging.JulToSlf4jInitializer ' +
+            ('' if '-Dlog4j2.configurationFile' in opts else ' -Dlog4j2.configurationFile=file:'
+            + os.path.join(phoenix_utils.current_dir, "log4j2.properties")) +
+@@ -76,6 +76,7 @@ execute = ('%s %s ' + opts + ' -cp "%s%s%s%s%s%s%s"' +
+      phoenix_utils.hbase_conf_dir, os.pathsep,
+      phoenix_utils.slf4j_backend_jar, os.pathsep,
+      phoenix_utils.logging_jar, os.pathsep,
++     phoenix_utils.otel_jars, os.pathsep,
+      phoenix_utils.phoenix_client_embedded_jar,
+      table, zookeeper)
+ 
+diff --git a/bin/pherf-standalone.py b/bin/pherf-standalone.py
+index 9db550c1595133f47813deee40af6f7024d90a15..a44699e8e9a8fa827152d0b650ed7718c933aa55 100755
+--- a/bin/pherf-standalone.py
++++ b/bin/pherf-standalone.py
+@@ -36,6 +36,7 @@ java_cmd = phoenix_utils.java + ' ' + phoenix_utils.jvm_module_flags + \
+     phoenix_utils.hbase_conf_dir + os.pathsep + \
+     phoenix_utils.slf4j_backend_jar + os.pathsep + \
+     phoenix_utils.logging_jar + os.pathsep + \
++    phoenix_utils.otel_jars + os.pathsep + \
+     phoenix_utils.phoenix_client_embedded_jar + os.pathsep +\
+     phoenix_utils.phoenix_pherf_jar + \
+     '" -Djava.util.logging.config.class=org.apache.hadoop.hbase.logging.JulToSlf4jInitializer ' +\
+diff --git a/bin/phoenix_utils.py b/bin/phoenix_utils.py
+index 27032df5f134342dcbc50e320b1a6cf1a0c177d2..6dd714cd25f1c987d0110ee9e671151115bc232d 100755
+--- a/bin/phoenix_utils.py
++++ b/bin/phoenix_utils.py
+@@ -73,6 +73,13 @@ def findFileInPathWithoutRecursion(pattern, path):
+ 
+     return ""
+ 
++def findFilesInPathWithoutRecursion(pattern, path):
++    if not os.path.exists(path):
++        return ""
++    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path,f))]
++    files.sort()
++    return os.pathsep.join(os.path.join(path, name) for name in files if fnmatch.fnmatch(name, pattern))
++
+ def which(command):
+     for path in os.environ["PATH"].split(os.pathsep):
+         if os.path.exists(os.path.join(path, command)):
+@@ -100,6 +107,7 @@ def setPath():
+     LOGGING_JAR_PATTERN4 = "jul-to-slf4j*.jar"
+     LOGGING_JAR_PATTERN5 = "jcl-over-slf4j*.jar"
+     SQLLINE_WITH_DEPS_PATTERN = "sqlline-*-jar-with-dependencies.jar"
++    OTEL_JAR_PATTERN = "opentelemetry-*.jar"
+ 
+ 
+     OVERRIDE_SLF4J_BACKEND = "OVERRIDE_SLF4J_BACKEND_JAR_LOCATION"
+@@ -206,6 +214,10 @@ def setPath():
+     if slf4j_backend_jar is None or slf4j_backend_jar == "":
+         slf4j_backend_jar = findFileInPathWithoutRecursion(SLF4J_BACKEND_JAR_PATTERN, os.path.join(current_dir, "..","lib"))
+ 
++    # The client jars do not bundle the OpenTelemetry API, so add the copies from lib.
++    global otel_jars
++    otel_jars = findFilesInPathWithoutRecursion(OTEL_JAR_PATTERN, os.path.join(current_dir, "..", "lib"))
++
+     global logging_jar
+     logging_jar = os.environ.get(OVERRIDE_LOGGING)
+     if logging_jar is None or logging_jar == "":
+@@ -325,6 +337,7 @@ if __name__ == "__main__":
+     print("sqlline_with_deps_jar:", sqlline_with_deps_jar)
+     print("slf4j_backend_jar:", slf4j_backend_jar)
+     print("logging_jar:", logging_jar)
++    print("otel_jars:", otel_jars)
+     print("java_home:", java_home)
+     print("java:", java)
+     print("jvm_module_flags:", jvm_module_flags)
+diff --git a/bin/psql.py b/bin/psql.py
+index e21440586eb7df1533c6cb85de4d538b146ed7e5..b670930b57be152b0c5514ab8139e545ae425d1d 100755
+--- a/bin/psql.py
++++ b/bin/psql.py
+@@ -37,6 +37,7 @@ java_cmd = phoenix_utils.java + ' ' + phoenix_utils.jvm_module_flags + \
+     ' -cp "' + phoenix_utils.hbase_conf_dir + os.pathsep + phoenix_utils.hadoop_conf + \
+     os.pathsep + phoenix_utils.slf4j_backend_jar + \
+     os.pathsep + phoenix_utils.logging_jar + \
++    os.pathsep + phoenix_utils.otel_jars + \
+     os.pathsep + phoenix_utils.phoenix_client_embedded_jar + \
+     '" -Djava.util.logging.config.class=org.apache.hadoop.hbase.logging.JulToSlf4jInitializer ' + \
+     ('' if '-Dlog4j2.configurationFile' in opts else ' -Dlog4j2.configurationFile=file:'
+diff --git a/bin/sqlline.py b/bin/sqlline.py
+index 09424789de484f2d7534399007c52c6c7845226d..b081e6bcda054a11e358ded37dca54ee124dabf8 100755
+--- a/bin/sqlline.py
++++ b/bin/sqlline.py
+@@ -99,6 +99,7 @@ java_cmd = phoenix_utils.java + ' ' + phoenix_utils.jvm_module_flags + \
+     phoenix_utils.sqlline_with_deps_jar + os.pathsep + \
+     phoenix_utils.slf4j_backend_jar + os.pathsep + \
+     phoenix_utils.logging_jar + os.pathsep + \
++    phoenix_utils.otel_jars + os.pathsep + \
+     phoenix_utils.phoenix_client_lite_jar + \
+     '" -Djava.util.logging.config.class=org.apache.hadoop.hbase.logging.JulToSlf4jInitializer ' + \
+     ('' if '-Dlog4j2.configurationFile' in opts else ' -Dlog4j2.configurationFile=file:'
+diff --git a/bin/traceserver.py b/bin/traceserver.py
+index a73eb2355633b824a0a461e40358922f9537c169..3caa7647a8de92612c96081ba2b2a0aa96496f3b 100755
+--- a/bin/traceserver.py
++++ b/bin/traceserver.py
+@@ -121,7 +121,7 @@ else:
+ java_cmd = '%(java)s  ' + \
+     '-cp ' + hbase_config_path + os.pathsep + phoenix_utils.hadoop_conf + os.pathsep + \
+     phoenix_utils.phoenix_traceserver_jar + os.pathsep + phoenix_utils.slf4j_backend_jar + os.pathsep + \
+-    phoenix_utils.logging_jar + os.pathsep + \
++    phoenix_utils.logging_jar + os.pathsep + phoenix_utils.otel_jars + os.pathsep + \
+     phoenix_utils.phoenix_client_embedded_jar + os.pathsep + phoenix_utils.phoenix_queryserver_jar + \
+     " -Dproc_phoenixtraceserver" + \
+     " -Dlog4j2.configurationFile=file:" + os.path.join(phoenix_utils.current_dir, "log4j2.properties") + \
+diff --git a/phoenix-assembly/src/build/components/all-common-dependencies.xml b/phoenix-assembly/src/build/components/all-common-dependencies.xml
+index 9ed81f0afa534a2adadd035b0032ce1f1fcb457a..a942bac3a2cc370beb31b877a140ba495c7cdb45 100644
+--- a/phoenix-assembly/src/build/components/all-common-dependencies.xml
++++ b/phoenix-assembly/src/build/components/all-common-dependencies.xml
+@@ -30,6 +30,11 @@
+         <include>org.apache.logging.log4j:log4j-api</include>
+         <include>org.apache.logging.log4j:log4j-core</include>
+         <include>org.apache.logging.log4j:log4j-1.2-api</include>
++        <!-- The client jars do not bundle the OpenTelemetry API, so ship it here. -->
++        <include>io.opentelemetry:opentelemetry-api</include>
++        <include>io.opentelemetry:opentelemetry-context</include>
++        <include>io.opentelemetry:opentelemetry-semconv</include>
++        <include>io.opentelemetry.semconv:opentelemetry-semconv</include>
+       </includes>
+     </dependencySet>
+   </dependencySets>
+diff --git a/phoenix-client-parent/phoenix-client-embedded/pom.xml b/phoenix-client-parent/phoenix-client-embedded/pom.xml
+index 8c42effdd57f47d882624e0d6bae3c4d95b34680..617bb2c88032c71b0bfa3b4a5c4f9637cc79ce4f 100644
+--- a/phoenix-client-parent/phoenix-client-embedded/pom.xml
++++ b/phoenix-client-parent/phoenix-client-embedded/pom.xml
+@@ -127,6 +127,11 @@
+                 <excludes>
+                   <exclude>org.apache.phoenix:phoenix-client</exclude>
+                   <exclude>xom:xom</exclude>
++                  <!-- Do not bundle the OpenTelemetry API. The application supplies it, and
++                       Phoenix, HBase and the application must share one copy. A bundled copy
++                       splits the io.opentelemetry packages across two jars. -->
++                  <exclude>io.opentelemetry:*</exclude>
++                  <exclude>io.opentelemetry.semconv:*</exclude>
+                 </excludes>
+               </artifactSet>
+             </configuration>
+diff --git a/phoenix-client-parent/phoenix-client-lite/pom.xml b/phoenix-client-parent/phoenix-client-lite/pom.xml
+index 2682235f9f52d400c5bae43cdd9cb7dbad0ed394..edd227d9db9c1a2c0c4e1374c720a458f9978a12 100644
+--- a/phoenix-client-parent/phoenix-client-lite/pom.xml
++++ b/phoenix-client-parent/phoenix-client-lite/pom.xml
+@@ -127,6 +127,11 @@
+                 <excludes>
+                   <exclude>org.apache.phoenix:phoenix-client</exclude>
+                   <exclude>xom:xom</exclude>
++                  <!-- Do not bundle the OpenTelemetry API. The application supplies it, and
++                       Phoenix, HBase and the application must share one copy. A bundled copy
++                       splits the io.opentelemetry packages across two jars. -->
++                  <exclude>io.opentelemetry:*</exclude>
++                  <exclude>io.opentelemetry.semconv:*</exclude>
+                 </excludes>
+               </artifactSet>
+             </configuration>
+diff --git a/phoenix-client-parent/pom.xml b/phoenix-client-parent/pom.xml
+index 7844f7a44b6ed7a736e6e5d50e1f52d658adf0ff..c8d34e9873d90f3c4dfb7613b5ed67cc47b916a0 100644
+--- a/phoenix-client-parent/pom.xml
++++ b/phoenix-client-parent/pom.xml
+@@ -181,8 +181,9 @@
+                   <exclude>io/skip/checksum/errors</exclude>
+                   <exclude>io/sort/*</exclude>
+                   <exclude>io/serializations</exclude>
+-                  <!-- OpenTelemetry API must NOT be shaded so that Phoenix uses the same
+-                       GlobalOpenTelemetry class as the Java Agent. See PHOENIX-5215. -->
++                  <!-- Do not relocate the OpenTelemetry API. Phoenix and HBase must use the same
++                       GlobalOpenTelemetry and Context storage as the application. A relocated
++                       copy never sees the installed SDK, so its spans are not exported. -->
+                   <exclude>io/opentelemetry/**</exclude>
+                 </excludes>
+               </relocation>
+diff --git a/phoenix-core-client/pom.xml b/phoenix-core-client/pom.xml
+index 4c9b95f92e5b94a2df7feab8dbd5e3114c889b3c..e7965bbf4956af5a939f94a4acfd88450c3a7ba1 100644
+--- a/phoenix-core-client/pom.xml
++++ b/phoenix-core-client/pom.xml
+@@ -27,6 +27,20 @@
+   <name>Phoenix Core Client</name>
+   <description>Core Phoenix Client codebase</description>
+ 
++  <!-- Pin the OpenTelemetry API that this module compiles and tests against. See the
++       opentelemetry.version property in the root pom. -->
++  <dependencyManagement>
++    <dependencies>
++      <dependency>
++        <groupId>io.opentelemetry</groupId>
++        <artifactId>opentelemetry-bom</artifactId>
++        <version>${opentelemetry.version}</version>
++        <type>pom</type>
++        <scope>import</scope>
++      </dependency>
++    </dependencies>
++  </dependencyManagement>
++
+   <dependencies>
+     <!-- shaded thirdparty dependencies -->
+     <dependency>
+diff --git a/phoenix-core-client/src/main/java/org/apache/phoenix/execute/MutationState.java b/phoenix-core-client/src/main/java/org/apache/phoenix/execute/MutationState.java
+index 8e5d3b35199c18ef4ac530b4a75c2270bffd8eed..c6dcb704f0e8676966551c912e4068785997077e 100644
+--- a/phoenix-core-client/src/main/java/org/apache/phoenix/execute/MutationState.java
++++ b/phoenix-core-client/src/main/java/org/apache/phoenix/execute/MutationState.java
+@@ -1512,199 +1512,187 @@ public class MutationState implements SQLCloseable {
+       // TODO maybe we can be smarter about the table name to string here?
+       Span child =
+         PhoenixTracing.createSpan("phoenix.mutation.batch.write." + Bytes.toString(htableName));
++      // One try block covers all work for this table, so the current span always ends. A retry
++      // replaces the span, and this block then ends the replacement.
++      try {
++        int retryCount = 0;
++        boolean shouldRetry = false;
++        long numMutations = 0;
++        long mutationSizeBytes = 0;
++        long mutationCommitTime = 0;
++        long numFailedMutations = 0;
++        long numFailedPhase3Mutations = 0;
++
++        long startTime = EnvironmentEdgeManager.currentTimeMillis();
++        MutationBytes totalMutationBytesObject = null;
++        boolean shouldRetryIndexedMutation = false;
++        IndexWriteException iwe = null;
++        do {
++          TableRef origTableRef = tableInfo.getOrigTableRef();
++          PTable table = origTableRef.getTable();
++          table.getIndexMaintainers(indexMetaDataPtr, connection);
++          final ServerCache cache = tableInfo.isDataTable()
++            ? IndexMetaDataCacheClient.setMetaDataOnMutations(connection, table, mutationList,
++              indexMetaDataPtr)
++            : null;
++          // no-op if table doesn't have Conditional TTL
++          ScanUtil.annotateMutationWithConditionalTTL(connection, tableInfo.getPTable(),
++            mutationList);
++          // If we haven't retried yet, retry for this case only, as it's possible that
++          // a split will occur after we send the index metadata cache to all known
++          // region servers.
++          shouldRetry = cache != null;
++          SQLException sqlE = null;
++          Table hTable = connection.getQueryServices().getTable(htableName);
++          List<Mutation> currentMutationBatch = null;
++          boolean areAllBatchesSuccessful = false;
++          Object[] resultObjects = null;
+ 
+-      int retryCount = 0;
+-      boolean shouldRetry = false;
+-      long numMutations = 0;
+-      long mutationSizeBytes = 0;
+-      long mutationCommitTime = 0;
+-      long numFailedMutations = 0;
+-      long numFailedPhase3Mutations = 0;
+-
+-      long startTime = EnvironmentEdgeManager.currentTimeMillis();
+-      MutationBytes totalMutationBytesObject = null;
+-      boolean shouldRetryIndexedMutation = false;
+-      IndexWriteException iwe = null;
+-      do {
+-        TableRef origTableRef = tableInfo.getOrigTableRef();
+-        PTable table = origTableRef.getTable();
+-        table.getIndexMaintainers(indexMetaDataPtr, connection);
+-        final ServerCache cache = tableInfo.isDataTable()
+-          ? IndexMetaDataCacheClient.setMetaDataOnMutations(connection, table, mutationList,
+-            indexMetaDataPtr)
+-          : null;
+-        // no-op if table doesn't have Conditional TTL
+-        ScanUtil.annotateMutationWithConditionalTTL(connection, tableInfo.getPTable(),
+-          mutationList);
+-        // If we haven't retried yet, retry for this case only, as it's possible that
+-        // a split will occur after we send the index metadata cache to all known
+-        // region servers.
+-        shouldRetry = cache != null;
+-        SQLException sqlE = null;
+-        Table hTable = connection.getQueryServices().getTable(htableName);
+-        List<Mutation> currentMutationBatch = null;
+-        boolean areAllBatchesSuccessful = false;
+-        Object[] resultObjects = null;
+-
+-        try {
+-          if (table.isTransactional()) {
+-            // Track tables to which we've sent uncommitted data
+-            if (tableInfo.isDataTable()) {
+-              uncommittedPhysicalNames.add(table.getPhysicalName().getString());
+-              phoenixTransactionContext.markDMLFence(table);
+-            }
+-            // Only pass true for last argument if the index is being written to on it's own (i.e.
+-            // initial
+-            // index population), not if it's being written to for normal maintenance due to writes
+-            // to
+-            // the data table. This case is different because the initial index population does not
+-            // need
+-            // to be done transactionally since the index is only made active after all writes have
+-            // occurred successfully.
+-            hTable = phoenixTransactionContext.getTransactionalTableWriter(connection, table,
+-              hTable, tableInfo.isDataTable() && table.getType() == PTableType.INDEX);
+-          }
+-          numMutations = mutationList.size();
+-          GLOBAL_MUTATION_BATCH_SIZE.update(numMutations);
+-          totalMutationBytesObject = calculateMutationSize(mutationList, true);
+-
+-          child.addEvent("Attempt " + retryCount);
+-          Iterator<List<Mutation>> itrListMutation = mutationBatchList.iterator();
+-          while (itrListMutation.hasNext()) {
+-            final List<Mutation> mutationBatch = itrListMutation.next();
+-            currentMutationBatch = mutationBatch;
+-            if (connection.getAutoCommit() && mutationBatch.size() == 1) {
+-              resultObjects = new Object[mutationBatch.size()];
++          try {
++            if (table.isTransactional()) {
++              // Track tables to which we've sent uncommitted data
++              if (tableInfo.isDataTable()) {
++                uncommittedPhysicalNames.add(table.getPhysicalName().getString());
++                phoenixTransactionContext.markDMLFence(table);
++              }
++              // Only pass true for last argument if the index is being written to on it's own
++              // (i.e. initial index population), not if it's being written to for normal
++              // maintenance due to writes to the data table. This case is different because the
++              // initial index population does not need to be done transactionally since the index
++              // is only made active after all writes have occurred successfully.
++              hTable = phoenixTransactionContext.getTransactionalTableWriter(connection, table,
++                hTable, tableInfo.isDataTable() && table.getType() == PTableType.INDEX);
+             }
+-            if (shouldRetryIndexedMutation) {
+-              // if there was an index write failure, retry the mutation in a loop
+-              final Table finalHTable = hTable;
+-              final ImmutableBytesWritable finalindexMetaDataPtr = indexMetaDataPtr;
+-              final PTable finalPTable = table;
+-              final Object[] finalResultObjects = resultObjects;
+-              PhoenixIndexFailurePolicyHelper.doBatchWithRetries(new MutateCommand() {
+-                @Override
+-                public void doMutation() throws IOException {
+-                  try {
+-                    finalHTable.batch(mutationBatch, finalResultObjects);
+-                  } catch (InterruptedException e) {
+-                    Thread.currentThread().interrupt();
+-                    throw new IOException(e);
+-                  } catch (IOException e) {
+-                    e = updateTableRegionCacheIfNecessary(e);
+-                    throw e;
++            numMutations = mutationList.size();
++            GLOBAL_MUTATION_BATCH_SIZE.update(numMutations);
++            totalMutationBytesObject = calculateMutationSize(mutationList, true);
++
++            child.addEvent("Attempt " + retryCount);
++            Iterator<List<Mutation>> itrListMutation = mutationBatchList.iterator();
++            while (itrListMutation.hasNext()) {
++              final List<Mutation> mutationBatch = itrListMutation.next();
++              currentMutationBatch = mutationBatch;
++              if (connection.getAutoCommit() && mutationBatch.size() == 1) {
++                resultObjects = new Object[mutationBatch.size()];
++              }
++              if (shouldRetryIndexedMutation) {
++                // if there was an index write failure, retry the mutation in a loop
++                final Table finalHTable = hTable;
++                final ImmutableBytesWritable finalindexMetaDataPtr = indexMetaDataPtr;
++                final PTable finalPTable = table;
++                final Object[] finalResultObjects = resultObjects;
++                PhoenixIndexFailurePolicyHelper.doBatchWithRetries(new MutateCommand() {
++                  @Override
++                  public void doMutation() throws IOException {
++                    try {
++                      finalHTable.batch(mutationBatch, finalResultObjects);
++                    } catch (InterruptedException e) {
++                      Thread.currentThread().interrupt();
++                      throw new IOException(e);
++                    } catch (IOException e) {
++                      e = updateTableRegionCacheIfNecessary(e);
++                      throw e;
++                    }
+                   }
+-                }
+ 
+-                @Override
+-                public List<Mutation> getMutationList() {
+-                  return mutationBatch;
+-                }
++                  @Override
++                  public List<Mutation> getMutationList() {
++                    return mutationBatch;
++                  }
+ 
+-                private IOException updateTableRegionCacheIfNecessary(IOException ioe) {
+-                  SQLException sqlE = ClientUtil.parseLocalOrRemoteServerException(ioe);
+-                  if (
+-                    sqlE != null && sqlE.getErrorCode()
+-                        == SQLExceptionCode.INDEX_METADATA_NOT_FOUND.getErrorCode()
+-                  ) {
+-                    try {
+-                      connection.getQueryServices().clearTableRegionCache(finalHTable.getName());
+-                      IndexMetaDataCacheClient.setMetaDataOnMutations(connection, finalPTable,
+-                        mutationBatch, finalindexMetaDataPtr);
+-                    } catch (SQLException e) {
+-                      return ClientUtil
+-                        .createIOException("Exception during updating index meta data cache", ioe);
++                  private IOException updateTableRegionCacheIfNecessary(IOException ioe) {
++                    SQLException sqlE = ClientUtil.parseLocalOrRemoteServerException(ioe);
++                    if (
++                      sqlE != null && sqlE.getErrorCode()
++                          == SQLExceptionCode.INDEX_METADATA_NOT_FOUND.getErrorCode()
++                    ) {
++                      try {
++                        connection.getQueryServices().clearTableRegionCache(finalHTable.getName());
++                        IndexMetaDataCacheClient.setMetaDataOnMutations(connection, finalPTable,
++                          mutationBatch, finalindexMetaDataPtr);
++                      } catch (SQLException e) {
++                        return ClientUtil.createIOException(
++                          "Exception during updating index meta data cache", ioe);
++                      }
+                     }
++                    return ioe;
+                   }
+-                  return ioe;
+-                }
+-              }, iwe, connection, connection.getQueryServices().getProps());
+-              shouldRetryIndexedMutation = false;
+-            } else {
+-              hTable.batch(mutationBatch, resultObjects);
+-            }
++                }, iwe, connection, connection.getQueryServices().getProps());
++                shouldRetryIndexedMutation = false;
++              } else {
++                hTable.batch(mutationBatch, resultObjects);
++              }
+ 
+-            if (resultObjects != null) {
+-              Result result = (Result) resultObjects[0];
+-              if (result != null && !result.isEmpty()) {
+-                Cell cell = result.getColumnLatestCell(Bytes.toBytes(UPSERT_CF),
+-                  Bytes.toBytes(UPSERT_STATUS_CQ));
+-                numUpdatedRowsForAutoCommit = PInteger.INSTANCE.getCodec()
+-                  .decodeInt(cell.getValueArray(), cell.getValueOffset(), SortOrder.getDefault());
+-                if (this.returnResult != null) {
+-                  if (
+-                    this.returnResult == ReturnResult.NEW_ROW_ON_SUCCESS
+-                      || this.returnResult == ReturnResult.OLD_ROW_ALWAYS
+-                  ) {
+-                    this.result = result;
++              if (resultObjects != null) {
++                Result result = (Result) resultObjects[0];
++                if (result != null && !result.isEmpty()) {
++                  Cell cell = result.getColumnLatestCell(Bytes.toBytes(UPSERT_CF),
++                    Bytes.toBytes(UPSERT_STATUS_CQ));
++                  numUpdatedRowsForAutoCommit = PInteger.INSTANCE.getCodec()
++                    .decodeInt(cell.getValueArray(), cell.getValueOffset(), SortOrder.getDefault());
++                  if (this.returnResult != null) {
++                    if (
++                      this.returnResult == ReturnResult.NEW_ROW_ON_SUCCESS
++                        || this.returnResult == ReturnResult.OLD_ROW_ALWAYS
++                    ) {
++                      this.result = result;
++                    }
+                   }
++                } else {
++                  numUpdatedRowsForAutoCommit = 1;
+                 }
+-              } else {
+-                numUpdatedRowsForAutoCommit = 1;
+               }
++
++              // remove each batch from the list once it gets applied
++              // so when failures happens for any batch we only start
++              // from that batch only instead of doing duplicate reply of already
++              // applied batches from entire list, also we can set
++              // REPLAY_ONLY_INDEX_WRITES for first batch
++              // only in case of 1121 SQLException
++              itrListMutation.remove();
++              batchCount++;
++              if (LOGGER.isDebugEnabled()) LOGGER.debug(
++                "Sent batch of " + mutationBatch.size() + " for " + Bytes.toString(htableName));
+             }
++            shouldRetry = false;
++            numFailedMutations = 0;
+ 
+-            // remove each batch from the list once it gets applied
+-            // so when failures happens for any batch we only start
+-            // from that batch only instead of doing duplicate reply of already
+-            // applied batches from entire list, also we can set
+-            // REPLAY_ONLY_INDEX_WRITES for first batch
+-            // only in case of 1121 SQLException
+-            itrListMutation.remove();
+-            batchCount++;
+-            if (LOGGER.isDebugEnabled()) LOGGER.debug(
+-              "Sent batch of " + mutationBatch.size() + " for " + Bytes.toString(htableName));
+-          }
+-          child.end();
+-          shouldRetry = false;
+-          numFailedMutations = 0;
+-
+-          // Remove batches as we process them
+-          removeMutations(this.mutationsMap, origTableRef);
+-          if (tableInfo.isDataTable()) {
+-            numRows -= numMutations;
+-            // recalculate the estimated size
+-            estimatedSize =
+-              PhoenixKeyValueUtil.getEstimatedRowMutationSizeWithBatch(this.mutationsMap);
+-          }
+-          areAllBatchesSuccessful = true;
+-        } catch (RuntimeException e) {
+-          // A RuntimeException here is a Phoenix bug, not a failed mutation. Rethrow it rather
+-          // than wrapping it in a CommitException, which would report it as a server-side commit
+-          // failure. Checked exceptions from hTable.batch() still fall through to the handler
+-          // below. This is the pattern SpotBugs REC_CATCH_EXCEPTION asks for.
+-          PhoenixTracing.setError(child, e);
+-          child.end();
+-          throw e;
+-        } catch (Exception e) {
+-          long serverTimestamp = ClientUtil.parseServerTimestamp(e);
+-          SQLException inferredE = ClientUtil.parseServerExceptionOrNull(e);
+-          if (inferredE != null) {
+-            if (
+-              shouldRetry && retryCount == 0
+-                && inferredE.getErrorCode()
+-                    == SQLExceptionCode.INDEX_METADATA_NOT_FOUND.getErrorCode()
+-            ) {
+-              // Swallow this exception once, as it's possible that we split after sending the index
+-              // metadata
+-              // and one of the region servers doesn't have it. This will cause it to have it the
+-              // next
+-              // go around.
+-              // If it fails again, we don't retry.
+-              String msg =
+-                "Swallowing exception and retrying after clearing meta cache on connection. "
+-                  + inferredE;
+-              LOGGER.warn(LogUtil.addCustomAnnotations(msg, connection));
+-              connection.getQueryServices().clearTableRegionCache(TableName.valueOf(htableName));
+-
+-              // add a new child span as this one failed
+-              child.addEvent(msg);
+-              child.end();
+-              child = PhoenixTracing.createSpan("phoenix.mutation.batch.retry");
+-
+-              continue;
+-            } else
+-              if (inferredE.getErrorCode() == SQLExceptionCode.INDEX_WRITE_FAILURE.getErrorCode()) {
++            // Remove batches as we process them
++            removeMutations(this.mutationsMap, origTableRef);
++            if (tableInfo.isDataTable()) {
++              numRows -= numMutations;
++              // recalculate the estimated size
++              estimatedSize =
++                PhoenixKeyValueUtil.getEstimatedRowMutationSizeWithBatch(this.mutationsMap);
++            }
++            areAllBatchesSuccessful = true;
++          } catch (Exception e) {
++            long serverTimestamp = ClientUtil.parseServerTimestamp(e);
++            SQLException inferredE = ClientUtil.parseServerExceptionOrNull(e);
++            if (inferredE != null) {
++              if (
++                shouldRetry && retryCount == 0
++                  && inferredE.getErrorCode()
++                      == SQLExceptionCode.INDEX_METADATA_NOT_FOUND.getErrorCode()
++              ) {
++                // Swallow this exception once, as it's possible that we split after sending the
++                // index metadata and one of the region servers doesn't have it. This will cause it
++                // to have it the next go around. If it fails again, we don't retry.
++                String msg =
++                  "Swallowing exception and retrying after clearing meta cache on connection. "
++                    + inferredE;
++                LOGGER.warn(LogUtil.addCustomAnnotations(msg, connection));
++                connection.getQueryServices().clearTableRegionCache(TableName.valueOf(htableName));
++
++                // add a new child span as this one failed
++                child.addEvent(msg);
++                child.end();
++                child = PhoenixTracing.createSpan("phoenix.mutation.batch.retry");
++
++                continue;
++              } else if (
++                inferredE.getErrorCode() == SQLExceptionCode.INDEX_WRITE_FAILURE.getErrorCode()
++              ) {
+                 iwe = PhoenixIndexFailurePolicyHelper.getIndexWriteException(inferredE);
+                 if (iwe != null && !shouldRetryIndexedMutation) {
+                   // For an index write failure, the data table write succeeded,
+@@ -1722,93 +1710,93 @@ public class MutationState implements SQLCloseable {
+                   continue;
+                 }
+               }
+-            e = inferredE;
+-          }
+-          // Throw to client an exception that indicates the statements that
+-          // were not committed successfully.
+-          int[] uncommittedStatementIndexes = getUncommittedStatementIndexes();
+-          sqlE = new CommitException(e, uncommittedStatementIndexes, serverTimestamp);
++              e = inferredE;
++            }
++            // Throw to client an exception that indicates the statements that
++            // were not committed successfully.
++            int[] uncommittedStatementIndexes = getUncommittedStatementIndexes();
++            sqlE = new CommitException(e, uncommittedStatementIndexes, serverTimestamp);
+ 
+-          numFailedMutations = uncommittedStatementIndexes.length;
++            numFailedMutations = uncommittedStatementIndexes.length;
+ 
+-          if (isVerifiedPhase) {
+-            numFailedPhase3Mutations = numFailedMutations;
+-            GLOBAL_MUTATION_INDEX_COMMIT_FAILURE_COUNT.update(numFailedPhase3Mutations);
+-          }
+-        } finally {
+-          mutationCommitTime = EnvironmentEdgeManager.currentTimeMillis() - startTime;
+-          GLOBAL_MUTATION_COMMIT_TIME.update(mutationCommitTime);
+-          MutationMetric failureMutationMetrics = MutationMetric.EMPTY_METRIC;
+-          long mutationQueryParsingTimeMS = this.mutationQueryParsingTimeMS;
+-          if (!areAllBatchesSuccessful) {
+-            failureMutationMetrics =
+-              updateMutationBatchFailureMetrics(currentMutationBatch, htableNameStr,
+-                numFailedMutations, table.isTransactional(), mutationQueryParsingTimeMS);
+-          }
+-
+-          MutationMetric committedMutationsMetric =
+-            getCommittedMutationsMetric(totalMutationBytesObject, mutationBatchList, numMutations,
+-              numFailedMutations, numFailedPhase3Mutations, mutationCommitTime, totalBatchCount,
+-              mutationQueryParsingTimeMS);
+-          // Combine failure mutation metrics with committed ones for the final picture
+-          committedMutationsMetric.combineMetric(failureMutationMetrics);
+-          mutationMetricQueue.addMetricsForTable(htableNameStr, committedMutationsMetric);
+-
+-          if (allUpsertsMutations ^ allDeletesMutations) {
+-            // success cases are updated for both cases autoCommit=true and conn.commit explicit
+-            if (areAllBatchesSuccessful) {
+-              TableMetricsManager.updateMetricsMethod(htableNameStr,
+-                allUpsertsMutations
+-                  ? UPSERT_AGGREGATE_SUCCESS_SQL_COUNTER
+-                  : DELETE_AGGREGATE_SUCCESS_SQL_COUNTER,
+-                1);
++            if (isVerifiedPhase) {
++              numFailedPhase3Mutations = numFailedMutations;
++              GLOBAL_MUTATION_INDEX_COMMIT_FAILURE_COUNT.update(numFailedPhase3Mutations);
+             }
+-            // Failures cases are updated only for conn.commit explicit case.
+-            if (!areAllBatchesSuccessful && !connection.getAutoCommit()) {
+-              TableMetricsManager.updateMetricsMethod(htableNameStr,
+-                allUpsertsMutations
+-                  ? UPSERT_AGGREGATE_FAILURE_SQL_COUNTER
+-                  : DELETE_AGGREGATE_FAILURE_SQL_COUNTER,
+-                1);
++          } finally {
++            mutationCommitTime = EnvironmentEdgeManager.currentTimeMillis() - startTime;
++            GLOBAL_MUTATION_COMMIT_TIME.update(mutationCommitTime);
++            MutationMetric failureMutationMetrics = MutationMetric.EMPTY_METRIC;
++            long mutationQueryParsingTimeMS = this.mutationQueryParsingTimeMS;
++            if (!areAllBatchesSuccessful) {
++              failureMutationMetrics =
++                updateMutationBatchFailureMetrics(currentMutationBatch, htableNameStr,
++                  numFailedMutations, table.isTransactional(), mutationQueryParsingTimeMS);
+             }
+-            // Update size and latency histogram metrics.
+-            TableMetricsManager.updateSizeHistogramMetricsForMutations(htableNameStr,
+-              committedMutationsMetric.getTotalMutationsSizeBytes().getValue(),
+-              allUpsertsMutations);
+-            Long latency = timeInExecuteMutationMap.get(htableNameStr);
+-            if (latency == null) {
+-              latency = 0l;
++
++            MutationMetric committedMutationsMetric =
++              getCommittedMutationsMetric(totalMutationBytesObject, mutationBatchList, numMutations,
++                numFailedMutations, numFailedPhase3Mutations, mutationCommitTime, totalBatchCount,
++                mutationQueryParsingTimeMS);
++            // Combine failure mutation metrics with committed ones for the final picture
++            committedMutationsMetric.combineMetric(failureMutationMetrics);
++            mutationMetricQueue.addMetricsForTable(htableNameStr, committedMutationsMetric);
++
++            if (allUpsertsMutations ^ allDeletesMutations) {
++              // success cases are updated for both cases autoCommit=true and conn.commit explicit
++              if (areAllBatchesSuccessful) {
++                TableMetricsManager.updateMetricsMethod(htableNameStr,
++                  allUpsertsMutations
++                    ? UPSERT_AGGREGATE_SUCCESS_SQL_COUNTER
++                    : DELETE_AGGREGATE_SUCCESS_SQL_COUNTER,
++                  1);
++              }
++              // Failures cases are updated only for conn.commit explicit case.
++              if (!areAllBatchesSuccessful && !connection.getAutoCommit()) {
++                TableMetricsManager.updateMetricsMethod(htableNameStr,
++                  allUpsertsMutations
++                    ? UPSERT_AGGREGATE_FAILURE_SQL_COUNTER
++                    : DELETE_AGGREGATE_FAILURE_SQL_COUNTER,
++                  1);
++              }
++              // Update size and latency histogram metrics.
++              TableMetricsManager.updateSizeHistogramMetricsForMutations(htableNameStr,
++                committedMutationsMetric.getTotalMutationsSizeBytes().getValue(),
++                allUpsertsMutations);
++              Long latency = timeInExecuteMutationMap.get(htableNameStr);
++              if (latency == null) {
++                latency = 0l;
++              }
++              latency += mutationCommitTime;
++              TableMetricsManager.updateLatencyHistogramForMutations(htableNameStr, latency,
++                allUpsertsMutations);
+             }
+-            latency += mutationCommitTime;
+-            TableMetricsManager.updateLatencyHistogramForMutations(htableNameStr, latency,
+-              allUpsertsMutations);
+-          }
+-          resetAllMutationState();
++            resetAllMutationState();
+ 
+-          try {
+-            if (cache != null) cache.close();
+-          } finally {
+             try {
+-              hTable.close();
+-            } catch (IOException e) {
+-              if (sqlE != null) {
+-                sqlE.setNextException(ClientUtil.parseServerException(e));
+-              } else {
+-                sqlE = ClientUtil.parseServerException(e);
++              if (cache != null) cache.close();
++            } finally {
++              try {
++                hTable.close();
++              } catch (IOException e) {
++                if (sqlE != null) {
++                  sqlE.setNextException(ClientUtil.parseServerException(e));
++                } else {
++                  sqlE = ClientUtil.parseServerException(e);
++                }
+               }
+-            }
+-            if (sqlE != null) {
+-              // The success path above already ended the span; every other way out of the try
+-              // reaches here, so end it now or it is never exported.
+-              if (!areAllBatchesSuccessful) {
+-                PhoenixTracing.setError(child, sqlE);
+-                child.end();
++              if (sqlE != null) {
++                throw sqlE;
+               }
+-              throw sqlE;
+             }
+           }
+-        }
+-      } while (shouldRetry && retryCount++ < 1);
++        } while (shouldRetry && retryCount++ < 1);
++      } catch (SQLException | RuntimeException | Error e) {
++        PhoenixTracing.setError(child, e);
++        throw e;
++      } finally {
++        child.end();
++      }
+     }
+   }
+ 
+diff --git a/phoenix-core-server/pom.xml b/phoenix-core-server/pom.xml
+index 02aa4d95a696f56398a6e01187e1efafebfe071f..ac5478bef1a3148886d77ef83718d8f98711b28d 100644
+--- a/phoenix-core-server/pom.xml
++++ b/phoenix-core-server/pom.xml
+@@ -25,6 +25,20 @@
+   <artifactId>phoenix-core-server</artifactId>
+   <name>Phoenix Core Server</name>
+ 
++  <!-- Pin the OpenTelemetry API that this module compiles and tests against. See the
++       opentelemetry.version property in the root pom. -->
++  <dependencyManagement>
++    <dependencies>
++      <dependency>
++        <groupId>io.opentelemetry</groupId>
++        <artifactId>opentelemetry-bom</artifactId>
++        <version>${opentelemetry.version}</version>
++        <type>pom</type>
++        <scope>import</scope>
++      </dependency>
++    </dependencies>
++  </dependencyManagement>
++
+   <dependencies>
+     <dependency>
+       <groupId>org.apache.phoenix</groupId>
+diff --git a/phoenix-core/pom.xml b/phoenix-core/pom.xml
+index 62fba21512e79a5e57409055e8e8099fe5b1c6e0..9f649872f96db25454fcea66372fa7ca7ed3ed4b 100644
+--- a/phoenix-core/pom.xml
++++ b/phoenix-core/pom.xml
+@@ -30,6 +30,20 @@
+     <top.dir>${project.basedir}/..</top.dir>
+   </properties>
+ 
++  <!-- Pin the OpenTelemetry API that this module compiles and tests against. See the
++       opentelemetry.version property in the root pom. -->
++  <dependencyManagement>
++    <dependencies>
++      <dependency>
++        <groupId>io.opentelemetry</groupId>
++        <artifactId>opentelemetry-bom</artifactId>
++        <version>${opentelemetry.version}</version>
++        <type>pom</type>
++        <scope>import</scope>
++      </dependency>
++    </dependencies>
++  </dependencyManagement>
++
+   <dependencies>
+     <dependency>
+       <groupId>org.apache.phoenix</groupId>
+diff --git a/phoenix-mapreduce-byo-shaded-hbase/pom.xml b/phoenix-mapreduce-byo-shaded-hbase/pom.xml
+index 6095f4e014d9c32f7142c89a28e88bb5dc3630f1..6a648eb3d71d4561a2dceea9f42efed091bf4d02 100644
+--- a/phoenix-mapreduce-byo-shaded-hbase/pom.xml
++++ b/phoenix-mapreduce-byo-shaded-hbase/pom.xml
+@@ -486,6 +486,9 @@
+                   <exclude>io/skip/checksum/errors</exclude>
+                   <exclude>io/sort/*</exclude>
+                   <exclude>io/serializations</exclude>
++                  <!-- Do not relocate the OpenTelemetry API. The HBase installation supplies it,
++                       and this jar does not bundle it. -->
++                  <exclude>io/opentelemetry/**</exclude>
+                 </excludes>
+               </relocation>
+               <!-- JSRs that haven't made it to inclusion in J2SE -->
+diff --git a/phoenix-server/pom.xml b/phoenix-server/pom.xml
+index 3b45681d15692d165862796111ef4ff139e8d64f..deec9a59cc209eb27973aaf73303d3324d146800 100644
+--- a/phoenix-server/pom.xml
++++ b/phoenix-server/pom.xml
+@@ -453,9 +453,9 @@
+                   <exclude>io/skip/checksum/errors</exclude>
+                   <exclude>io/sort/*</exclude>
+                   <exclude>io/serializations</exclude>
+-                  <!-- OpenTelemetry API must NOT be shaded so that Phoenix uses the same
+-                       GlobalOpenTelemetry class as the Java Agent (provided by HBase).
+-                       If shaded, PhoenixTracing calls become no-ops. See PHOENIX-5215. -->
++                  <!-- Do not relocate the OpenTelemetry API. The region server supplies it, and
++                       Phoenix must share its GlobalOpenTelemetry and Context storage. Otherwise
++                       Phoenix spans do not join the HBase RPC spans and are not exported. -->
+                   <exclude>io/opentelemetry/**</exclude>
+                 </excludes>
+               </relocation>
+diff --git a/pom.xml b/pom.xml
+index 4fc11f0b80962dcd90c5088df6600d1ed4cee459..57095adc109b0a6390fb698c68c6fab4fff48ca7 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -228,9 +228,11 @@
+     <protoc.arch>${os.detected.classifier}</protoc.arch>
+     <!-- Keeping the version in sync with hbase javax.el version -->
+     <glassfish.el.version>3.0.1-b08</glassfish.el.version>
+-    <!-- The OpenTelemetry API is provided by HBase at runtime, so we should compile against the
+-         oldest version shipped by any supported HBase profile.
+-         HBase 2.5.3, 2.5.10 and 2.6.1 ship 1.15.0. 2.5.14 and 2.6.3+ ship 1.49.0. -->
++    <!-- HBase supplies the OpenTelemetry API at runtime. Phoenix compiles against the oldest
++         version that a supported HBase release ships, so every call exists at runtime.
++         HBase moved from 1.15.0 to 1.49.0 in 2.5.12 and 2.6.3.
++         Only the modules that compile against the API import this version. The root does not
++         manage it, so the packaged artifacts keep the version that HBase declares. -->
+     <opentelemetry.version>1.15.0</opentelemetry.version>
+     <shaded.package>org.apache.phoenix.shaded</shaded.package>
+     <hbase.shaded.package>org.apache.hadoop.hbase.shaded</hbase.shaded.package>
+@@ -1457,15 +1459,6 @@
+         <artifactId>javax.el</artifactId>
+         <version>${glassfish.el.version}</version>
+       </dependency>
+-
+-      <!-- OpenTelemetry BOM for version alignment -->
+-      <dependency>
+-        <groupId>io.opentelemetry</groupId>
+-        <artifactId>opentelemetry-bom</artifactId>
+-        <version>${opentelemetry.version}</version>
+-        <type>pom</type>
+-        <scope>import</scope>
+-      </dependency>
+     </dependencies>
+   </dependencyManagement>
+ 
+diff --git a/src/main/config/spotbugs/spotbugs-exclude.xml b/src/main/config/spotbugs/spotbugs-exclude.xml
+index 9692bb7d7c2db0e5f539ef5c7af546c320e4168b..a31945d6f85f6efaf3d8ce6f8b870dba34a79009 100644
+--- a/src/main/config/spotbugs/spotbugs-exclude.xml
++++ b/src/main/config/spotbugs/spotbugs-exclude.xml
+@@ -27,4 +27,11 @@ limitations under the License.
+     <!-- We cannot avoid hand-built SQL statements when manipulating SYSTEM.% tables -->
+     <BugPattern name="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING" />
+   </Match>
++  <Match>
++    <!-- A commit reports every failed batch as a CommitException, including unchecked
++         exceptions from the HBase client. The broad catch is intentional. -->
++    <Class name="org.apache.phoenix.execute.MutationState" />
++    <Method name="sendMutations" />
++    <BugPattern name="REC_CATCH_EXCEPTION" />
++  </Match>
+ </FindBugsFilter>

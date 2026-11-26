@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- phoenix: Backport the upstream addendum to PHOENIX-5215, which stops the client jars from bundling the OpenTelemetry API, for `5.3.1` and `5.3.2` ([#XXXX]).
+
+[#XXXX]: https://github.com/stackabletech/docker-images/pull/XXXX
+
 ## [26.11.0] - 2026-11-20
 
 ## [26.11.0-rc1] - 2026-11-19
