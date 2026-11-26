@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- phoenix: Backport the upstream addendum to PHOENIX-5215, which stops the client jars from bundling the OpenTelemetry API, for `5.3.1` and `5.3.2` ([#1761]).
 - hive: Backport [HIVE-29818](https://issues.apache.org/jira/browse/HIVE-29818) to cache proxy users in the Iceberg REST Catalog and prevent running out of memory, for `4.2.0` and `4.2.1` ([#1749]).
 
 [#1749]: https://github.com/stackabletech/docker-images/pull/1749
+[#1761]: https://github.com/stackabletech/docker-images/pull/1761
 
 ## [26.11.0] - 2026-11-20
 
@@ -147,6 +149,8 @@ All notable changes to this project will be documented in this file.
 - druid: Remove `30.0.1`, `35.0.1` ([#1677]).
 - hbase: Remove `2.6.4` ([#1678]).
 - vector: Remove `0.55.0` ([#1680]).
+- hadoop: Remove `3.3.6`. The `hadoop/hadoop` builder image is kept for this version, because
+  Hive `3.1.3` and `4.0.0` still require it ([#1758]).
 - hadoop: Remove `3.4.2` ([#1683]).
 - trino: Remove `479` ([#1690]).
 - trino-cli: Remove `481` ([#1690]).
@@ -223,6 +227,7 @@ All notable changes to this project will be documented in this file.
 [#1741]: https://github.com/stackabletech/docker-images/pull/1741
 [#1745]: https://github.com/stackabletech/docker-images/pull/1745
 [#1753]: https://github.com/stackabletech/docker-images/pull/1753
+[#1758]: https://github.com/stackabletech/docker-images/pull/1758
 
 ## [26.7.0] - 2026-07-21
 
