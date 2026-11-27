@@ -1,17 +1,8 @@
 # SPIKE: Apache ZooKeeper on Red Hat Hummingbird, without any UBI9 stage.
 #
-# UNTESTED. Self-contained replacement for the chain
-#   zookeeper -> java-base -> vector -> stackable-base -> ubi9-minimal
-#   zookeeper (builder) -> java-devel -> stackable-devel -> ubi9-minimal
-# Local images (local-image/...) are replaced by named stages in this file.
-#
 # Build from the repository root (the build context must be the repo root):
 #
-#   podman build -f hummingbird-spike/zookeeper.Dockerfile -t zookeeper-hum:spike .
-#
-# Useful intermediate targets: devel, java-devel, rust-binaries, vector-builder, zookeeper-builder, rootfs
-#
-#   podman build -f hummingbird-spike/zookeeper.Dockerfile --target rootfs -t zk-hum-rootfs .
+#   docker image build -f hummingbird-spike/zookeeper.Dockerfile -t oci.stackable.tech/sandbox/zookeeper:3.9.6-humm .
 #
 # Not covered yet (see hummingbird-findings.md):
 # - nano / iputils (not in the Hummingbird repo)
@@ -21,7 +12,11 @@
 # - SBOM (CycloneDX) for the JRE: the portable JRE is a tarball and does not appear in the rpmdb
 
 ARG DEVEL_BASE=registry.access.redhat.com/hi/openjdk:21-builder
-# TODO: pin the base by digest, like the other Dockerfiles in this repo do
+# The base of the final image. The final image shares its layers with it, so this has to be an image
+# that Red Hat certified (`preflight check container`, BasedOnUbi). It must be glibc based.
+# Keep it on the same Hummingbird release as DEVEL_BASE.
+ARG RUNTIME_BASE=registry.access.redhat.com/hi/core-runtime:latest
+# TODO: pin the bases by digest, like the other Dockerfiles in this repo do
 
 ARG PRODUCT_VERSION=3.9.6
 ARG RELEASE_VERSION=0.0.0-dev
@@ -50,8 +45,8 @@ ARG STACKABLE_USER_NAME
 ARG STACKABLE_USER_UID
 ARG STACKABLE_USER_GID
 
-# Build stage only, nothing from it is shipped as is. The final image is FROM scratch and
-# runs as ${STACKABLE_USER_UID}. root is needed because the base image defaults to UID 65532.
+# Build stage only, nothing from it is shipped as is. The final image runs as ${STACKABLE_USER_UID}.
+# root is needed because the base image defaults to UID 65532.
 # hadolint ignore=DL3002
 USER 0
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
@@ -356,23 +351,27 @@ chmod -R g=u /stackable
 EOF
 
 # ==============================================================================
-# rootfs: assembles the runtime filesystem from the Hummingbird RPM repo into /rootfs
+# runtime-base: the base of the final image, only used to copy its filesystem
+
+FROM ${RUNTIME_BASE} AS runtime-base
+
+# ==============================================================================
+# rootfs: assembles the runtime filesystem into /rootfs
 # (replaces stackable-base + java-base + the final RUN steps of zookeeper).
-# The final image is FROM scratch because the distroless runtime has no shell to run
-# any of these steps in.
+# /rootfs starts as a copy of the runtime base (including its rpmdb) and the packages are installed on top
+# of it. core-runtime has bash and coreutils but no rpm (checked, `dnf` not checked), so packages cannot be installed in the final stage.
+# The last step of this stage extracts what differs from the runtime base into /additions.
 
 FROM ${DEVEL_BASE} AS rootfs
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
-ARG STACKABLE_USER_NAME
 ARG STACKABLE_USER_UID
-ARG STACKABLE_USER_GID
 ARG TARGETARCH
 ARG INOTIFY_TOOLS
 
-# Build stage only, nothing from it is shipped as is. The final image is FROM scratch and
-# runs as ${STACKABLE_USER_UID}. root is needed because the base image defaults to UID 65532.
+# Build stage only, nothing from it is shipped as is. The final image runs as ${STACKABLE_USER_UID}.
+# root is needed because the base image defaults to UID 65532.
 # hadolint ignore=DL3002
 USER 0
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
@@ -380,33 +379,34 @@ ENV HOME=/root
 
 COPY stackable-base/stackable/dnf.conf /etc/dnf/dnf.conf
 
+COPY --from=runtime-base / /rootfs
+
 # Package list is a first guess based on what stackable-base, java-base and zkServer.sh use.
 # grep/sed/gawk are unverified (zkServer.sh and friends are bash scripts).
+# bash and coreutils are already in the runtime base.
 # The JRE is installed on the build host only; we extract its tarball into the rootfs.
 RUN <<EOF
-dnf install tar xz
+dnf install tar xz diffutils
 dnf install java-17-openjdk-portable
 
-mkdir /rootfs
+# Packages that the runtime base already has are skipped
 dnf --installroot=/rootfs --use-host-config install \
-  bash coreutils curl findutils gawk grep krb5-workstation less sed tar ca-certificates openssl-libs shadow-utils
+  curl findutils gawk grep krb5-workstation less sed tar openssl-libs
+
+# The runtime base has `ca-certificates-bundle`, which has an unversioned `Conflicts: ca-certificates`.
+# The full package is needed for `update-ca-trust` (the e-Tugra blocklist below). It replaces the bundle.
+# --allowerasing applies to a whole transaction, so it is only used for this one, not for the list above.
+dnf --installroot=/rootfs --use-host-config install --allowerasing ca-certificates
 
 # Unpack the JRE (a tarball inside the RPM)
 JRE_TARBALL="$(ls /usr/lib/jvm/*portable.jre*.tar.xz)"
 mkdir -p /rootfs/usr/lib/jvm/java-17
 tar -xJf "$JRE_TARBALL" -C /rootfs/usr/lib/jvm/java-17 --strip-components=1
 
-# Stackable user and group (shadow-utils is removed again below)
-chroot /rootfs groupadd --gid ${STACKABLE_USER_GID} --system ${STACKABLE_USER_NAME}
-chroot /rootfs useradd \
-  --no-log-init \
-  --gid ${STACKABLE_USER_GID} \
-  --uid ${STACKABLE_USER_UID} \
-  --system \
-  --create-home \
-  --home-dir /stackable \
-  ${STACKABLE_USER_NAME}
-dnf --installroot=/rootfs --use-host-config remove shadow-utils
+# No Stackable user or group is created: /etc/passwd and /etc/group belong to RPMs of the runtime base and
+# are not edited. The image runs as the numeric ${STACKABLE_USER_UID} (no passwd entry, HOME is set
+# in the final stage). The home directory is created here, the ownership is set further below.
+mkdir -p /rootfs/stackable
 # Cleans the build host's cache. The installroot's own cache is deleted further below.
 dnf clean all
 EOF
@@ -439,21 +439,6 @@ if [ "$(chroot /rootfs trust list --filter=ca-anchors | grep -c 'E-Tugra')" != "
   echo "Still found E-Tugra root certificates, this should not happen!"
   exit 1;
 fi
-EOF
-
-# Shell usage "nicer", as in stackable-base
-# echo won't expand escape sequences. Consider printf.
-# https://github.com/koalaman/shellcheck/wiki/SC2028
-# Reason: This is complaining about the complicated PS1 statement, it is the same as in stackable-base.
-# hadolint ignore=SC2028
-RUN <<EOF
-{
-  echo "alias ll='ls -alF --color=auto'"
-  echo "alias ls='ls --color=auto'"
-  echo "alias ..='cd ..'"
-  echo "export PS1='\u@\[\e[36m\]\H\[\e[m\] \[\e[32m\]\$(pwd)\[\e[m\] \\$ '"
-} >> /rootfs/stackable/.bashrc
-printf 'if [ -f ~/.bashrc ]; then\n\tsource ~/.bashrc\nfi\n' >> /rootfs/stackable/.profile
 EOF
 
 COPY stackable-base/stackable/curlrc /rootfs/stackable/.curlrc
@@ -500,16 +485,52 @@ chmod -R g=u /rootfs/stackable
 chroot /rootfs /usr/bin/check-permissions-ownership.sh /stackable ${STACKABLE_USER_UID} 0
 EOF
 
+# The `additions` part: everything in /rootfs that is not in the runtime base, or that differs from it, goes
+# to /additions. Only this is added on top of the runtime base, its layers stay unchanged.
+# Files that were changed (the rpmdb, the ca-trust files) are included. The base is mounted, not copied.
+# The stage's SHELL is bash, hadolint does not take it into account for process substitution here
+# hadolint ignore=SC3001
+RUN --mount=type=bind,from=runtime-base,target=/base <<EOF
+mkdir /additions
+cd /rootfs
+meta() { stat -c '%u:%g:%a' "$1"; }
+: > /tmp/delta.lst
+while IFS= read -r -d '' p; do
+  b="/base/$p"
+  if [ ! -e "$b" ] && [ ! -L "$b" ]; then
+    printf '%s\0' "$p" >> /tmp/delta.lst
+  elif [ -L "$p" ]; then
+    if [ ! -L "$b" ] || [ "$(readlink "$p")" != "$(readlink "$b")" ]; then printf '%s\0' "$p" >> /tmp/delta.lst; fi
+  elif [ -d "$p" ]; then
+    if [ ! -d "$b" ] || [ "$(meta "$p")" != "$(meta "$b")" ]; then printf '%s\0' "$p" >> /tmp/delta.lst; fi
+  elif [ -f "$p" ]; then
+    if [ ! -f "$b" ] || [ "$(meta "$p")" != "$(meta "$b")" ] || ! cmp -s "$p" "$b"; then printf '%s\0' "$p" >> /tmp/delta.lst; fi
+  else
+    printf '%s\0' "$p" >> /tmp/delta.lst
+  fi
+done < <(find . -mindepth 1 -print0)
+
+echo "Entries added or changed compared to the runtime base: $(tr -cd '\0' < /tmp/delta.lst | wc -c)"
+tar -C /rootfs --null --no-recursion -T /tmp/delta.lst -cf - | tar -C /additions --same-owner -xpf -
+
+# Files of the runtime base that are replaced (preflight may report them as modified files)
+echo "Files of the runtime base that were changed:"
+tr '\0' '\n' < /tmp/delta.lst | while IFS= read -r p; do
+  if [ -e "/base/$p" ] && [ ! -d "/base/$p" ]; then echo "  $p"; fi
+done
+EOF
+
 # ==============================================================================
 # FINAL ZOOKEEPER IMAGE
 
-FROM scratch
+# hadolint ignore=DL3006,DL3007
+FROM ${RUNTIME_BASE}
 
 ARG PRODUCT_VERSION
 ARG RELEASE_VERSION
 ARG STACKABLE_USER_UID
 
-COPY --from=rootfs /rootfs /
+COPY --from=rootfs /additions /
 
 LABEL \
   name="Apache ZooKeeper" \
